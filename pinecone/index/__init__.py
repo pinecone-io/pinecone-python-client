@@ -29,7 +29,7 @@ from pinecone.models.vectors.responses import (
     UpsertRecordsResponse,
     UpsertResponse,
 )
-from pinecone.models.vectors.search import SearchRecordsResponse
+from pinecone.models.vectors.search import RerankConfig, SearchRecordsResponse
 from pinecone.models.vectors.sparse import SparseValues
 from pinecone.models.vectors.vector import Vector
 
@@ -888,7 +888,7 @@ class Index:
         id: str | None = None,
         filter: dict[str, Any] | None = None,
         fields: list[str] | None = None,
-        rerank: dict[str, Any] | None = None,
+        rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
     ) -> SearchRecordsResponse:
         """Search records by text, vector, or ID with optional reranking.

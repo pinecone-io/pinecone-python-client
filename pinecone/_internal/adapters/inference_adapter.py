@@ -117,9 +117,7 @@ def normalize_embed_inputs(
         raise PineconeTypeError(
             f"Expected list of str or list of dict, got list of {type(first).__name__}"
         )
-    raise PineconeTypeError(
-        f"Expected str, list[str], or list[dict], got {type(inputs).__name__}"
-    )
+    raise PineconeTypeError(f"Expected str, list[str], or list[dict], got {type(inputs).__name__}")
 
 
 def normalize_rerank_documents(

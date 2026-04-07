@@ -2,11 +2,40 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TypedDict
 
 from msgspec import Struct
 
 from pinecone.models.vectors.responses import ResponseInfo
+
+
+class _RerankConfigRequired(TypedDict):
+    """Required fields of :class:`RerankConfig`."""
+
+    model: str
+    rank_fields: list[str]
+
+
+class RerankConfig(_RerankConfigRequired, total=False):
+    """Typed configuration for the ``rerank`` parameter of :meth:`~pinecone.Index.search`.
+
+    Required keys: ``model``, ``rank_fields``.
+    All other keys are optional.
+
+    Attributes:
+        model (str): Reranking model name (e.g. ``"bge-reranker-v2-m3"``).
+        rank_fields (list[str]): Record fields to rank on (e.g. ``["text"]``).
+        top_n (int): Number of top results to return after reranking.
+            Defaults to the value of ``top_k`` when omitted.
+        parameters (dict[str, Any]): Model-specific parameters forwarded to
+            the reranker. See the model documentation for supported keys.
+        query (str): Override query text used for reranking.  When omitted the
+            query is inferred from the search inputs.
+    """
+
+    top_n: int
+    parameters: dict[str, Any]
+    query: str
 
 
 class SearchUsage(Struct, kw_only=True):

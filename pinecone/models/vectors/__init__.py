@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     )
     from pinecone.models.vectors.search import (  # noqa: F401
         Hit,
+        RerankConfig,
         SearchRecordsResponse,
         SearchResult,
         SearchUsage,
@@ -51,6 +52,7 @@ _LAZY_IMPORTS: dict[str, str] = {
     "UpdateResponse": "pinecone.models.vectors.responses",
     "UpsertRecordsResponse": "pinecone.models.vectors.responses",
     "Hit": "pinecone.models.vectors.search",
+    "RerankConfig": "pinecone.models.vectors.search",
     "SearchUsage": "pinecone.models.vectors.search",
     "SearchResult": "pinecone.models.vectors.search",
     "SearchRecordsResponse": "pinecone.models.vectors.search",

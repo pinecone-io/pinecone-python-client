@@ -116,7 +116,7 @@ if TYPE_CHECKING:
         UpsertRecordsResponse,
         UpsertResponse,
     )
-    from pinecone.models.vectors.search import SearchRecordsResponse
+    from pinecone.models.vectors.search import RerankConfig, SearchRecordsResponse
     from pinecone.models.vectors.sparse import SparseValues
     from pinecone.models.vectors.vector import Vector
     from pinecone.utils.filter_builder import Field
@@ -218,6 +218,7 @@ __all__ = [
     "QueryNamespacesResults",
     "QueryResponse",
     "QueryResultsAggregator",
+    "RerankConfig",
     "RerankModel",
     "RetryConfig",
     "RerankResult",
@@ -316,6 +317,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "pinecone.models.vectors.query_aggregator",
         "QueryResultsAggregator",
     ),
+    "RerankConfig": ("pinecone.models.vectors.search", "RerankConfig"),
     "RerankModel": ("pinecone.models.enums", "RerankModel"),
     "RerankResult": ("pinecone.models.inference.rerank", "RerankResult"),
     "ResponseInfo": ("pinecone.models.vectors.responses", "ResponseInfo"),

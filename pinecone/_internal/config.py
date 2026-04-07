@@ -77,9 +77,7 @@ class RetryConfig:
     retryable_status_codes: frozenset[int] = field(
         default_factory=lambda: frozenset({500, 502, 503, 504})
     )
-    retryable_methods: frozenset[str] = field(
-        default_factory=lambda: frozenset({"GET", "HEAD"})
-    )
+    retryable_methods: frozenset[str] = field(default_factory=lambda: frozenset({"GET", "HEAD"}))
 
 
 @dataclass(frozen=True)
