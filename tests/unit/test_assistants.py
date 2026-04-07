@@ -1615,3 +1615,97 @@ def test_delete_file_server_error_raises(mock_sleep: object, assistants: Assista
 
     with pytest.raises(PineconeError, match="Storage backend error"):
         assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123")
+
+
+# ---------------------------------------------------------------------------
+# chat() — validation
+# ---------------------------------------------------------------------------
+
+
+def test_chat_json_streaming_validation(assistants: Assistants) -> None:
+    """Requesting json_response=True with stream=True raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="json_response"):
+        assistants.chat(
+            assistant_name="test-assistant",
+            messages=[{"content": "Hello"}],
+            stream=True,
+            json_response=True,
+        )
+
+
+# ---------------------------------------------------------------------------
+# chat() — defaults
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_chat_default_model(assistants: Assistants) -> None:
+    """chat() defaults model to 'gpt-4o' when not specified."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "id": "chat-abc123",
+                "model": "gpt-4o",
+                "usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
+                "message": {"role": "assistant", "content": "Hello!"},
+                "finish_reason": "stop",
+                "citations": [],
+            },
+        )
+    )
+
+    from pinecone.models.assistant.chat import ChatResponse
+
+    result = assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+    )
+
+    assert isinstance(result, ChatResponse)
+    request_body = json.loads(chat_route.calls.last.request.content)
+    assert request_body["model"] == "gpt-4o"
+
+
+# ---------------------------------------------------------------------------
+# chat() — message parsing
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_chat_message_parsing(assistants: Assistants) -> None:
+    """Dicts are converted to Message objects; missing role defaults to 'user'."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "id": "chat-abc123",
+                "model": "gpt-4o",
+                "usage": {"prompt_tokens": 5, "completion_tokens": 10, "total_tokens": 15},
+                "message": {"role": "assistant", "content": "Hi!"},
+                "finish_reason": "stop",
+                "citations": [],
+            },
+        )
+    )
+
+    assistants.chat(
+        assistant_name="test-assistant",
+        messages=[
+            {"content": "No role here"},
+            {"content": "Explicit role", "role": "user"},
+        ],
+    )
+
+    request_body = json.loads(chat_route.calls.last.request.content)
+    msgs = request_body["messages"]
+    assert msgs[0]["role"] == "user"
+    assert msgs[0]["content"] == "No role here"
+    assert msgs[1]["role"] == "user"
+    assert msgs[1]["content"] == "Explicit role"

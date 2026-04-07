@@ -5,7 +5,9 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import IO, TYPE_CHECKING, Any
+from typing import IO, TYPE_CHECKING, Any, Iterator, List
+
+import msgspec.structs
 
 from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
 from pinecone._internal.constants import ASSISTANT_API_VERSION
@@ -15,9 +17,13 @@ from pinecone.errors.exceptions import (
     PineconeTimeoutError,
     PineconeValueError,
 )
+from pinecone.models.assistant.chat import ChatResponse
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
+from pinecone.models.assistant.message import Message
 from pinecone.models.assistant.model import AssistantModel
+from pinecone.models.assistant.options import ContextOptions
+from pinecone.models.assistant.streaming import ChatStreamChunk
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
@@ -710,6 +716,108 @@ class Assistants:
                 if elapsed >= timeout:
                     raise PineconeTimeoutError(f"Assistant '{name}' still exists after {timeout}s")
             time.sleep(_DELETE_POLL_INTERVAL_SECONDS)
+
+    def chat(
+        self,
+        *,
+        assistant_name: str,
+        messages: List[Message | dict[str, str]],
+        model: str = "gpt-4o",
+        stream: bool = False,
+        temperature: float | None = None,
+        filter: dict[str, Any] | None = None,
+        json_response: bool = False,
+        include_highlights: bool = False,
+        context_options: ContextOptions | dict[str, Any] | None = None,
+    ) -> ChatResponse | Iterator[ChatStreamChunk]:
+        """Chat with an assistant and receive citations in Pinecone-native format.
+
+        Args:
+            assistant_name (str): Name of the assistant to chat with.
+            messages (list[Message | dict[str, str]]): Conversation messages.
+                Dicts are converted to :class:`Message` objects; role defaults
+                to ``"user"`` when not present.
+            model (str): Large language model to use. Defaults to ``"gpt-4o"``.
+            stream (bool): If ``True``, return a streaming iterator. Defaults
+                to ``False``.
+            temperature (float | None): Controls randomness. Lower values produce
+                more deterministic responses. Omitted from request when ``None``.
+            filter (dict[str, Any] | None): Metadata filter restricting which
+                documents are used as context. Omitted from request when ``None``.
+            json_response (bool): If ``True``, instruct the assistant to return
+                a JSON response. Cannot be used with streaming.
+            include_highlights (bool): If ``True``, include highlight snippets
+                from referenced documents in citations.
+            context_options (ContextOptions | dict[str, Any] | None): Options
+                controlling context retrieval. Omitted from request when ``None``.
+
+        Returns:
+            :class:`ChatResponse` for non-streaming requests, or an
+            :class:`Iterator[ChatStreamChunk]` for streaming requests.
+
+        Raises:
+            :exc:`PineconeValueError`: If both ``stream=True`` and
+                ``json_response=True`` are specified.
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+            Non-streaming chat:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> response = pc.assistants.chat(
+            ...     assistant_name="my-assistant",
+            ...     messages=[{"content": "What is Pinecone?"}],
+            ... )
+        """
+        if stream and json_response:
+            raise PineconeValueError(
+                "json_response cannot be used with stream=True"
+            )
+
+        parsed: List[Message] = [
+            m if isinstance(m, Message) else Message.from_dict(m) for m in messages
+        ]
+
+        body: dict[str, Any] = {
+            "messages": [{"role": m.role, "content": m.content} for m in parsed],
+            "model": model,
+            "stream": stream,
+        }
+        if temperature is not None:
+            body["temperature"] = temperature
+        if filter is not None:
+            body["filter"] = filter
+        if json_response:
+            body["json_response"] = json_response
+        if include_highlights:
+            body["include_highlights"] = include_highlights
+        if context_options is not None:
+            if isinstance(context_options, dict):
+                body["context_options"] = context_options
+            else:
+                body["context_options"] = {
+                    k: v
+                    for k, v in msgspec.structs.asdict(context_options).items()
+                    if v is not None
+                }
+
+        http = self._data_plane_http(assistant_name)
+
+        if stream:
+            return self._stream_chat(http, assistant_name, body)
+
+        response = http.post(f"/chat/{assistant_name}", json=body)
+        return self._adapter.to_chat_response(response.content)
+
+    def _stream_chat(
+        self,
+        http: HTTPClient,
+        assistant_name: str,
+        body: dict[str, Any],
+    ) -> Iterator[ChatStreamChunk]:
+        """Stream chat chunks from the assistant (implemented in P-0132)."""
+        raise NotImplementedError("Streaming chat is not yet implemented")
 
     def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""

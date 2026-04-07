@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pinecone._internal.adapters._decode import decode_response
+from pinecone.models.assistant.chat import ChatResponse
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
@@ -30,3 +31,8 @@ class AssistantsAdapter:
     def to_file_list(data: bytes) -> ListFilesResponse:
         """Decode raw JSON bytes into a ListFilesResponse."""
         return decode_response(data, ListFilesResponse)
+
+    @staticmethod
+    def to_chat_response(data: bytes) -> ChatResponse:
+        """Decode raw JSON bytes into a ChatResponse."""
+        return decode_response(data, ChatResponse)
