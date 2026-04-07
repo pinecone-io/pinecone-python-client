@@ -113,7 +113,7 @@ class GrpcIndex:
         connect_timeout (float): Connection timeout in seconds. Defaults to ``1.0``.
 
     Raises:
-        ValidationError: If no API key can be resolved or the host is invalid.
+        :exc:`ValidationError`: If no API key can be resolved or the host is invalid.
 
     Examples:
 
@@ -196,11 +196,11 @@ class GrpcIndex:
                 (empty-string) namespace.
 
         Returns:
-            UpsertResponse with the count of vectors upserted.
+            :class:`UpsertResponse` with the count of vectors upserted.
 
         Raises:
-            TypeError: If a vector element is not a recognized format.
-            ValueError: If a vector element is malformed.
+            :exc:`TypeError`: If a vector element is not a recognized format.
+            :exc:`ValueError`: If a vector element is malformed.
 
         Examples:
 
@@ -262,10 +262,10 @@ class GrpcIndex:
                 None uses server default.
 
         Returns:
-            QueryResponse with matches, namespace, and usage info.
+            :class:`QueryResponse` with matches, namespace, and usage info.
 
         Raises:
-            ValidationError: If top_k < 1, or both/neither vector and id provided.
+            :exc:`ValidationError`: If top_k < 1, or both/neither vector and id provided.
 
         Examples:
 
@@ -332,11 +332,11 @@ class GrpcIndex:
             namespace (str): Namespace to fetch from. Defaults to the default namespace.
 
         Returns:
-            FetchResponse with a map of vector IDs to Vector objects, namespace,
+            :class:`FetchResponse` with a map of vector IDs to Vector objects, namespace,
             and usage info.
 
         Raises:
-            ValidationError: If ids is empty.
+            :exc:`ValidationError`: If ids is empty.
 
         Examples:
 
@@ -380,7 +380,7 @@ class GrpcIndex:
             namespace (str): Namespace to delete from. Defaults to the default namespace.
 
         Raises:
-            ValidationError: If zero or more than one deletion mode is specified.
+            :exc:`ValidationError`: If zero or more than one deletion mode is specified.
 
         Examples:
 
@@ -433,10 +433,10 @@ class GrpcIndex:
                 affected without applying changes.
 
         Returns:
-            UpdateResponse with matched_records count (when available).
+            :class:`UpdateResponse` with matched_records count (when available).
 
         Raises:
-            ValidationError: If both or neither of id and filter are provided.
+            :exc:`ValidationError`: If both or neither of id and filter are provided.
 
         Examples:
 
@@ -497,7 +497,7 @@ class GrpcIndex:
             namespace (str): Namespace to list from. Defaults to the default namespace.
 
         Returns:
-            ListResponse with vector IDs, pagination info, namespace, and usage.
+            :class:`ListResponse` with vector IDs, pagination info, namespace, and usage.
 
         Examples:
 
@@ -544,7 +544,7 @@ class GrpcIndex:
             namespace (str): Namespace to list from. Defaults to the default namespace.
 
         Yields:
-            ListResponse for each page of results.
+            :class:`ListResponse` for each page of results.
 
         Examples:
 
@@ -579,7 +579,7 @@ class GrpcIndex:
                 provided, only vectors matching the filter are counted.
 
         Returns:
-            DescribeIndexStatsResponse with namespace summaries, dimension,
+            :class:`DescribeIndexStatsResponse` with namespace summaries, dimension,
             total vector count, and fullness metrics.
 
         Examples:
