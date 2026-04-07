@@ -17,7 +17,7 @@ from pinecone.client.indexes import Indexes
 from pinecone.errors.exceptions import IndexInitFailedError, ValidationError
 from pinecone.models.enums import DeletionProtection, Metric, VectorType
 from pinecone.models.indexes.index import IndexModel
-from pinecone.models.indexes.specs import PodSpec, ServerlessSpec
+from pinecone.models.indexes.specs import ByocSpec, PodSpec, ServerlessSpec
 from tests.factories import make_index_response
 
 BASE_URL = "https://api.test.pinecone.io"
@@ -572,3 +572,113 @@ def test_create_without_schema(indexes: Indexes) -> None:
     request = route.calls.last.request
     body = json.loads(request.content)
     assert "schema" not in body["spec"]["serverless"]
+
+
+# ---------------------------------------------------------------------------
+# BYOC index creation
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_create_byoc_index(indexes: Indexes) -> None:
+    """Create with ByocSpec — verify POST body has correct shape."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201,
+            json=make_index_response(
+                spec={"byoc": {"environment": "aws-us-east-1-b921"}},
+            ),
+        ),
+    )
+
+    result = indexes.create(
+        name="byoc-idx",
+        dimension=1536,
+        spec=ByocSpec(environment="aws-us-east-1-b921"),
+    )
+
+    assert isinstance(result, IndexModel)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["name"] == "byoc-idx"
+    assert body["dimension"] == 1536
+    assert body["metric"] == "cosine"
+    assert body["spec"] == {"byoc": {"environment": "aws-us-east-1-b921"}}
+
+
+@respx.mock
+def test_create_byoc_index_with_read_capacity(indexes: Indexes) -> None:
+    """Create BYOC with read_capacity — verify it appears inside byoc spec."""
+    read_capacity = {
+        "mode": "Dedicated",
+        "dedicated": {
+            "node_type": "t1",
+            "scaling": "Manual",
+            "manual": {"replicas": 2, "shards": 1},
+        },
+    }
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201,
+            json=make_index_response(
+                spec={
+                    "byoc": {
+                        "environment": "aws-us-east-1-b921",
+                        "read_capacity": read_capacity,
+                    }
+                },
+            ),
+        ),
+    )
+
+    result = indexes.create(
+        name="byoc-drn",
+        dimension=1536,
+        spec=ByocSpec(
+            environment="aws-us-east-1-b921",
+            read_capacity=read_capacity,
+        ),
+    )
+
+    assert isinstance(result, IndexModel)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["spec"]["byoc"]["environment"] == "aws-us-east-1-b921"
+    assert body["spec"]["byoc"]["read_capacity"] == read_capacity
+
+
+def test_create_byoc_missing_environment(indexes: Indexes) -> None:
+    """ByocSpec with empty environment raises ValidationError."""
+    with pytest.raises(ValidationError) as exc_info:
+        indexes.create(
+            name="byoc-idx",
+            dimension=1536,
+            spec=ByocSpec(environment=""),
+        )
+    assert "environment" in str(exc_info.value)
+
+
+@respx.mock
+def test_create_byoc_dict_spec(indexes: Indexes) -> None:
+    """Pass raw dict with byoc key — verify it goes through dict path."""
+    raw_spec: dict[str, Any] = {"byoc": {"environment": "aws-us-east-1-b921"}}
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201,
+            json=make_index_response(
+                spec=raw_spec,
+            ),
+        ),
+    )
+
+    indexes.create(
+        name="byoc-idx",
+        dimension=1536,
+        spec=raw_spec,
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["spec"] == raw_spec
