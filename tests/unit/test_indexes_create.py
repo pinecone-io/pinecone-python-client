@@ -682,3 +682,12 @@ def test_create_byoc_dict_spec(indexes: Indexes) -> None:
     request = route.calls.last.request
     body = json.loads(request.content)
     assert body["spec"] == raw_spec
+
+
+def test_create_byoc_missing_dimension(indexes: Indexes) -> None:
+    """ByocSpec without dimension raises ValidationError."""
+    with pytest.raises(ValidationError, match="dimension"):
+        indexes.create(
+            name="byoc-idx",
+            spec=ByocSpec(environment="aws-us-east-1-b921"),
+        )

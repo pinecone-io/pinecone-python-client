@@ -835,6 +835,50 @@ async def test_create_byoc_index_with_read_capacity(async_indexes: AsyncIndexes)
     assert body["spec"]["byoc"]["read_capacity"] == read_capacity
 
 
+async def test_create_byoc_missing_environment(async_indexes: AsyncIndexes) -> None:
+    """ByocSpec with empty environment raises ValidationError."""
+    with pytest.raises(ValidationError) as exc_info:
+        await async_indexes.create(
+            name="byoc-idx",
+            dimension=1536,
+            spec=ByocSpec(environment=""),
+        )
+    assert "environment" in str(exc_info.value)
+
+
+@respx.mock
+async def test_create_byoc_dict_spec(async_indexes: AsyncIndexes) -> None:
+    """Pass raw dict with byoc key — verify it goes through dict path."""
+    raw_spec: dict[str, Any] = {"byoc": {"environment": "aws-us-east-1-b921"}}
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201,
+            json=make_index_response(
+                spec=raw_spec,
+            ),
+        ),
+    )
+
+    await async_indexes.create(
+        name="byoc-idx",
+        dimension=1536,
+        spec=raw_spec,
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["spec"] == raw_spec
+
+
+async def test_create_byoc_missing_dimension(async_indexes: AsyncIndexes) -> None:
+    """ByocSpec without dimension raises ValidationError."""
+    with pytest.raises(ValidationError, match="dimension"):
+        await async_indexes.create(
+            name="byoc-idx",
+            spec=ByocSpec(environment="aws-us-east-1-b921"),
+        )
+
+
 # ---------------------------------------------------------------------------
 # configure()
 # ---------------------------------------------------------------------------
@@ -1037,6 +1081,28 @@ async def test_configure_byoc_read_capacity_dedicated_missing_node_type(
         await async_indexes.configure(
             "my-idx",
             read_capacity={"mode": "Dedicated", "dedicated": {"scaling": "Manual"}},
+        )
+
+
+async def test_configure_byoc_read_capacity_dedicated_missing_scaling(
+    async_indexes: AsyncIndexes,
+) -> None:
+    """Missing scaling in dedicated config raises ValidationError."""
+    with pytest.raises(ValidationError, match="scaling"):
+        await async_indexes.configure(
+            "my-idx",
+            read_capacity={"mode": "Dedicated", "dedicated": {"node_type": "t1"}},
+        )
+
+
+async def test_configure_byoc_read_capacity_missing_mode(
+    async_indexes: AsyncIndexes,
+) -> None:
+    """Missing mode key raises ValidationError."""
+    with pytest.raises(ValidationError, match="mode"):
+        await async_indexes.configure(
+            "my-idx",
+            read_capacity={"dedicated": {"node_type": "t1"}},
         )
 
 
