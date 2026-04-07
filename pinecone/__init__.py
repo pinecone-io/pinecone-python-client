@@ -26,6 +26,21 @@ Quick Start::
 The :class:`Pinecone` client manages indexes (control plane). Call
 ``pc.index(name)`` to get an :class:`Index` for vector operations (data plane).
 
+Async Quick Start::
+
+    from pinecone import AsyncPinecone, ServerlessSpec
+
+    async with AsyncPinecone(api_key="your-api-key") as pc:
+        # Control plane: manage indexes
+        indexes = await pc.indexes.list()
+
+        # Data plane: resolve host first, then create index client
+        desc = await pc.indexes.describe("my-index")
+        index = pc.index(host=desc.host)
+
+        async with index:
+            results = await index.query(vector=[0.012, -0.087, 0.153], top_k=5)
+
 For async usage, see :class:`AsyncPinecone`. For admin/org management,
 see :class:`Admin`.
 """
