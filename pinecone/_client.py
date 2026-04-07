@@ -14,13 +14,13 @@ from pinecone.errors.exceptions import ValidationError
 if TYPE_CHECKING:
     from pinecone.client.assistants import Assistants
     from pinecone.client.backups import Backups
-    from pinecone.models.assistant.model import AssistantModel
     from pinecone.client.collections import Collections
     from pinecone.client.indexes import Indexes
     from pinecone.client.inference import Inference
     from pinecone.client.restore_jobs import RestoreJobs
     from pinecone.grpc import GrpcIndex
     from pinecone.index import Index
+    from pinecone.models.assistant.model import AssistantModel
     from pinecone.models.enums import DeletionProtection
     from pinecone.models.indexes.index import IndexModel
 

@@ -12,12 +12,14 @@ from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import ValidationError
 
 if TYPE_CHECKING:
+    from pinecone.async_client.assistants import AsyncAssistants
     from pinecone.async_client.async_index import AsyncIndex
     from pinecone.async_client.backups import AsyncBackups
     from pinecone.async_client.collections import AsyncCollections
     from pinecone.async_client.indexes import AsyncIndexes
     from pinecone.async_client.inference import AsyncInference
     from pinecone.async_client.restore_jobs import AsyncRestoreJobs
+    from pinecone.models.assistant.model import AssistantModel
     from pinecone.models.enums import DeletionProtection
     from pinecone.models.indexes.index import IndexModel
 
@@ -125,6 +127,7 @@ class AsyncPinecone:
         self._http = AsyncHTTPClient(config, CONTROL_PLANE_API_VERSION)
         self._indexes: AsyncIndexes | None = None
         self._collections: AsyncCollections | None = None
+        self._assistants: AsyncAssistants | None = None
         self._backups: AsyncBackups | None = None
         self._restore_jobs: AsyncRestoreJobs | None = None
         self._inference: AsyncInference | None = None
@@ -175,6 +178,43 @@ class AsyncPinecone:
 
             self._collections = _AsyncCollections(http=self._http)
         return self._collections
+
+    @property
+    def assistants(self) -> AsyncAssistants:
+        """Access the AsyncAssistants namespace for assistant operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            AsyncAssistants namespace instance.
+
+        Examples:
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                assistants = await pc.assistants.list()
+        """
+        if self._assistants is None:
+            from pinecone.async_client.assistants import AsyncAssistants as _AsyncAssistants
+
+            self._assistants = _AsyncAssistants(config=self._config)
+        return self._assistants
+
+    async def Assistant(self, assistant_name: str) -> AssistantModel:
+        """Convenience method to describe a single assistant by name.
+
+        This is a shorthand for ``await pc.assistants.describe(name=assistant_name)``.
+
+        Args:
+            assistant_name (str): The name of the assistant to describe.
+
+        Returns:
+            :class:`AssistantModel` describing the assistant.
+
+        Examples:
+
+            assistant = await pc.Assistant("my-assistant")
+        """
+        return await self.assistants.describe(name=assistant_name)
 
     @property
     def backups(self) -> AsyncBackups:
@@ -394,6 +434,8 @@ class AsyncPinecone:
     async def close(self) -> None:
         """Close the underlying HTTP client."""
         await self._http.close()
+        if self._assistants is not None:
+            await self._assistants.close()
         if self._inference is not None:
             await self._inference.close()
 

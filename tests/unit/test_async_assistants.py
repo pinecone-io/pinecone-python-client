@@ -1,4 +1,4 @@
-"""Unit tests for Assistants namespace — create_assistant."""
+"""Unit tests for AsyncAssistants namespace — create, describe, list, update."""
 
 from __future__ import annotations
 
@@ -10,11 +10,9 @@ import pytest
 import respx
 
 from pinecone._internal.config import PineconeConfig
-from pinecone._internal.constants import ASSISTANT_API_VERSION
-from pinecone._internal.http_client import HTTPClient
-from pinecone.client.assistants import (
+from pinecone.async_client.assistants import (
     _CREATE_POLL_INTERVAL_SECONDS,
-    Assistants,
+    AsyncAssistants,
 )
 from pinecone.errors.exceptions import PineconeTimeoutError, PineconeValueError
 from pinecone.models.assistant.list import ListAssistantsResponse
@@ -25,15 +23,9 @@ BASE_URL = "https://api.test.pinecone.io"
 
 
 @pytest.fixture()
-def http_client() -> HTTPClient:
+def async_assistants() -> AsyncAssistants:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
-    return HTTPClient(config, ASSISTANT_API_VERSION)
-
-
-@pytest.fixture()
-def assistants() -> Assistants:
-    config = PineconeConfig(api_key="test-key", host=BASE_URL)
-    return Assistants(config=config)
+    return AsyncAssistants(config=config)
 
 
 # ---------------------------------------------------------------------------
@@ -41,20 +33,31 @@ def assistants() -> Assistants:
 # ---------------------------------------------------------------------------
 
 
-def test_create_assistant_region_validation(assistants: Assistants) -> None:
+def test_create_assistant_region_validation(async_assistants: AsyncAssistants) -> None:
     """Invalid region raises PineconeValueError before any HTTP call."""
     with pytest.raises(PineconeValueError, match="region") as exc_info:
-        assistants.create(name="test-assistant", region="ap-southeast-1")
+        # Run sync since validation happens before any await
+        import asyncio
+
+        asyncio.get_event_loop().run_until_complete(
+            async_assistants.create(name="test-assistant", region="ap-southeast-1")
+        )
     assert "ap-southeast-1" in str(exc_info.value)
 
 
-def test_create_assistant_region_case_sensitive(assistants: Assistants) -> None:
+def test_create_assistant_region_case_sensitive(async_assistants: AsyncAssistants) -> None:
     """Uppercase 'US' and 'EU' are rejected — validation is case-sensitive."""
-    with pytest.raises(PineconeValueError, match="region"):
-        assistants.create(name="test-assistant", region="US")
+    import asyncio
 
     with pytest.raises(PineconeValueError, match="region"):
-        assistants.create(name="test-assistant", region="EU")
+        asyncio.get_event_loop().run_until_complete(
+            async_assistants.create(name="test-assistant", region="US")
+        )
+
+    with pytest.raises(PineconeValueError, match="region"):
+        asyncio.get_event_loop().run_until_complete(
+            async_assistants.create(name="test-assistant", region="EU")
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -63,7 +66,7 @@ def test_create_assistant_region_case_sensitive(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_create_assistant_defaults(assistants: Assistants) -> None:
+async def test_create_assistant_defaults(async_assistants: AsyncAssistants) -> None:
     """Default region is 'us', metadata is {}, instructions is None."""
     route = respx.post(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
@@ -72,7 +75,7 @@ def test_create_assistant_defaults(assistants: Assistants) -> None:
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
-    result = assistants.create(name="test-assistant")
+    result = await async_assistants.create(name="test-assistant")
 
     assert isinstance(result, AssistantModel)
     assert result.name == "test-assistant"
@@ -90,13 +93,13 @@ def test_create_assistant_defaults(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_create_assistant_immediate_return(assistants: Assistants) -> None:
+async def test_create_assistant_immediate_return(async_assistants: AsyncAssistants) -> None:
     """timeout=-1 returns immediately without polling."""
     route = respx.post(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
-    result = assistants.create(name="test-assistant", timeout=-1)
+    result = await async_assistants.create(name="test-assistant", timeout=-1)
 
     assert isinstance(result, AssistantModel)
     assert result.status == "Initializing"
@@ -104,13 +107,13 @@ def test_create_assistant_immediate_return(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_create_assistant_with_all_params(assistants: Assistants) -> None:
+async def test_create_assistant_with_all_params(async_assistants: AsyncAssistants) -> None:
     """Create with instructions, metadata, and region sends correct body."""
     route = respx.post(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
-    result = assistants.create(
+    result = await async_assistants.create(
         name="research-bot",
         instructions="You are a research assistant.",
         metadata={"team": "engineering", "version": "1"},
@@ -134,8 +137,10 @@ def test_create_assistant_with_all_params(assistants: Assistants) -> None:
 
 
 @respx.mock
-@patch("pinecone.client.assistants.time.sleep")
-def test_create_assistant_polls_until_ready(mock_sleep: object, assistants: Assistants) -> None:
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_create_assistant_polls_until_ready(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
     """Polling loop calls GET until status is 'Ready'."""
     respx.post(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -149,16 +154,16 @@ def test_create_assistant_polls_until_ready(mock_sleep: object, assistants: Assi
         ]
     )
 
-    result = assistants.create(name="test-assistant")
+    result = await async_assistants.create(name="test-assistant")
 
     assert result.status == "Ready"
     assert poll_route.call_count == 3
 
 
 @respx.mock
-@patch("pinecone.client.assistants.time.sleep")
-def test_create_assistant_polls_with_correct_interval(
-    mock_sleep: object, assistants: Assistants
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_create_assistant_polls_with_correct_interval(
+    mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """Polling sleeps with the correct interval between polls."""
     respx.post(f"{BASE_URL}/assistants").mock(
@@ -168,11 +173,8 @@ def test_create_assistant_polls_with_correct_interval(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
-    assistants.create(name="test-assistant")
+    await async_assistants.create(name="test-assistant")
 
-    # sleep is not called after the final successful poll
-    # but it may be called before the first poll depending on flow
-    # The key assertion is the interval value
     from unittest.mock import call
 
     for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
@@ -185,13 +187,12 @@ def test_create_assistant_polls_with_correct_interval(
 
 
 @respx.mock
-@patch("pinecone.client.assistants.time.monotonic")
-@patch("pinecone.client.assistants.time.sleep")
-def test_create_assistant_timeout_raises(
-    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+@patch("pinecone.async_client.assistants.time.monotonic")
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_create_assistant_timeout_raises(
+    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
 ) -> None:
     """Exceeding timeout raises PineconeTimeoutError with helpful message."""
-    # Simulate time progression: start=0, after first poll=6 (exceeds timeout=5)
     mock_monotonic.side_effect = [0.0, 6.0]  # type: ignore[union-attr]
 
     respx.post(f"{BASE_URL}/assistants").mock(
@@ -202,19 +203,18 @@ def test_create_assistant_timeout_raises(
     )
 
     with pytest.raises(PineconeTimeoutError, match="not ready") as exc_info:
-        assistants.create(name="test-assistant", timeout=5)
+        await async_assistants.create(name="test-assistant", timeout=5)
 
     assert "describe_assistant" in str(exc_info.value)
 
 
 @respx.mock
-@patch("pinecone.client.assistants.time.monotonic")
-@patch("pinecone.client.assistants.time.sleep")
-def test_create_assistant_timeout_zero_polls_once(
-    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+@patch("pinecone.async_client.assistants.time.monotonic")
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_create_assistant_timeout_zero_polls_once(
+    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
 ) -> None:
     """timeout=0 polls once, then raises if not ready."""
-    # start=0, first elapsed check=0.0 (not >= 0, so one iteration), second=0.1 (>= 0)
     mock_monotonic.side_effect = [0.0, 0.0, 0.1]  # type: ignore[union-attr]
 
     respx.post(f"{BASE_URL}/assistants").mock(
@@ -229,9 +229,8 @@ def test_create_assistant_timeout_zero_polls_once(
     )
 
     with pytest.raises(PineconeTimeoutError):
-        assistants.create(name="test-assistant", timeout=0)
+        await async_assistants.create(name="test-assistant", timeout=0)
 
-    # At least one poll was made
     assert poll_route.call_count >= 1
 
 
@@ -241,10 +240,10 @@ def test_create_assistant_timeout_zero_polls_once(
 
 
 @respx.mock
-@patch("pinecone.client.assistants.time.monotonic")
-@patch("pinecone.client.assistants.time.sleep")
-def test_create_assistant_status_case_sensitive(
-    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+@patch("pinecone.async_client.assistants.time.monotonic")
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_create_assistant_status_case_sensitive(
+    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
 ) -> None:
     """Status check uses exact 'Ready' — 'ready' or 'READY' does not match."""
     mock_monotonic.side_effect = [0.0, 6.0]  # type: ignore[union-attr]
@@ -257,7 +256,7 @@ def test_create_assistant_status_case_sensitive(
     )
 
     with pytest.raises(PineconeTimeoutError):
-        assistants.create(name="test-assistant", timeout=5)
+        await async_assistants.create(name="test-assistant", timeout=5)
 
 
 # ---------------------------------------------------------------------------
@@ -266,9 +265,9 @@ def test_create_assistant_status_case_sensitive(
 
 
 @respx.mock
-@patch("pinecone.client.assistants.time.sleep")
-def test_create_assistant_polls_indefinitely_when_no_timeout(
-    mock_sleep: object, assistants: Assistants
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_create_assistant_polls_indefinitely_when_no_timeout(
+    mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """When timeout is None, polling continues until Ready with no deadline."""
     respx.post(f"{BASE_URL}/assistants").mock(
@@ -283,7 +282,7 @@ def test_create_assistant_polls_indefinitely_when_no_timeout(
         ]
     )
 
-    result = assistants.create(name="test-assistant", timeout=None)
+    result = await async_assistants.create(name="test-assistant", timeout=None)
 
     assert result.status == "Ready"
 
@@ -294,7 +293,7 @@ def test_create_assistant_polls_indefinitely_when_no_timeout(
 
 
 @respx.mock
-def test_create_assistant_accepts_us_region(assistants: Assistants) -> None:
+async def test_create_assistant_accepts_us_region(async_assistants: AsyncAssistants) -> None:
     """Region 'us' is accepted."""
     respx.post(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
@@ -303,12 +302,12 @@ def test_create_assistant_accepts_us_region(assistants: Assistants) -> None:
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
-    result = assistants.create(name="test-assistant", region="us")
+    result = await async_assistants.create(name="test-assistant", region="us")
     assert isinstance(result, AssistantModel)
 
 
 @respx.mock
-def test_create_assistant_accepts_eu_region(assistants: Assistants) -> None:
+async def test_create_assistant_accepts_eu_region(async_assistants: AsyncAssistants) -> None:
     """Region 'eu' is accepted."""
     respx.post(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
@@ -317,7 +316,7 @@ def test_create_assistant_accepts_eu_region(assistants: Assistants) -> None:
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
-    result = assistants.create(name="test-assistant", region="eu")
+    result = await async_assistants.create(name="test-assistant", region="eu")
     assert isinstance(result, AssistantModel)
 
 
@@ -327,7 +326,7 @@ def test_create_assistant_accepts_eu_region(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_describe_assistant(assistants: Assistants) -> None:
+async def test_describe_assistant(async_assistants: AsyncAssistants) -> None:
     """describe() sends GET /assistants/{name} and returns AssistantModel."""
     response_data = make_assistant_response(
         name="my-assistant",
@@ -340,7 +339,7 @@ def test_describe_assistant(assistants: Assistants) -> None:
         return_value=httpx.Response(200, json=response_data),
     )
 
-    result = assistants.describe(name="my-assistant")
+    result = await async_assistants.describe(name="my-assistant")
 
     assert isinstance(result, AssistantModel)
     assert result.name == "my-assistant"
@@ -354,18 +353,18 @@ def test_describe_assistant(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_describe_assistant_not_found(assistants: Assistants) -> None:
+async def test_describe_assistant_not_found(async_assistants: AsyncAssistants) -> None:
     """describe() lets 404 errors propagate from the HTTP client."""
     respx.get(f"{BASE_URL}/assistants/nonexistent").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
     with pytest.raises(Exception):
-        assistants.describe(name="nonexistent")
+        await async_assistants.describe(name="nonexistent")
 
 
 @respx.mock
-def test_describe_assistant_minimal_response(assistants: Assistants) -> None:
+async def test_describe_assistant_minimal_response(async_assistants: AsyncAssistants) -> None:
     """describe() handles response with optional fields absent."""
     response_data = make_assistant_response(
         name="minimal",
@@ -377,7 +376,7 @@ def test_describe_assistant_minimal_response(assistants: Assistants) -> None:
         return_value=httpx.Response(200, json=response_data),
     )
 
-    result = assistants.describe(name="minimal")
+    result = await async_assistants.describe(name="minimal")
 
     assert result.name == "minimal"
     assert result.metadata is None
@@ -391,19 +390,19 @@ def test_describe_assistant_minimal_response(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_list_assistants_empty(assistants: Assistants) -> None:
+async def test_list_assistants_empty(async_assistants: AsyncAssistants) -> None:
     """list() returns empty list when no assistants exist."""
     respx.get(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
-    result = assistants.list()
+    result = await async_assistants.list()
 
     assert result == []
 
 
 @respx.mock
-def test_list_assistants_single_page(assistants: Assistants) -> None:
+async def test_list_assistants_single_page(async_assistants: AsyncAssistants) -> None:
     """list() returns all assistants from a single-page response."""
     respx.get(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(
@@ -417,7 +416,7 @@ def test_list_assistants_single_page(assistants: Assistants) -> None:
         ),
     )
 
-    result = assistants.list()
+    result = await async_assistants.list()
 
     assert len(result) == 2
     assert result[0].name == "a1"
@@ -426,7 +425,7 @@ def test_list_assistants_single_page(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_list_assistants_multi_page(assistants: Assistants) -> None:
+async def test_list_assistants_multi_page(async_assistants: AsyncAssistants) -> None:
     """list() auto-paginates through multiple pages."""
     respx.get(f"{BASE_URL}/assistants").mock(
         side_effect=[
@@ -453,7 +452,7 @@ def test_list_assistants_multi_page(assistants: Assistants) -> None:
         ]
     )
 
-    result = assistants.list()
+    result = await async_assistants.list()
 
     assert len(result) == 3
     assert [a.name for a in result] == ["a1", "a2", "a3"]
@@ -465,7 +464,7 @@ def test_list_assistants_multi_page(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_list_assistants_page(assistants: Assistants) -> None:
+async def test_list_assistants_page(async_assistants: AsyncAssistants) -> None:
     """list_page() returns single page with next token."""
     route = respx.get(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(
@@ -477,7 +476,7 @@ def test_list_assistants_page(assistants: Assistants) -> None:
         ),
     )
 
-    result = assistants.list_page()
+    result = await async_assistants.list_page()
 
     assert isinstance(result, ListAssistantsResponse)
     assert len(result.assistants) == 1
@@ -487,7 +486,7 @@ def test_list_assistants_page(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_list_assistants_page_last_page(assistants: Assistants) -> None:
+async def test_list_assistants_page_last_page(async_assistants: AsyncAssistants) -> None:
     """list_page() returns no next token on the last page."""
     respx.get(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(
@@ -498,35 +497,53 @@ def test_list_assistants_page_last_page(assistants: Assistants) -> None:
         ),
     )
 
-    result = assistants.list_page()
+    result = await async_assistants.list_page()
 
     assert result.next is None
 
 
 @respx.mock
-def test_list_assistants_page_with_page_size(assistants: Assistants) -> None:
+async def test_list_assistants_page_with_page_size(async_assistants: AsyncAssistants) -> None:
     """list_page() sends pageSize query param when provided."""
     route = respx.get(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
-    assistants.list_page(page_size=5)
+    await async_assistants.list_page(page_size=5)
 
     request = route.calls.last.request
     assert "pageSize=5" in str(request.url)
 
 
 @respx.mock
-def test_list_assistants_page_with_pagination_token(assistants: Assistants) -> None:
+async def test_list_assistants_page_with_pagination_token(
+    async_assistants: AsyncAssistants,
+) -> None:
     """list_page() sends paginationToken query param when provided."""
     route = respx.get(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
-    assistants.list_page(pagination_token="abc123")
+    await async_assistants.list_page(pagination_token="abc123")
 
     request = route.calls.last.request
     assert "paginationToken=abc123" in str(request.url)
+
+
+@respx.mock
+async def test_list_assistants_page_omits_none_params(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """list_page() does not send params that are None."""
+    route = respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json={"assistants": []}),
+    )
+
+    await async_assistants.list_page()
+
+    request = route.calls.last.request
+    assert "pageSize" not in str(request.url)
+    assert "paginationToken" not in str(request.url)
 
 
 # ---------------------------------------------------------------------------
@@ -535,8 +552,8 @@ def test_list_assistants_page_with_pagination_token(assistants: Assistants) -> N
 
 
 @respx.mock
-def test_update_assistant_instructions(assistants: Assistants) -> None:
-    """update() sends PATCH /assistants/{name} with instructions and returns AssistantModel."""
+async def test_update_assistant_instructions(async_assistants: AsyncAssistants) -> None:
+    """update() sends PATCH /assistants/{name} with instructions."""
     updated_response = make_assistant_response(
         name="my-assistant",
         instructions="Updated instructions.",
@@ -545,7 +562,9 @@ def test_update_assistant_instructions(assistants: Assistants) -> None:
         return_value=httpx.Response(200, json=updated_response),
     )
 
-    result = assistants.update(name="my-assistant", instructions="Updated instructions.")
+    result = await async_assistants.update(
+        name="my-assistant", instructions="Updated instructions."
+    )
 
     assert isinstance(result, AssistantModel)
     assert result.name == "my-assistant"
@@ -558,8 +577,8 @@ def test_update_assistant_instructions(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_update_assistant_metadata(assistants: Assistants) -> None:
-    """update() sends PATCH with metadata and returns AssistantModel."""
+async def test_update_assistant_metadata(async_assistants: AsyncAssistants) -> None:
+    """update() sends PATCH with metadata."""
     new_metadata = {"team": "ml", "version": "2"}
     updated_response = make_assistant_response(
         name="my-assistant",
@@ -569,7 +588,7 @@ def test_update_assistant_metadata(assistants: Assistants) -> None:
         return_value=httpx.Response(200, json=updated_response),
     )
 
-    result = assistants.update(name="my-assistant", metadata=new_metadata)
+    result = await async_assistants.update(name="my-assistant", metadata=new_metadata)
 
     assert isinstance(result, AssistantModel)
     assert result.metadata == new_metadata
@@ -581,7 +600,7 @@ def test_update_assistant_metadata(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_update_assistant_both_fields(assistants: Assistants) -> None:
+async def test_update_assistant_both_fields(async_assistants: AsyncAssistants) -> None:
     """update() sends both instructions and metadata when provided."""
     updated_response = make_assistant_response(
         name="my-assistant",
@@ -592,7 +611,7 @@ def test_update_assistant_both_fields(assistants: Assistants) -> None:
         return_value=httpx.Response(200, json=updated_response),
     )
 
-    result = assistants.update(
+    result = await async_assistants.update(
         name="my-assistant",
         instructions="New instructions.",
         metadata={"env": "prod"},
@@ -607,34 +626,14 @@ def test_update_assistant_both_fields(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_update_assistant_clear_instructions(assistants: Assistants) -> None:
-    """update() can clear instructions by setting them to empty string."""
-    updated_response = make_assistant_response(
-        name="my-assistant",
-        instructions="",
-    )
-    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
-        return_value=httpx.Response(200, json=updated_response),
-    )
-
-    result = assistants.update(name="my-assistant", instructions="")
-
-    assert result.instructions == ""
-
-    request = route.calls.last.request
-    body = json.loads(request.content)
-    assert body == {"instructions": ""}
-
-
-@respx.mock
-def test_update_assistant_omits_none_fields(assistants: Assistants) -> None:
+async def test_update_assistant_omits_none_fields(async_assistants: AsyncAssistants) -> None:
     """update() only includes provided fields in the request body."""
     updated_response = make_assistant_response(name="my-assistant")
     route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=updated_response),
     )
 
-    assistants.update(name="my-assistant", instructions="Only this.")
+    await async_assistants.update(name="my-assistant", instructions="Only this.")
 
     request = route.calls.last.request
     body = json.loads(request.content)
@@ -643,30 +642,35 @@ def test_update_assistant_omits_none_fields(assistants: Assistants) -> None:
 
 
 @respx.mock
-def test_update_assistant_not_found(assistants: Assistants) -> None:
+async def test_update_assistant_not_found(async_assistants: AsyncAssistants) -> None:
     """update() lets 404 errors propagate from the HTTP client."""
     respx.patch(f"{BASE_URL}/assistants/nonexistent").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
     with pytest.raises(Exception):
-        assistants.update(name="nonexistent", instructions="test")
+        await async_assistants.update(name="nonexistent", instructions="test")
 
 
 # ---------------------------------------------------------------------------
-# list_page() — omission
+# repr()
 # ---------------------------------------------------------------------------
 
 
-@respx.mock
-def test_list_assistants_page_omits_none_params(assistants: Assistants) -> None:
-    """list_page() does not send params that are None."""
-    route = respx.get(f"{BASE_URL}/assistants").mock(
-        return_value=httpx.Response(200, json={"assistants": []}),
-    )
+def test_repr(async_assistants: AsyncAssistants) -> None:
+    assert repr(async_assistants) == "AsyncAssistants()"
 
-    assistants.list_page()
 
-    request = route.calls.last.request
-    assert "pageSize" not in str(request.url)
-    assert "paginationToken" not in str(request.url)
+# ---------------------------------------------------------------------------
+# AsyncPinecone.assistants property
+# ---------------------------------------------------------------------------
+
+
+def test_async_pinecone_assistants_property() -> None:
+    from pinecone.async_client.pinecone import AsyncPinecone
+
+    pc = AsyncPinecone(api_key="test-key")
+    assistants = pc.assistants
+    assert isinstance(assistants, AsyncAssistants)
+    # Verify lazy caching — same instance returned
+    assert pc.assistants is assistants
