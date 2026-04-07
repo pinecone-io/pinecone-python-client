@@ -14,7 +14,7 @@ from pinecone.async_client.assistants import (
     _CREATE_POLL_INTERVAL_SECONDS,
     AsyncAssistants,
 )
-from pinecone.errors.exceptions import PineconeTimeoutError, PineconeValueError
+from pinecone.errors.exceptions import NotFoundError, PineconeTimeoutError, PineconeValueError
 from pinecone.models.assistant.list import ListAssistantsResponse
 from pinecone.models.assistant.model import AssistantModel
 from tests.factories import make_assistant_response
@@ -359,7 +359,7 @@ async def test_describe_assistant_not_found(async_assistants: AsyncAssistants) -
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(NotFoundError):
         await async_assistants.describe(name="nonexistent")
 
 
@@ -648,7 +648,7 @@ async def test_update_assistant_not_found(async_assistants: AsyncAssistants) -> 
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(NotFoundError):
         await async_assistants.update(name="nonexistent", instructions="test")
 
 
@@ -681,7 +681,7 @@ async def test_delete_assistant_not_found(async_assistants: AsyncAssistants) -> 
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(NotFoundError):
         await async_assistants.delete(name="nonexistent")
 
 
