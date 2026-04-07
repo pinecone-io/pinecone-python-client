@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use hyper_util::client::legacy::connect::{proxy::Tunnel, HttpConnector};
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
@@ -422,8 +423,10 @@ impl GrpcChannel {
     ///     connect_timeout_s: Connection timeout in seconds (default 1.0).
     ///     max_retries: Max retry attempts on UNAVAILABLE (default 5, 0 disables).
     ///     source_tag: Optional source tag appended to the User-Agent string.
+    ///     proxy_url: Optional HTTP proxy URL (e.g. "http://proxy.example.com:8080").
+    ///                When set, gRPC traffic is tunnelled through the proxy via HTTP CONNECT.
     #[new]
-    #[pyo3(signature = (endpoint, api_key, api_version, version, secure=true, timeout_s=None, connect_timeout_s=None, max_retries=None, source_tag=None))]
+    #[pyo3(signature = (endpoint, api_key, api_version, version, secure=true, timeout_s=None, connect_timeout_s=None, max_retries=None, source_tag=None, proxy_url=None))]
     #[allow(clippy::too_many_arguments)]
     fn new(
         endpoint: &str,
@@ -435,6 +438,7 @@ impl GrpcChannel {
         connect_timeout_s: Option<f64>,
         max_retries: Option<u32>,
         source_tag: Option<&str>,
+        proxy_url: Option<&str>,
     ) -> PyResult<Self> {
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
@@ -461,9 +465,21 @@ impl GrpcChannel {
                 .map_err(|e| PyRuntimeError::new_err(format!("Failed to configure TLS: {e}")))?;
         }
 
-        let channel = runtime
-            .block_on(endpoint_builder.connect())
-            .map_err(|e| PyRuntimeError::new_err(format!("Failed to connect: {e}")))?;
+        let channel = if let Some(proxy_url_str) = proxy_url {
+            let proxy_dst: http::Uri = proxy_url_str
+                .parse()
+                .map_err(|e| PyRuntimeError::new_err(format!("Invalid proxy URL '{proxy_url_str}': {e}")))?;
+            let mut http_connector = HttpConnector::new();
+            http_connector.enforce_http(false);
+            let tunnel_connector = Tunnel::new(proxy_dst, http_connector);
+            runtime
+                .block_on(endpoint_builder.connect_with_connector(tunnel_connector))
+                .map_err(|e| PyRuntimeError::new_err(format!("Failed to connect via proxy: {e}")))?
+        } else {
+            runtime
+                .block_on(endpoint_builder.connect())
+                .map_err(|e| PyRuntimeError::new_err(format!("Failed to connect: {e}")))?
+        };
 
         let interceptor = MetadataInterceptor::new(api_key, api_version)
             .map_err(|e| PyRuntimeError::new_err(format!("Invalid metadata value: {e}")))?;
@@ -1401,5 +1417,30 @@ mod tests {
     fn max_message_size_constant_is_128mb() {
         assert_eq!(MAX_MESSAGE_SIZE, 128 * 1024 * 1024);
         assert_eq!(MAX_MESSAGE_SIZE, 134_217_728);
+    }
+
+    #[test]
+    fn test_channel_creates_without_proxy() {
+        // Verify the default path (no proxy) configures an endpoint successfully.
+        let endpoint = Channel::from_shared("https://example.pinecone.io:443".to_string())
+            .expect("valid endpoint");
+        let result = endpoint.tls_config(ClientTlsConfig::new());
+        assert!(result.is_ok(), "Endpoint without proxy should configure TLS successfully");
+    }
+
+    #[test]
+    fn test_channel_accepts_proxy_url() {
+        // Verify that a valid proxy URL is parsed correctly and a Tunnel connector
+        // can be created from it — this is the configuration path that GrpcChannel::new()
+        // exercises when proxy_url is Some.
+        let proxy_url = "http://proxy.example.com:8080";
+        let proxy_dst: http::Uri = proxy_url.parse().expect("valid proxy URL");
+        assert_eq!(proxy_dst.host(), Some("proxy.example.com"));
+        assert_eq!(proxy_dst.port_u16(), Some(8080));
+
+        let mut http_connector = HttpConnector::new();
+        http_connector.enforce_http(false);
+        // Constructing the Tunnel connector must not panic or error.
+        let _tunnel = Tunnel::new(proxy_dst, http_connector);
     }
 }
