@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from unittest.mock import MagicMock
 
 import httpx
@@ -636,7 +637,7 @@ class TestRedactHeaders:
 
 class TestLogCurlRedactsApiKey:
     def test_log_curl_redacts_api_key(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+        self, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
     ) -> None:
         monkeypatch.setenv("PINECONE_DEBUG_CURL", "1")
         headers = {
@@ -645,8 +646,9 @@ class TestLogCurlRedactsApiKey:
             "Proxy-Authorization": "Basic creds",
             "User-Agent": "test-agent",
         }
-        _log_curl("GET", "https://api.pinecone.io/indexes", headers)
-        output = capsys.readouterr().out
+        with caplog.at_level(logging.DEBUG, logger="pinecone._internal.http_client"):
+            _log_curl("GET", "https://api.pinecone.io/indexes", headers)
+        output = caplog.text
         assert "sk-super-secret" not in output
         assert "my-token" not in output
         assert "Basic creds" not in output
@@ -654,8 +656,9 @@ class TestLogCurlRedactsApiKey:
         assert "test-agent" in output
 
     def test_log_curl_noop_without_env(
-        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+        self, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
     ) -> None:
         monkeypatch.delenv("PINECONE_DEBUG_CURL", raising=False)
-        _log_curl("GET", "https://api.pinecone.io/indexes", {"Api-Key": "secret"})
-        assert capsys.readouterr().out == ""
+        with caplog.at_level(logging.DEBUG, logger="pinecone._internal.http_client"):
+            _log_curl("GET", "https://api.pinecone.io/indexes", {"Api-Key": "secret"})
+        assert "curl" not in caplog.text

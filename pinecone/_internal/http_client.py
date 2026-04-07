@@ -114,8 +114,7 @@ def _log_curl(
     if body is not None:
         parts.append(f"-d '{body.decode('utf-8', errors='replace')}'")
     curl_cmd = " ".join(parts)
-    logger.debug("curl equivalent: %s", curl_cmd)
-    print(curl_cmd)  # noqa: T201
+    logger.debug("curl equivalent:\n%s", curl_cmd)
 
 
 class _RetryTransport(httpx.BaseTransport):
