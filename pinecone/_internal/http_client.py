@@ -23,6 +23,8 @@ from pinecone.errors.exceptions import (
     ConflictError,
     ForbiddenError,
     NotFoundError,
+    PineconeConnectionError,
+    PineconeTimeoutError,
     ServiceError,
     UnauthorizedError,
 )
@@ -246,7 +248,12 @@ class HTTPClient:
 
     def get(self, path: str, **kwargs: Any) -> httpx.Response:
         _log_curl("GET", self._build_url(path), dict(self._headers))
-        response = self._client.get(path, **kwargs)
+        try:
+            response = self._client.get(path, **kwargs)
+        except httpx.TimeoutException as exc:
+            raise PineconeTimeoutError(str(exc)) from exc
+        except httpx.TransportError as exc:
+            raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
         return response
 
@@ -257,7 +264,12 @@ class HTTPClient:
         elif "json" in kwargs:
             body = _encode_json(kwargs["json"])
         _log_curl("POST", self._build_url(path), dict(self._headers), body=body)
-        response = self._client.post(path, **_prepare_json_kwargs(kwargs))
+        try:
+            response = self._client.post(path, **_prepare_json_kwargs(kwargs))
+        except httpx.TimeoutException as exc:
+            raise PineconeTimeoutError(str(exc)) from exc
+        except httpx.TransportError as exc:
+            raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
         return response
 
@@ -268,7 +280,12 @@ class HTTPClient:
         elif "json" in kwargs:
             body = _encode_json(kwargs["json"])
         _log_curl("PUT", self._build_url(path), dict(self._headers), body=body)
-        response = self._client.put(path, **_prepare_json_kwargs(kwargs))
+        try:
+            response = self._client.put(path, **_prepare_json_kwargs(kwargs))
+        except httpx.TimeoutException as exc:
+            raise PineconeTimeoutError(str(exc)) from exc
+        except httpx.TransportError as exc:
+            raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
         return response
 
@@ -279,13 +296,23 @@ class HTTPClient:
         elif "json" in kwargs:
             body = _encode_json(kwargs["json"])
         _log_curl("PATCH", self._build_url(path), dict(self._headers), body=body)
-        response = self._client.patch(path, **_prepare_json_kwargs(kwargs))
+        try:
+            response = self._client.patch(path, **_prepare_json_kwargs(kwargs))
+        except httpx.TimeoutException as exc:
+            raise PineconeTimeoutError(str(exc)) from exc
+        except httpx.TransportError as exc:
+            raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
         return response
 
     def delete(self, path: str, **kwargs: Any) -> httpx.Response:
         _log_curl("DELETE", self._build_url(path), dict(self._headers))
-        response = self._client.delete(path, **kwargs)
+        try:
+            response = self._client.delete(path, **kwargs)
+        except httpx.TimeoutException as exc:
+            raise PineconeTimeoutError(str(exc)) from exc
+        except httpx.TransportError as exc:
+            raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
         return response
 
@@ -340,27 +367,52 @@ class AsyncHTTPClient:
         return self._client
 
     async def get(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._ensure_client().get(path, **kwargs)
+        try:
+            response = await self._ensure_client().get(path, **kwargs)
+        except httpx.TimeoutException as exc:
+            raise PineconeTimeoutError(str(exc)) from exc
+        except httpx.TransportError as exc:
+            raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
         return response
 
     async def post(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._ensure_client().post(path, **_prepare_json_kwargs(kwargs))
+        try:
+            response = await self._ensure_client().post(path, **_prepare_json_kwargs(kwargs))
+        except httpx.TimeoutException as exc:
+            raise PineconeTimeoutError(str(exc)) from exc
+        except httpx.TransportError as exc:
+            raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
         return response
 
     async def put(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._ensure_client().put(path, **_prepare_json_kwargs(kwargs))
+        try:
+            response = await self._ensure_client().put(path, **_prepare_json_kwargs(kwargs))
+        except httpx.TimeoutException as exc:
+            raise PineconeTimeoutError(str(exc)) from exc
+        except httpx.TransportError as exc:
+            raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
         return response
 
     async def patch(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._ensure_client().patch(path, **_prepare_json_kwargs(kwargs))
+        try:
+            response = await self._ensure_client().patch(path, **_prepare_json_kwargs(kwargs))
+        except httpx.TimeoutException as exc:
+            raise PineconeTimeoutError(str(exc)) from exc
+        except httpx.TransportError as exc:
+            raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
         return response
 
     async def delete(self, path: str, **kwargs: Any) -> httpx.Response:
-        response = await self._ensure_client().delete(path, **kwargs)
+        try:
+            response = await self._ensure_client().delete(path, **kwargs)
+        except httpx.TimeoutException as exc:
+            raise PineconeTimeoutError(str(exc)) from exc
+        except httpx.TransportError as exc:
+            raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
         return response
 

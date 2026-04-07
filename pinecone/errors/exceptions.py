@@ -96,7 +96,17 @@ class IndexInitFailedError(PineconeError):
 
 
 class PineconeTimeoutError(PineconeError):
-    """Raised when a polling operation exceeds its timeout."""
+    """Raised when an operation exceeds its timeout."""
+
+    pass
+
+
+class PineconeConnectionError(PineconeError):
+    """Raised when a network-level connection fails.
+
+    Covers DNS resolution failures, connection refused, read/write errors,
+    and other transport-level problems.
+    """
 
     pass
 

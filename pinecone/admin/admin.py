@@ -13,7 +13,12 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION, API_VERSION_HEADER, DEFAULT_BASE_URL
 from pinecone._internal.http_client import HTTPClient, _build_socket_options, _RetryTransport
 from pinecone._internal.user_agent import build_user_agent
-from pinecone.errors.exceptions import ApiError, ValidationError
+from pinecone.errors.exceptions import (
+    ApiError,
+    PineconeConnectionError,
+    PineconeTimeoutError,
+    ValidationError,
+)
 
 if TYPE_CHECKING:
     from pinecone.admin.api_keys import ApiKeys
@@ -143,15 +148,20 @@ class Admin:
             proxy=proxy_url or None,
             verify=ssl_verify,
         ) as client:
-            response = client.post(
-                _OAUTH_URL,
-                content=body,
-                headers={
-                    "Content-Type": "application/json",
-                    "User-Agent": build_user_agent(__version__, None),
-                    API_VERSION_HEADER: ADMIN_API_VERSION,
-                },
-            )
+            try:
+                response = client.post(
+                    _OAUTH_URL,
+                    content=body,
+                    headers={
+                        "Content-Type": "application/json",
+                        "User-Agent": build_user_agent(__version__, None),
+                        API_VERSION_HEADER: ADMIN_API_VERSION,
+                    },
+                )
+            except httpx.TimeoutException as exc:
+                raise PineconeTimeoutError(str(exc)) from exc
+            except httpx.TransportError as exc:
+                raise PineconeConnectionError(str(exc)) from exc
 
         if not response.is_success:
             err_body: dict[str, Any] | None = None
