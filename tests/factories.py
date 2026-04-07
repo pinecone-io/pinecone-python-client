@@ -305,3 +305,23 @@ def make_error_response(
     }
     base.update(overrides)
     return base
+
+
+# ---------------------------------------------------------------------------
+# Assistant factories
+# ---------------------------------------------------------------------------
+
+
+def make_assistant_response(**overrides: Any) -> dict[str, Any]:
+    """Return a single Assistant dict (assistant_control ``GET /assistants/{name}``)."""
+    base: dict[str, Any] = {
+        "name": "test-assistant",
+        "status": "Ready",
+        "created_at": "2025-01-15T12:00:00Z",
+        "updated_at": "2025-01-15T12:00:00Z",
+        "metadata": {},
+        "instructions": None,
+        "host": "test-assistant-abc123.svc.pinecone.io",
+    }
+    base.update(overrides)
+    return base

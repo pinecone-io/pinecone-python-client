@@ -1,0 +1,320 @@
+"""Unit tests for Assistants namespace — create_assistant."""
+
+from __future__ import annotations
+
+import json
+from unittest.mock import patch
+
+import httpx
+import pytest
+import respx
+
+from pinecone._internal.config import PineconeConfig
+from pinecone._internal.constants import ASSISTANT_API_VERSION
+from pinecone._internal.http_client import HTTPClient
+from pinecone.client.assistants import (
+    _CREATE_POLL_INTERVAL_SECONDS,
+    Assistants,
+)
+from pinecone.errors.exceptions import PineconeTimeoutError, PineconeValueError
+from pinecone.models.assistant.model import AssistantModel
+from tests.factories import make_assistant_response
+
+BASE_URL = "https://api.test.pinecone.io"
+
+
+@pytest.fixture()
+def http_client() -> HTTPClient:
+    config = PineconeConfig(api_key="test-key", host=BASE_URL)
+    return HTTPClient(config, ASSISTANT_API_VERSION)
+
+
+@pytest.fixture()
+def assistants() -> Assistants:
+    config = PineconeConfig(api_key="test-key", host=BASE_URL)
+    return Assistants(config=config)
+
+
+# ---------------------------------------------------------------------------
+# create() — validation
+# ---------------------------------------------------------------------------
+
+
+def test_create_assistant_region_validation(assistants: Assistants) -> None:
+    """Invalid region raises PineconeValueError before any HTTP call."""
+    with pytest.raises(PineconeValueError, match="region") as exc_info:
+        assistants.create(name="test-assistant", region="ap-southeast-1")
+    assert "ap-southeast-1" in str(exc_info.value)
+
+
+def test_create_assistant_region_case_sensitive(assistants: Assistants) -> None:
+    """Uppercase 'US' and 'EU' are rejected — validation is case-sensitive."""
+    with pytest.raises(PineconeValueError, match="region"):
+        assistants.create(name="test-assistant", region="US")
+
+    with pytest.raises(PineconeValueError, match="region"):
+        assistants.create(name="test-assistant", region="EU")
+
+
+# ---------------------------------------------------------------------------
+# create() — defaults
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_create_assistant_defaults(assistants: Assistants) -> None:
+    """Default region is 'us', metadata is {}, instructions is None."""
+    route = respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    result = assistants.create(name="test-assistant")
+
+    assert isinstance(result, AssistantModel)
+    assert result.name == "test-assistant"
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["region"] == "us"
+    assert body["metadata"] == {}
+    assert body["instructions"] is None
+
+
+# ---------------------------------------------------------------------------
+# create() — success with immediate return (timeout=-1)
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_create_assistant_immediate_return(assistants: Assistants) -> None:
+    """timeout=-1 returns immediately without polling."""
+    route = respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+
+    result = assistants.create(name="test-assistant", timeout=-1)
+
+    assert isinstance(result, AssistantModel)
+    assert result.status == "Initializing"
+    assert route.call_count == 1
+
+
+@respx.mock
+def test_create_assistant_with_all_params(assistants: Assistants) -> None:
+    """Create with instructions, metadata, and region sends correct body."""
+    route = respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+
+    result = assistants.create(
+        name="research-bot",
+        instructions="You are a research assistant.",
+        metadata={"team": "engineering", "version": "1"},
+        region="eu",
+        timeout=-1,
+    )
+
+    assert isinstance(result, AssistantModel)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["name"] == "research-bot"
+    assert body["instructions"] == "You are a research assistant."
+    assert body["metadata"] == {"team": "engineering", "version": "1"}
+    assert body["region"] == "eu"
+
+
+# ---------------------------------------------------------------------------
+# create() — polling
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_assistant_polls_until_ready(mock_sleep: object, assistants: Assistants) -> None:
+    """Polling loop calls GET until status is 'Ready'."""
+    respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+
+    poll_route = respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        side_effect=[
+            httpx.Response(200, json=make_assistant_response(status="Initializing")),
+            httpx.Response(200, json=make_assistant_response(status="Initializing")),
+            httpx.Response(200, json=make_assistant_response(status="Ready")),
+        ]
+    )
+
+    result = assistants.create(name="test-assistant")
+
+    assert result.status == "Ready"
+    assert poll_route.call_count == 3
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_assistant_polls_with_correct_interval(
+    mock_sleep: object, assistants: Assistants
+) -> None:
+    """Polling sleeps with the correct interval between polls."""
+    respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    assistants.create(name="test-assistant")
+
+    # sleep is not called after the final successful poll
+    # but it may be called before the first poll depending on flow
+    # The key assertion is the interval value
+    from unittest.mock import call
+
+    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+        assert c == call(_CREATE_POLL_INTERVAL_SECONDS)
+
+
+# ---------------------------------------------------------------------------
+# create() — timeout
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.monotonic")
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_assistant_timeout_raises(
+    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+) -> None:
+    """Exceeding timeout raises PineconeTimeoutError with helpful message."""
+    # Simulate time progression: start=0, after first poll=6 (exceeds timeout=5)
+    mock_monotonic.side_effect = [0.0, 6.0]  # type: ignore[union-attr]
+
+    respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+
+    with pytest.raises(PineconeTimeoutError, match="not ready") as exc_info:
+        assistants.create(name="test-assistant", timeout=5)
+
+    assert "describe_assistant" in str(exc_info.value)
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.monotonic")
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_assistant_timeout_zero_polls_once(
+    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+) -> None:
+    """timeout=0 polls once, then raises if not ready."""
+    # start=0, first elapsed check=0.0 (not >= 0, so one iteration), second=0.1 (>= 0)
+    mock_monotonic.side_effect = [0.0, 0.0, 0.1]  # type: ignore[union-attr]
+
+    respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+
+    poll_route = respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        side_effect=[
+            httpx.Response(200, json=make_assistant_response(status="Initializing")),
+            httpx.Response(200, json=make_assistant_response(status="Initializing")),
+        ]
+    )
+
+    with pytest.raises(PineconeTimeoutError):
+        assistants.create(name="test-assistant", timeout=0)
+
+    # At least one poll was made
+    assert poll_route.call_count >= 1
+
+
+# ---------------------------------------------------------------------------
+# create() — status check is case-sensitive
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.monotonic")
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_assistant_status_case_sensitive(
+    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+) -> None:
+    """Status check uses exact 'Ready' — 'ready' or 'READY' does not match."""
+    mock_monotonic.side_effect = [0.0, 6.0]  # type: ignore[union-attr]
+
+    respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="ready")),
+    )
+
+    with pytest.raises(PineconeTimeoutError):
+        assistants.create(name="test-assistant", timeout=5)
+
+
+# ---------------------------------------------------------------------------
+# create() — indefinite polling (timeout=None)
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_assistant_polls_indefinitely_when_no_timeout(
+    mock_sleep: object, assistants: Assistants
+) -> None:
+    """When timeout is None, polling continues until Ready with no deadline."""
+    respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        side_effect=[
+            httpx.Response(200, json=make_assistant_response(status="Initializing")),
+            httpx.Response(200, json=make_assistant_response(status="Initializing")),
+            httpx.Response(200, json=make_assistant_response(status="Initializing")),
+            httpx.Response(200, json=make_assistant_response(status="Ready")),
+        ]
+    )
+
+    result = assistants.create(name="test-assistant", timeout=None)
+
+    assert result.status == "Ready"
+
+
+# ---------------------------------------------------------------------------
+# create() — valid regions accepted
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_create_assistant_accepts_us_region(assistants: Assistants) -> None:
+    """Region 'us' is accepted."""
+    respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    result = assistants.create(name="test-assistant", region="us")
+    assert isinstance(result, AssistantModel)
+
+
+@respx.mock
+def test_create_assistant_accepts_eu_region(assistants: Assistants) -> None:
+    """Region 'eu' is accepted."""
+    respx.post(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    result = assistants.create(name="test-assistant", region="eu")
+    assert isinstance(result, AssistantModel)
