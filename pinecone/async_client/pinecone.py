@@ -128,7 +128,7 @@ class AsyncPinecone:
         if self._indexes is None:
             from pinecone.async_client.indexes import AsyncIndexes as _AsyncIndexes
 
-            self._indexes = _AsyncIndexes(http=self._http)
+            self._indexes = _AsyncIndexes(http=self._http, host_cache=self._host_cache)
         return self._indexes
 
     @property

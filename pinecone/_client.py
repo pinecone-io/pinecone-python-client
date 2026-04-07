@@ -127,7 +127,7 @@ class Pinecone:
         if self._indexes is None:
             from pinecone.client.indexes import Indexes as _Indexes
 
-            self._indexes = _Indexes(http=self._http)
+            self._indexes = _Indexes(http=self._http, host_cache=self._host_cache)
         return self._indexes
 
     @property

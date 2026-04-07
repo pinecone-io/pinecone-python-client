@@ -194,6 +194,24 @@ class TestContextManager:
         pc.close()
 
 
+class TestSharedHostCache:
+    """Test that Pinecone and Indexes share the same host cache."""
+
+    def test_indexes_shares_host_cache_with_client(self) -> None:
+        """Indexes must use the same cache dict as Pinecone."""
+        pc = Pinecone(api_key="test-key")
+        indexes = pc.indexes
+        assert indexes._host_cache is pc._host_cache
+
+    def test_indexes_describe_populates_client_cache(self) -> None:
+        """Writing to Indexes._host_cache is visible from Pinecone._host_cache."""
+        pc = Pinecone(api_key="test-key")
+        indexes = pc.indexes
+        # Simulate what describe() does internally
+        indexes._host_cache["test-index"] = "test-host.svc.pinecone.io"
+        assert pc._host_cache.get("test-index") == "test-host.svc.pinecone.io"
+
+
 class TestIndexFactory:
     """Test Pinecone.index() factory method."""
 

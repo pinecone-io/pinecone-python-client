@@ -55,10 +55,12 @@ class Indexes:
             print(idx.name)
     """
 
-    def __init__(self, http: HTTPClient) -> None:
+    def __init__(
+        self, http: HTTPClient, host_cache: dict[str, str] | None = None
+    ) -> None:
         self._http = http
         self._adapter = IndexesAdapter()
-        self._host_cache: dict[str, str] = {}
+        self._host_cache: dict[str, str] = host_cache if host_cache is not None else {}
 
     def __repr__(self) -> str:
         """Return developer-friendly representation."""

@@ -161,10 +161,10 @@ class TestFactoryWithName:
             return_value=httpx.Response(200, json=make_index_response(name="my-index")),
         )
         pc = AsyncPinecone(api_key="test-key")
-        desc = await pc.indexes.describe("my-index")
-        # Populate cache manually (describe doesn't auto-populate the client cache)
-        pc._host_cache["my-index"] = desc.host
+        await pc.indexes.describe("my-index")
 
+        # Cache is shared between AsyncPinecone and AsyncIndexes — no manual
+        # population needed.
         idx = pc.index(name="my-index")
         assert isinstance(idx, AsyncIndex)
         assert INDEX_HOST in idx.host

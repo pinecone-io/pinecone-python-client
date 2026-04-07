@@ -107,6 +107,24 @@ class TestEnvVarFallback:
         assert pc.config.ssl_verify is False
 
 
+class TestSharedHostCache:
+    """Test that AsyncPinecone and AsyncIndexes share the same host cache."""
+
+    def test_indexes_shares_host_cache_with_client(self) -> None:
+        """AsyncIndexes must use the same cache dict as AsyncPinecone."""
+        pc = AsyncPinecone(api_key="test-key")
+        indexes = pc.indexes
+        assert indexes._host_cache is pc._host_cache
+
+    def test_indexes_describe_populates_client_cache(self) -> None:
+        """Writing to AsyncIndexes._host_cache is visible from AsyncPinecone._host_cache."""
+        pc = AsyncPinecone(api_key="test-key")
+        indexes = pc.indexes
+        # Simulate what describe() does internally
+        indexes._host_cache["test-index"] = "test-host.svc.pinecone.io"
+        assert pc._host_cache.get("test-index") == "test-host.svc.pinecone.io"
+
+
 class TestAsyncIndexFactory:
     """Test AsyncPinecone.index() propagates config to AsyncIndex."""
 
