@@ -228,6 +228,13 @@ class AsyncIndex:
                 namespace="articles-en",
             )
             print(response.upserted_count)
+
+        .. note::
+           All vectors are sent in a single request. For large datasets,
+           batch your calls (recommended batch size: 100–500 vectors) or use
+           :meth:`upsert_from_dataframe` which handles batching automatically.
+           For very large datasets (millions of vectors), consider
+           :meth:`start_import` for bulk import from cloud storage.
         """
         built = [VectorFactory.build(v) for v in vectors]
         body: dict[str, Any] = {
