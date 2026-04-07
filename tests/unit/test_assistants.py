@@ -1797,3 +1797,169 @@ def test_chat_completions_no_model_validation(assistants: Assistants) -> None:
     assert isinstance(result, ChatCompletionResponse)
     request_body = json.loads(completions_route.calls.last.request.content)
     assert request_body["model"] == "some-unknown-model-v99"
+
+
+# ---------------------------------------------------------------------------
+# _chat_streaming — SSE parsing
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_chat_streaming_sse_parsing(assistants: Assistants) -> None:
+    """Empty SSE lines are skipped and 'data:' prefix is stripped before JSON parsing."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    # SSE payload: empty lines between events, data: prefix on each event
+    sse_body = (
+        b"data: {\"type\": \"message_start\", \"model\": \"gpt-4o\", \"role\": \"assistant\"}\n"
+        b"\n"
+        b"data: {\"type\": \"message_end\", \"id\": \"end1\","
+        b" \"usage\": {\"prompt_tokens\": 5, \"completion_tokens\": 10, \"total_tokens\": 15}}\n"
+        b"\n"
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import StreamMessageEnd, StreamMessageStart
+
+    chunks = list(
+        assistants.chat(
+            assistant_name="test-assistant",
+            messages=[{"content": "Hello"}],
+            stream=True,
+        )
+    )
+
+    assert len(chunks) == 2
+    assert isinstance(chunks[0], StreamMessageStart)
+    assert isinstance(chunks[1], StreamMessageEnd)
+
+
+# ---------------------------------------------------------------------------
+# _chat_streaming — chunk dispatch
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_chat_streaming_chunk_dispatch(assistants: Assistants) -> None:
+    """Correct chunk types are yielded based on the 'type' field in each SSE event."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b"data: {\"type\": \"message_start\", \"model\": \"gpt-4o\", \"role\": \"assistant\"}\n"
+        b"data: {\"type\": \"content_chunk\", \"id\": \"c1\","
+        b" \"delta\": {\"content\": \"Hello\"}}\n"
+        b"data: {\"type\": \"citation\", \"id\": \"cit1\","
+        b" \"citation\": {\"position\": 5, \"references\": []}}\n"
+        b"data: {\"type\": \"message_end\", \"id\": \"end1\","
+        b" \"usage\": {\"prompt_tokens\": 5, \"completion_tokens\": 10, \"total_tokens\": 15}}\n"
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import (
+        StreamCitationChunk,
+        StreamContentChunk,
+        StreamMessageEnd,
+        StreamMessageStart,
+    )
+
+    chunks = list(
+        assistants.chat(
+            assistant_name="test-assistant",
+            messages=[{"content": "Hello"}],
+            stream=True,
+        )
+    )
+
+    assert len(chunks) == 4
+    assert isinstance(chunks[0], StreamMessageStart)
+    assert chunks[0].model == "gpt-4o"
+    assert chunks[0].role == "assistant"
+    assert isinstance(chunks[1], StreamContentChunk)
+    assert chunks[1].delta.content == "Hello"
+    assert isinstance(chunks[2], StreamCitationChunk)
+    assert isinstance(chunks[3], StreamMessageEnd)
+    assert chunks[3].usage.total_tokens == 15
+
+
+# ---------------------------------------------------------------------------
+# _chat_streaming — request shape
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_chat_streaming_request_body(assistants: Assistants) -> None:
+    """Streaming chat always includes stream=True and include_highlights in body."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b"data: {\"type\": \"message_start\", \"model\": \"gpt-4o\", \"role\": \"assistant\"}\n"
+        b"data: {\"type\": \"message_end\", \"id\": \"e1\","
+        b" \"usage\": {\"prompt_tokens\": 1, \"completion_tokens\": 1, \"total_tokens\": 2}}\n"
+    )
+    chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    list(
+        assistants.chat(
+            assistant_name="test-assistant",
+            messages=[{"content": "Hello"}],
+            stream=True,
+        )
+    )
+
+    request_body = json.loads(chat_route.calls.last.request.content)
+    assert request_body["stream"] is True
+    assert "include_highlights" in request_body
+    assert request_body["include_highlights"] is False
+
+
+# ---------------------------------------------------------------------------
+# _chat_completions_streaming — SSE parsing
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_chat_completions_streaming_sse_parsing(assistants: Assistants) -> None:
+    """chat_completions streaming parses SSE lines as ChatCompletionStreamChunk."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b"data: {\"id\": \"cmpl1\", \"choices\": [{\"index\": 0,"
+        b" \"delta\": {\"role\": \"assistant\", \"content\": null},"
+        b" \"finish_reason\": null}]}\n"
+        b"\n"
+        b"data: {\"id\": \"cmpl2\", \"choices\": [{\"index\": 0,"
+        b" \"delta\": {\"content\": \"Hello\"},"
+        b" \"finish_reason\": null}]}\n"
+        b"\n"
+        b"data: {\"id\": \"cmpl3\", \"choices\": [{\"index\": 0,"
+        b" \"delta\": {}, \"finish_reason\": \"stop\"}]}\n"
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
+
+    chunks = list(
+        assistants.chat_completions(
+            assistant_name="test-assistant",
+            messages=[{"content": "Hello"}],
+            stream=True,
+        )
+    )
+
+    assert len(chunks) == 3
+    assert all(isinstance(c, ChatCompletionStreamChunk) for c in chunks)
+    assert chunks[0].choices[0].delta.role == "assistant"
+    assert chunks[1].choices[0].delta.content == "Hello"
+    assert chunks[2].choices[0].finish_reason == "stop"

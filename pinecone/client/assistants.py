@@ -7,10 +7,13 @@ import os
 import time
 from typing import IO, TYPE_CHECKING, Any, Iterator, List
 
+import msgspec
 import msgspec.structs
+import orjson
 
 from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
 from pinecone._internal.constants import ASSISTANT_API_VERSION
+from pinecone._internal.http_client import _raise_for_status
 from pinecone.errors.exceptions import (
     NotFoundError,
     PineconeError,
@@ -23,7 +26,14 @@ from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResp
 from pinecone.models.assistant.message import Message
 from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.assistant.options import ContextOptions
-from pinecone.models.assistant.streaming import ChatCompletionStreamChunk, ChatStreamChunk
+from pinecone.models.assistant.streaming import (
+    ChatCompletionStreamChunk,
+    ChatStreamChunk,
+    StreamCitationChunk,
+    StreamContentChunk,
+    StreamMessageEnd,
+    StreamMessageStart,
+)
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
@@ -790,7 +800,8 @@ class Assistants:
             body["filter"] = filter
         if json_response:
             body["json_response"] = json_response
-        if include_highlights:
+        # Streaming requests always include include_highlights (defaults to False)
+        if stream or include_highlights:
             body["include_highlights"] = include_highlights
         if context_options is not None:
             if isinstance(context_options, dict):
@@ -802,11 +813,10 @@ class Assistants:
                     if v is not None
                 }
 
-        http = self._data_plane_http(assistant_name)
-
         if stream:
-            return self._stream_chat(http, assistant_name, body)
+            return self._chat_streaming(assistant_name=assistant_name, body=body)
 
+        http = self._data_plane_http(assistant_name)
         response = http.post(f"/chat/{assistant_name}", json=body)
         return self._adapter.to_chat_response(response.content)
 
@@ -868,31 +878,107 @@ class Assistants:
         if filter is not None:
             body["filter"] = filter
 
-        http = self._data_plane_http(assistant_name)
-
         if stream:
-            return self._stream_chat_completions(http, assistant_name, body)
+            return self._chat_completions_streaming(assistant_name=assistant_name, body=body)
 
+        http = self._data_plane_http(assistant_name)
         response = http.post(f"/chat/{assistant_name}/chat/completions", json=body)
         return self._adapter.to_chat_completion_response(response.content)
 
-    def _stream_chat(
+    def _chat_streaming(
         self,
-        http: HTTPClient,
+        *,
         assistant_name: str,
         body: dict[str, Any],
     ) -> Iterator[ChatStreamChunk]:
-        """Stream chat chunks from the assistant (implemented in P-0132)."""
-        raise NotImplementedError("Streaming chat is not yet implemented")
+        """Stream Pinecone-native chat chunks via SSE.
 
-    def _stream_chat_completions(
+        POSTs to ``/chat/{assistant_name}`` with ``stream=True`` in the body,
+        parses each SSE line, and yields typed chunk objects dispatched by the
+        ``type`` field.
+
+        Args:
+            assistant_name: Name of the assistant to chat with.
+            body: Pre-built request body (must include ``stream=True``).
+
+        Yields:
+            :class:`StreamMessageStart`, :class:`StreamContentChunk`,
+            :class:`StreamCitationChunk`, or :class:`StreamMessageEnd`
+            depending on the ``type`` field of each SSE chunk.
+
+        Raises:
+            :exc:`ApiError`: If the server returns an HTTP error.
+        """
+        http = self._data_plane_http(assistant_name)
+        with http._client.stream(
+            "POST",
+            f"/chat/{assistant_name}",
+            content=orjson.dumps(body),
+            headers={"Content-Type": "application/json"},
+            timeout=60.0,
+        ) as response:
+            if not response.is_success:
+                response.read()
+            _raise_for_status(response)
+            for line in response.iter_lines():
+                if not line:
+                    continue
+                if line.startswith("data:"):
+                    line = line[5:].lstrip()
+                if not line:
+                    continue
+                chunk_data: dict[str, Any] = orjson.loads(line)
+                chunk_type = chunk_data.get("type", "")
+                if chunk_type == "message_start":
+                    yield msgspec.convert(chunk_data, StreamMessageStart)
+                elif chunk_type == "content_chunk":
+                    yield msgspec.convert(chunk_data, StreamContentChunk)
+                elif chunk_type == "citation":
+                    yield msgspec.convert(chunk_data, StreamCitationChunk)
+                elif chunk_type == "message_end":
+                    yield msgspec.convert(chunk_data, StreamMessageEnd)
+
+    def _chat_completions_streaming(
         self,
-        http: HTTPClient,
+        *,
         assistant_name: str,
         body: dict[str, Any],
     ) -> Iterator[ChatCompletionStreamChunk]:
-        """Stream chat completion chunks from the assistant (implemented in P-0132)."""
-        raise NotImplementedError("Streaming chat completions is not yet implemented")
+        """Stream OpenAI-compatible chat completion chunks via SSE.
+
+        POSTs to ``/chat/{assistant_name}/chat/completions`` with ``stream=True``
+        in the body and yields each SSE line parsed as a
+        :class:`ChatCompletionStreamChunk`.
+
+        Args:
+            assistant_name: Name of the assistant to chat with.
+            body: Pre-built request body (must include ``stream=True``).
+
+        Yields:
+            :class:`ChatCompletionStreamChunk` for each non-empty SSE line.
+
+        Raises:
+            :exc:`ApiError`: If the server returns an HTTP error.
+        """
+        http = self._data_plane_http(assistant_name)
+        with http._client.stream(
+            "POST",
+            f"/chat/{assistant_name}/chat/completions",
+            content=orjson.dumps(body),
+            headers={"Content-Type": "application/json"},
+            timeout=60.0,
+        ) as response:
+            if not response.is_success:
+                response.read()
+            _raise_for_status(response)
+            for line in response.iter_lines():
+                if not line:
+                    continue
+                if line.startswith("data:"):
+                    line = line[5:].lstrip()
+                if not line:
+                    continue
+                yield msgspec.convert(orjson.loads(line), ChatCompletionStreamChunk)
 
     def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""
