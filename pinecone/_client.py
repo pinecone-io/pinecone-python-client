@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
-from pinecone._internal.config import PineconeConfig
+from pinecone._internal.config import PineconeConfig, RetryConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
 from pinecone._internal.indexes_helpers import poll_index_until_ready
 from pinecone._internal.validation import require_non_empty
@@ -39,6 +39,9 @@ class Pinecone:
         timeout (float): Request timeout in seconds. Defaults to ``30.0``.
         connection_pool_maxsize (int): Maximum number of connections to keep in the
             pool. ``0`` (default) uses httpx defaults.
+        retry_config (RetryConfig | None): Custom retry configuration. When ``None``
+            (default), uses built-in defaults (5 attempts, exponential backoff, retries
+            on 500/502/503/504 for GET/HEAD).
 
     Raises:
         ValidationError: If no API key can be resolved from arguments or
@@ -64,6 +67,7 @@ class Pinecone:
         ssl_verify: bool = True,
         timeout: float = 30.0,
         connection_pool_maxsize: int = 0,
+        retry_config: RetryConfig | None = None,
     ) -> None:
         config = PineconeConfig(
             api_key=api_key or "",
@@ -76,6 +80,7 @@ class Pinecone:
             ssl_ca_certs=ssl_ca_certs,
             ssl_verify=ssl_verify,
             connection_pool_maxsize=connection_pool_maxsize,
+            retry_config=retry_config or RetryConfig(),
         )
 
         if not config.api_key:

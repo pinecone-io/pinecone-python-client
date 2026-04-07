@@ -38,7 +38,7 @@ if _os.environ.get("PINECONE_DEBUG"):
     _logging.getLogger("pinecone").setLevel(_logging.DEBUG)
 
 # Lightweight imports — exception classes and config are small and always needed.
-from pinecone._internal.config import PineconeConfig
+from pinecone._internal.config import PineconeConfig, RetryConfig
 from pinecone.errors.exceptions import (
     ApiError,
     ConflictError,
@@ -117,6 +117,7 @@ __all__ = [
     "QueryNamespacesResults",
     "QueryResponse",
     "RerankModel",
+    "RetryConfig",
     "RerankResult",
     "ResponseInfo",
     "ResponseParsingError",

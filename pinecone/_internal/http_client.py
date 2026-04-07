@@ -15,7 +15,7 @@ import httpx
 import orjson
 
 from pinecone import __version__
-from pinecone._internal.config import PineconeConfig
+from pinecone._internal.config import PineconeConfig, RetryConfig
 from pinecone._internal.constants import API_VERSION_HEADER, DEFAULT_BASE_URL
 from pinecone._internal.user_agent import build_user_agent
 from pinecone.errors.exceptions import (
@@ -125,28 +125,22 @@ class _RetryTransport(httpx.BaseTransport):
         self,
         *,
         transport: httpx.HTTPTransport,
-        max_attempts: int = 5,
-        initial_backoff: float = 0.1,
-        max_backoff: float = 3.0,
-        jitter_max: float = 0.1,
+        retry_config: RetryConfig | None = None,
     ) -> None:
         self._transport = transport
-        self._max_attempts = max_attempts
-        self._initial_backoff = initial_backoff
-        self._max_backoff = max_backoff
-        self._jitter_max = jitter_max
+        self._config = retry_config or RetryConfig()
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         response = self._transport.handle_request(request)
-        if request.method not in _RETRYABLE_METHODS:
+        if request.method not in self._config.retryable_methods:
             return response
-        for attempt in range(self._max_attempts - 1):
-            if response.status_code not in _RETRYABLE_STATUS_CODES:
+        for attempt in range(self._config.max_attempts - 1):
+            if response.status_code not in self._config.retryable_status_codes:
                 return response
             response.close()
-            delay = min(self._initial_backoff * (2**attempt), self._max_backoff) + random.uniform(
-                0, self._jitter_max
-            )
+            delay = min(
+                self._config.initial_backoff * (2**attempt), self._config.max_backoff
+            ) + random.uniform(0, self._config.jitter_max)
             time.sleep(delay)
             response = self._transport.handle_request(request)
         return response
@@ -162,28 +156,22 @@ class _AsyncRetryTransport(httpx.AsyncBaseTransport):
         self,
         *,
         transport: httpx.AsyncHTTPTransport,
-        max_attempts: int = 5,
-        initial_backoff: float = 0.1,
-        max_backoff: float = 3.0,
-        jitter_max: float = 0.1,
+        retry_config: RetryConfig | None = None,
     ) -> None:
         self._transport = transport
-        self._max_attempts = max_attempts
-        self._initial_backoff = initial_backoff
-        self._max_backoff = max_backoff
-        self._jitter_max = jitter_max
+        self._config = retry_config or RetryConfig()
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         response = await self._transport.handle_async_request(request)
-        if request.method not in _RETRYABLE_METHODS:
+        if request.method not in self._config.retryable_methods:
             return response
-        for attempt in range(self._max_attempts - 1):
-            if response.status_code not in _RETRYABLE_STATUS_CODES:
+        for attempt in range(self._config.max_attempts - 1):
+            if response.status_code not in self._config.retryable_status_codes:
                 return response
             await response.aclose()
-            delay = min(self._initial_backoff * (2**attempt), self._max_backoff) + random.uniform(
-                0, self._jitter_max
-            )
+            delay = min(
+                self._config.initial_backoff * (2**attempt), self._config.max_backoff
+            ) + random.uniform(0, self._config.jitter_max)
             await asyncio.sleep(delay)
             response = await self._transport.handle_async_request(request)
         return response
@@ -254,6 +242,7 @@ class HTTPClient:
             transport=httpx.HTTPTransport(
                 http2=True, limits=limits, socket_options=_build_socket_options()
             ),
+            retry_config=config.retry_config,
         )
         proxy: httpx.Proxy | str | None = None
         if config.proxy_url:
@@ -371,6 +360,7 @@ class AsyncHTTPClient:
                 transport=httpx.AsyncHTTPTransport(
                     http2=True, limits=limits, socket_options=_build_socket_options()
                 ),
+                retry_config=self._config.retry_config,
             )
             proxy: httpx.Proxy | str | None = None
             if self._config.proxy_url:

@@ -57,6 +57,32 @@ def _parse_additional_headers_env() -> dict[str, str]:
 
 
 @dataclass(frozen=True)
+class RetryConfig:
+    """Configuration for HTTP retry behavior.
+
+    Args:
+        max_attempts: Maximum number of request attempts (initial + retries). Defaults to 5.
+        initial_backoff: Initial backoff delay in seconds before the first retry. Defaults to 0.1.
+        max_backoff: Maximum backoff delay in seconds. Defaults to 3.0.
+        jitter_max: Maximum random jitter in seconds added to each delay. Defaults to 0.1.
+        retryable_status_codes: HTTP status codes that trigger a retry. Defaults to
+            ``{500, 502, 503, 504}``.
+        retryable_methods: HTTP methods eligible for retry. Defaults to ``{"GET", "HEAD"}``.
+    """
+
+    max_attempts: int = 5
+    initial_backoff: float = 0.1
+    max_backoff: float = 3.0
+    jitter_max: float = 0.1
+    retryable_status_codes: frozenset[int] = field(
+        default_factory=lambda: frozenset({500, 502, 503, 504})
+    )
+    retryable_methods: frozenset[str] = field(
+        default_factory=lambda: frozenset({"GET", "HEAD"})
+    )
+
+
+@dataclass(frozen=True)
 class PineconeConfig:
     """SDK configuration with environment variable fallbacks.
 
@@ -81,6 +107,7 @@ class PineconeConfig:
     ssl_ca_certs: str | None = None
     ssl_verify: bool = True
     connection_pool_maxsize: int = 0
+    retry_config: RetryConfig = field(default_factory=RetryConfig)
 
     def __repr__(self) -> str:
         masked = f"...{self.api_key[-4:]}" if len(self.api_key) >= 4 else "***"

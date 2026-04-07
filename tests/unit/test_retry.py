@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from pinecone._internal.config import PineconeConfig
+from pinecone._internal.config import PineconeConfig, RetryConfig
 from pinecone._internal.http_client import (
     HTTPClient,
     _AsyncRetryTransport,
@@ -139,9 +139,7 @@ class TestSyncRetryTransport:
         )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         response = transport.handle_request(_make_request())
         assert response.status_code == 200
@@ -158,9 +156,7 @@ class TestSyncRetryTransport:
         )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         response = transport.handle_request(_make_request())
         assert response.status_code == 200
@@ -175,9 +171,7 @@ class TestSyncRetryTransport:
         )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         response = transport.handle_request(_make_request())
         assert response.status_code == 429
@@ -193,9 +187,7 @@ class TestSyncRetryTransport:
         )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         response = transport.handle_request(_make_request())
         assert response.status_code == 400
@@ -211,9 +203,7 @@ class TestSyncRetryTransport:
         )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         response = transport.handle_request(_make_request())
         # max_attempts=5 total, so 5 calls
@@ -232,9 +222,7 @@ class TestSyncRetryTransport:
         )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         request = httpx.Request("POST", "https://api.pinecone.io/test")
         response = transport.handle_request(request)
@@ -253,9 +241,7 @@ class TestSyncRetryTransport:
         )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         request = httpx.Request("DELETE", "https://api.pinecone.io/test")
         response = transport.handle_request(request)
@@ -275,9 +261,7 @@ class TestSyncRetryTransport:
             )
             transport = _RetryTransport(
                 transport=fake,  # type: ignore[arg-type]
-                max_attempts=5,
-                initial_backoff=0.1,
-                jitter_max=0.0,
+                retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
             )
             request = httpx.Request(method, "https://api.pinecone.io/test")
             response = transport.handle_request(request)
@@ -295,9 +279,7 @@ class TestSyncRetryTransport:
         )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         request = httpx.Request("HEAD", "https://api.pinecone.io/test")
         response = transport.handle_request(request)
@@ -317,9 +299,7 @@ class TestSyncRetryTransport:
         )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         transport.handle_request(_make_request())
         delays = [call.args[0] for call in mock_sleep.call_args_list]
@@ -339,10 +319,12 @@ class TestSyncRetryTransport:
         )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            max_backoff=0.5,
-            jitter_max=0.0,
+            retry_config=RetryConfig(
+                max_attempts=5,
+                initial_backoff=0.1,
+                max_backoff=0.5,
+                jitter_max=0.0,
+            ),
         )
         transport.handle_request(_make_request())
         delays = [call.args[0] for call in mock_sleep.call_args_list]
@@ -360,9 +342,7 @@ class TestSyncRetryTransport:
         fake = _TrackingTransport(responses)
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         result = transport.handle_request(_make_request())
         assert result.status_code == 200
@@ -383,9 +363,7 @@ class TestSyncRetryTransport:
         fake = _TrackingTransport(responses)
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=3,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=3, initial_backoff=0.1, jitter_max=0.0),
         )
         result = transport.handle_request(_make_request())
         assert result.status_code == 500
@@ -414,10 +392,7 @@ class TestAsyncRetryTransport:
         )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            max_backoff=3.0,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         response = await transport.handle_async_request(_make_request())
         assert response.status_code == 200
@@ -435,10 +410,7 @@ class TestAsyncRetryTransport:
         )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            max_backoff=3.0,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         response = await transport.handle_async_request(_make_request())
         assert response.status_code == 200
@@ -454,10 +426,7 @@ class TestAsyncRetryTransport:
         )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            max_backoff=3.0,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         response = await transport.handle_async_request(_make_request())
         assert response.status_code == 429
@@ -474,10 +443,7 @@ class TestAsyncRetryTransport:
         )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            max_backoff=3.0,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         response = await transport.handle_async_request(_make_request())
         # max_attempts=5 total, so 5 calls
@@ -497,10 +463,7 @@ class TestAsyncRetryTransport:
         )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            max_backoff=3.0,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         request = httpx.Request("POST", "https://api.pinecone.io/test")
         response = await transport.handle_async_request(request)
@@ -520,10 +483,7 @@ class TestAsyncRetryTransport:
         )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            max_backoff=3.0,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         request = httpx.Request("DELETE", "https://api.pinecone.io/test")
         response = await transport.handle_async_request(request)
@@ -546,10 +506,12 @@ class TestAsyncRetryTransport:
         )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            max_backoff=0.5,
-            jitter_max=0.0,
+            retry_config=RetryConfig(
+                max_attempts=5,
+                initial_backoff=0.1,
+                max_backoff=0.5,
+                jitter_max=0.0,
+            ),
         )
         await transport.handle_async_request(_make_request())
         delays = [call.args[0] for call in mock_sleep.call_args_list]
@@ -568,9 +530,7 @@ class TestAsyncRetryTransport:
         fake = _TrackingAsyncTransport(responses)
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         result = await transport.handle_async_request(_make_request())
         assert result.status_code == 200
@@ -592,9 +552,7 @@ class TestAsyncRetryTransport:
         fake = _TrackingAsyncTransport(responses)
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=3,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=3, initial_backoff=0.1, jitter_max=0.0),
         )
         result = await transport.handle_async_request(_make_request())
         assert result.status_code == 503
@@ -625,9 +583,7 @@ class TestHTTPClientRetryIntegration:
         )
         retry_transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=3,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=3, initial_backoff=0.1, jitter_max=0.0),
         )
         client._client._transport = retry_transport  # type: ignore[assignment]
 
@@ -650,9 +606,7 @@ class TestHTTPClientRetryIntegration:
         )
         retry_transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            max_attempts=5,
-            initial_backoff=0.1,
-            jitter_max=0.0,
+            retry_config=RetryConfig(max_attempts=5, initial_backoff=0.1, jitter_max=0.0),
         )
         client._client._transport = retry_transport  # type: ignore[assignment]
 
