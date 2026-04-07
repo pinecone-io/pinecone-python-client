@@ -38,6 +38,8 @@ class AsyncPinecone:
         ssl_ca_certs (str | None): Path to a CA certificate bundle for SSL verification.
         ssl_verify (bool): Whether to verify SSL certificates. Defaults to ``True``.
         timeout (float): Request timeout in seconds. Defaults to ``30.0``.
+        connection_pool_maxsize (int): Maximum number of connections to keep in the
+            pool. ``0`` (default) uses httpx defaults.
 
     Raises:
         ValidationError: If no API key can be resolved from arguments or
