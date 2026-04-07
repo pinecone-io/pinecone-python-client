@@ -29,6 +29,7 @@ from pinecone.errors.exceptions import (
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse
 from pinecone.models.assistant.model import AssistantModel
+from pinecone.models.pagination import Page, Paginator
 from tests.factories import (
     make_assistant_file_response,
     make_assistant_response,
@@ -435,19 +436,20 @@ def test_describe_assistant_minimal_response(assistants: Assistants) -> None:
 
 @respx.mock
 def test_list_assistants_empty(assistants: Assistants) -> None:
-    """list() returns empty list when no assistants exist."""
+    """list() returns a Paginator that yields nothing when no assistants exist."""
     respx.get(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
     result = assistants.list()
 
-    assert result == []
+    assert isinstance(result, Paginator)
+    assert result.to_list() == []
 
 
 @respx.mock
 def test_list_assistants_single_page(assistants: Assistants) -> None:
-    """list() returns all assistants from a single-page response."""
+    """list() returns a Paginator over all assistants from a single-page response."""
     respx.get(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(
             200,
@@ -460,7 +462,7 @@ def test_list_assistants_single_page(assistants: Assistants) -> None:
         ),
     )
 
-    result = assistants.list()
+    result = assistants.list().to_list()
 
     assert len(result) == 2
     assert result[0].name == "a1"
@@ -470,7 +472,7 @@ def test_list_assistants_single_page(assistants: Assistants) -> None:
 
 @respx.mock
 def test_list_assistants_multi_page(assistants: Assistants) -> None:
-    """list() auto-paginates through multiple pages."""
+    """list() auto-paginates through multiple pages via Paginator."""
     respx.get(f"{BASE_URL}/assistants").mock(
         side_effect=[
             httpx.Response(
@@ -496,10 +498,125 @@ def test_list_assistants_multi_page(assistants: Assistants) -> None:
         ]
     )
 
-    result = assistants.list()
+    result = assistants.list().to_list()
 
     assert len(result) == 3
     assert [a.name for a in result] == ["a1", "a2", "a3"]
+
+
+@respx.mock
+def test_list_assistants_to_list(assistants: Assistants) -> None:
+    """list().to_list() collects all assistants into a list."""
+    respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "assistants": [
+                    make_assistant_response(name="a1"),
+                    make_assistant_response(name="a2"),
+                ],
+            },
+        ),
+    )
+
+    items = assistants.list().to_list()
+
+    assert len(items) == 2
+    assert all(isinstance(a, AssistantModel) for a in items)
+
+
+@respx.mock
+def test_list_assistants_iteration(assistants: Assistants) -> None:
+    """list() supports direct for-loop iteration."""
+    respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "assistants": [
+                    make_assistant_response(name="a1"),
+                    make_assistant_response(name="a2"),
+                ],
+            },
+        ),
+    )
+
+    names = [a.name for a in assistants.list()]
+
+    assert names == ["a1", "a2"]
+
+
+@respx.mock
+def test_list_assistants_with_limit(assistants: Assistants) -> None:
+    """list(limit=N) yields at most N items across all pages."""
+    respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "assistants": [
+                    make_assistant_response(name="a1"),
+                    make_assistant_response(name="a2"),
+                    make_assistant_response(name="a3"),
+                ],
+                "next": "more",
+            },
+        ),
+    )
+
+    result = assistants.list(limit=2).to_list()
+
+    assert len(result) == 2
+    assert result[0].name == "a1"
+    assert result[1].name == "a2"
+
+
+@respx.mock
+def test_list_assistants_pages(assistants: Assistants) -> None:
+    """list().pages() yields Page objects with items and has_more."""
+    respx.get(f"{BASE_URL}/assistants").mock(
+        side_effect=[
+            httpx.Response(
+                200,
+                json={
+                    "assistants": [make_assistant_response(name="a1")],
+                    "next": "token-next",
+                },
+            ),
+            httpx.Response(
+                200,
+                json={
+                    "assistants": [make_assistant_response(name="a2")],
+                },
+            ),
+        ]
+    )
+
+    pages = list(assistants.list().pages())
+
+    assert len(pages) == 2
+    assert pages[0].has_more is True
+    assert pages[0].items[0].name == "a1"
+    assert pages[1].has_more is False
+    assert pages[1].items[0].name == "a2"
+    for page in pages:
+        assert isinstance(page, Page)
+
+
+@respx.mock
+def test_list_assistants_with_pagination_token(assistants: Assistants) -> None:
+    """list(pagination_token=...) starts from the given token."""
+    route = respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(
+            200,
+            json={"assistants": [make_assistant_response(name="a2")]},
+        ),
+    )
+
+    result = assistants.list(pagination_token="tok-page2").to_list()
+
+    assert len(result) == 1
+    assert result[0].name == "a2"
+    request = route.calls.last.request
+    assert "paginationToken=tok-page2" in str(request.url)
 
 
 # ---------------------------------------------------------------------------

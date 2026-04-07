@@ -35,6 +35,7 @@ from pinecone.models.assistant.streaming import (
     StreamMessageEnd,
     StreamMessageStart,
 )
+from pinecone.models.pagination import Page, Paginator
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
@@ -545,38 +546,41 @@ class Assistants:
         logger.debug("Described assistant %r (status=%s)", name, model.status)
         return model
 
-    def list(self) -> list[AssistantModel]:
-        """List all assistants in the project.
+    def list(
+        self,
+        *,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> Paginator[AssistantModel]:
+        """List assistants in the project with transparent lazy pagination.
 
-        Automatically paginates through all pages, collecting every
-        assistant into a single list.
+        Args:
+            limit (int | None): Maximum number of assistants to yield across
+                all pages. ``None`` (default) yields all assistants.
+            pagination_token (str | None): Token to resume pagination from a
+                previous call.
 
         Returns:
-            A list of :class:`AssistantModel` objects. Returns an empty
-            list when no assistants exist.
+            :class:`Paginator` over :class:`AssistantModel` objects. Supports
+            ``for`` loops, ``.to_list()``, ``.pages()``, and ``limit``.
 
         Raises:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
 
-            assistants = pc.assistants.list()
-            for a in assistants:
+            for a in pc.assistants.list():
                 print(a.name, a.status)
+
+            all_assistants = pc.assistants.list().to_list()
         """
-        logger.info("Listing all assistants")
-        all_assistants: list[AssistantModel] = []
-        pagination_token: str | None = None
+        logger.info("Listing assistants")
 
-        while True:
-            page = self.list_page(pagination_token=pagination_token)
-            all_assistants.extend(page.assistants)
-            if page.next is None:
-                break
-            pagination_token = page.next
+        def fetch_page(token: str | None) -> Page[AssistantModel]:
+            result = self.list_page(pagination_token=token)
+            return Page(items=result.assistants, pagination_token=result.next)
 
-        logger.debug("Listed %d assistants", len(all_assistants))
-        return all_assistants
+        return Paginator(fetch_page=fetch_page, initial_token=pagination_token, limit=limit)
 
     def list_page(
         self,

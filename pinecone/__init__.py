@@ -85,6 +85,7 @@ if TYPE_CHECKING:
         ListNamespacesResponse,
         NamespaceDescription,
     )
+    from pinecone.models.pagination import AsyncPaginator, Page, Paginator
     from pinecone.models.vectors.query_aggregator import (
         QueryNamespacesResults,
         QueryResultsAggregator,
@@ -140,6 +141,7 @@ __all__ = [
     "__version__",
     "Admin",
     "ApiError",
+    "AsyncPaginator",
     "AssistantFileModel",
     "AssistantModel",
     "AsyncIndex",
@@ -186,6 +188,8 @@ __all__ = [
     "ModelInfoList",
     "NamespaceDescription",
     "NotFoundError",
+    "Page",
+    "Paginator",
     "Pinecone",
     "PineconeConfig",
     "PineconeConnectionError",
@@ -225,6 +229,7 @@ __all__ = [
 # Importing Pinecone/AsyncPinecone/Index eagerly pulls in httpx (~120ms).
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "Admin": ("pinecone.admin", "Admin"),
+    "AsyncPaginator": ("pinecone.models.pagination", "AsyncPaginator"),
     "AssistantFileModel": ("pinecone.models.assistant.file_model", "AssistantFileModel"),
     "AssistantModel": ("pinecone.models.assistant.model", "AssistantModel"),
     "AsyncIndex": ("pinecone.async_client.async_index", "AsyncIndex"),
@@ -282,6 +287,8 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "pinecone.models.namespaces.models",
         "NamespaceDescription",
     ),
+    "Page": ("pinecone.models.pagination", "Page"),
+    "Paginator": ("pinecone.models.pagination", "Paginator"),
     "Pinecone": ("pinecone._client", "Pinecone"),
     "PodSpec": ("pinecone.models.indexes.specs", "PodSpec"),
     "PodSpecInfo": ("pinecone.models.indexes.index", "PodSpecInfo"),

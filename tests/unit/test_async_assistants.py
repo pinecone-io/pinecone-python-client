@@ -17,6 +17,7 @@ from pinecone.async_client.assistants import (
 from pinecone.errors.exceptions import NotFoundError, PineconeTimeoutError, PineconeValueError
 from pinecone.models.assistant.list import ListAssistantsResponse
 from pinecone.models.assistant.model import AssistantModel
+from pinecone.models.pagination import AsyncPaginator, Page
 from tests.factories import make_assistant_response
 
 BASE_URL = "https://api.test.pinecone.io"
@@ -391,19 +392,20 @@ async def test_describe_assistant_minimal_response(async_assistants: AsyncAssist
 
 @respx.mock
 async def test_list_assistants_empty(async_assistants: AsyncAssistants) -> None:
-    """list() returns empty list when no assistants exist."""
+    """list() returns an AsyncPaginator that yields nothing when no assistants exist."""
     respx.get(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
-    result = await async_assistants.list()
+    result = async_assistants.list()
 
-    assert result == []
+    assert isinstance(result, AsyncPaginator)
+    assert await result.to_list() == []
 
 
 @respx.mock
 async def test_list_assistants_single_page(async_assistants: AsyncAssistants) -> None:
-    """list() returns all assistants from a single-page response."""
+    """list() returns an AsyncPaginator over all assistants from a single-page response."""
     respx.get(f"{BASE_URL}/assistants").mock(
         return_value=httpx.Response(
             200,
@@ -416,7 +418,7 @@ async def test_list_assistants_single_page(async_assistants: AsyncAssistants) ->
         ),
     )
 
-    result = await async_assistants.list()
+    result = await async_assistants.list().to_list()
 
     assert len(result) == 2
     assert result[0].name == "a1"
@@ -426,7 +428,7 @@ async def test_list_assistants_single_page(async_assistants: AsyncAssistants) ->
 
 @respx.mock
 async def test_list_assistants_multi_page(async_assistants: AsyncAssistants) -> None:
-    """list() auto-paginates through multiple pages."""
+    """list() auto-paginates through multiple pages via AsyncPaginator."""
     respx.get(f"{BASE_URL}/assistants").mock(
         side_effect=[
             httpx.Response(
@@ -452,10 +454,125 @@ async def test_list_assistants_multi_page(async_assistants: AsyncAssistants) -> 
         ]
     )
 
-    result = await async_assistants.list()
+    result = await async_assistants.list().to_list()
 
     assert len(result) == 3
     assert [a.name for a in result] == ["a1", "a2", "a3"]
+
+
+@respx.mock
+async def test_list_assistants_to_list(async_assistants: AsyncAssistants) -> None:
+    """list().to_list() collects all assistants into a list."""
+    respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "assistants": [
+                    make_assistant_response(name="a1"),
+                    make_assistant_response(name="a2"),
+                ],
+            },
+        ),
+    )
+
+    items = await async_assistants.list().to_list()
+
+    assert len(items) == 2
+    assert all(isinstance(a, AssistantModel) for a in items)
+
+
+@respx.mock
+async def test_list_assistants_iteration(async_assistants: AsyncAssistants) -> None:
+    """list() supports direct async for-loop iteration."""
+    respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "assistants": [
+                    make_assistant_response(name="a1"),
+                    make_assistant_response(name="a2"),
+                ],
+            },
+        ),
+    )
+
+    names = [a.name async for a in async_assistants.list()]
+
+    assert names == ["a1", "a2"]
+
+
+@respx.mock
+async def test_list_assistants_with_limit(async_assistants: AsyncAssistants) -> None:
+    """list(limit=N) yields at most N items across all pages."""
+    respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "assistants": [
+                    make_assistant_response(name="a1"),
+                    make_assistant_response(name="a2"),
+                    make_assistant_response(name="a3"),
+                ],
+                "next": "more",
+            },
+        ),
+    )
+
+    result = await async_assistants.list(limit=2).to_list()
+
+    assert len(result) == 2
+    assert result[0].name == "a1"
+    assert result[1].name == "a2"
+
+
+@respx.mock
+async def test_list_assistants_pages(async_assistants: AsyncAssistants) -> None:
+    """list().pages() yields Page objects with items and has_more."""
+    respx.get(f"{BASE_URL}/assistants").mock(
+        side_effect=[
+            httpx.Response(
+                200,
+                json={
+                    "assistants": [make_assistant_response(name="a1")],
+                    "next": "token-next",
+                },
+            ),
+            httpx.Response(
+                200,
+                json={
+                    "assistants": [make_assistant_response(name="a2")],
+                },
+            ),
+        ]
+    )
+
+    pages = [p async for p in async_assistants.list().pages()]
+
+    assert len(pages) == 2
+    assert pages[0].has_more is True
+    assert pages[0].items[0].name == "a1"
+    assert pages[1].has_more is False
+    assert pages[1].items[0].name == "a2"
+    for page in pages:
+        assert isinstance(page, Page)
+
+
+@respx.mock
+async def test_list_assistants_with_pagination_token(async_assistants: AsyncAssistants) -> None:
+    """list(pagination_token=...) starts from the given token."""
+    route = respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(
+            200,
+            json={"assistants": [make_assistant_response(name="a2")]},
+        ),
+    )
+
+    result = await async_assistants.list(pagination_token="tok-page2").to_list()
+
+    assert len(result) == 1
+    assert result[0].name == "a2"
+    request = route.calls.last.request
+    assert "paginationToken=tok-page2" in str(request.url)
 
 
 # ---------------------------------------------------------------------------
