@@ -1,10 +1,44 @@
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
+use tonic::service::interceptor::InterceptedService;
 use tonic::transport::Channel;
 
 use crate::proto::vector_service_client::VectorServiceClient;
 use crate::proto;
+
+/// Interceptor that attaches API key, request ID (UUID v4), and API version
+/// metadata to every outgoing gRPC request.
+#[derive(Clone)]
+struct MetadataInterceptor {
+    api_key: tonic::metadata::MetadataValue<tonic::metadata::Ascii>,
+    api_version: tonic::metadata::MetadataValue<tonic::metadata::Ascii>,
+}
+
+impl MetadataInterceptor {
+    fn new(api_key: &str, api_version: &str) -> Result<Self, tonic::metadata::errors::InvalidMetadataValue> {
+        Ok(Self {
+            api_key: api_key.parse()?,
+            api_version: api_version.parse()?,
+        })
+    }
+}
+
+impl tonic::service::Interceptor for MetadataInterceptor {
+    fn call(&mut self, mut request: tonic::Request<()>) -> Result<tonic::Request<()>, tonic::Status> {
+        let metadata = request.metadata_mut();
+        metadata.insert("api-key", self.api_key.clone());
+        metadata.insert(
+            "x-request-id",
+            uuid::Uuid::new_v4()
+                .to_string()
+                .parse()
+                .map_err(|_| tonic::Status::internal("failed to create request ID"))?,
+        );
+        metadata.insert("x-pinecone-api-version", self.api_version.clone());
+        Ok(request)
+    }
+}
 
 /// Convert a `tonic::Status` into a Python `RuntimeError`.
 fn status_to_py_err(status: tonic::Status) -> PyErr {
@@ -212,7 +246,7 @@ fn py_dict_to_metadata_schema(dict: &Bound<'_, PyDict>) -> PyResult<proto::Metad
 /// A gRPC channel wrapper exposed to Python.
 #[pyclass]
 pub struct GrpcChannel {
-    client: VectorServiceClient<Channel>,
+    client: VectorServiceClient<InterceptedService<Channel, MetadataInterceptor>>,
     runtime: tokio::runtime::Runtime,
 }
 
@@ -222,8 +256,10 @@ impl GrpcChannel {
     ///
     /// Args:
     ///     endpoint: The gRPC endpoint URL (e.g. "https://my-index-abc123.svc.pinecone.io:443")
+    ///     api_key: The Pinecone API key for authentication.
+    ///     api_version: The Pinecone API version string (e.g. "2025-10").
     #[new]
-    fn new(endpoint: &str) -> PyResult<Self> {
+    fn new(endpoint: &str, api_key: &str, api_version: &str) -> PyResult<Self> {
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
             .build()
@@ -235,8 +271,11 @@ impl GrpcChannel {
                 .connect())
             .map_err(|e| PyRuntimeError::new_err(format!("Failed to connect: {e}")))?;
 
+        let interceptor = MetadataInterceptor::new(api_key, api_version)
+            .map_err(|e| PyRuntimeError::new_err(format!("Invalid metadata value: {e}")))?;
+
         Ok(Self {
-            client: VectorServiceClient::new(channel),
+            client: VectorServiceClient::with_interceptor(channel, interceptor),
             runtime,
         })
     }
@@ -801,5 +840,55 @@ impl GrpcChannel {
             dict.set_item("pagination", pag_dict)?;
         }
         Ok(dict.unbind())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashSet;
+    use tonic::service::Interceptor;
+
+    #[test]
+    fn interceptor_attaches_all_metadata_headers() {
+        let mut interceptor = MetadataInterceptor::new("test-api-key-123", "2025-10").unwrap();
+        let request = tonic::Request::new(());
+        let result = interceptor.call(request).unwrap();
+        let metadata = result.metadata();
+
+        assert_eq!(
+            metadata.get("api-key").unwrap().to_str().unwrap(),
+            "test-api-key-123"
+        );
+        assert_eq!(
+            metadata.get("x-pinecone-api-version").unwrap().to_str().unwrap(),
+            "2025-10"
+        );
+
+        let request_id = metadata.get("x-request-id").unwrap().to_str().unwrap();
+        // Validate UUID v4 format (8-4-4-4-12 hex chars)
+        assert_eq!(request_id.len(), 36);
+        assert!(uuid::Uuid::parse_str(request_id).is_ok());
+    }
+
+    #[test]
+    fn each_call_gets_distinct_request_id() {
+        let mut interceptor = MetadataInterceptor::new("key", "2025-10").unwrap();
+        let mut ids = HashSet::new();
+
+        for _ in 0..100 {
+            let request = tonic::Request::new(());
+            let result = interceptor.call(request).unwrap();
+            let request_id = result
+                .metadata()
+                .get("x-request-id")
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .to_string();
+            ids.insert(request_id);
+        }
+
+        assert_eq!(ids.len(), 100, "All 100 request IDs should be unique");
     }
 }
