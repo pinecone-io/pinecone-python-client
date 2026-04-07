@@ -67,11 +67,11 @@ class AsyncIndexes:
         sorting, or pagination.
 
         Returns:
-            An IndexList supporting iteration, len(), index access,
+            :class:`IndexList` supporting iteration, len(), index access,
             and a names() convenience method.
 
         Raises:
-            ApiError: If the API returns an error response (e.g. authentication
+            :exc:`ApiError`: If the API returns an error response (e.g. authentication
                 failure or server error).
 
         Examples:
@@ -96,13 +96,13 @@ class AsyncIndexes:
             name (str): The name of the index to describe.
 
         Returns:
-            An IndexModel with name, dimension, metric, host, spec,
+            :class:`IndexModel` with name, dimension, metric, host, spec,
             status, deletion_protection, vector_type, and tags.
 
         Raises:
-            ValidationError: If *name* is empty.
-            NotFoundError: If the index does not exist.
-            ApiError: If the API returns another error response.
+            :exc:`ValidationError`: If *name* is empty.
+            :exc:`NotFoundError`: If the index does not exist.
+            :exc:`ApiError`: If the API returns another error response.
 
         Examples:
 
@@ -131,8 +131,8 @@ class AsyncIndexes:
             True if the index exists, False otherwise.
 
         Raises:
-            ValidationError: If *name* is empty.
-            ApiError: If the API returns an error other than 404.
+            :exc:`ValidationError`: If *name* is empty.
+            :exc:`ApiError`: If the API returns an error other than 404.
 
         Examples:
 
@@ -161,10 +161,10 @@ class AsyncIndexes:
                 deadline is reached.
 
         Raises:
-            ValidationError: If *name* is empty.
-            NotFoundError: If the index does not exist.
-            PineconeTimeoutError: If the index still exists after *timeout* seconds.
-            ApiError: If the API returns another error response.
+            :exc:`ValidationError`: If *name* is empty.
+            :exc:`NotFoundError`: If the index does not exist.
+            :exc:`PineconeTimeoutError`: If the index still exists after *timeout* seconds.
+            :exc:`ApiError`: If the API returns another error response.
 
         Examples:
 
@@ -222,9 +222,9 @@ class AsyncIndexes:
                 "scaling": "Manual", "manual": {"replicas": 2, "shards": 1}}}``.
 
         Raises:
-            ValidationError: If *name* is empty or *read_capacity* is invalid.
-            NotFoundError: If the index does not exist.
-            ApiError: If the API returns another error response.
+            :exc:`ValidationError`: If *name* is empty or *read_capacity* is invalid.
+            :exc:`NotFoundError`: If the index does not exist.
+            :exc:`ApiError`: If the API returns another error response.
 
         Examples:
 
@@ -315,14 +315,14 @@ class AsyncIndexes:
                 deadline. ``IndexInitFailedError`` if initialization fails.
 
         Returns:
-            An IndexModel describing the created index.
+            :class:`IndexModel` describing the created index.
 
         Raises:
-            ValidationError: If inputs fail client-side validation.
-            NotFoundError: If the index disappears during readiness polling.
-            IndexInitFailedError: If the index fails to initialise.
-            PineconeTimeoutError: If the index is not ready before the deadline.
-            ApiError: If the API returns another error response.
+            :exc:`ValidationError`: If inputs fail client-side validation.
+            :exc:`NotFoundError`: If the index disappears during readiness polling.
+            :exc:`IndexInitFailedError`: If the index fails to initialise.
+            :exc:`PineconeTimeoutError`: If the index is not ready before the deadline.
+            :exc:`ApiError`: If the API returns another error response.
 
         Examples:
 
