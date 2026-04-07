@@ -15,9 +15,12 @@ class UpsertResponse(Struct, rename="camel", kw_only=True):
 
     Attributes:
         upserted_count: Number of vectors successfully upserted.
+        response_info: HTTP response metadata (request ID, LSN values), or
+            ``None`` if not populated.
     """
 
     upserted_count: int
+    response_info: ResponseInfo | None = None
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['upserted_count'])."""
@@ -38,11 +41,14 @@ class QueryResponse(Struct, rename="camel", kw_only=True):
         namespace: Namespace that was queried. Defaults to ``""`` (the
             default namespace).
         usage: Read unit usage for this query, or ``None`` if not reported.
+        response_info: HTTP response metadata (request ID, LSN values), or
+            ``None`` if not populated.
     """
 
     matches: list[ScoredVector] = []
     namespace: str | None = ""
     usage: Usage | None = None
+    response_info: ResponseInfo | None = None
 
     def __post_init__(self) -> None:
         """Normalize null namespace to empty string (claim unified-rs-0013)."""
@@ -67,11 +73,14 @@ class FetchResponse(Struct, rename="camel", kw_only=True):
         vectors: Mapping of vector ID to ``Vector`` for each fetched vector.
         namespace: Namespace the vectors were fetched from.
         usage: Read unit usage for this fetch, or ``None`` if not reported.
+        response_info: HTTP response metadata (request ID, LSN values), or
+            ``None`` if not populated.
     """
 
     vectors: dict[str, Vector] = {}
     namespace: str = ""
     usage: Usage | None = None
+    response_info: ResponseInfo | None = None
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['vectors'])."""
@@ -93,12 +102,15 @@ class FetchByMetadataResponse(Struct, rename="camel", kw_only=True):
         usage: Read unit usage, or None if not reported.
         pagination: Pagination token for the next page, or None if
             this is the last page.
+        response_info: HTTP response metadata (request ID, LSN values), or
+            ``None`` if not populated.
     """
 
     vectors: dict[str, Vector] = {}
     namespace: str = ""
     usage: Usage | None = None
     pagination: Pagination | None = None
+    response_info: ResponseInfo | None = None
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access."""
@@ -139,6 +151,8 @@ class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True):
             not reported.
         storage_fullness: Fraction of storage capacity used, or ``None``
             if not reported.
+        response_info: HTTP response metadata (request ID, LSN values), or
+            ``None`` if not populated.
     """
 
     namespaces: dict[str, NamespaceSummary] = {}
@@ -149,6 +163,7 @@ class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True):
     vector_type: str | None = None
     memory_fullness: float | None = None
     storage_fullness: float | None = None
+    response_info: ResponseInfo | None = None
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['dimension'])."""
@@ -213,12 +228,15 @@ class ListResponse(Struct, rename="camel", kw_only=True):
         namespace: Namespace the vectors were listed from.
         usage: Read unit usage for this list call, or ``None`` if not
             reported.
+        response_info: HTTP response metadata (request ID, LSN values), or
+            ``None`` if not populated.
     """
 
     vectors: list[ListItem] = []
     pagination: Pagination | None = None
     namespace: str = ""
     usage: Usage | None = None
+    response_info: ResponseInfo | None = None
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['vectors'])."""
@@ -237,9 +255,12 @@ class UpsertRecordsResponse(Struct, kw_only=True):
     Attributes:
         record_count: Number of records submitted by the caller. This is a
             client-side count, not a server-confirmed count.
+        response_info: HTTP response metadata (request ID, LSN values), or
+            ``None`` if not populated.
     """
 
     record_count: int
+    response_info: ResponseInfo | None = None
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['record_count'])."""
@@ -258,9 +279,12 @@ class UpdateResponse(Struct, rename="camel", kw_only=True):
     Attributes:
         matched_records: Number of records matched by the update, or ``None``
             if not reported by the server.
+        response_info: HTTP response metadata (request ID, LSN values), or
+            ``None`` if not populated.
     """
 
     matched_records: int | None = None
+    response_info: ResponseInfo | None = None
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['matched_records'])."""

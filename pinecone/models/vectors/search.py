@@ -6,6 +6,8 @@ from typing import Any
 
 from msgspec import Struct
 
+from pinecone.models.vectors.responses import ResponseInfo
+
 
 class SearchUsage(Struct, kw_only=True):
     """Usage statistics for a search operation.
@@ -83,10 +85,13 @@ class SearchRecordsResponse(Struct, kw_only=True):
     Attributes:
         result: Wrapper containing the list of hits.
         usage: Usage statistics for the search operation.
+        response_info: HTTP response metadata (request ID, LSN values), or
+            ``None`` if not populated.
     """
 
     result: SearchResult
     usage: SearchUsage
+    response_info: ResponseInfo | None = None
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. ``response['result']``)."""

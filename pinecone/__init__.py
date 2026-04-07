@@ -86,6 +86,7 @@ __all__ = [
     "QueryNamespacesResults",
     "QueryResponse",
     "RerankResult",
+    "ResponseInfo",
     "ResponseParsingError",
     "RestoreJobList",
     "RestoreJobModel",
@@ -156,6 +157,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     ),
     "QueryResponse": ("pinecone.models.vectors.responses", "QueryResponse"),
     "RerankResult": ("pinecone.models.inference.rerank", "RerankResult"),
+    "ResponseInfo": ("pinecone.models.vectors.responses", "ResponseInfo"),
     "RestoreJobList": ("pinecone.models.backups.list", "RestoreJobList"),
     "RestoreJobModel": ("pinecone.models.backups.model", "RestoreJobModel"),
     "SearchRecordsResponse": (
