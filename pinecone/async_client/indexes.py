@@ -4,13 +4,20 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import re
 import time
 from typing import TYPE_CHECKING, Any
 
-import msgspec
-
 from pinecone._internal.adapters.indexes_adapter import IndexesAdapter
+from pinecone._internal.indexes_helpers import (
+    build_byoc_body,
+    build_create_body,
+    build_integrated_body,
+    resolve_enum_value,
+    validate_byoc_inputs,
+    validate_create_inputs,
+    validate_integrated_inputs,
+    validate_read_capacity,
+)
 from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import (
     IndexInitFailedError,
@@ -28,8 +35,6 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-_VALID_METRICS = frozenset({"cosine", "euclidean", "dotproduct"})
-_VALID_DELETION_PROTECTION = frozenset({"enabled", "disabled"})
 _POLL_INTERVAL_SECONDS = 5
 
 
@@ -258,12 +263,12 @@ class AsyncIndexes:
             body["spec"] = {"pod": pod_fields}
 
         if read_capacity is not None:
-            self._validate_read_capacity(read_capacity)
+            validate_read_capacity(read_capacity)
             body["spec"] = {"byoc": {"read_capacity": read_capacity}}
 
         # Deletion protection — only include when explicitly specified
         if deletion_protection is not None:
-            body["deletion_protection"] = self._resolve_value(deletion_protection)
+            body["deletion_protection"] = resolve_enum_value(deletion_protection)
 
         # Tag merging — fetch current tags and merge
         if tags is not None:
@@ -349,21 +354,21 @@ class AsyncIndexes:
                 )
         """
         if isinstance(spec, IntegratedSpec):
-            self._validate_integrated_inputs(name=name, spec=spec)
-            body = self._build_integrated_body(
+            validate_integrated_inputs(name=name, spec=spec)
+            body = build_integrated_body(
                 name=name,
                 spec=spec,
                 deletion_protection=deletion_protection,
                 tags=tags,
             )
         elif isinstance(spec, ByocSpec):
-            self._validate_byoc_inputs(
+            validate_byoc_inputs(
                 name=name,
                 spec=spec,
                 dimension=dimension,
                 deletion_protection=deletion_protection,
             )
-            body = self._build_byoc_body(
+            body = build_byoc_body(
                 name=name,
                 spec=spec,
                 dimension=dimension,
@@ -373,7 +378,7 @@ class AsyncIndexes:
                 tags=tags,
             )
         else:
-            self._validate_create_inputs(
+            validate_create_inputs(
                 name=name,
                 spec=spec,
                 dimension=dimension,
@@ -381,7 +386,7 @@ class AsyncIndexes:
                 vector_type=vector_type,
                 deletion_protection=deletion_protection,
             )
-            body = self._build_create_body(
+            body = build_create_body(
                 name=name,
                 spec=spec,
                 dimension=dimension,
@@ -405,252 +410,6 @@ class AsyncIndexes:
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
-
-    @staticmethod
-    def _resolve_value(value: Any) -> Any:
-        """Extract .value from enum-like objects, pass through otherwise."""
-        return value.value if hasattr(value, "value") else value
-
-    @staticmethod
-    def _validate_read_capacity(read_capacity: dict[str, Any]) -> None:
-        """Validate read_capacity structure for BYOC configure."""
-        if "mode" not in read_capacity:
-            raise ValidationError("read_capacity must contain a 'mode' key")
-
-        if read_capacity["mode"] == "Dedicated":
-            dedicated = read_capacity.get("dedicated")
-            if not isinstance(dedicated, dict):
-                raise ValidationError(
-                    "read_capacity with mode 'Dedicated' must contain a 'dedicated' dict"
-                )
-            if "node_type" not in dedicated:
-                raise ValidationError(
-                    "dedicated read_capacity must contain 'node_type'"
-                )
-            if "scaling" not in dedicated:
-                raise ValidationError(
-                    "dedicated read_capacity must contain 'scaling'"
-                )
-            if dedicated["scaling"] == "Manual" and "manual" in dedicated:
-                manual = dedicated["manual"]
-                if not isinstance(manual, dict):
-                    raise ValidationError(
-                        "dedicated read_capacity manual must be a dict"
-                    )
-                if "replicas" not in manual:
-                    raise ValidationError(
-                        "manual scaling must contain 'replicas'"
-                    )
-                if "shards" not in manual:
-                    raise ValidationError(
-                        "manual scaling must contain 'shards'"
-                    )
-
-    def _validate_create_inputs(
-        self,
-        *,
-        name: str,
-        spec: ServerlessSpec | PodSpec | ByocSpec | dict[str, Any],
-        dimension: int | None,
-        metric: Metric | str,
-        vector_type: VectorType | str,
-        deletion_protection: DeletionProtection | str,
-    ) -> None:
-        """Client-side validation for create() arguments."""
-        require_non_empty("name", name)
-        if len(name) > 45:
-            raise ValidationError("index name must not exceed 45 characters")
-        if not re.fullmatch(r"[a-z0-9-]+", name):
-            raise ValidationError(
-                "index name must contain only lowercase letters, digits, and hyphens"
-            )
-
-        if spec is None:
-            raise ValidationError("spec is required")
-
-        resolved_metric = self._resolve_value(metric)
-        if resolved_metric not in _VALID_METRICS:
-            raise ValidationError(
-                f"metric must be one of {sorted(_VALID_METRICS)}, got {resolved_metric!r}"
-            )
-
-        resolved_dp = self._resolve_value(deletion_protection)
-        if resolved_dp not in _VALID_DELETION_PROTECTION:
-            raise ValidationError(
-                f"deletion_protection must be one of {sorted(_VALID_DELETION_PROTECTION)}, "
-                f"got {resolved_dp!r}"
-            )
-
-        if isinstance(spec, dict) and not ({"serverless", "pod", "byoc"} & spec.keys()):
-            raise ValidationError(
-                "spec dict must contain a 'serverless', 'pod', or 'byoc' key"
-            )
-
-        resolved_vt = self._resolve_value(vector_type)
-        if resolved_vt == "sparse" and dimension is not None:
-            raise ValidationError("dimension must not be provided for sparse indexes")
-        if resolved_vt != "sparse" and dimension is None:
-            raise ValidationError("dimension is required for dense indexes")
-
-    @staticmethod
-    def _build_create_body(
-        *,
-        name: str,
-        spec: ServerlessSpec | PodSpec | ByocSpec | dict[str, Any],
-        dimension: int | None,
-        metric: Metric | str,
-        vector_type: VectorType | str,
-        deletion_protection: DeletionProtection | str,
-        tags: dict[str, str] | None,
-        schema: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        """Build the JSON body for POST /indexes."""
-
-        def _resolve(val: Any) -> Any:
-            return val.value if hasattr(val, "value") else val
-
-        def _normalize_schema(raw: dict[str, Any]) -> dict[str, Any]:
-            if "fields" in raw:
-                result: dict[str, Any] = raw["fields"]
-                return result
-            return raw
-
-        body: dict[str, Any] = {
-            "name": name,
-            "metric": _resolve(metric),
-            "vector_type": _resolve(vector_type),
-            "deletion_protection": _resolve(deletion_protection),
-        }
-        if dimension is not None:
-            body["dimension"] = dimension
-        if tags is not None:
-            body["tags"] = tags
-
-        if isinstance(spec, ServerlessSpec):
-            body["spec"] = {"serverless": {"cloud": spec.cloud, "region": spec.region}}
-        elif isinstance(spec, PodSpec):
-            body["spec"] = {"pod": msgspec.to_builtins(spec)}
-        elif isinstance(spec, dict):
-            body["spec"] = spec
-
-        if schema is not None:
-            normalized = _normalize_schema(schema)
-            spec_dict = body["spec"]
-            for key in spec_dict:
-                spec_dict[key]["schema"] = normalized
-
-        return body
-
-    @staticmethod
-    def _validate_byoc_inputs(
-        *,
-        name: str,
-        spec: ByocSpec,
-        dimension: int | None,
-        deletion_protection: DeletionProtection | str,
-    ) -> None:
-        """Client-side validation for BYOC index creation."""
-        require_non_empty("name", name)
-        if len(name) > 45:
-            raise ValidationError("index name must not exceed 45 characters")
-        if not re.fullmatch(r"[a-z0-9-]+", name):
-            raise ValidationError(
-                "index name must contain only lowercase letters, digits, and hyphens"
-            )
-        require_non_empty("environment", spec.environment)
-        if dimension is None:
-            raise ValidationError("dimension is required for BYOC indexes")
-
-        resolved_dp = AsyncIndexes._resolve_value(deletion_protection)
-        if resolved_dp not in _VALID_DELETION_PROTECTION:
-            raise ValidationError(
-                f"deletion_protection must be one of {sorted(_VALID_DELETION_PROTECTION)}, "
-                f"got {resolved_dp!r}"
-            )
-
-    @staticmethod
-    def _build_byoc_body(
-        *,
-        name: str,
-        spec: ByocSpec,
-        dimension: int | None,
-        metric: Metric | str,
-        vector_type: VectorType | str,
-        deletion_protection: DeletionProtection | str,
-        tags: dict[str, str] | None,
-    ) -> dict[str, Any]:
-        """Build the JSON body for POST /indexes (BYOC)."""
-
-        def _resolve(val: Any) -> Any:
-            return val.value if hasattr(val, "value") else val
-
-        body: dict[str, Any] = {
-            "name": name,
-            "metric": _resolve(metric),
-            "vector_type": _resolve(vector_type),
-            "deletion_protection": _resolve(deletion_protection),
-        }
-        if dimension is not None:
-            body["dimension"] = dimension
-        if tags is not None:
-            body["tags"] = tags
-
-        byoc_dict: dict[str, Any] = {"environment": spec.environment}
-        if spec.read_capacity is not None:
-            byoc_dict["read_capacity"] = spec.read_capacity
-        body["spec"] = {"byoc": byoc_dict}
-
-        return body
-
-    @staticmethod
-    def _validate_integrated_inputs(
-        *,
-        name: str,
-        spec: IntegratedSpec,
-    ) -> None:
-        """Client-side validation for integrated index creation."""
-        require_non_empty("name", name)
-        if not spec.cloud or not spec.cloud.strip():
-            raise ValidationError("cloud is required for integrated indexes")
-        if not spec.embed.model or not spec.embed.model.strip():
-            raise ValidationError("embed model is required for integrated indexes")
-        if not spec.embed.field_map:
-            raise ValidationError("embed field_map is required for integrated indexes")
-
-    def _build_integrated_body(
-        self,
-        *,
-        name: str,
-        spec: IntegratedSpec,
-        deletion_protection: DeletionProtection | str,
-        tags: dict[str, str] | None,
-    ) -> dict[str, Any]:
-        """Build the JSON body for POST /indexes (integrated/model-backed)."""
-        embed_body: dict[str, Any] = {
-            "model": self._resolve_value(spec.embed.model),
-            "field_map": spec.embed.field_map,
-        }
-        if spec.embed.metric is not None:
-            embed_body["metric"] = self._resolve_value(spec.embed.metric)
-        if spec.embed.read_parameters is not None:
-            embed_body["read_parameters"] = spec.embed.read_parameters
-        if spec.embed.write_parameters is not None:
-            embed_body["write_parameters"] = spec.embed.write_parameters
-
-        body: dict[str, Any] = {
-            "name": name,
-            "cloud": self._resolve_value(spec.cloud),
-            "region": spec.region,
-            "embed": embed_body,
-        }
-
-        resolved_dp = self._resolve_value(deletion_protection)
-        if resolved_dp != "disabled":
-            body["deletion_protection"] = resolved_dp
-        if tags is not None:
-            body["tags"] = tags
-
-        return body
 
     async def _poll_until_ready(self, name: str, timeout: int | None) -> IndexModel:
         """Poll describe() until the index is ready or timeout is reached."""

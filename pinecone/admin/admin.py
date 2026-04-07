@@ -11,7 +11,7 @@ import orjson
 from pinecone import __version__
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION, API_VERSION_HEADER, DEFAULT_BASE_URL
-from pinecone._internal.http_client import HTTPClient, _RetryTransport, _build_socket_options
+from pinecone._internal.http_client import HTTPClient, _build_socket_options, _RetryTransport
 from pinecone._internal.user_agent import build_user_agent
 from pinecone.errors.exceptions import ApiError, ValidationError
 
