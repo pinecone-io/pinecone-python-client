@@ -455,7 +455,7 @@ class Index:
         effective_top_k = top_k if top_k is not None else 10
         aggregator = QueryResultsAggregator(metric=metric, top_k=effective_top_k)
 
-        with ThreadPoolExecutor(max_workers=len(namespaces)) as pool:
+        with ThreadPoolExecutor(max_workers=min(len(namespaces), 32)) as pool:
             future_to_ns = {
                 pool.submit(
                     self.query,
