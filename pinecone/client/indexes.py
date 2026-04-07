@@ -333,24 +333,31 @@ class Indexes:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
+            Create a serverless index for storing embeddings:
 
-            pc.indexes.create(
-                name="my-index",
-                dimension=1536,
-                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-            )
+            >>> from pinecone import Pinecone, ServerlessSpec
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> pc.indexes.create(
+            ...     name="movie-recommendations",
+            ...     dimension=1536,
+            ...     spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            ... )
 
-            pc.indexes.create(
-                name="my-integrated-index",
-                spec=IntegratedSpec(
-                    cloud="aws",
-                    region="us-east-1",
-                    embed=EmbedConfig(
-                        model="multilingual-e5-large",
-                        field_map={"text": "my_text_field"},
-                    ),
-                ),
-            )
+            Create an integrated index with a built-in embedding model:
+
+            >>> from pinecone import Pinecone, IntegratedSpec, EmbedConfig
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> pc.indexes.create(
+            ...     name="semantic-search",
+            ...     spec=IntegratedSpec(
+            ...         cloud="aws",
+            ...         region="us-east-1",
+            ...         embed=EmbedConfig(
+            ...             model="multilingual-e5-large",
+            ...             field_map={"text": "my_text_field"},
+            ...         ),
+            ...     ),
+            ... )
         """
         if isinstance(spec, IntegratedSpec):
             validate_integrated_inputs(name=name, spec=spec)
