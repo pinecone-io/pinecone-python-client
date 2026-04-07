@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from dataclasses import dataclass, field
+
+logger = logging.getLogger(__name__)
 
 
 def normalize_host(host: str | None) -> str:
@@ -45,8 +48,11 @@ def _parse_additional_headers_env() -> dict[str, str]:
         parsed = json.loads(raw)
         if isinstance(parsed, dict):
             return {str(k): str(v) for k, v in parsed.items()}
-    except (json.JSONDecodeError, TypeError):
-        pass
+    except Exception:
+        logger.warning(
+            "Failed to parse PINECONE_ADDITIONAL_HEADERS env var, ignoring: %s",
+            raw,
+        )
     return {}
 
 
