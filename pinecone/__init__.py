@@ -19,6 +19,10 @@ Quick Start::
     index.upsert(vectors=[("movie-42", [0.012, -0.087, 0.153, ...])])
     results = index.query(vector=[0.012, -0.087, 0.153, ...], top_k=5)
 
+    # Integrated inference: search with text (server-side embedding)
+    index = pc.index("my-integrated-index")
+    results = index.search(namespace="default", top_k=5, inputs={"text": "search query"})
+
 The :class:`Pinecone` client manages indexes (control plane). Call
 ``pc.index(name)`` to get an :class:`Index` for vector operations (data plane).
 
