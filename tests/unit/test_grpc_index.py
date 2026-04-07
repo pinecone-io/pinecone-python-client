@@ -96,8 +96,8 @@ class TestGrpcIndexInit:
                 connect_timeout=5.0,
             )
         call_args = mock_module.GrpcChannel.call_args
-        assert call_args[0][4] == 60.0  # timeout
-        assert call_args[0][5] == 5.0  # connect_timeout
+        assert call_args[0][5] == 60.0  # timeout
+        assert call_args[0][6] == 5.0  # connect_timeout
 
     def test_init_insecure(self, mock_channel: MagicMock) -> None:
         mock_module = MagicMock()
@@ -110,7 +110,7 @@ class TestGrpcIndexInit:
             )
         call_args = mock_module.GrpcChannel.call_args
         assert call_args[0][0].startswith("http://")  # endpoint
-        assert call_args[0][3] is False  # secure
+        assert call_args[0][4] is False  # secure
 
 
 class TestUpsert:
