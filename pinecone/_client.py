@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.config import PineconeConfig
@@ -94,17 +95,7 @@ class Pinecone:
         # Apply default host if none resolved
         resolved_host = config.host or DEFAULT_BASE_URL
         if resolved_host != config.host:
-            config = PineconeConfig(
-                api_key=config.api_key,
-                host=resolved_host,
-                timeout=config.timeout,
-                additional_headers=config.additional_headers,
-                source_tag=config.source_tag,
-                proxy_url=config.proxy_url,
-                ssl_ca_certs=config.ssl_ca_certs,
-                ssl_verify=config.ssl_verify,
-                connection_pool_maxsize=config.connection_pool_maxsize,
-            )
+            config = replace(config, host=resolved_host)
 
         self._config = config
 
