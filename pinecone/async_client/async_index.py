@@ -14,7 +14,7 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host, _vector_to_dict
 from pinecone._internal.vector_factory import VectorFactory
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import PineconeValueError, ValidationError
 from pinecone.models.imports.list import ImportList
 from pinecone.models.imports.model import ImportModel, StartImportResponse
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
@@ -214,8 +214,8 @@ class AsyncIndex:
             UpsertResponse with the count of vectors upserted.
 
         Raises:
-            TypeError: If a vector element is not a recognized format.
-            ValueError: If a vector element is malformed.
+            PineconeTypeError: If a vector element is not a recognized format.
+            PineconeValueError: If a vector element is malformed.
             ApiError: If the API returns an error response.
 
         Examples:
@@ -273,10 +273,10 @@ class AsyncIndex:
 
         Raises:
             NotImplementedError: Always.
-            ValueError: If *batch_size* is not a positive integer.
+            PineconeValueError: If *batch_size* is not a positive integer.
         """
         if not isinstance(batch_size, int) or batch_size <= 0:
-            raise ValueError("batch_size must be a positive integer")
+            raise PineconeValueError("batch_size must be a positive integer")
 
         raise NotImplementedError("upsert_from_dataframe is not supported for async clients")
 
