@@ -76,6 +76,10 @@ class Inference:
                 A single string is automatically wrapped.
             parameters (dict[str, Any] | None): Model-specific parameters
                 (e.g., ``{"input_type": "passage", "truncate": "END"}``).
+                To discover valid parameters for a model, call
+                :meth:`get_model`::
+
+                    pc.inference.get_model(model="multilingual-e5-large").supported_parameters
 
         Returns:
             An :class:`EmbeddingsList` with ``.data``, ``.model``, and ``.usage``.
@@ -148,6 +152,10 @@ class Inference:
             top_n (int | None): Number of top documents to return.
                 ``None`` returns all.
             parameters (dict[str, Any] | None): Model-specific parameters.
+                To discover valid parameters for a model, call
+                :meth:`get_model`::
+
+                    pc.inference.get_model(model="bge-reranker-v2-m3").supported_parameters
 
         Returns:
             A :class:`RerankResult` with ``.data`` and ``.usage``.
