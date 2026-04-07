@@ -227,7 +227,7 @@ class Pinecone:
         Lazily imported and instantiated on first access.
 
         Returns:
-            Assistants namespace instance.
+            :class:`Assistants` namespace instance.
 
         Examples:
 

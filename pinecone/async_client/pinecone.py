@@ -186,7 +186,7 @@ class AsyncPinecone:
         Lazily imported and instantiated on first access.
 
         Returns:
-            AsyncAssistants namespace instance.
+            :class:`AsyncAssistants` namespace instance.
 
         Examples:
 
