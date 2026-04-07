@@ -854,6 +854,26 @@ class Index:
             )
             for hit in response.result.hits:
                 print(hit.id, hit.score)
+
+            Search with reranking:
+
+                response = idx.search(
+                    namespace="articles-en",
+                    top_k=10,
+                    inputs={"text": "benefits of vector databases"},
+                    rerank={
+                        "model": "bge-reranker-v2-m3",
+                        "rank_fields": ["text"],
+                        "top_n": 5,
+                    },
+                )
+                for hit in response.result.hits:
+                    print(hit.id, hit.score)
+
+        .. note::
+           Use inline ``rerank`` when searching and reranking in a single call.
+           Use ``pc.inference.rerank()`` when reranking results from a different
+           source or when you need to rerank without searching.
         """
         if not isinstance(namespace, str):
             raise ValidationError("namespace must be a string")
