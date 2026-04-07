@@ -8,6 +8,7 @@ use tonic::transport::{Channel, ClientTlsConfig};
 
 use crate::proto::vector_service_client::VectorServiceClient;
 use crate::proto;
+use crate::retry::{retry_on_unavailable, RetryConfig};
 
 /// Interceptor that attaches API key, request ID (UUID v4), and API version
 /// metadata to every outgoing gRPC request.
@@ -333,6 +334,7 @@ fn py_dict_to_metadata_schema(dict: &Bound<'_, PyDict>) -> PyResult<proto::Metad
 pub struct GrpcChannel {
     client: VectorServiceClient<InterceptedService<Channel, MetadataInterceptor>>,
     runtime: tokio::runtime::Runtime,
+    retry_config: RetryConfig,
 }
 
 #[pymethods]
@@ -346,8 +348,9 @@ impl GrpcChannel {
     ///     secure: Whether to use TLS encryption (default true).
     ///     timeout_s: Request timeout in seconds (default 20.0).
     ///     connect_timeout_s: Connection timeout in seconds (default 1.0).
+    ///     max_retries: Max retry attempts on UNAVAILABLE (default 5, 0 disables).
     #[new]
-    #[pyo3(signature = (endpoint, api_key, api_version, secure=true, timeout_s=None, connect_timeout_s=None))]
+    #[pyo3(signature = (endpoint, api_key, api_version, secure=true, timeout_s=None, connect_timeout_s=None, max_retries=None))]
     fn new(
         endpoint: &str,
         api_key: &str,
@@ -355,6 +358,7 @@ impl GrpcChannel {
         secure: bool,
         timeout_s: Option<f64>,
         connect_timeout_s: Option<f64>,
+        max_retries: Option<u32>,
     ) -> PyResult<Self> {
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
@@ -382,9 +386,15 @@ impl GrpcChannel {
         let interceptor = MetadataInterceptor::new(api_key, api_version)
             .map_err(|e| PyRuntimeError::new_err(format!("Invalid metadata value: {e}")))?;
 
+        let retry_config = RetryConfig {
+            max_retries: max_retries.unwrap_or(5),
+            ..RetryConfig::default()
+        };
+
         Ok(Self {
             client: VectorServiceClient::with_interceptor(channel, interceptor),
             runtime,
+            retry_config,
         })
     }
 
@@ -434,10 +444,17 @@ impl GrpcChannel {
             namespace: namespace.unwrap_or("").to_string(),
         };
 
-        let mut client = self.client.clone();
+        let client = self.client.clone();
+        let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
         let response = py
-            .allow_threads(|| self.runtime.block_on(client.upsert(request)))
+            .allow_threads(|| {
+                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
+                    let mut c = client.clone();
+                    let r = request.clone();
+                    async move { c.upsert(r).await }
+                }))
+            })
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();
@@ -487,10 +504,17 @@ impl GrpcChannel {
             max_candidates: None,
         };
 
-        let mut client = self.client.clone();
+        let client = self.client.clone();
+        let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
         let response = py
-            .allow_threads(|| self.runtime.block_on(client.query(request)))
+            .allow_threads(|| {
+                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
+                    let mut c = client.clone();
+                    let r = request.clone();
+                    async move { c.query(r).await }
+                }))
+            })
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();
@@ -531,10 +555,17 @@ impl GrpcChannel {
             namespace: namespace.unwrap_or("").to_string(),
         };
 
-        let mut client = self.client.clone();
+        let client = self.client.clone();
+        let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
         let response = py
-            .allow_threads(|| self.runtime.block_on(client.fetch(request)))
+            .allow_threads(|| {
+                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
+                    let mut c = client.clone();
+                    let r = request.clone();
+                    async move { c.fetch(r).await }
+                }))
+            })
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();
@@ -580,10 +611,17 @@ impl GrpcChannel {
             filter: filter.map(|f| py_dict_to_struct(&f)).transpose()?,
         };
 
-        let mut client = self.client.clone();
+        let client = self.client.clone();
+        let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
-        py.allow_threads(|| self.runtime.block_on(client.delete(request)))
-            .map_err(status_to_py_err)?;
+        py.allow_threads(|| {
+            self.runtime.block_on(retry_on_unavailable(&retry_config, || {
+                let mut c = client.clone();
+                let r = request.clone();
+                async move { c.delete(r).await }
+            }))
+        })
+        .map_err(status_to_py_err)?;
 
         let dict = PyDict::new(py);
         Ok(dict.unbind())
@@ -629,10 +667,17 @@ impl GrpcChannel {
             dry_run,
         };
 
-        let mut client = self.client.clone();
+        let client = self.client.clone();
+        let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
         let response = py
-            .allow_threads(|| self.runtime.block_on(client.update(request)))
+            .allow_threads(|| {
+                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
+                    let mut c = client.clone();
+                    let r = request.clone();
+                    async move { c.update(r).await }
+                }))
+            })
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();
@@ -670,10 +715,17 @@ impl GrpcChannel {
             namespace: namespace.unwrap_or("").to_string(),
         };
 
-        let mut client = self.client.clone();
+        let client = self.client.clone();
+        let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
         let response = py
-            .allow_threads(|| self.runtime.block_on(client.list(request)))
+            .allow_threads(|| {
+                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
+                    let mut c = client.clone();
+                    let r = request.clone();
+                    async move { c.list(r).await }
+                }))
+            })
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();
@@ -723,10 +775,17 @@ impl GrpcChannel {
             filter: filter.map(|f| py_dict_to_struct(&f)).transpose()?,
         };
 
-        let mut client = self.client.clone();
+        let client = self.client.clone();
+        let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
         let response = py
-            .allow_threads(|| self.runtime.block_on(client.describe_index_stats(request)))
+            .allow_threads(|| {
+                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
+                    let mut c = client.clone();
+                    let r = request.clone();
+                    async move { c.describe_index_stats(r).await }
+                }))
+            })
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();
@@ -783,10 +842,17 @@ impl GrpcChannel {
             prefix: prefix.map(|s| s.to_string()),
         };
 
-        let mut client = self.client.clone();
+        let client = self.client.clone();
+        let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
         let response = py
-            .allow_threads(|| self.runtime.block_on(client.list_namespaces(request)))
+            .allow_threads(|| {
+                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
+                    let mut c = client.clone();
+                    let r = request.clone();
+                    async move { c.list_namespaces(r).await }
+                }))
+            })
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();
@@ -824,10 +890,17 @@ impl GrpcChannel {
             namespace: namespace.to_string(),
         };
 
-        let mut client = self.client.clone();
+        let client = self.client.clone();
+        let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
         let response = py
-            .allow_threads(|| self.runtime.block_on(client.describe_namespace(request)))
+            .allow_threads(|| {
+                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
+                    let mut c = client.clone();
+                    let r = request.clone();
+                    async move { c.describe_namespace(r).await }
+                }))
+            })
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();
@@ -851,10 +924,17 @@ impl GrpcChannel {
             namespace: namespace.to_string(),
         };
 
-        let mut client = self.client.clone();
+        let client = self.client.clone();
+        let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
-        py.allow_threads(|| self.runtime.block_on(client.delete_namespace(request)))
-            .map_err(status_to_py_err)?;
+        py.allow_threads(|| {
+            self.runtime.block_on(retry_on_unavailable(&retry_config, || {
+                let mut c = client.clone();
+                let r = request.clone();
+                async move { c.delete_namespace(r).await }
+            }))
+        })
+        .map_err(status_to_py_err)?;
 
         let dict = PyDict::new(py);
         Ok(dict.unbind())
@@ -885,10 +965,17 @@ impl GrpcChannel {
             schema: metadata_schema,
         };
 
-        let mut client = self.client.clone();
+        let client = self.client.clone();
+        let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
         let response = py
-            .allow_threads(|| self.runtime.block_on(client.create_namespace(request)))
+            .allow_threads(|| {
+                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
+                    let mut c = client.clone();
+                    let r = request.clone();
+                    async move { c.create_namespace(r).await }
+                }))
+            })
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();
@@ -922,10 +1009,17 @@ impl GrpcChannel {
             pagination_token: pagination_token.map(|s| s.to_string()),
         };
 
-        let mut client = self.client.clone();
+        let client = self.client.clone();
+        let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
         let response = py
-            .allow_threads(|| self.runtime.block_on(client.fetch_by_metadata(request)))
+            .allow_threads(|| {
+                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
+                    let mut c = client.clone();
+                    let r = request.clone();
+                    async move { c.fetch_by_metadata(r).await }
+                }))
+            })
             .map_err(status_to_py_err)?;
 
         let inner = response.into_inner();

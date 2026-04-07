@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 
+mod retry;
 mod transport;
 
 /// Generated protobuf types for the Pinecone data plane.
