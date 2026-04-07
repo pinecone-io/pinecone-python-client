@@ -246,6 +246,51 @@ class Projects:
         logger.debug("Updated project %r", project_id)
         return result
 
+    def _cleanup_project_resources(self, *, api_key: str) -> None:
+        """Delete all indexes, collections, and backups in the project scoped to *api_key*.
+
+        This is the inner loop of the project-deletion-with-cleanup workflow.
+        Each deletion is wrapped in a try/except for :exc:`NotFoundError` to
+        handle race conditions where a resource is deleted between the list
+        and delete calls.
+
+        Args:
+            api_key: A Pinecone API key scoped to the target project.
+        """
+        from pinecone._client import Pinecone
+
+        pc = Pinecone(api_key=api_key)
+        try:
+            # Delete all indexes
+            for index in pc.indexes.list():
+                try:
+                    logger.debug("Cleanup: deleting index %r", index.name)
+                    pc.indexes.delete(index.name)
+                except NotFoundError:
+                    logger.debug("Cleanup: index %r already deleted", index.name)
+
+            # Delete all collections
+            for collection in pc.collections.list():
+                try:
+                    logger.debug("Cleanup: deleting collection %r", collection.name)
+                    pc.collections.delete(collection.name)
+                except NotFoundError:
+                    logger.debug(
+                        "Cleanup: collection %r already deleted", collection.name
+                    )
+
+            # Delete all backups
+            for backup in pc.backups.list():
+                try:
+                    logger.debug("Cleanup: deleting backup %r", backup.backup_id)
+                    pc.backups.delete(backup_id=backup.backup_id)
+                except NotFoundError:
+                    logger.debug(
+                        "Cleanup: backup %r already deleted", backup.backup_id
+                    )
+        finally:
+            pc.close()
+
     def delete(self, *, project_id: str) -> None:
         """Delete a project.
 
