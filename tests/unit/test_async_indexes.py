@@ -24,7 +24,13 @@ from pinecone.errors.exceptions import (
 from pinecone.models.enums import DeletionProtection, EmbedModel, Metric, VectorType
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.list import IndexList
-from pinecone.models.indexes.specs import EmbedConfig, IntegratedSpec, PodSpec, ServerlessSpec
+from pinecone.models.indexes.specs import (
+    ByocSpec,
+    EmbedConfig,
+    IntegratedSpec,
+    PodSpec,
+    ServerlessSpec,
+)
 from tests.factories import (
     make_error_response,
     make_index_list_response,
@@ -752,6 +758,81 @@ async def test_create_without_schema(async_indexes: AsyncIndexes) -> None:
     request = route.calls.last.request
     body = json.loads(request.content)
     assert "schema" not in body["spec"]["serverless"]
+
+
+# ---------------------------------------------------------------------------
+# create() — BYOC
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_create_byoc_index(async_indexes: AsyncIndexes) -> None:
+    """Create with ByocSpec — verify POST body has correct shape."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201,
+            json=make_index_response(
+                spec={"byoc": {"environment": "aws-us-east-1-b921"}},
+            ),
+        ),
+    )
+
+    result = await async_indexes.create(
+        name="byoc-idx",
+        dimension=1536,
+        spec=ByocSpec(environment="aws-us-east-1-b921"),
+    )
+
+    assert isinstance(result, IndexModel)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["name"] == "byoc-idx"
+    assert body["dimension"] == 1536
+    assert body["metric"] == "cosine"
+    assert body["spec"] == {"byoc": {"environment": "aws-us-east-1-b921"}}
+
+
+@respx.mock
+async def test_create_byoc_index_with_read_capacity(async_indexes: AsyncIndexes) -> None:
+    """Create BYOC with read_capacity — verify it appears inside byoc spec."""
+    read_capacity = {
+        "mode": "Dedicated",
+        "dedicated": {
+            "node_type": "t1",
+            "scaling": "Manual",
+            "manual": {"replicas": 2, "shards": 1},
+        },
+    }
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            201,
+            json=make_index_response(
+                spec={
+                    "byoc": {
+                        "environment": "aws-us-east-1-b921",
+                        "read_capacity": read_capacity,
+                    }
+                },
+            ),
+        ),
+    )
+
+    result = await async_indexes.create(
+        name="byoc-drn",
+        dimension=1536,
+        spec=ByocSpec(
+            environment="aws-us-east-1-b921",
+            read_capacity=read_capacity,
+        ),
+    )
+
+    assert isinstance(result, IndexModel)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["spec"]["byoc"]["environment"] == "aws-us-east-1-b921"
+    assert body["spec"]["byoc"]["read_capacity"] == read_capacity
 
 
 # ---------------------------------------------------------------------------

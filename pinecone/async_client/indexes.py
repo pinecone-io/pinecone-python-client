@@ -21,7 +21,7 @@ from pinecone.errors.exceptions import (
 from pinecone.models.enums import DeletionProtection, Metric, VectorType
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.list import IndexList
-from pinecone.models.indexes.specs import IntegratedSpec, PodSpec, ServerlessSpec
+from pinecone.models.indexes.specs import ByocSpec, IntegratedSpec, PodSpec, ServerlessSpec
 
 if TYPE_CHECKING:
     from pinecone._internal.http_client import AsyncHTTPClient
@@ -258,7 +258,7 @@ class AsyncIndexes:
         self,
         *,
         name: str,
-        spec: ServerlessSpec | PodSpec | IntegratedSpec | dict[str, Any],
+        spec: ServerlessSpec | PodSpec | ByocSpec | IntegratedSpec | dict[str, Any],
         dimension: int | None = None,
         metric: Metric | str = "cosine",
         vector_type: VectorType | str = "dense",
@@ -269,15 +269,16 @@ class AsyncIndexes:
     ) -> IndexModel:
         """Create a new Pinecone index.
 
-        Supports serverless, pod-based, and integrated (model-backed) index
-        creation. Integrated indexes use Pinecone's built-in embedding models
-        so dimension and metric are inferred from the model.
+        Supports serverless, pod-based, BYOC (bring your own cloud), and
+        integrated (model-backed) index creation. Integrated indexes use
+        Pinecone's built-in embedding models so dimension and metric are
+        inferred from the model.
 
         Args:
             name (str): Name for the new index.
-            spec (ServerlessSpec | PodSpec | IntegratedSpec | dict[str, Any]):
-                Deployment spec — a ServerlessSpec, PodSpec, IntegratedSpec,
-                or raw dict.
+            spec (ServerlessSpec | PodSpec | ByocSpec | IntegratedSpec | dict[str, Any]):
+                Deployment spec — a ServerlessSpec, PodSpec, ByocSpec,
+                IntegratedSpec, or raw dict.
             dimension (int | None): Vector dimension (required for dense
                 non-integrated indexes).
             metric (Metric | str): Similarity metric (cosine, euclidean, dotproduct).
@@ -334,6 +335,22 @@ class AsyncIndexes:
                 deletion_protection=deletion_protection,
                 tags=tags,
             )
+        elif isinstance(spec, ByocSpec):
+            self._validate_byoc_inputs(
+                name=name,
+                spec=spec,
+                dimension=dimension,
+                deletion_protection=deletion_protection,
+            )
+            body = self._build_byoc_body(
+                name=name,
+                spec=spec,
+                dimension=dimension,
+                metric=metric,
+                vector_type=vector_type,
+                deletion_protection=deletion_protection,
+                tags=tags,
+            )
         else:
             self._validate_create_inputs(
                 name=name,
@@ -377,7 +394,7 @@ class AsyncIndexes:
         self,
         *,
         name: str,
-        spec: ServerlessSpec | PodSpec | dict[str, Any],
+        spec: ServerlessSpec | PodSpec | ByocSpec | dict[str, Any],
         dimension: int | None,
         metric: Metric | str,
         vector_type: VectorType | str,
@@ -408,9 +425,9 @@ class AsyncIndexes:
                 f"got {resolved_dp!r}"
             )
 
-        if isinstance(spec, dict) and not ({"serverless", "pod"} & spec.keys()):
+        if isinstance(spec, dict) and not ({"serverless", "pod", "byoc"} & spec.keys()):
             raise ValidationError(
-                "spec dict must contain a 'serverless' or 'pod' key"
+                "spec dict must contain a 'serverless', 'pod', or 'byoc' key"
             )
 
         resolved_vt = self._resolve_value(vector_type)
@@ -423,7 +440,7 @@ class AsyncIndexes:
     def _build_create_body(
         *,
         name: str,
-        spec: ServerlessSpec | PodSpec | dict[str, Any],
+        spec: ServerlessSpec | PodSpec | ByocSpec | dict[str, Any],
         dimension: int | None,
         metric: Metric | str,
         vector_type: VectorType | str,
@@ -465,6 +482,67 @@ class AsyncIndexes:
             spec_dict = body["spec"]
             for key in spec_dict:
                 spec_dict[key]["schema"] = normalized
+
+        return body
+
+    @staticmethod
+    def _validate_byoc_inputs(
+        *,
+        name: str,
+        spec: ByocSpec,
+        dimension: int | None,
+        deletion_protection: DeletionProtection | str,
+    ) -> None:
+        """Client-side validation for BYOC index creation."""
+        require_non_empty("name", name)
+        if len(name) > 45:
+            raise ValidationError("index name must not exceed 45 characters")
+        if not re.fullmatch(r"[a-z0-9-]+", name):
+            raise ValidationError(
+                "index name must contain only lowercase letters, digits, and hyphens"
+            )
+        require_non_empty("environment", spec.environment)
+        if dimension is None:
+            raise ValidationError("dimension is required for BYOC indexes")
+
+        resolved_dp = AsyncIndexes._resolve_value(deletion_protection)
+        if resolved_dp not in _VALID_DELETION_PROTECTION:
+            raise ValidationError(
+                f"deletion_protection must be one of {sorted(_VALID_DELETION_PROTECTION)}, "
+                f"got {resolved_dp!r}"
+            )
+
+    @staticmethod
+    def _build_byoc_body(
+        *,
+        name: str,
+        spec: ByocSpec,
+        dimension: int | None,
+        metric: Metric | str,
+        vector_type: VectorType | str,
+        deletion_protection: DeletionProtection | str,
+        tags: dict[str, str] | None,
+    ) -> dict[str, Any]:
+        """Build the JSON body for POST /indexes (BYOC)."""
+
+        def _resolve(val: Any) -> Any:
+            return val.value if hasattr(val, "value") else val
+
+        body: dict[str, Any] = {
+            "name": name,
+            "metric": _resolve(metric),
+            "vector_type": _resolve(vector_type),
+            "deletion_protection": _resolve(deletion_protection),
+        }
+        if dimension is not None:
+            body["dimension"] = dimension
+        if tags is not None:
+            body["tags"] = tags
+
+        byoc_dict: dict[str, Any] = {"environment": spec.environment}
+        if spec.read_capacity is not None:
+            byoc_dict["read_capacity"] = spec.read_capacity
+        body["spec"] = {"byoc": byoc_dict}
 
         return body
 
