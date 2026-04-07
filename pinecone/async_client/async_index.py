@@ -1068,26 +1068,52 @@ class AsyncIndex:
     ) -> StartImportResponse:
         """Start a bulk import operation from an external data source.
 
+        Initiates an asynchronous bulk import of vectors from cloud storage
+        into the index. The import runs server-side; use :meth:`describe_import`
+        to poll for progress and completion.
+
+        .. note::
+           The import URI must point to a directory of Parquet files in cloud
+           storage (``s3://`` or ``gs://``). Each Parquet file must follow the
+           Pinecone-required schema. See
+           `Pinecone import docs <https://docs.pinecone.io/guides/data/understanding-imports>`_
+           for the required Parquet schema and supported storage formats.
+
         Args:
-            uri (str): Source URI for the import data.
+            uri (str): Source URI for the import data (e.g.
+                ``"s3://my-bucket/vectors/"`` or ``"gs://my-bucket/vectors/"``).
             error_mode (str): How to handle errors during import. Must be
                 ``"continue"`` (default) or ``"abort"``. Case-insensitive.
             integration_id (str | None): Optional integration ID for the import.
 
         Returns:
-            StartImportResponse with the ID of the created import operation.
+            :class:`StartImportResponse` with the ID of the created import
+            operation.
 
         Raises:
             ValidationError: If ``error_mode`` is not ``"continue"`` or ``"abort"``.
             ApiError: If the API returns an error response.
 
         Examples:
+            Start an import and poll until complete:
 
-            response = await idx.start_import(
-                uri="s3://my-bucket/my-data/",
-                error_mode="continue",
-            )
-            print(response.id)
+            >>> import asyncio
+            >>> response = await idx.start_import(uri="s3://my-bucket/vectors/")
+            >>> import_id = response.id
+            >>>
+            >>> # Poll until the import finishes
+            >>> import_op = await idx.describe_import(import_id)
+            >>> while import_op.status not in ("Completed", "Failed", "Cancelled"):
+            ...     await asyncio.sleep(10)
+            ...     import_op = await idx.describe_import(import_id)
+            >>> print(f"Status: {import_op.status}, records imported: {import_op.records_imported}")
+
+            Abort on first error instead of continuing:
+
+            >>> response = await idx.start_import(
+            ...     uri="s3://my-bucket/vectors/",
+            ...     error_mode="abort",
+            ... )
         """
         error_mode = error_mode.lower()
         if error_mode not in ("continue", "abort"):
