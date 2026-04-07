@@ -283,6 +283,6 @@ class AsyncAssistants:
                 if elapsed >= timeout:
                     raise PineconeTimeoutError(
                         f"Assistant '{name}' not ready after {timeout}s. "
-                        f"Check status with describe_assistant(name='{name}')."
+                        f"Check status with pc.assistants.describe(name='{name}')."
                     )
             await asyncio.sleep(_CREATE_POLL_INTERVAL_SECONDS)

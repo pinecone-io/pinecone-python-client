@@ -205,7 +205,7 @@ def test_create_assistant_timeout_raises(
     with pytest.raises(PineconeTimeoutError, match="not ready") as exc_info:
         assistants.create(name="test-assistant", timeout=5)
 
-    assert "describe_assistant" in str(exc_info.value)
+    assert "pc.assistants.describe" in str(exc_info.value)
 
 
 @respx.mock
