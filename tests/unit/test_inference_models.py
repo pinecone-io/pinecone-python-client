@@ -161,6 +161,26 @@ class TestModelInfo:
         assert model["model"] == "multilingual-e5-large"
         assert model["vector_type"] == "dense"
 
+    def test_model_info_name_alias(self) -> None:
+        model = ModelInfo(
+            model="multilingual-e5-large",
+            short_description="A multilingual embedding model",
+            type="embed",
+            supported_parameters=[],
+        )
+        assert model.name == "multilingual-e5-large"
+        assert model["name"] == "multilingual-e5-large"
+
+    def test_model_info_description_alias(self) -> None:
+        model = ModelInfo(
+            model="multilingual-e5-large",
+            short_description="A multilingual embedding model",
+            type="embed",
+            supported_parameters=[],
+        )
+        assert model.description == "A multilingual embedding model"
+        assert model["description"] == "A multilingual embedding model"
+
     def test_model_info_optional_fields(self) -> None:
         model = ModelInfo(
             model="bge-reranker-v2-m3",

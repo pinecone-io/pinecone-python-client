@@ -38,12 +38,15 @@ class ModelInfoSupportedParameter(Struct, kw_only=True):
             raise KeyError(key) from None
 
 
+_MODEL_INFO_ALIASES: dict[str, str] = {"name": "model", "description": "short_description"}
+
+
 class ModelInfo(Struct, kw_only=True):
     """Information about an inference model.
 
     Attributes:
-        model: The model identifier.
-        short_description: A brief description of the model.
+        model: The model identifier (also accessible as ``name``).
+        short_description: A brief description of the model (also accessible as ``description``).
         type: The model type (e.g. ``"embed"``, ``"rerank"``).
         supported_parameters: Parameters accepted by the model.
         vector_type: The type of vectors produced (for embed models).
@@ -69,8 +72,19 @@ class ModelInfo(Struct, kw_only=True):
     provider_name: str | None = None
     supported_metrics: list[str] | None = None
 
+    @property
+    def name(self) -> str:
+        """Alias for ``model`` — the model identifier."""
+        return self.model
+
+    @property
+    def description(self) -> str:
+        """Alias for ``short_description`` — a brief description of the model."""
+        return self.short_description
+
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. model_info['model'])."""
+        key = _MODEL_INFO_ALIASES.get(key, key)
         try:
             return getattr(self, key)
         except AttributeError:
