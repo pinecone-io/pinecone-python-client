@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from typing import Any
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import httpx
 import pytest
@@ -185,17 +185,19 @@ async def test_exists_empty_name_raises(async_indexes: AsyncIndexes) -> None:
 
 
 @respx.mock
-async def test_delete_index_no_polling(async_indexes: AsyncIndexes) -> None:
-    """DELETE /indexes/test-index -> 202, returns immediately (no polling)."""
+async def test_delete_index_default_polls(async_indexes: AsyncIndexes) -> None:
+    """DELETE /indexes/test-index -> 202, then polls until gone (default)."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202),
     )
-    describe_route = respx.get(f"{BASE_URL}/indexes/test-index")
+    respx.get(f"{BASE_URL}/indexes/test-index").mock(
+        return_value=httpx.Response(404, json=make_error_response(404, "Not found")),
+    )
 
-    result = await async_indexes.delete("test-index")
+    with patch("pinecone.async_client.indexes.asyncio.sleep", new_callable=AsyncMock):
+        result = await async_indexes.delete("test-index")
 
     assert result is None
-    assert describe_route.call_count == 0
 
 
 @respx.mock
@@ -206,8 +208,12 @@ async def test_delete_removes_host_cache(async_indexes: AsyncIndexes) -> None:
     respx.delete(f"{BASE_URL}/indexes/my-index").mock(
         return_value=httpx.Response(202),
     )
+    respx.get(f"{BASE_URL}/indexes/my-index").mock(
+        return_value=httpx.Response(404, json=make_error_response(404, "Not found")),
+    )
 
-    await async_indexes.delete("my-index")
+    with patch("pinecone.async_client.indexes.asyncio.sleep", new_callable=AsyncMock):
+        await async_indexes.delete("my-index")
 
     assert "my-index" not in async_indexes._host_cache
 
@@ -293,6 +299,7 @@ async def test_create_serverless_index(async_indexes: AsyncIndexes) -> None:
         name="test-index",
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        timeout=-1,
     )
 
     assert isinstance(result, IndexModel)
@@ -332,6 +339,7 @@ async def test_create_pod_index(async_indexes: AsyncIndexes) -> None:
         name="test-index",
         dimension=1536,
         spec=PodSpec(environment="us-east1-gcp"),
+        timeout=-1,
     )
 
     assert isinstance(result, IndexModel)
@@ -353,6 +361,7 @@ async def test_create_index_defaults(async_indexes: AsyncIndexes) -> None:
         name="test-index",
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -375,6 +384,7 @@ async def test_create_index_with_tags(async_indexes: AsyncIndexes) -> None:
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         tags={"env": "test", "team": "ml"},
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -394,6 +404,7 @@ async def test_create_with_dict_spec(async_indexes: AsyncIndexes) -> None:
         name="test-index",
         dimension=1536,
         spec=raw_spec,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -494,6 +505,7 @@ async def test_create_name_valid_boundary(async_indexes: AsyncIndexes) -> None:
         name=valid_name,
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        timeout=-1,
     )
     assert isinstance(result, IndexModel)
 
@@ -550,6 +562,7 @@ async def test_create_with_metric_enum(async_indexes: AsyncIndexes) -> None:
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         metric=Metric.EUCLIDEAN,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -571,6 +584,7 @@ async def test_create_with_vector_type_enum(async_indexes: AsyncIndexes) -> None
         name="sparse-enum-index",
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         vector_type=VectorType.SPARSE,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -590,6 +604,7 @@ async def test_create_with_deletion_protection_enum(async_indexes: AsyncIndexes)
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         deletion_protection=DeletionProtection.ENABLED,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -598,23 +613,36 @@ async def test_create_with_deletion_protection_enum(async_indexes: AsyncIndexes)
 
 
 @respx.mock
-async def test_create_timeout_none_no_polling(async_indexes: AsyncIndexes) -> None:
-    """With timeout=None (default), describe is NOT called after create."""
+async def test_create_timeout_none_polls_indefinitely(async_indexes: AsyncIndexes) -> None:
+    """With timeout=None (default), polls until index is ready."""
     respx.post(f"{BASE_URL}/indexes").mock(
         return_value=httpx.Response(
             201,
             json=make_index_response(status={"ready": False, "state": "Initializing"}),
         ),
     )
-
-    result = await async_indexes.create(
-        name="test-index",
-        dimension=1536,
-        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+    respx.get(f"{BASE_URL}/indexes/test-index").mock(
+        side_effect=[
+            httpx.Response(
+                200,
+                json=make_index_response(status={"ready": False, "state": "Initializing"}),
+            ),
+            httpx.Response(
+                200,
+                json=make_index_response(status={"ready": True, "state": "Ready"}),
+            ),
+        ]
     )
 
-    assert result.status.ready is False
-    assert len(respx.calls) == 1  # only the POST
+    with patch("pinecone.async_client.indexes.asyncio.sleep", new_callable=AsyncMock):
+        result = await async_indexes.create(
+            name="test-index",
+            dimension=1536,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+
+    assert result.status.ready is True
+    assert len(respx.calls) == 3  # POST + 2 GET
 
 
 @respx.mock
@@ -690,6 +718,7 @@ async def test_create_sparse_without_dimension(async_indexes: AsyncIndexes) -> N
         name="sparse-index",
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         vector_type="sparse",
+        timeout=-1,
     )
 
     assert isinstance(result, IndexModel)
@@ -721,6 +750,7 @@ async def test_create_with_flat_schema(async_indexes: AsyncIndexes) -> None:
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         schema=schema,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -746,6 +776,7 @@ async def test_create_with_nested_schema(async_indexes: AsyncIndexes) -> None:
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         schema=nested_schema,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -767,6 +798,7 @@ async def test_create_without_schema(async_indexes: AsyncIndexes) -> None:
         name="test-index",
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -795,6 +827,7 @@ async def test_create_byoc_index(async_indexes: AsyncIndexes) -> None:
         name="byoc-idx",
         dimension=1536,
         spec=ByocSpec(environment="aws-us-east-1-b921"),
+        timeout=-1,
     )
 
     assert isinstance(result, IndexModel)
@@ -839,6 +872,7 @@ async def test_create_byoc_index_with_read_capacity(async_indexes: AsyncIndexes)
             environment="aws-us-east-1-b921",
             read_capacity=read_capacity,
         ),
+        timeout=-1,
     )
 
     assert isinstance(result, IndexModel)
@@ -877,6 +911,7 @@ async def test_create_byoc_dict_spec(async_indexes: AsyncIndexes) -> None:
         name="byoc-idx",
         dimension=1536,
         spec=raw_spec,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -1181,6 +1216,7 @@ async def test_create_integrated_index(async_indexes: AsyncIndexes) -> None:
                 field_map={"text": "my_text_field"},
             ),
         ),
+        timeout=-1,
     )
 
     assert isinstance(result, IndexModel)
@@ -1218,6 +1254,7 @@ async def test_create_integrated_with_metric(async_indexes: AsyncIndexes) -> Non
                 metric="dotproduct",
             ),
         ),
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -1244,6 +1281,7 @@ async def test_create_integrated_with_parameters(async_indexes: AsyncIndexes) ->
                 write_parameters={"input_type": "passage"},
             ),
         ),
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -1270,6 +1308,7 @@ async def test_create_integrated_with_tags(async_indexes: AsyncIndexes) -> None:
             ),
         ),
         tags={"env": "test"},
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -1294,6 +1333,7 @@ async def test_create_integrated_with_embed_model_enum(async_indexes: AsyncIndex
                 field_map={"text": "my_text_field"},
             ),
         ),
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -1431,8 +1471,8 @@ async def test_create_integrated_polls_until_ready(async_indexes: AsyncIndexes) 
 
 
 @respx.mock
-async def test_create_integrated_no_polling_without_timeout(async_indexes: AsyncIndexes) -> None:
-    """Without timeout, integrated create returns immediately without polling."""
+async def test_create_integrated_no_polling_with_neg1(async_indexes: AsyncIndexes) -> None:
+    """With timeout=-1, integrated create returns immediately without polling."""
     respx.post(f"{BASE_URL}/indexes").mock(
         return_value=httpx.Response(
             201,
@@ -1450,6 +1490,7 @@ async def test_create_integrated_no_polling_without_timeout(async_indexes: Async
                 field_map={"text": "my_text_field"},
             ),
         ),
+        timeout=-1,
     )
 
     assert result.status.ready is False
@@ -1476,6 +1517,7 @@ async def test_create_duplicate_raises_conflict(async_indexes: AsyncIndexes) -> 
             name="existing-index",
             dimension=1536,
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=-1,
         )
 
 

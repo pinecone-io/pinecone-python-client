@@ -50,6 +50,7 @@ def test_create_serverless_index(indexes: Indexes) -> None:
         name="test-index",
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        timeout=-1,
     )
 
     assert isinstance(result, IndexModel)
@@ -89,6 +90,7 @@ def test_create_pod_index(indexes: Indexes) -> None:
         name="test-index",
         dimension=1536,
         spec=PodSpec(environment="us-east1-gcp"),
+        timeout=-1,
     )
 
     assert isinstance(result, IndexModel)
@@ -110,6 +112,7 @@ def test_create_index_defaults(indexes: Indexes) -> None:
         name="test-index",
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -132,6 +135,7 @@ def test_create_index_with_tags(indexes: Indexes) -> None:
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         tags={"env": "test", "team": "ml"},
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -151,6 +155,7 @@ def test_create_with_dict_spec(indexes: Indexes) -> None:
         name="test-index",
         dimension=1536,
         spec=raw_spec,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -236,6 +241,7 @@ def test_create_with_metric_enum(indexes: Indexes) -> None:
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         metric=Metric.EUCLIDEAN,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -257,6 +263,7 @@ def test_create_with_vector_type_enum(indexes: Indexes) -> None:
         name="sparse-enum-index",
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         vector_type=VectorType.SPARSE,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -276,6 +283,7 @@ def test_create_with_deletion_protection_enum(indexes: Indexes) -> None:
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         deletion_protection=DeletionProtection.ENABLED,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -300,6 +308,7 @@ def test_create_with_all_enums(indexes: Indexes) -> None:
         metric=Metric.DOTPRODUCT,
         vector_type=VectorType.DENSE,
         deletion_protection=DeletionProtection.DISABLED,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -315,25 +324,37 @@ def test_create_with_all_enums(indexes: Indexes) -> None:
 
 
 @respx.mock
-def test_create_timeout_none_no_polling(indexes: Indexes) -> None:
-    """With timeout=None (default), describe is NOT called after create."""
+def test_create_timeout_none_polls_indefinitely(indexes: Indexes) -> None:
+    """With timeout=None (default), polls until index is ready."""
     respx.post(f"{BASE_URL}/indexes").mock(
         return_value=httpx.Response(
             201,
             json=make_index_response(status={"ready": False, "state": "Initializing"}),
         ),
     )
-
-    result = indexes.create(
-        name="test-index",
-        dimension=1536,
-        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+    respx.get(f"{BASE_URL}/indexes/test-index").mock(
+        side_effect=[
+            httpx.Response(
+                200,
+                json=make_index_response(status={"ready": False, "state": "Initializing"}),
+            ),
+            httpx.Response(
+                200,
+                json=make_index_response(status={"ready": True, "state": "Ready"}),
+            ),
+        ]
     )
 
-    # Should return the non-ready model immediately
-    assert result.status.ready is False
-    # No GET /indexes/test-index should have been called
-    assert len(respx.calls) == 1  # only the POST
+    with patch("pinecone.client.indexes.time.sleep"):
+        result = indexes.create(
+            name="test-index",
+            dimension=1536,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+
+    assert result.status.ready is True
+    # POST + 2 GET calls
+    assert len(respx.calls) == 3
 
 
 @respx.mock
@@ -409,6 +430,7 @@ def test_create_sparse_without_dimension(indexes: Indexes) -> None:
         name="sparse-index",
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         vector_type="sparse",
+        timeout=-1,
     )
 
     assert isinstance(result, IndexModel)
@@ -455,6 +477,7 @@ def test_create_name_valid_boundary(indexes: Indexes) -> None:
         name=valid_name,
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        timeout=-1,
     )
     assert isinstance(result, IndexModel)
 
@@ -521,6 +544,7 @@ def test_create_with_flat_schema(indexes: Indexes) -> None:
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         schema=schema,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -546,6 +570,7 @@ def test_create_with_nested_schema(indexes: Indexes) -> None:
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         schema=nested_schema,
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -567,6 +592,7 @@ def test_create_without_schema(indexes: Indexes) -> None:
         name="test-index",
         dimension=1536,
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -595,6 +621,7 @@ def test_create_byoc_index(indexes: Indexes) -> None:
         name="byoc-idx",
         dimension=1536,
         spec=ByocSpec(environment="aws-us-east-1-b921"),
+        timeout=-1,
     )
 
     assert isinstance(result, IndexModel)
@@ -639,6 +666,7 @@ def test_create_byoc_index_with_read_capacity(indexes: Indexes) -> None:
             environment="aws-us-east-1-b921",
             read_capacity=read_capacity,
         ),
+        timeout=-1,
     )
 
     assert isinstance(result, IndexModel)
@@ -677,6 +705,7 @@ def test_create_byoc_dict_spec(indexes: Indexes) -> None:
         name="byoc-idx",
         dimension=1536,
         spec=raw_spec,
+        timeout=-1,
     )
 
     request = route.calls.last.request

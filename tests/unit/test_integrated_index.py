@@ -69,6 +69,7 @@ def test_create_integrated_index(indexes: Indexes) -> None:
                 field_map={"text": "my_text_field"},
             ),
         ),
+        timeout=-1,
     )
 
     assert isinstance(result, IndexModel)
@@ -106,6 +107,7 @@ def test_create_integrated_with_metric(indexes: Indexes) -> None:
                 metric="dotproduct",
             ),
         ),
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -132,6 +134,7 @@ def test_create_integrated_with_parameters(indexes: Indexes) -> None:
                 write_parameters={"input_type": "passage"},
             ),
         ),
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -158,6 +161,7 @@ def test_create_integrated_with_tags(indexes: Indexes) -> None:
             ),
         ),
         tags={"env": "test"},
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -182,6 +186,7 @@ def test_create_integrated_with_embed_model_enum(indexes: Indexes) -> None:
                 field_map={"text": "my_text_field"},
             ),
         ),
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -206,6 +211,7 @@ def test_create_integrated_string_model_accepted(indexes: Indexes) -> None:
                 field_map={"text": "my_text_field"},
             ),
         ),
+        timeout=-1,
     )
 
     request = route.calls.last.request
@@ -359,8 +365,8 @@ def test_create_integrated_init_failed_raises(indexes: Indexes) -> None:
 
 
 @respx.mock
-def test_create_integrated_no_polling_without_timeout(indexes: Indexes) -> None:
-    """Without timeout, return immediately without polling."""
+def test_create_integrated_no_polling_with_timeout_neg1(indexes: Indexes) -> None:
+    """With timeout=-1, return immediately without polling."""
     respx.post(f"{BASE_URL}/indexes").mock(
         return_value=httpx.Response(
             201,
@@ -378,6 +384,7 @@ def test_create_integrated_no_polling_without_timeout(indexes: Indexes) -> None:
                 field_map={"text": "my_text_field"},
             ),
         ),
+        timeout=-1,
     )
 
     assert result.status.ready is False

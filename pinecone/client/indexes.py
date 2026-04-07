@@ -149,14 +149,15 @@ class Indexes:
         """Delete an index by name.
 
         After sending the delete request, removes the cached host URL
-        for the index. By default, returns immediately without polling.
+        for the index. By default, polls every 5 seconds until the index
+        disappears with no upper time bound.
 
         Args:
             name (str): The name of the index to delete.
             timeout (int | None): Seconds to wait for the index to disappear.
-                Use ``None`` (default) to return immediately without polling.
-                Use a positive int to poll until the index is gone or the
-                deadline is reached.
+                Use ``None`` (default) to poll indefinitely until the index
+                is gone. Use a positive int to poll with a deadline.
+                Use ``-1`` to return immediately without polling.
 
         Raises:
             :exc:`ValidationError`: If *name* is empty.
@@ -177,7 +178,7 @@ class Indexes:
         self._host_cache.pop(name, None)
         logger.debug("Deleted index %r", name)
 
-        if timeout is None or timeout == -1:
+        if timeout == -1:
             return
 
         start = time.monotonic()
@@ -186,9 +187,10 @@ class Indexes:
                 self.describe(name)
             except NotFoundError:
                 return
-            elapsed = time.monotonic() - start
-            if elapsed >= timeout:
-                raise PineconeTimeoutError(f"Index '{name}' still exists after {timeout}s")
+            if timeout is not None:
+                elapsed = time.monotonic() - start
+                if elapsed >= timeout:
+                    raise PineconeTimeoutError(f"Index '{name}' still exists after {timeout}s")
             time.sleep(_POLL_INTERVAL_SECONDS)
 
     def configure(
@@ -304,11 +306,12 @@ class Indexes:
                 (``{"field": {"type": "str"}}``) and nested format
                 (``{"fields": {"field": {"type": "str"}}}``).
             timeout (int | None): Seconds to wait for the index to become ready.
-                Use ``None`` (default) or ``-1`` to return immediately
-                without polling. Use a positive int to poll until the
-                index is ready or the deadline is reached. Raises
-                ``PineconeTimeoutError`` if the index is not ready before the
-                deadline. ``IndexInitFailedError`` if initialization fails.
+                Use ``None`` (default) to poll indefinitely every 5 seconds
+                with no upper time bound. Use a positive int to poll with a
+                deadline. Use ``-1`` to return immediately without polling.
+                Raises ``PineconeTimeoutError`` if the index is not ready
+                before the deadline. ``IndexInitFailedError`` if
+                initialization fails.
 
         Returns:
             :class:`IndexModel` describing the created index.
@@ -389,7 +392,7 @@ class Indexes:
         model = self._adapter.to_index_model(response.content)
         logger.debug("Created index %r", name)
 
-        if timeout is not None and timeout != -1:
+        if timeout != -1:
             model = self._poll_until_ready(name, timeout)
 
         return model
@@ -645,7 +648,7 @@ class Indexes:
 
         return body
 
-    def _poll_until_ready(self, name: str, timeout: int) -> IndexModel:
+    def _poll_until_ready(self, name: str, timeout: int | None) -> IndexModel:
         """Poll describe() until the index is ready or timeout is reached."""
         start = time.monotonic()
         while True:
@@ -654,7 +657,8 @@ class Indexes:
                 return idx
             if idx.status.state == "InitializationFailed":
                 raise IndexInitFailedError(name)
-            elapsed = time.monotonic() - start
-            if elapsed >= timeout:
-                raise PineconeTimeoutError(f"Index '{name}' not ready after {timeout}s")
+            if timeout is not None:
+                elapsed = time.monotonic() - start
+                if elapsed >= timeout:
+                    raise PineconeTimeoutError(f"Index '{name}' not ready after {timeout}s")
             time.sleep(_POLL_INTERVAL_SECONDS)

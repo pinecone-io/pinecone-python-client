@@ -43,27 +43,30 @@ def no_sleep(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @respx.mock
-def test_delete_index_no_polling(indexes: Indexes) -> None:
-    """DELETE /indexes/test-index -> 202, returns immediately (no polling)."""
+def test_delete_index_default_polls(indexes: Indexes, no_sleep: None) -> None:
+    """DELETE /indexes/test-index -> 202, then polls until gone (default)."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202),
     )
-    describe_route = respx.get(f"{BASE_URL}/indexes/test-index")
+    respx.get(f"{BASE_URL}/indexes/test-index").mock(
+        return_value=httpx.Response(404, json=make_error_response(404, "Not found")),
+    )
 
     result = indexes.delete("test-index")
 
     assert result is None
-    # timeout=None means no polling — describe should NOT be called
-    assert describe_route.call_count == 0
 
 
 @respx.mock
-def test_delete_removes_host_cache(indexes: Indexes) -> None:
+def test_delete_removes_host_cache(indexes: Indexes, no_sleep: None) -> None:
     """Deleting an index removes its cached host URL."""
     indexes._host_cache["my-index"] = "my-index-abc.svc.pinecone.io"
 
     respx.delete(f"{BASE_URL}/indexes/my-index").mock(
         return_value=httpx.Response(202),
+    )
+    respx.get(f"{BASE_URL}/indexes/my-index").mock(
+        return_value=httpx.Response(404, json=make_error_response(404, "Not found")),
     )
 
     indexes.delete("my-index")
@@ -95,16 +98,22 @@ def test_delete_polls_until_gone(indexes: Indexes, no_sleep: None) -> None:
 
 
 @respx.mock
-def test_delete_timeout_none_no_polling(indexes: Indexes) -> None:
-    """With timeout=None (default), return immediately — describe is NOT called."""
+def test_delete_timeout_none_polls_indefinitely(indexes: Indexes, no_sleep: None) -> None:
+    """With timeout=None (default), polls until index disappears."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202),
     )
-    describe_route = respx.get(f"{BASE_URL}/indexes/test-index")
+    respx.get(f"{BASE_URL}/indexes/test-index").mock(
+        side_effect=[
+            httpx.Response(200, json=make_index_response()),
+            httpx.Response(404, json=make_error_response(404, "Not found")),
+        ],
+    )
 
     indexes.delete("test-index", timeout=None)
 
-    assert describe_route.call_count == 0
+    # describe was called twice (once found, once 404)
+    assert respx.calls.call_count == 3  # DELETE + 2 GET
 
 
 @respx.mock
