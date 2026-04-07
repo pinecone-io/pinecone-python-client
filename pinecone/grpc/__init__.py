@@ -146,14 +146,17 @@ class GrpcIndex:
         endpoint = _build_grpc_endpoint(self._host, secure)
 
         from pinecone._grpc import GrpcChannel  # type: ignore[import-not-found]
+        from pinecone import __version__
 
         self._channel = GrpcChannel(
             endpoint,
             resolved_key,
             api_version,
+            __version__,
             secure,
             timeout,
             connect_timeout,
+            source_tag=source_tag,
         )
 
         logger.info("GrpcIndex client created for host %s", self._host)

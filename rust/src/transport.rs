@@ -13,6 +13,35 @@ use crate::retry::{retry_on_unavailable, RetryConfig};
 /// Maximum gRPC message size for both send and receive (128 MB).
 const MAX_MESSAGE_SIZE: usize = 128 * 1024 * 1024;
 
+/// Normalize a source tag string.
+///
+/// - Lowercase the input.
+/// - Strip characters not in [a-z0-9_ :].
+/// - Replace spaces with underscores.
+fn normalize_source_tag(tag: &str) -> String {
+    let lowered = tag.to_lowercase();
+    let cleaned: String = lowered
+        .chars()
+        .filter(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || *c == '_' || *c == ' ' || *c == ':')
+        .map(|c| if c == ' ' { '_' } else { c })
+        .collect();
+    cleaned
+}
+
+/// Build the gRPC User-Agent string.
+///
+/// Format: `python-client[grpc]/{version}` with optional ` source_tag:{normalized}` suffix.
+fn build_grpc_user_agent(version: &str, source_tag: Option<&str>) -> String {
+    let mut ua = format!("python-client[grpc]/{version}");
+    if let Some(tag) = source_tag {
+        let normalized = normalize_source_tag(tag);
+        if !normalized.is_empty() {
+            ua = format!("{ua} source_tag:{normalized}");
+        }
+    }
+    ua
+}
+
 /// Ensure the endpoint URL has a port; append `:443` if none is specified.
 fn ensure_port(endpoint: &str) -> String {
     // Try to parse the host portion to check for a port.
@@ -369,20 +398,25 @@ impl GrpcChannel {
     ///     endpoint: The gRPC endpoint URL (e.g. "https://my-index-abc123.svc.pinecone.io:443")
     ///     api_key: The Pinecone API key for authentication.
     ///     api_version: The Pinecone API version string (e.g. "2025-10").
+    ///     version: The SDK version string (e.g. "0.1.0") used in the User-Agent header.
     ///     secure: Whether to use TLS encryption (default true).
     ///     timeout_s: Request timeout in seconds (default 20.0).
     ///     connect_timeout_s: Connection timeout in seconds (default 1.0).
     ///     max_retries: Max retry attempts on UNAVAILABLE (default 5, 0 disables).
+    ///     source_tag: Optional source tag appended to the User-Agent string.
     #[new]
-    #[pyo3(signature = (endpoint, api_key, api_version, secure=true, timeout_s=None, connect_timeout_s=None, max_retries=None))]
+    #[pyo3(signature = (endpoint, api_key, api_version, version, secure=true, timeout_s=None, connect_timeout_s=None, max_retries=None, source_tag=None))]
+    #[allow(clippy::too_many_arguments)]
     fn new(
         endpoint: &str,
         api_key: &str,
         api_version: &str,
+        version: &str,
         secure: bool,
         timeout_s: Option<f64>,
         connect_timeout_s: Option<f64>,
         max_retries: Option<u32>,
+        source_tag: Option<&str>,
     ) -> PyResult<Self> {
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
@@ -394,8 +428,12 @@ impl GrpcChannel {
 
         let endpoint_with_port = ensure_port(endpoint);
 
+        let user_agent = build_grpc_user_agent(version, source_tag);
+
         let mut endpoint_builder = Channel::from_shared(endpoint_with_port)
             .map_err(|e| PyRuntimeError::new_err(format!("Invalid endpoint: {e}")))?
+            .user_agent(&user_agent)
+            .map_err(|e| PyRuntimeError::new_err(format!("Invalid user agent: {e}")))?
             .timeout(request_timeout)
             .connect_timeout(connection_timeout);
 
@@ -1084,6 +1122,45 @@ mod tests {
     use std::collections::HashSet;
     use std::time::Duration;
     use tonic::service::Interceptor;
+
+    #[test]
+    fn normalize_source_tag_lowercases_and_strips() {
+        assert_eq!(normalize_source_tag("MyApp"), "myapp");
+        assert_eq!(normalize_source_tag("My App"), "my_app");
+        assert_eq!(normalize_source_tag("my-app!@#v2"), "myappv2");
+        assert_eq!(normalize_source_tag("tag:value"), "tag:value");
+        assert_eq!(normalize_source_tag("HELLO WORLD 123"), "hello_world_123");
+    }
+
+    #[test]
+    fn normalize_source_tag_empty_input() {
+        assert_eq!(normalize_source_tag(""), "");
+        assert_eq!(normalize_source_tag("!!!"), "");
+    }
+
+    #[test]
+    fn build_grpc_user_agent_without_source_tag() {
+        let ua = build_grpc_user_agent("1.2.3", None);
+        assert_eq!(ua, "python-client[grpc]/1.2.3");
+    }
+
+    #[test]
+    fn build_grpc_user_agent_with_source_tag() {
+        let ua = build_grpc_user_agent("1.2.3", Some("My App"));
+        assert_eq!(ua, "python-client[grpc]/1.2.3 source_tag:my_app");
+    }
+
+    #[test]
+    fn build_grpc_user_agent_with_empty_source_tag() {
+        let ua = build_grpc_user_agent("1.2.3", Some(""));
+        assert_eq!(ua, "python-client[grpc]/1.2.3");
+    }
+
+    #[test]
+    fn build_grpc_user_agent_with_special_chars_source_tag() {
+        let ua = build_grpc_user_agent("0.1.0", Some("My-App!@#v2"));
+        assert_eq!(ua, "python-client[grpc]/0.1.0 source_tag:myappv2");
+    }
 
     #[test]
     fn interceptor_attaches_all_metadata_headers() {
