@@ -225,6 +225,7 @@ class Index:
         Raises:
             RuntimeError: If ``pandas`` is not installed.
             ValueError: If *df* is not a ``pandas.DataFrame``.
+            ValueError: If *batch_size* is not a positive integer.
         """
         try:
             import pandas as pd  # type: ignore[import-untyped]

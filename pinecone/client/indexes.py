@@ -274,15 +274,16 @@ class Indexes:
     ) -> IndexModel:
         """Create a new Pinecone index.
 
-        Supports serverless, pod-based, and integrated (model-backed) index
-        creation. Integrated indexes use Pinecone's built-in embedding models
-        so dimension and metric are inferred from the model.
+        Supports serverless, pod-based, BYOC (bring your own cloud), and
+        integrated (model-backed) index creation. Integrated indexes use
+        Pinecone's built-in embedding models so dimension and metric are
+        inferred from the model.
 
         Args:
             name (str): Name for the new index.
-            spec (ServerlessSpec | PodSpec | IntegratedSpec | dict[str, Any]):
-                Deployment spec — a ServerlessSpec, PodSpec, IntegratedSpec,
-                or raw dict.
+            spec (ServerlessSpec | PodSpec | ByocSpec | IntegratedSpec | dict[str, Any]):
+                Deployment spec — a ServerlessSpec, PodSpec, ByocSpec,
+                IntegratedSpec, or raw dict.
             dimension (int | None): Vector dimension (required for dense
                 non-integrated indexes).
             metric (Metric | str): Similarity metric (cosine, euclidean, dotproduct).
