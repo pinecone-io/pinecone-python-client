@@ -3,7 +3,14 @@
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from pinecone.models.indexes.index import IndexModel, IndexStatus  # noqa: F401
+    from pinecone.models.indexes.index import (  # noqa: F401
+        ByocSpecInfo,
+        IndexModel,
+        IndexSpec,
+        IndexStatus,
+        PodSpecInfo,
+        ServerlessSpecInfo,
+    )
     from pinecone.models.indexes.list import IndexList  # noqa: F401
     from pinecone.models.indexes.specs import (  # noqa: F401
         ByocSpec,
@@ -14,8 +21,12 @@ if TYPE_CHECKING:
     )
 
 _LAZY_IMPORTS: dict[str, str] = {
+    "ByocSpecInfo": "pinecone.models.indexes.index",
     "IndexModel": "pinecone.models.indexes.index",
+    "IndexSpec": "pinecone.models.indexes.index",
     "IndexStatus": "pinecone.models.indexes.index",
+    "PodSpecInfo": "pinecone.models.indexes.index",
+    "ServerlessSpecInfo": "pinecone.models.indexes.index",
     "IndexList": "pinecone.models.indexes.list",
     "ServerlessSpec": "pinecone.models.indexes.specs",
     "PodSpec": "pinecone.models.indexes.specs",

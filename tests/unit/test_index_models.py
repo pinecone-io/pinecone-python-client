@@ -7,7 +7,14 @@ from typing import Any
 import msgspec
 import pytest
 
-from pinecone.models.indexes.index import IndexModel, IndexStatus
+from pinecone.models.indexes.index import (
+    ByocSpecInfo,
+    IndexModel,
+    IndexSpec,
+    IndexStatus,
+    PodSpecInfo,
+    ServerlessSpecInfo,
+)
 from pinecone.models.indexes.list import IndexList
 from pinecone.models.indexes.specs import ByocSpec, PodSpec, ServerlessSpec
 from tests.factories import make_index_list_response, make_index_response
@@ -37,7 +44,13 @@ class TestIndexModel:
         assert model.vector_type == "dense"
         assert model.status.ready is True
         assert model.status.state == "Ready"
-        assert "serverless" in model.spec
+        assert isinstance(model.spec, IndexSpec)
+        assert model.spec.serverless is not None
+        assert isinstance(model.spec.serverless, ServerlessSpecInfo)
+        assert model.spec.serverless.cloud == "aws"
+        assert model.spec.serverless.region == "us-east-1"
+        assert model.spec.pod is None
+        assert model.spec.byoc is None
         assert model.tags == {}
 
     def test_bracket_access(self) -> None:
@@ -92,8 +105,41 @@ class TestIndexModel:
             }
         )
         model = msgspec.convert(data, IndexModel)
-        assert "pod" in model.spec
-        assert model.spec["pod"]["environment"] == "us-east1-gcp"
+        assert model.spec.pod is not None
+        assert isinstance(model.spec.pod, PodSpecInfo)
+        assert model.spec.pod.environment == "us-east1-gcp"
+        assert model.spec.pod.pod_type == "p1.x1"
+        assert model.spec.pod.replicas == 1
+        assert model.spec.pod.shards == 1
+        assert model.spec.pod.pods == 1
+        assert model.spec.pod.metadata_config is None
+        assert model.spec.pod.source_collection is None
+        assert model.spec.serverless is None
+
+    def test_byoc_spec(self) -> None:
+        data = make_index_response(
+            spec={
+                "byoc": {
+                    "environment": "aws-us-east-1-b921",
+                    "read_capacity": {"mode": "OnDemand"},
+                }
+            }
+        )
+        model = msgspec.convert(data, IndexModel)
+        assert model.spec.byoc is not None
+        assert isinstance(model.spec.byoc, ByocSpecInfo)
+        assert model.spec.byoc.environment == "aws-us-east-1-b921"
+        assert model.spec.byoc.read_capacity == {"mode": "OnDemand"}
+        assert model.spec.serverless is None
+        assert model.spec.pod is None
+
+    def test_byoc_spec_no_read_capacity(self) -> None:
+        data = make_index_response(
+            spec={"byoc": {"environment": "aws-us-east-1-b921"}}
+        )
+        model = msgspec.convert(data, IndexModel)
+        assert model.spec.byoc is not None
+        assert model.spec.byoc.read_capacity is None
 
     def test_enum_string_values(self) -> None:
         """Both enum values and plain strings work since we store as str."""
@@ -225,16 +271,24 @@ class TestReExports:
     def test_import_from_models(self) -> None:
         from pinecone.models import (
             ByocSpec,
+            ByocSpecInfo,
             IndexList,
             IndexModel,
+            IndexSpec,
             IndexStatus,
             PodSpec,
+            PodSpecInfo,
             ServerlessSpec,
+            ServerlessSpecInfo,
         )
 
         assert IndexModel is not None
+        assert IndexSpec is not None
         assert IndexStatus is not None
         assert IndexList is not None
         assert ServerlessSpec is not None
+        assert ServerlessSpecInfo is not None
         assert PodSpec is not None
+        assert PodSpecInfo is not None
         assert ByocSpec is not None
+        assert ByocSpecInfo is not None

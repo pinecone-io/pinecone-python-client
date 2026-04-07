@@ -19,6 +19,68 @@ class IndexStatus(Struct, kw_only=True):
     state: str
 
 
+class ServerlessSpecInfo(Struct, kw_only=True):
+    """Response-side serverless deployment configuration.
+
+    Attributes:
+        cloud: Cloud provider (e.g. ``"aws"``, ``"gcp"``, ``"azure"``).
+        region: Cloud region (e.g. ``"us-east-1"``).
+    """
+
+    cloud: str
+    region: str
+
+
+class PodSpecInfo(Struct, kw_only=True):
+    """Response-side pod deployment configuration.
+
+    Attributes:
+        environment: Deployment environment (e.g. ``"us-east1-gcp"``).
+        pod_type: Pod type (e.g. ``"p1.x1"``).
+        replicas: Number of replicas.
+        shards: Number of shards.
+        pods: Total number of pods.
+        metadata_config: Metadata indexing configuration, or ``None``.
+        source_collection: Source collection name, or ``None``.
+    """
+
+    environment: str
+    pod_type: str
+    replicas: int
+    shards: int
+    pods: int
+    metadata_config: dict[str, str] | None = None
+    source_collection: str | None = None
+
+
+class ByocSpecInfo(Struct, kw_only=True):
+    """Response-side BYOC (bring your own cloud) deployment configuration.
+
+    Attributes:
+        environment: BYOC environment identifier.
+        read_capacity: Read capacity configuration, or ``None``.
+    """
+
+    environment: str
+    read_capacity: dict[str, Any] | None = None
+
+
+class IndexSpec(Struct, kw_only=True):
+    """Deployment specification for an index.
+
+    Exactly one of ``serverless``, ``pod``, or ``byoc`` will be set.
+
+    Attributes:
+        serverless: Serverless deployment config, or ``None``.
+        pod: Pod-based deployment config, or ``None``.
+        byoc: BYOC deployment config, or ``None``.
+    """
+
+    serverless: ServerlessSpecInfo | None = None
+    pod: PodSpecInfo | None = None
+    byoc: ByocSpecInfo | None = None
+
+
 class IndexModel(Struct, kw_only=True):
     """Response model for a Pinecone index.
 
@@ -28,8 +90,8 @@ class IndexModel(Struct, kw_only=True):
             ``"euclidean"``, ``"dotproduct"``).
         host: The hostname where this index is served.
         status: Current status of the index.
-        spec: Deployment specification as a dict containing either ``"serverless"``,
-            ``"pod"``, or ``"byoc"`` configuration.
+        spec: Deployment specification containing either ``serverless``,
+            ``pod``, or ``byoc`` configuration.
         vector_type: Type of vectors stored (default: ``"dense"``).
         dimension: Dimensionality of vectors in the index, or ``None`` for
             indexes that infer dimension from the first upsert.
@@ -43,7 +105,7 @@ class IndexModel(Struct, kw_only=True):
     metric: str
     host: str
     status: IndexStatus
-    spec: dict[str, Any]
+    spec: IndexSpec
     vector_type: str = "dense"
     dimension: int | None = None
     deletion_protection: str = "disabled"

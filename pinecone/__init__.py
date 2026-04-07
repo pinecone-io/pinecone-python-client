@@ -46,6 +46,7 @@ __all__ = [
     "BackupList",
     "BackupModel",
     "ByocSpec",
+    "ByocSpecInfo",
     "CloudProvider",
     "CollectionList",
     "CollectionModel",
@@ -66,6 +67,7 @@ __all__ = [
     "IndexInitFailedError",
     "IndexList",
     "IndexModel",
+    "IndexSpec",
     "IntegratedSpec",
     "ListNamespacesResponse",
     "ListResponse",
@@ -82,6 +84,7 @@ __all__ = [
     "PineconeTypeError",
     "PineconeValueError",
     "PodSpec",
+    "PodSpecInfo",
     "PodType",
     "QueryNamespacesResults",
     "QueryResponse",
@@ -92,6 +95,7 @@ __all__ = [
     "RestoreJobModel",
     "SearchRecordsResponse",
     "ServerlessSpec",
+    "ServerlessSpecInfo",
     "ServiceError",
     "SparseValues",
     "StartImportResponse",
@@ -113,6 +117,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "BackupList": ("pinecone.models.backups.list", "BackupList"),
     "BackupModel": ("pinecone.models.backups.model", "BackupModel"),
     "ByocSpec": ("pinecone.models.indexes.specs", "ByocSpec"),
+    "ByocSpecInfo": ("pinecone.models.indexes.index", "ByocSpecInfo"),
     "CollectionList": ("pinecone.models.collections.list", "CollectionList"),
     "CollectionModel": ("pinecone.models.collections.model", "CollectionModel"),
     "CreateIndexFromBackupResponse": (
@@ -137,6 +142,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "Index": ("pinecone.index", "Index"),
     "IndexList": ("pinecone.models.indexes.list", "IndexList"),
     "IndexModel": ("pinecone.models.indexes.index", "IndexModel"),
+    "IndexSpec": ("pinecone.models.indexes.index", "IndexSpec"),
     "IntegratedSpec": ("pinecone.models.indexes.specs", "IntegratedSpec"),
     "ListNamespacesResponse": (
         "pinecone.models.namespaces.models",
@@ -151,6 +157,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     ),
     "Pinecone": ("pinecone._client", "Pinecone"),
     "PodSpec": ("pinecone.models.indexes.specs", "PodSpec"),
+    "PodSpecInfo": ("pinecone.models.indexes.index", "PodSpecInfo"),
     "QueryNamespacesResults": (
         "pinecone.models.vectors.query_aggregator",
         "QueryNamespacesResults",
@@ -165,6 +172,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "SearchRecordsResponse",
     ),
     "ServerlessSpec": ("pinecone.models.indexes.specs", "ServerlessSpec"),
+    "ServerlessSpecInfo": ("pinecone.models.indexes.index", "ServerlessSpecInfo"),
     "SparseValues": ("pinecone.models.vectors.sparse", "SparseValues"),
     "StartImportResponse": (
         "pinecone.models.imports.model",

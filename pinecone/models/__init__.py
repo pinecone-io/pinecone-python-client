@@ -19,7 +19,14 @@ from pinecone.models.enums import (
 )
 from pinecone.models.imports.list import ImportList
 from pinecone.models.imports.model import ImportModel, StartImportResponse
-from pinecone.models.indexes.index import IndexModel, IndexStatus
+from pinecone.models.indexes.index import (
+    ByocSpecInfo,
+    IndexModel,
+    IndexSpec,
+    IndexStatus,
+    PodSpecInfo,
+    ServerlessSpecInfo,
+)
 from pinecone.models.indexes.list import IndexList
 from pinecone.models.indexes.specs import (
     ByocSpec,
@@ -66,6 +73,7 @@ __all__ = [
     "BackupList",
     "BackupModel",
     "ByocSpec",
+    "ByocSpecInfo",
     "CloudProvider",
     "CollectionList",
     "CollectionModel",
@@ -84,6 +92,7 @@ __all__ = [
     "ImportModel",
     "IndexList",
     "IndexModel",
+    "IndexSpec",
     "IndexStatus",
     "IntegratedSpec",
     "ListItem",
@@ -97,6 +106,7 @@ __all__ = [
     "NamespaceSummary",
     "Pagination",
     "PodSpec",
+    "PodSpecInfo",
     "PodType",
     "QueryNamespacesResults",
     "QueryResponse",
@@ -110,6 +120,7 @@ __all__ = [
     "ScoredVector",
     "SearchRecordsResponse",
     "ServerlessSpec",
+    "ServerlessSpecInfo",
     "SparseEmbedding",
     "SparseValues",
     "StartImportResponse",
