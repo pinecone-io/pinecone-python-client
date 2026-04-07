@@ -67,8 +67,11 @@ class AsyncAssistants:
         status. The assistant starts in ``"Initializing"`` status.
 
         Args:
-            name (str): Name for the new assistant.
+            name (str): Name for the new assistant. Must be 1-63 characters,
+                start and end with an alphanumeric character, and consist only
+                of lowercase alphanumeric characters or hyphens.
             instructions (str | None): Optional directive for the assistant.
+                Maximum 16 KB.
             metadata (dict[str, Any] | None): Optional metadata dictionary.
                 Defaults to an empty dict if not provided.
             region (str): Region to deploy the assistant in. Must be ``"us"``
@@ -196,6 +199,8 @@ class AsyncAssistants:
             page = await pc.assistants.list_page(page_size=10)
             for a in page.assistants:
                 print(a.name)
+            if page.next:
+                next_page = await pc.assistants.list_page(pagination_token=page.next)
         """
         params: dict[str, str | int] = {}
         if page_size is not None:
@@ -222,22 +227,36 @@ class AsyncAssistants:
     ) -> AssistantModel:
         """Update an existing Pinecone assistant.
 
+        Updates the specified assistant's instructions and/or metadata.
+        Metadata is fully replaced (not merged) when provided.
+
         Args:
             name (str): The name of the assistant to update.
             instructions (str | None): New instructions for the assistant.
-            metadata (dict[str, Any] | None): New metadata dictionary.
+                Pass an empty string to clear existing instructions.
+            metadata (dict[str, Any] | None): New metadata dictionary. Fully
+                replaces any existing metadata rather than merging.
 
         Returns:
             :class:`AssistantModel` describing the updated assistant.
 
         Raises:
-            :exc:`ApiError`: If the API returns an error response.
+            :exc:`ApiError`: If the API returns an error response (e.g. 404
+                when the assistant does not exist).
 
         Examples:
+            Update an assistant's instructions:
 
             >>> assistant = await pc.assistants.update(
             ...     name="my-assistant",
             ...     instructions="You are a helpful research assistant.",
+            ... )
+
+            Replace an assistant's metadata:
+
+            >>> assistant = await pc.assistants.update(
+            ...     name="my-assistant",
+            ...     metadata={"team": "ml", "version": "2"},
             ... )
         """
         body: dict[str, Any] = {}
