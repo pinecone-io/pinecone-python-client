@@ -209,6 +209,12 @@ def validate_integrated_inputs(
 ) -> None:
     """Client-side validation for integrated index creation."""
     require_non_empty("name", name)
+    if len(name) > 45:
+        raise ValidationError("index name must not exceed 45 characters")
+    if not re.fullmatch(r"[a-z0-9-]+", name):
+        raise ValidationError(
+            "index name must contain only lowercase letters, digits, and hyphens"
+        )
     if not spec.cloud or not spec.cloud.strip():
         raise ValidationError("cloud is required for integrated indexes")
     if not spec.embed.model or not spec.embed.model.strip():

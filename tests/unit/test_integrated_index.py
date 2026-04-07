@@ -272,6 +272,38 @@ def test_create_integrated_missing_field_map_raises(indexes: Indexes) -> None:
         )
 
 
+def test_create_integrated_rejects_long_name(indexes: Indexes) -> None:
+    """Name exceeding 45 characters raises ValidationError."""
+    with pytest.raises(ValidationError, match="must not exceed 45 characters"):
+        indexes.create(
+            name="a" * 46,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "my_text_field"},
+                ),
+            ),
+        )
+
+
+def test_create_integrated_rejects_invalid_chars(indexes: Indexes) -> None:
+    """Name with uppercase or special chars raises ValidationError."""
+    with pytest.raises(ValidationError, match="lowercase letters, digits, and hyphens"):
+        indexes.create(
+            name="My_Invalid_Index!",
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "my_text_field"},
+                ),
+            ),
+        )
+
+
 def test_create_integrated_missing_name_raises(indexes: Indexes) -> None:
     """Empty name raises ValidationError."""
     with pytest.raises(ValidationError, match="name"):
