@@ -36,9 +36,13 @@ class Admin:
     token used for all admin API calls.
 
     Args:
-        client_id: OAuth2 client ID. Falls back to ``PINECONE_CLIENT_ID`` env var.
-        client_secret: OAuth2 client secret. Falls back to ``PINECONE_CLIENT_SECRET`` env var.
-        additional_headers: Extra headers included in every admin API request.
+        client_id (str | None): OAuth2 client ID. Falls back to ``PINECONE_CLIENT_ID`` env var.
+        client_secret (str | None): OAuth2 client secret. Falls back to ``PINECONE_CLIENT_SECRET``
+            env var.
+        additional_headers (dict[str, str] | None): Extra headers included in every admin API
+            request.
+        proxy_url (str | None): HTTP proxy URL for outgoing requests.
+        ssl_verify (bool): Whether to verify SSL certificates. Defaults to ``True``.
 
     Raises:
         :exc:`ValidationError`: If client_id or client_secret cannot be resolved.
