@@ -165,6 +165,24 @@ fn status_to_py_err(status: tonic::Status) -> PyErr {
     })
 }
 
+/// Raise a `pinecone.errors.PineconeValueError` for client-side validation failures.
+///
+/// Falls back to `PyValueError` if the Python exception class cannot be imported.
+fn pinecone_value_error(py: Python<'_>, msg: &str) -> PyErr {
+    let errors_mod = match py.import("pinecone.errors") {
+        Ok(m) => m,
+        Err(_) => return pyo3::exceptions::PyValueError::new_err(msg.to_string()),
+    };
+    let cls = match errors_mod.getattr("PineconeValueError") {
+        Ok(c) => c,
+        Err(_) => return pyo3::exceptions::PyValueError::new_err(msg.to_string()),
+    };
+    match cls.call1((msg,)) {
+        Ok(inst) => PyErr::from_value(inst.into_any()),
+        Err(_) => pyo3::exceptions::PyValueError::new_err(msg.to_string()),
+    }
+}
+
 /// Human-readable name for a gRPC status code.
 fn grpc_code_name(code: tonic::Code) -> &'static str {
     match code {
@@ -558,6 +576,15 @@ impl GrpcChannel {
         scan_factor: Option<f32>,
         max_candidates: Option<u32>,
     ) -> PyResult<Py<PyDict>> {
+        let has_vector = vector.as_ref().is_some_and(|v| !v.is_empty());
+        let has_id = id.is_some_and(|s| !s.is_empty());
+        if has_vector && has_id {
+            return Err(pinecone_value_error(
+                py,
+                "Cannot specify both 'id' and 'vector' in a query",
+            ));
+        }
+
         #[allow(deprecated)]
         let request = proto::QueryRequest {
             namespace: namespace.unwrap_or("").to_string(),
