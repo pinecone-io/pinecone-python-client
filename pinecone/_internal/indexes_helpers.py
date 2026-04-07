@@ -1,17 +1,24 @@
 """Shared validation and body-building helpers for sync/async Indexes.
 
 These are pure functions (no I/O) extracted from the duplicated private
-methods on ``Indexes`` and ``AsyncIndexes``.
+methods on ``Indexes`` and ``AsyncIndexes``, plus polling helpers that
+encapsulate the describe-until-ready loop.
 """
 
 from __future__ import annotations
 
+import asyncio
 import re
-from typing import Any
+import time
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any
 
 import msgspec
 
 from pinecone._internal.validation import require_non_empty
+
+if TYPE_CHECKING:
+    from pinecone.models.indexes.index import IndexModel
 from pinecone.errors.exceptions import ValidationError
 from pinecone.models.enums import DeletionProtection, Metric, VectorType
 from pinecone.models.indexes.specs import ByocSpec, IntegratedSpec, PodSpec, ServerlessSpec
@@ -264,3 +271,79 @@ def _normalize_schema(raw: dict[str, Any]) -> dict[str, Any]:
         result: dict[str, Any] = raw["fields"]
         return result
     return raw
+
+
+def poll_index_until_ready(
+    describe_fn: Callable[[str], IndexModel],
+    name: str,
+    timeout: int | None,
+    poll_interval: float = 5.0,
+) -> IndexModel:
+    """Poll ``describe_fn(name)`` until the index is ready or timeout is reached.
+
+    Args:
+        describe_fn: Synchronous callable that takes an index name and returns
+            an :class:`IndexModel`.
+        name: Name of the index to poll.
+        timeout: Maximum seconds to wait. ``None`` means wait indefinitely.
+        poll_interval: Seconds between successive polls.
+
+    Returns:
+        The :class:`IndexModel` once its status is ready.
+
+    Raises:
+        IndexInitFailedError: If the index enters ``InitializationFailed`` state.
+        PineconeTimeoutError: If *timeout* seconds elapse without becoming ready.
+    """
+    from pinecone.errors.exceptions import IndexInitFailedError, PineconeTimeoutError
+
+    start = time.monotonic()
+    while True:
+        idx = describe_fn(name)
+        if idx.status.ready:
+            return idx
+        if idx.status.state == "InitializationFailed":
+            raise IndexInitFailedError(name)
+        if timeout is not None:
+            elapsed = time.monotonic() - start
+            if elapsed >= timeout:
+                raise PineconeTimeoutError(f"Index '{name}' not ready after {timeout}s")
+        time.sleep(poll_interval)
+
+
+async def async_poll_index_until_ready(
+    describe_fn: Callable[[str], Awaitable[IndexModel]],
+    name: str,
+    timeout: int | None,
+    poll_interval: float = 5.0,
+) -> IndexModel:
+    """Async variant of :func:`poll_index_until_ready`.
+
+    Args:
+        describe_fn: Async callable that takes an index name and returns
+            an :class:`IndexModel`.
+        name: Name of the index to poll.
+        timeout: Maximum seconds to wait. ``None`` means wait indefinitely.
+        poll_interval: Seconds between successive polls.
+
+    Returns:
+        The :class:`IndexModel` once its status is ready.
+
+    Raises:
+        IndexInitFailedError: If the index enters ``InitializationFailed`` state.
+        PineconeTimeoutError: If *timeout* seconds elapse without becoming ready.
+    """
+    from pinecone.errors.exceptions import IndexInitFailedError, PineconeTimeoutError
+
+    start = time.monotonic()
+    while True:
+        idx = await describe_fn(name)
+        if idx.status.ready:
+            return idx
+        if idx.status.state == "InitializationFailed":
+            raise IndexInitFailedError(name)
+        if timeout is not None:
+            elapsed = time.monotonic() - start
+            if elapsed >= timeout:
+                raise PineconeTimeoutError(f"Index '{name}' not ready after {timeout}s")
+        await asyncio.sleep(poll_interval)

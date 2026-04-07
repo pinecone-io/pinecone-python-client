@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.indexes_adapter import IndexesAdapter
 from pinecone._internal.indexes_helpers import (
+    async_poll_index_until_ready,
     build_byoc_body,
     build_create_body,
     build_integrated_body,
@@ -20,7 +21,6 @@ from pinecone._internal.indexes_helpers import (
 )
 from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import (
-    IndexInitFailedError,
     NotFoundError,
     PineconeTimeoutError,
     ValidationError,
@@ -415,15 +415,4 @@ class AsyncIndexes:
 
     async def _poll_until_ready(self, name: str, timeout: int | None) -> IndexModel:
         """Poll describe() until the index is ready or timeout is reached."""
-        start = time.monotonic()
-        while True:
-            idx = await self.describe(name)
-            if idx.status.ready:
-                return idx
-            if idx.status.state == "InitializationFailed":
-                raise IndexInitFailedError(name)
-            if timeout is not None:
-                elapsed = time.monotonic() - start
-                if elapsed >= timeout:
-                    raise PineconeTimeoutError(f"Index '{name}' not ready after {timeout}s")
-            await asyncio.sleep(_POLL_INTERVAL_SECONDS)
+        return await async_poll_index_until_ready(self.describe, name, timeout)

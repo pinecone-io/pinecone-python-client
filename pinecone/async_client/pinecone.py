@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
+from pinecone._internal.indexes_helpers import async_poll_index_until_ready
 from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import ValidationError
 
@@ -286,7 +287,7 @@ class AsyncPinecone:
             return await self.indexes.describe(name)
 
         effective_timeout = timeout if timeout is not None else 300
-        return await self.indexes._poll_until_ready(name, effective_timeout)
+        return await async_poll_index_until_ready(self.indexes.describe, name, effective_timeout)
 
     @property
     def config(self) -> PineconeConfig:

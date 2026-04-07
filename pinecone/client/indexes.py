@@ -11,6 +11,7 @@ from pinecone._internal.indexes_helpers import (
     build_byoc_body,
     build_create_body,
     build_integrated_body,
+    poll_index_until_ready,
     resolve_enum_value,
     validate_byoc_inputs,
     validate_create_inputs,
@@ -19,7 +20,6 @@ from pinecone._internal.indexes_helpers import (
 )
 from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import (
-    IndexInitFailedError,
     NotFoundError,
     PineconeTimeoutError,
     ValidationError,
@@ -410,15 +410,4 @@ class Indexes:
 
     def _poll_until_ready(self, name: str, timeout: int | None) -> IndexModel:
         """Poll describe() until the index is ready or timeout is reached."""
-        start = time.monotonic()
-        while True:
-            idx = self.describe(name)
-            if idx.status.ready:
-                return idx
-            if idx.status.state == "InitializationFailed":
-                raise IndexInitFailedError(name)
-            if timeout is not None:
-                elapsed = time.monotonic() - start
-                if elapsed >= timeout:
-                    raise PineconeTimeoutError(f"Index '{name}' not ready after {timeout}s")
-            time.sleep(_POLL_INTERVAL_SECONDS)
+        return poll_index_until_ready(self.describe, name, timeout)
