@@ -196,6 +196,25 @@ class GrpcIndex:
         Raises:
             TypeError: If a vector element is not a recognized format.
             ValueError: If a vector element is malformed.
+
+        Examples:
+
+            from pinecone.grpc import GrpcIndex
+            from pinecone.models.vectors.vector import Vector
+
+            idx = GrpcIndex(host="article-search-abc123.svc.pinecone.io", api_key="...")
+            response = idx.upsert(
+                vectors=[
+                    Vector(
+                        id="article-101",
+                        values=[0.012, -0.087, 0.153, ...],  # 1536-dim
+                    ),
+                    ("article-102", [0.045, 0.021, -0.064, ...]),
+                    {"id": "article-103", "values": [0.091, -0.032, 0.178, ...]},
+                ],
+                namespace="articles-en",
+            )
+            print(response.upserted_count)
         """
         built = [VectorFactory.build(v) for v in vectors]
         grpc_vectors = [_vector_to_grpc_dict(v) for v in built]
@@ -242,6 +261,15 @@ class GrpcIndex:
 
         Raises:
             ValidationError: If top_k < 1, or both/neither vector and id provided.
+
+        Examples:
+
+            response = idx.query(
+                top_k=10,
+                vector=[0.012, -0.087, 0.153, ...],  # 1536-dim embedding
+            )
+            for match in response.matches:
+                print(match.id, match.score)
         """
         if top_k < 1:
             raise ValidationError(f"top_k must be a positive integer, got {top_k}")
@@ -304,6 +332,12 @@ class GrpcIndex:
 
         Raises:
             ValidationError: If ids is empty.
+
+        Examples:
+
+            response = idx.fetch(ids=["article-101", "article-102"])
+            for vid, vec in response.vectors.items():
+                print(vid, vec.values)
         """
         if not ids:
             raise ValidationError("ids must be a non-empty list")
@@ -342,6 +376,17 @@ class GrpcIndex:
 
         Raises:
             ValidationError: If zero or more than one deletion mode is specified.
+
+        Examples:
+
+            # Delete by IDs
+            idx.delete(ids=["article-101", "article-102"])
+
+            # Delete all vectors in a namespace
+            idx.delete(delete_all=True, namespace="articles-deprecated")
+
+            # Delete by metadata filter
+            idx.delete(filter={"category": {"$eq": "obsolete"}})
         """
         mode_count = sum([ids is not None, delete_all, filter is not None])
         if mode_count == 0:
@@ -387,6 +432,17 @@ class GrpcIndex:
 
         Raises:
             ValidationError: If both or neither of id and filter are provided.
+
+        Examples:
+
+            # Update by ID
+            idx.update(id="article-101", values=[0.012, -0.087, 0.153, ...])  # 1536-dim embedding
+
+            # Bulk-update metadata by filter
+            idx.update(
+                filter={"genre": {"$eq": "drama"}},
+                set_metadata={"year": 2020},
+            )
         """
         has_id = id is not None
         has_filter = filter is not None
@@ -437,6 +493,12 @@ class GrpcIndex:
 
         Returns:
             ListResponse with vector IDs, pagination info, namespace, and usage.
+
+        Examples:
+
+            response = idx.list_paginated(prefix="doc1#", limit=50)
+            for item in response.vectors:
+                print(item.id)
         """
         logger.info("Listing vectors via gRPC in namespace %r", namespace)
         result = self._channel.list(
@@ -478,6 +540,12 @@ class GrpcIndex:
 
         Yields:
             ListResponse for each page of results.
+
+        Examples:
+
+            for page in idx.list(prefix="doc1#"):
+                for item in page.vectors:
+                    print(item.id)
         """
         pagination_token: str | None = None
         while True:
@@ -508,6 +576,16 @@ class GrpcIndex:
         Returns:
             DescribeIndexStatsResponse with namespace summaries, dimension,
             total vector count, and fullness metrics.
+
+        Examples:
+
+            stats = idx.describe_index_stats()
+            print(stats.total_vector_count, stats.dimension)
+
+            # With filter — only count vectors matching the expression
+            stats = idx.describe_index_stats(
+                filter={"genre": {"$eq": "drama"}}
+            )
         """
         logger.info("Describing index stats via gRPC")
         result = self._channel.describe_index_stats(filter=filter)
