@@ -16,6 +16,7 @@ from pinecone.client.assistants import (
     _CREATE_POLL_INTERVAL_SECONDS,
     Assistants,
 )
+from pinecone.models.assistant.list import ListAssistantsResponse
 from pinecone.errors.exceptions import PineconeTimeoutError, PineconeValueError
 from pinecone.models.assistant.model import AssistantModel
 from tests.factories import make_assistant_response
@@ -382,3 +383,161 @@ def test_describe_assistant_minimal_response(assistants: Assistants) -> None:
     assert result.metadata is None
     assert result.instructions is None
     assert result.host is None
+
+
+# ---------------------------------------------------------------------------
+# list() — auto-pagination
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_list_assistants_empty(assistants: Assistants) -> None:
+    """list() returns empty list when no assistants exist."""
+    respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json={"assistants": []}),
+    )
+
+    result = assistants.list()
+
+    assert result == []
+
+
+@respx.mock
+def test_list_assistants_single_page(assistants: Assistants) -> None:
+    """list() returns all assistants from a single-page response."""
+    respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "assistants": [
+                    make_assistant_response(name="a1"),
+                    make_assistant_response(name="a2"),
+                ],
+            },
+        ),
+    )
+
+    result = assistants.list()
+
+    assert len(result) == 2
+    assert result[0].name == "a1"
+    assert result[1].name == "a2"
+    assert all(isinstance(a, AssistantModel) for a in result)
+
+
+@respx.mock
+def test_list_assistants_multi_page(assistants: Assistants) -> None:
+    """list() auto-paginates through multiple pages."""
+    respx.get(f"{BASE_URL}/assistants").mock(
+        side_effect=[
+            httpx.Response(
+                200,
+                json={
+                    "assistants": [make_assistant_response(name="a1")],
+                    "next": "token-page2",
+                },
+            ),
+            httpx.Response(
+                200,
+                json={
+                    "assistants": [make_assistant_response(name="a2")],
+                    "next": "token-page3",
+                },
+            ),
+            httpx.Response(
+                200,
+                json={
+                    "assistants": [make_assistant_response(name="a3")],
+                },
+            ),
+        ]
+    )
+
+    result = assistants.list()
+
+    assert len(result) == 3
+    assert [a.name for a in result] == ["a1", "a2", "a3"]
+
+
+# ---------------------------------------------------------------------------
+# list_page() — single page with pagination control
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_list_assistants_page(assistants: Assistants) -> None:
+    """list_page() returns single page with next token."""
+    route = respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "assistants": [make_assistant_response(name="a1")],
+                "next": "token-next",
+            },
+        ),
+    )
+
+    result = assistants.list_page()
+
+    assert isinstance(result, ListAssistantsResponse)
+    assert len(result.assistants) == 1
+    assert result.assistants[0].name == "a1"
+    assert result.next == "token-next"
+    assert route.call_count == 1
+
+
+@respx.mock
+def test_list_assistants_page_last_page(assistants: Assistants) -> None:
+    """list_page() returns no next token on the last page."""
+    respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "assistants": [make_assistant_response(name="a1")],
+            },
+        ),
+    )
+
+    result = assistants.list_page()
+
+    assert result.next is None
+
+
+@respx.mock
+def test_list_assistants_page_with_page_size(assistants: Assistants) -> None:
+    """list_page() sends pageSize query param when provided."""
+    route = respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json={"assistants": []}),
+    )
+
+    assistants.list_page(page_size=5)
+
+    request = route.calls.last.request
+    assert "pageSize=5" in str(request.url)
+
+
+@respx.mock
+def test_list_assistants_page_with_pagination_token(assistants: Assistants) -> None:
+    """list_page() sends paginationToken query param when provided."""
+    route = respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json={"assistants": []}),
+    )
+
+    assistants.list_page(pagination_token="abc123")
+
+    request = route.calls.last.request
+    assert "paginationToken=abc123" in str(request.url)
+
+
+@respx.mock
+def test_list_assistants_page_omits_none_params(assistants: Assistants) -> None:
+    """list_page() does not send params that are None."""
+    route = respx.get(f"{BASE_URL}/assistants").mock(
+        return_value=httpx.Response(200, json={"assistants": []}),
+    )
+
+    assistants.list_page()
+
+    request = route.calls.last.request
+    assert "pageSize" not in str(request.url)
+    assert "paginationToken" not in str(request.url)

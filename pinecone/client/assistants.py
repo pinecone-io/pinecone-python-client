@@ -10,6 +10,7 @@ import msgspec
 
 from pinecone._internal.constants import ASSISTANT_API_VERSION
 from pinecone.errors.exceptions import PineconeTimeoutError, PineconeValueError
+from pinecone.models.assistant.list import ListAssistantsResponse
 from pinecone.models.assistant.model import AssistantModel
 
 if TYPE_CHECKING:
@@ -150,6 +151,87 @@ class Assistants:
         model = msgspec.json.decode(response.content, type=AssistantModel)
         logger.debug("Described assistant %r (status=%s)", name, model.status)
         return model
+
+    def list(self) -> list[AssistantModel]:
+        """List all assistants in the project.
+
+        Automatically paginates through all pages, collecting every
+        assistant into a single list.
+
+        Returns:
+            A list of :class:`AssistantModel` objects. Returns an empty
+            list when no assistants exist.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            assistants = pc.assistants.list()
+            for a in assistants:
+                print(a.name, a.status)
+        """
+        logger.info("Listing all assistants")
+        all_assistants: list[AssistantModel] = []
+        pagination_token: str | None = None
+
+        while True:
+            page = self.list_page(pagination_token=pagination_token)
+            all_assistants.extend(page.assistants)
+            if page.next is None:
+                break
+            pagination_token = page.next
+
+        logger.debug("Listed %d assistants", len(all_assistants))
+        return all_assistants
+
+    def list_page(
+        self,
+        *,
+        page_size: int | None = None,
+        pagination_token: str | None = None,
+    ) -> ListAssistantsResponse:
+        """List one page of assistants with explicit pagination control.
+
+        Only the parameters that are explicitly provided are sent in the
+        request. Omitted parameters are not included as query params.
+
+        Args:
+            page_size (int | None): Maximum number of assistants per page.
+                Only sent when explicitly provided.
+            pagination_token (str | None): Token from a previous response
+                to fetch the next page.
+
+        Returns:
+            :class:`ListAssistantsResponse` with an ``assistants`` list and
+            an optional ``next`` continuation token.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            page = pc.assistants.list_page(page_size=10)
+            for a in page.assistants:
+                print(a.name)
+            if page.next:
+                next_page = pc.assistants.list_page(pagination_token=page.next)
+        """
+        params: dict[str, str | int] = {}
+        if page_size is not None:
+            params["pageSize"] = page_size
+        if pagination_token is not None:
+            params["paginationToken"] = pagination_token
+
+        logger.info("Listing assistants page")
+        response = self._http.get("/assistants", params=params)
+        result = msgspec.json.decode(response.content, type=ListAssistantsResponse)
+        logger.debug(
+            "Listed %d assistants (has_next=%s)",
+            len(result.assistants),
+            result.next is not None,
+        )
+        return result
 
     def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""
