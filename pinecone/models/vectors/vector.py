@@ -13,11 +13,11 @@ class Vector(Struct, rename="camel", kw_only=True):
     """A stored vector with optional sparse values and metadata.
 
     Attributes:
-        id: Unique identifier for the vector.
-        values: Dense vector values as a list of floats.
-        sparse_values: Sparse vector component, or ``None`` if the vector
+        id (str): Unique identifier for the vector.
+        values (list[float]): Dense vector values as a list of floats.
+        sparse_values (SparseValues | None): Sparse vector component, or ``None`` if the vector
             has no sparse values.
-        metadata: User-defined metadata key-value pairs, or ``None`` if
+        metadata (dict[str, Any] | None): User-defined metadata key-value pairs, or ``None`` if
             no metadata is attached.
     """
 
@@ -31,13 +31,13 @@ class ScoredVector(Struct, rename="camel", kw_only=True):
     """A vector match with similarity score from a query operation.
 
     Attributes:
-        id: Unique identifier of the matched vector.
-        score: Similarity score for this match.
-        values: Dense vector values, or an empty list if values were not
+        id (str): Unique identifier of the matched vector.
+        score (float): Similarity score for this match.
+        values (list[float]): Dense vector values, or an empty list if values were not
             requested.
-        sparse_values: Sparse vector component, or ``None`` if the vector
+        sparse_values (SparseValues | None): Sparse vector component, or ``None`` if the vector
             has no sparse values.
-        metadata: User-defined metadata key-value pairs, or ``None`` if
+        metadata (dict[str, Any] | None): User-defined metadata key-value pairs, or ``None`` if
             metadata was not requested or not attached.
     """
 

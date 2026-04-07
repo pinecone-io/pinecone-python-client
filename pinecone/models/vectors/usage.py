@@ -9,9 +9,9 @@ class Usage(Struct, rename="camel", kw_only=True):
     """Read/write unit usage information included in responses.
 
     Attributes:
-        read_units: Number of read units consumed, or ``None`` if the
+        read_units (int | None): Number of read units consumed, or ``None`` if the
             operation did not consume read units.
-        write_units: Number of write units consumed, or ``None`` if the
+        write_units (int | None): Number of write units consumed, or ``None`` if the
             operation did not consume write units.
     """
 

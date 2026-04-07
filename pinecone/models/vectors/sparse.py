@@ -9,8 +9,8 @@ class SparseValues(Struct, rename="camel", kw_only=True):
     """Sparse vector representation with indices and values.
 
     Attributes:
-        indices: Non-zero dimension indices of the sparse vector.
-        values: Values corresponding to each index in ``indices``.
+        indices (list[int]): Non-zero dimension indices of the sparse vector.
+        values (list[float]): Values corresponding to each index in ``indices``.
     """
 
     indices: list[int]

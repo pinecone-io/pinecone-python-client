@@ -13,10 +13,10 @@ class SearchUsage(Struct, kw_only=True):
     """Usage statistics for a search operation.
 
     Attributes:
-        read_units: Number of read units consumed.
-        embed_total_tokens: Total tokens used for embedding, or ``None``
+        read_units (int): Number of read units consumed.
+        embed_total_tokens (int | None): Total tokens used for embedding, or ``None``
             if the search did not use integrated embedding.
-        rerank_units: Number of rerank units consumed, or ``None`` if the
+        rerank_units (int | None): Number of rerank units consumed, or ``None`` if the
             search did not use reranking.
     """
 
@@ -33,9 +33,9 @@ class Hit(Struct, kw_only=True, rename={"id_": "_id", "score_": "_score"}):
     with convenience properties ``id`` and ``score`` for clean access.
 
     Attributes:
-        id_: The record identifier (wire name ``_id``).
-        score_: The similarity score (wire name ``_score``).
-        fields: Record fields included in the result.
+        id_ (str): The record identifier (wire name ``_id``).
+        score_ (float): The similarity score (wire name ``_score``).
+        fields (dict[str, Any]): Record fields included in the result.
     """
 
     id_: str
@@ -73,7 +73,7 @@ class SearchResult(Struct, kw_only=True):
     """The result wrapper containing hits.
 
     Attributes:
-        hits: List of search result hits.
+        hits (list[Hit]): List of search result hits.
     """
 
     hits: list[Hit] = []
@@ -83,9 +83,9 @@ class SearchRecordsResponse(Struct, kw_only=True):
     """Response from a search records operation.
 
     Attributes:
-        result: Wrapper containing the list of hits.
-        usage: Usage statistics for the search operation.
-        response_info: HTTP response metadata (request ID, LSN values), or
+        result (SearchResult): Wrapper containing the list of hits.
+        usage (SearchUsage): Usage statistics for the search operation.
+        response_info (ResponseInfo | None): HTTP response metadata (request ID, LSN values), or
             ``None`` if not populated.
     """
 

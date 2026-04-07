@@ -16,10 +16,10 @@ class QueryNamespacesResults(Struct, kw_only=True):
     """Aggregated results from querying multiple namespaces.
 
     Attributes:
-        matches: Combined top-k results across all namespaces, sorted by
+        matches (list[ScoredVector]): Combined top-k results across all namespaces, sorted by
             relevance according to the metric used.
-        usage: Total aggregated read unit usage across all namespaces.
-        ns_usage: Per-namespace read unit usage keyed by namespace name.
+        usage (Usage): Total aggregated read unit usage across all namespaces.
+        ns_usage (dict[str, Usage]): Per-namespace read unit usage keyed by namespace name.
     """
 
     matches: list[ScoredVector] = field(default_factory=list)

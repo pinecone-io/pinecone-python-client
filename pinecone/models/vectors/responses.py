@@ -14,8 +14,8 @@ class UpsertResponse(Struct, rename="camel", kw_only=True):
     """Response from an upsert operation.
 
     Attributes:
-        upserted_count: Number of vectors successfully upserted.
-        response_info: HTTP response metadata (request ID, LSN values), or
+        upserted_count (int): Number of vectors successfully upserted.
+        response_info (ResponseInfo | None): HTTP response metadata (request ID, LSN values), or
             ``None`` if not populated.
     """
 
@@ -37,11 +37,11 @@ class QueryResponse(Struct, rename="camel", kw_only=True):
     """Response from a query operation.
 
     Attributes:
-        matches: List of scored vectors sorted by descending similarity.
-        namespace: Namespace that was queried. Defaults to ``""`` (the
+        matches (list[ScoredVector]): List of scored vectors sorted by descending similarity.
+        namespace (str): Namespace that was queried. Defaults to ``""`` (the
             default namespace).
-        usage: Read unit usage for this query, or ``None`` if not reported.
-        response_info: HTTP response metadata (request ID, LSN values), or
+        usage (Usage | None): Read unit usage for this query, or ``None`` if not reported.
+        response_info (ResponseInfo | None): HTTP response metadata (request ID, LSN values), or
             ``None`` if not populated.
     """
 
@@ -70,10 +70,10 @@ class FetchResponse(Struct, rename="camel", kw_only=True):
     """Response from a fetch operation.
 
     Attributes:
-        vectors: Mapping of vector ID to ``Vector`` for each fetched vector.
-        namespace: Namespace the vectors were fetched from.
-        usage: Read unit usage for this fetch, or ``None`` if not reported.
-        response_info: HTTP response metadata (request ID, LSN values), or
+        vectors (dict[str, Vector]): Mapping of vector ID to ``Vector`` for each fetched vector.
+        namespace (str): Namespace the vectors were fetched from.
+        usage (Usage | None): Read unit usage for this fetch, or ``None`` if not reported.
+        response_info (ResponseInfo | None): HTTP response metadata (request ID, LSN values), or
             ``None`` if not populated.
     """
 
@@ -97,12 +97,12 @@ class FetchByMetadataResponse(Struct, rename="camel", kw_only=True):
     """Response from a fetch-by-metadata operation.
 
     Attributes:
-        vectors: Mapping of vector ID to Vector for each fetched vector.
-        namespace: Namespace the vectors were fetched from.
-        usage: Read unit usage, or None if not reported.
-        pagination: Pagination token for the next page, or None if
+        vectors (dict[str, Vector]): Mapping of vector ID to Vector for each fetched vector.
+        namespace (str): Namespace the vectors were fetched from.
+        usage (Usage | None): Read unit usage, or None if not reported.
+        pagination (Pagination | None): Pagination token for the next page, or None if
             this is the last page.
-        response_info: HTTP response metadata (request ID, LSN values), or
+        response_info (ResponseInfo | None): HTTP response metadata (request ID, LSN values), or
             ``None`` if not populated.
     """
 
@@ -127,7 +127,7 @@ class NamespaceSummary(Struct, rename="camel", kw_only=True):
     """Summary statistics for a single namespace.
 
     Attributes:
-        vector_count: Number of vectors in this namespace.
+        vector_count (int): Number of vectors in this namespace.
     """
 
     vector_count: int = 0
@@ -137,21 +137,21 @@ class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True):
     """Response from a describe index stats operation.
 
     Attributes:
-        namespaces: Mapping of namespace name to ``NamespaceSummary`` for
-            each namespace in the index.
-        dimension: Dimensionality of vectors in the index, or ``None`` if
+        namespaces (dict[str, NamespaceSummary]): Mapping of namespace name to
+            ``NamespaceSummary`` for each namespace in the index.
+        dimension (int | None): Dimensionality of vectors in the index, or ``None`` if
             not yet determined.
-        index_fullness: Fraction of the index capacity used, from 0.0 to 1.0.
-        total_vector_count: Total number of vectors across all namespaces.
-        metric: Distance metric of the index (e.g. ``"cosine"``), or
+        index_fullness (float): Fraction of the index capacity used, from 0.0 to 1.0.
+        total_vector_count (int): Total number of vectors across all namespaces.
+        metric (str | None): Distance metric of the index (e.g. ``"cosine"``), or
             ``None`` if not reported.
-        vector_type: Type of vectors stored (e.g. ``"dense"``), or ``None``
+        vector_type (str | None): Type of vectors stored (e.g. ``"dense"``), or ``None``
             if not reported.
-        memory_fullness: Fraction of memory capacity used, or ``None`` if
+        memory_fullness (float | None): Fraction of memory capacity used, or ``None`` if
             not reported.
-        storage_fullness: Fraction of storage capacity used, or ``None``
+        storage_fullness (float | None): Fraction of storage capacity used, or ``None``
             if not reported.
-        response_info: HTTP response metadata (request ID, LSN values), or
+        response_info (ResponseInfo | None): HTTP response metadata (request ID, LSN values), or
             ``None`` if not populated.
     """
 
@@ -180,11 +180,11 @@ class ResponseInfo(Struct, kw_only=True):
     """HTTP response metadata carrier.
 
     Attributes:
-        request_id: Server-assigned request identifier, or ``None`` if not
+        request_id (str | None): Server-assigned request identifier, or ``None`` if not
             present in the response.
-        lsn_reconciled: Log sequence number indicating how far the index has
+        lsn_reconciled (int | None): Log sequence number indicating how far the index has
             reconciled, or ``None`` if not present in the response headers.
-        lsn_committed: Log sequence number of the last committed write, or
+        lsn_committed (int | None): Log sequence number of the last committed write, or
             ``None`` if not present in the response headers.
     """
 
@@ -201,7 +201,7 @@ class Pagination(Struct, kw_only=True):
     """Pagination token for continued listing.
 
     Attributes:
-        next: Opaque token to pass to the next list call to retrieve the
+        next (str | None): Opaque token to pass to the next list call to retrieve the
             next page, or ``None`` if there are no more results.
     """
 
@@ -212,7 +212,7 @@ class ListItem(Struct, kw_only=True):
     """A single vector ID entry in a list response.
 
     Attributes:
-        id: The vector identifier, or ``None`` if not present.
+        id (str | None): The vector identifier, or ``None`` if not present.
     """
 
     id: str | None = None
@@ -222,13 +222,13 @@ class ListResponse(Struct, rename="camel", kw_only=True):
     """Response from a list vectors operation.
 
     Attributes:
-        vectors: List of vector ID entries in this page.
-        pagination: Pagination token for fetching the next page, or ``None``
+        vectors (list[ListItem]): List of vector ID entries in this page.
+        pagination (Pagination | None): Pagination token for fetching the next page, or ``None``
             if there are no more results.
-        namespace: Namespace the vectors were listed from.
-        usage: Read unit usage for this list call, or ``None`` if not
+        namespace (str): Namespace the vectors were listed from.
+        usage (Usage | None): Read unit usage for this list call, or ``None`` if not
             reported.
-        response_info: HTTP response metadata (request ID, LSN values), or
+        response_info (ResponseInfo | None): HTTP response metadata (request ID, LSN values), or
             ``None`` if not populated.
     """
 
@@ -253,9 +253,9 @@ class UpsertRecordsResponse(Struct, kw_only=True):
     """Response from an upsert_records operation.
 
     Attributes:
-        record_count: Number of records submitted by the caller. This is a
+        record_count (int): Number of records submitted by the caller. This is a
             client-side count, not a server-confirmed count.
-        response_info: HTTP response metadata (request ID, LSN values), or
+        response_info (ResponseInfo | None): HTTP response metadata (request ID, LSN values), or
             ``None`` if not populated.
     """
 
@@ -277,9 +277,9 @@ class UpdateResponse(Struct, rename="camel", kw_only=True):
     """Response from an update operation.
 
     Attributes:
-        matched_records: Number of records matched by the update, or ``None``
+        matched_records (int | None): Number of records matched by the update, or ``None``
             if not reported by the server.
-        response_info: HTTP response metadata (request ID, LSN values), or
+        response_info (ResponseInfo | None): HTTP response metadata (request ID, LSN values), or
             ``None`` if not populated.
     """
 
