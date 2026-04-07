@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.23", features = ["extension-module"] }
-tonic = "0.13"
+tonic = { version = "0.13", features = ["tls-ring", "tls-native-roots"] }
 prost = "0.13"
 prost-types = "0.13"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

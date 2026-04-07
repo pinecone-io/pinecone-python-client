@@ -2,7 +2,7 @@ use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use tonic::service::interceptor::InterceptedService;
-use tonic::transport::Channel;
+use tonic::transport::{Channel, ClientTlsConfig};
 
 use crate::proto::vector_service_client::VectorServiceClient;
 use crate::proto;
@@ -258,17 +258,26 @@ impl GrpcChannel {
     ///     endpoint: The gRPC endpoint URL (e.g. "https://my-index-abc123.svc.pinecone.io:443")
     ///     api_key: The Pinecone API key for authentication.
     ///     api_version: The Pinecone API version string (e.g. "2025-10").
+    ///     secure: Whether to use TLS encryption (default true).
     #[new]
-    fn new(endpoint: &str, api_key: &str, api_version: &str) -> PyResult<Self> {
+    #[pyo3(signature = (endpoint, api_key, api_version, secure=true))]
+    fn new(endpoint: &str, api_key: &str, api_version: &str, secure: bool) -> PyResult<Self> {
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
             .build()
             .map_err(|e| PyRuntimeError::new_err(format!("Failed to create tokio runtime: {e}")))?;
 
+        let mut endpoint_builder = Channel::from_shared(endpoint.to_string())
+            .map_err(|e| PyRuntimeError::new_err(format!("Invalid endpoint: {e}")))?;
+
+        if secure {
+            endpoint_builder = endpoint_builder
+                .tls_config(ClientTlsConfig::new())
+                .map_err(|e| PyRuntimeError::new_err(format!("Failed to configure TLS: {e}")))?;
+        }
+
         let channel = runtime
-            .block_on(Channel::from_shared(endpoint.to_string())
-                .map_err(|e| PyRuntimeError::new_err(format!("Invalid endpoint: {e}")))?
-                .connect())
+            .block_on(endpoint_builder.connect())
             .map_err(|e| PyRuntimeError::new_err(format!("Failed to connect: {e}")))?;
 
         let interceptor = MetadataInterceptor::new(api_key, api_version)
@@ -869,6 +878,22 @@ mod tests {
         // Validate UUID v4 format (8-4-4-4-12 hex chars)
         assert_eq!(request_id.len(), 36);
         assert!(uuid::Uuid::parse_str(request_id).is_ok());
+    }
+
+    #[test]
+    fn tls_enabled_endpoint_builder_succeeds() {
+        // Verify that configuring TLS on a valid endpoint does not error
+        let endpoint = Channel::from_shared("https://example.pinecone.io:443".to_string())
+            .expect("valid endpoint");
+        let result = endpoint.tls_config(ClientTlsConfig::new());
+        assert!(result.is_ok(), "TLS config should succeed on a valid endpoint");
+    }
+
+    #[test]
+    fn insecure_endpoint_builder_succeeds() {
+        // Verify that creating an endpoint without TLS config does not error
+        let endpoint = Channel::from_shared("http://localhost:5080".to_string());
+        assert!(endpoint.is_ok(), "Insecure endpoint should be constructable");
     }
 
     #[test]
