@@ -224,6 +224,32 @@ class TestAPIKeyModel:
         with pytest.raises(KeyError, match="missing"):
             secret["missing"]
 
+    def test_api_key_with_secret_repr_masks_value(self) -> None:
+        inner_key = APIKeyModel(
+            id="key-123",
+            name="my-key",
+            project_id="proj-456",
+            roles=["ProjectEditor"],
+        )
+        secret = APIKeyWithSecret(key=inner_key, value="pcsk_abc123_secret_key9")
+        result = repr(secret)
+        assert "pcsk_abc123_secret_key9" not in result
+        assert "...key9'" in result
+        assert "APIKeyWithSecret(" in result
+        assert "key=" in result
+
+    def test_api_key_with_secret_repr_masks_short_value(self) -> None:
+        inner_key = APIKeyModel(
+            id="key-123",
+            name="my-key",
+            project_id="proj-456",
+            roles=["ProjectEditor"],
+        )
+        secret = APIKeyWithSecret(key=inner_key, value="ab")
+        result = repr(secret)
+        assert "ab" not in result or "***" in result
+        assert "***" in result
+
     def test_api_key_list_names(self) -> None:
         keys = APIKeyList(
             [
