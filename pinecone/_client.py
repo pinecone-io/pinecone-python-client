@@ -224,6 +224,11 @@ class Pinecone:
         Can target by host URL directly (skips the describe call) or by
         index name (triggers a describe-index lookup to resolve the host).
 
+        .. seealso::
+           Use ``pc.indexes`` for control-plane operations (create, list,
+           describe, delete, configure). To create an index from a backup,
+           use :meth:`Pinecone.create_index_from_backup`.
+
         Args:
             name (str): Name of the index. Triggers a describe call to resolve host.
             host (str): Direct host URL of the index. Skips the describe call.

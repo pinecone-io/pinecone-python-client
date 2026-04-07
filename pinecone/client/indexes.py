@@ -43,6 +43,10 @@ class Indexes:
     Provides ``list``, ``describe``, ``exists``, ``create``, ``delete``,
     and ``configure`` methods.
 
+    .. seealso::
+       Use :meth:`Pinecone.index(name) <pinecone.Pinecone.index>` to get a
+       data-plane client for vector operations on a specific index.
+
     Args:
         http (HTTPClient): HTTP client for making API requests.
 
