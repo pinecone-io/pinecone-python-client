@@ -120,6 +120,7 @@ __all__ = [
     "PodType",
     "QueryNamespacesResults",
     "QueryResponse",
+    "QueryResultsAggregator",
     "RerankModel",
     "RetryConfig",
     "RerankResult",
@@ -199,6 +200,10 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "QueryNamespacesResults",
     ),
     "QueryResponse": ("pinecone.models.vectors.responses", "QueryResponse"),
+    "QueryResultsAggregator": (
+        "pinecone.models.vectors.query_aggregator",
+        "QueryResultsAggregator",
+    ),
     "RerankModel": ("pinecone.models.enums", "RerankModel"),
     "RerankResult": ("pinecone.models.inference.rerank", "RerankResult"),
     "ResponseInfo": ("pinecone.models.vectors.responses", "ResponseInfo"),
