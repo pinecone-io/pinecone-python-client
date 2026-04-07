@@ -35,6 +35,35 @@ class Admin:
     Authenticates via OAuth2 client credentials flow to obtain a Bearer
     token used for all admin API calls.
 
+    **Auth model:** :class:`Admin` uses OAuth2 client credentials (service account), while
+    :class:`~pinecone.Pinecone` uses API keys.  These serve different purposes:
+
+    - :class:`Admin` — organization/project/key management (create projects, rotate keys, etc.)
+    - :class:`~pinecone.Pinecone` — index and vector operations (upsert, query, etc.)
+
+    A common workflow bridges both: use :class:`Admin` to create a project and API key, then
+    pass that key to :class:`~pinecone.Pinecone` for data-plane operations::
+
+        from pinecone import Admin, Pinecone
+
+        admin = Admin(client_id="...", client_secret="...")
+        project = admin.projects.create(name="my-project", organization_id="org-abc123")
+        key = admin.api_keys.create(project_id=project.id, name="my-key")
+        pc = Pinecone(api_key=key.value)
+        pc.create_index(name="my-index", dimension=1536, metric="cosine")
+
+    .. note::
+        **Obtaining OAuth credentials** — Service account credentials (``client_id`` and
+        ``client_secret``) are created in the Pinecone console:
+
+        1. Go to `console.pinecone.io <https://console.pinecone.io>`_.
+        2. Navigate to **Organization Settings** → **Service Accounts**.
+        3. Click **Create Service Account**, assign the desired role, and save the generated
+           ``client_id`` and ``client_secret``.
+
+        These differ from the API keys used by :class:`~pinecone.Pinecone`; they are scoped to
+        your organization and used exclusively for admin operations.
+
     Args:
         client_id (str | None): OAuth2 client ID. Falls back to ``PINECONE_CLIENT_ID`` env var.
         client_secret (str | None): OAuth2 client secret. Falls back to ``PINECONE_CLIENT_SECRET``
@@ -258,6 +287,9 @@ class Admin:
 
             self._api_keys = _ApiKeys(http=self._http)
         return self._api_keys
+
+    def __repr__(self) -> str:
+        return "Admin(organizations=<Organizations>, projects=<Projects>, api_keys=<ApiKeys>)"
 
     def close(self) -> None:
         """Close the underlying HTTP client."""
