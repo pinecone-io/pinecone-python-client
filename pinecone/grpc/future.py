@@ -27,6 +27,26 @@ class PineconeFuture(Future["_T"]):
     The default :meth:`result` timeout is **5 seconds**.  When the timeout
     elapses, :class:`~pinecone.errors.PineconeTimeoutError` is raised with
     the message ``"deadline exceeded"``.
+
+    Examples:
+        Upsert vectors asynchronously and wait for the result:
+
+        >>> from pinecone.grpc import GrpcIndex
+        >>> idx = GrpcIndex(host="article-search-abc123.svc.pinecone.io", api_key="your-api-key")
+        >>> future = idx.upsert_async(vectors=[("article-101", [0.012, -0.087, 0.153, ...])])
+        >>> result = future.result()  # blocks up to 5 seconds
+        >>> result.upserted_count
+        1
+
+        Fire multiple upserts concurrently and collect results:
+
+        >>> from concurrent.futures import as_completed
+        >>> futures = [
+        ...     idx.upsert_async(vectors=[("article-101", [0.012, -0.087, 0.153, ...])]),
+        ...     idx.upsert_async(vectors=[("article-102", [0.045, 0.021, -0.064, ...])]),
+        ... ]
+        >>> for future in as_completed(futures):
+        ...     print(future.result().upserted_count)
     """
 
     def __init__(self, underlying: Future[_T]) -> None:
@@ -80,6 +100,23 @@ class PineconeFuture(Future["_T"]):
         Raises:
             PineconeTimeoutError: If *timeout* seconds elapse before the
                 result is available.
+
+        Examples:
+            Wait for the result with the default 5-second timeout:
+
+            >>> future = idx.upsert_async(vectors=[("article-101", [0.012, -0.087, 0.153, ...])])
+            >>> result = future.result()
+            >>> result.upserted_count
+            1
+
+            Wait up to 30 seconds for a large batch to complete:
+
+            >>> future = idx.upsert_async(vectors=large_batch)
+            >>> result = future.result(timeout=30.0)
+
+            Block indefinitely until the operation finishes:
+
+            >>> result = future.result(timeout=None)
         """
         try:
             return self._underlying.result(timeout=timeout)
