@@ -29,8 +29,10 @@ from pinecone.models.assistant.evaluation import (
     EntailmentResult,
 )
 from pinecone.models.assistant.file_model import AssistantFileModel
+from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.message import Message
 from pinecone.models.assistant.model import AssistantModel
+from pinecone.models.assistant.options import ContextOptions
 from pinecone.models.assistant.streaming import (
     ChatCompletionStreamChoice,
     ChatCompletionStreamChunk,
@@ -60,6 +62,7 @@ __all__ = [
     "ChatResponse",
     "ChatStreamChunk",
     "ChatUsage",
+    "ContextOptions",
     "ContextContentBlock",
     "ContextImageBlock",
     "ContextImageData",
@@ -69,6 +72,8 @@ __all__ = [
     "ContextTextBlock",
     "EntailmentResult",
     "FileReference",
+    "ListAssistantsResponse",
+    "ListFilesResponse",
     "Message",
     "MultimodalSnippet",
     "PageReference",
