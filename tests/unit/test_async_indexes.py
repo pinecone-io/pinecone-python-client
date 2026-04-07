@@ -976,6 +976,70 @@ async def test_configure_empty_name_raises(async_indexes: AsyncIndexes) -> None:
         await async_indexes.configure("")
 
 
+@respx.mock
+async def test_configure_byoc_read_capacity_on_demand(
+    async_indexes: AsyncIndexes,
+) -> None:
+    """PATCH body has spec.byoc.read_capacity with OnDemand mode."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-idx").mock(
+        return_value=httpx.Response(202, json=make_index_response()),
+    )
+
+    await async_indexes.configure("my-idx", read_capacity={"mode": "OnDemand"})
+
+    payload = _request_json(route)
+    assert payload == {"spec": {"byoc": {"read_capacity": {"mode": "OnDemand"}}}}
+
+
+@respx.mock
+async def test_configure_byoc_read_capacity_dedicated(
+    async_indexes: AsyncIndexes,
+) -> None:
+    """PATCH body has full dedicated read_capacity structure."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-idx").mock(
+        return_value=httpx.Response(202, json=make_index_response()),
+    )
+
+    await async_indexes.configure(
+        "my-idx",
+        read_capacity={
+            "mode": "Dedicated",
+            "dedicated": {
+                "node_type": "t1",
+                "scaling": "Manual",
+                "manual": {"replicas": 2, "shards": 1},
+            },
+        },
+    )
+
+    payload = _request_json(route)
+    assert payload == {
+        "spec": {
+            "byoc": {
+                "read_capacity": {
+                    "mode": "Dedicated",
+                    "dedicated": {
+                        "node_type": "t1",
+                        "scaling": "Manual",
+                        "manual": {"replicas": 2, "shards": 1},
+                    },
+                }
+            }
+        }
+    }
+
+
+async def test_configure_byoc_read_capacity_dedicated_missing_node_type(
+    async_indexes: AsyncIndexes,
+) -> None:
+    """Missing node_type in dedicated config raises ValidationError."""
+    with pytest.raises(ValidationError, match="node_type"):
+        await async_indexes.configure(
+            "my-idx",
+            read_capacity={"mode": "Dedicated", "dedicated": {"scaling": "Manual"}},
+        )
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
