@@ -46,10 +46,13 @@ class BackupModel(Struct, kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. backup['backup_id'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'backup_id' in backup``)."""
+        return key in self.__struct_fields__
 
 
 class RestoreJobModel(Struct, kw_only=True):
@@ -77,10 +80,13 @@ class RestoreJobModel(Struct, kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. job['restore_job_id'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'restore_job_id' in job``)."""
+        return key in self.__struct_fields__
 
 
 class CreateIndexFromBackupResponse(Struct, kw_only=True):
@@ -96,7 +102,10 @@ class CreateIndexFromBackupResponse(Struct, kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['restore_job_id'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'restore_job_id' in response``)."""
+        return key in self.__struct_fields__

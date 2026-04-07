@@ -32,10 +32,13 @@ class ModelInfoSupportedParameter(Struct, kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. param['parameter'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'parameter' in param``)."""
+        return key in self.__struct_fields__
 
 
 _MODEL_INFO_ALIASES: dict[str, str] = {"name": "model", "description": "short_description"}
@@ -85,7 +88,12 @@ class ModelInfo(Struct, kw_only=True):
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. model_info['model'])."""
         key = _MODEL_INFO_ALIASES.get(key, key)
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'model' in model_info``)."""
+        if isinstance(key, str):
+            key = _MODEL_INFO_ALIASES.get(key, key)
+        return key in self.__struct_fields__

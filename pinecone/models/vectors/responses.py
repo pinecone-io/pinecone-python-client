@@ -21,10 +21,13 @@ class UpsertResponse(Struct, rename="camel", kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['upserted_count'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'upserted_count' in response``)."""
+        return key in self.__struct_fields__
 
 
 class QueryResponse(Struct, rename="camel", kw_only=True):
@@ -48,10 +51,13 @@ class QueryResponse(Struct, rename="camel", kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['matches'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'matches' in response``)."""
+        return key in self.__struct_fields__
 
 
 class FetchResponse(Struct, rename="camel", kw_only=True):
@@ -69,10 +75,13 @@ class FetchResponse(Struct, rename="camel", kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['vectors'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'vectors' in response``)."""
+        return key in self.__struct_fields__
 
 
 class FetchByMetadataResponse(Struct, rename="camel", kw_only=True):
@@ -93,10 +102,13 @@ class FetchByMetadataResponse(Struct, rename="camel", kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator."""
+        return key in self.__struct_fields__
 
 
 class NamespaceSummary(Struct, rename="camel", kw_only=True):
@@ -140,10 +152,13 @@ class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['dimension'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'dimension' in response``)."""
+        return key in self.__struct_fields__
 
 
 class ResponseInfo(Struct, kw_only=True):
@@ -207,10 +222,13 @@ class ListResponse(Struct, rename="camel", kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['vectors'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'vectors' in response``)."""
+        return key in self.__struct_fields__
 
 
 class UpsertRecordsResponse(Struct, kw_only=True):
@@ -225,10 +243,13 @@ class UpsertRecordsResponse(Struct, kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['record_count'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'record_count' in response``)."""
+        return key in self.__struct_fields__
 
 
 class UpdateResponse(Struct, rename="camel", kw_only=True):
@@ -243,7 +264,10 @@ class UpdateResponse(Struct, rename="camel", kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['matched_records'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'matched_records' in response``)."""
+        return key in self.__struct_fields__

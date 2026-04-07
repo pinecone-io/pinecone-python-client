@@ -19,10 +19,13 @@ class EmbedUsage(Struct, kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. usage['total_tokens'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'total_tokens' in usage``)."""
+        return key in self.__struct_fields__
 
 
 class DenseEmbedding(Struct, kw_only=True):
@@ -38,10 +41,13 @@ class DenseEmbedding(Struct, kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. embedding['values'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'values' in embedding``)."""
+        return key in self.__struct_fields__
 
 
 class SparseEmbedding(Struct, kw_only=True):
@@ -61,10 +67,13 @@ class SparseEmbedding(Struct, kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. embedding['sparse_values'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'sparse_values' in embedding``)."""
+        return key in self.__struct_fields__
 
 
 Embedding = Union[DenseEmbedding, SparseEmbedding]
@@ -99,10 +108,13 @@ class EmbeddingsList(Struct, kw_only=True):
         """
         if isinstance(key, int):
             return self.data[key]
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'model' in embeddings``)."""
+        return key in self.__struct_fields__
 
     def __len__(self) -> int:
         return len(self.data)

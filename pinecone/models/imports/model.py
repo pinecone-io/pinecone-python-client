@@ -32,10 +32,13 @@ class ImportModel(Struct, kw_only=True, rename="camel"):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. model['id'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'id' in model``)."""
+        return key in self.__struct_fields__
 
 
 class StartImportResponse(Struct, kw_only=True):
@@ -49,7 +52,10 @@ class StartImportResponse(Struct, kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['id'])."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'id' in response``)."""
+        return key in self.__struct_fields__

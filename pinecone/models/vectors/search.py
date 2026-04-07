@@ -56,10 +56,15 @@ class Hit(Struct, kw_only=True, rename={"id_": "_id", "score_": "_score"}):
             return self.id_
         if key == "score":
             return self.score_
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'id' in hit``)."""
+        if key in ("id", "score"):
+            return True
+        return key in self.__struct_fields__
 
 
 class SearchResult(Struct, kw_only=True):
@@ -85,7 +90,10 @@ class SearchRecordsResponse(Struct, kw_only=True):
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. ``response['result']``)."""
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            raise KeyError(key) from None
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'result' in response``)."""
+        return key in self.__struct_fields__
