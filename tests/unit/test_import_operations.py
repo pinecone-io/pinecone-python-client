@@ -150,9 +150,7 @@ class TestDescribeImport:
     def test_describe_import_int_id(self) -> None:
         """Verify describe_import(101) converts to '101'."""
         route = respx.get(f"{IMPORTS_URL}/101").mock(
-            return_value=httpx.Response(
-                200, json=_make_import_response(id="101")
-            ),
+            return_value=httpx.Response(200, json=_make_import_response(id="101")),
         )
         idx = _make_index()
         result = idx.describe_import(101)

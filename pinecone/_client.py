@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from pinecone.models.enums import DeletionProtection
     from pinecone.models.indexes.index import IndexModel
 
+
 class Pinecone:
     """Synchronous Pinecone client for control-plane operations.
 

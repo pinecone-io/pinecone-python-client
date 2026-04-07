@@ -48,9 +48,7 @@ class TestAdminValidation:
         with pytest.raises(ValidationError, match="client_secret"):
             Admin(client_id="id", client_secret="   ")
 
-    def test_admin_no_env_fallback_when_unset(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_admin_no_env_fallback_when_unset(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv("PINECONE_CLIENT_ID", raising=False)
         monkeypatch.delenv("PINECONE_CLIENT_SECRET", raising=False)
         with pytest.raises(ValidationError, match="client_id"):
@@ -65,24 +63,18 @@ class TestAdminEnvVarFallback:
         monkeypatch.setenv("PINECONE_CLIENT_ID", "env-client-id")
         monkeypatch.setenv("PINECONE_CLIENT_SECRET", "env-client-secret")
 
-        respx.post(_OAUTH_URL).mock(
-            return_value=Response(200, json=_token_response())
-        )
+        respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
 
         admin = Admin()
         assert admin._http is not None
         admin.close()
 
     @respx.mock
-    def test_admin_explicit_overrides_env(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_admin_explicit_overrides_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("PINECONE_CLIENT_ID", "env-id")
         monkeypatch.setenv("PINECONE_CLIENT_SECRET", "env-secret")
 
-        route = respx.post(_OAUTH_URL).mock(
-            return_value=Response(200, json=_token_response())
-        )
+        route = respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
 
         admin = Admin(client_id="explicit-id", client_secret="explicit-secret")
         admin.close()
@@ -126,9 +118,7 @@ class TestAdminTokenFetch:
 
     @respx.mock
     def test_admin_token_request_includes_api_version(self) -> None:
-        route = respx.post(_OAUTH_URL).mock(
-            return_value=Response(200, json=_token_response())
-        )
+        route = respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
 
         admin = Admin(client_id="test-id", client_secret="test-secret")
 
@@ -176,9 +166,7 @@ class TestAdminTokenFetch:
 
     @respx.mock
     def test_admin_token_fetch_error_without_description(self) -> None:
-        respx.post(_OAUTH_URL).mock(
-            return_value=Response(400, json={"error": "invalid_request"})
-        )
+        respx.post(_OAUTH_URL).mock(return_value=Response(400, json={"error": "invalid_request"}))
 
         with pytest.raises(ApiError, match="invalid_request") as exc_info:
             Admin(client_id="test-id", client_secret="test-secret")
@@ -191,9 +179,7 @@ class TestAdminHeaders:
 
     @respx.mock
     def test_admin_sets_api_version_header(self) -> None:
-        respx.post(_OAUTH_URL).mock(
-            return_value=Response(200, json=_token_response())
-        )
+        respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
 
         admin = Admin(client_id="test-id", client_secret="test-secret")
         assert admin._http._headers["X-Pinecone-Api-Version"] == "2025-10"
@@ -201,9 +187,7 @@ class TestAdminHeaders:
 
     @respx.mock
     def test_admin_additional_headers(self) -> None:
-        respx.post(_OAUTH_URL).mock(
-            return_value=Response(200, json=_token_response())
-        )
+        respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
 
         admin = Admin(
             client_id="test-id",
@@ -219,15 +203,11 @@ class TestAdminApiKeyNotLeaked:
     """Test that the Admin client does not leak data-plane API keys."""
 
     @respx.mock
-    def test_admin_does_not_include_api_key_header(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_admin_does_not_include_api_key_header(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """When PINECONE_API_KEY is set, Admin must NOT send it as Api-Key."""
         monkeypatch.setenv("PINECONE_API_KEY", "data-plane-key-12345")
 
-        respx.post(_OAUTH_URL).mock(
-            return_value=Response(200, json=_token_response())
-        )
+        respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
 
         admin = Admin(client_id="test-id", client_secret="test-secret")
         assert "Api-Key" not in admin._http._headers
@@ -235,15 +215,11 @@ class TestAdminApiKeyNotLeaked:
         admin.close()
 
     @respx.mock
-    def test_admin_api_key_empty_without_env(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_admin_api_key_empty_without_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Without PINECONE_API_KEY env var, Api-Key header is still absent."""
         monkeypatch.delenv("PINECONE_API_KEY", raising=False)
 
-        respx.post(_OAUTH_URL).mock(
-            return_value=Response(200, json=_token_response())
-        )
+        respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
 
         admin = Admin(client_id="test-id", client_secret="test-secret")
         assert "Api-Key" not in admin._http._headers
@@ -255,9 +231,7 @@ class TestAdminOAuthUserAgent:
 
     @respx.mock
     def test_oauth_request_includes_user_agent(self) -> None:
-        route = respx.post(_OAUTH_URL).mock(
-            return_value=Response(200, json=_token_response())
-        )
+        route = respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
 
         admin = Admin(client_id="test-id", client_secret="test-secret")
 
@@ -273,9 +247,7 @@ class TestAdminProxyAndSsl:
 
     @respx.mock
     def test_admin_accepts_proxy_url(self) -> None:
-        respx.post(_OAUTH_URL).mock(
-            return_value=Response(200, json=_token_response())
-        )
+        respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
 
         admin = Admin(
             client_id="test-id",
@@ -287,9 +259,7 @@ class TestAdminProxyAndSsl:
 
     @respx.mock
     def test_admin_accepts_ssl_verify_false(self) -> None:
-        respx.post(_OAUTH_URL).mock(
-            return_value=Response(200, json=_token_response())
-        )
+        respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
 
         admin = Admin(
             client_id="test-id",
@@ -305,9 +275,7 @@ class TestAdminContextManager:
 
     @respx.mock
     def test_admin_context_manager(self) -> None:
-        respx.post(_OAUTH_URL).mock(
-            return_value=Response(200, json=_token_response())
-        )
+        respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
 
         with Admin(client_id="test-id", client_secret="test-secret") as admin:
             assert admin._http is not None

@@ -51,17 +51,13 @@ class TestDecodeResponse:
         assert exc_info.value.cause is not None
 
     def test_wrong_type(self) -> None:
-        data = json.dumps(
-            {"name": 1, "status": "Ready", "environment": "us-east1"}
-        ).encode()
+        data = json.dumps({"name": 1, "status": "Ready", "environment": "us-east1"}).encode()
         with pytest.raises(ResponseParsingError) as exc_info:
             decode_response(data, CollectionModel)
         assert exc_info.value.cause is not None
 
     def test_valid_data_succeeds(self) -> None:
-        data = json.dumps(
-            {"name": "test", "status": "Ready", "environment": "us-east1"}
-        ).encode()
+        data = json.dumps({"name": "test", "status": "Ready", "environment": "us-east1"}).encode()
         result = decode_response(data, CollectionModel)
         assert result.name == "test"
         assert result.status == "Ready"
@@ -112,9 +108,7 @@ class TestAdapterWrapping:
             CollectionsAdapter.to_collection(data)
 
     def test_collections_adapter_wrong_type(self) -> None:
-        data = json.dumps(
-            {"name": 1, "status": "Ready", "environment": "us-east1"}
-        ).encode()
+        data = json.dumps({"name": 1, "status": "Ready", "environment": "us-east1"}).encode()
         with pytest.raises(ResponseParsingError):
             CollectionsAdapter.to_collection(data)
 

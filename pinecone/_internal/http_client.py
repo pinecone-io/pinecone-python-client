@@ -95,10 +95,7 @@ _SENSITIVE_HEADERS = frozenset({"api-key", "authorization", "proxy-authorization
 
 def _redact_headers(headers: dict[str, str]) -> dict[str, str]:
     """Return a copy of *headers* with sensitive values replaced by ``***``."""
-    return {
-        k: "***" if k.lower() in _SENSITIVE_HEADERS else v
-        for k, v in headers.items()
-    }
+    return {k: "***" if k.lower() in _SENSITIVE_HEADERS else v for k, v in headers.items()}
 
 
 def _log_curl(
@@ -215,15 +212,25 @@ def _raise_for_status(response: httpx.Response) -> None:
     reason = response.reason_phrase
     headers = dict(response.headers)
     if status == 401:
-        raise UnauthorizedError(message=message, status_code=status, body=body, reason=reason, headers=headers)
+        raise UnauthorizedError(
+            message=message, status_code=status, body=body, reason=reason, headers=headers
+        )
     if status == 403:
-        raise ForbiddenError(message=message, status_code=status, body=body, reason=reason, headers=headers)
+        raise ForbiddenError(
+            message=message, status_code=status, body=body, reason=reason, headers=headers
+        )
     if status == 404:
-        raise NotFoundError(message=message, status_code=status, body=body, reason=reason, headers=headers)
+        raise NotFoundError(
+            message=message, status_code=status, body=body, reason=reason, headers=headers
+        )
     if status == 409:
-        raise ConflictError(message=message, status_code=status, body=body, reason=reason, headers=headers)
+        raise ConflictError(
+            message=message, status_code=status, body=body, reason=reason, headers=headers
+        )
     if 500 <= status <= 599:
-        raise ServiceError(message=message, status_code=status, body=body, reason=reason, headers=headers)
+        raise ServiceError(
+            message=message, status_code=status, body=body, reason=reason, headers=headers
+        )
     raise ApiError(message=message, status_code=status, body=body, reason=reason, headers=headers)
 
 

@@ -76,9 +76,7 @@ class TestAsyncUpsertRecordsPopulatesResponseInfo:
             )
         )
         idx = _make_async_index()
-        result = await idx.upsert_records(
-            records=[{"_id": "r1", "text": "hi"}], namespace="ns"
-        )
+        result = await idx.upsert_records(records=[{"_id": "r1", "text": "hi"}], namespace="ns")
         assert result.response_info is not None
         assert result.response_info.request_id == "async-req-1"
         assert result.response_info.lsn_committed == 42

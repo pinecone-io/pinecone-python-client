@@ -44,27 +44,17 @@ def validate_read_capacity(read_capacity: dict[str, Any]) -> None:
                 "read_capacity with mode 'Dedicated' must contain a 'dedicated' dict"
             )
         if "node_type" not in dedicated:
-            raise ValidationError(
-                "dedicated read_capacity must contain 'node_type'"
-            )
+            raise ValidationError("dedicated read_capacity must contain 'node_type'")
         if "scaling" not in dedicated:
-            raise ValidationError(
-                "dedicated read_capacity must contain 'scaling'"
-            )
+            raise ValidationError("dedicated read_capacity must contain 'scaling'")
         if dedicated["scaling"] == "Manual" and "manual" in dedicated:
             manual = dedicated["manual"]
             if not isinstance(manual, dict):
-                raise ValidationError(
-                    "dedicated read_capacity manual must be a dict"
-                )
+                raise ValidationError("dedicated read_capacity manual must be a dict")
             if "replicas" not in manual:
-                raise ValidationError(
-                    "manual scaling must contain 'replicas'"
-                )
+                raise ValidationError("manual scaling must contain 'replicas'")
             if "shards" not in manual:
-                raise ValidationError(
-                    "manual scaling must contain 'shards'"
-                )
+                raise ValidationError("manual scaling must contain 'shards'")
 
 
 def validate_create_inputs(
@@ -81,9 +71,7 @@ def validate_create_inputs(
     if len(name) > 45:
         raise ValidationError("index name must not exceed 45 characters")
     if not re.fullmatch(r"[a-z0-9-]+", name):
-        raise ValidationError(
-            "index name must contain only lowercase letters, digits, and hyphens"
-        )
+        raise ValidationError("index name must contain only lowercase letters, digits, and hyphens")
 
     if spec is None:
         raise ValidationError("spec is required")
@@ -102,9 +90,7 @@ def validate_create_inputs(
         )
 
     if isinstance(spec, dict) and not ({"serverless", "pod", "byoc"} & spec.keys()):
-        raise ValidationError(
-            "spec dict must contain a 'serverless', 'pod', or 'byoc' key"
-        )
+        raise ValidationError("spec dict must contain a 'serverless', 'pod', or 'byoc' key")
 
     resolved_vt = resolve_enum_value(vector_type)
     if resolved_vt == "sparse" and dimension is not None:
@@ -164,9 +150,7 @@ def validate_byoc_inputs(
     if len(name) > 45:
         raise ValidationError("index name must not exceed 45 characters")
     if not re.fullmatch(r"[a-z0-9-]+", name):
-        raise ValidationError(
-            "index name must contain only lowercase letters, digits, and hyphens"
-        )
+        raise ValidationError("index name must contain only lowercase letters, digits, and hyphens")
     require_non_empty("environment", spec.environment)
     if dimension is None:
         raise ValidationError("dimension is required for BYOC indexes")
@@ -219,9 +203,7 @@ def validate_integrated_inputs(
     if len(name) > 45:
         raise ValidationError("index name must not exceed 45 characters")
     if not re.fullmatch(r"[a-z0-9-]+", name):
-        raise ValidationError(
-            "index name must contain only lowercase letters, digits, and hyphens"
-        )
+        raise ValidationError("index name must contain only lowercase letters, digits, and hyphens")
     if not spec.cloud or not spec.cloud.strip():
         raise ValidationError("cloud is required for integrated indexes")
     if not spec.embed.model or not spec.embed.model.strip():

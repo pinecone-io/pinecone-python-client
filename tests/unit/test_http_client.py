@@ -477,9 +477,7 @@ class TestHTTPClientTransportErrors:
     def test_read_timeout_raises_timeout_error(self) -> None:
         client = _make_sync_client()
         with respx.mock:
-            respx.get(f"{BASE_URL}/indexes").mock(
-                side_effect=httpx.ReadTimeout("Read timed out")
-            )
+            respx.get(f"{BASE_URL}/indexes").mock(side_effect=httpx.ReadTimeout("Read timed out"))
             with pytest.raises(PineconeTimeoutError, match="Read timed out") as exc_info:
                 client.get("/indexes")
             assert isinstance(exc_info.value, PineconeError)
@@ -497,18 +495,14 @@ class TestHTTPClientTransportErrors:
     def test_pool_timeout_raises_timeout_error(self) -> None:
         client = _make_sync_client()
         with respx.mock:
-            respx.get(f"{BASE_URL}/indexes").mock(
-                side_effect=httpx.PoolTimeout("Pool exhausted")
-            )
+            respx.get(f"{BASE_URL}/indexes").mock(side_effect=httpx.PoolTimeout("Pool exhausted"))
             with pytest.raises(PineconeTimeoutError):
                 client.get("/indexes")
 
     def test_write_error_raises_connection_error(self) -> None:
         client = _make_sync_client()
         with respx.mock:
-            respx.put(f"{BASE_URL}/things").mock(
-                side_effect=httpx.WriteError("Write failed")
-            )
+            respx.put(f"{BASE_URL}/things").mock(side_effect=httpx.WriteError("Write failed"))
             with pytest.raises(PineconeConnectionError):
                 client.put("/things", json={"x": 1})
 
@@ -560,9 +554,7 @@ class TestAsyncHTTPClientTransportErrors:
     async def test_read_timeout_raises_timeout_error(self) -> None:
         client = _make_async_client()
         with respx.mock:
-            respx.get(f"{BASE_URL}/indexes").mock(
-                side_effect=httpx.ReadTimeout("Read timed out")
-            )
+            respx.get(f"{BASE_URL}/indexes").mock(side_effect=httpx.ReadTimeout("Read timed out"))
             with pytest.raises(PineconeTimeoutError, match="Read timed out") as exc_info:
                 await client.get("/indexes")
             assert isinstance(exc_info.value.__cause__, httpx.ReadTimeout)
@@ -571,9 +563,7 @@ class TestAsyncHTTPClientTransportErrors:
     async def test_connect_error_on_post(self) -> None:
         client = _make_async_client()
         with respx.mock:
-            respx.post(f"{BASE_URL}/vectors/upsert").mock(
-                side_effect=httpx.ConnectError("refused")
-            )
+            respx.post(f"{BASE_URL}/vectors/upsert").mock(side_effect=httpx.ConnectError("refused"))
             with pytest.raises(PineconeConnectionError):
                 await client.post("/vectors/upsert", json={"vectors": []})
 
@@ -581,9 +571,7 @@ class TestAsyncHTTPClientTransportErrors:
     async def test_timeout_on_delete(self) -> None:
         client = _make_async_client()
         with respx.mock:
-            respx.delete(f"{BASE_URL}/indexes/foo").mock(
-                side_effect=httpx.ReadTimeout("timed out")
-            )
+            respx.delete(f"{BASE_URL}/indexes/foo").mock(side_effect=httpx.ReadTimeout("timed out"))
             with pytest.raises(PineconeTimeoutError):
                 await client.delete("/indexes/foo")
 
@@ -591,9 +579,7 @@ class TestAsyncHTTPClientTransportErrors:
     async def test_transport_error_on_put(self) -> None:
         client = _make_async_client()
         with respx.mock:
-            respx.put(f"{BASE_URL}/things").mock(
-                side_effect=httpx.WriteError("broken pipe")
-            )
+            respx.put(f"{BASE_URL}/things").mock(side_effect=httpx.WriteError("broken pipe"))
             with pytest.raises(PineconeConnectionError):
                 await client.put("/things", json={"x": 1})
 

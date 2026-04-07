@@ -130,11 +130,13 @@ def _make_request() -> httpx.Request:
 class TestSyncRetryTransport:
     @patch("pinecone._internal.http_client.time.sleep")
     def test_sync_retries_on_500(self, mock_sleep: Any) -> None:
-        fake = _FakeTransport([
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(200, json={"ok": True}),
-        ])
+        fake = _FakeTransport(
+            [
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -148,10 +150,12 @@ class TestSyncRetryTransport:
 
     @patch("pinecone._internal.http_client.time.sleep")
     def test_sync_retries_on_502(self, mock_sleep: Any) -> None:
-        fake = _FakeTransport([
-            httpx.Response(502, json={"message": "bad gateway"}),
-            httpx.Response(200, json={"ok": True}),
-        ])
+        fake = _FakeTransport(
+            [
+                httpx.Response(502, json={"message": "bad gateway"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -164,9 +168,11 @@ class TestSyncRetryTransport:
 
     @patch("pinecone._internal.http_client.time.sleep")
     def test_sync_no_retry_on_429(self, mock_sleep: Any) -> None:
-        fake = _FakeTransport([
-            httpx.Response(429, json={"message": "rate limited"}),
-        ])
+        fake = _FakeTransport(
+            [
+                httpx.Response(429, json={"message": "rate limited"}),
+            ]
+        )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -180,9 +186,11 @@ class TestSyncRetryTransport:
 
     @patch("pinecone._internal.http_client.time.sleep")
     def test_sync_no_retry_on_400(self, mock_sleep: Any) -> None:
-        fake = _FakeTransport([
-            httpx.Response(400, json={"message": "bad request"}),
-        ])
+        fake = _FakeTransport(
+            [
+                httpx.Response(400, json={"message": "bad request"}),
+            ]
+        )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -196,9 +204,11 @@ class TestSyncRetryTransport:
 
     @patch("pinecone._internal.http_client.time.sleep")
     def test_sync_exhausts_retries(self, mock_sleep: Any) -> None:
-        fake = _FakeTransport([
-            httpx.Response(503, json={"message": "unavailable"}),
-        ])
+        fake = _FakeTransport(
+            [
+                httpx.Response(503, json={"message": "unavailable"}),
+            ]
+        )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -214,10 +224,12 @@ class TestSyncRetryTransport:
     @patch("pinecone._internal.http_client.time.sleep")
     def test_sync_no_retry_for_post(self, mock_sleep: Any) -> None:
         """POST requests are NOT retried even on retryable status codes."""
-        fake = _FakeTransport([
-            httpx.Response(503, json={"message": "unavailable"}),
-            httpx.Response(200, json={"ok": True}),
-        ])
+        fake = _FakeTransport(
+            [
+                httpx.Response(503, json={"message": "unavailable"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -233,10 +245,12 @@ class TestSyncRetryTransport:
     @patch("pinecone._internal.http_client.time.sleep")
     def test_sync_no_retry_for_delete(self, mock_sleep: Any) -> None:
         """DELETE requests are NOT retried even on retryable status codes."""
-        fake = _FakeTransport([
-            httpx.Response(503, json={"message": "unavailable"}),
-            httpx.Response(200, json={"ok": True}),
-        ])
+        fake = _FakeTransport(
+            [
+                httpx.Response(503, json={"message": "unavailable"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -253,10 +267,12 @@ class TestSyncRetryTransport:
     def test_sync_no_retry_for_non_idempotent_methods(self, mock_sleep: Any) -> None:
         """PUT and PATCH requests are NOT retried."""
         for method in ("PUT", "PATCH"):
-            fake = _FakeTransport([
-                httpx.Response(500, json={"message": "error"}),
-                httpx.Response(200, json={"ok": True}),
-            ])
+            fake = _FakeTransport(
+                [
+                    httpx.Response(500, json={"message": "error"}),
+                    httpx.Response(200, json={"ok": True}),
+                ]
+            )
             transport = _RetryTransport(
                 transport=fake,  # type: ignore[arg-type]
                 max_attempts=5,
@@ -271,10 +287,12 @@ class TestSyncRetryTransport:
     @patch("pinecone._internal.http_client.time.sleep")
     def test_sync_retries_head(self, mock_sleep: Any) -> None:
         """HEAD requests are retried like GET."""
-        fake = _FakeTransport([
-            httpx.Response(503, json={"message": "unavailable"}),
-            httpx.Response(200, json={"ok": True}),
-        ])
+        fake = _FakeTransport(
+            [
+                httpx.Response(503, json={"message": "unavailable"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -289,12 +307,14 @@ class TestSyncRetryTransport:
     @patch("pinecone._internal.http_client.time.sleep")
     def test_sync_backoff_delays(self, mock_sleep: Any) -> None:
         """Verify exponential backoff timing with zero jitter."""
-        fake = _FakeTransport([
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(200, json={"ok": True}),
-        ])
+        fake = _FakeTransport(
+            [
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -308,13 +328,15 @@ class TestSyncRetryTransport:
     @patch("pinecone._internal.http_client.time.sleep")
     def test_sync_backoff_capped(self, mock_sleep: Any) -> None:
         """Verify sync backoff is capped at max_backoff, matching async behavior."""
-        fake = _FakeTransport([
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(500, json={"message": "error"}),
-        ])
+        fake = _FakeTransport(
+            [
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(500, json={"message": "error"}),
+            ]
+        )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -383,11 +405,13 @@ class TestAsyncRetryTransport:
     @patch("pinecone._internal.http_client.asyncio.sleep")
     @pytest.mark.asyncio
     async def test_async_retries_on_500(self, mock_sleep: Any) -> None:
-        fake = _FakeAsyncTransport([
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(200, json={"ok": True}),
-        ])
+        fake = _FakeAsyncTransport(
+            [
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -402,11 +426,13 @@ class TestAsyncRetryTransport:
     @patch("pinecone._internal.http_client.asyncio.sleep")
     @pytest.mark.asyncio
     async def test_async_retries_on_503(self, mock_sleep: Any) -> None:
-        fake = _FakeAsyncTransport([
-            httpx.Response(503, json={"message": "unavailable"}),
-            httpx.Response(503, json={"message": "unavailable"}),
-            httpx.Response(200, json={"ok": True}),
-        ])
+        fake = _FakeAsyncTransport(
+            [
+                httpx.Response(503, json={"message": "unavailable"}),
+                httpx.Response(503, json={"message": "unavailable"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -421,9 +447,11 @@ class TestAsyncRetryTransport:
     @patch("pinecone._internal.http_client.asyncio.sleep")
     @pytest.mark.asyncio
     async def test_async_no_retry_on_429(self, mock_sleep: Any) -> None:
-        fake = _FakeAsyncTransport([
-            httpx.Response(429, json={"message": "rate limited"}),
-        ])
+        fake = _FakeAsyncTransport(
+            [
+                httpx.Response(429, json={"message": "rate limited"}),
+            ]
+        )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -439,9 +467,11 @@ class TestAsyncRetryTransport:
     @patch("pinecone._internal.http_client.asyncio.sleep")
     @pytest.mark.asyncio
     async def test_async_exhausts_retries(self, mock_sleep: Any) -> None:
-        fake = _FakeAsyncTransport([
-            httpx.Response(502, json={"message": "bad gateway"}),
-        ])
+        fake = _FakeAsyncTransport(
+            [
+                httpx.Response(502, json={"message": "bad gateway"}),
+            ]
+        )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -459,10 +489,12 @@ class TestAsyncRetryTransport:
     @pytest.mark.asyncio
     async def test_async_no_retry_for_post(self, mock_sleep: Any) -> None:
         """POST requests are NOT retried even on retryable status codes."""
-        fake = _FakeAsyncTransport([
-            httpx.Response(503, json={"message": "unavailable"}),
-            httpx.Response(200, json={"ok": True}),
-        ])
+        fake = _FakeAsyncTransport(
+            [
+                httpx.Response(503, json={"message": "unavailable"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -480,10 +512,12 @@ class TestAsyncRetryTransport:
     @pytest.mark.asyncio
     async def test_async_no_retry_for_delete(self, mock_sleep: Any) -> None:
         """DELETE requests are NOT retried even on retryable status codes."""
-        fake = _FakeAsyncTransport([
-            httpx.Response(503, json={"message": "unavailable"}),
-            httpx.Response(200, json={"ok": True}),
-        ])
+        fake = _FakeAsyncTransport(
+            [
+                httpx.Response(503, json={"message": "unavailable"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -501,13 +535,15 @@ class TestAsyncRetryTransport:
     @pytest.mark.asyncio
     async def test_async_backoff_capped(self, mock_sleep: Any) -> None:
         """Verify async backoff is capped at max_backoff."""
-        fake = _FakeAsyncTransport([
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(500, json={"message": "error"}),
-            httpx.Response(500, json={"message": "error"}),
-        ])
+        fake = _FakeAsyncTransport(
+            [
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(500, json={"message": "error"}),
+            ]
+        )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,
@@ -582,9 +618,11 @@ class TestHTTPClientRetryIntegration:
         client = HTTPClient(config, api_version="2025-10")
 
         # Replace the inner transport with our fake
-        fake = _FakeTransport([
-            httpx.Response(500, json={"message": "server error"}),
-        ])
+        fake = _FakeTransport(
+            [
+                httpx.Response(500, json={"message": "server error"}),
+            ]
+        )
         retry_transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=3,
@@ -604,10 +642,12 @@ class TestHTTPClientRetryIntegration:
         config = PineconeConfig(api_key="test-key", host=BASE_URL)
         client = HTTPClient(config, api_version="2025-10")
 
-        fake = _FakeTransport([
-            httpx.Response(502, json={"message": "bad gateway"}),
-            httpx.Response(200, json={"indexes": []}),
-        ])
+        fake = _FakeTransport(
+            [
+                httpx.Response(502, json={"message": "bad gateway"}),
+                httpx.Response(200, json={"indexes": []}),
+            ]
+        )
         retry_transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             max_attempts=5,

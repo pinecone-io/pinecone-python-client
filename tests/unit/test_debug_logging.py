@@ -13,9 +13,7 @@ from pinecone._internal.http_client import HTTPClient, _log_curl
 
 
 class TestPineconeDebugEnvVar:
-    def test_pinecone_debug_enables_debug_level(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_pinecone_debug_enables_debug_level(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("PINECONE_DEBUG", "1")
         # Reset the logger level before reimporting
         pinecone_logger = logging.getLogger("pinecone")
@@ -119,9 +117,7 @@ class TestHTTPClientCurlLogging:
         self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
         monkeypatch.setenv("PINECONE_DEBUG_CURL", "1")
-        respx.get("https://api.pinecone.io/test").mock(
-            return_value=httpx.Response(200, json={})
-        )
+        respx.get("https://api.pinecone.io/test").mock(return_value=httpx.Response(200, json={}))
         config = PineconeConfig(api_key="test-key")
         client = HTTPClient(config, api_version="2025-10")
         try:
@@ -155,9 +151,7 @@ class TestHTTPClientCurlLogging:
         self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
     ) -> None:
         monkeypatch.delenv("PINECONE_DEBUG_CURL", raising=False)
-        respx.get("https://api.pinecone.io/test").mock(
-            return_value=httpx.Response(200, json={})
-        )
+        respx.get("https://api.pinecone.io/test").mock(return_value=httpx.Response(200, json={}))
         config = PineconeConfig(api_key="test-key")
         client = HTTPClient(config, api_version="2025-10")
         try:

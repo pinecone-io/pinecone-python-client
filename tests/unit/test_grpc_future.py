@@ -3,13 +3,19 @@
 from __future__ import annotations
 
 import time
-from concurrent.futures import Future, as_completed, wait, FIRST_COMPLETED, ALL_COMPLETED, FIRST_EXCEPTION
+from concurrent.futures import (
+    ALL_COMPLETED,
+    FIRST_COMPLETED,
+    FIRST_EXCEPTION,
+    Future,
+    as_completed,
+    wait,
+)
 
 import pytest
 
 from pinecone.errors.exceptions import PineconeTimeoutError
 from pinecone.grpc.future import PineconeFuture
-
 
 # ---------------------------------------------------------------------------
 # Helpers

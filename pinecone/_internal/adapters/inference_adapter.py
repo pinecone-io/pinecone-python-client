@@ -55,9 +55,7 @@ class InferenceAdapter:
                 convert_response(item, SparseEmbedding) for item in envelope.data
             ]
         else:
-            embeddings = [
-                convert_response(item, DenseEmbedding) for item in envelope.data
-            ]
+            embeddings = [convert_response(item, DenseEmbedding) for item in envelope.data]
 
         return EmbeddingsList(
             model=envelope.model,
@@ -115,9 +113,7 @@ def normalize_embed_inputs(
             if not all(isinstance(item, dict) for item in inputs):
                 raise TypeError("each input must be a string or dictionary")
             return inputs  # type: ignore[return-value]
-        raise TypeError(
-            f"Expected list of str or list of dict, got list of {type(first).__name__}"
-        )
+        raise TypeError(f"Expected list of str or list of dict, got list of {type(first).__name__}")
     raise TypeError(f"Expected str, list[str], or list[dict], got {type(inputs).__name__}")
 
 

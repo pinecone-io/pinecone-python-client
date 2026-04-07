@@ -189,9 +189,7 @@ class Projects:
             False
         """
         if (project_id is None) == (name is None):
-            raise ValidationError(
-                "Exactly one of 'project_id' or 'name' must be provided"
-            )
+            raise ValidationError("Exactly one of 'project_id' or 'name' must be provided")
         try:
             if project_id is not None:
                 self.describe(project_id=project_id)
@@ -281,9 +279,7 @@ class Projects:
                     logger.debug("Cleanup: deleting collection %r", collection.name)
                     pc.collections.delete(collection.name)
                 except NotFoundError:
-                    logger.debug(
-                        "Cleanup: collection %r already deleted", collection.name
-                    )
+                    logger.debug("Cleanup: collection %r already deleted", collection.name)
 
             # Delete all backups
             for backup in pc.backups.list():
@@ -291,9 +287,7 @@ class Projects:
                     logger.debug("Cleanup: deleting backup %r", backup.backup_id)
                     pc.backups.delete(backup_id=backup.backup_id)
                 except NotFoundError:
-                    logger.debug(
-                        "Cleanup: backup %r already deleted", backup.backup_id
-                    )
+                    logger.debug("Cleanup: backup %r already deleted", backup.backup_id)
         finally:
             pc.close()
 
@@ -335,9 +329,7 @@ class Projects:
             )
         require_non_empty("project_id", project_id)
 
-        logger.info(
-            "Deleting project %r with cleanup (max_attempts=%d)", project_id, max_attempts
-        )
+        logger.info("Deleting project %r with cleanup (max_attempts=%d)", project_id, max_attempts)
 
         temp_key = self._admin.api_keys.create(
             project_id=project_id,

@@ -150,4 +150,4 @@ class ResponseParsingError(PineconeError):
 
 
 # Backwards-compatible alias — most validation is value validation
-ValidationError = PineconeValueError
+ValidationError = PineconeValueError  # Deprecated alias; use PineconeValueError

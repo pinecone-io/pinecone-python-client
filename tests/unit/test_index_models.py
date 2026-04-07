@@ -134,9 +134,7 @@ class TestIndexModel:
         assert model.spec.pod is None
 
     def test_byoc_spec_no_read_capacity(self) -> None:
-        data = make_index_response(
-            spec={"byoc": {"environment": "aws-us-east-1-b921"}}
-        )
+        data = make_index_response(spec={"byoc": {"environment": "aws-us-east-1-b921"}})
         model = msgspec.convert(data, IndexModel)
         assert model.spec.byoc is not None
         assert model.spec.byoc.read_capacity is None

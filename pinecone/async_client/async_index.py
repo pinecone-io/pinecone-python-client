@@ -1087,9 +1087,7 @@ class AsyncIndex:
         """
         error_mode = error_mode.lower()
         if error_mode not in ("continue", "abort"):
-            raise ValidationError(
-                f"error_mode must be 'continue' or 'abort', got {error_mode!r}"
-            )
+            raise ValidationError(f"error_mode must be 'continue' or 'abort', got {error_mode!r}")
 
         body: dict[str, Any] = {
             "uri": uri,

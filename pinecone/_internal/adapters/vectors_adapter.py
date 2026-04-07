@@ -66,7 +66,7 @@ class VectorsAdapter:
         Transformations:
             - Direct decode; camelCase handled by Struct rename.
         """
-        return decode_response(data,UpsertResponse)
+        return decode_response(data, UpsertResponse)
 
     @staticmethod
     def to_query_response(data: bytes) -> QueryResponse:
@@ -78,7 +78,7 @@ class VectorsAdapter:
             - Null namespace normalized to empty string via ``__post_init__``
               on QueryResponse (claim unified-rs-0013).
         """
-        return decode_response(data,QueryResponse)
+        return decode_response(data, QueryResponse)
 
     @staticmethod
     def to_fetch_response(data: bytes) -> FetchResponse:
@@ -87,7 +87,7 @@ class VectorsAdapter:
         Transformations:
             - Direct decode; camelCase handled by Struct rename.
         """
-        return decode_response(data,FetchResponse)
+        return decode_response(data, FetchResponse)
 
     @staticmethod
     def to_fetch_by_metadata_response(data: bytes) -> FetchByMetadataResponse:
@@ -96,7 +96,7 @@ class VectorsAdapter:
         Transformations:
             - Direct decode; camelCase handled by Struct rename.
         """
-        return decode_response(data,FetchByMetadataResponse)
+        return decode_response(data, FetchByMetadataResponse)
 
     @staticmethod
     def to_stats_response(data: bytes) -> DescribeIndexStatsResponse:
@@ -105,7 +105,7 @@ class VectorsAdapter:
         Transformations:
             - Direct decode; camelCase handled by Struct rename.
         """
-        return decode_response(data,DescribeIndexStatsResponse)
+        return decode_response(data, DescribeIndexStatsResponse)
 
     @staticmethod
     def to_list_response(data: bytes) -> ListResponse:
@@ -114,7 +114,7 @@ class VectorsAdapter:
         Transformations:
             - Direct decode; camelCase handled by Struct rename.
         """
-        return decode_response(data,ListResponse)
+        return decode_response(data, ListResponse)
 
     @staticmethod
     def to_update_response(data: bytes) -> UpdateResponse:
@@ -123,7 +123,7 @@ class VectorsAdapter:
         Transformations:
             - Direct decode; camelCase handled by Struct rename.
         """
-        return decode_response(data,UpdateResponse)
+        return decode_response(data, UpdateResponse)
 
     @staticmethod
     def to_search_response(data: bytes) -> SearchRecordsResponse:
@@ -132,7 +132,7 @@ class VectorsAdapter:
         Transformations:
             - Direct decode; search API uses snake_case natively.
         """
-        return decode_response(data,SearchRecordsResponse)
+        return decode_response(data, SearchRecordsResponse)
 
     @staticmethod
     def to_namespace_description(data: bytes) -> NamespaceDescription:
@@ -141,7 +141,7 @@ class VectorsAdapter:
         Transformations:
             - Direct decode; namespace API uses snake_case natively.
         """
-        return decode_response(data,NamespaceDescription)
+        return decode_response(data, NamespaceDescription)
 
     @staticmethod
     def to_list_namespaces_response(data: bytes) -> ListNamespacesResponse:
@@ -150,7 +150,7 @@ class VectorsAdapter:
         Transformations:
             - Direct decode; namespace API uses snake_case natively.
         """
-        return decode_response(data,ListNamespacesResponse)
+        return decode_response(data, ListNamespacesResponse)
 
     @staticmethod
     def to_delete_response(data: bytes) -> None:

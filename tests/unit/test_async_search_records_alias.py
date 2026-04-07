@@ -19,8 +19,15 @@ async def test_search_records_delegates_to_search() -> None:
     with patch.object(AsyncIndex, "search", new_callable=AsyncMock, return_value=mock_response):
         await idx.search_records(namespace="ns", top_k=5, vector=[1.0])
         AsyncIndex.search.assert_awaited_once_with(  # type: ignore[attr-defined]
-            namespace="ns", top_k=5, vector=[1.0],
-            inputs=None, id=None, filter=None, fields=None, rerank=None, match_terms=None,
+            namespace="ns",
+            top_k=5,
+            vector=[1.0],
+            inputs=None,
+            id=None,
+            filter=None,
+            fields=None,
+            rerank=None,
+            match_terms=None,
         )
 
 

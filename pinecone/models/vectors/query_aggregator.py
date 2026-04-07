@@ -71,8 +71,7 @@ class QueryResultsAggregator:
     def __init__(self, *, metric: str, top_k: int = 10) -> None:
         if metric not in _VALID_METRICS:
             raise ValueError(
-                f"Invalid metric {metric!r}. Must be one of: "
-                f"{', '.join(sorted(_VALID_METRICS))}"
+                f"Invalid metric {metric!r}. Must be one of: {', '.join(sorted(_VALID_METRICS))}"
             )
         if top_k < 1:
             raise ValueError("top_k must be >= 1")

@@ -496,9 +496,7 @@ async def test_create_name_valid_boundary(async_indexes: AsyncIndexes) -> None:
     """Name of exactly 45 lowercase chars succeeds."""
     valid_name = "a" * 45
     respx.post(f"{BASE_URL}/indexes").mock(
-        return_value=httpx.Response(
-            201, json=make_index_response(name=valid_name)
-        ),
+        return_value=httpx.Response(201, json=make_index_response(name=valid_name)),
     )
 
     result = await async_indexes.create(

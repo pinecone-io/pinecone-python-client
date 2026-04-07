@@ -56,9 +56,7 @@ class AsyncIndexes:
                 print(idx.name)
     """
 
-    def __init__(
-        self, http: AsyncHTTPClient, host_cache: dict[str, str] | None = None
-    ) -> None:
+    def __init__(self, http: AsyncHTTPClient, host_cache: dict[str, str] | None = None) -> None:
         self._http = http
         self._adapter = IndexesAdapter()
         self._host_cache: dict[str, str] = host_cache if host_cache is not None else {}

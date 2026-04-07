@@ -98,9 +98,7 @@ class TestTopK:
         result = agg.get_results()
         assert len(result.matches) == 5
         # Cosine: bigger is better, so top 5 are 19..15
-        assert [m.id for m in result.matches] == [
-            "v19", "v18", "v17", "v16", "v15"
-        ]
+        assert [m.id for m in result.matches] == ["v19", "v18", "v17", "v16", "v15"]
 
     def test_default_top_k_is_10(self) -> None:
         agg = QueryResultsAggregator(metric="cosine")
@@ -128,18 +126,14 @@ class TestTieBreaking:
             ),
         )
         result = agg.get_results()
-        assert [m.id for m in result.matches] == [
-            "first", "second", "third", "fourth"
-        ]
+        assert [m.id for m in result.matches] == ["first", "second", "third", "fourth"]
 
 
 class TestDedupNotByAggregator:
     def test_dedup_not_done_by_aggregator(self) -> None:
         """Adding the same namespace twice works — dedup is the caller's job."""
         agg = QueryResultsAggregator(metric="cosine", top_k=10)
-        resp = _make_response(
-            [_scored("a", 0.9)], usage=Usage(read_units=1)
-        )
+        resp = _make_response([_scored("a", 0.9)], usage=Usage(read_units=1))
         agg.add_results("ns1", resp)
         agg.add_results("ns1", resp)
         result = agg.get_results()
@@ -177,15 +171,11 @@ class TestUsageAggregation:
         agg = QueryResultsAggregator(metric="cosine", top_k=10)
         agg.add_results(
             "ns1",
-            _make_response(
-                [_scored("a", 0.9)], usage=Usage(read_units=5)
-            ),
+            _make_response([_scored("a", 0.9)], usage=Usage(read_units=5)),
         )
         agg.add_results(
             "ns2",
-            _make_response(
-                [_scored("b", 0.8)], usage=Usage(read_units=3)
-            ),
+            _make_response([_scored("b", 0.8)], usage=Usage(read_units=3)),
         )
         result = agg.get_results()
         assert result.usage.read_units == 8

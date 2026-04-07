@@ -216,8 +216,7 @@ class Index:
             import pandas as pd  # type: ignore[import-untyped]
         except ImportError:
             raise RuntimeError(
-                "pandas is required for upsert_from_dataframe. "
-                "Install it with: pip install pandas"
+                "pandas is required for upsert_from_dataframe. Install it with: pip install pandas"
             )
 
         if not isinstance(df, pd.DataFrame):
@@ -1227,9 +1226,7 @@ class Index:
         """
         error_mode = error_mode.lower()
         if error_mode not in ("continue", "abort"):
-            raise ValidationError(
-                f"error_mode must be 'continue' or 'abort', got {error_mode!r}"
-            )
+            raise ValidationError(f"error_mode must be 'continue' or 'abort', got {error_mode!r}")
 
         body: dict[str, Any] = {
             "uri": uri,

@@ -45,9 +45,7 @@ def _make_backup(backup_id: str) -> MagicMock:
 
 
 @patch("pinecone._client.Pinecone")
-def test_cleanup_deletes_indexes(
-    mock_pinecone_cls: MagicMock, projects: Projects
-) -> None:
+def test_cleanup_deletes_indexes(mock_pinecone_cls: MagicMock, projects: Projects) -> None:
     """Verify delete is called for each index returned by list."""
     mock_pc = MagicMock()
     mock_pinecone_cls.return_value = mock_pc
@@ -68,9 +66,7 @@ def test_cleanup_deletes_indexes(
 
 
 @patch("pinecone._client.Pinecone")
-def test_cleanup_deletes_backups(
-    mock_pinecone_cls: MagicMock, projects: Projects
-) -> None:
+def test_cleanup_deletes_backups(mock_pinecone_cls: MagicMock, projects: Projects) -> None:
     """Verify delete is called for each backup returned by list."""
     mock_pc = MagicMock()
     mock_pinecone_cls.return_value = mock_pc
@@ -90,9 +86,7 @@ def test_cleanup_deletes_backups(
 
 
 @patch("pinecone._client.Pinecone")
-def test_cleanup_deletes_collections(
-    mock_pinecone_cls: MagicMock, projects: Projects
-) -> None:
+def test_cleanup_deletes_collections(mock_pinecone_cls: MagicMock, projects: Projects) -> None:
     """Verify delete is called for each collection returned by list."""
     mock_pc = MagicMock()
     mock_pinecone_cls.return_value = mock_pc
@@ -112,9 +106,7 @@ def test_cleanup_deletes_collections(
 
 
 @patch("pinecone._client.Pinecone")
-def test_cleanup_ignores_not_found(
-    mock_pinecone_cls: MagicMock, projects: Projects
-) -> None:
+def test_cleanup_ignores_not_found(mock_pinecone_cls: MagicMock, projects: Projects) -> None:
     """Verify NotFoundError during deletion is swallowed, not propagated."""
     mock_pc = MagicMock()
     mock_pinecone_cls.return_value = mock_pc
@@ -140,9 +132,7 @@ def test_cleanup_ignores_not_found(
 
 
 @patch("pinecone._client.Pinecone")
-def test_cleanup_empty_project(
-    mock_pinecone_cls: MagicMock, projects: Projects
-) -> None:
+def test_cleanup_empty_project(mock_pinecone_cls: MagicMock, projects: Projects) -> None:
     """Verify cleanup completes successfully when project has no resources."""
     mock_pc = MagicMock()
     mock_pinecone_cls.return_value = mock_pc
@@ -160,9 +150,7 @@ def test_cleanup_empty_project(
 
 
 @patch("pinecone._client.Pinecone")
-def test_cleanup_closes_client_on_error(
-    mock_pinecone_cls: MagicMock, projects: Projects
-) -> None:
+def test_cleanup_closes_client_on_error(mock_pinecone_cls: MagicMock, projects: Projects) -> None:
     """Verify the Pinecone client is closed even if an unexpected error occurs."""
     mock_pc = MagicMock()
     mock_pinecone_cls.return_value = mock_pc

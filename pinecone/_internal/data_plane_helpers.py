@@ -22,7 +22,7 @@ def _validate_host(host: str) -> str:
     bare = normalized
     for prefix in ("https://", "http://"):
         if bare.startswith(prefix):
-            bare = bare[len(prefix):]
+            bare = bare[len(prefix) :]
             break
     if "." not in bare and "localhost" not in bare.lower():
         raise ValidationError(

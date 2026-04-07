@@ -72,9 +72,7 @@ class TestUpsertRecordsPopulatesResponseInfo:
             )
         )
         idx = _make_index()
-        result = idx.upsert_records(
-            records=[{"_id": "r1", "text": "hi"}], namespace="ns"
-        )
+        result = idx.upsert_records(records=[{"_id": "r1", "text": "hi"}], namespace="ns")
         assert result.response_info is not None
         assert result.response_info.request_id == "req-abc"
         assert result.response_info.lsn_committed == 42

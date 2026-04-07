@@ -37,7 +37,9 @@ class EmbedConfig(Struct, frozen=True, kw_only=True):
         if self.metric is not None:
             result["metric"] = self.metric.value if hasattr(self.metric, "value") else self.metric
         result["read_parameters"] = self.read_parameters if self.read_parameters is not None else {}
-        result["write_parameters"] = self.write_parameters if self.write_parameters is not None else {}
+        result["write_parameters"] = (
+            self.write_parameters if self.write_parameters is not None else {}
+        )
         return result
 
 

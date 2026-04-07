@@ -52,9 +52,7 @@ class TestQueryNamespacesFanOut:
                 top_k=10,
             )
             assert mock_query.call_count == 3
-            called_namespaces = sorted(
-                c.kwargs["namespace"] for c in mock_query.call_args_list
-            )
+            called_namespaces = sorted(c.kwargs["namespace"] for c in mock_query.call_args_list)
             assert called_namespaces == ["ns1", "ns2", "ns3"]
 
 
@@ -115,9 +113,7 @@ class TestQueryNamespacesDedup:
                 metric="cosine",
             )
             assert mock_query.call_count == 2
-            called_namespaces = sorted(
-                c.kwargs["namespace"] for c in mock_query.call_args_list
-            )
+            called_namespaces = sorted(c.kwargs["namespace"] for c in mock_query.call_args_list)
             assert called_namespaces == ["a", "b"]
 
 

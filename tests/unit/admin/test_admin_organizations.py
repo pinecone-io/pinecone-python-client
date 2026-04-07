@@ -125,9 +125,7 @@ def test_describe_rejects_whitespace_organization_id(
 @respx.mock
 def test_update_organization(organizations: Organizations) -> None:
     route = respx.patch(f"{BASE_URL}/admin/organizations/org-abc123").mock(
-        return_value=httpx.Response(
-            200, json=_org_response(name="New Name")
-        ),
+        return_value=httpx.Response(200, json=_org_response(name="New Name")),
     )
 
     result = organizations.update(organization_id="org-abc123", name="New Name")

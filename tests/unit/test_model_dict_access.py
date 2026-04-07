@@ -338,9 +338,7 @@ class TestAdminModelsDictAccess:
         assert "nonexistent" not in model
 
     def test_api_key_model(self) -> None:
-        model = APIKeyModel(
-            id="k1", name="key", project_id="p1", roles=["admin"]
-        )
+        model = APIKeyModel(id="k1", name="key", project_id="p1", roles=["admin"])
         assert "name" in model
         assert "nonexistent" not in model
 

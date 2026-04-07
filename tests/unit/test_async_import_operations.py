@@ -155,9 +155,7 @@ class TestAsyncDescribeImport:
     async def test_async_describe_import_int_id(self) -> None:
         """Verify int-to-str coercion."""
         route = respx.get(f"{IMPORTS_URL}/101").mock(
-            return_value=httpx.Response(
-                200, json=_make_import_response(id="101")
-            ),
+            return_value=httpx.Response(200, json=_make_import_response(id="101")),
         )
         idx = _make_async_index()
         result = await idx.describe_import(101)
