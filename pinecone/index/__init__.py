@@ -157,10 +157,10 @@ class Index:
                 vectors=[
                     Vector(
                         id="article-101",
-                        values=[0.012, -0.087, 0.153, ...],  # 1536-dim
+                        values=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
                     ),
-                    ("article-102", [0.045, 0.021, -0.064, ...]),
-                    {"id": "article-103", "values": [0.091, -0.032, 0.178, ...]},
+                    ("article-102", [0.045, 0.021, -0.064]),  # truncated
+                    {"id": "article-103", "values": [0.091, -0.032, 0.178]},  # truncated
                 ],
                 namespace="articles-en",
             )
@@ -368,7 +368,7 @@ class Index:
 
             response = idx.query(
                 top_k=10,
-                vector=[0.012, -0.087, 0.153, ...],  # 1536-dim embedding
+                vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
             )
             for match in response.matches:
                 print(match.id, match.score)
@@ -465,7 +465,7 @@ class Index:
         Examples:
 
             results = idx.query_namespaces(
-                vector=[0.012, -0.087, 0.153, ...],  # 1536-dim embedding
+                vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
                 namespaces=["articles-en", "articles-fr", "articles-de"],
                 metric="cosine",
                 top_k=10,
@@ -709,7 +709,7 @@ class Index:
         Examples:
 
             # Update by ID
-            idx.update(id="article-101", values=[0.012, -0.087, 0.153, ...])  # 1536-dim embedding
+            idx.update(id="article-101", values=[0.012, -0.087, 0.153])  # truncated; use your actual dimension
 
             # Bulk-update metadata by filter
             idx.update(
