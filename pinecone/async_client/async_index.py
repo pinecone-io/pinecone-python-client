@@ -143,10 +143,10 @@ class AsyncIndex:
         Examples:
 
             response = await idx.upsert_records(
-                namespace="my-ns",
+                namespace="articles-en",
                 records=[
-                    {"_id": "rec1", "text": "hello world"},
-                    {"_id": "rec2", "text": "goodbye world"},
+                    {"_id": "article-101", "text": "Vector databases enable similarity search."},
+                    {"_id": "article-102", "text": "RAG combines search with LLMs."},
                 ],
             )
             print(response.record_count)
@@ -413,8 +413,8 @@ class AsyncIndex:
         Examples:
 
             results = await idx.query_namespaces(
-                vector=[0.1, 0.2, 0.3],
-                namespaces=["ns1", "ns2", "ns3"],
+                vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
+                namespaces=["articles-en", "articles-fr", "articles-de"],
                 metric="cosine",
                 top_k=10,
             )
@@ -470,6 +470,12 @@ class AsyncIndex:
         Raises:
             ValidationError: If ids is empty.
             ApiError: If the API returns an error response.
+
+        Examples:
+
+            response = await idx.fetch(ids=["article-101", "article-102"])
+            for vid, vec in response.vectors.items():
+                print(vid, vec.values)
         """
         if not ids:
             raise ValidationError("ids must be a non-empty list")
@@ -574,6 +580,17 @@ class AsyncIndex:
         Raises:
             ValidationError: If zero or more than one deletion mode is specified.
             ApiError: If the API returns an error response.
+
+        Examples:
+
+            # Delete by IDs
+            await idx.delete(ids=["article-101", "article-102"])
+
+            # Delete all vectors in a namespace
+            await idx.delete(delete_all=True, namespace="articles-deprecated")
+
+            # Delete by metadata filter
+            await idx.delete(filter={"category": {"$eq": "obsolete"}})
         """
         mode_count = sum([ids is not None, delete_all, filter is not None])
         if mode_count == 0:
@@ -625,6 +642,18 @@ class AsyncIndex:
         Raises:
             ValidationError: If both or neither of id and filter are provided.
             ApiError: If the API returns an error response.
+
+        Examples:
+
+            # Update by ID
+            # truncated values; use your actual dimension
+            await idx.update(id="article-101", values=[0.012, -0.087, 0.153])
+
+            # Bulk-update metadata by filter
+            await idx.update(
+                filter={"genre": {"$eq": "drama"}},
+                set_metadata={"year": 2020},
+            )
         """
         has_id = id is not None
         has_filter = filter is not None
@@ -707,9 +736,9 @@ class AsyncIndex:
         Examples:
 
             response = await idx.search(
-                namespace="my-ns",
+                namespace="articles-en",
                 top_k=10,
-                inputs={"text": "semantic search query"},
+                inputs={"text": "benefits of vector databases for search"},
             )
             for hit in response.result.hits:
                 print(hit.id, hit.score)
@@ -800,6 +829,12 @@ class AsyncIndex:
         Raises:
             ValidationError: If inputs are invalid.
             ApiError: If the API returns an error response.
+
+        Examples:
+
+            response = await idx.list_paginated(prefix="doc1#", limit=50)
+            for item in response.vectors:
+                print(item.id)
         """
         params: dict[str, Any] = {"namespace": namespace}
         if prefix is not None:
@@ -870,6 +905,16 @@ class AsyncIndex:
 
         Raises:
             ApiError: If the API returns an error response.
+
+        Examples:
+
+            stats = await idx.describe_index_stats()
+            print(stats.total_vector_count, stats.dimension)
+
+            # With filter — only count vectors matching the expression
+            stats = await idx.describe_index_stats(
+                filter={"genre": {"$eq": "drama"}}
+            )
         """
         body: dict[str, Any] = {}
         if filter is not None:
