@@ -188,10 +188,35 @@ class TestPodSpec:
 
 class TestByocSpec:
     def test_construct_and_encode(self) -> None:
-        spec = ByocSpec(cloud="aws", region="us-east-1")
+        spec = ByocSpec(environment="aws-us-east-1-b921")
         encoded = msgspec.json.encode(spec)
         decoded: dict[str, Any] = msgspec.json.decode(encoded)
-        assert decoded == {"cloud": "aws", "region": "us-east-1"}
+        assert decoded == {"environment": "aws-us-east-1-b921"}
+        assert spec.environment == "aws-us-east-1-b921"
+
+    def test_byoc_spec_with_read_capacity_on_demand(self) -> None:
+        spec = ByocSpec(environment="aws-us-east-1-b921", read_capacity={"mode": "OnDemand"})
+        assert spec.read_capacity == {"mode": "OnDemand"}
+
+    def test_byoc_spec_with_read_capacity_dedicated(self) -> None:
+        spec = ByocSpec(
+            environment="aws-us-east-1-b921",
+            read_capacity={
+                "mode": "Dedicated",
+                "dedicated": {
+                    "node_type": "t1",
+                    "scaling": "Manual",
+                    "manual": {"replicas": 2, "shards": 1},
+                },
+            },
+        )
+        assert spec.read_capacity is not None
+        assert spec.read_capacity["mode"] == "Dedicated"
+        assert spec.read_capacity["dedicated"]["node_type"] == "t1"
+
+    def test_byoc_spec_defaults_no_read_capacity(self) -> None:
+        spec = ByocSpec(environment="aws-us-east-1-b921")
+        assert spec.read_capacity is None
 
 
 class TestReExports:

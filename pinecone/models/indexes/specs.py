@@ -95,13 +95,13 @@ class PodSpec(Struct, kw_only=True):
     source_collection: str | None = None
 
 
-class ByocSpec(Struct, kw_only=True):
+class ByocSpec(Struct, kw_only=True, omit_defaults=True):
     """Bring-your-own-cloud index deployment spec.
 
     Attributes:
-        cloud: Cloud provider (e.g. ``"aws"``, ``"gcp"``, ``"azure"``).
-        region: Cloud region (e.g. ``"us-east-1"``, ``"eu-west-1"``).
+        environment: BYOC environment identifier (e.g. ``"aws-us-east-1-b921"``).
+        read_capacity: Optional read capacity configuration (OnDemand or Dedicated).
     """
 
-    cloud: str
-    region: str
+    environment: str
+    read_capacity: dict[str, Any] | None = None
