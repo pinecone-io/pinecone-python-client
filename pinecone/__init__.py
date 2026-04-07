@@ -34,7 +34,69 @@ from __future__ import annotations
 
 import logging as _logging
 import os as _os
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pinecone._client import Pinecone
+    from pinecone.admin import Admin
+    from pinecone.async_client.async_index import AsyncIndex
+    from pinecone.async_client.pinecone import AsyncPinecone
+    from pinecone.grpc import GrpcIndex
+    from pinecone.grpc.future import PineconeFuture
+    from pinecone.index import Index
+    from pinecone.models.backups.list import BackupList, RestoreJobList
+    from pinecone.models.backups.model import (
+        BackupModel,
+        CreateIndexFromBackupResponse,
+        RestoreJobModel,
+    )
+    from pinecone.models.collections.list import CollectionList
+    from pinecone.models.collections.model import CollectionModel
+    from pinecone.models.enums import EmbedModel, RerankModel
+    from pinecone.models.imports.list import ImportList
+    from pinecone.models.imports.model import ImportModel, StartImportResponse
+    from pinecone.models.indexes.index import (
+        ByocSpecInfo,
+        IndexModel,
+        IndexSpec,
+        PodSpecInfo,
+        ServerlessSpecInfo,
+    )
+    from pinecone.models.indexes.list import IndexList
+    from pinecone.models.indexes.specs import (
+        ByocSpec,
+        EmbedConfig,
+        IntegratedSpec,
+        PodSpec,
+        ServerlessSpec,
+    )
+    from pinecone.models.inference.embed import EmbeddingsList
+    from pinecone.models.inference.model_list import ModelInfoList
+    from pinecone.models.inference.models import ModelInfo
+    from pinecone.models.inference.rerank import RerankResult
+    from pinecone.models.namespaces.models import (
+        ListNamespacesResponse,
+        NamespaceDescription,
+    )
+    from pinecone.models.vectors.query_aggregator import (
+        QueryNamespacesResults,
+        QueryResultsAggregator,
+    )
+    from pinecone.models.vectors.responses import (
+        DescribeIndexStatsResponse,
+        FetchByMetadataResponse,
+        FetchResponse,
+        ListResponse,
+        QueryResponse,
+        ResponseInfo,
+        UpdateResponse,
+        UpsertRecordsResponse,
+        UpsertResponse,
+    )
+    from pinecone.models.vectors.search import SearchRecordsResponse
+    from pinecone.models.vectors.sparse import SparseValues
+    from pinecone.models.vectors.vector import Vector
+    from pinecone.utils.filter_builder import Field
 
 __version__ = "0.1.0"
 
