@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from pinecone.client.indexes import Indexes
     from pinecone.client.inference import Inference
     from pinecone.client.restore_jobs import RestoreJobs
+    from pinecone.grpc import GrpcIndex
     from pinecone.index import Index
     from pinecone.models.enums import DeletionProtection
     from pinecone.models.indexes.index import IndexModel
@@ -214,7 +215,8 @@ class Pinecone:
         name: str = "",
         *,
         host: str = "",
-    ) -> Index:
+        grpc: bool = False,
+    ) -> Index | GrpcIndex:
         """Create a data plane client targeting a specific index.
 
         Can target by host URL directly (skips the describe call) or by
@@ -223,9 +225,13 @@ class Pinecone:
         Args:
             name (str): Name of the index. Triggers a describe call to resolve host.
             host (str): Direct host URL of the index. Skips the describe call.
+            grpc (bool): If ``True``, return a :class:`~pinecone.grpc.GrpcIndex`
+                that routes data-plane operations over gRPC instead of HTTP.
+                Defaults to ``False``.
 
         Returns:
-            A sync :class:`Index` data plane client.
+            A sync :class:`Index` (HTTP) or :class:`~pinecone.grpc.GrpcIndex`
+            (gRPC) data plane client.
 
         Raises:
             ValidationError: If neither *name* nor *host* is provided.
@@ -236,57 +242,58 @@ class Pinecone:
             idx = pc.index(host="my-index-abc123.svc.pinecone.io")
             # or
             idx = pc.index(name="my-index")
+            # gRPC transport
+            idx = pc.index(name="my-index", grpc=True)
+        """
+        resolved_host = self._resolve_index_host(name=name, host=host)
+
+        if grpc:
+            from pinecone.grpc import GrpcIndex as _GrpcIndex
+
+            return _GrpcIndex(
+                host=resolved_host,
+                api_key=self._config.api_key,
+                source_tag=self._config.source_tag or None,
+            )
+
+        from pinecone.index import Index as _Index
+
+        return _Index(
+            host=resolved_host,
+            api_key=self._config.api_key,
+            additional_headers=dict(self._config.additional_headers),
+            timeout=self._config.timeout,
+            proxy_url=self._config.proxy_url,
+            ssl_ca_certs=self._config.ssl_ca_certs,
+            ssl_verify=self._config.ssl_verify,
+            source_tag=self._config.source_tag,
+            connection_pool_maxsize=self._config.connection_pool_maxsize,
+        )
+
+    def _resolve_index_host(self, *, name: str, host: str) -> str:
+        """Resolve the data plane host from explicit host, cache, or describe call.
+
+        Args:
+            name: Index name (triggers describe if not cached).
+            host: Direct host URL (returned as-is if provided).
+
+        Returns:
+            The resolved host string.
+
+        Raises:
+            ValidationError: If neither *name* nor *host* is provided.
         """
         if host:
-            from pinecone.index import Index as _Index
-
-            return _Index(
-                host=host,
-                api_key=self._config.api_key,
-                additional_headers=dict(self._config.additional_headers),
-                timeout=self._config.timeout,
-                proxy_url=self._config.proxy_url,
-                ssl_ca_certs=self._config.ssl_ca_certs,
-                ssl_verify=self._config.ssl_verify,
-                source_tag=self._config.source_tag,
-                connection_pool_maxsize=self._config.connection_pool_maxsize,
-            )
+            return host
 
         if name:
-            # Check cache first
             cached_host = self._host_cache.get(name)
             if cached_host:
-                from pinecone.index import Index as _Index
+                return cached_host
 
-                return _Index(
-                    host=cached_host,
-                    api_key=self._config.api_key,
-                    additional_headers=dict(self._config.additional_headers),
-                    timeout=self._config.timeout,
-                    proxy_url=self._config.proxy_url,
-                    ssl_ca_certs=self._config.ssl_ca_certs,
-                    ssl_verify=self._config.ssl_verify,
-                    source_tag=self._config.source_tag,
-                    connection_pool_maxsize=self._config.connection_pool_maxsize,
-                )
-
-            # Resolve host via describe
             desc = self.indexes.describe(name)
             self._host_cache[name] = desc.host
-
-            from pinecone.index import Index as _Index
-
-            return _Index(
-                host=desc.host,
-                api_key=self._config.api_key,
-                additional_headers=dict(self._config.additional_headers),
-                timeout=self._config.timeout,
-                proxy_url=self._config.proxy_url,
-                ssl_ca_certs=self._config.ssl_ca_certs,
-                ssl_verify=self._config.ssl_verify,
-                source_tag=self._config.source_tag,
-                connection_pool_maxsize=self._config.connection_pool_maxsize,
-            )
+            return desc.host
 
         raise ValidationError("Either name or host must be provided to create an Index client.")
 

@@ -390,6 +390,88 @@ class TestIndexFactory:
         )
 
 
+class TestIndexFactoryGrpc:
+    """Test Pinecone.index(grpc=True) factory method."""
+
+    @patch("pinecone.grpc.GrpcIndex")
+    def test_grpc_true_returns_grpc_index(self, mock_grpc_cls: MagicMock) -> None:
+        pc = Pinecone(api_key="test-key")
+        mock_grpc_idx = MagicMock()
+        mock_grpc_cls.return_value = mock_grpc_idx
+
+        result = pc.index(host="foo.svc.pinecone.io", grpc=True)
+
+        assert result is mock_grpc_idx
+        mock_grpc_cls.assert_called_once_with(
+            host="foo.svc.pinecone.io",
+            api_key="test-key",
+            source_tag=None,
+        )
+
+    @patch("pinecone.grpc.GrpcIndex")
+    def test_grpc_true_passes_source_tag(self, mock_grpc_cls: MagicMock) -> None:
+        pc = Pinecone(api_key="test-key", source_tag="my_app")
+        mock_grpc_cls.return_value = MagicMock()
+
+        pc.index(host="foo.svc.pinecone.io", grpc=True)
+
+        mock_grpc_cls.assert_called_once_with(
+            host="foo.svc.pinecone.io",
+            api_key="test-key",
+            source_tag="my_app",
+        )
+
+    @patch("pinecone.grpc.GrpcIndex")
+    def test_grpc_true_with_name_cached(self, mock_grpc_cls: MagicMock) -> None:
+        pc = Pinecone(api_key="test-key")
+        pc._host_cache["my-index"] = "cached.host.pinecone.io"
+        mock_grpc_cls.return_value = MagicMock()
+
+        pc.index(name="my-index", grpc=True)
+
+        mock_grpc_cls.assert_called_once_with(
+            host="cached.host.pinecone.io",
+            api_key="test-key",
+            source_tag=None,
+        )
+
+    @patch("pinecone.grpc.GrpcIndex")
+    def test_grpc_true_with_name_describe(self, mock_grpc_cls: MagicMock) -> None:
+        pc = Pinecone(api_key="test-key")
+        mock_grpc_cls.return_value = MagicMock()
+
+        mock_desc = MagicMock()
+        mock_desc.host = "resolved.host.pinecone.io"
+        mock_indexes = MagicMock()
+        mock_indexes.describe.return_value = mock_desc
+        pc._indexes = mock_indexes
+
+        pc.index(name="my-index", grpc=True)
+
+        mock_indexes.describe.assert_called_once_with("my-index")
+        assert pc._host_cache["my-index"] == "resolved.host.pinecone.io"
+        mock_grpc_cls.assert_called_once_with(
+            host="resolved.host.pinecone.io",
+            api_key="test-key",
+            source_tag=None,
+        )
+
+    @patch("pinecone.index.Index")
+    def test_grpc_false_default_returns_http_index(self, mock_index_cls: MagicMock) -> None:
+        pc = Pinecone(api_key="test-key")
+        mock_idx = MagicMock()
+        mock_index_cls.return_value = mock_idx
+
+        result = pc.index(host="foo.svc.pinecone.io")
+
+        assert result is mock_idx
+
+    def test_grpc_true_no_name_or_host_raises(self) -> None:
+        pc = Pinecone(api_key="test-key")
+        with pytest.raises(ValidationError, match="Either name or host"):
+            pc.index(grpc=True)
+
+
 class TestClientLifecycle:
     """Test that close() properly cleans up all HTTP clients."""
 
