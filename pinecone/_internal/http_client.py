@@ -134,6 +134,7 @@ class _RetryTransport(httpx.BaseTransport):
         for attempt in range(self._max_attempts - 1):
             if response.status_code not in _RETRYABLE_STATUS_CODES:
                 return response
+            response.close()
             delay = min(
                 self._initial_backoff * (2 ** attempt), self._max_backoff
             ) + random.uniform(0, self._jitter_max)
@@ -170,6 +171,7 @@ class _AsyncRetryTransport(httpx.AsyncBaseTransport):
         for attempt in range(self._max_attempts - 1):
             if response.status_code not in _RETRYABLE_STATUS_CODES:
                 return response
+            await response.aclose()
             delay = min(
                 self._initial_backoff * (2 ** attempt), self._max_backoff
             ) + random.uniform(0, self._jitter_max)
