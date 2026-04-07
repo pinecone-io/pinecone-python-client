@@ -286,6 +286,24 @@ class Assistants:
         logger.debug("Updated assistant %r", name)
         return model
 
+    def delete(self, *, name: str) -> None:
+        """Delete a Pinecone assistant by name.
+
+        Args:
+            name (str): The name of the assistant to delete.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response (e.g. 404
+                when the assistant does not exist).
+
+        Examples:
+
+            pc.assistants.delete(name="my-assistant")
+        """
+        logger.info("Deleting assistant %r", name)
+        self._http.delete(f"/assistants/{name}")
+        logger.debug("Deleted assistant %r", name)
+
     def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""
         start = time.monotonic()

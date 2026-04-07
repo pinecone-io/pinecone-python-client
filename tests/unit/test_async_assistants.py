@@ -653,6 +653,39 @@ async def test_update_assistant_not_found(async_assistants: AsyncAssistants) -> 
 
 
 # ---------------------------------------------------------------------------
+# delete() — success
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_delete_assistant(async_assistants: AsyncAssistants) -> None:
+    """delete() sends DELETE /assistants/{name} and returns None."""
+    route = respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(204),
+    )
+
+    result = await async_assistants.delete(name="my-assistant")
+
+    assert result is None
+    assert route.call_count == 1
+
+    request = route.calls.last.request
+    assert request.method == "DELETE"
+    assert str(request.url) == f"{BASE_URL}/assistants/my-assistant"
+
+
+@respx.mock
+async def test_delete_assistant_not_found(async_assistants: AsyncAssistants) -> None:
+    """delete() lets 404 errors propagate from the HTTP client."""
+    respx.delete(f"{BASE_URL}/assistants/nonexistent").mock(
+        return_value=httpx.Response(404, json={"error": "Not found"}),
+    )
+
+    with pytest.raises(Exception):
+        await async_assistants.delete(name="nonexistent")
+
+
+# ---------------------------------------------------------------------------
 # repr()
 # ---------------------------------------------------------------------------
 
