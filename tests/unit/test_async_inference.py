@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 import httpx
+import orjson
 import pytest
 import respx
 
@@ -80,6 +81,55 @@ async def test_async_embed_empty_raises(inference: AsyncInference) -> None:
         await inference.embed("multilingual-e5-large", [])
 
 
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_embed_dict_inputs(inference: AsyncInference) -> None:
+    route = respx.post(f"{BASE_URL}/embed").mock(
+        return_value=httpx.Response(200, json=make_embed_response()),
+    )
+
+    result = await inference.embed("multilingual-e5-large", [{"text": "hello"}])
+
+    assert isinstance(result, EmbeddingsList)
+    body = orjson.loads(route.calls[0].request.content)
+    assert body["inputs"] == [{"text": "hello"}]
+
+
+@pytest.mark.asyncio
+async def test_async_embed_empty_model_raises(inference: AsyncInference) -> None:
+    with pytest.raises(ValidationError, match="non-empty"):
+        await inference.embed("", ["hello"])
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_embed_with_parameters(inference: AsyncInference) -> None:
+    route = respx.post(f"{BASE_URL}/embed").mock(
+        return_value=httpx.Response(200, json=make_embed_response()),
+    )
+
+    await inference.embed(
+        "multilingual-e5-large",
+        ["hello"],
+        parameters={"input_type": "passage", "truncate": "END"},
+    )
+
+    body = orjson.loads(route.calls[0].request.content)
+    assert body["parameters"] == {"input_type": "passage", "truncate": "END"}
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_embed_with_enum_model(inference: AsyncInference) -> None:
+    respx.post(f"{BASE_URL}/embed").mock(
+        return_value=httpx.Response(200, json=make_embed_response()),
+    )
+
+    result = await inference.embed(EmbedModel.MULTILINGUAL_E5_LARGE, ["hello"])
+
+    assert isinstance(result, EmbeddingsList)
+
+
 # ---------------------------------------------------------------------------
 # rerank()
 # ---------------------------------------------------------------------------
@@ -117,6 +167,106 @@ async def test_async_rerank_empty_docs_raises(inference: AsyncInference) -> None
         )
 
 
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_rerank_string_documents(inference: AsyncInference) -> None:
+    route = respx.post(f"{BASE_URL}/rerank").mock(
+        return_value=httpx.Response(200, json=make_rerank_response()),
+    )
+
+    await inference.rerank(
+        model="bge-reranker-v2-m3",
+        query="test query",
+        documents=["doc1", "doc2"],
+    )
+
+    body = orjson.loads(route.calls[0].request.content)
+    assert body["documents"] == [{"text": "doc1"}, {"text": "doc2"}]
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_rerank_default_rank_fields(inference: AsyncInference) -> None:
+    route = respx.post(f"{BASE_URL}/rerank").mock(
+        return_value=httpx.Response(200, json=make_rerank_response()),
+    )
+
+    await inference.rerank(
+        model="bge-reranker-v2-m3",
+        query="test query",
+        documents=["doc1"],
+    )
+
+    body = orjson.loads(route.calls[0].request.content)
+    assert body["rank_fields"] == ["text"]
+
+
+@pytest.mark.asyncio
+async def test_async_rerank_empty_model_raises(inference: AsyncInference) -> None:
+    with pytest.raises(ValidationError, match="non-empty"):
+        await inference.rerank(
+            model="",
+            query="test query",
+            documents=["doc1"],
+        )
+
+
+@pytest.mark.asyncio
+async def test_async_rerank_empty_query_raises(inference: AsyncInference) -> None:
+    with pytest.raises(ValidationError, match="non-empty"):
+        await inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="",
+            documents=["doc1"],
+        )
+
+
+@pytest.mark.asyncio
+async def test_async_rerank_mixed_types_raises(inference: AsyncInference) -> None:
+    with pytest.raises(TypeError, match="string or dictionary"):
+        await inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="test query",
+            documents=["a string", 123],  # type: ignore[list-item]
+        )
+
+
+@pytest.mark.asyncio
+async def test_async_rerank_non_list_documents_raises(inference: AsyncInference) -> None:
+    with pytest.raises(TypeError, match="list of strings or list of dictionaries"):
+        await inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="test query",
+            documents="not a list",  # type: ignore[arg-type]
+        )
+
+
+@pytest.mark.asyncio
+async def test_async_rerank_tuple_documents_raises(inference: AsyncInference) -> None:
+    with pytest.raises(TypeError, match="list of strings or list of dictionaries"):
+        await inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="test query",
+            documents=("a", "b"),  # type: ignore[arg-type]
+        )
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_rerank_with_enum_model(inference: AsyncInference) -> None:
+    respx.post(f"{BASE_URL}/rerank").mock(
+        return_value=httpx.Response(200, json=make_rerank_response()),
+    )
+
+    result = await inference.rerank(
+        model=RerankModel.BGE_RERANKER_V2_M3,
+        query="test query",
+        documents=["doc1"],
+    )
+
+    assert isinstance(result, RerankResult)
+
+
 # ---------------------------------------------------------------------------
 # list_models()
 # ---------------------------------------------------------------------------
@@ -149,6 +299,48 @@ async def test_async_list_models_invalid_vector_type_raises(inference: AsyncInfe
         await inference.list_models(vector_type="invalid")
 
 
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_list_models_filter_by_type(inference: AsyncInference) -> None:
+    route = respx.get(f"{BASE_URL}/models").mock(
+        return_value=httpx.Response(200, json=make_model_list_response()),
+    )
+
+    await inference.list_models(type="embed")
+
+    assert route.called
+    request = route.calls[0].request
+    assert request.url.params["type"] == "embed"
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_list_models_filter_by_vector_type(inference: AsyncInference) -> None:
+    route = respx.get(f"{BASE_URL}/models").mock(
+        return_value=httpx.Response(200, json=make_model_list_response()),
+    )
+
+    await inference.list_models(vector_type="sparse")
+
+    assert route.called
+    request = route.calls[0].request
+    assert request.url.params["vector_type"] == "sparse"
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_list_models_both_filters(inference: AsyncInference) -> None:
+    route = respx.get(f"{BASE_URL}/models").mock(
+        return_value=httpx.Response(200, json=make_model_list_response()),
+    )
+
+    await inference.list_models(type="embed", vector_type="sparse")
+
+    request = route.calls[0].request
+    assert request.url.params["type"] == "embed"
+    assert request.url.params["vector_type"] == "sparse"
+
+
 # ---------------------------------------------------------------------------
 # get_model()
 # ---------------------------------------------------------------------------
@@ -167,6 +359,12 @@ async def test_async_get_model(inference: AsyncInference) -> None:
     assert result.model == "multilingual-e5-large"
     assert result.type == "embed"
     assert route.called
+
+
+@pytest.mark.asyncio
+async def test_async_get_model_empty_name_raises(inference: AsyncInference) -> None:
+    with pytest.raises(ValidationError, match="non-empty"):
+        await inference.get_model(model="")
 
 
 # ---------------------------------------------------------------------------
