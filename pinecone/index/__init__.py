@@ -327,6 +327,8 @@ class Index:
         include_values: bool = False,
         include_metadata: bool = False,
         sparse_vector: SparseValues | dict[str, Any] | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
     ) -> QueryResponse:
         """Query a namespace for the nearest neighbors of a vector.
 
@@ -340,6 +342,12 @@ class Index:
             include_metadata (bool): Whether to include metadata in results.
             sparse_vector (SparseValues | dict[str, Any] | None): Sparse query vector
                 with indices and values.
+            scan_factor (float | None): DRN optimization — adjusts how much of the
+                index is scanned. Range 0.5–4.0. Only supported for dedicated read
+                node indexes. None uses server default.
+            max_candidates (int | None): DRN optimization — caps candidate vectors to
+                rerank. Range 1–100000. Only supported for dedicated read node indexes.
+                None uses server default.
 
         Returns:
             QueryResponse with matches, namespace, and usage info.
@@ -389,6 +397,10 @@ class Index:
                 }
             else:
                 body["sparseVector"] = sparse_vector
+        if scan_factor is not None:
+            body["scanFactor"] = scan_factor
+        if max_candidates is not None:
+            body["maxCandidates"] = max_candidates
 
         logger.info("Querying index with top_k=%d", top_k)
         response = self._http.post("/query", json=body)

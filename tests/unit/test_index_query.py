@@ -292,3 +292,66 @@ class TestQuerySparseVector:
 
         body = orjson.loads(route.calls.last.request.content)
         assert body["sparseVector"] == {"indices": [0, 1], "values": [0.5, 0.5]}
+
+
+# ---------------------------------------------------------------------------
+# DRN parameters (scan_factor, max_candidates)
+# ---------------------------------------------------------------------------
+
+
+class TestQueryDrnParams:
+    """DRN optimization parameters (unified-wf-0005)."""
+
+    @respx.mock
+    def test_query_scan_factor_included_in_body(self) -> None:
+        route = respx.post(QUERY_URL).mock(
+            return_value=httpx.Response(200, json=_make_query_response()),
+        )
+        idx = _make_index()
+        idx.query(top_k=10, vector=[0.1], scan_factor=2.0)
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["scanFactor"] == 2.0
+
+    @respx.mock
+    def test_query_max_candidates_included_in_body(self) -> None:
+        route = respx.post(QUERY_URL).mock(
+            return_value=httpx.Response(200, json=_make_query_response()),
+        )
+        idx = _make_index()
+        idx.query(top_k=10, vector=[0.1], max_candidates=5000)
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["maxCandidates"] == 5000
+
+    @respx.mock
+    def test_query_scan_factor_and_max_candidates_omitted_when_none(self) -> None:
+        route = respx.post(QUERY_URL).mock(
+            return_value=httpx.Response(200, json=_make_query_response()),
+        )
+        idx = _make_index()
+        idx.query(top_k=10, vector=[0.1])
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert "scanFactor" not in body
+        assert "maxCandidates" not in body
+
+    @respx.mock
+    def test_query_both_drn_params(self) -> None:
+        route = respx.post(QUERY_URL).mock(
+            return_value=httpx.Response(200, json=_make_query_response()),
+        )
+        idx = _make_index()
+        idx.query(top_k=10, vector=[0.1], scan_factor=1.5, max_candidates=3000)
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["scanFactor"] == 1.5
+        assert body["maxCandidates"] == 3000
