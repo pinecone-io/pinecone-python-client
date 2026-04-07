@@ -220,7 +220,7 @@ class Admin:
         if self._projects is None:
             from pinecone.admin.projects import Projects as _Projects
 
-            self._projects = _Projects(http=self._http)
+            self._projects = _Projects(http=self._http, admin=self)
         return self._projects
 
     @property

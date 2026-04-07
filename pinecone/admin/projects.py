@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.admin_adapter import AdminAdapter
@@ -12,6 +13,7 @@ from pinecone.models.admin.project import ProjectList, ProjectModel
 
 if TYPE_CHECKING:
     from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.admin import Admin
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +35,10 @@ class Projects:
             print(project.name)
     """
 
-    def __init__(self, *, http: HTTPClient) -> None:
+    def __init__(self, *, http: HTTPClient, admin: Admin | None = None) -> None:
         self._http = http
         self._adapter = AdminAdapter()
+        self._admin = admin
 
     def __repr__(self) -> str:
         """Return developer-friendly representation."""
@@ -290,6 +293,85 @@ class Projects:
                     )
         finally:
             pc.close()
+
+    def delete_with_cleanup(
+        self,
+        *,
+        project_id: str,
+        max_attempts: int = 5,
+        retry_delay: float = 30.0,
+    ) -> None:
+        """Delete a project after cleaning up all its resources.
+
+        Creates a temporary API key scoped to the project, uses it to delete
+        all indexes, collections, and backups, then deletes the temporary key
+        and finally deletes the project itself.
+
+        The cleanup is retried up to *max_attempts* times with *retry_delay*
+        seconds between attempts to handle transient failures.
+
+        Args:
+            project_id: The identifier of the project to delete.
+            max_attempts: Maximum number of cleanup attempts. Defaults to 5.
+            retry_delay: Seconds to wait between retry attempts. Defaults to 30.0.
+
+        Raises:
+            PineconeError: If no admin back-reference is available.
+            ValidationError: If *project_id* is empty.
+            ApiError: If resource cleanup or project deletion fails after all retries.
+
+        Examples:
+            >>> admin = Admin(client_id="my-id", client_secret="my-secret")
+            >>> admin.projects.delete_with_cleanup(project_id="proj-abc123")
+        """
+        if self._admin is None:
+            raise PineconeError(
+                "delete_with_cleanup requires an Admin back-reference. "
+                "Use admin.projects.delete_with_cleanup() instead of "
+                "constructing Projects directly."
+            )
+        require_non_empty("project_id", project_id)
+
+        logger.info(
+            "Deleting project %r with cleanup (max_attempts=%d)", project_id, max_attempts
+        )
+
+        temp_key = self._admin.api_keys.create(
+            project_id=project_id,
+            name="_cleanup_temp_key",
+            roles=["admin"],
+        )
+        try:
+            last_error: Exception | None = None
+            for attempt in range(1, max_attempts + 1):
+                try:
+                    logger.debug(
+                        "Cleanup attempt %d/%d for project %r",
+                        attempt,
+                        max_attempts,
+                        project_id,
+                    )
+                    self._cleanup_project_resources(api_key=temp_key.value)
+                    last_error = None
+                    break
+                except Exception as exc:
+                    last_error = exc
+                    logger.warning(
+                        "Cleanup attempt %d/%d failed for project %r: %s",
+                        attempt,
+                        max_attempts,
+                        project_id,
+                        exc,
+                    )
+                    if attempt < max_attempts:
+                        time.sleep(retry_delay)
+
+            if last_error is not None:
+                raise last_error
+        finally:
+            self._admin.api_keys.delete(api_key_id=temp_key.key.id)
+
+        self.delete(project_id=project_id)
 
     def delete(self, *, project_id: str) -> None:
         """Delete a project.
