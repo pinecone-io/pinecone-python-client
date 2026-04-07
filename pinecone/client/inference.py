@@ -54,6 +54,10 @@ class Inference:
         self._http = HTTPClient(config, INFERENCE_API_VERSION)
         self._adapter = InferenceAdapter()
 
+    def close(self) -> None:
+        """Close the underlying HTTP client."""
+        self._http.close()
+
     def __repr__(self) -> str:
         """Return developer-friendly representation."""
         return "Inference()"

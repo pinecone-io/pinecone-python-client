@@ -392,3 +392,30 @@ class TestIndexFactory:
             source_tag="my_app",
             connection_pool_maxsize=10,
         )
+
+
+class TestClientLifecycle:
+    """Test that close() properly cleans up all HTTP clients."""
+
+    def test_close_without_inference_access(self) -> None:
+        """close() works when inference was never accessed."""
+        pc = Pinecone(api_key="test-key")
+        assert pc._inference is None
+        pc.close()
+
+    def test_close_closes_inference_http_client(self) -> None:
+        """close() closes the Inference namespace's HTTP client."""
+        pc = Pinecone(api_key="test-key")
+        # Trigger lazy creation of the inference namespace
+        _ = pc.inference
+        assert pc._inference is not None
+        assert not pc._inference._http._client.is_closed
+        pc.close()
+        assert pc._inference._http._client.is_closed
+
+    def test_context_manager_closes_inference(self) -> None:
+        """Exiting a context manager closes the Inference HTTP client."""
+        with Pinecone(api_key="test-key") as pc:
+            _ = pc.inference
+            assert not pc._inference._http._client.is_closed  # type: ignore[union-attr]
+        assert pc._inference._http._client.is_closed  # type: ignore[union-attr]

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -205,3 +205,31 @@ class TestAsyncIndexFactory:
             source_tag="",
             connection_pool_maxsize=0,
         )
+
+
+class TestAsyncClientLifecycle:
+    """Test that close() properly cleans up all HTTP clients."""
+
+    async def test_close_without_inference_access(self) -> None:
+        """close() works when inference was never accessed."""
+        pc = AsyncPinecone(api_key="test-key")
+        assert pc._inference is None
+        await pc.close()
+
+    async def test_close_closes_inference_http_client(self) -> None:
+        """close() closes the AsyncInference namespace's HTTP client."""
+        pc = AsyncPinecone(api_key="test-key")
+        # Trigger lazy creation of the inference namespace
+        inference = pc.inference
+        assert pc._inference is not None
+        # Mock the close method to verify it gets called
+        inference.close = AsyncMock()  # type: ignore[method-assign]
+        await pc.close()
+        inference.close.assert_awaited_once()
+
+    async def test_context_manager_closes_inference(self) -> None:
+        """Exiting an async context manager closes the Inference HTTP client."""
+        async with AsyncPinecone(api_key="test-key") as pc:
+            inference = pc.inference
+            inference.close = AsyncMock()  # type: ignore[method-assign]
+        inference.close.assert_awaited_once()

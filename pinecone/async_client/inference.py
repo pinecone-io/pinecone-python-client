@@ -54,6 +54,10 @@ class AsyncInference:
         self._http = AsyncHTTPClient(config, INFERENCE_API_VERSION)
         self._adapter = InferenceAdapter()
 
+    async def close(self) -> None:
+        """Close the underlying HTTP client."""
+        await self._http.close()
+
     def __repr__(self) -> str:
         """Return developer-friendly representation."""
         return "AsyncInference()"

@@ -376,6 +376,8 @@ class AsyncPinecone:
     async def close(self) -> None:
         """Close the underlying HTTP client."""
         await self._http.close()
+        if self._inference is not None:
+            await self._inference.close()
 
     async def __aenter__(self) -> AsyncPinecone:
         return self

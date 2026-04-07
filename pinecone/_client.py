@@ -380,6 +380,8 @@ class Pinecone:
     def close(self) -> None:
         """Close the underlying HTTP client."""
         self._http.close()
+        if self._inference is not None:
+            self._inference.close()
 
     def __enter__(self) -> Pinecone:
         return self
