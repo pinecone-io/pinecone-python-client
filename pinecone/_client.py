@@ -258,17 +258,21 @@ class Pinecone:
 
         from pinecone.index import Index as _Index
 
-        return _Index(
-            host=resolved_host,
-            api_key=self._config.api_key,
-            additional_headers=dict(self._config.additional_headers),
-            timeout=self._config.timeout,
-            proxy_url=self._config.proxy_url,
-            ssl_ca_certs=self._config.ssl_ca_certs,
-            ssl_verify=self._config.ssl_verify,
-            source_tag=self._config.source_tag,
-            connection_pool_maxsize=self._config.connection_pool_maxsize,
-        )
+        return _Index(**self._build_index_kwargs(resolved_host))
+
+    def _build_index_kwargs(self, host: str) -> dict[str, Any]:
+        """Return the kwargs dict for constructing an Index or AsyncIndex."""
+        return {
+            "host": host,
+            "api_key": self._config.api_key,
+            "additional_headers": dict(self._config.additional_headers),
+            "timeout": self._config.timeout,
+            "proxy_url": self._config.proxy_url,
+            "ssl_ca_certs": self._config.ssl_ca_certs,
+            "ssl_verify": self._config.ssl_verify,
+            "source_tag": self._config.source_tag,
+            "connection_pool_maxsize": self._config.connection_pool_maxsize,
+        }
 
     def _resolve_index_host(self, *, name: str, host: str) -> str:
         """Resolve the data plane host from explicit host, cache, or describe call.

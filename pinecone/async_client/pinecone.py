@@ -294,6 +294,20 @@ class AsyncPinecone:
         """The resolved configuration for this client."""
         return self._config
 
+    def _build_index_kwargs(self, host: str) -> dict[str, Any]:
+        """Return the kwargs dict for constructing an AsyncIndex."""
+        return {
+            "host": host,
+            "api_key": self._config.api_key,
+            "additional_headers": dict(self._config.additional_headers),
+            "timeout": self._config.timeout,
+            "proxy_url": self._config.proxy_url,
+            "ssl_ca_certs": self._config.ssl_ca_certs,
+            "ssl_verify": self._config.ssl_verify,
+            "source_tag": self._config.source_tag,
+            "connection_pool_maxsize": self._config.connection_pool_maxsize,
+        }
+
     def index(
         self,
         name: str = "",
@@ -333,33 +347,13 @@ class AsyncPinecone:
         from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
 
         if host:
-            return _AsyncIndex(
-                host=host,
-                api_key=self._config.api_key,
-                additional_headers=dict(self._config.additional_headers),
-                timeout=self._config.timeout,
-                proxy_url=self._config.proxy_url,
-                ssl_ca_certs=self._config.ssl_ca_certs,
-                ssl_verify=self._config.ssl_verify,
-                source_tag=self._config.source_tag,
-                connection_pool_maxsize=self._config.connection_pool_maxsize,
-            )
+            return _AsyncIndex(**self._build_index_kwargs(host))
 
         if name:
             # Check cache first
             cached_host = self._host_cache.get(name)
             if cached_host:
-                return _AsyncIndex(
-                    host=cached_host,
-                    api_key=self._config.api_key,
-                    additional_headers=dict(self._config.additional_headers),
-                    timeout=self._config.timeout,
-                    proxy_url=self._config.proxy_url,
-                    ssl_ca_certs=self._config.ssl_ca_certs,
-                    ssl_verify=self._config.ssl_verify,
-                    source_tag=self._config.source_tag,
-                    connection_pool_maxsize=self._config.connection_pool_maxsize,
-                )
+                return _AsyncIndex(**self._build_index_kwargs(cached_host))
 
             raise ValidationError(
                 f"Host for index '{name}' is not cached. Resolve the host first with "
