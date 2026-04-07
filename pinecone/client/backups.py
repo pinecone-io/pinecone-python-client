@@ -46,14 +46,14 @@ class Backups:
         *,
         index_name: str,
         name: str | None = None,
-        description: str | None = None,
+        description: str = "",
     ) -> BackupModel:
         """Create a backup of an existing index.
 
         Args:
             index_name (str): Name of the index to back up.
             name (str | None): Optional name for the backup.
-            description (str | None): Optional description for the backup.
+            description (str): Description for the backup (defaults to empty string).
 
         Returns:
             A :class:`BackupModel` describing the created backup.
@@ -83,8 +83,7 @@ class Backups:
         body: dict[str, Any] = {}
         if name is not None:
             body["name"] = name
-        if description is not None:
-            body["description"] = description
+        body["description"] = description
         logger.info("Creating backup for index %r", index_name)
         response = self._http.post(f"/indexes/{index_name}/backups", json=body)
         result = self._adapter.to_backup(response.content)
