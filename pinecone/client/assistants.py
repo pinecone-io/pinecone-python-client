@@ -16,7 +16,7 @@ from pinecone.errors.exceptions import (
     PineconeValueError,
 )
 from pinecone.models.assistant.file_model import AssistantFileModel
-from pinecone.models.assistant.list import ListAssistantsResponse
+from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
 
 if TYPE_CHECKING:
@@ -214,6 +214,220 @@ class Assistants:
                         f"File processing timed out after {timeout}s (operation_id={file_id})"
                     )
             time.sleep(_UPLOAD_POLL_INTERVAL_SECONDS)
+
+    def describe_file(
+        self,
+        *,
+        assistant_name: str,
+        file_id: str,
+        include_url: bool = False,
+    ) -> AssistantFileModel:
+        """Get the status and metadata of a file uploaded to an assistant.
+
+        Args:
+            assistant_name: Name of the assistant that owns the file.
+            file_id: Unique identifier of the file to retrieve.
+            include_url: If ``True``, include a signed download URL in the
+                response. Defaults to ``False``.
+
+        Returns:
+            :class:`AssistantFileModel` with file metadata and status.
+
+        Raises:
+            :exc:`NotFoundError`: If the file does not exist.
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            file = pc.assistants.describe_file(
+                assistant_name="my-assistant",
+                file_id="file-abc123",
+            )
+            print(file.status)
+        """
+        data_http = self._data_plane_http(assistant_name)
+        params: dict[str, str] = {}
+        if include_url:
+            params["include_url"] = "true"
+        logger.info("Describing file %r in assistant %r", file_id, assistant_name)
+        response = data_http.get(f"/files/{assistant_name}/{file_id}", params=params)
+        return self._adapter.to_file(response.content)
+
+    def list_files(
+        self,
+        *,
+        assistant_name: str,
+        filter: dict[str, Any] | None = None,
+    ) -> list[AssistantFileModel]:
+        """List all files for an assistant, automatically paginating through every page.
+
+        Args:
+            assistant_name: Name of the assistant whose files to list.
+            filter: Optional metadata filter expression. Serialized to a JSON
+                string before being sent to the API.
+
+        Returns:
+            A list of :class:`AssistantFileModel` objects. Returns an empty
+            list when no files exist.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            files = pc.assistants.list_files(assistant_name="my-assistant")
+            for f in files:
+                print(f.name, f.status)
+        """
+        logger.info("Listing all files for assistant %r", assistant_name)
+        all_files: list[AssistantFileModel] = []
+        pagination_token: str | None = None
+
+        while True:
+            page = self.list_files_page(
+                assistant_name=assistant_name,
+                pagination_token=pagination_token,
+                filter=filter,
+            )
+            all_files.extend(page.files)
+            if page.next is None:
+                break
+            pagination_token = page.next
+
+        logger.debug("Listed %d files for assistant %r", len(all_files), assistant_name)
+        return all_files
+
+    def list_files_page(
+        self,
+        *,
+        assistant_name: str,
+        page_size: int | None = None,
+        pagination_token: str | None = None,
+        filter: dict[str, Any] | None = None,
+    ) -> ListFilesResponse:
+        """List one page of files for an assistant with explicit pagination control.
+
+        Only the parameters that are explicitly provided are sent in the
+        request. Omitted parameters are not included as query params.
+
+        Args:
+            assistant_name: Name of the assistant whose files to list.
+            page_size: Maximum number of files per page. Only sent when
+                explicitly provided.
+            pagination_token: Token from a previous response to fetch the
+                next page.
+            filter: Optional metadata filter expression. Serialized to a JSON
+                string before being sent to the API.
+
+        Returns:
+            :class:`ListFilesResponse` with a ``files`` list and an optional
+            ``next`` continuation token.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            page = pc.assistants.list_files_page(
+                assistant_name="my-assistant",
+                page_size=10,
+            )
+            for f in page.files:
+                print(f.name)
+            if page.next:
+                next_page = pc.assistants.list_files_page(
+                    assistant_name="my-assistant",
+                    pagination_token=page.next,
+                )
+        """
+        import json as _json
+
+        data_http = self._data_plane_http(assistant_name)
+        params: dict[str, str | int] = {}
+        if page_size is not None:
+            params["pageSize"] = page_size
+        if pagination_token is not None:
+            params["paginationToken"] = pagination_token
+        if filter is not None:
+            params["filter"] = _json.dumps(filter)
+
+        logger.info("Listing files page for assistant %r", assistant_name)
+        response = data_http.get(f"/files/{assistant_name}", params=params)
+        result = self._adapter.to_file_list(response.content)
+        logger.debug(
+            "Listed %d files for assistant %r (has_next=%s)",
+            len(result.files),
+            assistant_name,
+            result.next is not None,
+        )
+        return result
+
+    def delete_file(
+        self,
+        *,
+        assistant_name: str,
+        file_id: str,
+        timeout: float | None = None,
+    ) -> None:
+        """Delete a file from a Pinecone assistant.
+
+        Sends a DELETE request, then polls every 5 seconds until the file is
+        confirmed gone (404 from describe_file). Other errors during polling
+        propagate immediately.
+
+        Args:
+            assistant_name: Name of the assistant that owns the file.
+            file_id: Unique identifier of the file to delete.
+            timeout: Seconds to wait for the file to be deleted. Use ``None``
+                (default) to poll indefinitely. Use ``-1`` to return
+                immediately without polling. Use a positive value to poll with
+                a deadline. Raises :exc:`PineconeTimeoutError` if the file
+                is not gone before the deadline.
+
+        Returns:
+            ``None``
+
+        Raises:
+            :exc:`PineconeError`: If server-side file deletion fails.
+            :exc:`PineconeTimeoutError`: If the file still exists after
+                *timeout* seconds.
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            pc.assistants.delete_file(
+                assistant_name="my-assistant",
+                file_id="file-abc123",
+            )
+        """
+        data_http = self._data_plane_http(assistant_name)
+        logger.info("Deleting file %r from assistant %r", file_id, assistant_name)
+        data_http.delete(f"/files/{assistant_name}/{file_id}")
+        logger.debug("Deleted file %r from assistant %r", file_id, assistant_name)
+
+        if timeout == -1:
+            return
+
+        start = time.monotonic()
+        while True:
+            try:
+                file_model = self.describe_file(
+                    assistant_name=assistant_name, file_id=file_id
+                )
+            except NotFoundError:
+                return
+            if file_model.status not in ("Deleting", None):
+                error_msg = file_model.error_message or "Unknown deletion error"
+                raise PineconeError(
+                    f"File deletion failed for '{file_id}': {error_msg}"
+                )
+            if timeout is not None:
+                elapsed = time.monotonic() - start
+                if elapsed >= timeout:
+                    raise PineconeTimeoutError(
+                        f"File '{file_id}' still exists after {timeout}s"
+                    )
+            time.sleep(_DELETE_POLL_INTERVAL_SECONDS)
 
     def create(
         self,

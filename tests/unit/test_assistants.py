@@ -16,6 +16,7 @@ from pinecone._internal.constants import ASSISTANT_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.client.assistants import (
     _CREATE_POLL_INTERVAL_SECONDS,
+    _DELETE_POLL_INTERVAL_SECONDS,
     _UPLOAD_POLL_INTERVAL_SECONDS,
     Assistants,
 )
@@ -1185,3 +1186,432 @@ def test_upload_file_caches_data_plane_client(mock_sleep: object, assistants: As
 
     # Describe should only be called once (for the first upload)
     assert describe_route.call_count == 1
+
+
+# ---------------------------------------------------------------------------
+# describe_file() — success
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_describe_file_success(assistants: Assistants) -> None:
+    """describe_file() sends GET /files/{name}/{id} and returns AssistantFileModel."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response()),
+    )
+
+    result = assistants.describe_file(assistant_name="test-assistant", file_id="file-abc123")
+
+    assert isinstance(result, AssistantFileModel)
+    assert result.id == "file-abc123"
+    assert result.name == "test-file.pdf"
+    assert route.call_count == 1
+
+
+@respx.mock
+def test_describe_file_without_url(assistants: Assistants) -> None:
+    """describe_file() does not send include_url param by default."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response()),
+    )
+
+    assistants.describe_file(assistant_name="test-assistant", file_id="file-abc123")
+
+    request = route.calls.last.request
+    assert "include_url" not in str(request.url)
+
+
+@respx.mock
+def test_describe_file_with_url(assistants: Assistants) -> None:
+    """describe_file(include_url=True) sends include_url=true query param."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_assistant_file_response(
+                signed_url="https://storage.example.com/file-abc123"
+            ),
+        ),
+    )
+
+    result = assistants.describe_file(
+        assistant_name="test-assistant", file_id="file-abc123", include_url=True
+    )
+
+    request = route.calls.last.request
+    assert "include_url=true" in str(request.url)
+    assert result.signed_url == "https://storage.example.com/file-abc123"
+
+
+@respx.mock
+def test_describe_file_not_found(assistants: Assistants) -> None:
+    """describe_file() raises NotFoundError when file does not exist."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/nonexistent").mock(
+        return_value=httpx.Response(404, json={"error": "Not found"}),
+    )
+
+    with pytest.raises(NotFoundError):
+        assistants.describe_file(assistant_name="test-assistant", file_id="nonexistent")
+
+
+# ---------------------------------------------------------------------------
+# list_files_page() — single page
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_list_files_page_success(assistants: Assistants) -> None:
+    """list_files_page() returns ListFilesResponse with files and next token."""
+    from pinecone.models.assistant.list import ListFilesResponse
+
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "files": [make_assistant_file_response()],
+                "next": "token-next",
+            },
+        ),
+    )
+
+    result = assistants.list_files_page(assistant_name="test-assistant")
+
+    assert isinstance(result, ListFilesResponse)
+    assert len(result.files) == 1
+    assert result.files[0].id == "file-abc123"
+    assert result.next == "token-next"
+    assert route.call_count == 1
+
+
+@respx.mock
+def test_list_files_page_last_page(assistants: Assistants) -> None:
+    """list_files_page() returns no next token on the last page."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json={"files": [make_assistant_file_response()]}),
+    )
+
+    result = assistants.list_files_page(assistant_name="test-assistant")
+
+    assert result.next is None
+
+
+@respx.mock
+def test_list_files_page_with_page_size(assistants: Assistants) -> None:
+    """list_files_page() sends pageSize query param when provided."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json={"files": []}),
+    )
+
+    assistants.list_files_page(assistant_name="test-assistant", page_size=5)
+
+    request = route.calls.last.request
+    assert "pageSize=5" in str(request.url)
+
+
+@respx.mock
+def test_list_files_page_with_pagination_token(assistants: Assistants) -> None:
+    """list_files_page() sends paginationToken query param when provided."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json={"files": []}),
+    )
+
+    assistants.list_files_page(assistant_name="test-assistant", pagination_token="tok123")
+
+    request = route.calls.last.request
+    assert "paginationToken=tok123" in str(request.url)
+
+
+@respx.mock
+def test_list_files_page_with_filter(assistants: Assistants) -> None:
+    """list_files_page() serializes filter dict to JSON string query param."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json={"files": []}),
+    )
+
+    assistants.list_files_page(
+        assistant_name="test-assistant",
+        filter={"genre": {"$eq": "comedy"}},
+    )
+
+    request = route.calls.last.request
+    url_str = str(request.url)
+    assert "filter=" in url_str
+    assert "genre" in url_str
+
+
+@respx.mock
+def test_list_files_page_omits_none_params(assistants: Assistants) -> None:
+    """list_files_page() does not send params that are None."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json={"files": []}),
+    )
+
+    assistants.list_files_page(assistant_name="test-assistant")
+
+    request = route.calls.last.request
+    assert "pageSize" not in str(request.url)
+    assert "paginationToken" not in str(request.url)
+    assert "filter" not in str(request.url)
+
+
+# ---------------------------------------------------------------------------
+# list_files() — auto-pagination
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_list_files_empty(assistants: Assistants) -> None:
+    """list_files() returns empty list when no files exist."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json={"files": []}),
+    )
+
+    result = assistants.list_files(assistant_name="test-assistant")
+
+    assert result == []
+
+
+@respx.mock
+def test_list_files_single_page(assistants: Assistants) -> None:
+    """list_files() returns all files from a single-page response."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "files": [
+                    make_assistant_file_response(id="f1", name="file1.pdf"),
+                    make_assistant_file_response(id="f2", name="file2.pdf"),
+                ],
+            },
+        ),
+    )
+
+    result = assistants.list_files(assistant_name="test-assistant")
+
+    assert len(result) == 2
+    assert all(isinstance(f, AssistantFileModel) for f in result)
+
+
+@respx.mock
+def test_list_files_multi_page(assistants: Assistants) -> None:
+    """list_files() auto-paginates through multiple pages."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        side_effect=[
+            httpx.Response(
+                200,
+                json={
+                    "files": [make_assistant_file_response(id="f1", name="file1.pdf")],
+                    "next": "token-page2",
+                },
+            ),
+            httpx.Response(
+                200,
+                json={
+                    "files": [make_assistant_file_response(id="f2", name="file2.pdf")],
+                    "next": "token-page3",
+                },
+            ),
+            httpx.Response(
+                200,
+                json={
+                    "files": [make_assistant_file_response(id="f3", name="file3.pdf")],
+                },
+            ),
+        ]
+    )
+
+    result = assistants.list_files(assistant_name="test-assistant")
+
+    assert len(result) == 3
+    assert [f.id for f in result] == ["f1", "f2", "f3"]
+
+
+@respx.mock
+def test_list_files_propagates_filter_through_pages(assistants: Assistants) -> None:
+    """list_files() sends the same filter on every paginated request."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        side_effect=[
+            httpx.Response(
+                200,
+                json={
+                    "files": [make_assistant_file_response(id="f1", name="file1.pdf")],
+                    "next": "token-p2",
+                },
+            ),
+            httpx.Response(
+                200,
+                json={"files": [make_assistant_file_response(id="f2", name="file2.pdf")]},
+            ),
+        ]
+    )
+
+    assistants.list_files(
+        assistant_name="test-assistant",
+        filter={"genre": {"$eq": "comedy"}},
+    )
+
+    assert route.call_count == 2
+    for call_obj in route.calls:
+        assert "filter=" in str(call_obj.request.url)
+        assert "genre" in str(call_obj.request.url)
+
+
+# ---------------------------------------------------------------------------
+# delete_file() — success
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_delete_file_success(mock_sleep: object, assistants: Assistants) -> None:
+    """delete_file() sends DELETE then polls until 404 confirms deletion."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    delete_route = respx.delete(
+        f"{DATA_PLANE_URL}/files/test-assistant/file-abc123"
+    ).mock(return_value=httpx.Response(200))
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(404, json={"error": "Not found"}),
+    )
+
+    result = assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123")
+
+    assert result is None
+    assert delete_route.call_count == 1
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_delete_file_polls_until_gone(mock_sleep: object, assistants: Assistants) -> None:
+    """delete_file() polls describe_file every 5s; returns when 404 received."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200)
+    )
+    poll_route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        side_effect=[
+            httpx.Response(200, json=make_assistant_file_response(status="Deleting")),
+            httpx.Response(200, json=make_assistant_file_response(status="Deleting")),
+            httpx.Response(404, json={"error": "Not found"}),
+        ]
+    )
+
+    result = assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123")
+
+    assert result is None
+    assert poll_route.call_count == 3
+
+    from unittest.mock import call
+
+    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+        assert c == call(_DELETE_POLL_INTERVAL_SECONDS)
+
+
+@respx.mock
+def test_delete_file_timeout_minus_one_skips_polling(assistants: Assistants) -> None:
+    """delete_file(timeout=-1) returns immediately without polling."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    delete_route = respx.delete(
+        f"{DATA_PLANE_URL}/files/test-assistant/file-abc123"
+    ).mock(return_value=httpx.Response(200))
+
+    result = assistants.delete_file(
+        assistant_name="test-assistant", file_id="file-abc123", timeout=-1
+    )
+
+    assert result is None
+    assert delete_route.call_count == 1
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.monotonic")
+@patch("pinecone.client.assistants.time.sleep")
+def test_delete_file_timeout_raises(
+    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+) -> None:
+    """Exceeding timeout raises PineconeTimeoutError."""
+    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200)
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Deleting")),
+    )
+
+    with pytest.raises(PineconeTimeoutError, match="still exists after 10"):
+        assistants.delete_file(
+            assistant_name="test-assistant", file_id="file-abc123", timeout=10
+        )
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_delete_file_server_error_raises(mock_sleep: object, assistants: Assistants) -> None:
+    """delete_file() raises PineconeError if server-side deletion fails."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200)
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_assistant_file_response(
+                status="ProcessingFailed", error_message="Storage backend error"
+            ),
+        ),
+    )
+
+    with pytest.raises(PineconeError, match="Storage backend error"):
+        assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123")
