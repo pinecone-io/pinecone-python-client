@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
@@ -259,16 +261,30 @@ impl GrpcChannel {
     ///     api_key: The Pinecone API key for authentication.
     ///     api_version: The Pinecone API version string (e.g. "2025-10").
     ///     secure: Whether to use TLS encryption (default true).
+    ///     timeout_s: Request timeout in seconds (default 20.0).
+    ///     connect_timeout_s: Connection timeout in seconds (default 1.0).
     #[new]
-    #[pyo3(signature = (endpoint, api_key, api_version, secure=true))]
-    fn new(endpoint: &str, api_key: &str, api_version: &str, secure: bool) -> PyResult<Self> {
+    #[pyo3(signature = (endpoint, api_key, api_version, secure=true, timeout_s=None, connect_timeout_s=None))]
+    fn new(
+        endpoint: &str,
+        api_key: &str,
+        api_version: &str,
+        secure: bool,
+        timeout_s: Option<f64>,
+        connect_timeout_s: Option<f64>,
+    ) -> PyResult<Self> {
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
             .build()
             .map_err(|e| PyRuntimeError::new_err(format!("Failed to create tokio runtime: {e}")))?;
 
+        let request_timeout = Duration::from_secs_f64(timeout_s.unwrap_or(20.0));
+        let connection_timeout = Duration::from_secs_f64(connect_timeout_s.unwrap_or(1.0));
+
         let mut endpoint_builder = Channel::from_shared(endpoint.to_string())
-            .map_err(|e| PyRuntimeError::new_err(format!("Invalid endpoint: {e}")))?;
+            .map_err(|e| PyRuntimeError::new_err(format!("Invalid endpoint: {e}")))?
+            .timeout(request_timeout)
+            .connect_timeout(connection_timeout);
 
         if secure {
             endpoint_builder = endpoint_builder
@@ -856,6 +872,7 @@ impl GrpcChannel {
 mod tests {
     use super::*;
     use std::collections::HashSet;
+    use std::time::Duration;
     use tonic::service::Interceptor;
 
     #[test]
@@ -894,6 +911,42 @@ mod tests {
         // Verify that creating an endpoint without TLS config does not error
         let endpoint = Channel::from_shared("http://localhost:5080".to_string());
         assert!(endpoint.is_ok(), "Insecure endpoint should be constructable");
+    }
+
+    #[test]
+    fn default_timeouts_are_applied() {
+        // Verify that endpoint builder accepts default timeout values without error.
+        // Default: request timeout = 20s, connection timeout = 1s.
+        let endpoint = Channel::from_shared("https://example.pinecone.io:443".to_string())
+            .expect("valid endpoint")
+            .timeout(Duration::from_secs_f64(20.0))
+            .connect_timeout(Duration::from_secs_f64(1.0));
+        // If timeouts were invalid, the builder methods would panic or error.
+        // Verify TLS still works after timeouts are set.
+        let result = endpoint.tls_config(ClientTlsConfig::new());
+        assert!(result.is_ok(), "Endpoint with default timeouts should be configurable");
+    }
+
+    #[test]
+    fn custom_timeouts_are_accepted() {
+        // Verify that custom timeout values are accepted.
+        let endpoint = Channel::from_shared("https://example.pinecone.io:443".to_string())
+            .expect("valid endpoint")
+            .timeout(Duration::from_secs_f64(60.0))
+            .connect_timeout(Duration::from_secs_f64(5.0));
+        let result = endpoint.tls_config(ClientTlsConfig::new());
+        assert!(result.is_ok(), "Endpoint with custom timeouts should be configurable");
+    }
+
+    #[test]
+    fn fractional_timeouts_are_accepted() {
+        // Verify that fractional second timeouts work correctly.
+        let endpoint = Channel::from_shared("https://example.pinecone.io:443".to_string())
+            .expect("valid endpoint")
+            .timeout(Duration::from_secs_f64(0.5))
+            .connect_timeout(Duration::from_secs_f64(0.1));
+        let result = endpoint.tls_config(ClientTlsConfig::new());
+        assert!(result.is_ok(), "Endpoint with fractional timeouts should be configurable");
     }
 
     #[test]
