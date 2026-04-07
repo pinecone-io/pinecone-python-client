@@ -134,7 +134,7 @@ def build_create_body(
     elif isinstance(spec, PodSpec):
         body["spec"] = {"pod": msgspec.to_builtins(spec)}
     elif isinstance(spec, dict):
-        body["spec"] = spec
+        body["spec"] = {k: dict(v) if isinstance(v, dict) else v for k, v in spec.items()}
 
     if schema is not None:
         normalized = _normalize_schema(schema)
