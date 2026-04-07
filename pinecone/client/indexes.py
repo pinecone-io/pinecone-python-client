@@ -177,7 +177,7 @@ class Indexes:
         self._host_cache.pop(name, None)
         logger.debug("Deleted index %r", name)
 
-        if timeout is None:
+        if timeout is None or timeout == -1:
             return
 
         start = time.monotonic()

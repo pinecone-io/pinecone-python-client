@@ -108,6 +108,20 @@ def test_delete_timeout_none_no_polling(indexes: Indexes) -> None:
 
 
 @respx.mock
+def test_delete_timeout_negative_one_skips_polling(indexes: Indexes) -> None:
+    """With timeout=-1, return immediately after API call — no polling."""
+    respx.delete(f"{BASE_URL}/indexes/test-index").mock(
+        return_value=httpx.Response(202),
+    )
+    describe_route = respx.get(f"{BASE_URL}/indexes/test-index")
+
+    result = indexes.delete("test-index", timeout=-1)
+
+    assert result is None
+    assert describe_route.call_count == 0
+
+
+@respx.mock
 def test_delete_timeout_exceeded(indexes: Indexes, no_sleep: None) -> None:
     """If index still exists after timeout, raise PineconeError."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(

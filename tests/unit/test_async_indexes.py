@@ -232,6 +232,20 @@ async def test_delete_polls_until_gone(async_indexes: AsyncIndexes) -> None:
 
 
 @respx.mock
+async def test_delete_timeout_negative_one_skips_polling(async_indexes: AsyncIndexes) -> None:
+    """With timeout=-1, return immediately after API call — no polling."""
+    respx.delete(f"{BASE_URL}/indexes/test-index").mock(
+        return_value=httpx.Response(202),
+    )
+    describe_route = respx.get(f"{BASE_URL}/indexes/test-index")
+
+    result = await async_indexes.delete("test-index", timeout=-1)
+
+    assert result is None
+    assert describe_route.call_count == 0
+
+
+@respx.mock
 async def test_delete_timeout_exceeded(async_indexes: AsyncIndexes) -> None:
     """If index still exists after timeout, raise PineconeTimeoutError."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
