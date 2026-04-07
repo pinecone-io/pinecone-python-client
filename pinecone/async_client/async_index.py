@@ -9,7 +9,7 @@ from collections.abc import AsyncIterator, Sequence
 from typing import Any
 
 from pinecone._internal.adapters.imports_adapter import ImportsAdapter
-from pinecone._internal.adapters.vectors_adapter import VectorsAdapter
+from pinecone._internal.adapters.vectors_adapter import VectorsAdapter, extract_response_info
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host, _vector_to_dict
@@ -172,12 +172,14 @@ class AsyncIndex:
         ndjson_body = "\n".join(ndjson_lines) + "\n"
 
         logger.info("Upserting %d records into namespace %r (NDJSON)", len(records), namespace)
-        await self._http.post(
+        response = await self._http.post(
             f"/records/namespaces/{namespace}/upsert",
             content=ndjson_body.encode("utf-8"),
             headers={"Content-Type": "application/x-ndjson"},
         )
-        return UpsertRecordsResponse(record_count=len(records))
+        result = UpsertRecordsResponse(record_count=len(records))
+        result.response_info = extract_response_info(response)
+        return result
 
     async def upsert(
         self,
@@ -233,6 +235,7 @@ class AsyncIndex:
         logger.info("Upserting %d vectors into namespace %r", len(built), namespace)
         response = await self._http.post("/vectors/upsert", json=body)
         result = self._adapter.to_upsert_response(response.content)
+        result.response_info = extract_response_info(response)
         logger.debug("Upserted %d vectors", result.upserted_count)
         return result
 
@@ -333,6 +336,7 @@ class AsyncIndex:
         logger.info("Querying index with top_k=%d", top_k)
         response = await self._http.post("/query", json=body)
         result = self._adapter.to_query_response(response.content)
+        result.response_info = extract_response_info(response)
         logger.debug("Query returned %d matches", len(result.matches))
         return result
 
@@ -454,6 +458,7 @@ class AsyncIndex:
         logger.info("Fetching %d vectors", len(ids))
         response = await self._http.get("/vectors/fetch", params=params)
         result = self._adapter.to_fetch_response(response.content)
+        result.response_info = extract_response_info(response)
         logger.debug("Fetched %d vectors", len(result.vectors))
         return result
 
@@ -517,7 +522,9 @@ class AsyncIndex:
 
         logger.info("Fetching vectors by metadata")
         response = await self._http.post("/vectors/fetch_by_metadata", json=body)
-        return self._adapter.to_fetch_by_metadata_response(response.content)
+        result = self._adapter.to_fetch_by_metadata_response(response.content)
+        result.response_info = extract_response_info(response)
+        return result
 
     async def delete(
         self,
@@ -625,7 +632,9 @@ class AsyncIndex:
 
         logger.info("Updating vectors in namespace %r", namespace)
         response = await self._http.post("/vectors/update", json=body)
-        return self._adapter.to_update_response(response.content)
+        result = self._adapter.to_update_response(response.content)
+        result.response_info = extract_response_info(response)
+        return result
 
     async def search(
         self,
@@ -712,7 +721,9 @@ class AsyncIndex:
 
         logger.info("Searching namespace %r with top_k=%d", namespace, top_k)
         response = await self._http.post(f"/records/namespaces/{namespace}/search", json=body)
-        return self._adapter.to_search_response(response.content)
+        result = self._adapter.to_search_response(response.content)
+        result.response_info = extract_response_info(response)
+        return result
 
     async def search_records(
         self,
@@ -773,7 +784,9 @@ class AsyncIndex:
 
         logger.info("Listing vectors in namespace %r", namespace)
         response = await self._http.get("/vectors/list", params=params)
-        return self._adapter.to_list_response(response.content)
+        result = self._adapter.to_list_response(response.content)
+        result.response_info = extract_response_info(response)
+        return result
 
     async def list(
         self,
@@ -837,7 +850,9 @@ class AsyncIndex:
 
         logger.info("Describing index stats")
         response = await self._http.post("/describe_index_stats", json=body)
-        return self._adapter.to_stats_response(response.content)
+        result = self._adapter.to_stats_response(response.content)
+        result.response_info = extract_response_info(response)
+        return result
 
     async def create_namespace(
         self,
