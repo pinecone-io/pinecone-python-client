@@ -171,6 +171,14 @@ class Index:
            :meth:`upsert_from_dataframe` which handles batching automatically.
            For very large datasets (millions of vectors), consider
            :meth:`start_import` for bulk import from cloud storage.
+
+        .. seealso::
+           - :meth:`upsert_records` — for indexes with integrated inference
+             (text in, server-side embedding).
+           - :meth:`upsert_from_dataframe` — for loading from a pandas
+             DataFrame with automatic batching.
+           - :meth:`start_import` — for bulk loading millions of vectors
+             from cloud storage (S3, GCS).
         """
         built = [VectorFactory.build(v) for v in vectors]
         body: dict[str, Any] = {
@@ -217,6 +225,14 @@ class Index:
             RuntimeError: If ``pandas`` is not installed.
             ValueError: If *df* is not a ``pandas.DataFrame``.
             ValueError: If *batch_size* is not a positive integer.
+
+        .. seealso::
+           - :meth:`upsert` — for upserting vectors directly (single batch,
+             no DataFrame dependency).
+           - :meth:`upsert_records` — for indexes with integrated inference
+             (text in, server-side embedding).
+           - :meth:`start_import` — for bulk loading millions of vectors
+             from cloud storage (S3, GCS).
         """
         try:
             import pandas as pd  # type: ignore[import-untyped]
@@ -299,6 +315,14 @@ class Index:
                 ],
             )
             print(response.record_count)
+
+        .. seealso::
+           - :meth:`upsert` — for indexes where you provide your own vectors
+             (no server-side embedding).
+           - :meth:`upsert_from_dataframe` — for loading vectors from a
+             pandas DataFrame with automatic batching.
+           - :meth:`start_import` — for bulk loading millions of vectors
+             from cloud storage (S3, GCS).
         """
         if not records:
             raise ValidationError("records must be a non-empty list")
@@ -1288,6 +1312,14 @@ class Index:
             ...     uri="s3://my-bucket/vectors/",
             ...     error_mode="abort",
             ... )
+
+        .. seealso::
+           - :meth:`upsert` — for upserting vectors directly in small
+             batches (single request per call).
+           - :meth:`upsert_records` — for indexes with integrated inference
+             (text in, server-side embedding).
+           - :meth:`upsert_from_dataframe` — for loading vectors from a
+             pandas DataFrame with automatic batching.
         """
         error_mode = error_mode.lower()
         if error_mode not in ("continue", "abort"):
