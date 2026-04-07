@@ -631,6 +631,20 @@ class GrpcIndex:
         """Submit an upsert operation and return a :class:`PineconeFuture`.
 
         Same parameters as :meth:`upsert`.
+
+        Returns:
+            :class:`PineconeFuture` [:class:`UpsertResponse`] that resolves to
+            the upsert result.
+
+        Examples:
+            Submit an upsert and retrieve the result:
+
+            >>> future = index.upsert_async(
+            ...     vectors=[("doc-42", [0.012, -0.087, 0.153])],
+            ... )
+            >>> result = future.result()
+            >>> result.upserted_count
+            1
         """
         future: PineconeFuture[UpsertResponse] = PineconeFuture(
             self._executor.submit(self.upsert, vectors=vectors, namespace=namespace)
@@ -654,6 +668,23 @@ class GrpcIndex:
         """Submit a query operation and return a :class:`PineconeFuture`.
 
         Same parameters as :meth:`query`.
+
+        Returns:
+            :class:`PineconeFuture` [:class:`QueryResponse`] that resolves to
+            the query result containing scored matches.
+
+        Examples:
+            Submit a query and inspect the top match:
+
+            >>> future = index.query_async(
+            ...     vector=[0.012, -0.087, 0.153],
+            ...     top_k=5,
+            ... )
+            >>> result = future.result()
+            >>> result.matches[0].id
+            'doc-42'
+            >>> result.matches[0].score
+            0.95
         """
         future: PineconeFuture[QueryResponse] = PineconeFuture(
             self._executor.submit(
@@ -681,6 +712,18 @@ class GrpcIndex:
         """Submit a fetch operation and return a :class:`PineconeFuture`.
 
         Same parameters as :meth:`fetch`.
+
+        Returns:
+            :class:`PineconeFuture` [:class:`FetchResponse`] that resolves to
+            the fetched vectors keyed by ID.
+
+        Examples:
+            Fetch vectors by ID and inspect the result:
+
+            >>> future = index.fetch_async(ids=["doc-42", "doc-43"])
+            >>> result = future.result()
+            >>> result.vectors["doc-42"].values
+            [0.012, -0.087, 0.153]
         """
         future: PineconeFuture[FetchResponse] = PineconeFuture(
             self._executor.submit(self.fetch, ids=ids, namespace=namespace)
@@ -698,6 +741,21 @@ class GrpcIndex:
         """Submit a delete operation and return a :class:`PineconeFuture`.
 
         Same parameters as :meth:`delete`.
+
+        Returns:
+            :class:`PineconeFuture` [None] that resolves when the delete
+            operation completes.
+
+        Examples:
+            Delete vectors by ID and wait for completion:
+
+            >>> future = index.delete_async(ids=["doc-42", "doc-43"])
+            >>> future.result()
+
+            Delete all vectors in a namespace:
+
+            >>> future = index.delete_async(delete_all=True, namespace="docs")
+            >>> future.result()
         """
         future: PineconeFuture[None] = PineconeFuture(
             self._executor.submit(
