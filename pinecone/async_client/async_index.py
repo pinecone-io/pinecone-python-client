@@ -623,6 +623,7 @@ class AsyncIndex:
         filter: dict[str, Any] | None = None,
         fields: list[str] | None = None,
         rerank: dict[str, Any] | None = None,
+        match_terms: dict[str, Any] | None = None,
     ) -> SearchRecordsResponse:
         """Search records by text, vector, or ID with optional reranking.
 
@@ -642,6 +643,11 @@ class AsyncIndex:
             rerank (dict[str, Any] | None): Reranking configuration with
                 ``model`` (required), ``rank_fields`` (required), and optional
                 ``top_n``, ``parameters``, ``query`` keys.
+            match_terms (dict[str, Any] | None): Term-matching constraint for
+                sparse search. Requires keys ``"strategy"`` (currently only
+                ``"all"``) and ``"terms"`` (list of strings). Only supported
+                for sparse indexes using ``pinecone-sparse-english-v0``.
+                ``None`` disables term matching.
 
         Returns:
             SearchRecordsResponse with hits and usage statistics.
@@ -680,6 +686,8 @@ class AsyncIndex:
             query_body["id"] = id
         if filter is not None:
             query_body["filter"] = filter
+        if match_terms is not None:
+            query_body["match_terms"] = match_terms
 
         body: dict[str, Any] = {"query": query_body}
         if fields is not None:
@@ -702,6 +710,7 @@ class AsyncIndex:
         filter: dict[str, Any] | None = None,
         fields: list[str] | None = None,
         rerank: dict[str, Any] | None = None,
+        match_terms: dict[str, Any] | None = None,
     ) -> SearchRecordsResponse:
         """Alias for :meth:`search` with identical behavior."""
         return await self.search(
@@ -713,6 +722,7 @@ class AsyncIndex:
             filter=filter,
             fields=fields,
             rerank=rerank,
+            match_terms=match_terms,
         )
 
     async def list_paginated(

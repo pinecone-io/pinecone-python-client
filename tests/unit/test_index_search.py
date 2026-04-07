@@ -163,6 +163,40 @@ class TestSearch:
             idx.search("ns", 10)  # type: ignore[misc]
 
     @respx.mock
+    def test_search_match_terms_included_in_query_body(self) -> None:
+        route = respx.post(SEARCH_URL_NS).mock(
+            return_value=httpx.Response(200, json=SEARCH_RESPONSE),
+        )
+        idx = _make_index()
+        idx.search(
+            namespace="test-ns",
+            top_k=10,
+            inputs={"text": "hello"},
+            match_terms={"strategy": "all", "terms": ["animal", "duck"]},
+        )
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["query"]["match_terms"] == {
+            "strategy": "all",
+            "terms": ["animal", "duck"],
+        }
+
+    @respx.mock
+    def test_search_match_terms_omitted_when_none(self) -> None:
+        route = respx.post(SEARCH_URL_NS).mock(
+            return_value=httpx.Response(200, json=SEARCH_RESPONSE),
+        )
+        idx = _make_index()
+        idx.search(namespace="test-ns", top_k=10, inputs={"text": "hello"})
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert "match_terms" not in body["query"]
+
+    @respx.mock
     def test_search_default_fields_none(self) -> None:
         route = respx.post(SEARCH_URL_NS).mock(
             return_value=httpx.Response(200, json=SEARCH_RESPONSE),
