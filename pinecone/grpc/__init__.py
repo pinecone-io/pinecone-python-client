@@ -211,6 +211,9 @@ class GrpcIndex:
         filter: dict[str, Any] | None = None,
         include_values: bool = False,
         include_metadata: bool = False,
+        sparse_vector: SparseValues | dict[str, Any] | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
     ) -> QueryResponse:
         """Query a namespace for the nearest neighbors of a vector.
 
@@ -222,6 +225,14 @@ class GrpcIndex:
             filter (dict[str, Any] | None): Metadata filter expression.
             include_values (bool): Whether to include vector values in results.
             include_metadata (bool): Whether to include metadata in results.
+            sparse_vector (SparseValues | dict[str, Any] | None): Sparse query vector
+                with indices and values.
+            scan_factor (float | None): DRN optimization — adjusts how much of the
+                index is scanned. Range 0.5–4.0. Only supported for dedicated read
+                node indexes. None uses server default.
+            max_candidates (int | None): DRN optimization — caps candidate vectors to
+                rerank. Range 1–100000. Only supported for dedicated read node indexes.
+                None uses server default.
 
         Returns:
             QueryResponse with matches, namespace, and usage info.
@@ -239,6 +250,17 @@ class GrpcIndex:
         if not has_vector and not has_id:
             raise ValidationError("Exactly one of vector or id must be provided, got neither")
 
+        # Convert SparseValues model to dict for GrpcChannel
+        sv_dict: dict[str, Any] | None = None
+        if sparse_vector is not None:
+            if isinstance(sparse_vector, SparseValues):
+                sv_dict = {
+                    "indices": sparse_vector.indices,
+                    "values": sparse_vector.values,
+                }
+            else:
+                sv_dict = sparse_vector
+
         logger.info("Querying index via gRPC with top_k=%d", top_k)
         result = self._channel.query(
             top_k,
@@ -248,6 +270,9 @@ class GrpcIndex:
             filter=filter,
             include_values=include_values,
             include_metadata=include_metadata,
+            sparse_vector=sv_dict,
+            scan_factor=scan_factor,
+            max_candidates=max_candidates,
         )
 
         matches = [_dict_to_scored_vector(m) for m in result.get("matches", [])]

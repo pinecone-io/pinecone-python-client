@@ -217,6 +217,9 @@ class TestQuery:
             filter=None,
             include_values=False,
             include_metadata=False,
+            sparse_vector=None,
+            scan_factor=None,
+            max_candidates=None,
         )
 
     def test_query_validates_top_k(self, grpc_index: GrpcIndex) -> None:

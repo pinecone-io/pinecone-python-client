@@ -504,7 +504,7 @@ impl GrpcChannel {
     ///
     /// Returns:
     ///     Dict with "matches" (list of scored vector dicts) and "namespace".
-    #[pyo3(signature = (top_k, vector=None, id=None, namespace=None, filter=None, include_values=false, include_metadata=false))]
+    #[pyo3(signature = (top_k, vector=None, id=None, namespace=None, filter=None, include_values=false, include_metadata=false, sparse_vector=None, scan_factor=None, max_candidates=None))]
     #[allow(clippy::too_many_arguments)]
     fn query(
         &self,
@@ -516,6 +516,9 @@ impl GrpcChannel {
         filter: Option<Bound<'_, PyDict>>,
         include_values: bool,
         include_metadata: bool,
+        sparse_vector: Option<Bound<'_, PyDict>>,
+        scan_factor: Option<f32>,
+        max_candidates: Option<u32>,
     ) -> PyResult<Py<PyDict>> {
         #[allow(deprecated)]
         let request = proto::QueryRequest {
@@ -526,10 +529,12 @@ impl GrpcChannel {
             include_metadata,
             queries: vec![],
             vector: vector.unwrap_or_default(),
-            sparse_vector: None,
+            sparse_vector: sparse_vector
+                .map(|sv| py_dict_to_sparse_values(&sv))
+                .transpose()?,
             id: id.unwrap_or("").to_string(),
-            scan_factor: None,
-            max_candidates: None,
+            scan_factor,
+            max_candidates,
         };
 
         let client = self.client.clone();
