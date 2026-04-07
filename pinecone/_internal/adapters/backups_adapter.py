@@ -7,19 +7,14 @@ from msgspec import Struct
 
 from pinecone.models.backups.list import BackupList
 from pinecone.models.backups.model import BackupModel, CreateIndexFromBackupResponse
-
-
-class _Pagination(Struct, kw_only=True):
-    """Pagination token from the backup list response."""
-
-    next: str | None = None
+from pinecone.models.vectors.responses import Pagination
 
 
 class _BackupListEnvelope(Struct, kw_only=True):
     """Internal envelope for the list-backups response."""
 
     data: list[BackupModel] = []
-    pagination: _Pagination | None = None
+    pagination: Pagination | None = None
 
 
 class BackupsAdapter:
@@ -34,7 +29,7 @@ class BackupsAdapter:
     def to_backup_list(data: bytes) -> BackupList:
         """Decode raw JSON bytes from a list-backups response into a BackupList."""
         envelope = msgspec.json.decode(data, type=_BackupListEnvelope)
-        return BackupList(envelope.data)
+        return BackupList(envelope.data, pagination=envelope.pagination)
 
     @staticmethod
     def to_create_index_from_backup_response(data: bytes) -> CreateIndexFromBackupResponse:

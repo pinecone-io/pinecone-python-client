@@ -146,6 +146,40 @@ def test_list_backups_pagination_params(backups: Backups) -> None:
     assert request.url.params["paginationToken"] == "token-xyz"
 
 
+@respx.mock
+def test_list_backups_pagination_token_preserved(backups: Backups) -> None:
+    respx.get(f"{BASE_URL}/backups").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "data": [make_backup_response()],
+                "pagination": {"next": "token-abc"},
+            },
+        ),
+    )
+
+    result = backups.list()
+
+    assert isinstance(result, BackupList)
+    assert result.pagination is not None
+    assert result.pagination.next == "token-abc"
+
+
+@respx.mock
+def test_list_backups_no_pagination(backups: Backups) -> None:
+    respx.get(f"{BASE_URL}/backups").mock(
+        return_value=httpx.Response(
+            200,
+            json={"data": [make_backup_response()]},
+        ),
+    )
+
+    result = backups.list()
+
+    assert isinstance(result, BackupList)
+    assert result.pagination is None
+
+
 # ---------------------------------------------------------------------------
 # describe()
 # ---------------------------------------------------------------------------

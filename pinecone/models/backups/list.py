@@ -14,14 +14,22 @@ if TYPE_CHECKING:
 class BackupList:
     """Wrapper around a list of BackupModel with convenience methods."""
 
-    def __init__(self, backups: list[BackupModel]) -> None:
+    def __init__(
+        self,
+        backups: list[BackupModel],
+        *,
+        pagination: Pagination | None = None,
+    ) -> None:
         """Initialize a BackupList.
 
         Args:
             backups: List of :class:`BackupModel` instances representing
                 index backups.
+            pagination: Optional :class:`Pagination` token for fetching
+                additional pages of results.
         """
         self._backups = backups
+        self.pagination = pagination
 
     def __iter__(self) -> Iterator[BackupModel]:
         return iter(self._backups)
