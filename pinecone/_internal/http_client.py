@@ -200,17 +200,19 @@ def _raise_for_status(response: httpx.Response) -> None:
         message = f"Request failed with status {response.status_code}"
 
     status = response.status_code
+    reason = response.reason_phrase
+    headers = dict(response.headers)
     if status == 401:
-        raise UnauthorizedError(message=message, status_code=status, body=body)
+        raise UnauthorizedError(message=message, status_code=status, body=body, reason=reason, headers=headers)
     if status == 403:
-        raise ForbiddenError(message=message, status_code=status, body=body)
+        raise ForbiddenError(message=message, status_code=status, body=body, reason=reason, headers=headers)
     if status == 404:
-        raise NotFoundError(message=message, status_code=status, body=body)
+        raise NotFoundError(message=message, status_code=status, body=body, reason=reason, headers=headers)
     if status == 409:
-        raise ConflictError(message=message, status_code=status, body=body)
+        raise ConflictError(message=message, status_code=status, body=body, reason=reason, headers=headers)
     if 500 <= status <= 599:
-        raise ServiceError(message=message, status_code=status, body=body)
-    raise ApiError(message=message, status_code=status, body=body)
+        raise ServiceError(message=message, status_code=status, body=body, reason=reason, headers=headers)
+    raise ApiError(message=message, status_code=status, body=body, reason=reason, headers=headers)
 
 
 class HTTPClient:
