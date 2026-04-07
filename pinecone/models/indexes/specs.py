@@ -31,11 +31,11 @@ class EmbedConfig(Struct, frozen=True, kw_only=True):
         Read and write parameters default to empty dicts when not set.
         """
         result: dict[str, Any] = {
-            "model": self.model,
+            "model": self.model.value if hasattr(self.model, "value") else self.model,
             "field_map": self.field_map,
         }
         if self.metric is not None:
-            result["metric"] = self.metric
+            result["metric"] = self.metric.value if hasattr(self.metric, "value") else self.metric
         result["read_parameters"] = self.read_parameters if self.read_parameters is not None else {}
         result["write_parameters"] = self.write_parameters if self.write_parameters is not None else {}
         return result

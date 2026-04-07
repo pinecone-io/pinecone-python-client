@@ -14,7 +14,7 @@ from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.client.indexes import Indexes
 from pinecone.errors.exceptions import PineconeError, ValidationError
-from pinecone.models.enums import EmbedModel
+from pinecone.models.enums import EmbedModel, Metric
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.specs import EmbedConfig, IntegratedSpec
 from tests.factories import make_index_response
@@ -408,3 +408,53 @@ def test_integrated_spec_is_immutable() -> None:
     )
     with pytest.raises(AttributeError):
         spec.cloud = "gcp"  # type: ignore[misc]
+
+
+# ---------------------------------------------------------------------------
+# EmbedConfig.to_dict() serialization
+# ---------------------------------------------------------------------------
+
+
+def test_embed_config_to_dict_basic() -> None:
+    """to_dict serializes model, field_map, and defaults for read/write params."""
+    config = EmbedConfig(model="multilingual-e5-large", field_map={"text": "content"})
+    result = config.to_dict()
+    assert result == {
+        "model": "multilingual-e5-large",
+        "field_map": {"text": "content"},
+        "read_parameters": {},
+        "write_parameters": {},
+    }
+
+
+def test_embed_config_to_dict_with_enum_metric() -> None:
+    """Metric enum values are resolved to their string value in to_dict."""
+    config = EmbedConfig(
+        model="multilingual-e5-large",
+        field_map={"text": "content"},
+        metric=Metric.COSINE,
+    )
+    result = config.to_dict()
+    assert result["metric"] == "cosine"
+    assert not isinstance(result["metric"], Metric)
+
+
+def test_embed_config_to_dict_with_read_write_params() -> None:
+    """Explicit read/write parameters are included as-is."""
+    config = EmbedConfig(
+        model="multilingual-e5-large",
+        field_map={"text": "content"},
+        read_parameters={"k": 10},
+        write_parameters={"batch": 32},
+    )
+    result = config.to_dict()
+    assert result["read_parameters"] == {"k": 10}
+    assert result["write_parameters"] == {"batch": 32}
+
+
+def test_embed_config_to_dict_defaults_empty_params() -> None:
+    """Omitted read/write parameters default to empty dicts."""
+    config = EmbedConfig(model="multilingual-e5-large", field_map={"text": "content"})
+    result = config.to_dict()
+    assert result["read_parameters"] == {}
+    assert result["write_parameters"] == {}
