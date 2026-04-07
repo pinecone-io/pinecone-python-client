@@ -61,7 +61,7 @@ class GrpcChannelProtocol(Protocol):
 
     def update(
         self,
-        id: str,
+        id: str | None,
         *,
         values: list[float] | None = None,
         sparse_values: dict[str, Any] | None = None,

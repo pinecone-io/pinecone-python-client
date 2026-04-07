@@ -470,7 +470,7 @@ class GrpcIndex:
 
         logger.info("Updating vectors via gRPC in namespace %r", namespace)
         result = self._channel.update(
-            id or "",
+            id,
             values=values,
             sparse_values=sv_dict,
             set_metadata=set_metadata,
