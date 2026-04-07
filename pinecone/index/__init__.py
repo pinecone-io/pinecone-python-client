@@ -146,6 +146,8 @@ class Index:
             PineconeValueError: If a vector element is malformed.
             ApiError: If the API returns an error response (e.g. authentication
                 failure or server error).
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -339,6 +341,8 @@ class Index:
             ValidationError: If records is empty or a record is missing an
                 identifier field.
             ApiError: If the API returns an error response.
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -433,6 +437,8 @@ class Index:
             ValidationError: If top_k < 1, or both/neither vector and id provided.
             ApiError: If the API returns an error response (e.g. authentication
                 failure or server error).
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -531,6 +537,8 @@ class Index:
             ValidationError: If *namespaces* or *vector* is empty.
             ValueError: If *metric* is not a recognized value.
             ApiError: If any individual namespace query fails.
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -596,6 +604,8 @@ class Index:
             ValidationError: If ids is empty.
             ApiError: If the API returns an error response (e.g. authentication
                 failure or server error).
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -707,6 +717,8 @@ class Index:
             ValidationError: If zero or more than one deletion mode is specified.
             ApiError: If the API returns an error response (e.g. authentication
                 failure or server error).
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -775,6 +787,8 @@ class Index:
             ValidationError: If both or neither of id and filter are provided.
             ApiError: If the API returns an error response (e.g. authentication
                 failure or server error).
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -841,6 +855,8 @@ class Index:
         Raises:
             ApiError: If the API returns an error response (e.g. authentication
                 failure or server error).
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -910,6 +926,8 @@ class Index:
             ValidationError: If ``namespace`` is not a string, ``top_k < 1``,
                 or ``rerank`` is missing required keys.
             ApiError: If the API returns an error response.
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -1025,6 +1043,8 @@ class Index:
             ValidationError: If the name is not a string or is empty/whitespace.
             ApiError: If the API returns an error response (e.g. 409 conflict
                 when namespace already exists).
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -1066,6 +1086,8 @@ class Index:
         Raises:
             ValidationError: If the name is not a string or is empty/whitespace.
             ApiError: If the API returns an error response.
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -1097,6 +1119,8 @@ class Index:
         Raises:
             ValidationError: If the name is not a string or is empty/whitespace.
             ApiError: If the API returns an error response.
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -1326,6 +1350,8 @@ class Index:
         Raises:
             ValidationError: If ``error_mode`` is not ``"continue"`` or ``"abort"``.
             ApiError: If the API returns an error response.
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
             Start an import and poll until complete:
@@ -1383,6 +1409,8 @@ class Index:
         Raises:
             ValidationError: If the ID is empty or exceeds 1000 characters.
             ApiError: If the API returns an error response.
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -1406,6 +1434,8 @@ class Index:
         Raises:
             ValidationError: If the ID is empty or exceeds 1000 characters.
             ApiError: If the API returns an error response.
+            PineconeConnectionError: If a network-level connection fails (DNS, refused, transport error).
+            PineconeTimeoutError: If the request exceeds the configured timeout.
 
         Examples:
 
