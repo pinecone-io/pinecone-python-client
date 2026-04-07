@@ -41,8 +41,8 @@ class Admin:
         additional_headers: Extra headers included in every admin API request.
 
     Raises:
-        ValidationError: If client_id or client_secret cannot be resolved.
-        ApiError: If the OAuth token request fails.
+        :exc:`ValidationError`: If client_id or client_secret cannot be resolved.
+        :exc:`ApiError`: If the OAuth token request fails.
 
     Examples:
 
@@ -200,7 +200,13 @@ class Admin:
         Lazily imported and instantiated on first access.
 
         Returns:
-            Organizations namespace instance.
+            :class:`Organizations` namespace instance.
+
+        Examples:
+
+            admin = Admin(client_id="my-client-id", client_secret="my-secret")
+            for org in admin.organizations.list():
+                print(org.name)
         """
         if self._organizations is None:
             from pinecone.admin.organizations import Organizations as _Organizations
@@ -215,7 +221,13 @@ class Admin:
         Lazily imported and instantiated on first access.
 
         Returns:
-            Projects namespace instance.
+            :class:`Projects` namespace instance.
+
+        Examples:
+
+            admin = Admin(client_id="my-client-id", client_secret="my-secret")
+            for project in admin.projects.list():
+                print(project.name)
         """
         if self._projects is None:
             from pinecone.admin.projects import Projects as _Projects
@@ -230,7 +242,14 @@ class Admin:
         Lazily imported and instantiated on first access.
 
         Returns:
-            ApiKeys namespace instance.
+            :class:`ApiKeys` namespace instance.
+
+        Examples:
+
+            admin = Admin(client_id="my-client-id", client_secret="my-secret")
+            keys = admin.api_keys.list(project_id="proj-abc123")
+            for key in keys:
+                print(key.key.id)
         """
         if self._api_keys is None:
             from pinecone.admin.api_keys import ApiKeys as _ApiKeys

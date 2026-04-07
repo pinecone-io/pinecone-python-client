@@ -316,9 +316,9 @@ class Projects:
             retry_delay: Seconds to wait between retry attempts. Defaults to 30.0.
 
         Raises:
-            PineconeError: If no admin back-reference is available.
-            ValidationError: If *project_id* is empty.
-            ApiError: If resource cleanup or project deletion fails after all retries.
+            :exc:`PineconeError`: If no admin back-reference is available.
+            :exc:`ValidationError`: If *project_id* is empty.
+            :exc:`ApiError`: If resource cleanup or project deletion fails after all retries.
 
         Examples:
             >>> admin = Admin(client_id="my-id", client_secret="my-secret")
