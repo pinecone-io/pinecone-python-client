@@ -53,6 +53,27 @@ class AsyncPinecone:
 
         async with AsyncPinecone(api_key="your-api-key") as pc:
             indexes = await pc.indexes.list()
+
+    .. note:: **Differences from sync Pinecone**
+
+        1. **index(name=...) requires a cached host.** Unlike the sync
+           ``Pinecone`` client, ``AsyncPinecone.index()`` is a synchronous
+           factory and cannot auto-resolve an index host from its name.
+           Call ``await pc.indexes.describe(name)`` first to populate the
+           cache, then create the data-plane client::
+
+               desc = await pc.indexes.describe("my-index")
+               idx = pc.index("my-index")          # uses cached host
+               # — or —
+               idx = pc.index(host=desc.host)       # explicit host
+
+        2. **upsert_from_dataframe() is not supported.** ``AsyncIndex``
+           raises ``NotImplementedError`` for this method. Use batched
+           ``upsert()`` calls instead.
+
+        3. **No grpc parameter on index().** Async gRPC transport is not
+           yet available, so the ``grpc`` option accepted by the sync
+           client is absent here.
     """
 
     def __init__(
