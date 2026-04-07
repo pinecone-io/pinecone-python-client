@@ -11,7 +11,7 @@ from pinecone._internal.adapters.inference_adapter import (
     normalize_rerank_documents,
 )
 from pinecone._internal.constants import INFERENCE_API_VERSION
-from pinecone._internal.validation import require_non_empty
+from pinecone._internal.validation import require_non_empty, require_one_of
 from pinecone.models import enums as _enums
 
 if TYPE_CHECKING:
@@ -193,6 +193,7 @@ class Inference:
             A :class:`ModelInfoList` supporting iteration, len(), and ``.names()``.
 
         Raises:
+            :exc:`ValidationError`: If *type* or *vector_type* is not a valid value.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -208,6 +209,11 @@ class Inference:
 
             >>> embed_models = pc.inference.list_models(type="embed")
         """
+        if type is not None:
+            require_one_of("type", type, ("embed", "rerank"))
+        if vector_type is not None:
+            require_one_of("vector_type", vector_type, ("dense", "sparse"))
+
         params: dict[str, Any] = {}
         if type is not None:
             params["type"] = type

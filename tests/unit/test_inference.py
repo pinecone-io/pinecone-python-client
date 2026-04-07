@@ -330,6 +330,16 @@ def test_list_models_filter_by_vector_type(inference: Inference) -> None:
     assert request.url.params["vector_type"] == "dense"
 
 
+def test_list_models_invalid_type_raises(inference: Inference) -> None:
+    with pytest.raises(ValidationError, match="must be one of"):
+        inference.list_models(type="invalid")
+
+
+def test_list_models_invalid_vector_type_raises(inference: Inference) -> None:
+    with pytest.raises(ValidationError, match="must be one of"):
+        inference.list_models(vector_type="invalid")
+
+
 @respx.mock
 def test_list_models_both_filters(inference: Inference) -> None:
     route = respx.get(f"{BASE_URL}/models").mock(

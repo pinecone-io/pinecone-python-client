@@ -10,6 +10,7 @@ import respx
 
 from pinecone._internal.config import PineconeConfig
 from pinecone.async_client.inference import AsyncInference
+from pinecone.errors.exceptions import ValidationError
 from pinecone.models.enums import EmbedModel, RerankModel
 from pinecone.models.inference.embed import EmbeddingsList
 from pinecone.models.inference.model_list import ModelInfoList
@@ -134,6 +135,18 @@ async def test_async_list_models(inference: AsyncInference) -> None:
     assert len(result) == 2
     assert result.names() == ["multilingual-e5-large", "bge-reranker-v2-m3"]
     assert route.called
+
+
+@pytest.mark.asyncio
+async def test_async_list_models_invalid_type_raises(inference: AsyncInference) -> None:
+    with pytest.raises(ValidationError, match="must be one of"):
+        await inference.list_models(type="invalid")
+
+
+@pytest.mark.asyncio
+async def test_async_list_models_invalid_vector_type_raises(inference: AsyncInference) -> None:
+    with pytest.raises(ValidationError, match="must be one of"):
+        await inference.list_models(vector_type="invalid")
 
 
 # ---------------------------------------------------------------------------
