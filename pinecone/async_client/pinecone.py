@@ -351,6 +351,11 @@ class AsyncPinecone:
                 api_key=self._config.api_key,
                 additional_headers=dict(self._config.additional_headers),
                 timeout=self._config.timeout,
+                proxy_url=self._config.proxy_url,
+                ssl_ca_certs=self._config.ssl_ca_certs,
+                ssl_verify=self._config.ssl_verify,
+                source_tag=self._config.source_tag,
+                connection_pool_maxsize=self._config.connection_pool_maxsize,
             )
 
         if name:
@@ -362,6 +367,11 @@ class AsyncPinecone:
                     api_key=self._config.api_key,
                     additional_headers=dict(self._config.additional_headers),
                     timeout=self._config.timeout,
+                    proxy_url=self._config.proxy_url,
+                    ssl_ca_certs=self._config.ssl_ca_certs,
+                    ssl_verify=self._config.ssl_verify,
+                    source_tag=self._config.source_tag,
+                    connection_pool_maxsize=self._config.connection_pool_maxsize,
                 )
 
             raise ValidationError(

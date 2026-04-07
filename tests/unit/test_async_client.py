@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from pinecone.async_client.pinecone import AsyncPinecone
@@ -103,3 +105,85 @@ class TestEnvVarFallback:
     def test_ssl_verify_param(self) -> None:
         pc = AsyncPinecone(api_key="test-key", ssl_verify=False)
         assert pc.config.ssl_verify is False
+
+
+class TestAsyncIndexFactory:
+    """Test AsyncPinecone.index() propagates config to AsyncIndex."""
+
+    @patch("pinecone._internal.http_client.AsyncHTTPClient")
+    @patch("pinecone.async_client.async_index.AsyncIndex")
+    def test_index_by_host_propagates_config(
+        self, mock_cls: MagicMock, _mock_http: MagicMock
+    ) -> None:
+        pc = AsyncPinecone(
+            api_key="test-key",
+            proxy_url="http://proxy:8080",
+            ssl_ca_certs="/path/to/certs.pem",
+            ssl_verify=False,
+            source_tag="my_app",
+            connection_pool_maxsize=10,
+        )
+        mock_cls.return_value = MagicMock()
+
+        pc.index(host="foo.svc.pinecone.io")
+
+        mock_cls.assert_called_once_with(
+            host="foo.svc.pinecone.io",
+            api_key="test-key",
+            additional_headers={},
+            timeout=30.0,
+            proxy_url="http://proxy:8080",
+            ssl_ca_certs="/path/to/certs.pem",
+            ssl_verify=False,
+            source_tag="my_app",
+            connection_pool_maxsize=10,
+        )
+
+    @patch("pinecone._internal.http_client.AsyncHTTPClient")
+    @patch("pinecone.async_client.async_index.AsyncIndex")
+    def test_index_by_name_cached_propagates_config(
+        self, mock_cls: MagicMock, _mock_http: MagicMock
+    ) -> None:
+        pc = AsyncPinecone(
+            api_key="test-key",
+            proxy_url="http://proxy:8080",
+            ssl_ca_certs="/path/to/certs.pem",
+            ssl_verify=False,
+            source_tag="my_app",
+            connection_pool_maxsize=10,
+        )
+        pc._host_cache["my-index"] = "cached.host.pinecone.io"
+        mock_cls.return_value = MagicMock()
+
+        pc.index(name="my-index")
+
+        mock_cls.assert_called_once_with(
+            host="cached.host.pinecone.io",
+            api_key="test-key",
+            additional_headers={},
+            timeout=30.0,
+            proxy_url="http://proxy:8080",
+            ssl_ca_certs="/path/to/certs.pem",
+            ssl_verify=False,
+            source_tag="my_app",
+            connection_pool_maxsize=10,
+        )
+
+    @patch("pinecone.async_client.async_index.AsyncIndex")
+    def test_index_defaults_propagated(self, mock_cls: MagicMock) -> None:
+        pc = AsyncPinecone(api_key="test-key")
+        mock_cls.return_value = MagicMock()
+
+        pc.index(host="foo.svc.pinecone.io")
+
+        mock_cls.assert_called_once_with(
+            host="foo.svc.pinecone.io",
+            api_key="test-key",
+            additional_headers={},
+            timeout=30.0,
+            proxy_url="",
+            ssl_ca_certs=None,
+            ssl_verify=True,
+            source_tag="",
+            connection_pool_maxsize=0,
+        )

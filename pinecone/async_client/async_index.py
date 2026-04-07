@@ -66,6 +66,11 @@ class AsyncIndex:
         api_key: str | None = None,
         additional_headers: dict[str, str] | None = None,
         timeout: float = 30.0,
+        proxy_url: str | None = None,
+        ssl_ca_certs: str | None = None,
+        ssl_verify: bool = True,
+        source_tag: str | None = None,
+        connection_pool_maxsize: int = 0,
         **kwargs: Any,
     ) -> None:
         # Resolve API key: explicit arg > env var (check BEFORE host per unified-ord-0001)
@@ -84,6 +89,11 @@ class AsyncIndex:
             host=self._host,
             timeout=timeout,
             additional_headers=additional_headers or {},
+            proxy_url=proxy_url or "",
+            ssl_ca_certs=ssl_ca_certs,
+            ssl_verify=ssl_verify,
+            source_tag=source_tag or "",
+            connection_pool_maxsize=connection_pool_maxsize,
         )
         self._config = config
 

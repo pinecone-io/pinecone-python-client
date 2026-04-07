@@ -211,6 +211,11 @@ class TestIndexFactory:
             api_key="test-key",
             additional_headers={"X-Test": "val"},
             timeout=45.0,
+            proxy_url="",
+            ssl_ca_certs=None,
+            ssl_verify=True,
+            source_tag="",
+            connection_pool_maxsize=0,
         )
 
     @patch("pinecone.index.Index")
@@ -228,6 +233,11 @@ class TestIndexFactory:
             api_key="test-key",
             additional_headers={},
             timeout=20.0,
+            proxy_url="",
+            ssl_ca_certs=None,
+            ssl_verify=True,
+            source_tag="",
+            connection_pool_maxsize=0,
         )
 
     @patch("pinecone.index.Index")
@@ -253,6 +263,11 @@ class TestIndexFactory:
             api_key="test-key",
             additional_headers={},
             timeout=30.0,
+            proxy_url="",
+            ssl_ca_certs=None,
+            ssl_verify=True,
+            source_tag="",
+            connection_pool_maxsize=0,
         )
 
     def test_no_name_or_host_raises_validation_error(self) -> None:
@@ -273,6 +288,11 @@ class TestIndexFactory:
             api_key="my-api-key",
             additional_headers={"X-Custom": "header-val"},
             timeout=99.0,
+            proxy_url="",
+            ssl_ca_certs=None,
+            ssl_verify=True,
+            source_tag="",
+            connection_pool_maxsize=0,
         )
 
     @patch("pinecone.index.Index")
@@ -289,4 +309,68 @@ class TestIndexFactory:
             api_key="my-api-key",
             additional_headers={"X-Custom": "header-val"},
             timeout=99.0,
+            proxy_url="",
+            ssl_ca_certs=None,
+            ssl_verify=True,
+            source_tag="",
+            connection_pool_maxsize=0,
+        )
+
+    @patch("pinecone._internal.http_client.HTTPClient")
+    @patch("pinecone.index.Index")
+    def test_index_propagates_proxy_ssl_source_tag(
+        self, mock_index_cls: MagicMock, _mock_http: MagicMock
+    ) -> None:
+        pc = Pinecone(
+            api_key="test-key",
+            proxy_url="http://proxy:8080",
+            ssl_ca_certs="/path/to/certs.pem",
+            ssl_verify=False,
+            source_tag="my_app",
+            connection_pool_maxsize=10,
+        )
+        mock_index_cls.return_value = MagicMock()
+
+        pc.index(host="foo.svc.pinecone.io")
+
+        mock_index_cls.assert_called_once_with(
+            host="foo.svc.pinecone.io",
+            api_key="test-key",
+            additional_headers={},
+            timeout=30.0,
+            proxy_url="http://proxy:8080",
+            ssl_ca_certs="/path/to/certs.pem",
+            ssl_verify=False,
+            source_tag="my_app",
+            connection_pool_maxsize=10,
+        )
+
+    @patch("pinecone._internal.http_client.HTTPClient")
+    @patch("pinecone.index.Index")
+    def test_index_by_name_propagates_proxy_ssl_source_tag(
+        self, mock_index_cls: MagicMock, _mock_http: MagicMock
+    ) -> None:
+        pc = Pinecone(
+            api_key="test-key",
+            proxy_url="http://proxy:8080",
+            ssl_ca_certs="/path/to/certs.pem",
+            ssl_verify=False,
+            source_tag="my_app",
+            connection_pool_maxsize=10,
+        )
+        pc._host_cache["my-index"] = "cached.host.pinecone.io"
+        mock_index_cls.return_value = MagicMock()
+
+        pc.index(name="my-index")
+
+        mock_index_cls.assert_called_once_with(
+            host="cached.host.pinecone.io",
+            api_key="test-key",
+            additional_headers={},
+            timeout=30.0,
+            proxy_url="http://proxy:8080",
+            ssl_ca_certs="/path/to/certs.pem",
+            ssl_verify=False,
+            source_tag="my_app",
+            connection_pool_maxsize=10,
         )
