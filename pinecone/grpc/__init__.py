@@ -13,6 +13,7 @@ from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import ValidationError
+from pinecone.grpc._protocol import GrpcChannelProtocol
 from pinecone.grpc.future import PineconeFuture
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
@@ -151,7 +152,7 @@ class GrpcIndex:
         from pinecone import __version__
         from pinecone._grpc import GrpcChannel  # type: ignore[import-not-found]
 
-        self._channel = GrpcChannel(
+        self._channel: GrpcChannelProtocol = GrpcChannel(
             endpoint,
             resolved_key,
             api_version,
@@ -712,8 +713,7 @@ class GrpcIndex:
     def close(self) -> None:
         """Close the underlying gRPC channel and release resources."""
         self._executor.shutdown(wait=False)
-        if hasattr(self._channel, "close"):
-            self._channel.close()
+        self._channel.close()
 
     def __enter__(self) -> GrpcIndex:
         return self
