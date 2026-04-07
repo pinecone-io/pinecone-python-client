@@ -366,6 +366,23 @@ def test_exists_by_name_false(projects: Projects) -> None:
     assert projects.exists(name="missing") is False
 
 
+@respx.mock
+def test_exists_by_name_multiple_matches_returns_true(projects: Projects) -> None:
+    respx.get(f"{BASE_URL}/admin/projects").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "data": [
+                    _project_response(id="proj-1", name="dup"),
+                    _project_response(id="proj-2", name="dup"),
+                ]
+            },
+        ),
+    )
+
+    assert projects.exists(name="dup") is True
+
+
 def test_exists_requires_one_param(projects: Projects) -> None:
     with pytest.raises(ValidationError):
         projects.exists(project_id="abc", name="xyz")

@@ -200,6 +200,9 @@ class Projects:
                 self.describe_by_name(name=name)
         except NotFoundError:
             return False
+        except PineconeError:
+            # Multiple projects with same name — they exist
+            return True
         return True
 
     def update(
