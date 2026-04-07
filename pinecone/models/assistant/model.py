@@ -32,3 +32,13 @@ class AssistantModel(Struct, kw_only=True):
     metadata: dict[str, Any] | None = None
     instructions: str | None = None
     host: str | None = None
+
+    def __getitem__(self, key: str) -> Any:
+        """Support bracket access (e.g. ``assistant['name']``)."""
+        if key not in self.__struct_fields__:
+            raise KeyError(key)
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        """Support ``in`` operator (e.g. ``'name' in assistant``)."""
+        return key in self.__struct_fields__
