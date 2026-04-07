@@ -161,7 +161,7 @@ async def test_async_get_model(inference: AsyncInference) -> None:
         return_value=httpx.Response(200, json=make_model_info()),
     )
 
-    result = await inference.get_model(model_name="multilingual-e5-large")
+    result = await inference.get_model(model="multilingual-e5-large")
 
     assert isinstance(result, ModelInfo)
     assert result.model == "multilingual-e5-large"

@@ -229,18 +229,18 @@ class AsyncInference:
     async def get_model(
         self,
         *,
-        model_name: str,
+        model: str,
     ) -> ModelInfo:
         """Get detailed information about a specific model.
 
         Args:
-            model_name (str): The model identifier to look up.
+            model (str): The model identifier to look up.
 
         Returns:
             A :class:`ModelInfo` with full model details.
 
         Raises:
-            :exc:`ValidationError`: If *model_name* is empty.
+            :exc:`ValidationError`: If *model* is empty.
             :exc:`NotFoundError`: If the model does not exist.
             :exc:`ApiError`: If the API returns another error response.
 
@@ -248,14 +248,14 @@ class AsyncInference:
             >>> from pinecone import AsyncPinecone
             >>> async with AsyncPinecone(api_key="your-api-key") as pc:
             ...     model = await pc.inference.get_model(
-            ...         model_name="multilingual-e5-large",
+            ...         model="multilingual-e5-large",
             ...     )
             ...     model.type
             'embed'
         """
-        require_non_empty("model_name", model_name)
-        logger.info("Describing model %r", model_name)
-        response = await self._http.get(f"/models/{model_name}")
+        require_non_empty("model", model)
+        logger.info("Describing model %r", model)
+        response = await self._http.get(f"/models/{model}")
         result = self._adapter.to_model_info(response.content)
-        logger.debug("Described model %r", model_name)
+        logger.debug("Described model %r", model)
         return result
