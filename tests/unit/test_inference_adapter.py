@@ -11,6 +11,7 @@ from pinecone._internal.adapters.inference_adapter import (
     normalize_embed_inputs,
     normalize_rerank_documents,
 )
+from pinecone.errors.exceptions import PineconeTypeError, ValidationError
 from pinecone.models.inference.embed import DenseEmbedding, SparseEmbedding
 from pinecone.models.inference.model_list import ModelInfoList
 from pinecone.models.inference.models import ModelInfo
@@ -180,28 +181,38 @@ class TestNormalizeEmbedInputs:
         assert result == inputs
 
     def test_normalize_embed_inputs_empty_raises(self) -> None:
-        with pytest.raises(ValueError, match="inputs must not be empty"):
+        with pytest.raises(ValidationError, match="inputs must not be empty"):
             normalize_embed_inputs([])
 
     def test_normalize_embed_inputs_invalid_type_raises(self) -> None:
-        with pytest.raises(TypeError, match="Expected str, list"):
+        with pytest.raises(PineconeTypeError, match="Expected str, list"):
             normalize_embed_inputs(42)  # type: ignore[arg-type]
 
     def test_normalize_embed_inputs_list_of_invalid_type_raises(self) -> None:
-        with pytest.raises(TypeError, match="each input must be a string or dictionary"):
+        with pytest.raises(PineconeTypeError, match="each input must be a string or dictionary"):
             normalize_embed_inputs([42, 43])  # type: ignore[list-item]
 
     def test_normalize_embed_inputs_mixed_str_int_raises(self) -> None:
-        with pytest.raises(TypeError, match="each input must be a string or dictionary"):
+        with pytest.raises(PineconeTypeError, match="each input must be a string or dictionary"):
             normalize_embed_inputs(["hello", 42])  # type: ignore[list-item]
 
     def test_normalize_embed_inputs_mixed_str_none_raises(self) -> None:
-        with pytest.raises(TypeError, match="each input must be a string or dictionary"):
+        with pytest.raises(PineconeTypeError, match="each input must be a string or dictionary"):
             normalize_embed_inputs(["hello", None])  # type: ignore[list-item]
 
     def test_normalize_embed_inputs_mixed_dict_str_raises(self) -> None:
-        with pytest.raises(TypeError, match="each input must be a string or dictionary"):
+        with pytest.raises(PineconeTypeError, match="each input must be a string or dictionary"):
             normalize_embed_inputs([{"text": "a"}, "b"])  # type: ignore[list-item]
+
+    def test_normalize_embed_inputs_empty_raises_is_also_valueerror(self) -> None:
+        """ValidationError inherits from ValueError for backwards compatibility."""
+        with pytest.raises(ValueError, match="inputs must not be empty"):
+            normalize_embed_inputs([])
+
+    def test_normalize_embed_inputs_invalid_type_is_also_typeerror(self) -> None:
+        """PineconeTypeError inherits from TypeError for backwards compatibility."""
+        with pytest.raises(TypeError, match="Expected str, list"):
+            normalize_embed_inputs(42)  # type: ignore[arg-type]
 
 
 class TestNormalizeRerankDocuments:
@@ -215,13 +226,27 @@ class TestNormalizeRerankDocuments:
         assert result == docs
 
     def test_normalize_rerank_documents_empty_raises(self) -> None:
-        with pytest.raises(ValueError, match="documents must not be empty"):
+        with pytest.raises(ValidationError, match="documents must not be empty"):
             normalize_rerank_documents([])
 
     def test_normalize_rerank_mixed_str_dict_raises(self) -> None:
-        with pytest.raises(TypeError, match="each document must be a string or dictionary"):
+        with pytest.raises(PineconeTypeError, match="each document must be a string or dictionary"):
             normalize_rerank_documents(["hello", {"text": "world"}])  # type: ignore[list-item]
 
     def test_normalize_rerank_mixed_dict_str_raises(self) -> None:
-        with pytest.raises(TypeError, match="each document must be a string or dictionary"):
+        with pytest.raises(PineconeTypeError, match="each document must be a string or dictionary"):
             normalize_rerank_documents([{"text": "a"}, "b"])  # type: ignore[list-item]
+
+    def test_normalize_rerank_not_list_raises(self) -> None:
+        with pytest.raises(PineconeTypeError, match="documents must be a list"):
+            normalize_rerank_documents("not a list")  # type: ignore[arg-type]
+
+    def test_normalize_rerank_documents_empty_raises_is_also_valueerror(self) -> None:
+        """ValidationError inherits from ValueError for backwards compatibility."""
+        with pytest.raises(ValueError, match="documents must not be empty"):
+            normalize_rerank_documents([])
+
+    def test_normalize_rerank_not_list_is_also_typeerror(self) -> None:
+        """PineconeTypeError inherits from TypeError for backwards compatibility."""
+        with pytest.raises(TypeError, match="documents must be a list"):
+            normalize_rerank_documents("not a list")  # type: ignore[arg-type]

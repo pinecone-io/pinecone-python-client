@@ -81,8 +81,8 @@ class AsyncInference:
             An :class:`EmbeddingsList` with ``.data``, ``.model``, and ``.usage``.
 
         Raises:
-            :exc:`ValidationError`: If *model* is empty.
-            :exc:`ValueError`: If *inputs* is empty.
+            :exc:`ValidationError`: If *model* is empty or *inputs* is empty.
+            :exc:`PineconeTypeError`: If *inputs* has an invalid type.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -141,8 +141,8 @@ class AsyncInference:
             A :class:`RerankResult` with ``.data`` and ``.usage``.
 
         Raises:
-            :exc:`ValidationError`: If *model* or *query* is empty.
-            :exc:`ValueError`: If *documents* is empty.
+            :exc:`ValidationError`: If *model*, *query*, or *documents* is empty.
+            :exc:`PineconeTypeError`: If *documents* has an invalid type.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:

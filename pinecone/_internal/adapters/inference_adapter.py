@@ -7,6 +7,7 @@ from typing import Any
 from msgspec import Struct
 
 from pinecone._internal.adapters._decode import convert_response, decode_response
+from pinecone.errors.exceptions import PineconeTypeError, ValidationError
 from pinecone.models.inference.embed import (
     DenseEmbedding,
     EmbeddingsList,
@@ -93,28 +94,32 @@ def normalize_embed_inputs(
         A list of dicts with ``"text"`` keys.
 
     Raises:
-        ValueError: If inputs is an empty list.
-        TypeError: If inputs is not a recognized type or contains mixed types.
+        ValidationError: If inputs is an empty list.
+        PineconeTypeError: If inputs is not a recognized type or contains mixed types.
     """
     if isinstance(inputs, str):
         return [{"text": inputs}]
     if isinstance(inputs, list):
         if len(inputs) == 0:
-            raise ValueError("inputs must not be empty")
+            raise ValidationError("inputs must not be empty")
         if not all(isinstance(item, (str, dict)) for item in inputs):
-            raise TypeError("each input must be a string or dictionary")
+            raise PineconeTypeError("each input must be a string or dictionary")
         first = inputs[0]
         if isinstance(first, str):
             if not all(isinstance(item, str) for item in inputs):
-                raise TypeError("each input must be a string or dictionary")
+                raise PineconeTypeError("each input must be a string or dictionary")
             str_inputs: list[str] = inputs  # type: ignore[assignment]
             return [{"text": s} for s in str_inputs]
         if isinstance(first, dict):
             if not all(isinstance(item, dict) for item in inputs):
-                raise TypeError("each input must be a string or dictionary")
+                raise PineconeTypeError("each input must be a string or dictionary")
             return inputs  # type: ignore[return-value]
-        raise TypeError(f"Expected list of str or list of dict, got list of {type(first).__name__}")
-    raise TypeError(f"Expected str, list[str], or list[dict], got {type(inputs).__name__}")
+        raise PineconeTypeError(
+            f"Expected list of str or list of dict, got list of {type(first).__name__}"
+        )
+    raise PineconeTypeError(
+        f"Expected str, list[str], or list[dict], got {type(inputs).__name__}"
+    )
 
 
 def normalize_rerank_documents(
@@ -129,20 +134,20 @@ def normalize_rerank_documents(
         A list of dicts with ``"text"`` keys.
 
     Raises:
-        TypeError: If documents is not a list or contains invalid element types.
-        ValueError: If documents is empty.
+        PineconeTypeError: If documents is not a list or contains invalid element types.
+        ValidationError: If documents is empty.
     """
     if not isinstance(documents, list):
-        raise TypeError("documents must be a list of strings or list of dictionaries")
+        raise PineconeTypeError("documents must be a list of strings or list of dictionaries")
     if len(documents) == 0:
-        raise ValueError("documents must not be empty")
+        raise ValidationError("documents must not be empty")
     if not all(isinstance(d, (str, dict)) for d in documents):
-        raise TypeError("each document must be a string or dictionary")
+        raise PineconeTypeError("each document must be a string or dictionary")
     if isinstance(documents[0], str):
         if not all(isinstance(d, str) for d in documents):
-            raise TypeError("each document must be a string or dictionary")
+            raise PineconeTypeError("each document must be a string or dictionary")
         return [{"text": s} for s in documents]
     if isinstance(documents[0], dict):
         if not all(isinstance(d, dict) for d in documents):
-            raise TypeError("each document must be a string or dictionary")
+            raise PineconeTypeError("each document must be a string or dictionary")
     return documents  # type: ignore[return-value]
