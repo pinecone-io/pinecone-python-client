@@ -23,7 +23,13 @@ from pinecone.models.assistant.context import (
     PageReference,
     TextSnippet,
 )
+from pinecone.models.assistant.evaluation import (
+    AlignmentResult,
+    AlignmentScores,
+    EntailmentResult,
+)
 from pinecone.models.assistant.file_model import AssistantFileModel
+from pinecone.models.assistant.message import Message
 from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.assistant.streaming import (
     ChatCompletionStreamChoice,
@@ -38,6 +44,8 @@ from pinecone.models.assistant.streaming import (
 )
 
 __all__ = [
+    "AlignmentResult",
+    "AlignmentScores",
     "AssistantFileModel",
     "AssistantModel",
     "ChatCitation",
@@ -59,7 +67,9 @@ __all__ = [
     "ContextResponse",
     "ContextSnippet",
     "ContextTextBlock",
+    "EntailmentResult",
     "FileReference",
+    "Message",
     "MultimodalSnippet",
     "PageReference",
     "StreamCitationChunk",
