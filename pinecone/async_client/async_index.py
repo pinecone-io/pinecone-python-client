@@ -47,6 +47,12 @@ class AsyncIndex:
         api_key (str | None): Pinecone API key. Falls back to ``PINECONE_API_KEY`` env var.
         additional_headers (dict[str, str] | None): Extra headers included in every request.
         timeout (float): Request timeout in seconds. Defaults to ``30.0``.
+        proxy_url (str | None): HTTP proxy URL for outgoing requests.
+        ssl_ca_certs (str | None): Path to a CA certificate bundle for SSL verification.
+        ssl_verify (bool): Whether to verify SSL certificates. Defaults to ``True``.
+        source_tag (str | None): Tag appended to the User-Agent string for request attribution.
+        connection_pool_maxsize (int): Maximum number of connections to keep in the pool.
+            ``0`` (default) uses httpx defaults.
 
     Raises:
         ValidationError: If no API key can be resolved or the host is invalid.
