@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from msgspec import Struct
 
+from pinecone.models.assistant._mixin import StructDictMixin
 
-class AssistantFileModel(Struct, kw_only=True):
+
+class AssistantFileModel(StructDictMixin, Struct, kw_only=True):
     """Response model for a file attached to a Pinecone assistant.
 
     Attributes:
@@ -29,7 +29,7 @@ class AssistantFileModel(Struct, kw_only=True):
 
     name: str
     id: str
-    metadata: dict[str, Any] | None = None
+    metadata: dict[str, object] | None = None
     created_on: str | None = None
     updated_on: str | None = None
     status: str | None = None
@@ -39,13 +39,3 @@ class AssistantFileModel(Struct, kw_only=True):
     content_hash: str | None = None
     percent_done: float | None = None
     error_message: str | None = None
-
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. ``file['name']``)."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
-
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'name' in file``)."""
-        return key in self.__struct_fields__

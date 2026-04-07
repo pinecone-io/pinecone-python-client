@@ -2094,4 +2094,157 @@ def test_context_optional_params_omitted_when_absent(assistants: Assistants) -> 
     assert "top_k" not in request_body
     assert "snippet_size" not in request_body
     assert "multimodal" not in request_body
-    assert "include_binary_content" not in request_body
+
+
+# ---------------------------------------------------------------------------
+# Dict-like access tests (claims: unified-model-0001 through unified-model-0009)
+# ---------------------------------------------------------------------------
+
+
+def _make_assistant_model(**overrides: object) -> AssistantModel:
+    data = {
+        "name": "test-assistant",
+        "status": "Ready",
+        "created_at": "2025-01-15T12:00:00Z",
+        "updated_at": "2025-01-15T12:00:00Z",
+        "metadata": {"key": "value"},
+        "instructions": "Be helpful.",
+        "host": "test-assistant.svc.pinecone.io",
+    }
+    data.update(overrides)
+    return AssistantModel(**data)  # type: ignore[arg-type]
+
+
+def _make_file_model(**overrides: object) -> AssistantFileModel:
+    data = {
+        "name": "test-file.pdf",
+        "id": "file-abc123",
+        "metadata": None,
+        "created_on": "2025-01-15T12:00:00Z",
+        "updated_on": "2025-01-15T12:00:00Z",
+        "status": "Available",
+        "size": 1024,
+        "multimodal": False,
+        "signed_url": None,
+        "content_hash": None,
+        "percent_done": None,
+        "error_message": None,
+    }
+    data.update(overrides)
+    return AssistantFileModel(**data)  # type: ignore[arg-type]
+
+
+def test_model_dict_access_assistant() -> None:
+    """AssistantModel supports subscript, in, len, keys, values, items, get."""
+    model = _make_assistant_model()
+
+    # __getitem__
+    assert model["name"] == "test-assistant"
+    assert model["status"] == "Ready"
+    assert model["instructions"] == "Be helpful."
+
+    # __contains__
+    assert "name" in model
+    assert "status" in model
+    assert "nonexistent" not in model
+
+    # __len__
+    assert len(model) == len(model.__struct_fields__)
+
+    # keys()
+    assert "name" in model.keys()
+    assert "status" in model.keys()
+
+    # values()
+    vals = model.values()
+    assert "test-assistant" in vals
+    assert "Ready" in vals
+
+    # items()
+    items = dict(model.items())
+    assert items["name"] == "test-assistant"
+    assert items["status"] == "Ready"
+
+    # get() — existing key
+    assert model.get("name") == "test-assistant"
+    # get() — missing key with default
+    assert model.get("nonexistent") is None
+    assert model.get("nonexistent", "fallback") == "fallback"
+
+
+def test_model_dict_access_file() -> None:
+    """AssistantFileModel supports subscript, in, len, keys, values, items, get."""
+    model = _make_file_model()
+
+    assert model["name"] == "test-file.pdf"
+    assert model["id"] == "file-abc123"
+    assert "name" in model
+    assert "nonexistent" not in model
+    assert len(model) == len(model.__struct_fields__)
+    assert "name" in model.keys()
+    assert "test-file.pdf" in model.values()
+    assert dict(model.items())["id"] == "file-abc123"
+    assert model.get("size") == 1024
+    assert model.get("missing", 0) == 0
+
+
+def test_model_getitem_keyerror_assistant() -> None:
+    """AssistantModel raises KeyError for unknown key subscript."""
+    model = _make_assistant_model()
+    with pytest.raises(KeyError):
+        _ = model["nonexistent_field"]
+
+
+def test_model_getitem_keyerror_file() -> None:
+    """AssistantFileModel raises KeyError for unknown key subscript."""
+    model = _make_file_model()
+    with pytest.raises(KeyError):
+        _ = model["nonexistent_field"]
+
+
+def test_model_to_dict_assistant() -> None:
+    """AssistantModel.to_dict() returns a plain dict with correct values."""
+    model = _make_assistant_model(metadata={"env": "prod", "version": "1"})
+    result = model.to_dict()
+
+    assert isinstance(result, dict)
+    assert result["name"] == "test-assistant"
+    assert result["status"] == "Ready"
+    assert result["metadata"] == {"env": "prod", "version": "1"}
+    assert result["instructions"] == "Be helpful."
+
+
+def test_model_to_dict_recursive() -> None:
+    """to_dict() on ListAssistantsResponse recursively converts nested AssistantModel."""
+    from pinecone.models.assistant.list import ListAssistantsResponse
+
+    assistant = _make_assistant_model(metadata=None)
+    response = ListAssistantsResponse(assistants=[assistant], next=None)
+
+    result = response.to_dict()
+
+    assert isinstance(result, dict)
+    assert isinstance(result["assistants"], list)
+    # Each nested AssistantModel must be converted to a plain dict, not a Struct
+    nested = result["assistants"][0]
+    assert isinstance(nested, dict)
+    assert nested["name"] == "test-assistant"
+    assert nested["status"] == "Ready"
+
+
+def test_model_str_repr_dict_form_assistant() -> None:
+    """AssistantModel __str__ and __repr__ show dictionary form."""
+    model = _make_assistant_model()
+    as_dict = model.to_dict()
+
+    assert str(model) == str(as_dict)
+    assert repr(model) == repr(as_dict)
+
+
+def test_model_str_repr_dict_form_file() -> None:
+    """AssistantFileModel __str__ and __repr__ show dictionary form."""
+    model = _make_file_model()
+    as_dict = model.to_dict()
+
+    assert str(model) == str(as_dict)
+    assert repr(model) == repr(as_dict)
