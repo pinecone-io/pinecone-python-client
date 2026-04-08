@@ -63,9 +63,7 @@ class TestGrpcDataframeUpsert:
         result = grpc_index.upsert_from_dataframe(df, show_progress=False)
 
         assert mock_channel.upsert.call_count == 3
-        batch_sizes = [
-            len(call[0][0]) for call in mock_channel.upsert.call_args_list
-        ]
+        batch_sizes = [len(call[0][0]) for call in mock_channel.upsert.call_args_list]
         assert batch_sizes == [500, 500, 200]
         assert result.upserted_count == 1200
 
@@ -88,9 +86,7 @@ class TestGrpcDataframeUpsert:
         grpc_index.upsert_from_dataframe(df, batch_size=3, show_progress=False)
 
         assert mock_channel.upsert.call_count == 4
-        batch_sizes = [
-            len(call[0][0]) for call in mock_channel.upsert.call_args_list
-        ]
+        batch_sizes = [len(call[0][0]) for call in mock_channel.upsert.call_args_list]
         assert batch_sizes == [3, 3, 3, 1]
 
     def test_results_aggregated(self, grpc_index: GrpcIndex, mock_channel: MagicMock) -> None:

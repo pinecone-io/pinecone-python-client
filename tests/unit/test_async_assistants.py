@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 from unittest.mock import patch
 
@@ -12,9 +13,16 @@ import respx
 from pinecone._internal.config import PineconeConfig
 from pinecone.async_client.assistants import (
     _CREATE_POLL_INTERVAL_SECONDS,
+    _DELETE_POLL_INTERVAL_SECONDS,
+    _UPLOAD_POLL_INTERVAL_SECONDS,
     AsyncAssistants,
 )
-from pinecone.errors.exceptions import NotFoundError, PineconeTimeoutError, PineconeValueError
+from pinecone.errors.exceptions import (
+    NotFoundError,
+    PineconeError,
+    PineconeTimeoutError,
+    PineconeValueError,
+)
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
@@ -1303,3 +1311,444 @@ async def test_async_list_files_with_filter(async_assistants: AsyncAssistants) -
     url_str = str(request.url)
     assert "filter=" in url_str
     assert "genre" in url_str
+
+
+# ---------------------------------------------------------------------------
+# upload_file() — validation
+# ---------------------------------------------------------------------------
+
+
+def test_async_upload_file_neither_path_nor_stream(async_assistants: AsyncAssistants) -> None:
+    """Providing neither file_path nor file_stream raises PineconeValueError."""
+    import asyncio
+
+    with pytest.raises(PineconeValueError, match="Exactly one"):
+        asyncio.get_event_loop().run_until_complete(
+            async_assistants.upload_file(assistant_name="test-assistant")
+        )
+
+
+def test_async_upload_file_both_path_and_stream(async_assistants: AsyncAssistants) -> None:
+    """Providing both file_path and file_stream raises PineconeValueError."""
+    import asyncio
+
+    with pytest.raises(PineconeValueError, match="Exactly one"):
+        asyncio.get_event_loop().run_until_complete(
+            async_assistants.upload_file(
+                assistant_name="test-assistant",
+                file_path="/some/path.pdf",
+                file_stream=io.BytesIO(b"data"),
+            )
+        )
+
+
+def test_async_upload_file_path_not_found(async_assistants: AsyncAssistants) -> None:
+    """Uploading from a nonexistent local path raises PineconeValueError."""
+    import asyncio
+
+    with pytest.raises(PineconeValueError, match="File not found"):
+        asyncio.get_event_loop().run_until_complete(
+            async_assistants.upload_file(
+                assistant_name="test-assistant",
+                file_path="/nonexistent/path/document.pdf",
+            )
+        )
+
+
+# ---------------------------------------------------------------------------
+# upload_file() — success from stream
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_upload_file_from_stream(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """upload_file with file_stream uploads and polls until Available."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+    )
+    poll_route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        side_effect=[
+            httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+            httpx.Response(200, json=make_assistant_file_response(status="Available")),
+        ]
+    )
+
+    stream = io.BytesIO(b"test file content")
+    result = await async_assistants.upload_file(
+        assistant_name="test-assistant",
+        file_stream=stream,
+        file_name="report.pdf",
+    )
+
+    assert isinstance(result, AssistantFileModel)
+    assert result.status == "Available"
+    assert result.id == "file-abc123"
+    assert upload_route.call_count == 1
+    assert poll_route.call_count == 2
+
+
+# ---------------------------------------------------------------------------
+# upload_file() — multimodal serialization
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_upload_file_multimodal_true(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """multimodal=True is serialized as 'true' in query params."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Available")),
+    )
+
+    stream = io.BytesIO(b"content")
+    await async_assistants.upload_file(
+        assistant_name="test-assistant",
+        file_stream=stream,
+        multimodal=True,
+    )
+
+    request = upload_route.calls.last.request
+    assert "multimodal=true" in str(request.url)
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_upload_file_multimodal_false(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """multimodal=False is serialized as 'false' in query params."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Available")),
+    )
+
+    stream = io.BytesIO(b"content")
+    await async_assistants.upload_file(
+        assistant_name="test-assistant",
+        file_stream=stream,
+        multimodal=False,
+    )
+
+    request = upload_route.calls.last.request
+    assert "multimodal=false" in str(request.url)
+
+
+# ---------------------------------------------------------------------------
+# upload_file() — metadata and file_id
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_upload_file_with_metadata_and_file_id(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """upload_file sends metadata as JSON string and file_id as query params."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Available")),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Available")),
+    )
+
+    stream = io.BytesIO(b"content")
+    await async_assistants.upload_file(
+        assistant_name="test-assistant",
+        file_stream=stream,
+        metadata={"genre": "comedy"},
+        file_id="custom-file-id",
+    )
+
+    request = upload_route.calls.last.request
+    url_str = str(request.url)
+    assert "file_id=custom-file-id" in url_str
+    assert "metadata=" in url_str
+
+
+# ---------------------------------------------------------------------------
+# upload_file() — polling interval
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_upload_file_polls_with_correct_interval(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """upload_file polls every _UPLOAD_POLL_INTERVAL_SECONDS seconds."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        side_effect=[
+            httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+            httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+            httpx.Response(200, json=make_assistant_file_response(status="Available")),
+        ]
+    )
+
+    stream = io.BytesIO(b"data")
+    await async_assistants.upload_file(
+        assistant_name="test-assistant",
+        file_stream=stream,
+    )
+
+    from unittest.mock import call
+
+    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+        assert c == call(_UPLOAD_POLL_INTERVAL_SECONDS)
+
+
+# ---------------------------------------------------------------------------
+# upload_file() — processing failure
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_upload_file_processing_failed(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """If processing fails, raises PineconeError with the server's error message."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_assistant_file_response(
+                status="ProcessingFailed",
+                error_message="Unsupported file format",
+            ),
+        ),
+    )
+
+    stream = io.BytesIO(b"data")
+    with pytest.raises(PineconeError, match="Unsupported file format"):
+        await async_assistants.upload_file(
+            assistant_name="test-assistant",
+            file_stream=stream,
+        )
+
+
+# ---------------------------------------------------------------------------
+# upload_file() — timeout
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.time.monotonic")
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_upload_file_timeout_raises(
+    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
+) -> None:
+    """Timeout raises PineconeTimeoutError with operation ID in message."""
+    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+    )
+
+    stream = io.BytesIO(b"data")
+    with pytest.raises(PineconeTimeoutError, match="file-abc123") as exc_info:
+        await async_assistants.upload_file(
+            assistant_name="test-assistant",
+            file_stream=stream,
+            timeout=10,
+        )
+
+    assert "operation_id" in str(exc_info.value)
+
+
+@respx.mock
+async def test_async_upload_timeout_negative_one(async_assistants: AsyncAssistants) -> None:
+    """upload_file(timeout=-1) calls describe_file once without polling."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+    )
+    describe_route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Processing")),
+    )
+
+    stream = io.BytesIO(b"data")
+    result = await async_assistants.upload_file(
+        assistant_name="test-assistant",
+        file_stream=stream,
+        timeout=-1,
+    )
+
+    assert upload_route.call_count == 1
+    assert describe_route.call_count == 1
+    assert isinstance(result, AssistantFileModel)
+    assert result.status == "Processing"
+
+
+# ---------------------------------------------------------------------------
+# delete_file() — success
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_delete_file_success(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """delete_file() sends DELETE then polls until 404 confirms deletion."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    delete_route = respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200)
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(404, json={"error": "Not found"}),
+    )
+
+    result = await async_assistants.delete_file(
+        assistant_name="test-assistant", file_id="file-abc123"
+    )
+
+    assert result is None
+    assert delete_route.call_count == 1
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_delete_file_polls_until_gone(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """delete_file() polls describe_file every 5s; returns when 404 received."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200)
+    )
+    poll_route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        side_effect=[
+            httpx.Response(200, json=make_assistant_file_response(status="Deleting")),
+            httpx.Response(200, json=make_assistant_file_response(status="Deleting")),
+            httpx.Response(404, json={"error": "Not found"}),
+        ]
+    )
+
+    result = await async_assistants.delete_file(
+        assistant_name="test-assistant", file_id="file-abc123"
+    )
+
+    assert result is None
+    assert poll_route.call_count == 3
+
+    from unittest.mock import call
+
+    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+        assert c == call(_DELETE_POLL_INTERVAL_SECONDS)
+
+
+@respx.mock
+async def test_async_delete_file_timeout_minus_one_skips_polling(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """delete_file(timeout=-1) returns immediately without polling."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    delete_route = respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200)
+    )
+
+    result = await async_assistants.delete_file(
+        assistant_name="test-assistant", file_id="file-abc123", timeout=-1
+    )
+
+    assert result is None
+    assert delete_route.call_count == 1
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.time.monotonic")
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_delete_file_timeout_raises(
+    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
+) -> None:
+    """Exceeding timeout raises PineconeTimeoutError."""
+    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200)
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200, json=make_assistant_file_response(status="Deleting")),
+    )
+
+    with pytest.raises(PineconeTimeoutError, match="still exists after 10"):
+        await async_assistants.delete_file(
+            assistant_name="test-assistant", file_id="file-abc123", timeout=10
+        )
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_delete_file_server_error_raises(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """delete_file() raises PineconeError if server-side deletion fails."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(200)
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_assistant_file_response(
+                status="ProcessingFailed", error_message="Storage backend error"
+            ),
+        ),
+    )
+
+    with pytest.raises(PineconeError, match="Storage backend error"):
+        await async_assistants.delete_file(
+            assistant_name="test-assistant", file_id="file-abc123"
+        )

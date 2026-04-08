@@ -1128,9 +1128,7 @@ class Assistants:
         logger.info("Evaluating alignment for question %r", question)
         response = self._eval_http.post("/evaluation/metrics/alignment", json=body)
         result = self._adapter.to_alignment_result(response.content)
-        logger.debug(
-            "Alignment evaluation complete (alignment=%.3f)", result.scores.alignment
-        )
+        logger.debug("Alignment evaluation complete (alignment=%.3f)", result.scores.alignment)
         return result
 
     def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:

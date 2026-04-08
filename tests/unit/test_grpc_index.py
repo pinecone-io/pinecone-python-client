@@ -570,7 +570,9 @@ class TestGrpcIndexClose:
         call_order: list[str] = []
 
         mock_executor = MagicMock()
-        mock_executor.shutdown.side_effect = lambda wait: call_order.append(f"shutdown(wait={wait})")
+        mock_executor.shutdown.side_effect = lambda wait: call_order.append(
+            f"shutdown(wait={wait})"
+        )
         mock_channel.close.side_effect = lambda: call_order.append("channel.close()")
 
         idx = _make_grpc_index(mock_channel)

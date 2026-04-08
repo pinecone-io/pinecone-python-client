@@ -4,12 +4,18 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 import time
-from typing import TYPE_CHECKING, Any
+from typing import IO, TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
 from pinecone._internal.constants import ASSISTANT_API_VERSION, ASSISTANT_EVALUATION_BASE_URL
-from pinecone.errors.exceptions import PineconeTimeoutError, PineconeValueError
+from pinecone.errors.exceptions import (
+    NotFoundError,
+    PineconeError,
+    PineconeTimeoutError,
+    PineconeValueError,
+)
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
@@ -23,6 +29,8 @@ logger = logging.getLogger(__name__)
 
 _VALID_REGIONS = ("us", "eu")
 _CREATE_POLL_INTERVAL_SECONDS = 0.5
+_DELETE_POLL_INTERVAL_SECONDS = 5
+_UPLOAD_POLL_INTERVAL_SECONDS = 5
 _list = list  # Alias to avoid shadowing by the AsyncAssistants.list method in type annotations
 
 
@@ -487,6 +495,195 @@ class AsyncAssistants:
                 break
             token = page.next
         return all_files
+
+    async def _poll_file_until_processed(
+        self,
+        data_http: AsyncHTTPClient,
+        assistant_name: str,
+        file_id: str,
+        timeout: float | None,
+    ) -> AssistantFileModel:
+        """Poll ``GET /files/{assistant_name}/{file_id}`` until processing completes."""
+        start = time.monotonic()
+        while True:
+            response = await data_http.get(f"/files/{assistant_name}/{file_id}")
+            file_model = self._adapter.to_file(response.content)
+
+            if file_model.status != "Processing":
+                if file_model.status == "ProcessingFailed":
+                    error_msg = file_model.error_message or "Unknown processing error"
+                    raise PineconeError(f"File processing failed for '{file_id}': {error_msg}")
+                return file_model
+
+            if timeout is not None:
+                elapsed = time.monotonic() - start
+                if elapsed >= timeout:
+                    raise PineconeTimeoutError(
+                        f"File processing timed out after {timeout}s (operation_id={file_id})"
+                    )
+            await asyncio.sleep(_UPLOAD_POLL_INTERVAL_SECONDS)
+
+    async def upload_file(
+        self,
+        *,
+        assistant_name: str,
+        file_path: str | None = None,
+        file_stream: IO[bytes] | None = None,
+        file_name: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        multimodal: bool | None = None,
+        file_id: str | None = None,
+        timeout: float | None = None,
+    ) -> AssistantFileModel:
+        """Upload a file to a Pinecone assistant.
+
+        Uploads a file from a local path or an in-memory byte stream, then
+        polls until server-side processing completes.
+
+        Args:
+            assistant_name: Name of the target assistant.
+            file_path: Path to a local file to upload. Mutually exclusive
+                with *file_stream*.
+            file_stream: An open byte stream to upload. Mutually exclusive
+                with *file_path*. Use *file_name* to set the filename.
+            file_name: Filename to associate with *file_stream*. Ignored
+                when *file_path* is provided.
+            metadata: Optional metadata dictionary. Sent as a JSON string.
+            multimodal: Whether to enable multimodal processing for PDFs.
+            file_id: Optional caller-specified file identifier for upsert
+                behavior.
+            timeout: Seconds to wait for processing to complete. ``None``
+                (default) polls indefinitely. Use ``-1`` to return
+                immediately after upload with one describe call. Raises
+                :exc:`PineconeTimeoutError` if processing is not done
+                before the deadline.
+
+        Returns:
+            :class:`AssistantFileModel` fetched fresh from the API after
+            processing completes.
+
+        Raises:
+            :exc:`PineconeValueError`: If both or neither of *file_path*
+                and *file_stream* are provided, or if *file_path* does not
+                exist.
+            :exc:`PineconeTimeoutError`: If processing does not complete
+                before *timeout*.
+            :exc:`PineconeError`: If server-side processing fails.
+        """
+        import json as _json
+
+        if (file_path is None) == (file_stream is None):
+            raise PineconeValueError("Exactly one of file_path or file_stream must be provided")
+
+        opened_file: IO[bytes] | None = None
+        if file_path is not None:
+            if not os.path.isfile(file_path):
+                raise PineconeValueError(f"File not found: {file_path}")
+            opened_file = open(file_path, "rb")  # noqa: SIM115
+            handle: IO[bytes] = opened_file
+            upload_name = os.path.basename(file_path)
+        else:
+            assert file_stream is not None
+            handle = file_stream
+            upload_name = file_name or "upload"
+
+        try:
+            data_http = await self._data_plane_http(assistant_name)
+
+            params: dict[str, str] = {}
+            if metadata is not None:
+                params["metadata"] = _json.dumps(metadata)
+            if multimodal is not None:
+                params["multimodal"] = str(multimodal).lower()
+            if file_id is not None:
+                params["file_id"] = file_id
+
+            logger.info("Uploading file %r to assistant %r", upload_name, assistant_name)
+            response = await data_http.post(
+                f"/files/{assistant_name}",
+                files={"file": (upload_name, handle)},
+                params=params,
+            )
+            file_model = self._adapter.to_file(response.content)
+            logger.debug(
+                "Uploaded file %r (id=%s, status=%s)",
+                upload_name,
+                file_model.id,
+                file_model.status,
+            )
+        finally:
+            if opened_file is not None:
+                opened_file.close()
+
+        if timeout == -1:
+            return await self.describe_file(assistant_name=assistant_name, file_id=file_model.id)
+
+        return await self._poll_file_until_processed(
+            data_http, assistant_name, file_model.id, timeout
+        )
+
+    async def delete_file(
+        self,
+        *,
+        assistant_name: str,
+        file_id: str,
+        timeout: float | None = None,
+    ) -> None:
+        """Delete a file from a Pinecone assistant.
+
+        Sends a DELETE request, then polls every 5 seconds until the file is
+        confirmed gone (404 from describe_file). Other errors during polling
+        propagate immediately.
+
+        Args:
+            assistant_name: Name of the assistant that owns the file.
+            file_id: Unique identifier of the file to delete.
+            timeout: Seconds to wait for the file to be deleted. Use ``None``
+                (default) to poll indefinitely. Use ``-1`` to return
+                immediately without polling. Use a positive value to poll with
+                a deadline. Raises :exc:`PineconeTimeoutError` if the file
+                is not gone before the deadline.
+
+        Returns:
+            ``None``
+
+        Raises:
+            :exc:`PineconeError`: If server-side file deletion fails.
+            :exc:`PineconeTimeoutError`: If the file still exists after
+                *timeout* seconds.
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            await pc.assistants.delete_file(
+                assistant_name="my-assistant",
+                file_id="file-abc123",
+            )
+        """
+        data_http = await self._data_plane_http(assistant_name)
+        logger.info("Deleting file %r from assistant %r", file_id, assistant_name)
+        await data_http.delete(f"/files/{assistant_name}/{file_id}")
+        logger.debug("Deleted file %r from assistant %r", file_id, assistant_name)
+
+        if timeout == -1:
+            return
+
+        start = time.monotonic()
+        while True:
+            try:
+                file_model = await self.describe_file(
+                    assistant_name=assistant_name, file_id=file_id
+                )
+            except NotFoundError:
+                return
+            if file_model.status not in ("Deleting", None):
+                error_msg = file_model.error_message or "Unknown deletion error"
+                raise PineconeError(f"File deletion failed for '{file_id}': {error_msg}")
+            if timeout is not None:
+                elapsed = time.monotonic() - start
+                if elapsed >= timeout:
+                    raise PineconeTimeoutError(f"File '{file_id}' still exists after {timeout}s")
+            await asyncio.sleep(_DELETE_POLL_INTERVAL_SECONDS)
 
     async def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""
