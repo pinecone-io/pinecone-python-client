@@ -5,6 +5,10 @@ on:
     - cron: '0 * * * *'   # Every hour
   workflow_dispatch:
 
+concurrency:
+  group: dev-build-publish
+  cancel-in-progress: false
+
 permissions:
   contents: read
   id-token: write
