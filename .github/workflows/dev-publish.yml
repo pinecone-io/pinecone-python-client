@@ -1,8 +1,8 @@
 name: Dev Build & Publish
 
 on:
-  push:
-    branches: [main]
+  schedule:
+    - cron: '0 * * * *'   # Every hour
   workflow_dispatch:
 
 permissions:
@@ -17,9 +17,55 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------------
+  # Gate: skip scheduled runs when nothing changed since last success
+  # ---------------------------------------------------------------------------
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.check.outputs.has_changes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes since last successful run
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Manual trigger — always run"
+            exit 0
+          fi
+
+          last_success=$(gh run list \
+            --workflow "Dev Build & Publish" \
+            --status success \
+            --json updatedAt \
+            --jq '.[0].updatedAt // empty')
+
+          if [ -z "$last_success" ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "No prior successful run found — running"
+            exit 0
+          fi
+
+          commit_count=$(git rev-list --count --since="$last_success" HEAD)
+          if [ "$commit_count" -gt 0 ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "$commit_count new commit(s) since $last_success"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No new commits since $last_success — skipping"
+          fi
+
+  # ---------------------------------------------------------------------------
   # Stage 1: Compute dev version
   # ---------------------------------------------------------------------------
   version:
+    needs: check-changes
+    if: needs.check-changes.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
     outputs:
       dev_version: ${{ steps.compute.outputs.dev_version }}
@@ -52,8 +98,8 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             manylinux: auto
-          # macOS x86_64
-          - os: macos-13
+          # macOS x86_64 (cross-compiled on arm64 runner)
+          - os: macos-14
             target: x86_64-apple-darwin
           # macOS arm64
           - os: macos-14
