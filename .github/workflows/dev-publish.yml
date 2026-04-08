@@ -210,6 +210,7 @@ jobs:
           args: --release --interpreter 3.10 3.11 3.12 3.13 --out dist
           manylinux: ${{ matrix.manylinux || 'auto' }}
           before-script-linux: |
+            PROTOC_VERSION="${{ env.PROTOC_VERSION }}"
             ARCH=$(uname -m)
             case "$ARCH" in
               x86_64)
