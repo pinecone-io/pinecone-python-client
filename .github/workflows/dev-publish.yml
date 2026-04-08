@@ -117,6 +117,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
 
       - name: Install protoc
+        if: runner.os != 'Linux'
         uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
         with:
           version: ${{ env.PROTOC_VERSION }}
@@ -149,9 +150,26 @@ jobs:
           args: --release --interpreter 3.10 3.11 3.12 3.13 --out dist
           manylinux: ${{ matrix.manylinux || 'auto' }}
           before-script-linux: |
-            curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v28.3/protoc-28.3-linux-x86_64.zip
-            unzip protoc-28.3-linux-x86_64.zip -d /usr/local
-            rm protoc-28.3-linux-x86_64.zip
+            ARCH=$(uname -m)
+            case "$ARCH" in
+              x86_64)
+                PROTOC_ARCH="linux-x86_64"
+                PROTOC_SHA256="0ad949f04a6a174da83cdcbdb36dee0a4925272a5b6d83f79a6bf9852076d53f"
+                ;;
+              aarch64)
+                PROTOC_ARCH="linux-aarch_64"
+                PROTOC_SHA256="1de522032a8b194002fe35cab86d747848238b5e4de4f99648372079f5b46f9a"
+                ;;
+              *)
+                echo "Unsupported architecture: $ARCH" >&2
+                exit 1
+                ;;
+            esac
+            PROTOC_ZIP="protoc-${PROTOC_VERSION}-${PROTOC_ARCH}.zip"
+            curl -fsSLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
+            echo "${PROTOC_SHA256}  ${PROTOC_ZIP}" | sha256sum -c -
+            unzip "${PROTOC_ZIP}" -d /usr/local
+            rm "${PROTOC_ZIP}"
 
       - name: Upload wheels
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
