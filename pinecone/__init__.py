@@ -151,7 +151,6 @@ from pinecone.errors.exceptions import (
     ResponseParsingError,
     ServiceError,
     UnauthorizedError,
-    ValidationError,
 )
 from pinecone.models.enums import (
     CloudProvider,
@@ -379,6 +378,18 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 
 
 def __getattr__(name: str) -> Any:
+    if name == "ValidationError":
+        import warnings
+
+        warnings.warn(
+            "ValidationError is deprecated; use PineconeValueError instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        from pinecone.errors.exceptions import ValidationError
+
+        globals()["ValidationError"] = ValidationError
+        return ValidationError
     if name in _LAZY_IMPORTS:
         module_path, attr = _LAZY_IMPORTS[name]
         import importlib
