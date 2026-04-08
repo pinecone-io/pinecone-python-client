@@ -358,11 +358,11 @@ jobs:
           python-version: "3.12"
 
       - name: Install twine
-        run: pip install twine
+        run: pip install twine==6.1.0
 
       - name: Configure Artifact Registry credentials
         run: |
-          pip install keyring keyrings.google-artifactregistry-auth
+          pip install keyring==25.6.0 keyrings.google-artifactregistry-auth==1.1.2
 
       - name: Validate wheel metadata
         run: twine check dist/*
