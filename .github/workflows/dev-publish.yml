@@ -24,6 +24,7 @@ jobs:
   # ---------------------------------------------------------------------------
   check-changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       has_changes: ${{ steps.check.outputs.has_changes }}
     steps:
@@ -70,6 +71,7 @@ jobs:
     needs: check-changes
     if: needs.check-changes.outputs.has_changes == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       dev_version: ${{ steps.compute.outputs.dev_version }}
     steps:
@@ -124,6 +126,7 @@ jobs:
             target: x86_64-pc-windows-msvc
 
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
 
@@ -243,6 +246,7 @@ jobs:
   build-sdist:
     needs: version
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
 
@@ -314,6 +318,7 @@ jobs:
   publish:
     needs: [build-wheels, build-sdist]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       id-token: write
