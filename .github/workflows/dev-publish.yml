@@ -108,6 +108,10 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             manylinux: auto
+          # Linux aarch64 (AWS Graviton, GCP Tau T2A, Docker on Apple Silicon)
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            manylinux: auto
           # macOS x86_64 (cross-compiled on arm64 runner)
           - os: macos-14
             target: x86_64-apple-darwin
@@ -326,6 +330,11 @@ jobs:
           whl_count=$(ls dist/*.whl 2>/dev/null | wc -l)
           sdist_count=$(ls dist/*.tar.gz 2>/dev/null | wc -l)
           echo "Wheels: $whl_count, Sdists: $sdist_count"
+          # 5 platforms × 4 Python interpreters (3.10, 3.11, 3.12, 3.13) = 20 wheels
+          if [ "$whl_count" -lt 20 ]; then
+            echo "::error::expected at least 20 wheels but got $whl_count — one or more matrix legs may be missing"
+            exit 1
+          fi
           if [ "$sdist_count" -lt 1 ]; then
             echo "::error::sdist missing"
             exit 1
