@@ -336,7 +336,9 @@ class Index:
             records: List of record dicts. Each must contain an ``_id`` or
                 ``id`` field. Additional fields are passed through for
                 server-side embedding.
-            namespace (str): Target namespace (required).
+            namespace (str): Target namespace (required). Unlike :meth:`upsert`,
+                namespace has no default because the records API requires an
+                explicit namespace. Use ``""`` for the default namespace.
 
         Returns:
             :class:`UpsertRecordsResponse` with the count of records submitted.
