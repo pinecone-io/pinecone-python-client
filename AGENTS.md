@@ -125,6 +125,27 @@ result = pc.inference.rerank(
 )
 ```
 
+### Other data-plane operations
+
+```python
+pc = Pinecone(api_key="your-api-key")
+index = pc.index("article-search")
+
+# Fetch vectors by ID and inspect their values and metadata
+result = index.fetch(ids=["movie-42", "movie-87"])
+print(result.vectors["movie-42"].values)
+print(result.vectors["movie-42"].metadata)
+
+# Delete specific vectors or an entire namespace
+index.delete(ids=["movie-42"])
+index.delete(delete_all=True, namespace="old-data")
+
+# Check vector counts and which namespaces exist
+stats = index.describe_index_stats()
+print(stats.total_vector_count)
+print(stats.namespaces)
+```
+
 ### Backups and collections
 
 ```python
