@@ -88,6 +88,13 @@ jobs:
           dev_version="${base_version}.dev${timestamp}"
           echo "dev_version=${dev_version}" >> "$GITHUB_OUTPUT"
           echo "Version: ${dev_version}"
+          echo "${dev_version}" > dev_version.txt
+
+      - name: Upload version artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: dev-version
+          path: dev_version.txt
 
   # ---------------------------------------------------------------------------
   # Stage 2: Build wheels (matrix) + sdist
@@ -116,6 +123,23 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
 
+      - name: Download version artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        with:
+          name: dev-version
+          path: version-artifact
+        continue-on-error: true
+
+      - name: Resolve dev version
+        shell: bash
+        run: |
+          if [ -f version-artifact/dev_version.txt ]; then
+            DEV_VERSION=$(cat version-artifact/dev_version.txt)
+          else
+            DEV_VERSION="${{ needs.version.outputs.dev_version }}"
+          fi
+          echo "DEV_VERSION=${DEV_VERSION}" >> "$GITHUB_ENV"
+
       - name: Install protoc
         if: runner.os != 'Linux'
         uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
@@ -130,14 +154,14 @@ jobs:
           import re, pathlib
           p = pathlib.Path('pyproject.toml')
           text = p.read_text()
-          text = re.sub(r'version\s*=\s*\"[^\"]+\"', 'version = \"${{ needs.version.outputs.dev_version }}\"', text, count=1)
+          text = re.sub(r'version\s*=\s*\"[^\"]+\"', 'version = \"${{ env.DEV_VERSION }}\"', text, count=1)
           p.write_text(text)
           "
           python3 -c "
           import re, pathlib
           p = pathlib.Path('rust/Cargo.toml')
           text = p.read_text()
-          text = re.sub(r'^version\s*=\s*\"[^\"]+\"', 'version = \"${{ needs.version.outputs.dev_version }}\"', text, count=1, flags=re.MULTILINE)
+          text = re.sub(r'^version\s*=\s*\"[^\"]+\"', 'version = \"${{ env.DEV_VERSION }}\"', text, count=1, flags=re.MULTILINE)
           p.write_text(text)
           "
           cargo generate-lockfile --manifest-path rust/Cargo.toml
@@ -183,20 +207,36 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
 
+      - name: Download version artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4.3.0
+        with:
+          name: dev-version
+          path: version-artifact
+        continue-on-error: true
+
+      - name: Resolve dev version
+        run: |
+          if [ -f version-artifact/dev_version.txt ]; then
+            DEV_VERSION=$(cat version-artifact/dev_version.txt)
+          else
+            DEV_VERSION="${{ needs.version.outputs.dev_version }}"
+          fi
+          echo "DEV_VERSION=${DEV_VERSION}" >> "$GITHUB_ENV"
+
       - name: Inject dev version
         run: |
           python3 -c "
           import re, pathlib
           p = pathlib.Path('pyproject.toml')
           text = p.read_text()
-          text = re.sub(r'version\s*=\s*\"[^\"]+\"', 'version = \"${{ needs.version.outputs.dev_version }}\"', text, count=1)
+          text = re.sub(r'version\s*=\s*\"[^\"]+\"', 'version = \"${{ env.DEV_VERSION }}\"', text, count=1)
           p.write_text(text)
           "
           python3 -c "
           import re, pathlib
           p = pathlib.Path('rust/Cargo.toml')
           text = p.read_text()
-          text = re.sub(r'^version\s*=\s*\"[^\"]+\"', 'version = \"${{ needs.version.outputs.dev_version }}\"', text, count=1, flags=re.MULTILINE)
+          text = re.sub(r'^version\s*=\s*\"[^\"]+\"', 'version = \"${{ env.DEV_VERSION }}\"', text, count=1, flags=re.MULTILINE)
           p.write_text(text)
           "
           cargo generate-lockfile --manifest-path rust/Cargo.toml
@@ -248,5 +288,6 @@ jobs:
       - name: Upload to Artifact Registry
         run: |
           twine upload \
+            --skip-existing \
             --repository-url "https://${GCP_REGION}-python.pkg.dev/${GCP_PROJECT_ID}/${GCP_REPO_NAME}/" \
             dist/*
