@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import PineconeConnectionError, ValidationError
 from pinecone.grpc import GrpcIndex
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
@@ -582,3 +582,36 @@ class TestGrpcIndexClose:
 
         assert call_order == ["shutdown(wait=True)", "channel.close()"]
         mock_executor.shutdown.assert_called_once_with(wait=True)
+
+
+class TestGrpcErrorWrapping:
+    """Tests for GrpcIndex._call_channel error wrapping."""
+
+    def test_channel_exception_wrapped_as_connection_error(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        mock_channel.upsert.side_effect = RuntimeError("connection refused")
+
+        with pytest.raises(PineconeConnectionError):
+            grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1]}])
+
+    def test_original_message_preserved(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        mock_channel.query.side_effect = RuntimeError("transport error: broken pipe")
+
+        with pytest.raises(PineconeConnectionError) as exc_info:
+            grpc_index.query(top_k=1, vector=[0.1])
+
+        assert "transport error: broken pipe" in str(exc_info.value)
+
+    def test_exception_chaining(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        original = RuntimeError("tls handshake failed")
+        mock_channel.fetch.side_effect = original
+
+        with pytest.raises(PineconeConnectionError) as exc_info:
+            grpc_index.fetch(ids=["v1"])
+
+        assert exc_info.value.__cause__ is original

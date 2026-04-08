@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host
 from pinecone._internal.vector_factory import VectorFactory
-from pinecone.errors.exceptions import PineconeValueError, ValidationError
+from pinecone.errors.exceptions import PineconeConnectionError, PineconeValueError, ValidationError
 from pinecone.grpc._protocol import GrpcChannelProtocol
 from pinecone.grpc.future import PineconeFuture
 from pinecone.models.vectors.responses import (
@@ -175,6 +175,19 @@ class GrpcIndex:
         """The data plane host URL for this index."""
         return self._host
 
+    def _call_channel(self, method_name: str, *args: Any, **kwargs: Any) -> Any:
+        """Invoke a method on the gRPC channel, wrapping any raised exception.
+
+        Rust/PyO3 exceptions have an unknown hierarchy at import time. This
+        wrapper catches all exceptions and re-raises them as
+        :exc:`PineconeConnectionError` so that callers' ``except PineconeError``
+        handlers always catch transport and protocol failures.
+        """
+        try:
+            return getattr(self._channel, method_name)(*args, **kwargs)
+        except Exception as exc:
+            raise PineconeConnectionError(str(exc)) from exc
+
     def upsert(
         self,
         *,
@@ -229,7 +242,7 @@ class GrpcIndex:
         grpc_vectors = [_vector_to_grpc_dict(v) for v in built]
 
         logger.info("Upserting %d vectors via gRPC into namespace %r", len(built), namespace)
-        result = self._channel.upsert(grpc_vectors, namespace or None)
+        result = self._call_channel("upsert", grpc_vectors, namespace or None)
         return UpsertResponse(upserted_count=result.get("upserted_count", 0))
 
     def query(
@@ -302,7 +315,8 @@ class GrpcIndex:
                 sv_dict = sparse_vector
 
         logger.info("Querying index via gRPC with top_k=%d", top_k)
-        result = self._channel.query(
+        result = self._call_channel(
+            "query",
             top_k,
             vector=vector,
             id=id,
@@ -352,7 +366,7 @@ class GrpcIndex:
             raise ValidationError("ids must be a non-empty list")
 
         logger.info("Fetching %d vectors via gRPC", len(ids))
-        result = self._channel.fetch(ids, namespace=namespace or None)
+        result = self._call_channel("fetch", ids, namespace=namespace or None)
 
         vectors: dict[str, Vector] = {}
         for vid, vdata in result.get("vectors", {}).items():
@@ -406,7 +420,8 @@ class GrpcIndex:
             )
 
         logger.info("Deleting vectors via gRPC from namespace %r", namespace)
-        self._channel.delete(
+        self._call_channel(
+            "delete",
             ids=ids,
             delete_all=delete_all,
             namespace=namespace or None,
@@ -472,7 +487,8 @@ class GrpcIndex:
                 sv_dict = sparse_values
 
         logger.info("Updating vectors via gRPC in namespace %r", namespace)
-        result = self._channel.update(
+        result = self._call_channel(
+            "update",
             id,
             values=values,
             sparse_values=sv_dict,
@@ -510,7 +526,8 @@ class GrpcIndex:
                 print(item.id)
         """
         logger.info("Listing vectors via gRPC in namespace %r", namespace)
-        result = self._channel.list(
+        result = self._call_channel(
+            "list",
             prefix=prefix,
             limit=limit,
             pagination_token=pagination_token,
@@ -597,7 +614,7 @@ class GrpcIndex:
             )
         """
         logger.info("Describing index stats via gRPC")
-        result = self._channel.describe_index_stats(filter=filter)
+        result = self._call_channel("describe_index_stats", filter=filter)
 
         namespaces: dict[str, NamespaceSummary] = {}
         for ns_name, ns_data in result.get("namespaces", {}).items():
