@@ -22,6 +22,7 @@ from pinecone.client.assistants import (
 )
 from pinecone.errors.exceptions import (
     NotFoundError,
+    PineconeConnectionError,
     PineconeError,
     PineconeTimeoutError,
     PineconeValueError,
@@ -2410,21 +2411,26 @@ def test_model_to_dict_assistant() -> None:
 
 
 def test_model_to_dict_recursive() -> None:
-    """to_dict() on ListAssistantsResponse recursively converts nested AssistantModel."""
+    """AssistantModel.to_dict() works when retrieved from ListAssistantsResponse."""
     from pinecone.models.assistant.list import ListAssistantsResponse
 
     assistant = _make_assistant_model(metadata=None)
     response = ListAssistantsResponse(assistants=[assistant], next=None)
 
-    result = response.to_dict()
-
-    assert isinstance(result, dict)
-    assert isinstance(result["assistants"], list)
-    # Each nested AssistantModel must be converted to a plain dict, not a Struct
-    nested = result["assistants"][0]
+    # Attribute access still works; nested entity models still have to_dict()
+    assert len(response.assistants) == 1
+    nested = response.assistants[0].to_dict()
     assert isinstance(nested, dict)
     assert nested["name"] == "test-assistant"
     assert nested["status"] == "Ready"
+
+
+def test_list_assistants_response_empty_attribute_access() -> None:
+    """ListAssistantsResponse with no items has empty assistants list via attribute access."""
+    from pinecone.models.assistant.list import ListAssistantsResponse
+
+    response = ListAssistantsResponse(assistants=[])
+    assert response.assistants == []
 
 
 def test_model_str_repr_dict_form_assistant() -> None:
@@ -2546,3 +2552,52 @@ def test_evaluate_alignment_uses_api_key(assistants: Assistants) -> None:
 
     request = route.calls.last.request
     assert request.headers.get("Api-Key") == "test-key"
+
+
+# ---------------------------------------------------------------------------
+# _chat_streaming() — transport error wrapping
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_chat_streaming_timeout_raises_pinecone_timeout_error(
+    assistants: Assistants,
+) -> None:
+    """httpx.ReadTimeout during streaming is wrapped as PineconeTimeoutError."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        side_effect=httpx.ReadTimeout("test"),
+    )
+
+    with pytest.raises(PineconeTimeoutError):
+        list(
+            assistants.chat(
+                assistant_name="test-assistant",
+                messages=[{"content": "Hello"}],
+                stream=True,
+            )
+        )
+
+
+@respx.mock
+def test_chat_streaming_connect_error_raises_pinecone_connection_error(
+    assistants: Assistants,
+) -> None:
+    """httpx.ConnectError during streaming is wrapped as PineconeConnectionError."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        side_effect=httpx.ConnectError("Connection refused"),
+    )
+
+    with pytest.raises(PineconeConnectionError):
+        list(
+            assistants.chat(
+                assistant_name="test-assistant",
+                messages=[{"content": "Hello"}],
+                stream=True,
+            )
+        )
