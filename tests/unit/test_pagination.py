@@ -120,7 +120,7 @@ def test_paginator_pagination_token_updated() -> None:
 def test_paginator_repr() -> None:
     fetch = MagicMock(return_value=Page(items=[], pagination_token=None))
     pag: Paginator[int] = Paginator(fetch_page=fetch)
-    assert repr(pag) == "Paginator()"
+    assert repr(pag) == "Paginator(has_more=False)"
 
 
 def test_paginator_pages_with_limit() -> None:
@@ -239,7 +239,7 @@ async def test_async_paginator_to_list() -> None:
 def test_async_paginator_repr() -> None:
     fetch = AsyncMock(return_value=Page(items=[], pagination_token=None))
     pag: AsyncPaginator[int] = AsyncPaginator(fetch_page=fetch)
-    assert repr(pag) == "AsyncPaginator()"
+    assert repr(pag) == "AsyncPaginator(has_more=False)"
 
 
 async def test_async_paginator_pages_with_limit() -> None:
@@ -257,3 +257,47 @@ async def test_async_paginator_pages_with_limit() -> None:
     assert result[0].items == [1, 2, 3]
     assert result[1].items == [4, 5]
     assert fetch.call_count == 2
+
+
+# ---------------------------------------------------------------------------
+# Repr tests
+# ---------------------------------------------------------------------------
+
+
+def test_paginator_repr_shows_has_more() -> None:
+    """has_more=True when initial token is set."""
+    fetch = MagicMock(return_value=Page(items=[], pagination_token=None))
+    pag: Paginator[int] = Paginator(fetch_page=fetch, initial_token="some-token")
+    assert "has_more=True" in repr(pag)
+
+
+def test_paginator_repr_shows_limit() -> None:
+    """limit shown when set."""
+    fetch = MagicMock(return_value=Page(items=[], pagination_token=None))
+    pag: Paginator[int] = Paginator(fetch_page=fetch, limit=100)
+    r = repr(pag)
+    assert "limit=100" in r
+    assert "has_more=False" in r
+
+
+def test_paginator_repr_no_limit_omits_limit() -> None:
+    """limit not shown when not set."""
+    fetch = MagicMock(return_value=Page(items=[], pagination_token=None))
+    pag: Paginator[int] = Paginator(fetch_page=fetch)
+    assert "limit" not in repr(pag)
+
+
+def test_async_paginator_repr_shows_has_more() -> None:
+    """has_more=True when initial token is set."""
+    fetch = AsyncMock(return_value=Page(items=[], pagination_token=None))
+    pag: AsyncPaginator[int] = AsyncPaginator(fetch_page=fetch, initial_token="some-token")
+    assert "has_more=True" in repr(pag)
+
+
+def test_async_paginator_repr_shows_limit() -> None:
+    """limit shown when set."""
+    fetch = AsyncMock(return_value=Page(items=[], pagination_token=None))
+    pag: AsyncPaginator[int] = AsyncPaginator(fetch_page=fetch, limit=100)
+    r = repr(pag)
+    assert "limit=100" in r
+    assert "has_more=False" in r

@@ -264,3 +264,52 @@ class TestDescribeIndexStatsKeywordOnly:
         idx = _make_index()
         with pytest.raises(TypeError):
             idx.describe_index_stats({"genre": {"$eq": "drama"}})  # type: ignore[misc]
+
+
+# ---------------------------------------------------------------------------
+# __repr__ tests
+# ---------------------------------------------------------------------------
+
+
+class TestDescribeIndexStatsRepr:
+    def test_describe_index_stats_repr_summary(self) -> None:
+        """Shows namespace count, not full namespace dump."""
+        from pinecone.models.vectors.responses import NamespaceSummary
+
+        resp = DescribeIndexStatsResponse(
+            namespaces={
+                "ns1": NamespaceSummary(vector_count=100),
+                "ns2": NamespaceSummary(vector_count=200),
+                "ns3": NamespaceSummary(vector_count=300),
+            },
+            dimension=1536,
+            total_vector_count=600,
+            metric="cosine",
+        )
+        r = repr(resp)
+        assert r == "DescribeIndexStatsResponse(dimension=1536, total_vector_count=600, metric='cosine', namespaces=3)"
+        assert "NamespaceSummary" not in r
+
+    def test_describe_index_stats_repr_omits_none_dimension(self) -> None:
+        """dimension omitted when None."""
+        resp = DescribeIndexStatsResponse(
+            namespaces={},
+            dimension=None,
+            total_vector_count=0,
+        )
+        r = repr(resp)
+        assert "dimension" not in r
+        assert "total_vector_count=0" in r
+        assert "namespaces=0" in r
+
+    def test_describe_index_stats_repr_omits_none_metric(self) -> None:
+        """metric omitted when None."""
+        resp = DescribeIndexStatsResponse(
+            namespaces={},
+            dimension=128,
+            total_vector_count=50,
+            metric=None,
+        )
+        r = repr(resp)
+        assert "metric" not in r
+        assert "dimension=128" in r

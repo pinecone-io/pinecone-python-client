@@ -137,7 +137,11 @@ class Paginator(Generic[T]):
         return list(self)
 
     def __repr__(self) -> str:
-        return "Paginator()"
+        has_more = self._pagination_token is not None
+        parts = [f"has_more={has_more!r}"]
+        if self._limit is not None:
+            parts.append(f"limit={self._limit!r}")
+        return f"Paginator({', '.join(parts)})"
 
 
 class AsyncPaginator(Generic[T]):
@@ -251,4 +255,8 @@ class AsyncPaginator(Generic[T]):
         return [item async for item in self]
 
     def __repr__(self) -> str:
-        return "AsyncPaginator()"
+        has_more = self._pagination_token is not None
+        parts = [f"has_more={has_more!r}"]
+        if self._limit is not None:
+            parts.append(f"limit={self._limit!r}")
+        return f"AsyncPaginator({', '.join(parts)})"

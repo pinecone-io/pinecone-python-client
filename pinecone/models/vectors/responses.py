@@ -166,6 +166,16 @@ class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True):
     storage_fullness: float | None = None
     response_info: ResponseInfo | None = None
 
+    def __repr__(self) -> str:
+        parts = []
+        if self.dimension is not None:
+            parts.append(f"dimension={self.dimension!r}")
+        parts.append(f"total_vector_count={self.total_vector_count!r}")
+        if self.metric is not None:
+            parts.append(f"metric={self.metric!r}")
+        parts.append(f"namespaces={len(self.namespaces)!r}")
+        return f"DescribeIndexStatsResponse({', '.join(parts)})"
+
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['dimension'])."""
         if key not in self.__struct_fields__:
