@@ -70,6 +70,17 @@ results = index.query(
 
 Use `query()` for raw vector search on standard indexes. Use `search()` for text or vector search on indexes with integrated inference (server-side embeddings).
 
+### Data loading methods
+
+| Method | Use when | Batching |
+|--------|----------|----------|
+| `index.upsert(vectors=[...])` | You have pre-computed vectors (<1000 per call) | Manual — all vectors in one request |
+| `index.upsert_from_dataframe(df)` | You have a pandas DataFrame of vectors | Automatic — batches of 500 (configurable) |
+| `index.upsert_records(records=[...])` | Your index uses integrated inference (server-side embedding) | Manual — all records in one request |
+| `index.start_import(uri="s3://...")` | Millions of vectors in cloud storage (Parquet) | Server-side — fully async |
+
+For datasets larger than ~1000 vectors, use `upsert_from_dataframe()` or `start_import()`. Do not pass more than ~1000 vectors to a single `upsert()` call.
+
 ### Semantic search with integrated embeddings
 
 ```python
