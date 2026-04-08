@@ -1,0 +1,165 @@
+name: Dev Build & Publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  GCP_REGION: ${{ vars.GCP_REGION }}
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GCP_REPO_NAME: ${{ vars.GCP_REPO_NAME }}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Stage 1: Compute dev version
+  # ---------------------------------------------------------------------------
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      dev_version: ${{ steps.compute.outputs.dev_version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute dev version
+        id: compute
+        run: |
+          base_version=$(python3 -c "
+          import tomllib
+          with open('pyproject.toml', 'rb') as f:
+              print(tomllib.load(f)['project']['version'])
+          ")
+          timestamp=$(date +%s)
+          dev_version="${base_version}.dev${timestamp}"
+          echo "dev_version=${dev_version}" >> "$GITHUB_OUTPUT"
+          echo "Version: ${dev_version}"
+
+  # ---------------------------------------------------------------------------
+  # Stage 2: Build wheels (matrix) + sdist
+  # ---------------------------------------------------------------------------
+  build-wheels:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x86_64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            manylinux: auto
+          # Linux aarch64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            manylinux: auto
+          # macOS x86_64
+          - os: macos-13
+            target: x86_64-apple-darwin
+          # macOS arm64
+          - os: macos-14
+            target: aarch64-apple-darwin
+          # Windows x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU (Linux aarch64 only)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Inject dev version
+        shell: bash
+        run: |
+          python3 -c "
+          import re, pathlib
+          p = pathlib.Path('pyproject.toml')
+          text = p.read_text()
+          text = re.sub(r'version\s*=\s*\"[^\"]+\"', 'version = \"${{ needs.version.outputs.dev_version }}\"', text, count=1)
+          p.write_text(text)
+          "
+
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --interpreter 3.10 3.11 3.12 3.13 --out dist
+          manylinux: ${{ matrix.manylinux || 'auto' }}
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist/*.whl
+
+  build-sdist:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject dev version
+        run: |
+          python3 -c "
+          import re, pathlib
+          p = pathlib.Path('pyproject.toml')
+          text = p.read_text()
+          text = re.sub(r'version\s*=\s*\"[^\"]+\"', 'version = \"${{ needs.version.outputs.dev_version }}\"', text, count=1)
+          p.write_text(text)
+          "
+
+      - name: Build sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: --out dist
+
+      - name: Upload sdist
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  # ---------------------------------------------------------------------------
+  # Stage 3: Publish to Artifact Registry
+  # ---------------------------------------------------------------------------
+  publish:
+    needs: [build-wheels, build-sdist]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install twine
+        run: pip install twine
+
+      - name: Configure Artifact Registry credentials
+        run: |
+          pip install keyring keyrings.google-artifactregistry-auth
+
+      - name: Upload to Artifact Registry
+        run: |
+          twine upload \
+            --repository-url "https://${GCP_REGION}-python.pkg.dev/${GCP_PROJECT_ID}/${GCP_REPO_NAME}/" \
+            dist/*
