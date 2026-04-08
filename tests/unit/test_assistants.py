@@ -2158,6 +2158,150 @@ def test_chat_completions_streaming_sse_parsing(assistants: Assistants) -> None:
 
 
 # ---------------------------------------------------------------------------
+# _chat_streaming — [DONE] sentinel and SSE comment guards
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_chat_streaming_handles_done_sentinel(assistants: Assistants) -> None:
+    """data: [DONE] terminates the stream cleanly without raising JSONDecodeError."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b'data: {"type": "message_start", "model": "gpt-4o", "role": "assistant"}\n'
+        b"data: [DONE]\n"
+        b'data: {"type": "message_end", "id": "end1",'
+        b' "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}}\n'
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import StreamMessageStart
+
+    chunks = list(
+        assistants.chat(
+            assistant_name="test-assistant",
+            messages=[{"content": "Hello"}],
+            stream=True,
+        )
+    )
+
+    # Stream stops at [DONE]; the message_end line after it is never yielded
+    assert len(chunks) == 1
+    assert isinstance(chunks[0], StreamMessageStart)
+
+
+@respx.mock
+def test_chat_streaming_skips_sse_comments(assistants: Assistants) -> None:
+    """SSE comment lines (:...) and event: lines are silently skipped."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b": this is a comment\n"
+        b"event: ping\n"
+        b'data: {"type": "message_start", "model": "gpt-4o", "role": "assistant"}\n'
+        b"retry: 3000\n"
+        b'data: {"type": "message_end", "id": "end1",'
+        b' "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}}\n'
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import StreamMessageEnd, StreamMessageStart
+
+    chunks = list(
+        assistants.chat(
+            assistant_name="test-assistant",
+            messages=[{"content": "Hello"}],
+            stream=True,
+        )
+    )
+
+    # Only the two data: lines produce chunks; comment, event:, retry: are skipped
+    assert len(chunks) == 2
+    assert isinstance(chunks[0], StreamMessageStart)
+    assert isinstance(chunks[1], StreamMessageEnd)
+
+
+# ---------------------------------------------------------------------------
+# _chat_completions_streaming — [DONE] sentinel and SSE comment guards
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_chat_completions_streaming_handles_done_sentinel(assistants: Assistants) -> None:
+    """data: [DONE] terminates the completions stream cleanly without raising."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b'data: {"id": "cmpl1", "choices": [{"index": 0,'
+        b' "delta": {"role": "assistant", "content": null},'
+        b' "finish_reason": null}]}\n'
+        b"data: [DONE]\n"
+        b'data: {"id": "cmpl2", "choices": [{"index": 0,'
+        b' "delta": {"content": "After DONE - should not appear"},'
+        b' "finish_reason": null}]}\n'
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
+
+    chunks = list(
+        assistants.chat_completions(
+            assistant_name="test-assistant",
+            messages=[{"content": "Hello"}],
+            stream=True,
+        )
+    )
+
+    assert len(chunks) == 1
+    assert isinstance(chunks[0], ChatCompletionStreamChunk)
+    assert chunks[0].choices[0].delta.role == "assistant"
+
+
+@respx.mock
+def test_chat_completions_streaming_skips_sse_comments(assistants: Assistants) -> None:
+    """SSE comment lines (:...) and event: lines are silently skipped in completions stream."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b": keep-alive\n"
+        b"event: message\n"
+        b'data: {"id": "cmpl1", "choices": [{"index": 0,'
+        b' "delta": {"content": "Hello"}, "finish_reason": null}]}\n'
+        b"retry: 1000\n"
+        b'data: {"id": "cmpl2", "choices": [{"index": 0,'
+        b' "delta": {}, "finish_reason": "stop"}]}\n'
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
+
+    chunks = list(
+        assistants.chat_completions(
+            assistant_name="test-assistant",
+            messages=[{"content": "Hello"}],
+            stream=True,
+        )
+    )
+
+    assert len(chunks) == 2
+    assert all(isinstance(c, ChatCompletionStreamChunk) for c in chunks)
+    assert chunks[0].choices[0].delta.content == "Hello"
+    assert chunks[1].choices[0].finish_reason == "stop"
+
+
+# ---------------------------------------------------------------------------
 # context() — validation
 # ---------------------------------------------------------------------------
 

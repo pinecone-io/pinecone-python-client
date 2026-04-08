@@ -13,7 +13,6 @@ import orjson
 
 from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
 from pinecone._internal.constants import ASSISTANT_API_VERSION, ASSISTANT_EVALUATION_BASE_URL
-from pinecone._internal.http_client import _raise_for_status
 from pinecone.errors.exceptions import (
     NotFoundError,
     PineconeError,
@@ -1018,23 +1017,22 @@ class Assistants:
             :exc:`ApiError`: If the server returns an HTTP error.
         """
         http = self._data_plane_http(assistant_name)
-        with http._client.stream(
+        with http.stream(
             "POST",
             f"/chat/{assistant_name}",
             content=orjson.dumps(body),
             headers={"Content-Type": "application/json"},
-            timeout=60.0,
         ) as response:
-            if not response.is_success:
-                response.read()
-            _raise_for_status(response)
             for line in response.iter_lines():
                 if not line:
                     continue
-                if line.startswith("data:"):
-                    line = line[5:].lstrip()
+                if not line.startswith("data:"):
+                    continue
+                line = line[5:].lstrip()
                 if not line:
                     continue
+                if line == "[DONE]":
+                    break
                 chunk_data: dict[str, Any] = orjson.loads(line)
                 chunk_type = chunk_data.get("type", "")
                 if chunk_type == "message_start":
@@ -1069,23 +1067,22 @@ class Assistants:
             :exc:`ApiError`: If the server returns an HTTP error.
         """
         http = self._data_plane_http(assistant_name)
-        with http._client.stream(
+        with http.stream(
             "POST",
             f"/chat/{assistant_name}/chat/completions",
             content=orjson.dumps(body),
             headers={"Content-Type": "application/json"},
-            timeout=60.0,
         ) as response:
-            if not response.is_success:
-                response.read()
-            _raise_for_status(response)
             for line in response.iter_lines():
                 if not line:
                     continue
-                if line.startswith("data:"):
-                    line = line[5:].lstrip()
+                if not line.startswith("data:"):
+                    continue
+                line = line[5:].lstrip()
                 if not line:
                     continue
+                if line == "[DONE]":
+                    break
                 yield msgspec.convert(orjson.loads(line), ChatCompletionStreamChunk)
 
     def evaluate_alignment(
