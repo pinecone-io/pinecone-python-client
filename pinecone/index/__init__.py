@@ -1020,7 +1020,7 @@ class Index:
         id: str | None = None,
         filter: dict[str, Any] | None = None,
         fields: list[str] | None = None,
-        rerank: dict[str, Any] | None = None,
+        rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
     ) -> SearchRecordsResponse:
         """Alias for :meth:`search`.
