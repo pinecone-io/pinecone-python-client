@@ -130,6 +130,32 @@ pc.collections.create(name="snapshot", source="my-index")
 collection = pc.collections.describe("snapshot")
 ```
 
+### Organization and project management (Admin API)
+
+The `Admin` client uses OAuth2 credentials (not API keys) for organization-level operations.
+
+```python
+from pinecone import Admin, Pinecone, ServerlessSpec
+
+admin = Admin(client_id="my-client-id", client_secret="my-client-secret")
+# Or set PINECONE_CLIENT_ID and PINECONE_CLIENT_SECRET env vars
+
+# List organizations and projects
+for org in admin.organizations.list():
+    print(org.name, org.id)
+
+# Create a project and API key
+project = admin.projects.create(name="my-project")
+key = admin.api_keys.create(project_id=project.id, name="my-key")
+
+# Bridge to Pinecone for data operations
+pc = Pinecone(api_key=key.value)
+pc.indexes.create(name="my-index", dimension=1536, metric="cosine",
+                  spec=ServerlessSpec(cloud="aws", region="us-east-1"))
+```
+
+OAuth credentials are created in the Pinecone console under Organization Settings → Service Accounts.
+
 ## Async Usage
 
 ```python
