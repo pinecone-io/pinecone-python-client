@@ -28,7 +28,9 @@ _VALID_DELETION_PROTECTION = frozenset({"enabled", "disabled"})
 
 
 class IndexKwargs(TypedDict):
-    """Typed kwargs for constructing :class:`~pinecone.index.Index` or :class:`~pinecone.async_client.async_index.AsyncIndex`."""
+    """Typed kwargs for constructing :class:`~pinecone.index.Index` or
+    :class:`~pinecone.async_client.async_index.AsyncIndex`.
+    """
 
     host: str
     api_key: str
