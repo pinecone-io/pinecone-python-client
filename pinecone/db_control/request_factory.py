@@ -435,7 +435,7 @@ class PineconeDBControlRequestFactory:
         tags_obj = PineconeDBControlRequestFactory.__parse_tags(tags)
 
         if isinstance(embed, IndexEmbed):
-            parsed_embed = embed.as_dict()
+            parsed_embed = {k: v for k, v in embed.as_dict().items() if v is not None}
         else:
             # if dict, we need to parse enum values, if any, to string
             # and verify required fields are present
