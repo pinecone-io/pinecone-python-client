@@ -112,6 +112,38 @@ result = pc.inference.rerank(
 )
 ```
 
+### Backups and collections
+
+```python
+pc = Pinecone(api_key="your-api-key")
+
+# Create a backup of an index
+backup = pc.backups.create(index_name="my-index", name="pre-migration")
+
+# Restore the backup as a new index
+pc.create_index_from_backup(backup_id=backup.backup_id, name="my-index-restored")
+
+# Collections (snapshots for pod-based indexes)
+pc.collections.create(name="snapshot", source="my-index")
+collection = pc.collections.describe("snapshot")
+```
+
+## Async Usage
+
+```python
+from pinecone import AsyncPinecone
+
+async with AsyncPinecone(api_key="your-api-key") as pc:
+    desc = await pc.indexes.describe("my-index")
+    index = pc.index(host=desc.host)
+    async with index:
+        results = await index.query(vector=[0.012, -0.087, 0.153], top_k=5)
+        for match in results.matches:
+            print(match.id, match.score)
+```
+
+**Note:** Unlike the sync client, `AsyncPinecone.index(name=...)` does not auto-resolve the host. Call `await pc.indexes.describe(name)` first, then pass `host=desc.host`.
+
 ## Error Handling
 
 All SDK exceptions inherit from `PineconeError`:
@@ -132,6 +164,30 @@ PineconeError
 ```
 
 Catch specific exceptions (`NotFoundError`, `UnauthorizedError`, etc.) or the base `ApiError` for HTTP errors. `ApiError` exposes `.status_code` and `.body` attributes.
+
+## Response Objects
+
+Access patterns for the most common response types:
+
+```python
+# QueryResponse — from index.query()
+results = index.query(vector=[...], top_k=5)
+for match in results.matches:
+    print(match.id, match.score)    # id and similarity score
+    print(match.values)             # vector values (if include_values=True)
+    print(match.metadata)           # metadata dict (if include_metadata=True)
+
+# SearchRecordsResponse — from index.search() with integrated embeddings
+results = index.search(namespace="products", top_k=5, inputs={"text": "..."})
+for hit in results.result.hits:
+    print(hit.id, hit.score)        # id and similarity score
+    print(hit.fields)               # record fields dict
+
+# EmbeddingsList — from pc.inference.embed()
+embeddings = pc.inference.embed(model="multilingual-e5-large", inputs=["text"])
+for embedding in embeddings:
+    print(embedding.values)         # list of floats
+```
 
 ## Common Mistakes
 
