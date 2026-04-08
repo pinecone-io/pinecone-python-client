@@ -146,6 +146,29 @@ print(stats.total_vector_count)
 print(stats.namespaces)
 ```
 
+### Metadata filtering
+
+Filter vectors by metadata fields using the operators below. Filters work on both `query(filter=...)` and `search(filter=...)`.
+
+| Operator | Description |
+|----------|-------------|
+| `$eq` / `$ne` | Equal / not equal |
+| `$gt` / `$gte` / `$lt` / `$lte` | Numeric comparison |
+| `$in` / `$nin` | Set membership / exclusion |
+| `$and` / `$or` | Logical combinators |
+
+```python
+# Range filter
+results = index.query(vector=[...], top_k=10, filter={"year": {"$gte": 2020, "$lte": 2024}})
+
+# Set membership
+results = index.query(vector=[...], top_k=10, filter={"category": {"$in": ["science", "tech"]}})
+
+# Combined condition
+results = index.query(vector=[...], top_k=10,
+    filter={"$and": [{"year": {"$gte": 2020}}, {"category": {"$in": ["science"]}}]})
+```
+
 ### Backups and collections
 
 ```python
