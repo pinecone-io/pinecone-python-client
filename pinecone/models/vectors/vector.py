@@ -26,6 +26,21 @@ class Vector(Struct, rename="camel", kw_only=True):
     sparse_values: SparseValues | None = None
     metadata: dict[str, Any] | None = None
 
+    def __repr__(self) -> str:
+        if len(self.values) > 5:
+            preview = ", ".join(repr(v) for v in self.values[:3])
+            values_str = f"[{preview}, ...{len(self.values) - 3} more]"
+        else:
+            values_str = repr(self.values)
+        parts = [
+            f"id={self.id!r}",
+            f"values={values_str}",
+            f"sparse_values={self.sparse_values!r}",
+        ]
+        if self.metadata is not None:
+            parts.append(f"metadata={self.metadata!r}")
+        return f"Vector({', '.join(parts)})"
+
 
 class ScoredVector(Struct, rename="camel", kw_only=True):
     """A vector match with similarity score from a query operation.
@@ -46,3 +61,20 @@ class ScoredVector(Struct, rename="camel", kw_only=True):
     values: list[float] = []
     sparse_values: SparseValues | None = None
     metadata: dict[str, Any] | None = None
+
+    def __repr__(self) -> str:
+        if len(self.values) > 5:
+            preview = ", ".join(repr(v) for v in self.values[:3])
+            values_str = f"[{preview}, ...{len(self.values) - 3} more]"
+        else:
+            values_str = repr(self.values)
+        parts = [
+            f"id={self.id!r}",
+            f"score={self.score!r}",
+            f"values={values_str}",
+        ]
+        if self.sparse_values is not None:
+            parts.append(f"sparse_values={self.sparse_values!r}")
+        if self.metadata is not None:
+            parts.append(f"metadata={self.metadata!r}")
+        return f"ScoredVector({', '.join(parts)})"

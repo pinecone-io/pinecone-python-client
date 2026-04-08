@@ -97,6 +97,9 @@ class Hit(Struct, kw_only=True, rename={"id_": "_id", "score_": "_score"}):
             return True
         return key in self.__struct_fields__
 
+    def __repr__(self) -> str:
+        return f"Hit(id={self.id!r}, score={self.score!r}, fields={self.fields!r})"
+
 
 class SearchResult(Struct, kw_only=True):
     """The result wrapper containing hits.
