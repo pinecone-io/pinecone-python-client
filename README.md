@@ -38,15 +38,15 @@ index = pc.index("movie-recommendations")
 # Upsert vectors
 index.upsert(
     vectors=[
-        ("movie-42", [0.012, -0.087, 0.153, ...]),  # 1536-dim embedding
-        ("movie-87", [0.045, 0.021, -0.064, ...]),
+        ("movie-42", [0.012, -0.087, 0.153]),  # 1536-dim embedding
+        ("movie-87", [0.045, 0.021, -0.064]),  # 1536-dim embedding
     ],
     namespace="movies-en",
 )
 
 # Query for similar vectors
 results = index.query(
-    vector=[0.012, -0.087, 0.153, ...],
+    vector=[0.012, -0.087, 0.153],  # 1536-dim embedding
     top_k=10,
     namespace="movies-en",
 )
@@ -64,16 +64,17 @@ import asyncio
 from pinecone import AsyncPinecone
 
 async def main():
-    pc = AsyncPinecone(api_key="your-api-key")
-    index = pc.index("movie-recommendations")
-
-    results = await index.query(
-        vector=[0.012, -0.087, 0.153, ...],
-        top_k=10,
-        namespace="movies-en",
-    )
-    for match in results.matches:
-        print(f"{match.id}: {match.score:.4f}")
+    async with AsyncPinecone(api_key="your-api-key") as pc:
+        desc = await pc.indexes.describe("movie-recommendations")
+        index = pc.index(host=desc.host)
+        async with index:
+            results = await index.query(
+                vector=[0.012, -0.087, 0.153],  # 1536-dim vector
+                top_k=10,
+                namespace="movies-en",
+            )
+            for match in results.matches:
+                print(f"{match.id}: {match.score:.4f}")
 
 asyncio.run(main())
 ```
