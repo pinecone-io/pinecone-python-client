@@ -74,6 +74,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       dev_version: ${{ steps.compute.outputs.dev_version }}
+      cargo_version: ${{ steps.compute.outputs.cargo_version }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
 
@@ -88,15 +89,21 @@ jobs:
           timestamp=$(date +%s)
           short_sha=$(git rev-parse --short HEAD)
           dev_version="${base_version}.dev${timestamp}+g${short_sha}"
+          cargo_version="${base_version}-dev.${timestamp}+g${short_sha}"
           echo "dev_version=${dev_version}" >> "$GITHUB_OUTPUT"
-          echo "Version: ${dev_version}"
+          echo "cargo_version=${cargo_version}" >> "$GITHUB_OUTPUT"
+          echo "PEP 440 version (pyproject.toml): ${dev_version}"
+          echo "SemVer version  (Cargo.toml):     ${cargo_version}"
           echo "${dev_version}" > dev_version.txt
+          echo "${cargo_version}" > cargo_version.txt
 
       - name: Upload version artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
           name: dev-version
-          path: dev_version.txt
+          path: |
+            dev_version.txt
+            cargo_version.txt
 
   # ---------------------------------------------------------------------------
   # Stage 2: Build wheels (matrix) + sdist
@@ -142,10 +149,13 @@ jobs:
         run: |
           if [ -f version-artifact/dev_version.txt ]; then
             DEV_VERSION=$(cat version-artifact/dev_version.txt)
+            CARGO_VERSION=$(cat version-artifact/cargo_version.txt)
           else
             DEV_VERSION="${{ needs.version.outputs.dev_version }}"
+            CARGO_VERSION="${{ needs.version.outputs.cargo_version }}"
           fi
           echo "DEV_VERSION=${DEV_VERSION}" >> "$GITHUB_ENV"
+          echo "CARGO_VERSION=${CARGO_VERSION}" >> "$GITHUB_ENV"
 
       - name: Install protoc
         if: runner.os != 'Linux'
@@ -158,6 +168,7 @@ jobs:
         shell: bash
         env:
           DEV_VERSION: ${{ needs.version.outputs.dev_version }}
+          CARGO_VERSION: ${{ needs.version.outputs.cargo_version }}
         run: |
           python3 -c "
           import re, os, pathlib
@@ -171,7 +182,7 @@ jobs:
           import re, os, pathlib
           p = pathlib.Path('rust/Cargo.toml')
           text = p.read_text()
-          v = os.environ['DEV_VERSION']
+          v = os.environ['CARGO_VERSION']
           text = re.sub(r'^version\s*=\s*\"[^\"]+\"', f'version = \"{v}\"', text, count=1, flags=re.MULTILINE)
           p.write_text(text)
           "
@@ -261,14 +272,18 @@ jobs:
         run: |
           if [ -f version-artifact/dev_version.txt ]; then
             DEV_VERSION=$(cat version-artifact/dev_version.txt)
+            CARGO_VERSION=$(cat version-artifact/cargo_version.txt)
           else
             DEV_VERSION="${{ needs.version.outputs.dev_version }}"
+            CARGO_VERSION="${{ needs.version.outputs.cargo_version }}"
           fi
           echo "DEV_VERSION=${DEV_VERSION}" >> "$GITHUB_ENV"
+          echo "CARGO_VERSION=${CARGO_VERSION}" >> "$GITHUB_ENV"
 
       - name: Inject dev version
         env:
           DEV_VERSION: ${{ needs.version.outputs.dev_version }}
+          CARGO_VERSION: ${{ needs.version.outputs.cargo_version }}
         run: |
           python3 -c "
           import re, os, pathlib
@@ -282,7 +297,7 @@ jobs:
           import re, os, pathlib
           p = pathlib.Path('rust/Cargo.toml')
           text = p.read_text()
-          v = os.environ['DEV_VERSION']
+          v = os.environ['CARGO_VERSION']
           text = re.sub(r'^version\s*=\s*\"[^\"]+\"', f'version = \"{v}\"', text, count=1, flags=re.MULTILINE)
           p.write_text(text)
           "
