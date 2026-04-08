@@ -7,6 +7,7 @@ import logging
 import os
 import re
 from dataclasses import dataclass, field
+from typing import ClassVar
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +108,16 @@ class PineconeConfig:
     connection_pool_maxsize: int = 0
     retry_config: RetryConfig = field(default_factory=RetryConfig)
 
+    _SENSITIVE_HEADER_KEYS: ClassVar[frozenset[str]] = frozenset(
+        {"authorization", "api-key", "proxy-authorization"}
+    )
+
+    def _redact_headers(self, headers: dict[str, str]) -> dict[str, str]:
+        return {
+            k: "***" if k.lower() in self._SENSITIVE_HEADER_KEYS else v
+            for k, v in headers.items()
+        }
+
     def __repr__(self) -> str:
         masked = f"...{self.api_key[-4:]}" if len(self.api_key) >= 4 else "***"
         return (
@@ -114,10 +125,10 @@ class PineconeConfig:
             f"api_key='{masked}', "
             f"host='{self.host}', "
             f"timeout={self.timeout}, "
-            f"additional_headers={self.additional_headers!r}, "
+            f"additional_headers={self._redact_headers(self.additional_headers)!r}, "
             f"source_tag='{self.source_tag}', "
             f"proxy_url='{self.proxy_url}', "
-            f"proxy_headers={self.proxy_headers!r}, "
+            f"proxy_headers={self._redact_headers(self.proxy_headers)!r}, "
             f"ssl_ca_certs={self.ssl_ca_certs!r}, "
             f"ssl_verify={self.ssl_verify}, "
             f"connection_pool_maxsize={self.connection_pool_maxsize}"
