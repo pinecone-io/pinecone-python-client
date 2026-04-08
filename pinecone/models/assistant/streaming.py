@@ -13,16 +13,14 @@ from msgspec import Struct
 from pinecone.models.assistant.chat import ChatCitation, ChatUsage
 
 
-class StreamMessageStart(Struct, kw_only=True):
+class StreamMessageStart(Struct, kw_only=True, tag="message_start", tag_field="type"):
     """First chunk in a chat stream, containing the model and role.
 
     Attributes:
-        type: The chunk type (``"message_start"``).
         model: The model used to generate the response.
         role: The role of the message author (e.g. ``"assistant"``).
     """
 
-    type: str
     model: str
     role: str
 
@@ -37,45 +35,39 @@ class StreamContentDelta(Struct, kw_only=True):
     content: str
 
 
-class StreamContentChunk(Struct, kw_only=True):
+class StreamContentChunk(Struct, kw_only=True, tag="content_chunk", tag_field="type"):
     """A content chunk containing a text fragment in a delta object.
 
     Attributes:
         id: Unique identifier for this chunk.
-        type: The chunk type (``"content_chunk"``).
         delta: The delta object containing the text fragment.
     """
 
     id: str
-    type: str
     delta: StreamContentDelta
 
 
-class StreamCitationChunk(Struct, kw_only=True):
+class StreamCitationChunk(Struct, kw_only=True, tag="citation", tag_field="type"):
     """A citation chunk linking response text to source references.
 
     Attributes:
         id: Unique identifier for this chunk.
-        type: The chunk type (``"citation"``).
         citation: The citation data with position and references.
     """
 
     id: str
-    type: str
     citation: ChatCitation
 
 
-class StreamMessageEnd(Struct, kw_only=True):
+class StreamMessageEnd(Struct, kw_only=True, tag="message_end", tag_field="type"):
     """Final chunk in a chat stream, containing token usage statistics.
 
     Attributes:
         id: Unique identifier for this chunk.
-        type: The chunk type (``"message_end"``).
         usage: Token usage statistics for the request.
     """
 
     id: str
-    type: str
     usage: ChatUsage
 
 

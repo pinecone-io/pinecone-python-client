@@ -30,10 +30,6 @@ from pinecone.models.assistant.options import ContextOptions
 from pinecone.models.assistant.streaming import (
     ChatCompletionStreamChunk,
     ChatStreamChunk,
-    StreamCitationChunk,
-    StreamContentChunk,
-    StreamMessageEnd,
-    StreamMessageStart,
 )
 from pinecone.models.pagination import Page, Paginator
 
@@ -1052,15 +1048,10 @@ class Assistants:
                 if line == "[DONE]":
                     break
                 chunk_data: dict[str, Any] = orjson.loads(line)
-                chunk_type = chunk_data.get("type", "")
-                if chunk_type == "message_start":
-                    yield msgspec.convert(chunk_data, StreamMessageStart)
-                elif chunk_type == "content_chunk":
-                    yield msgspec.convert(chunk_data, StreamContentChunk)
-                elif chunk_type == "citation":
-                    yield msgspec.convert(chunk_data, StreamCitationChunk)
-                elif chunk_type == "message_end":
-                    yield msgspec.convert(chunk_data, StreamMessageEnd)
+                try:
+                    yield msgspec.convert(chunk_data, ChatStreamChunk)
+                except msgspec.ValidationError:
+                    logger.debug("Skipping unknown chunk type: %s", chunk_data.get("type"))
 
     def _chat_completions_streaming(
         self,

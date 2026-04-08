@@ -8,6 +8,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 import httpx
+import msgspec
 import pytest
 import respx
 
@@ -2929,3 +2930,29 @@ def test_chat_streaming_uses_config_timeout() -> None:
 
     assert len(captured_timeout) == 1
     assert captured_timeout[0] == 300.0
+
+
+# ---------------------------------------------------------------------------
+# ChatStreamChunk — tag-based dispatch
+# ---------------------------------------------------------------------------
+
+
+def test_stream_chunk_tag_dispatch() -> None:
+    """msgspec.convert dispatches to StreamMessageStart by tag when type='message_start'."""
+    from pinecone.models.assistant.streaming import ChatStreamChunk, StreamMessageStart
+
+    chunk = msgspec.convert(
+        {"type": "message_start", "model": "gpt-4o", "role": "assistant"},
+        ChatStreamChunk,
+    )
+    assert isinstance(chunk, StreamMessageStart)
+    assert chunk.model == "gpt-4o"
+    assert chunk.role == "assistant"
+
+
+def test_stream_chunk_unknown_type() -> None:
+    """msgspec.convert raises ValidationError when the type tag is not recognised."""
+    from pinecone.models.assistant.streaming import ChatStreamChunk
+
+    with pytest.raises(msgspec.ValidationError):
+        msgspec.convert({"type": "unknown", "data": "foo"}, ChatStreamChunk)
