@@ -6,7 +6,7 @@ import asyncio
 import logging
 import os
 import time
-from typing import IO, TYPE_CHECKING, Any
+from typing import IO, TYPE_CHECKING, Any, List
 
 from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
 from pinecone._internal.constants import ASSISTANT_API_VERSION, ASSISTANT_EVALUATION_BASE_URL
@@ -16,8 +16,11 @@ from pinecone.errors.exceptions import (
     PineconeTimeoutError,
     PineconeValueError,
 )
+from pinecone.models.assistant.context import ContextResponse
+from pinecone.models.assistant.evaluation import AlignmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
+from pinecone.models.assistant.message import Message
 from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.pagination import AsyncPaginator, Page
 
@@ -684,6 +687,140 @@ class AsyncAssistants:
                 if elapsed >= timeout:
                     raise PineconeTimeoutError(f"File '{file_id}' still exists after {timeout}s")
             await asyncio.sleep(_DELETE_POLL_INTERVAL_SECONDS)
+
+    async def context(
+        self,
+        *,
+        assistant_name: str,
+        query: str | None = None,
+        messages: List[Message | dict[str, str]] | None = None,
+        filter: dict[str, Any] | None = None,
+        top_k: int | None = None,
+        snippet_size: int | None = None,
+        multimodal: bool | None = None,
+        include_binary_content: bool | None = None,
+    ) -> ContextResponse:
+        """Retrieve relevant context snippets from a Pinecone assistant.
+
+        Retrieves context snippets matching a text query or conversation
+        history. Exactly one of *query* or *messages* must be provided
+        and non-empty.
+
+        Args:
+            assistant_name: Name of the assistant to retrieve context from.
+            query: Text query to use for context retrieval. Mutually exclusive
+                with *messages*. Empty string is treated as not provided.
+            messages: Conversation messages to use for context retrieval.
+                Mutually exclusive with *query*. Empty list is treated as not
+                provided. Dicts are converted to :class:`Message` objects.
+            filter: Metadata filter restricting which documents contribute
+                context. Omitted from request when ``None``.
+            top_k: Maximum number of context snippets to return. Omitted
+                from request when ``None``.
+            snippet_size: Maximum snippet size in tokens. Omitted from
+                request when ``None``.
+            multimodal: Whether to include image-related context snippets.
+                Omitted from request when ``None``.
+            include_binary_content: Whether image snippets include base64
+                image data. Only meaningful when *multimodal* is ``True``.
+                Omitted from request when ``None``.
+
+        Returns:
+            :class:`ContextResponse` containing the matching context snippets.
+
+        Raises:
+            :exc:`PineconeValueError`: If both or neither of *query* and
+                *messages* are provided (or if they are empty).
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+            Retrieve context using a text query:
+
+            >>> response = await pc.assistants.context(
+            ...     assistant_name="my-assistant",
+            ...     query="What is Pinecone?",
+            ... )
+            >>> for snippet in response.snippets:
+            ...     print(snippet.content)
+        """
+        query_truthy = query is not None and query != ""
+        messages_truthy = messages is not None and len(messages) > 0
+
+        if query_truthy and messages_truthy:
+            raise PineconeValueError("Exactly one of query or messages must be provided, not both.")
+        if not query_truthy and not messages_truthy:
+            raise PineconeValueError("Exactly one of query or messages must be provided.")
+
+        body: dict[str, Any] = {}
+
+        if query_truthy:
+            body["query"] = query
+        else:
+            assert messages is not None
+            parsed: List[Message] = [
+                m if isinstance(m, Message) else Message.from_dict(m) for m in messages
+            ]
+            body["messages"] = [{"role": m.role, "content": m.content} for m in parsed]
+
+        if filter is not None:
+            body["filter"] = filter
+        if top_k is not None:
+            body["top_k"] = top_k
+        if snippet_size is not None:
+            body["snippet_size"] = snippet_size
+        if multimodal is not None:
+            body["multimodal"] = multimodal
+        if include_binary_content is not None:
+            body["include_binary_content"] = include_binary_content
+
+        http = await self._data_plane_http(assistant_name)
+        response = await http.post(f"/chat/{assistant_name}/context", json=body)
+        return self._adapter.to_context_response(response.content)
+
+    async def evaluate_alignment(
+        self,
+        *,
+        question: str,
+        answer: str,
+        ground_truth_answer: str,
+    ) -> AlignmentResult:
+        """Evaluate answer alignment against a ground truth answer.
+
+        Measures the correctness and completeness of a generated answer with
+        respect to a ground truth answer. Alignment is the harmonic mean of
+        correctness (precision) and completeness (recall).
+
+        Args:
+            question: The question for which the answer was generated.
+            answer: The generated answer to evaluate.
+            ground_truth_answer: The ground truth answer to compare against.
+
+        Returns:
+            :class:`AlignmentResult` with aggregate scores, per-fact entailment
+            results, and token usage statistics.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            result = await pc.assistants.evaluate_alignment(
+                question="What is the capital of Spain?",
+                answer="Barcelona.",
+                ground_truth_answer="Madrid.",
+            )
+            print(result.scores.alignment)
+        """
+        body = {
+            "question": question,
+            "answer": answer,
+            "ground_truth_answer": ground_truth_answer,
+        }
+        logger.info("Evaluating alignment for question %r", question)
+        response = await self._eval_http.post("/evaluation/metrics/alignment", json=body)
+        result = self._adapter.to_alignment_result(response.content)
+        logger.debug("Alignment evaluation complete (alignment=%.3f)", result.scores.alignment)
+        return result
 
     async def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""

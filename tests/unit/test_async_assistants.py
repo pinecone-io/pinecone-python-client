@@ -27,7 +27,12 @@ from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.pagination import AsyncPaginator, Page
-from tests.factories import make_assistant_file_response, make_assistant_response
+from tests.factories import (
+    make_alignment_response,
+    make_assistant_file_response,
+    make_assistant_response,
+    make_context_response,
+)
 
 BASE_URL = "https://api.test.pinecone.io"
 DATA_PLANE_HOST = "test-assistant-abc123.svc.pinecone.io"
@@ -1752,3 +1757,242 @@ async def test_async_delete_file_server_error_raises(
         await async_assistants.delete_file(
             assistant_name="test-assistant", file_id="file-abc123"
         )
+
+
+# ---------------------------------------------------------------------------
+# context() — validation
+# ---------------------------------------------------------------------------
+
+
+async def test_async_context_both_query_and_messages(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """Providing both query and messages raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="not both"):
+        await async_assistants.context(
+            assistant_name="test-assistant",
+            query="What is Pinecone?",
+            messages=[{"content": "Hello"}],
+        )
+
+
+async def test_async_context_neither_query_nor_messages(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """Providing neither query nor messages raises PineconeValueError."""
+    with pytest.raises(PineconeValueError):
+        await async_assistants.context(assistant_name="test-assistant")
+
+
+async def test_async_context_empty_string_query(async_assistants: AsyncAssistants) -> None:
+    """Empty string query is treated as not provided — raises if messages also absent."""
+    with pytest.raises(PineconeValueError):
+        await async_assistants.context(assistant_name="test-assistant", query="")
+
+
+async def test_async_context_empty_list_messages(async_assistants: AsyncAssistants) -> None:
+    """Empty list messages is treated as not provided — raises if query also absent."""
+    with pytest.raises(PineconeValueError):
+        await async_assistants.context(assistant_name="test-assistant", messages=[])
+
+
+# ---------------------------------------------------------------------------
+# context() — success
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_context_with_query(async_assistants: AsyncAssistants) -> None:
+    """context() with query POSTs to /chat/{name}/context and returns ContextResponse."""
+    from pinecone.models.assistant.context import ContextResponse
+
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
+        return_value=httpx.Response(200, json=make_context_response()),
+    )
+
+    result = await async_assistants.context(
+        assistant_name="test-assistant",
+        query="What is Pinecone?",
+    )
+
+    assert isinstance(result, ContextResponse)
+    assert len(result.snippets) == 1
+
+    request_body = json.loads(context_route.calls.last.request.content)
+    assert request_body["query"] == "What is Pinecone?"
+    assert "messages" not in request_body
+
+
+@respx.mock
+async def test_async_context_with_messages(async_assistants: AsyncAssistants) -> None:
+    """context() with messages parses and sends them; does not send query."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
+        return_value=httpx.Response(200, json=make_context_response()),
+    )
+
+    await async_assistants.context(
+        assistant_name="test-assistant",
+        messages=[{"content": "Tell me about vector databases."}],
+    )
+
+    request_body = json.loads(context_route.calls.last.request.content)
+    assert "query" not in request_body
+    assert request_body["messages"] == [
+        {"role": "user", "content": "Tell me about vector databases."}
+    ]
+
+
+@respx.mock
+async def test_async_context_optional_params_included_when_provided(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """Optional parameters are sent in the request body when provided."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
+        return_value=httpx.Response(200, json=make_context_response()),
+    )
+
+    await async_assistants.context(
+        assistant_name="test-assistant",
+        query="What is Pinecone?",
+        filter={"genre": {"$ne": "documentary"}},
+        top_k=5,
+        snippet_size=1024,
+        multimodal=True,
+        include_binary_content=False,
+    )
+
+    request_body = json.loads(context_route.calls.last.request.content)
+    assert request_body["filter"] == {"genre": {"$ne": "documentary"}}
+    assert request_body["top_k"] == 5
+    assert request_body["snippet_size"] == 1024
+    assert request_body["multimodal"] is True
+    assert request_body["include_binary_content"] is False
+
+
+@respx.mock
+async def test_async_context_optional_params_omitted_when_absent(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """Optional parameters are not included in the request body when not provided."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
+        return_value=httpx.Response(200, json=make_context_response()),
+    )
+
+    await async_assistants.context(
+        assistant_name="test-assistant",
+        query="What is Pinecone?",
+    )
+
+    request_body = json.loads(context_route.calls.last.request.content)
+    assert "filter" not in request_body
+    assert "top_k" not in request_body
+    assert "snippet_size" not in request_body
+    assert "multimodal" not in request_body
+
+
+# ---------------------------------------------------------------------------
+# evaluate_alignment() — success
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_evaluate_alignment(async_assistants: AsyncAssistants) -> None:
+    """evaluate_alignment() POSTs to evaluation endpoint and returns AlignmentResult."""
+    from pinecone._internal.constants import ASSISTANT_EVALUATION_BASE_URL
+    from pinecone.models.assistant.evaluation import AlignmentResult, AlignmentScores
+
+    eval_route = respx.post(
+        f"{ASSISTANT_EVALUATION_BASE_URL}/evaluation/metrics/alignment"
+    ).mock(
+        return_value=httpx.Response(200, json=make_alignment_response()),
+    )
+
+    result = await async_assistants.evaluate_alignment(
+        question="What is the capital of Spain?",
+        answer="Barcelona.",
+        ground_truth_answer="Madrid.",
+    )
+
+    assert isinstance(result, AlignmentResult)
+    assert isinstance(result.scores, AlignmentScores)
+    assert result.scores.correctness == 0.0
+    assert result.scores.completeness == 1.0
+    assert result.scores.alignment == 0.0
+    assert len(result.facts) == 1
+    assert result.facts[0].fact == "Madrid is the capital of Spain."
+    assert result.facts[0].entailment == "entailed"
+    assert result.usage.prompt_tokens == 120
+    assert result.usage.completion_tokens == 40
+    assert result.usage.total_tokens == 160
+
+    request = eval_route.calls.last.request
+    body = json.loads(request.content)
+    assert body["question"] == "What is the capital of Spain?"
+    assert body["answer"] == "Barcelona."
+    assert body["ground_truth_answer"] == "Madrid."
+
+
+@respx.mock
+async def test_async_evaluate_alignment_multiple_facts(async_assistants: AsyncAssistants) -> None:
+    """evaluate_alignment() correctly maps multiple evaluated_facts from the response."""
+    from pinecone._internal.constants import ASSISTANT_EVALUATION_BASE_URL
+
+    multi_fact_response = make_alignment_response(
+        reasoning={
+            "evaluated_facts": [
+                {"fact": {"content": "Fact one."}, "entailment": "entailed"},
+                {"fact": {"content": "Fact two."}, "entailment": "contradicted"},
+                {"fact": {"content": "Fact three."}, "entailment": "neutral"},
+            ]
+        }
+    )
+    respx.post(f"{ASSISTANT_EVALUATION_BASE_URL}/evaluation/metrics/alignment").mock(
+        return_value=httpx.Response(200, json=multi_fact_response),
+    )
+
+    result = await async_assistants.evaluate_alignment(
+        question="Q?",
+        answer="A.",
+        ground_truth_answer="GT.",
+    )
+
+    assert len(result.facts) == 3
+    assert result.facts[0].fact == "Fact one."
+    assert result.facts[0].entailment == "entailed"
+    assert result.facts[1].fact == "Fact two."
+    assert result.facts[1].entailment == "contradicted"
+    assert result.facts[2].fact == "Fact three."
+    assert result.facts[2].entailment == "neutral"
+
+
+@respx.mock
+async def test_async_evaluate_alignment_uses_api_key(async_assistants: AsyncAssistants) -> None:
+    """evaluate_alignment() sends the Api-Key header in the request."""
+    from pinecone._internal.constants import ASSISTANT_EVALUATION_BASE_URL
+
+    route = respx.post(
+        f"{ASSISTANT_EVALUATION_BASE_URL}/evaluation/metrics/alignment"
+    ).mock(
+        return_value=httpx.Response(200, json=make_alignment_response()),
+    )
+
+    await async_assistants.evaluate_alignment(
+        question="Q?",
+        answer="A.",
+        ground_truth_answer="GT.",
+    )
+
+    request = route.calls.last.request
+    assert request.headers.get("Api-Key") == "test-key"
