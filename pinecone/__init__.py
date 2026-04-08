@@ -125,7 +125,14 @@ if TYPE_CHECKING:
         UpsertRecordsResponse,
         UpsertResponse,
     )
-    from pinecone.models.vectors.search import RerankConfig, SearchInputs, SearchRecordsResponse
+    from pinecone.models.vectors.search import (
+        Hit,
+        RerankConfig,
+        SearchInputs,
+        SearchRecordsResponse,
+        SearchResult,
+        SearchUsage,
+    )
     from pinecone.models.vectors.sparse import SparseValues
     from pinecone.models.vectors.vector import Vector
     from pinecone.utils.filter_builder import Field
@@ -195,6 +202,7 @@ __all__ = [
     "Field",
     "ForbiddenError",
     "GrpcIndex",
+    "Hit",
     "PineconeFuture",
     "ImportList",
     "ImportModel",
@@ -239,6 +247,8 @@ __all__ = [
     "RestoreJobModel",
     "SearchInputs",
     "SearchRecordsResponse",
+    "SearchResult",
+    "SearchUsage",
     "ServerlessSpec",
     "ServerlessSpecInfo",
     "ServiceError",
@@ -300,6 +310,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "FetchResponse": ("pinecone.models.vectors.responses", "FetchResponse"),
     "Field": ("pinecone.utils.filter_builder", "Field"),
     "GrpcIndex": ("pinecone.grpc", "GrpcIndex"),
+    "Hit": ("pinecone.models.vectors.search", "Hit"),
     "PineconeFuture": ("pinecone.grpc.future", "PineconeFuture"),
     "ImportList": ("pinecone.models.imports.list", "ImportList"),
     "ImportModel": ("pinecone.models.imports.model", "ImportModel"),
@@ -350,6 +361,8 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "pinecone.models.vectors.search",
         "SearchRecordsResponse",
     ),
+    "SearchResult": ("pinecone.models.vectors.search", "SearchResult"),
+    "SearchUsage": ("pinecone.models.vectors.search", "SearchUsage"),
     "ServerlessSpec": ("pinecone.models.indexes.specs", "ServerlessSpec"),
     "ServerlessSpecInfo": ("pinecone.models.indexes.index", "ServerlessSpecInfo"),
     "SparseValues": ("pinecone.models.vectors.sparse", "SparseValues"),

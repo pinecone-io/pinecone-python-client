@@ -121,7 +121,12 @@ if TYPE_CHECKING:
         UpsertRecordsResponse,
         UpsertResponse,
     )
-    from pinecone.models.vectors.search import SearchRecordsResponse  # noqa: F401
+    from pinecone.models.vectors.search import (  # noqa: F401
+        Hit,
+        SearchRecordsResponse,
+        SearchResult,
+        SearchUsage,
+    )
     from pinecone.models.vectors.sparse import SparseValues  # noqa: F401
     from pinecone.models.vectors.usage import Usage  # noqa: F401
     from pinecone.models.vectors.vector import ScoredVector, Vector  # noqa: F401
@@ -232,7 +237,10 @@ _LAZY_IMPORTS: dict[str, str] = {
     "UpdateResponse": "pinecone.models.vectors.responses",
     "UpsertRecordsResponse": "pinecone.models.vectors.responses",
     "UpsertResponse": "pinecone.models.vectors.responses",
+    "Hit": "pinecone.models.vectors.search",
     "SearchRecordsResponse": "pinecone.models.vectors.search",
+    "SearchResult": "pinecone.models.vectors.search",
+    "SearchUsage": "pinecone.models.vectors.search",
     "SparseValues": "pinecone.models.vectors.sparse",
     "Usage": "pinecone.models.vectors.usage",
     "ScoredVector": "pinecone.models.vectors.vector",
