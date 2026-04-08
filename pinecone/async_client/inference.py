@@ -84,6 +84,9 @@ class AsyncInference:
             :exc:`ValidationError`: If *model* is empty or *inputs* is empty.
             :exc:`PineconeTypeError`: If *inputs* has an invalid type.
             :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
+                fails (DNS, refused, transport error).
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
             >>> from pinecone import AsyncPinecone
@@ -144,6 +147,9 @@ class AsyncInference:
             :exc:`ValidationError`: If *model*, *query*, or *documents* is empty.
             :exc:`PineconeTypeError`: If *documents* has an invalid type.
             :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
+                fails (DNS, refused, transport error).
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
             >>> from pinecone import AsyncPinecone
@@ -199,6 +205,9 @@ class AsyncInference:
         Raises:
             :exc:`ValidationError`: If *type* or *vector_type* is not a valid value.
             :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
+                fails (DNS, refused, transport error).
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
             List all models:
@@ -243,6 +252,9 @@ class AsyncInference:
             :exc:`ValidationError`: If *model* is empty.
             :exc:`NotFoundError`: If the model does not exist.
             :exc:`ApiError`: If the API returns another error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
+                fails (DNS, refused, transport error).
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
             >>> from pinecone import AsyncPinecone
