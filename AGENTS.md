@@ -23,12 +23,12 @@ index = pc.index("movie-recommendations")
 
 # Upsert vectors
 index.upsert(vectors=[
-    ("movie-42", [0.012, -0.087, 0.153, ...]),
-    ("movie-43", [0.045, 0.021, -0.064, ...]),
+    ("movie-42", [0.012, -0.087, 0.153]),  # 1536-dim vector
+    ("movie-43", [0.045, 0.021, -0.064]),  # 1536-dim vector
 ])
 
 # Query by vector similarity
-results = index.query(vector=[0.012, -0.087, 0.153, ...], top_k=5)
+results = index.query(vector=[0.012, -0.087, 0.153], top_k=5)  # 1536-dim vector
 for match in results.matches:
     print(match.id, match.score)
 ```
@@ -58,12 +58,12 @@ pc = Pinecone(api_key="your-api-key")
 index = pc.index("article-search")
 
 index.upsert(vectors=[
-    Vector(id="article-101", values=[0.012, -0.087, 0.153, ...],
+    Vector(id="article-101", values=[0.012, -0.087, 0.153],  # 1536-dim vector
            metadata={"topic": "science", "year": 2024}),
 ])
 
 results = index.query(
-    vector=[0.012, -0.087, 0.153, ...], top_k=10,
+    vector=[0.012, -0.087, 0.153], top_k=10,  # 1536-dim vector
     filter={"topic": "science"}, namespace="articles-en",
 )
 ```
@@ -84,8 +84,13 @@ index = pc.index("product-catalog")
 index.upsert_records(namespace="products", records=[
     {"id": "prod-001", "description": "Lightweight running shoes", "category": "footwear"},
 ])
-results = index.search_records(namespace="products",
-    query={"inputs": {"text": "comfortable shoes for trail running"}, "top_k": 5})
+results = index.search(
+    namespace="products",
+    top_k=5,
+    inputs={"text": "comfortable shoes for trail running"},
+)
+for hit in results.result.hits:
+    print(hit.id, hit.score)
 ```
 
 ### Generate embeddings and rerank
@@ -113,7 +118,7 @@ All SDK exceptions inherit from `PineconeError`:
 
 ```
 PineconeError
-├── ApiError              # HTTP error from the API (has .status, .body)
+├── ApiError              # HTTP error from the API (has .status_code, .body)
 │   ├── NotFoundError     # 404
 │   ├── UnauthorizedError # 401
 │   ├── ForbiddenError    # 403
@@ -126,7 +131,7 @@ PineconeError
 └── ResponseParsingError  # Unexpected response format
 ```
 
-Catch specific exceptions (`NotFoundError`, `UnauthorizedError`, etc.) or the base `ApiError` for HTTP errors. `ApiError` exposes `.status` and `.body` attributes.
+Catch specific exceptions (`NotFoundError`, `UnauthorizedError`, etc.) or the base `ApiError` for HTTP errors. `ApiError` exposes `.status_code` and `.body` attributes.
 
 ## Common Mistakes
 
