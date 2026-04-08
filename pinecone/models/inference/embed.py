@@ -49,6 +49,14 @@ class DenseEmbedding(Struct, kw_only=True):
         """Support ``in`` operator (e.g. ``'values' in embedding``)."""
         return key in self.__struct_fields__
 
+    def __repr__(self) -> str:
+        if len(self.values) > 5:
+            preview = ", ".join(repr(v) for v in self.values[:3])
+            values_str = f"[{preview}, ...{len(self.values) - 3} more]"
+        else:
+            values_str = repr(self.values)
+        return f"DenseEmbedding(values={values_str}, vector_type={self.vector_type!r})"
+
 
 class SparseEmbedding(Struct, kw_only=True):
     """A sparse embedding vector.
@@ -74,6 +82,26 @@ class SparseEmbedding(Struct, kw_only=True):
     def __contains__(self, key: object) -> bool:
         """Support ``in`` operator (e.g. ``'sparse_values' in embedding``)."""
         return key in self.__struct_fields__
+
+    def __repr__(self) -> str:
+        if len(self.sparse_indices) > 5:
+            idx_preview = ", ".join(repr(v) for v in self.sparse_indices[:3])
+            indices_str = f"[{idx_preview}, ...{len(self.sparse_indices) - 3} more]"
+        else:
+            indices_str = repr(self.sparse_indices)
+        if len(self.sparse_values) > 5:
+            val_preview = ", ".join(repr(v) for v in self.sparse_values[:3])
+            values_str = f"[{val_preview}, ...{len(self.sparse_values) - 3} more]"
+        else:
+            values_str = repr(self.sparse_values)
+        parts = [
+            f"sparse_indices={indices_str}",
+            f"sparse_values={values_str}",
+            f"vector_type={self.vector_type!r}",
+        ]
+        if self.sparse_tokens is not None:
+            parts.insert(2, f"sparse_tokens={self.sparse_tokens!r}")
+        return f"SparseEmbedding({', '.join(parts)})"
 
 
 Embedding = Union[DenseEmbedding, SparseEmbedding]
@@ -121,3 +149,12 @@ class EmbeddingsList(Struct, kw_only=True):
 
     def __iter__(self) -> Iterator[DenseEmbedding | SparseEmbedding]:
         return iter(self.data)
+
+    def __repr__(self) -> str:
+        return (
+            f"EmbeddingsList("
+            f"model={self.model!r}, "
+            f"vector_type={self.vector_type!r}, "
+            f"count={len(self.data)}, "
+            f"usage={self.usage!r})"
+        )
