@@ -50,6 +50,17 @@ class RankedDocument(Struct, kw_only=True):
         """Support ``in`` operator (e.g. ``'score' in doc``)."""
         return key in self.__struct_fields__
 
+    def __repr__(self) -> str:
+        if self.document is None:
+            doc_str = "None"
+        else:
+            truncated = {
+                k: (v[:80] + "..." if isinstance(v, str) and len(v) > 80 else v)
+                for k, v in self.document.items()
+            }
+            doc_str = repr(truncated)
+        return f"RankedDocument(index={self.index}, score={self.score}, document={doc_str})"
+
 
 class RerankResult(Struct, kw_only=True):
     """Response from the rerank endpoint.
@@ -73,3 +84,6 @@ class RerankResult(Struct, kw_only=True):
     def __contains__(self, key: object) -> bool:
         """Support ``in`` operator (e.g. ``'model' in result``)."""
         return key in self.__struct_fields__
+
+    def __repr__(self) -> str:
+        return f"RerankResult(model={self.model!r}, count={len(self.data)}, usage={self.usage!r})"
