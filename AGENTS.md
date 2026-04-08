@@ -225,6 +225,28 @@ async with AsyncPinecone(api_key="your-api-key") as pc:
             print(match.id, match.score)
 ```
 
+```python
+# Async with integrated inference
+async with AsyncPinecone(api_key="your-api-key") as pc:
+    desc = await pc.indexes.describe("my-index")
+    index = pc.index(host=desc.host)
+    async with index:
+        await index.upsert_records(
+            namespace="articles",
+            records=[
+                {"_id": "doc1", "text": "Vector databases enable similarity search."},
+                {"_id": "doc2", "text": "RAG combines search with LLMs."},
+            ],
+        )
+        results = await index.search(
+            namespace="articles",
+            top_k=5,
+            inputs={"text": "how does vector search work?"},
+        )
+        for hit in results.result.hits:
+            print(hit.id, hit.score)
+```
+
 **Note:** Unlike the sync client, `AsyncPinecone.index(name=...)` does not auto-resolve the host. Call `await pc.indexes.describe(name)` first, then pass `host=desc.host`.
 
 ## Error Handling
