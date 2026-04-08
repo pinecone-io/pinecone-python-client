@@ -7,12 +7,15 @@ import logging
 import os
 from collections.abc import Iterator, Sequence
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import pandas as pd  # type: ignore[import-untyped]
 
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host
 from pinecone._internal.vector_factory import VectorFactory
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import PineconeValueError, ValidationError
 from pinecone.grpc._protocol import GrpcChannelProtocol
 from pinecone.grpc.future import PineconeFuture
 from pinecone.models.vectors.responses import (
@@ -612,6 +615,87 @@ class GrpcIndex:
             memory_fullness=result.get("memory_fullness"),
             storage_fullness=result.get("storage_fullness"),
         )
+
+    def upsert_from_dataframe(
+        self,
+        df: pd.DataFrame,
+        namespace: str = "",
+        batch_size: int = 500,
+        show_progress: bool = True,
+    ) -> UpsertResponse:
+        """Upsert vectors from a pandas DataFrame using async batching.
+
+        Splits the DataFrame into batches of ``batch_size`` rows and submits
+        each batch asynchronously via :meth:`upsert_async`, then aggregates
+        the results.
+
+        Args:
+            df: A ``pandas.DataFrame`` with at least ``id`` and ``values``
+                columns. ``sparse_values`` and ``metadata`` columns are
+                included when present and non-None.
+            namespace: Target namespace. Defaults to the default namespace.
+            batch_size: Number of rows per upsert batch. Defaults to 500.
+            show_progress: If ``True`` and ``tqdm`` is installed, display a
+                progress bar. If ``tqdm`` is not installed, silently falls
+                back to no progress bar.
+
+        Returns:
+            UpsertResponse with the total count of vectors upserted across
+            all batches.
+
+        Raises:
+            RuntimeError: If ``pandas`` is not installed.
+            PineconeValueError: If *df* is not a ``pandas.DataFrame``.
+            PineconeValueError: If *batch_size* is not a positive integer.
+        """
+        try:
+            import pandas as pd
+        except ImportError:
+            raise RuntimeError(
+                "pandas is required for upsert_from_dataframe. Install it with: pip install pandas"
+            )
+
+        if not isinstance(df, pd.DataFrame):
+            raise PineconeValueError("df must be a pandas DataFrame")
+
+        if not isinstance(batch_size, int) or batch_size <= 0:
+            raise PineconeValueError("batch_size must be a positive integer")
+
+        has_sparse = "sparse_values" in df.columns
+        has_metadata = "metadata" in df.columns
+
+        records: builtins.list[dict[str, Any]] = []
+        for _, row in df.iterrows():
+            record: dict[str, Any] = {"id": row["id"], "values": row["values"]}
+            if has_sparse and row["sparse_values"] is not None:
+                record["sparse_values"] = row["sparse_values"]
+            if has_metadata and row["metadata"] is not None:
+                record["metadata"] = row["metadata"]
+            records.append(record)
+
+        batches: builtins.list[builtins.list[dict[str, Any]]] = [
+            records[i : i + batch_size] for i in range(0, len(records), batch_size)
+        ]
+
+        batch_iter: Any = batches
+        if show_progress:
+            try:
+                from tqdm.auto import tqdm  # type: ignore[import-untyped]
+
+                batch_iter = tqdm(batches, desc="Upserting")
+            except ImportError:
+                pass
+
+        futures: builtins.list[PineconeFuture[UpsertResponse]] = [
+            self.upsert_async(vectors=batch, namespace=namespace) for batch in batch_iter
+        ]
+
+        total_count = 0
+        for future in futures:
+            result = future.result()
+            total_count += result.upserted_count
+
+        return UpsertResponse(upserted_count=total_count)
 
     # ------------------------------------------------------------------
     # Async (future-returning) variants
