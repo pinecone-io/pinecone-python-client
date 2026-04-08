@@ -123,6 +123,55 @@ def test_paginator_repr() -> None:
     assert repr(pag) == "Paginator()"
 
 
+def test_paginator_pages_with_limit() -> None:
+    """3 pages of 3 items each, limit=5 → first page full, second truncated to 2, third never fetched."""
+    fetch = MagicMock(
+        side_effect=[
+            Page(items=[1, 2, 3], pagination_token="p2"),
+            Page(items=[4, 5, 6], pagination_token="p3"),
+            Page(items=[7, 8, 9], pagination_token=None),
+        ]
+    )
+    pag: Paginator[int] = Paginator(fetch_page=fetch, limit=5)
+    result = list(pag.pages())
+    assert len(result) == 2
+    assert result[0].items == [1, 2, 3]
+    assert result[1].items == [4, 5]
+    assert fetch.call_count == 2
+
+
+def test_paginator_pages_without_limit() -> None:
+    """Without limit, all pages are yielded in full."""
+    fetch = MagicMock(
+        side_effect=[
+            Page(items=[1, 2], pagination_token="p2"),
+            Page(items=[3, 4], pagination_token="p3"),
+            Page(items=[5], pagination_token=None),
+        ]
+    )
+    pag: Paginator[int] = Paginator(fetch_page=fetch)
+    result = list(pag.pages())
+    assert len(result) == 3
+    assert result[0].items == [1, 2]
+    assert result[1].items == [3, 4]
+    assert result[2].items == [5]
+
+
+def test_paginator_pages_limit_exact_boundary() -> None:
+    """limit equals total items → all pages yielded without truncation."""
+    fetch = MagicMock(
+        side_effect=[
+            Page(items=[1, 2, 3], pagination_token="p2"),
+            Page(items=[4, 5, 6], pagination_token=None),
+        ]
+    )
+    pag: Paginator[int] = Paginator(fetch_page=fetch, limit=6)
+    result = list(pag.pages())
+    assert len(result) == 2
+    assert result[0].items == [1, 2, 3]
+    assert result[1].items == [4, 5, 6]
+
+
 # ---------------------------------------------------------------------------
 # AsyncPaginator tests
 # ---------------------------------------------------------------------------
@@ -191,3 +240,20 @@ def test_async_paginator_repr() -> None:
     fetch = AsyncMock(return_value=Page(items=[], pagination_token=None))
     pag: AsyncPaginator[int] = AsyncPaginator(fetch_page=fetch)
     assert repr(pag) == "AsyncPaginator()"
+
+
+async def test_async_paginator_pages_with_limit() -> None:
+    """3 pages of 3 items each, limit=5 → first page full, second truncated to 2, third never fetched."""
+    fetch = AsyncMock(
+        side_effect=[
+            Page(items=[1, 2, 3], pagination_token="p2"),
+            Page(items=[4, 5, 6], pagination_token="p3"),
+            Page(items=[7, 8, 9], pagination_token=None),
+        ]
+    )
+    pag: AsyncPaginator[int] = AsyncPaginator(fetch_page=fetch, limit=5)
+    result = [p async for p in pag.pages()]
+    assert len(result) == 2
+    assert result[0].items == [1, 2, 3]
+    assert result[1].items == [4, 5]
+    assert fetch.call_count == 2

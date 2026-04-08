@@ -78,11 +78,24 @@ class Paginator(Generic[T]):
             token = page.pagination_token
 
     def pages(self) -> Generator[Page[T], None, None]:
-        """Iterate over pages rather than individual items."""
+        """Iterate over pages rather than individual items.
+
+        When ``limit`` is set, yields full pages until the remaining budget is
+        exhausted, then yields a truncated final page and stops.
+        """
+        count = 0
         token: str | None = self._initial_token
         while True:
             page = self._fetch_page(token)
             self._pagination_token = page.pagination_token
+            if self._limit is not None:
+                remaining = self._limit - count
+                if remaining <= 0:
+                    return
+                if len(page.items) > remaining:
+                    yield Page(items=page.items[:remaining], pagination_token=None)
+                    return
+                count += len(page.items)
             yield page
             if page.pagination_token is None:
                 return
@@ -145,11 +158,24 @@ class AsyncPaginator(Generic[T]):
             token = page.pagination_token
 
     async def pages(self) -> AsyncGenerator[Page[T], None]:
-        """Iterate over pages rather than individual items."""
+        """Iterate over pages rather than individual items.
+
+        When ``limit`` is set, yields full pages until the remaining budget is
+        exhausted, then yields a truncated final page and stops.
+        """
+        count = 0
         token: str | None = self._initial_token
         while True:
             page = await self._fetch_page(token)
             self._pagination_token = page.pagination_token
+            if self._limit is not None:
+                remaining = self._limit - count
+                if remaining <= 0:
+                    return
+                if len(page.items) > remaining:
+                    yield Page(items=page.items[:remaining], pagination_token=None)
+                    return
+                count += len(page.items)
             yield page
             if page.pagination_token is None:
                 return
