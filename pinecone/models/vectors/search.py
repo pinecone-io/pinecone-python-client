@@ -38,6 +38,22 @@ class RerankConfig(_RerankConfigRequired, total=False):
     query: str
 
 
+class _SearchInputsRequired(TypedDict):
+    """Required fields of :class:`SearchInputs`."""
+
+    text: str
+
+
+class SearchInputs(_SearchInputsRequired, total=False):
+    """Typed configuration for the ``inputs`` parameter of :meth:`~pinecone.Index.search`.
+
+    Required keys: ``text``.
+
+    Attributes:
+        text (str): Text to embed server-side for the search query.
+    """
+
+
 class SearchUsage(Struct, kw_only=True):
     """Usage statistics for a search operation.
 

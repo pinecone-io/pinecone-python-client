@@ -125,7 +125,7 @@ if TYPE_CHECKING:
         UpsertRecordsResponse,
         UpsertResponse,
     )
-    from pinecone.models.vectors.search import RerankConfig, SearchRecordsResponse
+    from pinecone.models.vectors.search import RerankConfig, SearchInputs, SearchRecordsResponse
     from pinecone.models.vectors.sparse import SparseValues
     from pinecone.models.vectors.vector import Vector
     from pinecone.utils.filter_builder import Field
@@ -238,6 +238,7 @@ __all__ = [
     "ResponseParsingError",
     "RestoreJobList",
     "RestoreJobModel",
+    "SearchInputs",
     "SearchRecordsResponse",
     "ServerlessSpec",
     "ServerlessSpecInfo",
@@ -345,6 +346,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ResponseInfo": ("pinecone.models.vectors.responses", "ResponseInfo"),
     "RestoreJobList": ("pinecone.models.backups.list", "RestoreJobList"),
     "RestoreJobModel": ("pinecone.models.backups.model", "RestoreJobModel"),
+    "SearchInputs": ("pinecone.models.vectors.search", "SearchInputs"),
     "SearchRecordsResponse": (
         "pinecone.models.vectors.search",
         "SearchRecordsResponse",

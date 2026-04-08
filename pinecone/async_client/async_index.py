@@ -32,7 +32,7 @@ from pinecone.models.vectors.responses import (
     UpsertRecordsResponse,
     UpsertResponse,
 )
-from pinecone.models.vectors.search import RerankConfig, SearchRecordsResponse
+from pinecone.models.vectors.search import RerankConfig, SearchInputs, SearchRecordsResponse
 from pinecone.models.vectors.sparse import SparseValues
 from pinecone.models.vectors.vector import Vector
 
@@ -725,7 +725,7 @@ class AsyncIndex:
         *,
         namespace: str,
         top_k: int,
-        inputs: dict[str, Any] | None = None,
+        inputs: SearchInputs | dict[str, Any] | None = None,
         vector: list[float] | None = None,
         id: str | None = None,
         filter: dict[str, Any] | None = None,
@@ -821,7 +821,7 @@ class AsyncIndex:
         *,
         namespace: str,
         top_k: int,
-        inputs: dict[str, Any] | None = None,
+        inputs: SearchInputs | dict[str, Any] | None = None,
         vector: list[float] | None = None,
         id: str | None = None,
         filter: dict[str, Any] | None = None,
