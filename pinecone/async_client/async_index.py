@@ -339,6 +339,24 @@ class AsyncIndex:
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
+
+        Examples:
+
+            response = await idx.query(
+                top_k=10,
+                vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
+            )
+            for match in response.matches:
+                print(match.id, match.score)
+
+            Query with a metadata filter:
+
+            response = await idx.query(
+                top_k=10,
+                vector=[0.012, -0.087, 0.153],
+                filter={"genre": "comedy", "year": {"$gte": 2020}},
+                namespace="movies-en",
+            )
         """
         if top_k < 1:
             raise ValidationError(f"top_k must be a positive integer, got {top_k}")
@@ -904,6 +922,12 @@ class AsyncIndex:
 
         Yields:
             :class:`ListResponse` for each page of results.
+
+        Examples:
+
+            async for page in idx.list(prefix="doc1#"):
+                for item in page.vectors:
+                    print(item.id)
         """
         pagination_token: str | None = None
         while True:
