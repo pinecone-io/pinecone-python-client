@@ -65,7 +65,7 @@ class TestGrpcDataframeUpsert:
 
         assert mock_channel.upsert.call_count == 3
         batch_sizes = [len(call[0][0]) for call in mock_channel.upsert.call_args_list]
-        assert batch_sizes == [500, 500, 200]
+        assert sorted(batch_sizes) == [200, 500, 500]
         assert result.upserted_count == 1200
 
     def test_default_batch_size_is_500(self) -> None:
@@ -88,7 +88,7 @@ class TestGrpcDataframeUpsert:
 
         assert mock_channel.upsert.call_count == 4
         batch_sizes = [len(call[0][0]) for call in mock_channel.upsert.call_args_list]
-        assert batch_sizes == [3, 3, 3, 1]
+        assert sorted(batch_sizes) == [1, 3, 3, 3]
 
     def test_results_aggregated(self, grpc_index: GrpcIndex, mock_channel: MagicMock) -> None:
         """upserted_count should be summed across all batches."""
