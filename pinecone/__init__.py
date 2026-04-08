@@ -104,10 +104,10 @@ if TYPE_CHECKING:
         PodSpec,
         ServerlessSpec,
     )
-    from pinecone.models.inference.embed import EmbeddingsList
+    from pinecone.models.inference.embed import DenseEmbedding, EmbeddingsList, SparseEmbedding
     from pinecone.models.inference.model_list import ModelInfoList
     from pinecone.models.inference.models import ModelInfo
-    from pinecone.models.inference.rerank import RerankResult
+    from pinecone.models.inference.rerank import RankedDocument, RerankResult
     from pinecone.models.namespaces.models import (
         ListNamespacesResponse,
         NamespaceDescription,
@@ -199,6 +199,7 @@ __all__ = [
     "ContextResponse",
     "CreateIndexFromBackupResponse",
     "DeletionProtection",
+    "DenseEmbedding",
     "DescribeIndexStatsResponse",
     "EmbedConfig",
     "EmbedModel",
@@ -247,6 +248,7 @@ __all__ = [
     "QueryNamespacesResults",
     "QueryResponse",
     "QueryResultsAggregator",
+    "RankedDocument",
     "RerankConfig",
     "RerankModel",
     "RetryConfig",
@@ -262,6 +264,7 @@ __all__ = [
     "ServerlessSpec",
     "ServerlessSpecInfo",
     "ServiceError",
+    "SparseEmbedding",
     "SparseValues",
     "StartImportResponse",
     "StreamCitationChunk",
@@ -309,6 +312,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "pinecone.models.backups.model",
         "CreateIndexFromBackupResponse",
     ),
+    "DenseEmbedding": ("pinecone.models.inference.embed", "DenseEmbedding"),
     "DescribeIndexStatsResponse": (
         "pinecone.models.vectors.responses",
         "DescribeIndexStatsResponse",
@@ -368,6 +372,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "QueryResultsAggregator",
     ),
     "RerankConfig": ("pinecone.models.vectors.search", "RerankConfig"),
+    "RankedDocument": ("pinecone.models.inference.rerank", "RankedDocument"),
     "RerankModel": ("pinecone.models.enums", "RerankModel"),
     "RerankResult": ("pinecone.models.inference.rerank", "RerankResult"),
     "ResponseInfo": ("pinecone.models.vectors.responses", "ResponseInfo"),
@@ -382,6 +387,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "SearchUsage": ("pinecone.models.vectors.search", "SearchUsage"),
     "ServerlessSpec": ("pinecone.models.indexes.specs", "ServerlessSpec"),
     "ServerlessSpecInfo": ("pinecone.models.indexes.index", "ServerlessSpecInfo"),
+    "SparseEmbedding": ("pinecone.models.inference.embed", "SparseEmbedding"),
     "SparseValues": ("pinecone.models.vectors.sparse", "SparseValues"),
     "StartImportResponse": (
         "pinecone.models.imports.model",
