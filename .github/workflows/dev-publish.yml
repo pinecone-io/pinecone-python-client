@@ -195,6 +195,25 @@ jobs:
             unzip "${PROTOC_ZIP}" -d /usr/local
             rm "${PROTOC_ZIP}"
 
+      - name: Validate wheel platform tags (x86_64 cross-compile)
+        if: matrix.target == 'x86_64-apple-darwin'
+        shell: bash
+        run: |
+          echo "Validating wheel platform tags for x86_64 cross-compile..."
+          bad=0
+          for wheel in dist/*.whl; do
+            echo "  $wheel"
+            if [[ "$wheel" != *"x86_64"* ]]; then
+              echo "ERROR: expected x86_64 platform tag but got: $wheel"
+              bad=1
+            fi
+          done
+          if [ "$bad" -ne 0 ]; then
+            echo "One or more wheels have incorrect platform tags."
+            exit 1
+          fi
+          echo "All wheels have correct macosx_*_x86_64 platform tags."
+
       - name: Upload wheels
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
