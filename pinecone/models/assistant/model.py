@@ -17,8 +17,10 @@ class AssistantModel(StructDictMixin, Struct, kw_only=True):
         status: Current status of the assistant (e.g. ``"Initializing"``,
             ``"Ready"``, ``"Terminating"``, ``"Failed"``,
             ``"InitializationFailed"``).
-        created_at: ISO 8601 timestamp when the assistant was created.
-        updated_at: ISO 8601 timestamp when the assistant was last updated.
+        created_at: ISO 8601 timestamp when the assistant was created, or
+            ``None`` if not returned by the API.
+        updated_at: ISO 8601 timestamp when the assistant was last updated, or
+            ``None`` if not returned by the API.
         metadata: Optional metadata dictionary associated with the assistant,
             or ``None`` if not set.
         instructions: Optional description or directive for the assistant
@@ -29,8 +31,8 @@ class AssistantModel(StructDictMixin, Struct, kw_only=True):
 
     name: str
     status: str
-    created_at: str
-    updated_at: str
     metadata: dict[str, Any] | None = None
     instructions: str | None = None
     host: str | None = None
+    created_at: str | None = None
+    updated_at: str | None = None

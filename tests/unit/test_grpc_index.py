@@ -605,9 +605,7 @@ class TestGrpcErrorWrapping:
 
         assert "transport error: broken pipe" in str(exc_info.value)
 
-    def test_exception_chaining(
-        self, grpc_index: GrpcIndex, mock_channel: MagicMock
-    ) -> None:
+    def test_exception_chaining(self, grpc_index: GrpcIndex, mock_channel: MagicMock) -> None:
         original = RuntimeError("tls handshake failed")
         mock_channel.fetch.side_effect = original
 

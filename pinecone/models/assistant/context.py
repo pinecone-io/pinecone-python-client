@@ -107,11 +107,12 @@ class ContextResponse(Struct, kw_only=True):
     """Response from the assistant context endpoint.
 
     Attributes:
-        id: Unique identifier for the context response.
         snippets: The list of context snippets.
         usage: Token usage statistics for the request.
+        id: Unique identifier for the context response, or ``None`` if
+            not included in the response.
     """
 
-    id: str
     snippets: list[ContextSnippet]
     usage: ChatUsage
+    id: str | None = None

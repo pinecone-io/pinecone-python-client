@@ -2572,6 +2572,48 @@ def test_context_optional_params_omitted_when_absent(assistants: Assistants) -> 
 
 
 # ---------------------------------------------------------------------------
+# Optional field decoding tests (claims: quality)
+# ---------------------------------------------------------------------------
+
+
+def test_context_response_decodes_without_id() -> None:
+    """ContextResponse decodes correctly when id is absent; id is None."""
+    from pinecone.models.assistant.context import ContextResponse
+
+    payload = json.dumps(
+        {
+            "snippets": [
+                {
+                    "type": "text",
+                    "content": "Pinecone is a vector database.",
+                    "score": 0.95,
+                    "reference": {"file": "pinecone-overview.pdf"},
+                }
+            ],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 0, "total_tokens": 10},
+        }
+    ).encode()
+
+    result = msgspec.json.decode(payload, type=ContextResponse)
+
+    assert result.id is None
+    assert len(result.snippets) == 1
+    assert result.usage.total_tokens == 10
+
+
+def test_assistant_model_decodes_without_timestamps() -> None:
+    """AssistantModel decodes correctly when created_at and updated_at are absent; both are None."""
+    payload = json.dumps({"name": "my-assistant", "status": "Ready"}).encode()
+
+    result = msgspec.json.decode(payload, type=AssistantModel)
+
+    assert result.name == "my-assistant"
+    assert result.status == "Ready"
+    assert result.created_at is None
+    assert result.updated_at is None
+
+
+# ---------------------------------------------------------------------------
 # Dict-like access tests (claims: unified-model-0001 through unified-model-0009)
 # ---------------------------------------------------------------------------
 
