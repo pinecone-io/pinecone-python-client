@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING, Any
 from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
 from pinecone._internal.constants import ASSISTANT_API_VERSION, ASSISTANT_EVALUATION_BASE_URL
 from pinecone.errors.exceptions import PineconeTimeoutError, PineconeValueError
-from pinecone.models.assistant.list import ListAssistantsResponse
+from pinecone.models.assistant.file_model import AssistantFileModel
+from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.pagination import AsyncPaginator, Page
 
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 _VALID_REGIONS = ("us", "eu")
 _CREATE_POLL_INTERVAL_SECONDS = 0.5
+_list = list  # Alias to avoid shadowing by the AsyncAssistants.list method in type annotations
 
 
 class AsyncAssistants:
@@ -345,6 +347,146 @@ class AsyncAssistants:
         logger.info("Deleting assistant %r", name)
         await self._http.delete(f"/assistants/{name}")
         logger.debug("Deleted assistant %r", name)
+
+    async def describe_file(
+        self,
+        *,
+        assistant_name: str,
+        file_id: str,
+        include_url: bool = False,
+    ) -> AssistantFileModel:
+        """Get the status and metadata of a file uploaded to an assistant.
+
+        Args:
+            assistant_name: Name of the assistant that owns the file.
+            file_id: Unique identifier of the file to retrieve.
+            include_url: If ``True``, include a signed download URL in the
+                response. Defaults to ``False``.
+
+        Returns:
+            :class:`AssistantFileModel` with file metadata and status.
+
+        Raises:
+            :exc:`NotFoundError`: If the file does not exist.
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            file = await pc.assistants.describe_file(
+                assistant_name="my-assistant",
+                file_id="file-abc123",
+            )
+            print(file.status)
+        """
+        data_http = await self._data_plane_http(assistant_name)
+        params: dict[str, str] = {}
+        if include_url:
+            params["include_url"] = "true"
+        logger.info("Describing file %r in assistant %r", file_id, assistant_name)
+        response = await data_http.get(f"/files/{assistant_name}/{file_id}", params=params)
+        return self._adapter.to_file(response.content)
+
+    async def list_files_page(
+        self,
+        *,
+        assistant_name: str,
+        page_size: int | None = None,
+        pagination_token: str | None = None,
+        filter: dict[str, Any] | None = None,
+    ) -> ListFilesResponse:
+        """List one page of files for an assistant with explicit pagination control.
+
+        Args:
+            assistant_name: Name of the assistant whose files to list.
+            page_size: Maximum number of files per page. Only sent when
+                explicitly provided.
+            pagination_token: Token from a previous response to fetch the
+                next page.
+            filter: Optional metadata filter expression. Serialized to a JSON
+                string before being sent to the API.
+
+        Returns:
+            :class:`ListFilesResponse` with a ``files`` list and an optional
+            ``next`` continuation token.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            page = await pc.assistants.list_files_page(
+                assistant_name="my-assistant",
+                page_size=10,
+            )
+            for f in page.files:
+                print(f.name)
+            if page.next:
+                next_page = await pc.assistants.list_files_page(
+                    assistant_name="my-assistant",
+                    pagination_token=page.next,
+                )
+        """
+        import json as _json
+
+        data_http = await self._data_plane_http(assistant_name)
+        params: dict[str, str | int] = {}
+        if page_size is not None:
+            params["pageSize"] = page_size
+        if pagination_token is not None:
+            params["paginationToken"] = pagination_token
+        if filter is not None:
+            params["filter"] = _json.dumps(filter)
+
+        logger.info("Listing files page for assistant %r", assistant_name)
+        response = await data_http.get(f"/files/{assistant_name}", params=params)
+        result = self._adapter.to_file_list(response.content)
+        logger.debug(
+            "Listed %d files for assistant %r (has_next=%s)",
+            len(result.files),
+            assistant_name,
+            result.next is not None,
+        )
+        return result
+
+    async def list_files(
+        self,
+        *,
+        assistant_name: str,
+        filter: dict[str, Any] | None = None,
+    ) -> _list[AssistantFileModel]:
+        """List all files for an assistant, auto-paginating through all pages.
+
+        Args:
+            assistant_name: Name of the assistant whose files to list.
+            filter: Optional metadata filter expression. Serialized to a JSON
+                string before being sent to the API.
+
+        Returns:
+            A flat ``list`` of :class:`AssistantFileModel` objects from all pages.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            files = await pc.assistants.list_files(assistant_name="my-assistant")
+            for f in files:
+                print(f.name, f.status)
+        """
+        logger.info("Listing all files for assistant %r", assistant_name)
+        all_files: _list[AssistantFileModel] = []
+        token: str | None = None
+        while True:
+            page = await self.list_files_page(
+                assistant_name=assistant_name,
+                pagination_token=token,
+                filter=filter,
+            )
+            all_files.extend(page.files)
+            if page.next is None:
+                break
+            token = page.next
+        return all_files
 
     async def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""
