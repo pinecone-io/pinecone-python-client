@@ -561,3 +561,22 @@ class TestDescribeIndexStats:
         assert result.vector_type is None
         assert result.memory_fullness is None
         assert result.storage_fullness is None
+
+
+class TestGrpcIndexClose:
+    """Tests for GrpcIndex.close()."""
+
+    def test_close_shuts_down_executor_before_channel(self, mock_channel: MagicMock) -> None:
+        call_order: list[str] = []
+
+        mock_executor = MagicMock()
+        mock_executor.shutdown.side_effect = lambda wait: call_order.append(f"shutdown(wait={wait})")
+        mock_channel.close.side_effect = lambda: call_order.append("channel.close()")
+
+        idx = _make_grpc_index(mock_channel)
+        idx._executor = mock_executor
+
+        idx.close()
+
+        assert call_order == ["shutdown(wait=True)", "channel.close()"]
+        mock_executor.shutdown.assert_called_once_with(wait=True)

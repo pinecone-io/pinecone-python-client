@@ -854,7 +854,7 @@ class GrpcIndex:
 
     def close(self) -> None:
         """Close the underlying gRPC channel and release resources."""
-        self._executor.shutdown(wait=False)
+        self._executor.shutdown(wait=True)
         self._channel.close()
 
     def __enter__(self) -> GrpcIndex:
