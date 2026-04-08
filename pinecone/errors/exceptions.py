@@ -52,9 +52,13 @@ class NotFoundError(ApiError):
         message: str = "Resource not found",
         status_code: int = 404,
         body: dict[str, Any] | None = None,
-        **kwargs: Any,
+        *,
+        reason: str | None = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
-        super().__init__(message=message, status_code=status_code, body=body, **kwargs)
+        super().__init__(
+            message=message, status_code=status_code, body=body, reason=reason, headers=headers
+        )
 
 
 class ConflictError(ApiError):
@@ -65,9 +69,13 @@ class ConflictError(ApiError):
         message: str = "Resource conflict",
         status_code: int = 409,
         body: dict[str, Any] | None = None,
-        **kwargs: Any,
+        *,
+        reason: str | None = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
-        super().__init__(message=message, status_code=status_code, body=body, **kwargs)
+        super().__init__(
+            message=message, status_code=status_code, body=body, reason=reason, headers=headers
+        )
 
 
 class UnauthorizedError(ApiError):
@@ -78,9 +86,13 @@ class UnauthorizedError(ApiError):
         message: str = "Invalid or missing API key",
         status_code: int = 401,
         body: dict[str, Any] | None = None,
-        **kwargs: Any,
+        *,
+        reason: str | None = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
-        super().__init__(message=message, status_code=status_code, body=body, **kwargs)
+        super().__init__(
+            message=message, status_code=status_code, body=body, reason=reason, headers=headers
+        )
 
 
 class ForbiddenError(ApiError):
@@ -91,9 +103,13 @@ class ForbiddenError(ApiError):
         message: str = "Forbidden",
         status_code: int = 403,
         body: dict[str, Any] | None = None,
-        **kwargs: Any,
+        *,
+        reason: str | None = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
-        super().__init__(message=message, status_code=status_code, body=body, **kwargs)
+        super().__init__(
+            message=message, status_code=status_code, body=body, reason=reason, headers=headers
+        )
 
 
 class ServiceError(ApiError):
@@ -104,9 +120,13 @@ class ServiceError(ApiError):
         message: str = "Internal server error",
         status_code: int = 500,
         body: dict[str, Any] | None = None,
-        **kwargs: Any,
+        *,
+        reason: str | None = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
-        super().__init__(message=message, status_code=status_code, body=body, **kwargs)
+        super().__init__(
+            message=message, status_code=status_code, body=body, reason=reason, headers=headers
+        )
 
 
 class IndexInitFailedError(PineconeError):

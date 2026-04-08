@@ -105,3 +105,31 @@ class TestSubclassRepr:
         result = repr(err)
         assert "NotFoundError(" in result
         assert "body=" in result
+
+    def test_subclass_accepts_reason_and_headers(self) -> None:
+        headers = {"X-Request-Id": "abc"}
+
+        not_found = NotFoundError(reason="test", headers=headers)
+        assert not_found.reason == "test"
+        assert not_found.headers == headers
+        assert not_found.status_code == 404
+
+        conflict = ConflictError(reason="test", headers=headers)
+        assert conflict.reason == "test"
+        assert conflict.headers == headers
+        assert conflict.status_code == 409
+
+        unauthorized = UnauthorizedError(reason="test", headers=headers)
+        assert unauthorized.reason == "test"
+        assert unauthorized.headers == headers
+        assert unauthorized.status_code == 401
+
+        forbidden = ForbiddenError(reason="test", headers=headers)
+        assert forbidden.reason == "test"
+        assert forbidden.headers == headers
+        assert forbidden.status_code == 403
+
+        service = ServiceError(reason="test", headers=headers)
+        assert service.reason == "test"
+        assert service.headers == headers
+        assert service.status_code == 500
