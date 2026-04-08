@@ -85,7 +85,7 @@ class Inference:
             An :class:`EmbeddingsList` with ``.data``, ``.model``, and ``.usage``.
 
         Raises:
-            :exc:`ValidationError`: If *model* is empty or *inputs* is empty.
+            :exc:`PineconeValueError`: If *model* is empty or *inputs* is empty.
             :exc:`PineconeTypeError`: If *inputs* has an invalid type.
             :exc:`ApiError`: If the API returns an error response.
 
@@ -161,7 +161,7 @@ class Inference:
             A :class:`RerankResult` with ``.data`` and ``.usage``.
 
         Raises:
-            :exc:`ValidationError`: If *model*, *query*, or *documents* is empty.
+            :exc:`PineconeValueError`: If *model*, *query*, or *documents* is empty.
             :exc:`PineconeTypeError`: If *documents* has an invalid type.
             :exc:`ApiError`: If the API returns an error response.
 
@@ -217,7 +217,7 @@ class Inference:
             A :class:`ModelInfoList` supporting iteration, len(), and ``.names()``.
 
         Raises:
-            :exc:`ValidationError`: If *type* or *vector_type* is not a valid value.
+            :exc:`PineconeValueError`: If *type* or *vector_type* is not a valid value.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -264,7 +264,7 @@ class Inference:
             A :class:`ModelInfo` with full model details.
 
         Raises:
-            :exc:`ValidationError`: If *model* is empty.
+            :exc:`PineconeValueError`: If *model* is empty.
             :exc:`NotFoundError`: If the model does not exist.
             :exc:`ApiError`: If the API returns another error response.
 

@@ -58,7 +58,7 @@ class AsyncIndex:
             ``0`` (default) uses httpx defaults.
 
     Raises:
-        :exc:`ValidationError`: If no API key can be resolved or the host is invalid.
+        :exc:`PineconeValueError`: If no API key can be resolved or the host is invalid.
 
     Examples:
 
@@ -141,7 +141,7 @@ class AsyncIndex:
             :class:`UpsertRecordsResponse` with the count of records submitted.
 
         Raises:
-            :exc:`ValidationError`: If namespace is not a string or is empty/whitespace,
+            :exc:`PineconeValueError`: If namespace is not a string or is empty/whitespace,
                 records is empty, or a record is missing an identifier field.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
@@ -340,7 +340,7 @@ class AsyncIndex:
             :class:`QueryResponse` with matches, namespace, and usage info.
 
         Raises:
-            :exc:`ValidationError`: If top_k < 1, or both/neither vector and id provided.
+            :exc:`PineconeValueError`: If top_k < 1, or both/neither vector and id provided.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -450,7 +450,7 @@ class AsyncIndex:
             usage, and per-namespace usage.
 
         Raises:
-            :exc:`ValidationError`: If *namespaces* or *vector* is empty.
+            :exc:`PineconeValueError`: If *namespaces* or *vector* is empty.
             :exc:`ValueError`: If *metric* is not a recognized value.
             :exc:`ApiError`: If any individual namespace query fails.
             :exc:`PineconeConnectionError`: If a network-level connection
@@ -515,7 +515,7 @@ class AsyncIndex:
             than raising an error.
 
         Raises:
-            :exc:`ValidationError`: If ids is empty.
+            :exc:`PineconeValueError`: If ids is empty.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -628,7 +628,7 @@ class AsyncIndex:
             None — a successful delete returns no payload.
 
         Raises:
-            :exc:`ValidationError`: If zero or more than one deletion mode is specified.
+            :exc:`PineconeValueError`: If zero or more than one deletion mode is specified.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -693,7 +693,7 @@ class AsyncIndex:
             :class:`UpdateResponse` with matched_records count (when available).
 
         Raises:
-            :exc:`ValidationError`: If both or neither of id and filter are provided.
+            :exc:`PineconeValueError`: If both or neither of id and filter are provided.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -788,7 +788,7 @@ class AsyncIndex:
             :class:`SearchRecordsResponse` with hits and usage statistics.
 
         Raises:
-            :exc:`ValidationError`: If ``namespace`` is not a string, ``top_k < 1``,
+            :exc:`PineconeValueError`: If ``namespace`` is not a string, ``top_k < 1``,
                 or ``rerank`` is missing required keys.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
@@ -893,7 +893,7 @@ class AsyncIndex:
             :class:`ListResponse` with vector IDs, pagination info, namespace, and usage.
 
         Raises:
-            :exc:`ValidationError`: If inputs are invalid.
+            :exc:`PineconeValueError`: If inputs are invalid.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -1018,7 +1018,7 @@ class AsyncIndex:
             :class:`NamespaceDescription` with the namespace name and record count.
 
         Raises:
-            :exc:`ValidationError`: If the name is not a string or is empty/whitespace.
+            :exc:`PineconeValueError`: If the name is not a string or is empty/whitespace.
             :exc:`ApiError`: If the API returns an error response (e.g. 409 conflict
                 when namespace already exists).
             :exc:`PineconeConnectionError`: If a network-level connection
@@ -1058,7 +1058,7 @@ class AsyncIndex:
             and schema information.
 
         Raises:
-            :exc:`ValidationError`: If the name is not a string or is empty/whitespace.
+            :exc:`PineconeValueError`: If the name is not a string or is empty/whitespace.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -1092,7 +1092,7 @@ class AsyncIndex:
             None — a successful delete returns no payload.
 
         Raises:
-            :exc:`ValidationError`: If the name is not a string or is empty/whitespace.
+            :exc:`PineconeValueError`: If the name is not a string or is empty/whitespace.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -1198,7 +1198,7 @@ class AsyncIndex:
             The validated string ID.
 
         Raises:
-            :exc:`ValidationError`: If the ID is empty or exceeds 1000 characters.
+            :exc:`PineconeValueError`: If the ID is empty or exceeds 1000 characters.
         """
         str_id = str(id) if isinstance(id, int) else id
         if not str_id or len(str_id) > 1000:
@@ -1240,7 +1240,7 @@ class AsyncIndex:
             operation.
 
         Raises:
-            :exc:`ValidationError`: If ``error_mode`` is not ``"continue"`` or ``"abort"``.
+            :exc:`PineconeValueError`: If ``error_mode`` is not ``"continue"`` or ``"abort"``.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -1298,7 +1298,7 @@ class AsyncIndex:
             :class:`ImportModel` with the import operation details.
 
         Raises:
-            :exc:`ValidationError`: If the ID is empty or exceeds 1000 characters.
+            :exc:`PineconeValueError`: If the ID is empty or exceeds 1000 characters.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -1324,7 +1324,7 @@ class AsyncIndex:
             None — a successful cancellation returns no payload.
 
         Raises:
-            :exc:`ValidationError`: If the ID is empty or exceeds 1000 characters.
+            :exc:`PineconeValueError`: If the ID is empty or exceeds 1000 characters.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).

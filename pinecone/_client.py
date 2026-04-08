@@ -46,7 +46,7 @@ class Pinecone:
             on 500/502/503/504 for GET/HEAD).
 
     Raises:
-        :exc:`ValidationError`: If no API key can be resolved from arguments or
+        :exc:`PineconeValueError`: If no API key can be resolved from arguments or
             environment variables.
 
     Examples:
@@ -299,7 +299,7 @@ class Pinecone:
             (gRPC) data plane client.
 
         Raises:
-            :exc:`ValidationError`: If neither *name* nor *host* is provided.
+            :exc:`PineconeValueError`: If neither *name* nor *host* is provided.
 
         Examples:
 
@@ -393,7 +393,7 @@ class Pinecone:
             An :class:`IndexModel` describing the restored index.
 
         Raises:
-            :exc:`ValidationError`: If *name* or *backup_id* is empty.
+            :exc:`PineconeValueError`: If *name* or *backup_id* is empty.
             :exc:`PineconeTimeoutError`: If the index is not ready within the timeout.
             :exc:`ApiError`: If the API returns an error response.
 
