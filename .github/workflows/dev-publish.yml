@@ -101,7 +101,7 @@ jobs:
   build-wheels:
     needs: version
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         include:
           # Linux x86_64
@@ -319,6 +319,18 @@ jobs:
           path: dist
           merge-multiple: true
 
+      - name: Validate artifact counts
+        run: |
+          echo "Artifacts to publish:"
+          ls -la dist/
+          whl_count=$(ls dist/*.whl 2>/dev/null | wc -l)
+          sdist_count=$(ls dist/*.tar.gz 2>/dev/null | wc -l)
+          echo "Wheels: $whl_count, Sdists: $sdist_count"
+          if [ "$sdist_count" -lt 1 ]; then
+            echo "::error::sdist missing"
+            exit 1
+          fi
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed  # v2.1.13
         with:
@@ -336,6 +348,9 @@ jobs:
       - name: Configure Artifact Registry credentials
         run: |
           pip install keyring keyrings.google-artifactregistry-auth
+
+      - name: Validate wheel metadata
+        run: twine check dist/*
 
       - name: Upload to Artifact Registry
         run: |
