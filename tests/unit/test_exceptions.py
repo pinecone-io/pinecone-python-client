@@ -1,4 +1,4 @@
-"""Tests for exception __repr__ methods."""
+"""Tests for exception __str__ and __repr__ methods."""
 
 from __future__ import annotations
 
@@ -10,6 +10,42 @@ from pinecone.errors.exceptions import (
     ServiceError,
     UnauthorizedError,
 )
+
+
+class TestApiErrorStr:
+    def test_str_includes_status_code(self) -> None:
+        err = ApiError("Something went wrong", status_code=400)
+        assert str(err) == "[400] Something went wrong"
+
+    def test_str_message_no_prefix(self) -> None:
+        err = ApiError("Something went wrong", status_code=400)
+        assert err.message == "Something went wrong"
+
+    def test_str_500_error(self) -> None:
+        err = ApiError("Internal error", status_code=500)
+        assert str(err) == "[500] Internal error"
+
+
+class TestSubclassStr:
+    def test_not_found_str(self) -> None:
+        err = NotFoundError()
+        assert str(err) == "[404] Resource not found"
+
+    def test_service_error_str(self) -> None:
+        err = ServiceError()
+        assert str(err) == "[500] Internal server error"
+
+    def test_unauthorized_str(self) -> None:
+        err = UnauthorizedError()
+        assert str(err) == "[401] Invalid or missing API key"
+
+    def test_not_found_custom_message_str(self) -> None:
+        err = NotFoundError(message="Index 'foo' not found")
+        assert str(err) == "[404] Index 'foo' not found"
+
+    def test_message_attribute_unchanged(self) -> None:
+        err = NotFoundError()
+        assert err.message == "Resource not found"
 
 
 class TestApiErrorRepr:

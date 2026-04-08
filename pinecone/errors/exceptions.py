@@ -31,6 +31,9 @@ class ApiError(PineconeError):
         self.headers = headers
         super().__init__(message)
 
+    def __str__(self) -> str:
+        return f"[{self.status_code}] {self.message}"
+
     def __repr__(self) -> str:
         msg = self.message
         if len(msg) > 100:

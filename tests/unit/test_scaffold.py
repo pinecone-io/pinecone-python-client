@@ -62,7 +62,7 @@ def test_api_error_attributes() -> None:
     err = ApiError(message="fail", status_code=500, body=body)
     assert err.status_code == 500
     assert err.body == body
-    assert str(err) == "fail"
+    assert str(err) == "[500] fail"
 
 
 def test_not_found_error_defaults() -> None:
