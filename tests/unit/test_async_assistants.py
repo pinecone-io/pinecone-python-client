@@ -792,9 +792,7 @@ async def test_update_assistant_not_found(async_assistants: AsyncAssistants) -> 
 
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
-async def test_delete_assistant(
-    mock_sleep: object, async_assistants: AsyncAssistants
-) -> None:
+async def test_delete_assistant(mock_sleep: object, async_assistants: AsyncAssistants) -> None:
     """delete() sends DELETE then polls describe until 404 confirms deletion."""
     route = respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
@@ -900,6 +898,58 @@ async def test_delete_assistant_not_found(async_assistants: AsyncAssistants) -> 
 
 def test_repr(async_assistants: AsyncAssistants) -> None:
     assert repr(async_assistants) == "AsyncAssistants()"
+
+
+CONTROL_PLANE_URL = "https://api.pinecone.io"
+
+
+# ---------------------------------------------------------------------------
+# AsyncPinecone.assistant() convenience method
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_pinecone_assistant_convenience_method() -> None:
+    """pc.assistant(name=...) delegates to GET /assistants/{name} and returns AssistantModel."""
+    from pinecone.async_client.pinecone import AsyncPinecone
+
+    response_data = make_assistant_response(
+        name="my-assistant",
+        status="Ready",
+        instructions="Be helpful.",
+        metadata={"team": "ml"},
+        host="my-assistant-abc.svc.pinecone.io",
+    )
+    route = respx.get(f"{CONTROL_PLANE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(200, json=response_data),
+    )
+
+    pc = AsyncPinecone(api_key="test-key")
+    result = await pc.assistant("my-assistant")
+
+    assert isinstance(result, AssistantModel)
+    assert result.name == "my-assistant"
+    assert result.status == "Ready"
+    assert result.instructions == "Be helpful."
+    assert result.metadata == {"team": "ml"}
+    assert result.host == "my-assistant-abc.svc.pinecone.io"
+    assert route.call_count == 1
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_pinecone_assistant_not_found() -> None:
+    """pc.assistant(name=...) raises NotFoundError when assistant does not exist."""
+    from pinecone.async_client.pinecone import AsyncPinecone
+
+    respx.get(f"{CONTROL_PLANE_URL}/assistants/nonexistent").mock(
+        return_value=httpx.Response(404, json={"error": "Not found"}),
+    )
+
+    pc = AsyncPinecone(api_key="test-key")
+    with pytest.raises(NotFoundError):
+        await pc.assistant("nonexistent")
 
 
 # ---------------------------------------------------------------------------
