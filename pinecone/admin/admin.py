@@ -44,13 +44,16 @@ class Admin:
     A common workflow bridges both: use :class:`Admin` to create a project and API key, then
     pass that key to :class:`~pinecone.Pinecone` for data-plane operations::
 
-        from pinecone import Admin, Pinecone
+        from pinecone import Admin, Pinecone, ServerlessSpec
 
         admin = Admin(client_id="...", client_secret="...")
-        project = admin.projects.create(name="my-project", organization_id="org-abc123")
+        project = admin.projects.create(name="my-project")
         key = admin.api_keys.create(project_id=project.id, name="my-key")
         pc = Pinecone(api_key=key.value)
-        pc.create_index(name="my-index", dimension=1536, metric="cosine")
+        pc.indexes.create(name="my-index", dimension=1536, metric="cosine",
+                          spec=ServerlessSpec(cloud="aws", region="us-east-1"))
+
+    Projects are created within the organization associated with your OAuth credentials.
 
     .. note::
         **Obtaining OAuth credentials** — Service account credentials (``client_id`` and
