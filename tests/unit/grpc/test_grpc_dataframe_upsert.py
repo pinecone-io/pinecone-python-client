@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from pinecone.errors.exceptions import PineconeValueError
 from pinecone.grpc import GrpcIndex
 from pinecone.models.vectors.responses import UpsertResponse
 
@@ -146,21 +147,21 @@ class TestGrpcDataframeUpsert:
     def test_invalid_df_raises(self, grpc_index: GrpcIndex) -> None:
         """Non-DataFrame input should raise PineconeValueError."""
         pytest.importorskip("pandas")
-        with pytest.raises(ValueError, match="df must be a pandas DataFrame"):
+        with pytest.raises(PineconeValueError, match="df must be a pandas DataFrame"):
             grpc_index.upsert_from_dataframe([1, 2, 3])  # type: ignore[arg-type]
 
     def test_batch_size_zero_raises(self, grpc_index: GrpcIndex) -> None:
         """batch_size=0 should raise PineconeValueError."""
         pd = pytest.importorskip("pandas")
         df = pd.DataFrame({"id": ["v1"], "values": [[0.1]]})
-        with pytest.raises(ValueError, match="batch_size must be a positive integer"):
+        with pytest.raises(PineconeValueError, match="batch_size must be a positive integer"):
             grpc_index.upsert_from_dataframe(df, batch_size=0)
 
     def test_batch_size_negative_raises(self, grpc_index: GrpcIndex) -> None:
         """Negative batch_size should raise PineconeValueError."""
         pd = pytest.importorskip("pandas")
         df = pd.DataFrame({"id": ["v1"], "values": [[0.1]]})
-        with pytest.raises(ValueError, match="batch_size must be a positive integer"):
+        with pytest.raises(PineconeValueError, match="batch_size must be a positive integer"):
             grpc_index.upsert_from_dataframe(df, batch_size=-1)
 
     def test_metadata_and_sparse_values_forwarded(
