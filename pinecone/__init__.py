@@ -16,8 +16,8 @@ Quick Start::
 
     # Data plane: operate on vectors
     index = pc.index("movie-recommendations")
-    index.upsert(vectors=[("movie-42", [0.012, -0.087, 0.153, ...])])
-    results = index.query(vector=[0.012, -0.087, 0.153, ...], top_k=5)
+    index.upsert(vectors=[("movie-42", [0.012, -0.087, 0.153])])  # 1536-dim vector
+    results = index.query(vector=[0.012, -0.087, 0.153], top_k=5)  # 1536-dim vector
 
     # Integrated inference: search with text (server-side embedding)
     index = pc.index("my-integrated-index")
