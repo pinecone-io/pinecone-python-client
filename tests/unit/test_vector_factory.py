@@ -29,6 +29,16 @@ class TestVectorPassthrough:
         result = VectorFactory.build(v)
         assert result is v
 
+    def test_vector_passthrough_empty_rejected(self) -> None:
+        with pytest.raises(PineconeValueError, match="at least one of"):
+            VectorFactory.build(Vector(id="v1"))
+
+    def test_vector_passthrough_sparse_only_accepted(self) -> None:
+        sv = SparseValues(indices=[0], values=[1.0])
+        v = Vector(id="v1", sparse_values=sv)
+        result = VectorFactory.build(v)
+        assert result is v
+
 
 class TestTupleFormat:
     """unified-vecfmt-0002, 0003, 0006, 0007, 0008."""

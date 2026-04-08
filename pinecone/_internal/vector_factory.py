@@ -25,6 +25,10 @@ class VectorFactory:
     def build(item: Any) -> Vector:
         """Convert a user-provided vector input to a ``Vector`` object."""
         if isinstance(item, Vector):
+            if not item.values and item.sparse_values is None:
+                raise PineconeValueError(
+                    "Vector must have at least one of non-empty dense values or sparse values"
+                )
             return item
         if isinstance(item, tuple):
             return VectorFactory._from_tuple(item)
