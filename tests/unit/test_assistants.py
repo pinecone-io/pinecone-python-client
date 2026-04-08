@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import contextlib
 import io
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
@@ -2878,3 +2879,53 @@ def test_chat_streaming_connect_error_raises_pinecone_connection_error(
                 stream=True,
             )
         )
+
+
+# ---------------------------------------------------------------------------
+# _chat_streaming() — config timeout propagation
+# ---------------------------------------------------------------------------
+
+
+def test_chat_streaming_uses_config_timeout() -> None:
+    """Custom PineconeConfig.timeout is forwarded to the underlying httpx stream call."""
+    config = PineconeConfig(api_key="test-key", host=BASE_URL, timeout=300.0)
+    custom_assistants = Assistants(config=config)
+
+    # Pre-populate the data plane client cache to avoid needing a describe() mock.
+    data_config = PineconeConfig(api_key="test-key", host=DATA_PLANE_URL, timeout=300.0)
+    data_plane_client = HTTPClient(data_config, ASSISTANT_API_VERSION)
+    custom_assistants._data_plane_clients["test-assistant"] = data_plane_client
+
+    captured_timeout: list[float | None] = []
+
+    @contextlib.contextmanager
+    def _mock_httpx_stream(
+        method: str,
+        url: str,
+        *,
+        content: bytes | None = None,
+        headers: dict[str, str] | None = None,
+        timeout: float | None = None,
+    ):
+        captured_timeout.append(timeout)
+        mock_resp = MagicMock()
+        mock_resp.is_success = True
+        mock_resp.iter_lines.return_value = iter(
+            [
+                'data: {"type": "message_end", "id": "e1",'
+                ' "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}}',
+            ]
+        )
+        yield mock_resp
+
+    with patch.object(data_plane_client._client, "stream", _mock_httpx_stream):
+        list(
+            custom_assistants.chat(
+                assistant_name="test-assistant",
+                messages=[{"content": "Hello"}],
+                stream=True,
+            )
+        )
+
+    assert len(captured_timeout) == 1
+    assert captured_timeout[0] == 300.0
