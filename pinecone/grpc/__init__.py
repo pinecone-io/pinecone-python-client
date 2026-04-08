@@ -657,13 +657,13 @@ class GrpcIndex:
                 back to no progress bar.
 
         Returns:
-            UpsertResponse with the total count of vectors upserted across
+            :class:`UpsertResponse` with the total count of vectors upserted across
             all batches.
 
         Raises:
-            RuntimeError: If ``pandas`` is not installed.
-            PineconeValueError: If *df* is not a ``pandas.DataFrame``.
-            PineconeValueError: If *batch_size* is not a positive integer.
+            :exc:`RuntimeError`: If ``pandas`` is not installed.
+            :exc:`PineconeValueError`: If *df* is not a ``pandas.DataFrame``.
+            :exc:`PineconeValueError`: If *batch_size* is not a positive integer.
 
         Examples:
             Upsert article embeddings from a DataFrame:
