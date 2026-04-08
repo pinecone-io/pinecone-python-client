@@ -46,7 +46,7 @@ class Pinecone:
             on 500/502/503/504 for GET/HEAD).
 
     Raises:
-        ValidationError: If no API key can be resolved from arguments or
+        :exc:`ValidationError`: If no API key can be resolved from arguments or
             environment variables.
 
     Examples:
@@ -120,7 +120,7 @@ class Pinecone:
         Lazily imported and instantiated on first access.
 
         Returns:
-            Indexes namespace instance.
+            :class:`Indexes` namespace instance.
 
         Examples:
 
@@ -141,7 +141,7 @@ class Pinecone:
         Lazily imported and instantiated on first access.
 
         Returns:
-            Collections namespace instance.
+            :class:`Collections` namespace instance.
 
         Examples:
 
@@ -162,7 +162,7 @@ class Pinecone:
         Lazily imported and instantiated on first access.
 
         Returns:
-            Backups namespace instance.
+            :class:`Backups` namespace instance.
 
         Examples:
 
@@ -183,7 +183,7 @@ class Pinecone:
         Lazily imported and instantiated on first access.
 
         Returns:
-            RestoreJobs namespace instance.
+            :class:`RestoreJobs` namespace instance.
 
         Examples:
 
@@ -204,7 +204,7 @@ class Pinecone:
         Lazily imported and instantiated on first access.
 
         Returns:
-            Inference namespace instance.
+            :class:`Inference` namespace instance.
 
         Examples:
 
@@ -293,7 +293,7 @@ class Pinecone:
             (gRPC) data plane client.
 
         Raises:
-            ValidationError: If neither *name* nor *host* is provided.
+            :exc:`ValidationError`: If neither *name* nor *host* is provided.
 
         Examples:
 

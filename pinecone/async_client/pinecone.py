@@ -46,7 +46,7 @@ class AsyncPinecone:
             on 500/502/503/504 for GET/HEAD).
 
     Raises:
-        ValidationError: If no API key can be resolved from arguments or
+        :exc:`ValidationError`: If no API key can be resolved from arguments or
             environment variables.
 
     Examples:
@@ -144,7 +144,7 @@ class AsyncPinecone:
         Lazily imported and instantiated on first access.
 
         Returns:
-            AsyncIndexes namespace instance.
+            :class:`AsyncIndexes` namespace instance.
 
         Examples:
 
@@ -165,7 +165,7 @@ class AsyncPinecone:
         Lazily imported and instantiated on first access.
 
         Returns:
-            AsyncCollections namespace instance.
+            :class:`AsyncCollections` namespace instance.
 
         Examples:
 
@@ -227,7 +227,7 @@ class AsyncPinecone:
         Lazily imported and instantiated on first access.
 
         Returns:
-            AsyncBackups namespace instance.
+            :class:`AsyncBackups` namespace instance.
 
         Examples:
 
@@ -248,7 +248,7 @@ class AsyncPinecone:
         Lazily imported and instantiated on first access.
 
         Returns:
-            AsyncRestoreJobs namespace instance.
+            :class:`AsyncRestoreJobs` namespace instance.
 
         Examples:
 
@@ -269,7 +269,7 @@ class AsyncPinecone:
         Lazily imported and instantiated on first access.
 
         Returns:
-            AsyncInference namespace instance.
+            :class:`AsyncInference` namespace instance.
 
         Examples:
 
@@ -405,7 +405,7 @@ class AsyncPinecone:
             An async :class:`AsyncIndex` data plane client.
 
         Raises:
-            ValidationError: If neither *name* nor *host* is provided, or if
+            :exc:`ValidationError`: If neither *name* nor *host* is provided, or if
                 *name* is given but the host has not been cached yet.
 
         Examples:
