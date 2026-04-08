@@ -25,7 +25,7 @@ from pinecone import Pinecone, ServerlessSpec
 pc = Pinecone(api_key="your-api-key")
 
 # Create a serverless index
-pc.create_index(
+pc.indexes.create(
     name="movie-recommendations",
     dimension=1536,
     metric="cosine",
@@ -33,7 +33,7 @@ pc.create_index(
 )
 
 # Connect to the index
-index = pc.Index("movie-recommendations")
+index = pc.index("movie-recommendations")
 
 # Upsert vectors
 index.upsert(
@@ -65,7 +65,7 @@ from pinecone import AsyncPinecone
 
 async def main():
     pc = AsyncPinecone(api_key="your-api-key")
-    index = pc.Index("movie-recommendations")
+    index = pc.index("movie-recommendations")
 
     results = await index.query(
         vector=[0.012, -0.087, 0.153, ...],
