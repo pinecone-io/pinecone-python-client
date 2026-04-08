@@ -252,7 +252,7 @@ class TestListImports:
 
     @respx.mock
     def test_list_imports_single_page(self) -> None:
-        """Mock GET returning 2 imports with no pagination token, verify yields 2 ImportModel items."""
+        """Mock GET returning 2 imports with no pagination token, verify yields 2 ImportModel items."""  # noqa: E501
         imports = [
             _make_import_response(id="imp-1", status="Completed"),
             _make_import_response(id="imp-2", status="Pending"),
@@ -270,7 +270,7 @@ class TestListImports:
 
     @respx.mock
     def test_list_imports_multi_page(self) -> None:
-        """Mock GET returning page 1 with pagination token, then page 2 without; verify all items yielded in order."""
+        """Mock GET returning page 1 with pagination token, then page 2 without; verify all items yielded in order."""  # noqa: E501
         page1_imports = [
             _make_import_response(id="imp-1"),
             _make_import_response(id="imp-2"),

@@ -61,11 +61,20 @@ if TYPE_CHECKING:
     from pinecone.index import Index
     from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
     from pinecone.models.assistant.context import ContextResponse
+    from pinecone.models.assistant.evaluation import AlignmentResult
     from pinecone.models.assistant.file_model import AssistantFileModel
     from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
     from pinecone.models.assistant.message import Message
     from pinecone.models.assistant.model import AssistantModel
     from pinecone.models.assistant.options import ContextOptions
+    from pinecone.models.assistant.streaming import (
+        ChatCompletionStreamChunk,
+        ChatStreamChunk,
+        StreamCitationChunk,
+        StreamContentChunk,
+        StreamMessageEnd,
+        StreamMessageStart,
+    )
     from pinecone.models.backups.list import BackupList, RestoreJobList
     from pinecone.models.backups.model import (
         BackupModel,
@@ -165,8 +174,11 @@ __all__ = [
     "BackupModel",
     "ByocSpec",
     "ByocSpecInfo",
+    "AlignmentResult",
     "ChatCompletionResponse",
+    "ChatCompletionStreamChunk",
     "ChatResponse",
+    "ChatStreamChunk",
     "CloudProvider",
     "CollectionList",
     "CollectionModel",
@@ -232,6 +244,10 @@ __all__ = [
     "ServiceError",
     "SparseValues",
     "StartImportResponse",
+    "StreamCitationChunk",
+    "StreamContentChunk",
+    "StreamMessageEnd",
+    "StreamMessageStart",
     "UnauthorizedError",
     "UpdateResponse",
     "UpsertRecordsResponse",
@@ -245,6 +261,7 @@ __all__ = [
 # Importing Pinecone/AsyncPinecone/Index eagerly pulls in httpx (~120ms).
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "Admin": ("pinecone.admin", "Admin"),
+    "AlignmentResult": ("pinecone.models.assistant.evaluation", "AlignmentResult"),
     "AsyncPaginator": ("pinecone.models.pagination", "AsyncPaginator"),
     "AssistantFileModel": ("pinecone.models.assistant.file_model", "AssistantFileModel"),
     "AssistantModel": ("pinecone.models.assistant.model", "AssistantModel"),
@@ -255,7 +272,12 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ByocSpec": ("pinecone.models.indexes.specs", "ByocSpec"),
     "ByocSpecInfo": ("pinecone.models.indexes.index", "ByocSpecInfo"),
     "ChatCompletionResponse": ("pinecone.models.assistant.chat", "ChatCompletionResponse"),
+    "ChatCompletionStreamChunk": (
+        "pinecone.models.assistant.streaming",
+        "ChatCompletionStreamChunk",
+    ),
     "ChatResponse": ("pinecone.models.assistant.chat", "ChatResponse"),
+    "ChatStreamChunk": ("pinecone.models.assistant.streaming", "ChatStreamChunk"),
     "CollectionList": ("pinecone.models.collections.list", "CollectionList"),
     "CollectionModel": ("pinecone.models.collections.model", "CollectionModel"),
     "ContextOptions": ("pinecone.models.assistant.options", "ContextOptions"),
@@ -334,6 +356,16 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "pinecone.models.imports.model",
         "StartImportResponse",
     ),
+    "StreamCitationChunk": (
+        "pinecone.models.assistant.streaming",
+        "StreamCitationChunk",
+    ),
+    "StreamContentChunk": (
+        "pinecone.models.assistant.streaming",
+        "StreamContentChunk",
+    ),
+    "StreamMessageEnd": ("pinecone.models.assistant.streaming", "StreamMessageEnd"),
+    "StreamMessageStart": ("pinecone.models.assistant.streaming", "StreamMessageStart"),
     "UpdateResponse": ("pinecone.models.vectors.responses", "UpdateResponse"),
     "UpsertRecordsResponse": (
         "pinecone.models.vectors.responses",

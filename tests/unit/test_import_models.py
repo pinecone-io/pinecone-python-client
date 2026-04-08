@@ -84,7 +84,10 @@ class TestImportListIteration:
 
 class TestImportModelCamelCaseDecode:
     def test_import_model_camel_case_decode(self) -> None:
-        raw = b'{"id": "1", "uri": "s3://b", "status": "Pending", "createdAt": "2025-01-01T00:00:00Z", "percentComplete": 42.0}'
+        raw = (
+            b'{"id": "1", "uri": "s3://b", "status": "Pending",'
+            b' "createdAt": "2025-01-01T00:00:00Z", "percentComplete": 42.0}'
+        )
         model = msgspec.json.decode(raw, type=ImportModel)
         assert model.id == "1"
         assert model.uri == "s3://b"
