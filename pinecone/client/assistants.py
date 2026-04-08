@@ -176,6 +176,23 @@ class Assistants:
             :exc:`PineconeTimeoutError`: If processing does not complete
                 before *timeout*.
             :exc:`PineconeError`: If server-side processing fails.
+
+        Examples:
+
+            file = pc.assistants.upload_file(
+                assistant_name="research-assistant",
+                file_path="/data/report.pdf",
+            )
+            print(file.status)
+
+            with open("report.pdf", "rb") as f:
+                file = pc.assistants.upload_file(
+                    assistant_name="research-assistant",
+                    file_stream=f,
+                    file_name="report.pdf",
+                    metadata={"source": "quarterly-review"},
+                )
+            print(file.status)
         """
         import json as _json
 
