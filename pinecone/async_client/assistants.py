@@ -356,23 +356,52 @@ class AsyncAssistants:
         logger.debug("Updated assistant %r", name)
         return model
 
-    async def delete(self, *, name: str) -> None:
+    async def delete(self, *, name: str, timeout: float | None = None) -> None:
         """Delete a Pinecone assistant by name.
+
+        Sends a DELETE request, then polls every 5 seconds until the
+        assistant is confirmed gone (404 from describe). Other errors
+        during polling propagate immediately.
 
         Args:
             name (str): The name of the assistant to delete.
+            timeout (float | None): Seconds to wait for the assistant to
+                disappear. Use ``None`` (default) to poll indefinitely.
+                Use ``-1`` to return immediately without polling.
+                Use a positive value to poll with a deadline. Raises
+                :exc:`PineconeTimeoutError` if the assistant is not gone
+                before the deadline.
 
         Raises:
-            :exc:`ApiError`: If the API returns an error response (e.g. 404
-                when the assistant does not exist).
+            :exc:`PineconeTimeoutError`: If the assistant still exists after
+                *timeout* seconds.
+            :exc:`ApiError`: If the API returns an error response.
 
         Examples:
 
             await pc.assistants.delete(name="my-assistant")
+
+            # Return immediately without waiting for deletion
+            await pc.assistants.delete(name="my-assistant", timeout=-1)
         """
         logger.info("Deleting assistant %r", name)
         await self._http.delete(f"/assistants/{name}")
         logger.debug("Deleted assistant %r", name)
+
+        if timeout == -1:
+            return
+
+        start = time.monotonic()
+        while True:
+            try:
+                await self.describe(name=name)
+            except NotFoundError:
+                return
+            if timeout is not None:
+                elapsed = time.monotonic() - start
+                if elapsed >= timeout:
+                    raise PineconeTimeoutError(f"Assistant '{name}' still exists after {timeout}s")
+            await asyncio.sleep(_DELETE_POLL_INTERVAL_SECONDS)
 
     async def describe_file(
         self,
