@@ -856,7 +856,9 @@ class AsyncIndex:
         rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
     ) -> SearchRecordsResponse:
-        """Alias for :meth:`search` with identical behavior."""
+        """Alias for :meth:`search`.
+
+        Prefer calling :meth:`search` directly — this alias exists for backwards compatibility."""
         return await self.search(
             namespace=namespace,
             top_k=top_k,
