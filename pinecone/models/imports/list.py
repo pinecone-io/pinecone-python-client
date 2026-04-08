@@ -41,4 +41,8 @@ class ImportList:
         return self._imports[index]
 
     def __repr__(self) -> str:
-        return f"ImportList(imports={self._imports!r})"
+        summaries = ", ".join(
+            f"<id={i.id!r}, status={i.status!r}, percent={i.percent_complete}>"
+            for i in self._imports
+        )
+        return f"ImportList([{summaries}])"

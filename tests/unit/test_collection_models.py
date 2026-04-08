@@ -140,4 +140,4 @@ class TestCollectionList:
 
     def test_repr(self) -> None:
         cl = CollectionList(collections=[])
-        assert repr(cl) == "CollectionList(collections=[])"
+        assert repr(cl) == "CollectionList([])"

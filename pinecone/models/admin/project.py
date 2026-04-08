@@ -77,4 +77,7 @@ class ProjectList:
         return [project.name for project in self._projects]
 
     def __repr__(self) -> str:
-        return f"ProjectList(projects={self._projects!r})"
+        summaries = ", ".join(
+            f"<name={p.name!r}, id={p.id!r}>" for p in self._projects
+        )
+        return f"ProjectList([{summaries}])"

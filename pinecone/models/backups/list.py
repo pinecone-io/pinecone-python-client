@@ -60,7 +60,12 @@ class BackupList:
         return [b.name or b.backup_id for b in self._backups]
 
     def __repr__(self) -> str:
-        return f"BackupList(backups={self._backups!r})"
+        summaries = ", ".join(
+            f"<name={(b.name or b.backup_id)!r}, status={b.status!r}, "
+            f"source={b.source_index_name!r}>"
+            for b in self._backups
+        )
+        return f"BackupList([{summaries}])"
 
 
 class RestoreJobList:
@@ -93,4 +98,8 @@ class RestoreJobList:
         return self._restore_jobs[index]
 
     def __repr__(self) -> str:
-        return f"RestoreJobList(restore_jobs={self._restore_jobs!r})"
+        summaries = ", ".join(
+            f"<id={r.restore_job_id!r}, status={r.status!r}, target={r.target_index_name!r}>"
+            for r in self._restore_jobs
+        )
+        return f"RestoreJobList([{summaries}])"

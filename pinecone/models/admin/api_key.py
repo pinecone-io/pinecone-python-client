@@ -102,4 +102,7 @@ class APIKeyList:
         return [api_key.name for api_key in self._api_keys]
 
     def __repr__(self) -> str:
-        return f"APIKeyList(api_keys={self._api_keys!r})"
+        summaries = ", ".join(
+            f"<name={k.name!r}, project_id={k.project_id!r}>" for k in self._api_keys
+        )
+        return f"APIKeyList([{summaries}])"
