@@ -193,6 +193,21 @@ PineconeError
 
 Catch specific exceptions (`NotFoundError`, `UnauthorizedError`, etc.) or the base `ApiError` for HTTP errors. `ApiError` exposes `.status_code` and `.body` attributes.
 
+```python
+from pinecone import Pinecone, ApiError, PineconeError
+
+pc = Pinecone()
+index = pc.index("my-index")
+try:
+    index.upsert(vectors=[("id1", [0.1, 0.2, 0.3])])
+except ApiError as e:
+    print(e.status_code, e.body)  # HTTP error — check status code
+except PineconeError as e:
+    print(e)  # Validation, timeout, or connection error
+```
+
+**Retry behavior:** Only GET/HEAD requests are automatically retried (on 500/502/503/504). POST operations (upsert, query, search) are not retried — implement your own retry logic for transient errors. Configure via `RetryConfig`.
+
 ## Response Objects
 
 Access patterns for the most common response types:
