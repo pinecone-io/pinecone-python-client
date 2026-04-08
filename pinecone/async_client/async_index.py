@@ -233,16 +233,16 @@ class AsyncIndex:
 
         Examples:
 
-            from pinecone.models.vectors.vector import Vector
+            from pinecone import Vector
 
             response = await idx.upsert(
                 vectors=[
                     Vector(
                         id="article-101",
-                        values=[0.012, -0.087, 0.153, ...],  # 1536-dim
+                        values=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
                     ),
-                    ("article-102", [0.045, 0.021, -0.064, ...]),
-                    {"id": "article-103", "values": [0.091, -0.032, 0.178, ...]},
+                    ("article-102", [0.045, 0.021, -0.064]),  # truncated
+                    {"id": "article-103", "values": [0.091, -0.032, 0.178]},  # truncated
                 ],
                 namespace="articles-en",
             )
@@ -250,8 +250,8 @@ class AsyncIndex:
 
         .. note::
            All vectors are sent in a single request. For large datasets,
-           batch your calls (recommended batch size: 100–500 vectors) or use
-           :meth:`upsert_from_dataframe` which handles batching automatically.
+           batch your calls (recommended batch size: 100–500 vectors).
+           For sync clients, use :meth:`upsert_from_dataframe` for automatic batching.
            For very large datasets (millions of vectors), consider
            :meth:`start_import` for bulk import from cloud storage.
 

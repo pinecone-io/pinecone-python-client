@@ -238,10 +238,10 @@ class Index:
             >>> import pandas as pd
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
-            >>> index = pc.Index("article-search")
+            >>> index = pc.index("article-search")
             >>> df = pd.DataFrame([
-            ...     {"id": "article-101", "values": [0.012, -0.087, 0.153, ...]},
-            ...     {"id": "article-102", "values": [0.045, 0.021, -0.064, ...]},
+            ...     {"id": "article-101", "values": [0.012, -0.087, 0.153]},  # truncated
+            ...     {"id": "article-102", "values": [0.045, 0.021, -0.064]},  # truncated
             ... ])
             >>> response = index.upsert_from_dataframe(df)
             >>> response.upserted_count
@@ -252,12 +252,12 @@ class Index:
             >>> df = pd.DataFrame([
             ...     {
             ...         "id": "article-101",
-            ...         "values": [0.012, -0.087, 0.153, ...],
+            ...         "values": [0.012, -0.087, 0.153],  # truncated
             ...         "metadata": {"topic": "science", "year": 2024},
             ...     },
             ...     {
             ...         "id": "article-102",
-            ...         "values": [0.045, 0.021, -0.064, ...],
+            ...         "values": [0.045, 0.021, -0.064],  # truncated
             ...         "metadata": {"topic": "technology", "year": 2024},
             ...     },
             ... ])
