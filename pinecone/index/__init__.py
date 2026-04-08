@@ -58,7 +58,7 @@ class Index:
             ``0`` (default) uses httpx defaults.
 
     Raises:
-        ValidationError: If no API key can be resolved or the host is invalid.
+        :exc:`ValidationError`: If no API key can be resolved or the host is invalid.
 
     Examples:
 
@@ -142,16 +142,16 @@ class Index:
                 (empty-string) namespace.
 
         Returns:
-            UpsertResponse with the count of vectors upserted.
+            :class:`UpsertResponse` with the count of vectors upserted.
 
         Raises:
-            PineconeTypeError: If a vector element is not a recognized format.
-            PineconeValueError: If a vector element is malformed.
-            ApiError: If the API returns an error response (e.g. authentication
+            :exc:`PineconeTypeError`: If a vector element is not a recognized format.
+            :exc:`PineconeValueError`: If a vector element is malformed.
+            :exc:`ApiError`: If the API returns an error response (e.g. authentication
                 failure or server error).
-            PineconeConnectionError: If a network-level connection
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -224,13 +224,13 @@ class Index:
                 back to no progress bar.
 
         Returns:
-            UpsertResponse with the total count of vectors upserted across
+            :class:`UpsertResponse` with the total count of vectors upserted across
             all batches.
 
         Raises:
-            RuntimeError: If ``pandas`` is not installed.
-            PineconeValueError: If *df* is not a ``pandas.DataFrame``.
-            PineconeValueError: If *batch_size* is not a positive integer.
+            :exc:`RuntimeError`: If ``pandas`` is not installed.
+            :exc:`PineconeValueError`: If *df* is not a ``pandas.DataFrame``.
+            :exc:`PineconeValueError`: If *batch_size* is not a positive integer.
 
         Examples:
             Upsert article embeddings from a DataFrame:
@@ -339,15 +339,15 @@ class Index:
             namespace (str): Target namespace (required).
 
         Returns:
-            UpsertRecordsResponse with the count of records submitted.
+            :class:`UpsertRecordsResponse` with the count of records submitted.
 
         Raises:
-            ValidationError: If records is empty or a record is missing an
+            :exc:`ValidationError`: If records is empty or a record is missing an
                 identifier field.
-            ApiError: If the API returns an error response.
-            PineconeConnectionError: If a network-level connection
+            :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -436,15 +436,15 @@ class Index:
                 None uses server default.
 
         Returns:
-            QueryResponse with matches, namespace, and usage info.
+            :class:`QueryResponse` with matches, namespace, and usage info.
 
         Raises:
-            ValidationError: If top_k < 1, or both/neither vector and id provided.
-            ApiError: If the API returns an error response (e.g. authentication
+            :exc:`ValidationError`: If top_k < 1, or both/neither vector and id provided.
+            :exc:`ApiError`: If the API returns an error response (e.g. authentication
                 failure or server error).
-            PineconeConnectionError: If a network-level connection
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -536,16 +536,16 @@ class Index:
                 candidate vectors to consider during the search phase.
 
         Returns:
-            QueryNamespacesResults with the merged top-k matches, total
+            :class:`QueryNamespacesResults` with the merged top-k matches, total
             usage, and per-namespace usage.
 
         Raises:
-            ValidationError: If *namespaces* or *vector* is empty.
-            ValueError: If *metric* is not a recognized value.
-            ApiError: If any individual namespace query fails.
-            PineconeConnectionError: If a network-level connection
+            :exc:`ValidationError`: If *namespaces* or *vector* is empty.
+            :exc:`ValueError`: If *metric* is not a recognized value.
+            :exc:`ApiError`: If any individual namespace query fails.
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -603,17 +603,17 @@ class Index:
             namespace (str): Namespace to fetch from. Defaults to the default namespace.
 
         Returns:
-            FetchResponse with a map of vector IDs to Vector objects, namespace,
+            :class:`FetchResponse` with a map of vector IDs to Vector objects, namespace,
             and usage info. IDs that do not exist are omitted from the map rather
             than raising an error.
 
         Raises:
-            ValidationError: If ids is empty.
-            ApiError: If the API returns an error response (e.g. authentication
+            :exc:`ValidationError`: If ids is empty.
+            :exc:`ApiError`: If the API returns an error response (e.g. authentication
                 failure or server error).
-            PineconeConnectionError: If a network-level connection
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -659,11 +659,11 @@ class Index:
                 next page. When ``None``, fetches the first page.
 
         Returns:
-            FetchByMetadataResponse with matched vectors, namespace, usage,
+            :class:`FetchByMetadataResponse` with matched vectors, namespace, usage,
             and pagination token for the next page (if any).
 
         Raises:
-            ApiError: If the API returns an error response (e.g. authentication
+            :exc:`ApiError`: If the API returns an error response (e.g. authentication
                 failure or server error).
 
         Examples:
@@ -722,12 +722,12 @@ class Index:
             None — a successful delete returns no payload.
 
         Raises:
-            ValidationError: If zero or more than one deletion mode is specified.
-            ApiError: If the API returns an error response (e.g. authentication
+            :exc:`ValidationError`: If zero or more than one deletion mode is specified.
+            :exc:`ApiError`: If the API returns an error response (e.g. authentication
                 failure or server error).
-            PineconeConnectionError: If a network-level connection
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -790,15 +790,15 @@ class Index:
                 updates.
 
         Returns:
-            UpdateResponse with matched_records count (when available).
+            :class:`UpdateResponse` with matched_records count (when available).
 
         Raises:
-            ValidationError: If both or neither of id and filter are provided.
-            ApiError: If the API returns an error response (e.g. authentication
+            :exc:`ValidationError`: If both or neither of id and filter are provided.
+            :exc:`ApiError`: If the API returns an error response (e.g. authentication
                 failure or server error).
-            PineconeConnectionError: If a network-level connection
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -860,15 +860,15 @@ class Index:
                 provided, only vectors matching the filter are counted.
 
         Returns:
-            DescribeIndexStatsResponse with namespace summaries, dimension,
+            :class:`DescribeIndexStatsResponse` with namespace summaries, dimension,
             total vector count, and fullness metrics.
 
         Raises:
-            ApiError: If the API returns an error response (e.g. authentication
+            :exc:`ApiError`: If the API returns an error response (e.g. authentication
                 failure or server error).
-            PineconeConnectionError: If a network-level connection
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -932,15 +932,15 @@ class Index:
                 ``None`` disables term matching.
 
         Returns:
-            SearchRecordsResponse with hits and usage statistics.
+            :class:`SearchRecordsResponse` with hits and usage statistics.
 
         Raises:
-            ValidationError: If ``namespace`` is not a string, ``top_k < 1``,
+            :exc:`ValidationError`: If ``namespace`` is not a string, ``top_k < 1``,
                 or ``rerank`` is missing required keys.
-            ApiError: If the API returns an error response.
-            PineconeConnectionError: If a network-level connection
+            :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -1053,15 +1053,15 @@ class Index:
                 with metadata field indexing settings.
 
         Returns:
-            NamespaceDescription with the namespace name and record count.
+            :class:`NamespaceDescription` with the namespace name and record count.
 
         Raises:
-            ValidationError: If the name is not a string or is empty/whitespace.
-            ApiError: If the API returns an error response (e.g. 409 conflict
+            :exc:`ValidationError`: If the name is not a string or is empty/whitespace.
+            :exc:`ApiError`: If the API returns an error response (e.g. 409 conflict
                 when namespace already exists).
-            PineconeConnectionError: If a network-level connection
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -1097,15 +1097,15 @@ class Index:
             name (str): Name of the namespace to describe.
 
         Returns:
-            NamespaceDescription with the namespace name, record count,
+            :class:`NamespaceDescription` with the namespace name, record count,
             and schema information.
 
         Raises:
-            ValidationError: If the name is not a string or is empty/whitespace.
-            ApiError: If the API returns an error response.
-            PineconeConnectionError: If a network-level connection
+            :exc:`ValidationError`: If the name is not a string or is empty/whitespace.
+            :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -1135,11 +1135,11 @@ class Index:
             None — a successful delete returns no payload.
 
         Raises:
-            ValidationError: If the name is not a string or is empty/whitespace.
-            ApiError: If the API returns an error response.
-            PineconeConnectionError: If a network-level connection
+            :exc:`ValidationError`: If the name is not a string or is empty/whitespace.
+            :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -1168,11 +1168,11 @@ class Index:
             pagination_token (str | None): Token from a previous response to fetch the next page.
 
         Returns:
-            ListNamespacesResponse with namespace descriptions, pagination info,
+            :class:`ListNamespacesResponse` with namespace descriptions, pagination info,
             and total count.
 
         Raises:
-            ApiError: If the API returns an error response.
+            :exc:`ApiError`: If the API returns an error response.
 
         Examples:
 
@@ -1209,7 +1209,7 @@ class Index:
             limit (int | None): Maximum number of namespaces to return per page.
 
         Yields:
-            ListNamespacesResponse for each page of results.
+            :class:`ListNamespacesResponse` for each page of results.
 
         Examples:
 
@@ -1248,11 +1248,11 @@ class Index:
             namespace (str): Namespace to list from. Defaults to the default namespace.
 
         Returns:
-            ListResponse with vector IDs, pagination info, namespace, and usage.
+            :class:`ListResponse` with vector IDs, pagination info, namespace, and usage.
 
         Raises:
-            ValidationError: If inputs are invalid.
-            ApiError: If the API returns an error response (e.g. authentication
+            :exc:`ValidationError`: If inputs are invalid.
+            :exc:`ApiError`: If the API returns an error response (e.g. authentication
                 failure or server error).
 
         Examples:
@@ -1293,7 +1293,7 @@ class Index:
             namespace (str): Namespace to list from. Defaults to the default namespace.
 
         Yields:
-            ListResponse for each page of results.
+            :class:`ListResponse` for each page of results.
 
         Examples:
 
@@ -1326,7 +1326,7 @@ class Index:
             The validated string ID.
 
         Raises:
-            ValidationError: If the ID is empty or exceeds 1000 characters.
+            :exc:`ValidationError`: If the ID is empty or exceeds 1000 characters.
         """
         str_id = str(id) if isinstance(id, int) else id
         if not str_id or len(str_id) > 1000:
@@ -1368,11 +1368,11 @@ class Index:
             operation.
 
         Raises:
-            ValidationError: If ``error_mode`` is not ``"continue"`` or ``"abort"``.
-            ApiError: If the API returns an error response.
-            PineconeConnectionError: If a network-level connection
+            :exc:`ValidationError`: If ``error_mode`` is not ``"continue"`` or ``"abort"``.
+            :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
             Start an import and poll until complete:
@@ -1425,14 +1425,14 @@ class Index:
             id: Import operation ID. Integers are converted to strings silently.
 
         Returns:
-            ImportModel with the import operation details.
+            :class:`ImportModel` with the import operation details.
 
         Raises:
-            ValidationError: If the ID is empty or exceeds 1000 characters.
-            ApiError: If the API returns an error response.
-            PineconeConnectionError: If a network-level connection
+            :exc:`ValidationError`: If the ID is empty or exceeds 1000 characters.
+            :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -1454,11 +1454,11 @@ class Index:
             None — a successful cancellation returns no payload.
 
         Raises:
-            ValidationError: If the ID is empty or exceeds 1000 characters.
-            ApiError: If the API returns an error response.
-            PineconeConnectionError: If a network-level connection
+            :exc:`ValidationError`: If the ID is empty or exceeds 1000 characters.
+            :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
-            PineconeTimeoutError: If the request exceeds the configured timeout.
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
 
@@ -1486,10 +1486,10 @@ class Index:
                 from a previous call.
 
         Yields:
-            ImportModel for each import operation.
+            :class:`ImportModel` for each import operation.
 
         Raises:
-            ApiError: If the API returns an error response.
+            :exc:`ApiError`: If the API returns an error response.
 
         Examples:
 
@@ -1528,10 +1528,10 @@ class Index:
                 fetch the next page.
 
         Returns:
-            ImportList with the import operations for the requested page.
+            :class:`ImportList` with the import operations for the requested page.
 
         Raises:
-            ApiError: If the API returns an error response.
+            :exc:`ApiError`: If the API returns an error response.
 
         Examples:
 
