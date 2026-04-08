@@ -1588,7 +1588,7 @@ def test_list_files_page_omits_none_params(assistants: Assistants) -> None:
 
 @respx.mock
 def test_list_files_empty(assistants: Assistants) -> None:
-    """list_files() returns empty list when no files exist."""
+    """list_files() returns a Paginator that yields nothing when no files exist."""
     respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
@@ -1598,12 +1598,13 @@ def test_list_files_empty(assistants: Assistants) -> None:
 
     result = assistants.list_files(assistant_name="test-assistant")
 
-    assert result == []
+    assert isinstance(result, Paginator)
+    assert result.to_list() == []
 
 
 @respx.mock
 def test_list_files_single_page(assistants: Assistants) -> None:
-    """list_files() returns all files from a single-page response."""
+    """list_files() returns a Paginator over files from a single-page response."""
     respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
@@ -1619,7 +1620,7 @@ def test_list_files_single_page(assistants: Assistants) -> None:
         ),
     )
 
-    result = assistants.list_files(assistant_name="test-assistant")
+    result = assistants.list_files(assistant_name="test-assistant").to_list()
 
     assert len(result) == 2
     assert all(isinstance(f, AssistantFileModel) for f in result)
@@ -1627,7 +1628,7 @@ def test_list_files_single_page(assistants: Assistants) -> None:
 
 @respx.mock
 def test_list_files_multi_page(assistants: Assistants) -> None:
-    """list_files() auto-paginates through multiple pages."""
+    """list_files() auto-paginates through multiple pages via Paginator."""
     respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
@@ -1656,10 +1657,142 @@ def test_list_files_multi_page(assistants: Assistants) -> None:
         ]
     )
 
-    result = assistants.list_files(assistant_name="test-assistant")
+    result = assistants.list_files(assistant_name="test-assistant").to_list()
 
     assert len(result) == 3
     assert [f.id for f in result] == ["f1", "f2", "f3"]
+
+
+@respx.mock
+def test_list_files_to_list(assistants: Assistants) -> None:
+    """list_files().to_list() collects all files into a list."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "files": [
+                    make_assistant_file_response(id="f1", name="file1.pdf"),
+                    make_assistant_file_response(id="f2", name="file2.pdf"),
+                ],
+            },
+        ),
+    )
+
+    items = assistants.list_files(assistant_name="test-assistant").to_list()
+
+    assert len(items) == 2
+    assert all(isinstance(f, AssistantFileModel) for f in items)
+
+
+@respx.mock
+def test_list_files_iteration(assistants: Assistants) -> None:
+    """list_files() supports direct for-loop iteration."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "files": [
+                    make_assistant_file_response(id="f1", name="file1.pdf"),
+                    make_assistant_file_response(id="f2", name="file2.pdf"),
+                ],
+            },
+        ),
+    )
+
+    names = [f.name for f in assistants.list_files(assistant_name="test-assistant")]
+
+    assert names == ["file1.pdf", "file2.pdf"]
+
+
+@respx.mock
+def test_list_files_with_limit(assistants: Assistants) -> None:
+    """list_files(limit=N) yields at most N items across all pages."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "files": [
+                    make_assistant_file_response(id="f1", name="file1.pdf"),
+                    make_assistant_file_response(id="f2", name="file2.pdf"),
+                    make_assistant_file_response(id="f3", name="file3.pdf"),
+                ],
+                "next": "more",
+            },
+        ),
+    )
+
+    result = assistants.list_files(assistant_name="test-assistant", limit=2).to_list()
+
+    assert len(result) == 2
+    assert result[0].id == "f1"
+    assert result[1].id == "f2"
+
+
+@respx.mock
+def test_list_files_pages(assistants: Assistants) -> None:
+    """list_files().pages() yields Page objects with items and has_more."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        side_effect=[
+            httpx.Response(
+                200,
+                json={
+                    "files": [make_assistant_file_response(id="f1", name="file1.pdf")],
+                    "next": "token-next",
+                },
+            ),
+            httpx.Response(
+                200,
+                json={
+                    "files": [make_assistant_file_response(id="f2", name="file2.pdf")],
+                },
+            ),
+        ]
+    )
+
+    pages = list(assistants.list_files(assistant_name="test-assistant").pages())
+
+    assert len(pages) == 2
+    assert pages[0].has_more is True
+    assert pages[0].items[0].id == "f1"
+    assert pages[1].has_more is False
+    assert pages[1].items[0].id == "f2"
+    for page in pages:
+        assert isinstance(page, Page)
+
+
+@respx.mock
+def test_list_files_with_pagination_token(assistants: Assistants) -> None:
+    """list_files(pagination_token=...) starts from the given token."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={"files": [make_assistant_file_response(id="f2", name="file2.pdf")]},
+        ),
+    )
+
+    result = assistants.list_files(
+        assistant_name="test-assistant", pagination_token="tok-page2"
+    ).to_list()
+
+    assert len(result) == 1
+    assert result[0].id == "f2"
+    request = route.calls.last.request
+    assert "paginationToken=tok-page2" in str(request.url)
 
 
 @respx.mock
@@ -1687,7 +1820,7 @@ def test_list_files_propagates_filter_through_pages(assistants: Assistants) -> N
     assistants.list_files(
         assistant_name="test-assistant",
         filter={"genre": {"$eq": "comedy"}},
-    )
+    ).to_list()
 
     assert route.call_count == 2
     for call_obj in route.calls:

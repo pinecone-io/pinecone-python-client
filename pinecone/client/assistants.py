@@ -297,44 +297,45 @@ class Assistants:
         *,
         assistant_name: str,
         filter: dict[str, Any] | None = None,
-    ) -> list[AssistantFileModel]:
-        """List all files for an assistant, automatically paginating through every page.
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> Paginator[AssistantFileModel]:
+        """List files for an assistant with lazy pagination.
 
         Args:
             assistant_name: Name of the assistant whose files to list.
             filter: Optional metadata filter expression. Serialized to a JSON
                 string before being sent to the API.
+            limit: Maximum number of files to yield across all pages. ``None``
+                (default) yields all files.
+            pagination_token: Token to resume pagination from a previous call.
 
         Returns:
-            A list of :class:`AssistantFileModel` objects. Returns an empty
-            list when no files exist.
+            :class:`Paginator` over :class:`AssistantFileModel` objects.
+            Supports ``for`` loops, ``.to_list()``, ``.pages()``, and
+            ``limit``.
 
         Raises:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
 
-            files = pc.assistants.list_files(assistant_name="my-assistant")
-            for f in files:
+            for f in pc.assistants.list_files(assistant_name="my-assistant"):
                 print(f.name, f.status)
-        """
-        logger.info("Listing all files for assistant %r", assistant_name)
-        all_files: list[AssistantFileModel] = []
-        pagination_token: str | None = None
 
-        while True:
-            page = self.list_files_page(
+            files = pc.assistants.list_files(assistant_name="my-assistant").to_list()
+        """
+        logger.info("Listing files for assistant %r", assistant_name)
+
+        def fetch_page(token: str | None) -> Page[AssistantFileModel]:
+            result = self.list_files_page(
                 assistant_name=assistant_name,
-                pagination_token=pagination_token,
+                pagination_token=token,
                 filter=filter,
             )
-            all_files.extend(page.files)
-            if page.next is None:
-                break
-            pagination_token = page.next
+            return Page(items=result.files, pagination_token=result.next)
 
-        logger.debug("Listed %d files for assistant %r", len(all_files), assistant_name)
-        return all_files
+        return Paginator(fetch_page=fetch_page, initial_token=pagination_token, limit=limit)
 
     def list_files_page(
         self,
