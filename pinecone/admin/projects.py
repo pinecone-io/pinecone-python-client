@@ -334,7 +334,7 @@ class Projects:
         temp_key = self._admin.api_keys.create(
             project_id=project_id,
             name="_cleanup_temp_key",
-            roles=["admin"],
+            roles=["ProjectEditor"],
         )
         try:
             last_error: Exception | None = None

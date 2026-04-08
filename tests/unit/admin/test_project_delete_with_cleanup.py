@@ -59,7 +59,7 @@ def test_delete_with_cleanup_happy_path(projects: Projects, mock_admin: MagicMoc
         mock_admin.api_keys.create.assert_called_once_with(
             project_id="proj-123",
             name="_cleanup_temp_key",
-            roles=["admin"],
+            roles=["ProjectEditor"],
         )
 
         # Cleanup called once with the secret value
