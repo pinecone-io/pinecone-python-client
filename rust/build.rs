@@ -1,7 +1,7 @@
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let manifest_dir =
         std::path::PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
-    let proto_root = manifest_dir.join("../../../apis/static/2025-10");
+    let proto_root = manifest_dir.join("proto");
     let google_include = manifest_dir.join("proto");
 
     tonic_build::configure()

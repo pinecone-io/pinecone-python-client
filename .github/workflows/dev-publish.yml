@@ -13,6 +13,7 @@ env:
   GCP_REGION: ${{ vars.GCP_REGION }}
   GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
   GCP_REPO_NAME: ${{ vars.GCP_REPO_NAME }}
+  PROTOC_VERSION: "28.3"
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -51,10 +52,6 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             manylinux: auto
-          # Linux aarch64
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            manylinux: auto
           # macOS x86_64
           - os: macos-13
             target: x86_64-apple-darwin
@@ -69,11 +66,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up QEMU (Linux aarch64 only)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        uses: docker/setup-qemu-action@v3
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
         with:
-          platforms: arm64
+          version: ${{ env.PROTOC_VERSION }}
 
       - name: Inject dev version
         shell: bash
@@ -92,6 +88,10 @@ jobs:
           target: ${{ matrix.target }}
           args: --release --interpreter 3.10 3.11 3.12 3.13 --out dist
           manylinux: ${{ matrix.manylinux || 'auto' }}
+          before-script-linux: |
+            curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v28.3/protoc-28.3-linux-x86_64.zip
+            unzip protoc-28.3-linux-x86_64.zip -d /usr/local
+            rm protoc-28.3-linux-x86_64.zip
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
