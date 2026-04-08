@@ -12,7 +12,7 @@ import msgspec.structs
 import orjson
 
 from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
-from pinecone._internal.constants import ASSISTANT_API_VERSION
+from pinecone._internal.constants import ASSISTANT_API_VERSION, ASSISTANT_EVALUATION_BASE_URL
 from pinecone._internal.http_client import _raise_for_status
 from pinecone.errors.exceptions import (
     NotFoundError,
@@ -22,6 +22,7 @@ from pinecone.errors.exceptions import (
 )
 from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
 from pinecone.models.assistant.context import ContextResponse
+from pinecone.models.assistant.evaluation import AlignmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.message import Message
@@ -65,6 +66,7 @@ class Assistants:
     """
 
     def __init__(self, config: PineconeConfig) -> None:
+        from pinecone._internal.config import PineconeConfig as _PineconeConfig
         from pinecone._internal.http_client import HTTPClient as _HTTPClient
 
         self._config = config
@@ -72,9 +74,25 @@ class Assistants:
         self._adapter = AssistantsAdapter()
         self._data_plane_clients: dict[str, HTTPClient] = {}
 
+        eval_config = _PineconeConfig(
+            api_key=config.api_key,
+            host=ASSISTANT_EVALUATION_BASE_URL,
+            timeout=config.timeout,
+            additional_headers=config.additional_headers,
+            source_tag=config.source_tag or "",
+            proxy_url=config.proxy_url or "",
+            proxy_headers=config.proxy_headers,
+            ssl_ca_certs=config.ssl_ca_certs,
+            ssl_verify=config.ssl_verify,
+            connection_pool_maxsize=config.connection_pool_maxsize,
+            retry_config=config.retry_config,
+        )
+        self._eval_http = _HTTPClient(eval_config, ASSISTANT_API_VERSION)
+
     def close(self) -> None:
         """Close the underlying HTTP client and any cached data-plane clients."""
         self._http.close()
+        self._eval_http.close()
         for client in self._data_plane_clients.values():
             client.close()
         self._data_plane_clients.clear()
@@ -1069,6 +1087,53 @@ class Assistants:
                 if not line:
                     continue
                 yield msgspec.convert(orjson.loads(line), ChatCompletionStreamChunk)
+
+    def evaluate_alignment(
+        self,
+        *,
+        question: str,
+        answer: str,
+        ground_truth_answer: str,
+    ) -> AlignmentResult:
+        """Evaluate answer alignment against a ground truth answer.
+
+        Measures the correctness and completeness of a generated answer with
+        respect to a ground truth answer. Alignment is the harmonic mean of
+        correctness (precision) and completeness (recall).
+
+        Args:
+            question: The question for which the answer was generated.
+            answer: The generated answer to evaluate.
+            ground_truth_answer: The ground truth answer to compare against.
+
+        Returns:
+            :class:`AlignmentResult` with aggregate scores, per-fact entailment
+            results, and token usage statistics.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            result = pc.assistants.evaluate_alignment(
+                question="What is the capital of Spain?",
+                answer="Barcelona.",
+                ground_truth_answer="Madrid.",
+            )
+            print(result.scores.alignment)
+        """
+        body = {
+            "question": question,
+            "answer": answer,
+            "ground_truth_answer": ground_truth_answer,
+        }
+        logger.info("Evaluating alignment for question %r", question)
+        response = self._eval_http.post("/evaluation/metrics/alignment", json=body)
+        result = self._adapter.to_alignment_result(response.content)
+        logger.debug(
+            "Alignment evaluation complete (alignment=%.3f)", result.scores.alignment
+        )
+        return result
 
     def _poll_until_ready(self, name: str, timeout: float | None) -> AssistantModel:
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""

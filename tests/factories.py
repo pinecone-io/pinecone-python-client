@@ -363,3 +363,25 @@ def make_context_response(**overrides: Any) -> dict[str, Any]:
     }
     base.update(overrides)
     return base
+
+
+def make_alignment_response(**overrides: Any) -> dict[str, Any]:
+    """Return an AlignmentResponse dict (evaluation ``POST /evaluation/metrics/alignment``)."""
+    base: dict[str, Any] = {
+        "metrics": {
+            "correctness": 0.0,
+            "completeness": 1.0,
+            "alignment": 0.0,
+        },
+        "reasoning": {
+            "evaluated_facts": [
+                {
+                    "fact": {"content": "Madrid is the capital of Spain."},
+                    "entailment": "entailed",
+                }
+            ]
+        },
+        "usage": {"prompt_tokens": 120, "completion_tokens": 40, "total_tokens": 160},
+    }
+    base.update(overrides)
+    return base

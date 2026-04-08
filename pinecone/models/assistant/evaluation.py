@@ -19,11 +19,12 @@ class EntailmentResult(Struct, kw_only=True):
         entailment: The entailment classification — one of
             ``"entailed"``, ``"contradicted"``, or ``"neutral"``.
         reasoning: The reasoning behind the entailment judgment.
+            Empty string when not provided by the API.
     """
 
     fact: str
     entailment: EntailmentType
-    reasoning: str
+    reasoning: str = ""
 
 
 class AlignmentScores(Struct, kw_only=True):

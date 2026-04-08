@@ -12,7 +12,7 @@ import respx
 
 from pinecone import Pinecone
 from pinecone._internal.config import PineconeConfig
-from pinecone._internal.constants import ASSISTANT_API_VERSION
+from pinecone._internal.constants import ASSISTANT_API_VERSION, ASSISTANT_EVALUATION_BASE_URL
 from pinecone._internal.http_client import HTTPClient
 from pinecone.client.assistants import (
     _CREATE_POLL_INTERVAL_SECONDS,
@@ -31,6 +31,7 @@ from pinecone.models.assistant.list import ListAssistantsResponse
 from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.pagination import Page, Paginator
 from tests.factories import (
+    make_alignment_response,
     make_assistant_file_response,
     make_assistant_response,
     make_context_response,
@@ -2442,3 +2443,106 @@ def test_model_str_repr_dict_form_file() -> None:
 
     assert str(model) == str(as_dict)
     assert repr(model) == repr(as_dict)
+
+
+# ---------------------------------------------------------------------------
+# evaluate_alignment() — success
+# ---------------------------------------------------------------------------
+
+EVAL_BASE_URL = ASSISTANT_EVALUATION_BASE_URL
+
+
+@respx.mock
+def test_evaluate_alignment(assistants: Assistants) -> None:
+    """evaluate_alignment() POSTs to the evaluation endpoint and returns AlignmentResult."""
+    from pinecone.models.assistant.evaluation import AlignmentResult, AlignmentScores
+
+    eval_route = respx.post(f"{EVAL_BASE_URL}/evaluation/metrics/alignment").mock(
+        return_value=httpx.Response(200, json=make_alignment_response()),
+    )
+
+    result = assistants.evaluate_alignment(
+        question="What is the capital of Spain?",
+        answer="Barcelona.",
+        ground_truth_answer="Madrid.",
+    )
+
+    assert isinstance(result, AlignmentResult)
+    assert isinstance(result.scores, AlignmentScores)
+    assert result.scores.correctness == 0.0
+    assert result.scores.completeness == 1.0
+    assert result.scores.alignment == 0.0
+    assert len(result.facts) == 1
+    assert result.facts[0].fact == "Madrid is the capital of Spain."
+    assert result.facts[0].entailment == "entailed"
+    assert result.usage.prompt_tokens == 120
+    assert result.usage.completion_tokens == 40
+    assert result.usage.total_tokens == 160
+
+    request = eval_route.calls.last.request
+    body = json.loads(request.content)
+    assert body["question"] == "What is the capital of Spain?"
+    assert body["answer"] == "Barcelona."
+    assert body["ground_truth_answer"] == "Madrid."
+
+
+@respx.mock
+def test_evaluate_alignment_request_body_fields(assistants: Assistants) -> None:
+    """evaluate_alignment() sends all three required fields in the request body."""
+    respx.post(f"{EVAL_BASE_URL}/evaluation/metrics/alignment").mock(
+        return_value=httpx.Response(200, json=make_alignment_response()),
+    )
+
+    assistants.evaluate_alignment(
+        question="Q",
+        answer="A",
+        ground_truth_answer="GT",
+    )
+
+
+@respx.mock
+def test_evaluate_alignment_multiple_facts(assistants: Assistants) -> None:
+    """evaluate_alignment() correctly maps multiple evaluated_facts from the response."""
+    multi_fact_response = make_alignment_response(
+        reasoning={
+            "evaluated_facts": [
+                {"fact": {"content": "Fact one."}, "entailment": "entailed"},
+                {"fact": {"content": "Fact two."}, "entailment": "contradicted"},
+                {"fact": {"content": "Fact three."}, "entailment": "neutral"},
+            ]
+        }
+    )
+    respx.post(f"{EVAL_BASE_URL}/evaluation/metrics/alignment").mock(
+        return_value=httpx.Response(200, json=multi_fact_response),
+    )
+
+    result = assistants.evaluate_alignment(
+        question="Q?",
+        answer="A.",
+        ground_truth_answer="GT.",
+    )
+
+    assert len(result.facts) == 3
+    assert result.facts[0].fact == "Fact one."
+    assert result.facts[0].entailment == "entailed"
+    assert result.facts[1].fact == "Fact two."
+    assert result.facts[1].entailment == "contradicted"
+    assert result.facts[2].fact == "Fact three."
+    assert result.facts[2].entailment == "neutral"
+
+
+@respx.mock
+def test_evaluate_alignment_uses_api_key(assistants: Assistants) -> None:
+    """evaluate_alignment() sends the Api-Key header in the request."""
+    route = respx.post(f"{EVAL_BASE_URL}/evaluation/metrics/alignment").mock(
+        return_value=httpx.Response(200, json=make_alignment_response()),
+    )
+
+    assistants.evaluate_alignment(
+        question="Q?",
+        answer="A.",
+        ground_truth_answer="GT.",
+    )
+
+    request = route.calls.last.request
+    assert request.headers.get("Api-Key") == "test-key"

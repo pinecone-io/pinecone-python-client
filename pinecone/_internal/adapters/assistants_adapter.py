@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import orjson
+
 from pinecone._internal.adapters._decode import decode_response
-from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
+from pinecone.errors.exceptions import ResponseParsingError
+from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse, ChatUsage
 from pinecone.models.assistant.context import ContextResponse
+from pinecone.models.assistant.evaluation import AlignmentResult, AlignmentScores, EntailmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
@@ -47,3 +51,44 @@ class AssistantsAdapter:
     def to_context_response(data: bytes) -> ContextResponse:
         """Decode raw JSON bytes into a ContextResponse."""
         return decode_response(data, ContextResponse)
+
+    @staticmethod
+    def to_alignment_result(data: bytes) -> AlignmentResult:
+        """Decode raw JSON bytes into an AlignmentResult.
+
+        Transforms the API response shape (``metrics``, ``reasoning``, ``usage``)
+        into the SDK model shape (``scores``, ``facts``, ``usage``).
+        """
+        try:
+            raw: dict[str, object] = orjson.loads(data)
+            metrics = raw["metrics"]
+            assert isinstance(metrics, dict)
+            scores = AlignmentScores(
+                correctness=float(metrics["correctness"]),
+                completeness=float(metrics["completeness"]),
+                alignment=float(metrics["alignment"]),
+            )
+            reasoning = raw["reasoning"]
+            assert isinstance(reasoning, dict)
+            evaluated_facts = reasoning["evaluated_facts"]
+            assert isinstance(evaluated_facts, list)
+            facts = [
+                EntailmentResult(
+                    fact=str(item["fact"]["content"]),
+                    entailment=str(item["entailment"]),
+                )
+                for item in evaluated_facts
+            ]
+            u = raw["usage"]
+            assert isinstance(u, dict)
+            usage = ChatUsage(
+                prompt_tokens=int(u["prompt_tokens"]),
+                completion_tokens=int(u["completion_tokens"]),
+                total_tokens=int(u["total_tokens"]),
+            )
+            return AlignmentResult(scores=scores, facts=facts, usage=usage)
+        except (KeyError, TypeError, ValueError, AssertionError) as exc:
+            raise ResponseParsingError(
+                f"Failed to parse API response as AlignmentResult: {exc}",
+                cause=exc,
+            ) from exc
