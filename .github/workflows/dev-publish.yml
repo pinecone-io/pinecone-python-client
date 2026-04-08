@@ -148,23 +148,39 @@ jobs:
 
       - name: Inject dev version
         shell: bash
+        env:
+          DEV_VERSION: ${{ needs.version.outputs.dev_version }}
         run: |
           python3 -c "
-          import re, pathlib
+          import re, os, pathlib
           p = pathlib.Path('pyproject.toml')
           text = p.read_text()
-          text = re.sub(r'version\s*=\s*\"[^\"]+\"', 'version = \"${{ env.DEV_VERSION }}\"', text, count=1)
+          v = os.environ['DEV_VERSION']
+          text = re.sub(r'version\s*=\s*\"[^\"]+\"', f'version = \"{v}\"', text, count=1)
           p.write_text(text)
           "
           python3 -c "
-          import re, pathlib
+          import re, os, pathlib
           p = pathlib.Path('rust/Cargo.toml')
           text = p.read_text()
-          text = re.sub(r'^version\s*=\s*\"[^\"]+\"', 'version = \"${{ env.DEV_VERSION }}\"', text, count=1, flags=re.MULTILINE)
+          v = os.environ['DEV_VERSION']
+          text = re.sub(r'^version\s*=\s*\"[^\"]+\"', f'version = \"{v}\"', text, count=1, flags=re.MULTILINE)
           p.write_text(text)
           "
           cargo generate-lockfile --manifest-path rust/Cargo.toml
           grep '^version' pyproject.toml rust/Cargo.toml
+
+      - name: Verify version injection
+        shell: bash
+        run: |
+          python3 -c "
+          import tomllib, os
+          with open('pyproject.toml', 'rb') as f:
+              v = tomllib.load(f)['project']['version']
+          expected = os.environ['DEV_VERSION']
+          assert v == expected, f'Expected {expected}, got {v}'
+          print(f'Version injection verified: {v}')
+          "
 
       - name: Build wheels
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad  # v1
@@ -242,23 +258,38 @@ jobs:
           echo "DEV_VERSION=${DEV_VERSION}" >> "$GITHUB_ENV"
 
       - name: Inject dev version
+        env:
+          DEV_VERSION: ${{ needs.version.outputs.dev_version }}
         run: |
           python3 -c "
-          import re, pathlib
+          import re, os, pathlib
           p = pathlib.Path('pyproject.toml')
           text = p.read_text()
-          text = re.sub(r'version\s*=\s*\"[^\"]+\"', 'version = \"${{ env.DEV_VERSION }}\"', text, count=1)
+          v = os.environ['DEV_VERSION']
+          text = re.sub(r'version\s*=\s*\"[^\"]+\"', f'version = \"{v}\"', text, count=1)
           p.write_text(text)
           "
           python3 -c "
-          import re, pathlib
+          import re, os, pathlib
           p = pathlib.Path('rust/Cargo.toml')
           text = p.read_text()
-          text = re.sub(r'^version\s*=\s*\"[^\"]+\"', 'version = \"${{ env.DEV_VERSION }}\"', text, count=1, flags=re.MULTILINE)
+          v = os.environ['DEV_VERSION']
+          text = re.sub(r'^version\s*=\s*\"[^\"]+\"', f'version = \"{v}\"', text, count=1, flags=re.MULTILINE)
           p.write_text(text)
           "
           cargo generate-lockfile --manifest-path rust/Cargo.toml
           grep '^version' pyproject.toml rust/Cargo.toml
+
+      - name: Verify version injection
+        run: |
+          python3 -c "
+          import tomllib, os
+          with open('pyproject.toml', 'rb') as f:
+              v = tomllib.load(f)['project']['version']
+          expected = os.environ['DEV_VERSION']
+          assert v == expected, f'Expected {expected}, got {v}'
+          print(f'Version injection verified: {v}')
+          "
 
       - name: Build sdist
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad  # v1
