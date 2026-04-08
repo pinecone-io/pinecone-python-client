@@ -3,6 +3,16 @@
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from pinecone.models.admin.api_key import (  # noqa: F401
+        APIKeyList,
+        APIKeyModel,
+        APIKeyWithSecret,
+    )
+    from pinecone.models.admin.organization import (  # noqa: F401
+        OrganizationList,
+        OrganizationModel,
+    )
+    from pinecone.models.admin.project import ProjectList, ProjectModel  # noqa: F401
     from pinecone.models.assistant.chat import (  # noqa: F401
         ChatCitation,
         ChatCompletionChoice,
@@ -132,6 +142,14 @@ if TYPE_CHECKING:
     from pinecone.models.vectors.vector import ScoredVector, Vector  # noqa: F401
 
 _LAZY_IMPORTS: dict[str, str] = {
+    # Admin
+    "APIKeyList": "pinecone.models.admin.api_key",
+    "APIKeyModel": "pinecone.models.admin.api_key",
+    "APIKeyWithSecret": "pinecone.models.admin.api_key",
+    "OrganizationList": "pinecone.models.admin.organization",
+    "OrganizationModel": "pinecone.models.admin.organization",
+    "ProjectList": "pinecone.models.admin.project",
+    "ProjectModel": "pinecone.models.admin.project",
     # Assistant — chat
     "ChatCitation": "pinecone.models.assistant.chat",
     "ChatCompletionChoice": "pinecone.models.assistant.chat",

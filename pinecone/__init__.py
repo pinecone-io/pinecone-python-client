@@ -54,6 +54,9 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from pinecone._client import Pinecone
     from pinecone.admin import Admin
+    from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyWithSecret
+    from pinecone.models.admin.organization import OrganizationList, OrganizationModel
+    from pinecone.models.admin.project import ProjectList, ProjectModel
     from pinecone.async_client.async_index import AsyncIndex
     from pinecone.async_client.pinecone import AsyncPinecone
     from pinecone.grpc import GrpcIndex
@@ -170,6 +173,9 @@ from pinecone.models.enums import (
 __all__ = [
     "__version__",
     "Admin",
+    "APIKeyList",
+    "APIKeyModel",
+    "APIKeyWithSecret",
     "ApiError",
     "AsyncPaginator",
     "AssistantFileModel",
@@ -222,6 +228,8 @@ __all__ = [
     "ModelInfoList",
     "NamespaceDescription",
     "NotFoundError",
+    "OrganizationList",
+    "OrganizationModel",
     "Page",
     "Paginator",
     "Pinecone",
@@ -234,6 +242,8 @@ __all__ = [
     "PodSpec",
     "PodSpecInfo",
     "PodType",
+    "ProjectList",
+    "ProjectModel",
     "QueryNamespacesResults",
     "QueryResponse",
     "QueryResultsAggregator",
@@ -271,6 +281,9 @@ __all__ = [
 # Importing Pinecone/AsyncPinecone/Index eagerly pulls in httpx (~120ms).
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "Admin": ("pinecone.admin", "Admin"),
+    "APIKeyList": ("pinecone.models.admin.api_key", "APIKeyList"),
+    "APIKeyModel": ("pinecone.models.admin.api_key", "APIKeyModel"),
+    "APIKeyWithSecret": ("pinecone.models.admin.api_key", "APIKeyWithSecret"),
     "AlignmentResult": ("pinecone.models.assistant.evaluation", "AlignmentResult"),
     "AsyncPaginator": ("pinecone.models.pagination", "AsyncPaginator"),
     "AssistantFileModel": ("pinecone.models.assistant.file_model", "AssistantFileModel"),
@@ -336,10 +349,14 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "pinecone.models.namespaces.models",
         "NamespaceDescription",
     ),
+    "OrganizationList": ("pinecone.models.admin.organization", "OrganizationList"),
+    "OrganizationModel": ("pinecone.models.admin.organization", "OrganizationModel"),
     "Page": ("pinecone.models.pagination", "Page"),
     "Paginator": ("pinecone.models.pagination", "Paginator"),
     "Pinecone": ("pinecone._client", "Pinecone"),
     "PodSpec": ("pinecone.models.indexes.specs", "PodSpec"),
+    "ProjectList": ("pinecone.models.admin.project", "ProjectList"),
+    "ProjectModel": ("pinecone.models.admin.project", "ProjectModel"),
     "PodSpecInfo": ("pinecone.models.indexes.index", "PodSpecInfo"),
     "QueryNamespacesResults": (
         "pinecone.models.vectors.query_aggregator",
