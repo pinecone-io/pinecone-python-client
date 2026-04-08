@@ -53,7 +53,13 @@ class Pinecone:
 
         from pinecone import Pinecone
 
-        pc = Pinecone(api_key="your-api-key")
+        pc = Pinecone(api_key="your-api-key")  # or set PINECONE_API_KEY env var
+
+        # Control plane: manage indexes
+        indexes = pc.indexes.list()
+
+        # Data plane: operate on vectors
+        index = pc.index("my-index")
     """
 
     def __init__(

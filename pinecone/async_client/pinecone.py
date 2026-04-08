@@ -54,7 +54,10 @@ class AsyncPinecone:
         from pinecone import AsyncPinecone
 
         async with AsyncPinecone(api_key="your-api-key") as pc:
-            indexes = await pc.indexes.list()
+            desc = await pc.indexes.describe("my-index")
+            index = pc.index(host=desc.host)
+            async with index:
+                results = await index.query(vector=[0.1, 0.2, 0.3], top_k=5)
 
     .. note:: **Differences from sync Pinecone**
 
