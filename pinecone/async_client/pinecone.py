@@ -415,6 +415,12 @@ class AsyncPinecone:
                 # or resolve name first, then use cached host:
                 await pc.indexes.describe("my-index")
                 idx = pc.index(name="my-index")
+
+        .. warning::
+           The returned :class:`AsyncIndex` manages its own HTTP client.
+           Always use ``async with index:`` or call ``await index.close()``
+           when done — closing the parent ``AsyncPinecone`` does not close
+           index clients.
         """
         from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
 
