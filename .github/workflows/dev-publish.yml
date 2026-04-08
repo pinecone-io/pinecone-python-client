@@ -228,6 +228,7 @@ jobs:
             curl -fsSLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
             echo "${PROTOC_SHA256}  ${PROTOC_ZIP}" | sha256sum -c -
             python3 -m zipfile -e "${PROTOC_ZIP}" /usr/local
+            chmod +x /usr/local/bin/protoc
             rm "${PROTOC_ZIP}"
 
       - name: Validate wheel platform tags (x86_64 cross-compile)
