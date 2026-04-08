@@ -1,0 +1,92 @@
+name: Dev Build Staleness Check
+
+on:
+  schedule:
+    - cron: '0 14 * * *'  # Daily at 14:00 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  staleness-check:
+    name: Check dev-publish staleness
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check last successful dev-publish run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STALENESS_THRESHOLD_HOURS: "48"
+        run: |
+          last_success=$(gh run list \
+            --repo "${{ github.repository }}" \
+            --workflow "dev-publish.yml" \
+            --status success \
+            --limit 1 \
+            --json updatedAt \
+            --jq '.[0].updatedAt // empty')
+
+          if [ -z "$last_success" ]; then
+            echo "No successful dev-publish runs found (first-time setup or all runs failed)."
+            IS_STALE=true
+            STALE_REASON="No successful dev-publish run has ever been recorded for this repository."
+          else
+            echo "Last successful dev-publish run: ${last_success}"
+
+            last_success_epoch=$(date -d "$last_success" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$last_success" +%s)
+            now_epoch=$(date +%s)
+            age_hours=$(( (now_epoch - last_success_epoch) / 3600 ))
+            echo "Age of last successful run: ${age_hours} hours (threshold: ${STALENESS_THRESHOLD_HOURS} hours)"
+
+            if [ "$age_hours" -ge "$STALENESS_THRESHOLD_HOURS" ]; then
+              IS_STALE=true
+              STALE_REASON="Last successful dev-publish run was ${age_hours} hours ago (threshold: ${STALENESS_THRESHOLD_HOURS} hours). Last success: \`${last_success}\`."
+            else
+              IS_STALE=false
+              echo "Dev pipeline is healthy — last success ${age_hours}h ago, within ${STALENESS_THRESHOLD_HOURS}h threshold."
+            fi
+          fi
+
+          echo "IS_STALE=${IS_STALE}" >> "$GITHUB_ENV"
+          echo "STALE_REASON=${STALE_REASON:-}" >> "$GITHUB_ENV"
+
+      - name: Open staleness alert issue (if stale and no open issue exists)
+        if: env.IS_STALE == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open_issue=$(gh issue list \
+            --repo "${{ github.repository }}" \
+            --label "staleness-alert" \
+            --state open \
+            --limit 1 \
+            --json number \
+            --jq '.[0].number // empty')
+
+          if [ -n "$open_issue" ]; then
+            echo "Open staleness-alert issue #${open_issue} already exists — skipping duplicate creation."
+            exit 0
+          fi
+
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          body=$(printf '%s\n' \
+            "## Dev pipeline staleness alert" \
+            "" \
+            "${STALE_REASON}" \
+            "" \
+            "**Possible causes:**" \
+            "- GitHub disabled the cron schedule due to repository inactivity (60-day rule)" \
+            "- A persistent infrastructure failure in the build/publish pipeline" \
+            "- A bug in the change-detection logic causing builds to be skipped" \
+            "" \
+            "**Action required:** Investigate the \`dev-publish\` workflow and re-enable or re-trigger as needed." \
+            "" \
+            "**Detected by:** ${run_url}")
+
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "[CI] Dev pipeline stale — no successful publish in 48h ($(date -u +%Y-%m-%d))" \
+            --body "$body" \
+            --label "staleness-alert"
+          echo "Staleness alert issue created."
