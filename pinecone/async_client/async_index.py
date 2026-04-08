@@ -763,16 +763,19 @@ class AsyncIndex:
         Args:
             namespace (str): Namespace to search in (required).
             top_k (int): Number of results to return (must be >= 1).
-            inputs (dict[str, Any] | None): Inputs for server-side embedding
-                (e.g. ``{"text": "query text"}``).
+            inputs (SearchInputs | dict[str, Any] | None): Inputs for
+                server-side embedding (e.g. ``{"text": "query text"}``).
+                Use :class:`SearchInputs` for typed key validation and IDE
+                autocompletion (e.g. ``SearchInputs(text="query text")``).
             vector (list[float] | None): Dense query vector values.
             id (str | None): ID of an existing record to use as the query.
             filter (dict[str, Any] | None): Metadata filter expression.
             fields (list[str] | None): Field names to include in results.
                 When ``None``, the server returns all available fields.
-            rerank (dict[str, Any] | None): Reranking configuration with
-                ``model`` (required), ``rank_fields`` (required), and optional
-                ``top_n``, ``parameters``, ``query`` keys.
+            rerank (RerankConfig | dict[str, Any] | None): Reranking
+                configuration with ``model`` (required), ``rank_fields``
+                (required), and optional ``top_n``, ``parameters``, ``query``
+                keys. Use :class:`RerankConfig` for IDE autocompletion.
             match_terms (dict[str, Any] | None): Term-matching constraint for
                 sparse search. Requires keys ``"strategy"`` (currently only
                 ``"all"``) and ``"terms"`` (list of strings). Only supported
