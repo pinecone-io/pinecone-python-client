@@ -8,7 +8,7 @@ import time
 from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
-from pinecone._internal.constants import ASSISTANT_API_VERSION
+from pinecone._internal.constants import ASSISTANT_API_VERSION, ASSISTANT_EVALUATION_BASE_URL
 from pinecone.errors.exceptions import PineconeTimeoutError, PineconeValueError
 from pinecone.models.assistant.list import ListAssistantsResponse
 from pinecone.models.assistant.model import AssistantModel
@@ -16,6 +16,7 @@ from pinecone.models.pagination import AsyncPaginator, Page
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.http_client import AsyncHTTPClient
 
 logger = logging.getLogger(__name__)
 
@@ -39,15 +40,66 @@ class AsyncAssistants:
     """
 
     def __init__(self, config: PineconeConfig) -> None:
-        from pinecone._internal.http_client import AsyncHTTPClient
+        from pinecone._internal.config import PineconeConfig as _PineconeConfig
+        from pinecone._internal.http_client import AsyncHTTPClient as _AsyncHTTPClient
 
         self._config = config
-        self._http = AsyncHTTPClient(config, ASSISTANT_API_VERSION)
+        self._http = _AsyncHTTPClient(config, ASSISTANT_API_VERSION)
         self._adapter = AssistantsAdapter()
+        self._data_plane_clients: dict[str, AsyncHTTPClient] = {}
+
+        eval_config = _PineconeConfig(
+            api_key=config.api_key,
+            host=ASSISTANT_EVALUATION_BASE_URL,
+            timeout=config.timeout,
+            additional_headers=config.additional_headers,
+            source_tag=config.source_tag or "",
+            proxy_url=config.proxy_url or "",
+            proxy_headers=config.proxy_headers,
+            ssl_ca_certs=config.ssl_ca_certs,
+            ssl_verify=config.ssl_verify,
+            connection_pool_maxsize=config.connection_pool_maxsize,
+            retry_config=config.retry_config,
+        )
+        self._eval_http = _AsyncHTTPClient(eval_config, ASSISTANT_API_VERSION)
 
     async def close(self) -> None:
-        """Close the underlying HTTP client."""
+        """Close the underlying HTTP client and any cached data-plane clients."""
         await self._http.close()
+        await self._eval_http.close()
+        for client in self._data_plane_clients.values():
+            await client.close()
+        self._data_plane_clients.clear()
+
+    async def _data_plane_http(self, assistant_name: str) -> AsyncHTTPClient:
+        """Return an AsyncHTTPClient targeting the assistant's data-plane host.
+
+        Caches clients by assistant name to avoid repeated describe calls.
+        """
+        if assistant_name not in self._data_plane_clients:
+            from pinecone._internal.config import PineconeConfig as _PineconeConfig
+            from pinecone._internal.http_client import AsyncHTTPClient as _AsyncHTTPClient
+
+            assistant = await self.describe(name=assistant_name)
+            if not assistant.host:
+                raise PineconeValueError(f"Assistant '{assistant_name}' has no data-plane host")
+            data_config = _PineconeConfig(
+                api_key=self._config.api_key,
+                host=f"https://{assistant.host}",
+                timeout=self._config.timeout,
+                additional_headers=self._config.additional_headers,
+                source_tag=self._config.source_tag or "",
+                proxy_url=self._config.proxy_url or "",
+                proxy_headers=self._config.proxy_headers,
+                ssl_ca_certs=self._config.ssl_ca_certs,
+                ssl_verify=self._config.ssl_verify,
+                connection_pool_maxsize=self._config.connection_pool_maxsize,
+                retry_config=self._config.retry_config,
+            )
+            self._data_plane_clients[assistant_name] = _AsyncHTTPClient(
+                data_config, ASSISTANT_API_VERSION
+            )
+        return self._data_plane_clients[assistant_name]
 
     def __repr__(self) -> str:
         """Return developer-friendly representation."""

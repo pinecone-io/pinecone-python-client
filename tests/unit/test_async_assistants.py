@@ -824,3 +824,168 @@ def test_async_pinecone_assistants_property() -> None:
     assert isinstance(assistants, AsyncAssistants)
     # Verify lazy caching — same instance returned
     assert pc.assistants is assistants
+
+
+# ---------------------------------------------------------------------------
+# __init__ — data-plane and eval HTTP infrastructure
+# ---------------------------------------------------------------------------
+
+
+def test_init_creates_eval_http(async_assistants: AsyncAssistants) -> None:
+    """Constructor creates _eval_http targeting ASSISTANT_EVALUATION_BASE_URL."""
+    from pinecone._internal.constants import ASSISTANT_EVALUATION_BASE_URL
+    from pinecone._internal.http_client import AsyncHTTPClient
+
+    assert hasattr(async_assistants, "_eval_http")
+    assert isinstance(async_assistants._eval_http, AsyncHTTPClient)
+    # _eval_http should be configured with the evaluation base URL
+    assert async_assistants._eval_http._config.host == ASSISTANT_EVALUATION_BASE_URL
+
+
+def test_init_creates_empty_data_plane_clients(async_assistants: AsyncAssistants) -> None:
+    """Constructor initializes _data_plane_clients as an empty dict."""
+    assert hasattr(async_assistants, "_data_plane_clients")
+    assert isinstance(async_assistants._data_plane_clients, dict)
+    assert len(async_assistants._data_plane_clients) == 0
+
+
+# ---------------------------------------------------------------------------
+# close() — eval_http and data-plane clients
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_close_closes_eval_http(async_assistants: AsyncAssistants) -> None:
+    """close() closes _eval_http in addition to _http."""
+    from unittest.mock import AsyncMock
+
+    async_assistants._eval_http.close = AsyncMock()  # type: ignore[method-assign]
+
+    await async_assistants.close()
+
+    async_assistants._eval_http.close.assert_called_once()  # type: ignore[union-attr]
+
+
+@respx.mock
+async def test_close_closes_data_plane_clients(async_assistants: AsyncAssistants) -> None:
+    """close() closes all cached data-plane clients and clears the cache."""
+    from unittest.mock import AsyncMock
+
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.http_client import AsyncHTTPClient
+
+    # Inject a fake data-plane client into the cache
+    fake_client = AsyncHTTPClient(
+        PineconeConfig(api_key="test-key", host="https://fake.host"), "2025-10"
+    )
+    fake_client.close = AsyncMock()  # type: ignore[method-assign]
+    async_assistants._data_plane_clients["my-assistant"] = fake_client
+
+    await async_assistants.close()
+
+    fake_client.close.assert_called_once()  # type: ignore[union-attr]
+    assert len(async_assistants._data_plane_clients) == 0
+
+
+# ---------------------------------------------------------------------------
+# _data_plane_http() — caching and error handling
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_data_plane_http_returns_client_for_host(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """_data_plane_http() returns an AsyncHTTPClient configured with the assistant's host."""
+    from pinecone._internal.http_client import AsyncHTTPClient
+
+    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_assistant_response(
+                name="my-assistant", host="my-assistant-abc.svc.pinecone.io"
+            ),
+        ),
+    )
+
+    client = await async_assistants._data_plane_http("my-assistant")
+
+    assert isinstance(client, AsyncHTTPClient)
+    assert client._config.host == "https://my-assistant-abc.svc.pinecone.io"
+
+
+@respx.mock
+async def test_data_plane_http_caches_client(async_assistants: AsyncAssistants) -> None:
+    """_data_plane_http() returns the same client on repeated calls (no extra describe)."""
+    describe_route = respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_assistant_response(
+                name="my-assistant", host="my-assistant-abc.svc.pinecone.io"
+            ),
+        ),
+    )
+
+    client1 = await async_assistants._data_plane_http("my-assistant")
+    client2 = await async_assistants._data_plane_http("my-assistant")
+
+    assert client1 is client2
+    assert describe_route.call_count == 1
+
+
+@respx.mock
+async def test_data_plane_http_different_assistants_get_different_clients(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """_data_plane_http() caches separately per assistant name."""
+    respx.get(f"{BASE_URL}/assistants/assistant-a").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_assistant_response(name="assistant-a", host="host-a.svc.pinecone.io"),
+        ),
+    )
+    respx.get(f"{BASE_URL}/assistants/assistant-b").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_assistant_response(name="assistant-b", host="host-b.svc.pinecone.io"),
+        ),
+    )
+
+    client_a = await async_assistants._data_plane_http("assistant-a")
+    client_b = await async_assistants._data_plane_http("assistant-b")
+
+    assert client_a is not client_b
+    assert client_a._config.host == "https://host-a.svc.pinecone.io"
+    assert client_b._config.host == "https://host-b.svc.pinecone.io"
+
+
+@respx.mock
+async def test_data_plane_http_raises_when_host_is_none(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """_data_plane_http() raises PineconeValueError when assistant has no host."""
+    respx.get(f"{BASE_URL}/assistants/no-host-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_assistant_response(name="no-host-assistant", host=None),
+        ),
+    )
+
+    with pytest.raises(PineconeValueError, match="no data-plane host"):
+        await async_assistants._data_plane_http("no-host-assistant")
+
+
+@respx.mock
+async def test_data_plane_http_raises_when_host_is_empty_string(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """_data_plane_http() raises PineconeValueError when assistant host is empty string."""
+    respx.get(f"{BASE_URL}/assistants/empty-host-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_assistant_response(name="empty-host-assistant", host=""),
+        ),
+    )
+
+    with pytest.raises(PineconeValueError, match="no data-plane host"):
+        await async_assistants._data_plane_http("empty-host-assistant")
