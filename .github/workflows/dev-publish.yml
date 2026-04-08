@@ -84,7 +84,8 @@ jobs:
               print(tomllib.load(f)['project']['version'])
           ")
           timestamp=$(date +%s)
-          dev_version="${base_version}.dev${timestamp}"
+          short_sha=$(git rev-parse --short HEAD)
+          dev_version="${base_version}.dev${timestamp}+g${short_sha}"
           echo "dev_version=${dev_version}" >> "$GITHUB_OUTPUT"
           echo "Version: ${dev_version}"
           echo "${dev_version}" > dev_version.txt
