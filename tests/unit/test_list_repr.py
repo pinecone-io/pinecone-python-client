@@ -167,9 +167,7 @@ class TestModelInfoListRepr:
 
 
 class TestAPIKeyListRepr:
-    def _make_key(
-        self, name: str = "prod-key", project_id: str = "proj-abc"
-    ) -> APIKeyModel:
+    def _make_key(self, name: str = "prod-key", project_id: str = "proj-abc") -> APIKeyModel:
         return APIKeyModel(id="key-xyz", name=name, project_id=project_id, roles=["IndexReadWrite"])
 
     def test_repr_summary_format(self) -> None:

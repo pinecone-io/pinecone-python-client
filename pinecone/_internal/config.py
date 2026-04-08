@@ -114,8 +114,7 @@ class PineconeConfig:
 
     def _redact_headers(self, headers: dict[str, str]) -> dict[str, str]:
         return {
-            k: "***" if k.lower() in self._SENSITIVE_HEADER_KEYS else v
-            for k, v in headers.items()
+            k: "***" if k.lower() in self._SENSITIVE_HEADER_KEYS else v for k, v in headers.items()
         }
 
     def __repr__(self) -> str:

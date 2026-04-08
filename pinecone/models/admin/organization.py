@@ -77,7 +77,5 @@ class OrganizationList:
         return [org.name for org in self._organizations]
 
     def __repr__(self) -> str:
-        summaries = ", ".join(
-            f"<name={o.name!r}, plan={o.plan!r}>" for o in self._organizations
-        )
+        summaries = ", ".join(f"<name={o.name!r}, plan={o.plan!r}>" for o in self._organizations)
         return f"OrganizationList([{summaries}])"

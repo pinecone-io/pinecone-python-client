@@ -72,7 +72,5 @@ class ModelInfoList:
         return iter(self._models)
 
     def __repr__(self) -> str:
-        summaries = ", ".join(
-            f"<model={m.model!r}, type={m.type!r}>" for m in self._models
-        )
+        summaries = ", ".join(f"<model={m.model!r}, type={m.type!r}>" for m in self._models)
         return f"ModelInfoList([{summaries}])"

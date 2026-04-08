@@ -27,7 +27,5 @@ class CollectionList:
         return [c.name for c in self._collections]
 
     def __repr__(self) -> str:
-        summaries = ", ".join(
-            f"<name={c.name!r}, status={c.status!r}>" for c in self._collections
-        )
+        summaries = ", ".join(f"<name={c.name!r}, status={c.status!r}>" for c in self._collections)
         return f"CollectionList([{summaries}])"

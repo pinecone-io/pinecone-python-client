@@ -68,6 +68,8 @@ results = index.query(
 )
 ```
 
+Use `query()` for raw vector search on standard indexes. Use `search()` for text or vector search on indexes with integrated inference (server-side embeddings).
+
 ### Semantic search with integrated embeddings
 
 ```python
@@ -171,7 +173,7 @@ Access patterns for the most common response types:
 
 ```python
 # QueryResponse — from index.query()
-results = index.query(vector=[...], top_k=5)
+results = index.query(vector=[0.012, -0.087, 0.153], top_k=5)  # 1536-dim vector
 for match in results.matches:
     print(match.id, match.score)    # id and similarity score
     print(match.values)             # vector values (if include_values=True)
@@ -192,7 +194,7 @@ for embedding in embeddings:
 ## Common Mistakes
 
 - **Calling `pc.upsert()` instead of `index.upsert()`** — upsert, query, fetch, and delete are on the `Index` object, not on `Pinecone`. Use `index = pc.index("name")` first.
-- **Not waiting for index readiness** — a freshly created index is not immediately ready. Use `pc.indexes.describe("name")` and check `status.ready` before upserting, or pass `wait_until_ready=True` when creating.
+- **Not waiting for index readiness** — a freshly created index is not immediately ready. Use `pc.indexes.describe("name")` and check `status.ready` before upserting. By default, `pc.indexes.create()` polls until the index is ready. Pass `timeout=-1` to return immediately without waiting.
 - **Forgetting the namespace** — vectors in different namespaces are isolated. If you upsert to `namespace="articles-en"` but query without specifying a namespace, you query the default (`""`) namespace and get no results.
 - **Mismatched vector dimensions** — the vector length in upsert and query must match the index's `dimension`. The API returns an error if they differ.
 - **Using `from pinecone import Index` directly** — `Index` requires a host URL. Use `pc.index("name")` to resolve the host automatically.

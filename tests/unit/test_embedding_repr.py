@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pinecone.models.inference.embed import (
     DenseEmbedding,
-    EmbedUsage,
     EmbeddingsList,
+    EmbedUsage,
     SparseEmbedding,
 )
 from pinecone.models.vectors.sparse import SparseValues
