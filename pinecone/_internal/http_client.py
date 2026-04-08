@@ -10,7 +10,7 @@ import random
 import socket
 import sys
 import time
-from collections.abc import Generator
+from collections.abc import AsyncGenerator, Generator
 from typing import Any
 
 import httpx
@@ -467,6 +467,43 @@ class AsyncHTTPClient:
             raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
         return response
+
+    @contextlib.asynccontextmanager
+    async def stream(
+        self,
+        method: str,
+        path: str,
+        *,
+        content: bytes | None = None,
+        headers: dict[str, str] | None = None,
+        timeout: float | None = None,
+    ) -> AsyncGenerator[httpx.Response, None]:
+        """Stream an async HTTP response, wrapping transport errors as Pinecone exceptions.
+
+        Opens a streaming request and yields the :class:`httpx.Response`.  If the
+        server returns an error status, the response body is read and
+        :func:`_raise_for_status` raises the appropriate exception before yielding.
+        Transport-layer errors (timeouts, connection failures) raised either at
+        connection time or during response iteration are caught and re-raised as
+        :exc:`PineconeTimeoutError` or :exc:`PineconeConnectionError`.
+        """
+        effective_timeout = timeout if timeout is not None else self._config.timeout
+        try:
+            async with self._ensure_client().stream(
+                method,
+                path,
+                content=content,
+                headers=headers,
+                timeout=effective_timeout,
+            ) as response:
+                if not response.is_success:
+                    await response.aread()
+                _raise_for_status(response)
+                yield response
+        except httpx.TimeoutException as exc:
+            raise PineconeTimeoutError(str(exc)) from exc
+        except httpx.TransportError as exc:
+            raise PineconeConnectionError(str(exc)) from exc
 
     async def close(self) -> None:
         if self._client is not None:

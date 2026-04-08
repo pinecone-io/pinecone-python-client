@@ -1754,9 +1754,7 @@ async def test_async_delete_file_server_error_raises(
     )
 
     with pytest.raises(PineconeError, match="Storage backend error"):
-        await async_assistants.delete_file(
-            assistant_name="test-assistant", file_id="file-abc123"
-        )
+        await async_assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123")
 
 
 # ---------------------------------------------------------------------------
@@ -1913,9 +1911,7 @@ async def test_async_evaluate_alignment(async_assistants: AsyncAssistants) -> No
     from pinecone._internal.constants import ASSISTANT_EVALUATION_BASE_URL
     from pinecone.models.assistant.evaluation import AlignmentResult, AlignmentScores
 
-    eval_route = respx.post(
-        f"{ASSISTANT_EVALUATION_BASE_URL}/evaluation/metrics/alignment"
-    ).mock(
+    eval_route = respx.post(f"{ASSISTANT_EVALUATION_BASE_URL}/evaluation/metrics/alignment").mock(
         return_value=httpx.Response(200, json=make_alignment_response()),
     )
 
@@ -1982,9 +1978,7 @@ async def test_async_evaluate_alignment_uses_api_key(async_assistants: AsyncAssi
     """evaluate_alignment() sends the Api-Key header in the request."""
     from pinecone._internal.constants import ASSISTANT_EVALUATION_BASE_URL
 
-    route = respx.post(
-        f"{ASSISTANT_EVALUATION_BASE_URL}/evaluation/metrics/alignment"
-    ).mock(
+    route = respx.post(f"{ASSISTANT_EVALUATION_BASE_URL}/evaluation/metrics/alignment").mock(
         return_value=httpx.Response(200, json=make_alignment_response()),
     )
 
@@ -1996,3 +1990,385 @@ async def test_async_evaluate_alignment_uses_api_key(async_assistants: AsyncAssi
 
     request = route.calls.last.request
     assert request.headers.get("Api-Key") == "test-key"
+
+
+# ---------------------------------------------------------------------------
+# chat() — validation
+# ---------------------------------------------------------------------------
+
+
+def test_async_chat_json_streaming_validation(async_assistants: AsyncAssistants) -> None:
+    """Requesting json_response=True with stream=True raises PineconeValueError."""
+    import asyncio
+
+    with pytest.raises(PineconeValueError, match="json_response"):
+        asyncio.get_event_loop().run_until_complete(
+            async_assistants.chat(
+                assistant_name="test-assistant",
+                messages=[{"content": "Hello"}],
+                stream=True,
+                json_response=True,
+            )
+        )
+
+
+# ---------------------------------------------------------------------------
+# chat() — defaults
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_chat_default_model(async_assistants: AsyncAssistants) -> None:
+    """chat() defaults model to 'gpt-4o' when not specified."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "id": "chat-abc123",
+                "model": "gpt-4o",
+                "usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
+                "message": {"role": "assistant", "content": "Hello!"},
+                "finish_reason": "stop",
+                "citations": [],
+            },
+        )
+    )
+
+    from pinecone.models.assistant.chat import ChatResponse
+
+    result = await async_assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+    )
+
+    assert isinstance(result, ChatResponse)
+    request_body = json.loads(chat_route.calls.last.request.content)
+    assert request_body["model"] == "gpt-4o"
+
+
+# ---------------------------------------------------------------------------
+# chat() — message parsing
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_chat_message_parsing(async_assistants: AsyncAssistants) -> None:
+    """Dicts are converted to Message objects; missing role defaults to 'user'."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "id": "chat-abc123",
+                "model": "gpt-4o",
+                "usage": {"prompt_tokens": 5, "completion_tokens": 10, "total_tokens": 15},
+                "message": {"role": "assistant", "content": "Hi!"},
+                "finish_reason": "stop",
+                "citations": [],
+            },
+        )
+    )
+
+    await async_assistants.chat(
+        assistant_name="test-assistant",
+        messages=[
+            {"content": "No role here"},
+            {"content": "Explicit role", "role": "user"},
+        ],
+    )
+
+    request_body = json.loads(chat_route.calls.last.request.content)
+    msgs = request_body["messages"]
+    assert msgs[0]["role"] == "user"
+    assert msgs[0]["content"] == "No role here"
+    assert msgs[1]["role"] == "user"
+    assert msgs[1]["content"] == "Explicit role"
+
+
+# ---------------------------------------------------------------------------
+# chat_completions() — defaults
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_chat_completions_default_stream_false(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """chat_completions() defaults stream to False and posts to the completions endpoint."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    completions_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "id": "chatcmpl-abc123",
+                "model": "gpt-4o",
+                "usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {"role": "assistant", "content": "Hello from completions!"},
+                        "finish_reason": "stop",
+                    }
+                ],
+            },
+        )
+    )
+
+    from pinecone.models.assistant.chat import ChatCompletionResponse
+
+    result = await async_assistants.chat_completions(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+    )
+
+    assert isinstance(result, ChatCompletionResponse)
+    request_body = json.loads(completions_route.calls.last.request.content)
+    assert request_body["stream"] is False
+    assert request_body["model"] == "gpt-4o"
+
+
+# ---------------------------------------------------------------------------
+# _chat_streaming — SSE parsing
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_chat_streaming_sse_parsing(async_assistants: AsyncAssistants) -> None:
+    """Empty SSE lines are skipped and 'data:' prefix is stripped before JSON parsing."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b'data: {"type": "message_start", "model": "gpt-4o", "role": "assistant"}\n'
+        b"\n"
+        b'data: {"type": "message_end", "id": "end1",'
+        b' "usage": {"prompt_tokens": 5, "completion_tokens": 10, "total_tokens": 15}}\n'
+        b"\n"
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import StreamMessageEnd, StreamMessageStart
+
+    async_iter = await async_assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        stream=True,
+    )
+    chunks = [chunk async for chunk in async_iter]  # type: ignore[union-attr]
+
+    assert len(chunks) == 2
+    assert isinstance(chunks[0], StreamMessageStart)
+    assert isinstance(chunks[1], StreamMessageEnd)
+
+
+# ---------------------------------------------------------------------------
+# _chat_streaming — chunk dispatch
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_chat_streaming_chunk_dispatch(async_assistants: AsyncAssistants) -> None:
+    """Correct chunk types are yielded based on the 'type' field in each SSE event."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b'data: {"type": "message_start", "model": "gpt-4o", "role": "assistant"}\n'
+        b'data: {"type": "content_chunk", "id": "c1",'
+        b' "delta": {"content": "Hello"}}\n'
+        b'data: {"type": "citation", "id": "cit1",'
+        b' "citation": {"position": 5, "references": []}}\n'
+        b'data: {"type": "message_end", "id": "end1",'
+        b' "usage": {"prompt_tokens": 5, "completion_tokens": 10, "total_tokens": 15}}\n'
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import (
+        StreamCitationChunk,
+        StreamContentChunk,
+        StreamMessageEnd,
+        StreamMessageStart,
+    )
+
+    async_iter = await async_assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        stream=True,
+    )
+    chunks = [chunk async for chunk in async_iter]  # type: ignore[union-attr]
+
+    assert len(chunks) == 4
+    assert isinstance(chunks[0], StreamMessageStart)
+    assert chunks[0].model == "gpt-4o"
+    assert chunks[0].role == "assistant"
+    assert isinstance(chunks[1], StreamContentChunk)
+    assert chunks[1].delta.content == "Hello"
+    assert isinstance(chunks[2], StreamCitationChunk)
+    assert isinstance(chunks[3], StreamMessageEnd)
+    assert chunks[3].usage.total_tokens == 15
+
+
+# ---------------------------------------------------------------------------
+# _chat_streaming — request shape
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_chat_streaming_request_body(async_assistants: AsyncAssistants) -> None:
+    """Streaming chat always includes stream=True and include_highlights in body."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b'data: {"type": "message_start", "model": "gpt-4o", "role": "assistant"}\n'
+        b'data: {"type": "message_end", "id": "e1",'
+        b' "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}}\n'
+    )
+    chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    async_iter = await async_assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        stream=True,
+    )
+    async for _ in async_iter:  # type: ignore[union-attr]
+        pass
+
+    request_body = json.loads(chat_route.calls.last.request.content)
+    assert request_body["stream"] is True
+    assert "include_highlights" in request_body
+    assert request_body["include_highlights"] is False
+
+
+# ---------------------------------------------------------------------------
+# _chat_completions_streaming — SSE parsing
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_chat_completions_streaming_sse_parsing(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """chat_completions streaming parses SSE lines as ChatCompletionStreamChunk."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b'data: {"id": "cmpl1", "choices": [{"index": 0,'
+        b' "delta": {"role": "assistant", "content": null},'
+        b' "finish_reason": null}]}\n'
+        b"\n"
+        b'data: {"id": "cmpl2", "choices": [{"index": 0,'
+        b' "delta": {"content": "Hello"},'
+        b' "finish_reason": null}]}\n'
+        b"\n"
+        b'data: {"id": "cmpl3", "choices": [{"index": 0,'
+        b' "delta": {}, "finish_reason": "stop"}]}\n'
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
+
+    async_iter = await async_assistants.chat_completions(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        stream=True,
+    )
+    chunks = [chunk async for chunk in async_iter]  # type: ignore[union-attr]
+
+    assert len(chunks) == 3
+    assert all(isinstance(c, ChatCompletionStreamChunk) for c in chunks)
+    assert chunks[0].choices[0].delta.role == "assistant"
+    assert chunks[1].choices[0].delta.content == "Hello"
+    assert chunks[2].choices[0].finish_reason == "stop"
+
+
+# ---------------------------------------------------------------------------
+# _chat_streaming — [DONE] sentinel
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_chat_streaming_handles_done_sentinel(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """data: [DONE] terminates the stream cleanly without raising JSONDecodeError."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b'data: {"type": "message_start", "model": "gpt-4o", "role": "assistant"}\n'
+        b"data: [DONE]\n"
+        b'data: {"type": "message_end", "id": "end1",'
+        b' "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}}\n'
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import StreamMessageStart
+
+    async_iter = await async_assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        stream=True,
+    )
+    chunks = [chunk async for chunk in async_iter]  # type: ignore[union-attr]
+
+    assert len(chunks) == 1
+    assert isinstance(chunks[0], StreamMessageStart)
+
+
+# ---------------------------------------------------------------------------
+# _chat_completions_streaming — [DONE] sentinel
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_chat_completions_streaming_handles_done_sentinel(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """data: [DONE] terminates the completions stream cleanly without raising."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b'data: {"id": "cmpl1", "choices": [{"index": 0,'
+        b' "delta": {"role": "assistant", "content": null},'
+        b' "finish_reason": null}]}\n'
+        b"data: [DONE]\n"
+        b'data: {"id": "cmpl2", "choices": [{"index": 0,'
+        b' "delta": {"content": "After DONE - should not appear"},'
+        b' "finish_reason": null}]}\n'
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
+
+    async_iter = await async_assistants.chat_completions(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        stream=True,
+    )
+    chunks = [chunk async for chunk in async_iter]  # type: ignore[union-attr]
+
+    assert len(chunks) == 1
+    assert isinstance(chunks[0], ChatCompletionStreamChunk)
+    assert chunks[0].choices[0].delta.role == "assistant"

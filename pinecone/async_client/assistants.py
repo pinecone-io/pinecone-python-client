@@ -6,7 +6,12 @@ import asyncio
 import logging
 import os
 import time
+from collections.abc import AsyncIterator
 from typing import IO, TYPE_CHECKING, Any, List
+
+import msgspec
+import msgspec.structs
+import orjson
 
 from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
 from pinecone._internal.constants import ASSISTANT_API_VERSION, ASSISTANT_EVALUATION_BASE_URL
@@ -16,12 +21,22 @@ from pinecone.errors.exceptions import (
     PineconeTimeoutError,
     PineconeValueError,
 )
+from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
 from pinecone.models.assistant.context import ContextResponse
 from pinecone.models.assistant.evaluation import AlignmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
 from pinecone.models.assistant.message import Message
 from pinecone.models.assistant.model import AssistantModel
+from pinecone.models.assistant.options import ContextOptions
+from pinecone.models.assistant.streaming import (
+    ChatCompletionStreamChunk,
+    ChatStreamChunk,
+    StreamCitationChunk,
+    StreamContentChunk,
+    StreamMessageEnd,
+    StreamMessageStart,
+)
 from pinecone.models.pagination import AsyncPaginator, Page
 
 if TYPE_CHECKING:
@@ -776,6 +791,247 @@ class AsyncAssistants:
         http = await self._data_plane_http(assistant_name)
         response = await http.post(f"/chat/{assistant_name}/context", json=body)
         return self._adapter.to_context_response(response.content)
+
+    async def chat(
+        self,
+        *,
+        assistant_name: str,
+        messages: List[Message | dict[str, str]],
+        model: str = "gpt-4o",
+        stream: bool = False,
+        temperature: float | None = None,
+        filter: dict[str, Any] | None = None,
+        json_response: bool = False,
+        include_highlights: bool = False,
+        context_options: ContextOptions | dict[str, Any] | None = None,
+    ) -> ChatResponse | AsyncIterator[ChatStreamChunk]:
+        """Chat with an assistant and receive citations in Pinecone-native format.
+
+        Args:
+            assistant_name (str): Name of the assistant to chat with.
+            messages (list[Message | dict[str, str]]): Conversation messages.
+                Dicts are converted to :class:`Message` objects; role defaults
+                to ``"user"`` when not present.
+            model (str): Large language model to use. Defaults to ``"gpt-4o"``.
+            stream (bool): If ``True``, return an async streaming iterator.
+                Defaults to ``False``.
+            temperature (float | None): Controls randomness. Lower values produce
+                more deterministic responses. Omitted from request when ``None``.
+            filter (dict[str, Any] | None): Metadata filter restricting which
+                documents are used as context. Omitted from request when ``None``.
+            json_response (bool): If ``True``, instruct the assistant to return
+                a JSON response. Cannot be used with streaming.
+            include_highlights (bool): If ``True``, include highlight snippets
+                from referenced documents in citations.
+            context_options (ContextOptions | dict[str, Any] | None): Options
+                controlling context retrieval. Omitted from request when ``None``.
+
+        Returns:
+            :class:`ChatResponse` for non-streaming requests, or an
+            :class:`AsyncIterator[ChatStreamChunk]` for streaming requests.
+
+        Raises:
+            :exc:`PineconeValueError`: If both ``stream=True`` and
+                ``json_response=True`` are specified.
+            :exc:`ApiError`: If the API returns an error response.
+        """
+        if stream and json_response:
+            raise PineconeValueError("json_response cannot be used with stream=True")
+
+        parsed: List[Message] = [
+            m if isinstance(m, Message) else Message.from_dict(m) for m in messages
+        ]
+
+        body: dict[str, Any] = {
+            "messages": [{"role": m.role, "content": m.content} for m in parsed],
+            "model": model,
+            "stream": stream,
+        }
+        if temperature is not None:
+            body["temperature"] = temperature
+        if filter is not None:
+            body["filter"] = filter
+        if json_response:
+            body["json_response"] = json_response
+        if stream or include_highlights:
+            body["include_highlights"] = include_highlights
+        if context_options is not None:
+            if isinstance(context_options, dict):
+                body["context_options"] = context_options
+            else:
+                body["context_options"] = {
+                    k: v
+                    for k, v in msgspec.structs.asdict(context_options).items()
+                    if v is not None
+                }
+
+        data_http = await self._data_plane_http(assistant_name)
+
+        if stream:
+            return self._chat_streaming(
+                data_http=data_http, url=f"/chat/{assistant_name}", body=body
+            )
+
+        response = await data_http.post(f"/chat/{assistant_name}", json=body)
+        return self._adapter.to_chat_response(response.content)
+
+    async def _chat_streaming(
+        self,
+        *,
+        data_http: AsyncHTTPClient,
+        url: str,
+        body: dict[str, Any],
+    ) -> AsyncIterator[ChatStreamChunk]:
+        """Stream Pinecone-native chat chunks via SSE.
+
+        POSTs to the given *url* with ``stream=True`` in the body, parses each
+        SSE line, and yields typed chunk objects dispatched by the ``type`` field.
+
+        Args:
+            data_http: AsyncHTTPClient targeting the assistant's data-plane host.
+            url: Request URL path (e.g. ``/chat/{assistant_name}``).
+            body: Pre-built request body (must include ``stream=True``).
+
+        Yields:
+            :class:`StreamMessageStart`, :class:`StreamContentChunk`,
+            :class:`StreamCitationChunk`, or :class:`StreamMessageEnd`
+            depending on the ``type`` field of each SSE chunk.
+
+        Raises:
+            :exc:`ApiError`: If the server returns an HTTP error.
+        """
+        async with data_http.stream(
+            "POST",
+            url,
+            content=orjson.dumps(body),
+            headers={"Content-Type": "application/json"},
+        ) as response:
+            async for line in response.aiter_lines():
+                if not line:
+                    continue
+                if not line.startswith("data:"):
+                    continue
+                line = line[5:].lstrip()
+                if not line:
+                    continue
+                if line == "[DONE]":
+                    break
+                chunk_data: dict[str, Any] = orjson.loads(line)
+                chunk_type = chunk_data.get("type", "")
+                if chunk_type == "message_start":
+                    yield msgspec.convert(chunk_data, StreamMessageStart)
+                elif chunk_type == "content_chunk":
+                    yield msgspec.convert(chunk_data, StreamContentChunk)
+                elif chunk_type == "citation":
+                    yield msgspec.convert(chunk_data, StreamCitationChunk)
+                elif chunk_type == "message_end":
+                    yield msgspec.convert(chunk_data, StreamMessageEnd)
+
+    async def chat_completions(
+        self,
+        *,
+        assistant_name: str,
+        messages: List[Message | dict[str, str]],
+        model: str = "gpt-4o",
+        stream: bool = False,
+        temperature: float | None = None,
+        filter: dict[str, Any] | None = None,
+    ) -> ChatCompletionResponse | AsyncIterator[ChatCompletionStreamChunk]:
+        """Chat with an assistant using an OpenAI-compatible interface.
+
+        Returns responses in OpenAI chat completion format. Useful when you
+        need inline citations or OpenAI-compatible responses. Has limited
+        functionality compared to the standard :meth:`chat` interface — does
+        not support ``include_highlights``, ``context_options``, or
+        ``json_response`` parameters.
+
+        Args:
+            assistant_name (str): Name of the assistant to chat with.
+            messages (list[Message | dict[str, str]]): Conversation messages.
+                Dicts are converted to :class:`Message` objects; role defaults
+                to ``"user"`` when not present.
+            model (str): Large language model to use. Defaults to ``"gpt-4o"``.
+                Not validated client-side — any string is accepted.
+            stream (bool): If ``True``, return an async streaming iterator.
+                Defaults to ``False``.
+            temperature (float | None): Controls randomness. Lower values produce
+                more deterministic responses. Omitted from request when ``None``.
+            filter (dict[str, Any] | None): Metadata filter restricting which
+                documents are used as context. Omitted from request when ``None``.
+
+        Returns:
+            :class:`ChatCompletionResponse` for non-streaming requests, or an
+            :class:`AsyncIterator[ChatCompletionStreamChunk]` for streaming.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+        """
+        parsed: List[Message] = [
+            m if isinstance(m, Message) else Message.from_dict(m) for m in messages
+        ]
+
+        body: dict[str, Any] = {
+            "messages": [{"role": m.role, "content": m.content} for m in parsed],
+            "model": model,
+            "stream": stream,
+        }
+        if temperature is not None:
+            body["temperature"] = temperature
+        if filter is not None:
+            body["filter"] = filter
+
+        data_http = await self._data_plane_http(assistant_name)
+
+        if stream:
+            return self._chat_completions_streaming(
+                data_http=data_http,
+                url=f"/chat/{assistant_name}/chat/completions",
+                body=body,
+            )
+
+        response = await data_http.post(f"/chat/{assistant_name}/chat/completions", json=body)
+        return self._adapter.to_chat_completion_response(response.content)
+
+    async def _chat_completions_streaming(
+        self,
+        *,
+        data_http: AsyncHTTPClient,
+        url: str,
+        body: dict[str, Any],
+    ) -> AsyncIterator[ChatCompletionStreamChunk]:
+        """Stream OpenAI-compatible chat completion chunks via SSE.
+
+        POSTs to the given *url* with ``stream=True`` in the body and yields
+        each SSE line parsed as a :class:`ChatCompletionStreamChunk`.
+
+        Args:
+            data_http: AsyncHTTPClient targeting the assistant's data-plane host.
+            url: Request URL path (e.g. ``/chat/{assistant_name}/chat/completions``).
+            body: Pre-built request body (must include ``stream=True``).
+
+        Yields:
+            :class:`ChatCompletionStreamChunk` for each non-empty SSE line.
+
+        Raises:
+            :exc:`ApiError`: If the server returns an HTTP error.
+        """
+        async with data_http.stream(
+            "POST",
+            url,
+            content=orjson.dumps(body),
+            headers={"Content-Type": "application/json"},
+        ) as response:
+            async for line in response.aiter_lines():
+                if not line:
+                    continue
+                if not line.startswith("data:"):
+                    continue
+                line = line[5:].lstrip()
+                if not line:
+                    continue
+                if line == "[DONE]":
+                    break
+                yield msgspec.convert(orjson.loads(line), ChatCompletionStreamChunk)
 
     async def evaluate_alignment(
         self,
