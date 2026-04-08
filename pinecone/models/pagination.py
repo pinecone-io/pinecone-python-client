@@ -43,6 +43,17 @@ class Paginator(Generic[T]):
             the beginning.
         limit: Maximum number of items to yield across all pages. ``None``
             yields all items.
+
+    Examples:
+        Iterate over results one item at a time:
+
+            paginator = pc.assistants.list()
+            for assistant in paginator:
+                print(assistant.name)
+
+        Collect all results into a list:
+
+            all_assistants = pc.assistants.list().to_list()
     """
 
     def __init__(
@@ -82,6 +93,17 @@ class Paginator(Generic[T]):
 
         When ``limit`` is set, yields full pages until the remaining budget is
         exhausted, then yields a truncated final page and stops.
+
+        Returns:
+            :class:`~collections.abc.Generator` yielding :class:`Page` objects.
+            Each page has an ``items`` list and an optional ``pagination_token``.
+
+        Examples:
+            Process results page by page:
+
+                for page in pc.assistants.list().pages():
+                    for assistant in page.items:
+                        print(assistant.name)
         """
         count = 0
         token: str | None = self._initial_token
@@ -102,7 +124,16 @@ class Paginator(Generic[T]):
             token = page.pagination_token
 
     def to_list(self) -> list[T]:
-        """Fetch all items into a list."""
+        """Fetch all items across all pages into a list.
+
+        Returns:
+            list of all items.
+
+        Examples:
+            Collect all assistants at once:
+
+                all_assistants = pc.assistants.list().to_list()
+        """
         return list(self)
 
     def __repr__(self) -> str:
@@ -123,6 +154,18 @@ class AsyncPaginator(Generic[T]):
             the beginning.
         limit: Maximum number of items to yield across all pages. ``None``
             yields all items.
+
+    Examples:
+        Iterate over results one item at a time:
+
+            paginator = async_pc.assistants.list()
+            async for assistant in paginator:
+                print(assistant.name)
+
+        Collect all results into a list:
+
+            paginator = async_pc.assistants.list()
+            all_assistants = await paginator.to_list()
     """
 
     def __init__(
@@ -162,6 +205,18 @@ class AsyncPaginator(Generic[T]):
 
         When ``limit`` is set, yields full pages until the remaining budget is
         exhausted, then yields a truncated final page and stops.
+
+        Returns:
+            :class:`~collections.abc.AsyncGenerator` yielding :class:`Page`
+            objects. Each page has an ``items`` list and an optional
+            ``pagination_token``.
+
+        Examples:
+            Process results page by page:
+
+                async for page in async_pc.assistants.list().pages():
+                    for assistant in page.items:
+                        print(assistant.name)
         """
         count = 0
         token: str | None = self._initial_token
@@ -182,7 +237,17 @@ class AsyncPaginator(Generic[T]):
             token = page.pagination_token
 
     async def to_list(self) -> list[T]:
-        """Fetch all items into a list."""
+        """Fetch all items across all pages into a list.
+
+        Returns:
+            list of all items.
+
+        Examples:
+            Collect all assistants at once:
+
+                paginator = async_pc.assistants.list()
+                all_assistants = await paginator.to_list()
+        """
         return [item async for item in self]
 
     def __repr__(self) -> str:
