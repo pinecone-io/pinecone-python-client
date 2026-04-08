@@ -664,6 +664,40 @@ class GrpcIndex:
             RuntimeError: If ``pandas`` is not installed.
             PineconeValueError: If *df* is not a ``pandas.DataFrame``.
             PineconeValueError: If *batch_size* is not a positive integer.
+
+        Examples:
+            Upsert article embeddings from a DataFrame:
+
+            >>> import pandas as pd
+            >>> from pinecone.grpc import GrpcIndex
+            >>> idx = GrpcIndex(host="article-search-abc123.svc.pinecone.io", api_key="...")
+            >>> df = pd.DataFrame([
+            ...     {"id": "article-101", "values": [0.012, -0.087, 0.153, ...]},
+            ...     {"id": "article-102", "values": [0.045, 0.021, -0.064, ...]},
+            ... ])
+            >>> response = idx.upsert_from_dataframe(df)
+            >>> response.upserted_count
+            2
+
+            Upsert with metadata, a custom namespace, and a smaller batch size:
+
+            >>> df = pd.DataFrame([
+            ...     {
+            ...         "id": "article-101",
+            ...         "values": [0.012, -0.087, 0.153, ...],
+            ...         "metadata": {"topic": "science", "year": 2024},
+            ...     },
+            ...     {
+            ...         "id": "article-102",
+            ...         "values": [0.045, 0.021, -0.064, ...],
+            ...         "metadata": {"topic": "technology", "year": 2024},
+            ...     },
+            ... ])
+            >>> response = idx.upsert_from_dataframe(
+            ...     df,
+            ...     namespace="articles-en",
+            ...     batch_size=100,
+            ... )
         """
         try:
             import pandas as pd
