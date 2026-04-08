@@ -45,7 +45,6 @@ _VALID_REGIONS = ("us", "eu")
 _CREATE_POLL_INTERVAL_SECONDS = 0.5
 _DELETE_POLL_INTERVAL_SECONDS = 5
 _UPLOAD_POLL_INTERVAL_SECONDS = 5
-_list = list  # Alias to avoid shadowing by the AsyncAssistants.list method in type annotations
 
 
 class AsyncAssistants:
@@ -499,45 +498,50 @@ class AsyncAssistants:
         )
         return result
 
-    async def list_files(
+    def list_files(
         self,
         *,
         assistant_name: str,
         filter: dict[str, Any] | None = None,
-    ) -> _list[AssistantFileModel]:
-        """List all files for an assistant, auto-paginating through all pages.
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> AsyncPaginator[AssistantFileModel]:
+        """List files for an assistant with lazy async pagination.
 
         Args:
             assistant_name: Name of the assistant whose files to list.
             filter: Optional metadata filter expression. Serialized to a JSON
                 string before being sent to the API.
+            limit: Maximum number of files to yield across all pages. ``None``
+                (default) yields all files.
+            pagination_token: Token to resume pagination from a previous call.
 
         Returns:
-            A flat ``list`` of :class:`AssistantFileModel` objects from all pages.
+            :class:`AsyncPaginator` over :class:`AssistantFileModel` objects.
+            Supports ``async for`` loops, ``.to_list()``, ``.pages()``, and
+            ``limit``.
 
         Raises:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
 
-            files = await pc.assistants.list_files(assistant_name="my-assistant")
-            for f in files:
+            async for f in pc.assistants.list_files(assistant_name="my-assistant"):
                 print(f.name, f.status)
+
+            files = await pc.assistants.list_files(assistant_name="my-assistant").to_list()
         """
-        logger.info("Listing all files for assistant %r", assistant_name)
-        all_files: _list[AssistantFileModel] = []
-        token: str | None = None
-        while True:
-            page = await self.list_files_page(
+        logger.info("Listing files for assistant %r", assistant_name)
+
+        async def fetch_page(token: str | None) -> Page[AssistantFileModel]:
+            result = await self.list_files_page(
                 assistant_name=assistant_name,
                 pagination_token=token,
                 filter=filter,
             )
-            all_files.extend(page.files)
-            if page.next is None:
-                break
-            token = page.next
-        return all_files
+            return Page(items=result.files, pagination_token=result.next)
+
+        return AsyncPaginator(fetch_page=fetch_page, initial_token=pagination_token, limit=limit)
 
     async def _poll_file_until_processed(
         self,

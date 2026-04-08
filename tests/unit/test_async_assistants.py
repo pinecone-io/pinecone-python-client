@@ -1336,13 +1336,20 @@ async def test_async_list_files_page_omits_none_params(
 
 
 # ---------------------------------------------------------------------------
-# list_files() — auto-pagination
+# list_files() — AsyncPaginator
 # ---------------------------------------------------------------------------
+
+
+def test_async_list_files_returns_async_paginator(async_assistants: AsyncAssistants) -> None:
+    """list_files() returns an AsyncPaginator instance (not a list)."""
+    result = async_assistants.list_files(assistant_name="test-assistant")
+
+    assert isinstance(result, AsyncPaginator)
 
 
 @respx.mock
 async def test_async_list_files_empty(async_assistants: AsyncAssistants) -> None:
-    """list_files() returns an empty list when no files exist."""
+    """list_files() yields no items when no files exist."""
     respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
@@ -1350,14 +1357,14 @@ async def test_async_list_files_empty(async_assistants: AsyncAssistants) -> None
         return_value=httpx.Response(200, json={"files": []}),
     )
 
-    result = await async_assistants.list_files(assistant_name="test-assistant")
+    result = await async_assistants.list_files(assistant_name="test-assistant").to_list()
 
     assert result == []
 
 
 @respx.mock
 async def test_async_list_files_single_page(async_assistants: AsyncAssistants) -> None:
-    """list_files() returns all files from a single-page response."""
+    """list_files() yields all files from a single-page response."""
     respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
@@ -1373,7 +1380,7 @@ async def test_async_list_files_single_page(async_assistants: AsyncAssistants) -
         ),
     )
 
-    result = await async_assistants.list_files(assistant_name="test-assistant")
+    result = await async_assistants.list_files(assistant_name="test-assistant").to_list()
 
     assert len(result) == 2
     assert all(isinstance(f, AssistantFileModel) for f in result)
@@ -1412,7 +1419,7 @@ async def test_async_list_files_multi_page(async_assistants: AsyncAssistants) ->
         ]
     )
 
-    result = await async_assistants.list_files(assistant_name="test-assistant")
+    result = await async_assistants.list_files(assistant_name="test-assistant").to_list()
 
     assert len(result) == 3
     assert [f.id for f in result] == ["f1", "f2", "f3"]
@@ -1434,13 +1441,87 @@ async def test_async_list_files_with_filter(async_assistants: AsyncAssistants) -
     result = await async_assistants.list_files(
         assistant_name="test-assistant",
         filter={"genre": {"$eq": "comedy"}},
-    )
+    ).to_list()
 
     assert len(result) == 1
     request = route.calls.last.request
     url_str = str(request.url)
     assert "filter=" in url_str
     assert "genre" in url_str
+
+
+@respx.mock
+async def test_async_list_files_limit_accepted(async_assistants: AsyncAssistants) -> None:
+    """list_files() accepts a limit parameter and stops after that many items."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "files": [
+                    make_assistant_file_response(id="f1", name="file1.pdf"),
+                    make_assistant_file_response(id="f2", name="file2.pdf"),
+                    make_assistant_file_response(id="f3", name="file3.pdf"),
+                ],
+                "next": "token-page2",
+            },
+        ),
+    )
+
+    result = await async_assistants.list_files(assistant_name="test-assistant", limit=2).to_list()
+
+    assert len(result) == 2
+    assert result[0].id == "f1"
+    assert result[1].id == "f2"
+
+
+@respx.mock
+async def test_async_list_files_pagination_token_accepted(  # noqa: E501
+    async_assistants: AsyncAssistants,
+) -> None:
+    """list_files() accepts a pagination_token to resume from a previous page."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
+    )
+    route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={"files": [make_assistant_file_response(id="f2", name="file2.pdf")]},
+        ),
+    )
+
+    result = await async_assistants.list_files(
+        assistant_name="test-assistant", pagination_token="token-page2"
+    ).to_list()
+
+    assert len(result) == 1
+    assert result[0].id == "f2"
+    request = route.calls.last.request
+    assert "paginationToken=token-page2" in str(request.url)
+
+
+@respx.mock
+async def test_async_list_files_async_for_loop(async_assistants: AsyncAssistants) -> None:
+    """list_files() supports async for iteration."""
+    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
+    )
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(
+            200,
+            json={"files": [make_assistant_file_response(id="f1", name="file1.pdf")]},
+        ),
+    )
+
+    collected = []
+    async for f in async_assistants.list_files(assistant_name="test-assistant"):
+        collected.append(f)
+
+    assert len(collected) == 1
+    assert isinstance(collected[0], AssistantFileModel)
+    assert collected[0].id == "f1"
 
 
 # ---------------------------------------------------------------------------
