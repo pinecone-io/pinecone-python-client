@@ -78,6 +78,24 @@ class TestAsyncUpsertRecords:
         assert "id" not in parsed
 
     @pytest.mark.anyio
+    async def test_async_upsert_records_namespace_not_string(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="namespace must be a string"):
+            await idx.upsert_records(namespace=123, records=[{"_id": "r1"}])  # type: ignore[arg-type]
+
+    @pytest.mark.anyio
+    async def test_async_upsert_records_namespace_empty_string(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="namespace must be a non-empty string"):
+            await idx.upsert_records(namespace="", records=[{"_id": "r1"}])
+
+    @pytest.mark.anyio
+    async def test_async_upsert_records_namespace_whitespace_only(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="namespace must be a non-empty string"):
+            await idx.upsert_records(namespace="   ", records=[{"_id": "r1"}])
+
+    @pytest.mark.anyio
     async def test_async_upsert_records_empty_list(self) -> None:
         idx = _make_async_index()
         with pytest.raises(ValidationError, match="records must be a non-empty list"):

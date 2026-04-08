@@ -342,8 +342,8 @@ class Index:
             :class:`UpsertRecordsResponse` with the count of records submitted.
 
         Raises:
-            :exc:`ValidationError`: If records is empty or a record is missing an
-                identifier field.
+            :exc:`ValidationError`: If namespace is not a string or is empty/whitespace,
+                records is empty, or a record is missing an identifier field.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -368,6 +368,10 @@ class Index:
            - :meth:`start_import` — for bulk loading millions of vectors
              from cloud storage (S3, GCS).
         """
+        if not isinstance(namespace, str):
+            raise ValidationError("namespace must be a string")
+        if not namespace or not namespace.strip():
+            raise ValidationError("namespace must be a non-empty string")
         if not records:
             raise ValidationError("records must be a non-empty list")
 
@@ -974,6 +978,8 @@ class Index:
         """
         if not isinstance(namespace, str):
             raise ValidationError("namespace must be a string")
+        if not namespace or not namespace.strip():
+            raise ValidationError("namespace must be a non-empty string")
         if top_k < 1:
             raise ValidationError(f"top_k must be a positive integer, got {top_k}")
         if rerank is not None:

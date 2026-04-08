@@ -139,6 +139,24 @@ class TestAsyncSearch:
         assert body["rerank"]["top_n"] == 5
 
     @pytest.mark.anyio
+    async def test_async_search_namespace_not_string(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="namespace must be a string"):
+            await idx.search(namespace=123, top_k=10, inputs={"text": "hello"})  # type: ignore[arg-type]
+
+    @pytest.mark.anyio
+    async def test_async_search_namespace_empty_string(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="namespace must be a non-empty string"):
+            await idx.search(namespace="", top_k=10, inputs={"text": "hello"})
+
+    @pytest.mark.anyio
+    async def test_async_search_namespace_whitespace_only(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="namespace must be a non-empty string"):
+            await idx.search(namespace="   ", top_k=10, inputs={"text": "hello"})
+
+    @pytest.mark.anyio
     async def test_async_search_top_k_validation(self) -> None:
         idx = _make_async_index()
         with pytest.raises(ValidationError, match="top_k must be a positive integer"):

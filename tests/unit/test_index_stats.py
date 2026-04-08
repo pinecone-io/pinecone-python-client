@@ -287,7 +287,10 @@ class TestDescribeIndexStatsRepr:
             metric="cosine",
         )
         r = repr(resp)
-        assert r == "DescribeIndexStatsResponse(dimension=1536, total_vector_count=600, metric='cosine', namespaces=3)"
+        assert (
+            r
+            == "DescribeIndexStatsResponse(dimension=1536, total_vector_count=600, metric='cosine', namespaces=3)"
+        )
         assert "NamespaceSummary" not in r
 
     def test_describe_index_stats_repr_omits_none_dimension(self) -> None:

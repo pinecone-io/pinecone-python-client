@@ -132,6 +132,21 @@ class TestSearch:
         assert body["rerank"]["rank_fields"] == ["chunk_text"]
         assert body["rerank"]["top_n"] == 5
 
+    def test_search_namespace_not_string(self) -> None:
+        idx = _make_index()
+        with pytest.raises(ValidationError, match="namespace must be a string"):
+            idx.search(namespace=123, top_k=10, inputs={"text": "hello"})  # type: ignore[arg-type]
+
+    def test_search_namespace_empty_string(self) -> None:
+        idx = _make_index()
+        with pytest.raises(ValidationError, match="namespace must be a non-empty string"):
+            idx.search(namespace="", top_k=10, inputs={"text": "hello"})
+
+    def test_search_namespace_whitespace_only(self) -> None:
+        idx = _make_index()
+        with pytest.raises(ValidationError, match="namespace must be a non-empty string"):
+            idx.search(namespace="   ", top_k=10, inputs={"text": "hello"})
+
     def test_search_top_k_validation(self) -> None:
         idx = _make_index()
         with pytest.raises(ValidationError, match="top_k must be a positive integer"):

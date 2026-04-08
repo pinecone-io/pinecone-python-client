@@ -89,6 +89,21 @@ class TestUpsertRecords:
         assert "id" not in parsed
         assert parsed["_id"] == "r1"
 
+    def test_upsert_records_namespace_not_string(self) -> None:
+        idx = _make_index()
+        with pytest.raises(ValidationError, match="namespace must be a string"):
+            idx.upsert_records(namespace=123, records=[{"_id": "r1"}])  # type: ignore[arg-type]
+
+    def test_upsert_records_namespace_empty_string(self) -> None:
+        idx = _make_index()
+        with pytest.raises(ValidationError, match="namespace must be a non-empty string"):
+            idx.upsert_records(namespace="", records=[{"_id": "r1"}])
+
+    def test_upsert_records_namespace_whitespace_only(self) -> None:
+        idx = _make_index()
+        with pytest.raises(ValidationError, match="namespace must be a non-empty string"):
+            idx.upsert_records(namespace="   ", records=[{"_id": "r1"}])
+
     def test_upsert_records_empty_list(self) -> None:
         idx = _make_index()
         with pytest.raises(ValidationError, match="non-empty"):

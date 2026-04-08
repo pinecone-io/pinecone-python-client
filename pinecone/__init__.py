@@ -54,14 +54,14 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from pinecone._client import Pinecone
     from pinecone.admin import Admin
-    from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyWithSecret
-    from pinecone.models.admin.organization import OrganizationList, OrganizationModel
-    from pinecone.models.admin.project import ProjectList, ProjectModel
     from pinecone.async_client.async_index import AsyncIndex
     from pinecone.async_client.pinecone import AsyncPinecone
     from pinecone.grpc import GrpcIndex
     from pinecone.grpc.future import PineconeFuture
     from pinecone.index import Index
+    from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyWithSecret
+    from pinecone.models.admin.organization import OrganizationList, OrganizationModel
+    from pinecone.models.admin.project import ProjectList, ProjectModel
     from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
     from pinecone.models.assistant.context import ContextResponse
     from pinecone.models.assistant.evaluation import AlignmentResult

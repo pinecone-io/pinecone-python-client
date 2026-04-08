@@ -39,9 +39,7 @@ class TestSparseValuesRepr:
         assert "...more" not in r
 
     def test_sparse_values_repr_six_elements_truncated(self) -> None:
-        sv = SparseValues(
-            indices=[1, 2, 3, 4, 5, 6], values=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
-        )
+        sv = SparseValues(indices=[1, 2, 3, 4, 5, 6], values=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
         r = repr(sv)
         assert "...3 more" in r
 
@@ -87,9 +85,7 @@ class TestSparseEmbeddingRepr:
         assert "vector_type='sparse'" in r
 
     def test_sparse_embedding_repr_short_lists(self) -> None:
-        emb = SparseEmbedding(
-            sparse_indices=[1, 42, 103], sparse_values=[0.5, 0.3, 0.1]
-        )
+        emb = SparseEmbedding(sparse_indices=[1, 42, 103], sparse_values=[0.5, 0.3, 0.1])
         r = repr(emb)
         assert "...more" not in r
         assert "sparse_indices=[1, 42, 103]" in r
