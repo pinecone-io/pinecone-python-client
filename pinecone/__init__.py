@@ -275,7 +275,6 @@ __all__ = [
     "UpdateResponse",
     "UpsertRecordsResponse",
     "UpsertResponse",
-    "ValidationError",
     "Vector",
     "VectorType",
 ]
