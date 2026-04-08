@@ -25,6 +25,10 @@ class AssistantFileModel(StructDictMixin, Struct, kw_only=True):
         signed_url: A temporary signed URL for downloading the file, or ``None``
             when not requested or unavailable.
         content_hash: Hash of the file content, or ``None`` when not available.
+        percent_done: Processing progress as a percentage (0.0–100.0), or ``None`` when not
+            available or not applicable.
+        error_message: Error message describing why processing failed, or ``None`` when
+            processing succeeded or is still in progress.
     """
 
     name: str
