@@ -95,6 +95,18 @@ class FetchResponse(Struct, rename="camel", kw_only=True):
     usage: Usage | None = None
     response_info: ResponseInfo | None = None
 
+    @overload
+    def __getitem__(self, key: Literal["vectors"]) -> dict[str, Vector]: ...
+
+    @overload
+    def __getitem__(self, key: Literal["namespace"]) -> str: ...
+
+    @overload
+    def __getitem__(self, key: Literal["usage"]) -> Usage | None: ...
+
+    @overload
+    def __getitem__(self, key: str) -> Any: ...
+
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['vectors'])."""
         if key not in self.__struct_fields__:
@@ -187,6 +199,21 @@ class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True):
             parts.append(f"metric={self.metric!r}")
         parts.append(f"namespaces={len(self.namespaces)!r}")
         return f"DescribeIndexStatsResponse({', '.join(parts)})"
+
+    @overload
+    def __getitem__(self, key: Literal["namespaces"]) -> dict[str, NamespaceSummary]: ...
+
+    @overload
+    def __getitem__(self, key: Literal["dimension"]) -> int | None: ...
+
+    @overload
+    def __getitem__(self, key: Literal["total_vector_count"]) -> int: ...
+
+    @overload
+    def __getitem__(self, key: Literal["metric"]) -> str | None: ...
+
+    @overload
+    def __getitem__(self, key: str) -> Any: ...
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['dimension'])."""
