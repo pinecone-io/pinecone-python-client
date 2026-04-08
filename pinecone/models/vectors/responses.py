@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Any, overload
+from typing import Any, Literal, overload
 
 from msgspec import Struct
 
@@ -55,6 +55,18 @@ class QueryResponse(Struct, rename="camel", kw_only=True):
         """Normalize null namespace to empty string (claim unified-rs-0013)."""
         if self.namespace is None:
             self.namespace = ""
+
+    @overload
+    def __getitem__(self, key: Literal["matches"]) -> list[ScoredVector]: ...
+
+    @overload
+    def __getitem__(self, key: Literal["namespace"]) -> str | None: ...
+
+    @overload
+    def __getitem__(self, key: Literal["usage"]) -> Usage | None: ...
+
+    @overload
+    def __getitem__(self, key: str) -> Any: ...
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['matches'])."""

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, TypedDict
+from typing import Any, Literal, TypedDict, overload
 
 from msgspec import Struct
 
@@ -124,6 +124,15 @@ class SearchRecordsResponse(Struct, kw_only=True):
     result: SearchResult
     usage: SearchUsage
     response_info: ResponseInfo | None = None
+
+    @overload
+    def __getitem__(self, key: Literal["result"]) -> SearchResult: ...
+
+    @overload
+    def __getitem__(self, key: Literal["usage"]) -> SearchUsage: ...
+
+    @overload
+    def __getitem__(self, key: str) -> Any: ...
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. ``response['result']``)."""
