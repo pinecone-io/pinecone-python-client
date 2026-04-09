@@ -85,3 +85,89 @@ async def test_embed_iterable_and_indexable_async(async_client: AsyncPinecone) -
     # String key access on the list
     assert result["model"] == "multilingual-e5-large"
     assert "model" in result
+
+
+# ---------------------------------------------------------------------------
+# rerank (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_rerank_basic_async(async_client: AsyncPinecone) -> None:
+    """async rerank() returns a RerankResult with ranked documents sorted by score."""
+    query = "What is machine learning?"
+    documents = [
+        "Paris is the capital of France.",
+        "Machine learning is a subset of AI that uses algorithms to learn from data.",
+        "Deep learning uses neural networks with many layers.",
+    ]
+    result = await async_client.inference.rerank(
+        model="bge-reranker-v2-m3",
+        query=query,
+        documents=documents,
+    )
+
+    assert result.model == "bge-reranker-v2-m3"
+    assert len(result.data) == len(documents)
+    assert result.usage.rerank_units > 0
+
+    # Results are sorted by score descending
+    scores = [doc.score for doc in result.data]
+    assert scores == sorted(scores, reverse=True), f"Scores not sorted descending: {scores}"
+
+    # Each result has index, score, and document
+    for ranked in result.data:
+        assert isinstance(ranked.index, int)
+        assert 0 <= ranked.index < len(documents)
+        assert isinstance(ranked.score, float)
+        assert ranked.document is not None
+        assert "text" in ranked.document
+
+    # The most relevant document should be the ML one (original index 1)
+    assert result.data[0].index == 1
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_rerank_with_top_n_async(async_client: AsyncPinecone) -> None:
+    """async rerank() with top_n limits the number of returned results."""
+    documents = [
+        "Machine learning is a branch of artificial intelligence.",
+        "Paris is known for the Eiffel Tower.",
+        "Neural networks mimic the human brain.",
+        "The ocean covers 71% of Earth's surface.",
+    ]
+    result = await async_client.inference.rerank(
+        model="bge-reranker-v2-m3",
+        query="Tell me about AI and neural networks",
+        documents=documents,
+        top_n=2,
+    )
+
+    assert result.model == "bge-reranker-v2-m3"
+    assert len(result.data) == 2
+    assert result.usage.rerank_units > 0
+
+    scores = [doc.score for doc in result.data]
+    assert scores == sorted(scores, reverse=True)
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_rerank_return_documents_false_async(async_client: AsyncPinecone) -> None:
+    """async rerank() with return_documents=False omits document text from results."""
+    documents = [
+        "The sky is blue due to Rayleigh scattering.",
+        "Vector databases store high-dimensional embeddings.",
+    ]
+    result = await async_client.inference.rerank(
+        model="bge-reranker-v2-m3",
+        query="How do vector databases work?",
+        documents=documents,
+        return_documents=False,
+    )
+
+    assert len(result.data) == len(documents)
+    for ranked in result.data:
+        assert ranked.document is None
