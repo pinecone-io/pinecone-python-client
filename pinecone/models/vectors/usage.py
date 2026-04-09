@@ -5,7 +5,7 @@ from __future__ import annotations
 from msgspec import Struct
 
 
-class Usage(Struct, rename="camel", kw_only=True):
+class Usage(Struct, rename="camel", kw_only=True, gc=False):
     """Read/write unit usage information included in responses.
 
     Attributes:

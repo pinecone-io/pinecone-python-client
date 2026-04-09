@@ -11,7 +11,7 @@ from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector, Vector
 
 
-class UpsertResponse(Struct, rename="camel", kw_only=True):
+class UpsertResponse(Struct, rename="camel", kw_only=True, gc=False):
     """Response from an upsert operation.
 
     Attributes:
@@ -34,7 +34,7 @@ class UpsertResponse(Struct, rename="camel", kw_only=True):
         return key in self.__struct_fields__
 
 
-class QueryResponse(Struct, rename="camel", kw_only=True):
+class QueryResponse(Struct, rename="camel", kw_only=True, gc=False):
     """Response from a query operation.
 
     Attributes:
@@ -79,7 +79,7 @@ class QueryResponse(Struct, rename="camel", kw_only=True):
         return key in self.__struct_fields__
 
 
-class FetchResponse(Struct, rename="camel", kw_only=True):
+class FetchResponse(Struct, rename="camel", kw_only=True, gc=False):
     """Response from a fetch operation.
 
     Attributes:
@@ -118,7 +118,7 @@ class FetchResponse(Struct, rename="camel", kw_only=True):
         return key in self.__struct_fields__
 
 
-class FetchByMetadataResponse(Struct, rename="camel", kw_only=True):
+class FetchByMetadataResponse(Struct, rename="camel", kw_only=True, gc=False):
     """Response from a fetch-by-metadata operation.
 
     Attributes:
@@ -148,7 +148,7 @@ class FetchByMetadataResponse(Struct, rename="camel", kw_only=True):
         return key in self.__struct_fields__
 
 
-class NamespaceSummary(Struct, rename="camel", kw_only=True):
+class NamespaceSummary(Struct, rename="camel", kw_only=True, gc=False):
     """Summary statistics for a single namespace.
 
     Attributes:
@@ -158,7 +158,7 @@ class NamespaceSummary(Struct, rename="camel", kw_only=True):
     vector_count: int = 0
 
 
-class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True):
+class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True, gc=False):
     """Response from a describe index stats operation.
 
     Attributes:
@@ -226,7 +226,7 @@ class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True):
         return key in self.__struct_fields__
 
 
-class ResponseInfo(Struct, kw_only=True):
+class ResponseInfo(Struct, kw_only=True, gc=False):
     """HTTP response metadata carrier.
 
     Attributes:
@@ -247,7 +247,7 @@ class ResponseInfo(Struct, kw_only=True):
         return self.lsn_reconciled is not None and self.lsn_reconciled >= target
 
 
-class Pagination(Struct, kw_only=True):
+class Pagination(Struct, kw_only=True, gc=False):
     """Pagination token for continued listing.
 
     Attributes:
@@ -258,7 +258,7 @@ class Pagination(Struct, kw_only=True):
     next: str | None = None
 
 
-class ListItem(Struct, kw_only=True):
+class ListItem(Struct, kw_only=True, gc=False):
     """A single vector ID entry in a list response.
 
     Attributes:
@@ -268,7 +268,7 @@ class ListItem(Struct, kw_only=True):
     id: str | None = None
 
 
-class ListResponse(Struct, rename="camel", kw_only=True):
+class ListResponse(Struct, rename="camel", kw_only=True, gc=False):
     """Response from a list vectors operation.
 
     Attributes:
@@ -320,7 +320,7 @@ class ListResponse(Struct, rename="camel", kw_only=True):
         return iter(self.vectors)
 
 
-class UpsertRecordsResponse(Struct, kw_only=True):
+class UpsertRecordsResponse(Struct, kw_only=True, gc=False):
     """Response from an upsert_records operation.
 
     Attributes:
@@ -344,7 +344,7 @@ class UpsertRecordsResponse(Struct, kw_only=True):
         return key in self.__struct_fields__
 
 
-class UpdateResponse(Struct, rename="camel", kw_only=True):
+class UpdateResponse(Struct, rename="camel", kw_only=True, gc=False):
     """Response from an update operation.
 
     Attributes:
