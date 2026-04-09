@@ -659,3 +659,116 @@ def test_describe_index_stats_grpc(client: Pinecone) -> None:
         assert isinstance(stats.index_fullness, float)
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# namespaces — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_namespaces_rest(client: Pinecone) -> None:
+    """Upsert to named namespace, query within it, verify namespace isolation."""
+    name = unique_name("idx")
+    NAMED_NS = "ns-alpha"
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert vectors into named namespace
+        ns_result = index.upsert(
+            vectors=[
+                {"id": "ns-v1", "values": [0.1, 0.2]},
+                {"id": "ns-v2", "values": [0.3, 0.4]},
+            ],
+            namespace=NAMED_NS,
+        )
+        assert isinstance(ns_result, UpsertResponse)
+        assert ns_result.upserted_count == 2
+
+        # Upsert different vectors into the default namespace
+        def_result = index.upsert(
+            vectors=[
+                {"id": "def-v1", "values": [0.9, 0.8]},
+            ],
+            namespace="",
+        )
+        assert isinstance(def_result, UpsertResponse)
+        assert def_result.upserted_count == 1
+
+        # Wait until ns-alpha vectors are queryable in the named namespace
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2], top_k=10, namespace=NAMED_NS),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="named namespace vectors queryable",
+        )
+
+        # Query in the named namespace
+        ns_query = index.query(vector=[0.1, 0.2], top_k=10, namespace=NAMED_NS)
+        assert isinstance(ns_query, QueryResponse)
+        assert ns_query.namespace == NAMED_NS
+        ns_ids = {m.id for m in ns_query.matches}
+        assert "ns-v1" in ns_ids
+        assert "ns-v2" in ns_ids
+        # Default namespace vectors must NOT appear in named-namespace query
+        assert "def-v1" not in ns_ids
+
+        # Verify stats shows both namespaces
+        poll_until(
+            query_fn=lambda: index.describe_index_stats(),
+            check_fn=lambda s: s.total_vector_count >= 3,
+            timeout=120,
+            description="stats reflect all 3 vectors",
+        )
+        stats = index.describe_index_stats()
+        assert isinstance(stats.namespaces, dict)
+        assert NAMED_NS in stats.namespaces
+        assert stats.namespaces[NAMED_NS].vector_count == 2
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# namespaces — gRPC (xfail: IT-0002)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.xfail(
+    strict=True,
+    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
+)
+def test_namespaces_grpc(client: Pinecone) -> None:
+    """Upsert to named namespace via GrpcIndex and query within it."""
+    name = unique_name("idx")
+    NAMED_NS = "ns-alpha"
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        index.upsert(
+            vectors=[
+                {"id": "ns-v1", "values": [0.1, 0.2]},
+                {"id": "ns-v2", "values": [0.3, 0.4]},
+            ],
+            namespace=NAMED_NS,
+        )
+
+        result = index.query(vector=[0.1, 0.2], top_k=10, namespace=NAMED_NS)
+        assert isinstance(result, QueryResponse)
+        assert result.namespace == NAMED_NS
+        ids = {m.id for m in result.matches}
+        assert "ns-v1" in ids or "ns-v2" in ids
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

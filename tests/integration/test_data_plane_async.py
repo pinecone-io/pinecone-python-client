@@ -447,3 +447,84 @@ async def test_describe_index_stats_rest_async(async_client: AsyncPinecone) -> N
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# namespaces — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_namespaces_rest_async(async_client: AsyncPinecone) -> None:
+    """Upsert to named namespace via AsyncIndex (REST) and query within it."""
+    name = unique_name("idx")
+    NAMED_NS = "ns-alpha"
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # Upsert vectors into named namespace
+        ns_result = await idx.upsert(
+            vectors=[
+                {"id": "ns-v1", "values": [0.1, 0.2]},
+                {"id": "ns-v2", "values": [0.3, 0.4]},
+            ],
+            namespace=NAMED_NS,
+        )
+        assert isinstance(ns_result, UpsertResponse)
+        assert ns_result.upserted_count == 2
+
+        # Upsert different vectors into the default namespace
+        def_result = await idx.upsert(
+            vectors=[
+                {"id": "def-v1", "values": [0.9, 0.8]},
+            ],
+            namespace="",
+        )
+        assert isinstance(def_result, UpsertResponse)
+        assert def_result.upserted_count == 1
+
+        # Wait until ns-alpha vectors are queryable in the named namespace
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.1, 0.2], top_k=10, namespace=NAMED_NS),  # type: ignore[union-attr]
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="named namespace vectors queryable",
+        )
+
+        # Query in the named namespace
+        ns_query = await idx.query(vector=[0.1, 0.2], top_k=10, namespace=NAMED_NS)
+        assert isinstance(ns_query, QueryResponse)
+        assert ns_query.namespace == NAMED_NS
+        ns_ids = {m.id for m in ns_query.matches}
+        assert "ns-v1" in ns_ids
+        assert "ns-v2" in ns_ids
+        # Default namespace vectors must NOT appear in named-namespace query
+        assert "def-v1" not in ns_ids
+
+        # Verify stats shows named namespace
+        await async_poll_until(
+            query_fn=lambda: idx.describe_index_stats(),  # type: ignore[union-attr]
+            check_fn=lambda s: s.total_vector_count >= 3,
+            timeout=120,
+            description="stats reflect all 3 vectors",
+        )
+        stats = await idx.describe_index_stats()
+        assert isinstance(stats.namespaces, dict)
+        assert NAMED_NS in stats.namespaces
+        assert stats.namespaces[NAMED_NS].vector_count == 2
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
