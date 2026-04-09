@@ -90,18 +90,11 @@ def test_search_records_rest(client: Pinecone, api_key: str) -> None:
 
 
 # ---------------------------------------------------------------------------
-# search-records — gRPC (xfail: IT-0002)
+# search-records — gRPC
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "SDK bug IT-0002: pinecone._grpc Rust extension not installed; "
-        "ModuleNotFoundError on GrpcIndex creation"
-    ),
-)
 def test_search_records_grpc(client: Pinecone, api_key: str) -> None:
     """search() via GrpcIndex with integrated inference."""
     name = unique_name("idx")

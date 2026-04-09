@@ -76,14 +76,10 @@ def test_delete_vectors_rest(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
-# delete-vectors — gRPC (xfail: IT-0002)
+# delete-vectors — gRPC
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=True,
-    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
-)
 def test_delete_vectors_grpc(client: Pinecone) -> None:
     """Delete vectors by IDs via GrpcIndex and verify they are gone."""
     name = unique_name("idx")
@@ -194,14 +190,10 @@ def test_query_by_vector_rest(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
-# upsert — gRPC (xfail: IT-0002)
+# upsert — gRPC
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=True,
-    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
-)
 def test_upsert_vectors_grpc(client: Pinecone) -> None:
     """Upsert vectors via GrpcIndex and verify upserted_count."""
     name = unique_name("idx")
@@ -230,14 +222,10 @@ def test_upsert_vectors_grpc(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
-# query — gRPC (xfail: IT-0002)
+# query — gRPC
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=True,
-    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
-)
 def test_query_by_vector_grpc(client: Pinecone) -> None:
     """Query by vector via GrpcIndex and verify matches structure."""
     name = unique_name("idx")
@@ -321,14 +309,10 @@ def test_fetch_vectors_rest(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
-# fetch — gRPC (xfail: IT-0002)
+# fetch — gRPC
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=True,
-    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
-)
 def test_fetch_vectors_grpc(client: Pinecone) -> None:
     """Fetch vectors by ID via GrpcIndex and verify returned vector data."""
     name = unique_name("idx")
@@ -424,14 +408,10 @@ def test_list_vectors_rest(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
-# list-vectors — gRPC (xfail: IT-0002)
+# list-vectors — gRPC
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=True,
-    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
-)
 def test_list_vectors_grpc(client: Pinecone) -> None:
     """List vectors via GrpcIndex and verify structure."""
     name = unique_name("idx")
@@ -526,14 +506,10 @@ def test_update_vectors_rest(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
-# update-vectors — gRPC (xfail: IT-0002)
+# update-vectors — gRPC
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=True,
-    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
-)
 def test_update_vectors_grpc(client: Pinecone) -> None:
     """Update a vector's values via GrpcIndex and verify the change is reflected."""
     name = unique_name("idx")
@@ -633,14 +609,10 @@ def test_describe_index_stats_rest(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
-# describe-stats — gRPC (xfail: IT-0002)
+# describe-stats — gRPC
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=True,
-    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
-)
 def test_describe_index_stats_grpc(client: Pinecone) -> None:
     """Call describe_index_stats() via GrpcIndex and verify response structure."""
     name = unique_name("idx")
@@ -744,14 +716,10 @@ def test_namespaces_rest(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
-# namespaces — gRPC (xfail: IT-0002)
+# namespaces — gRPC
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=True,
-    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
-)
 def test_namespaces_grpc(client: Pinecone) -> None:
     """Upsert to named namespace via GrpcIndex and query within it."""
     name = unique_name("idx")
