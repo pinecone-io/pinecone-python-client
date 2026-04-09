@@ -15,18 +15,14 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from pinecone import AsyncPinecone
+from pinecone import AsyncPinecone, Pinecone
 from pinecone.models.vectors.search import Hit, SearchRecordsResponse, SearchResult, SearchUsage
-
-from pinecone import Pinecone
-
 from tests.integration.conftest import (
     async_cleanup_resource,
     async_poll_until,
     unique_name,
     wait_for_ready,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

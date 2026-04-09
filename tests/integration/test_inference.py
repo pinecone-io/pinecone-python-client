@@ -5,13 +5,11 @@ from __future__ import annotations
 import pytest
 
 from pinecone import Pinecone
-
 from tests.integration.conftest import (  # noqa: F401 — re-exported for type use
     cleanup_resource,
     poll_until,
     unique_name,
 )
-
 
 # ---------------------------------------------------------------------------
 # embed

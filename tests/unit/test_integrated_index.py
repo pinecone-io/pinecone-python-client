@@ -55,7 +55,7 @@ def _integrated_response(**overrides: object) -> dict[str, object]:
 @respx.mock
 def test_create_integrated_index(indexes: Indexes) -> None:
     """Create with IntegratedSpec — verify correct wire format."""
-    route = respx.post(f"{BASE_URL}/indexes").mock(
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(201, json=_integrated_response()),
     )
 
@@ -92,7 +92,7 @@ def test_create_integrated_index(indexes: Indexes) -> None:
 @respx.mock
 def test_create_integrated_with_metric(indexes: Indexes) -> None:
     """Metric override in embed config is included in request."""
-    route = respx.post(f"{BASE_URL}/indexes").mock(
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(201, json=_integrated_response()),
     )
 
@@ -118,7 +118,7 @@ def test_create_integrated_with_metric(indexes: Indexes) -> None:
 @respx.mock
 def test_create_integrated_with_parameters(indexes: Indexes) -> None:
     """Read and write parameters are passed through."""
-    route = respx.post(f"{BASE_URL}/indexes").mock(
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(201, json=_integrated_response()),
     )
 
@@ -146,7 +146,7 @@ def test_create_integrated_with_parameters(indexes: Indexes) -> None:
 @respx.mock
 def test_create_integrated_with_tags(indexes: Indexes) -> None:
     """Tags are included in the request body."""
-    route = respx.post(f"{BASE_URL}/indexes").mock(
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(201, json=_integrated_response()),
     )
 
@@ -172,7 +172,7 @@ def test_create_integrated_with_tags(indexes: Indexes) -> None:
 @respx.mock
 def test_create_integrated_with_embed_model_enum(indexes: Indexes) -> None:
     """EmbedModel enum values are accepted for model parameter."""
-    route = respx.post(f"{BASE_URL}/indexes").mock(
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(201, json=_integrated_response()),
     )
 
@@ -197,7 +197,7 @@ def test_create_integrated_with_embed_model_enum(indexes: Indexes) -> None:
 @respx.mock
 def test_create_integrated_string_model_accepted(indexes: Indexes) -> None:
     """Plain strings also accepted for model parameter."""
-    route = respx.post(f"{BASE_URL}/indexes").mock(
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(201, json=_integrated_response()),
     )
 
@@ -328,7 +328,7 @@ def test_create_integrated_missing_name_raises(indexes: Indexes) -> None:
 @respx.mock
 def test_create_integrated_polls_until_ready(indexes: Indexes) -> None:
     """Integrated indexes use the same readiness polling (unified-index-0031)."""
-    respx.post(f"{BASE_URL}/indexes").mock(
+    respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(
             201,
             json=_integrated_response(status={"ready": False, "state": "Initializing"}),
@@ -367,7 +367,7 @@ def test_create_integrated_polls_until_ready(indexes: Indexes) -> None:
 @respx.mock
 def test_create_integrated_init_failed_raises(indexes: Indexes) -> None:
     """InitializationFailed raises immediately during polling."""
-    respx.post(f"{BASE_URL}/indexes").mock(
+    respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(
             201,
             json=_integrated_response(status={"ready": False, "state": "Initializing"}),
@@ -399,7 +399,7 @@ def test_create_integrated_init_failed_raises(indexes: Indexes) -> None:
 @respx.mock
 def test_create_integrated_no_polling_with_timeout_neg1(indexes: Indexes) -> None:
     """With timeout=-1, return immediately without polling."""
-    respx.post(f"{BASE_URL}/indexes").mock(
+    respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(
             201,
             json=_integrated_response(status={"ready": False, "state": "Initializing"}),

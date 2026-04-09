@@ -1200,7 +1200,7 @@ def _integrated_response(**overrides: object) -> dict[str, object]:
 @respx.mock
 async def test_create_integrated_index(async_indexes: AsyncIndexes) -> None:
     """Create with IntegratedSpec — verify correct wire format."""
-    route = respx.post(f"{BASE_URL}/indexes").mock(
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(201, json=_integrated_response()),
     )
 
@@ -1237,7 +1237,7 @@ async def test_create_integrated_index(async_indexes: AsyncIndexes) -> None:
 @respx.mock
 async def test_create_integrated_with_metric(async_indexes: AsyncIndexes) -> None:
     """Metric override in embed config is included in request."""
-    route = respx.post(f"{BASE_URL}/indexes").mock(
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(201, json=_integrated_response()),
     )
 
@@ -1263,7 +1263,7 @@ async def test_create_integrated_with_metric(async_indexes: AsyncIndexes) -> Non
 @respx.mock
 async def test_create_integrated_with_parameters(async_indexes: AsyncIndexes) -> None:
     """Read and write parameters are passed through."""
-    route = respx.post(f"{BASE_URL}/indexes").mock(
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(201, json=_integrated_response()),
     )
 
@@ -1291,7 +1291,7 @@ async def test_create_integrated_with_parameters(async_indexes: AsyncIndexes) ->
 @respx.mock
 async def test_create_integrated_with_tags(async_indexes: AsyncIndexes) -> None:
     """Tags are included in the request body."""
-    route = respx.post(f"{BASE_URL}/indexes").mock(
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(201, json=_integrated_response()),
     )
 
@@ -1317,7 +1317,7 @@ async def test_create_integrated_with_tags(async_indexes: AsyncIndexes) -> None:
 @respx.mock
 async def test_create_integrated_with_embed_model_enum(async_indexes: AsyncIndexes) -> None:
     """EmbedModel enum values are accepted for model parameter."""
-    route = respx.post(f"{BASE_URL}/indexes").mock(
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(201, json=_integrated_response()),
     )
 
@@ -1432,7 +1432,7 @@ async def test_create_timeout_minus_one_no_polling(async_indexes: AsyncIndexes) 
 @respx.mock
 async def test_create_integrated_polls_until_ready(async_indexes: AsyncIndexes) -> None:
     """Integrated indexes use the same readiness polling."""
-    respx.post(f"{BASE_URL}/indexes").mock(
+    respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(
             201,
             json=_integrated_response(status={"ready": False, "state": "Initializing"}),
@@ -1471,7 +1471,7 @@ async def test_create_integrated_polls_until_ready(async_indexes: AsyncIndexes) 
 @respx.mock
 async def test_create_integrated_no_polling_with_neg1(async_indexes: AsyncIndexes) -> None:
     """With timeout=-1, integrated create returns immediately without polling."""
-    respx.post(f"{BASE_URL}/indexes").mock(
+    respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
         return_value=httpx.Response(
             201,
             json=_integrated_response(status={"ready": False, "state": "Initializing"}),

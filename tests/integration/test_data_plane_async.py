@@ -6,7 +6,16 @@ import pytest
 
 from pinecone import AsyncIndex, AsyncPinecone
 from pinecone.models.indexes.specs import ServerlessSpec
-from pinecone.models.vectors.responses import DescribeIndexStatsResponse, FetchResponse, ListItem, ListResponse, NamespaceSummary, QueryResponse, UpdateResponse, UpsertResponse
+from pinecone.models.vectors.responses import (
+    DescribeIndexStatsResponse,
+    FetchResponse,
+    ListItem,
+    ListResponse,
+    NamespaceSummary,
+    QueryResponse,
+    UpdateResponse,
+    UpsertResponse,
+)
 from pinecone.models.vectors.vector import ScoredVector, Vector
 from tests.integration.conftest import async_cleanup_resource, async_poll_until, unique_name
 

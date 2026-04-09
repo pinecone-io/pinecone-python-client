@@ -398,7 +398,10 @@ class AsyncIndexes:
             )
 
         logger.info("Creating index %r", name)
-        response = await self._http.post("/indexes", json=body)
+        if isinstance(spec, IntegratedSpec):
+            response = await self._http.post("/indexes/create-for-model", json=body)
+        else:
+            response = await self._http.post("/indexes", json=body)
         model = self._adapter.to_index_model(response.content)
         logger.debug("Created index %r", name)
 
