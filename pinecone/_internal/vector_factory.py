@@ -177,6 +177,20 @@ class VectorFactory:
         """Convert a user-provided vector input to a ``Vector`` object."""
         item_type = type(item)
         if item_type is dict:
+            # Inline 2-key happy path to avoid function call overhead
+            if len(item) == 2:
+                try:
+                    id_ = item["id"]
+                except KeyError:
+                    return _from_dict(item)
+                if (
+                    isinstance(id_, str) and id_.isascii()
+                    and "\x00" not in id_ and "values" in item
+                ):
+                    raw_values = item["values"]
+                    converted = raw_values if isinstance(raw_values, list) else list(raw_values)
+                    if converted:
+                        return Vector(id_, converted)
             return _from_dict(item)
         if item_type is tuple:
             # Inline 2-element happy path to avoid function call overhead
