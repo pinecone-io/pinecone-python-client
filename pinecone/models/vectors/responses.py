@@ -52,9 +52,12 @@ class QueryResponse(Struct, rename="camel", kw_only=True, gc=False):
     response_info: ResponseInfo | None = None
 
     def __post_init__(self) -> None:
-        """Normalize null namespace to empty string (claim unified-rs-0013)."""
+        """Normalize null namespace to empty string (claim unified-rs-0013).
+        Sort matches by descending score per the docstring contract."""
         if self.namespace is None:
             self.namespace = ""
+        if self.matches:
+            self.matches = sorted(self.matches, key=lambda m: m.score, reverse=True)
 
     @overload
     def __getitem__(self, key: Literal["matches"]) -> list[ScoredVector]: ...
