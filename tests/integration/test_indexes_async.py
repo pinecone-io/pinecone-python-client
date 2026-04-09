@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from pinecone import AsyncPinecone
+from pinecone import AsyncIndex, AsyncPinecone
 from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus
 from pinecone.models.indexes.specs import ServerlessSpec
 
@@ -123,6 +123,53 @@ async def test_describe_index_returns_full_model(async_client: AsyncPinecone) ->
         assert isinstance(desc.host, str)
         assert len(desc.host) > 0
     finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# index-handle
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_index_handle_rest_async(async_client: AsyncPinecone) -> None:
+    """async pc.index(name=...) returns an AsyncIndex with the correct host.
+
+    AsyncPinecone.index() requires the host to be cached via a prior
+    describe call. We call describe() first, which populates the host cache,
+    then pc.index(name=name) should succeed.
+    """
+    name = unique_name("idx")
+    idx = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # describe() caches the host in AsyncPinecone's host cache
+        desc = await async_client.indexes.describe(name)
+        expected_host = desc.host
+
+        # Get an AsyncIndex handle by name (uses cached host)
+        idx = async_client.index(name=name)
+
+        assert isinstance(idx, AsyncIndex)
+        assert isinstance(idx.host, str)
+        assert len(idx.host) > 0
+        # AsyncIndex normalizes host by prepending 'https://', so the raw describe
+        # host (bare hostname) will appear within idx.host
+        assert expected_host in idx.host
+    finally:
+        if idx is not None:
+            await idx.close()
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name),
             name,

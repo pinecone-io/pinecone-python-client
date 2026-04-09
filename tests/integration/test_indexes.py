@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from pinecone import Pinecone
+from pinecone import GrpcIndex, Index, Pinecone
 from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus
 from pinecone.models.indexes.specs import ServerlessSpec
 
@@ -119,6 +119,81 @@ def test_describe_index_returns_full_model(client: Pinecone) -> None:
         # Host is a non-empty string
         assert isinstance(desc.host, str)
         assert len(desc.host) > 0
+    finally:
+        cleanup_resource(
+            lambda: client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# index-handle
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_index_handle_rest(client: Pinecone) -> None:
+    """pc.index(name=...) returns a REST Index with the correct host."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # Get the expected host from describe
+        desc = client.indexes.describe(name)
+        expected_host = desc.host
+
+        # Get an Index handle by name — triggers a describe call internally
+        idx = client.index(name=name)
+
+        assert isinstance(idx, Index)
+        assert isinstance(idx.host, str)
+        assert len(idx.host) > 0
+        # Index normalizes host by prepending 'https://', so the raw describe
+        # host (bare hostname) will be a suffix of idx.host
+        assert expected_host in idx.host
+    finally:
+        cleanup_resource(
+            lambda: client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+@pytest.mark.integration
+@pytest.mark.xfail(
+    strict=True,
+    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
+)
+def test_index_handle_grpc(client: Pinecone) -> None:
+    """pc.index(name=..., grpc=True) returns a GrpcIndex with the correct host."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # Get the expected host from describe
+        desc = client.indexes.describe(name)
+        expected_host = desc.host
+
+        # Get a GrpcIndex handle by name
+        idx = client.index(name=name, grpc=True)
+
+        assert isinstance(idx, GrpcIndex)
+        assert isinstance(idx.host, str)
+        assert len(idx.host) > 0
+        # GrpcIndex normalizes host similarly; bare hostname should appear in idx.host
+        assert expected_host in idx.host
     finally:
         cleanup_resource(
             lambda: client.indexes.delete(name),
