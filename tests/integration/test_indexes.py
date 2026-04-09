@@ -228,3 +228,52 @@ def test_create_index_with_tags(client: Pinecone) -> None:
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# configure-index
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_configure_index_updates_tags(client: Pinecone) -> None:
+    """configure() merges tags — add new tags, update existing tags, remove tags via empty string."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            tags={"env": "integration-test", "version": "1", "to-remove": "yes"},
+            timeout=300,
+        )
+
+        # Add a new tag and update an existing tag
+        client.indexes.configure(
+            name,
+            tags={"version": "2", "new-key": "new-val"},
+        )
+
+        desc = client.indexes.describe(name)
+        assert desc.tags is not None
+        assert desc.tags.get("env") == "integration-test"   # untouched
+        assert desc.tags.get("version") == "2"              # updated
+        assert desc.tags.get("new-key") == "new-val"        # added
+        assert desc.tags.get("to-remove") == "yes"          # not yet removed
+
+        # Remove a tag by setting its value to ""
+        client.indexes.configure(
+            name,
+            tags={"to-remove": ""},
+        )
+
+        desc2 = client.indexes.describe(name)
+        assert desc2.tags is not None
+        assert "to-remove" not in desc2.tags or desc2.tags.get("to-remove") == ""
+        assert desc2.tags.get("version") == "2"             # preserved from previous configure
+    finally:
+        cleanup_resource(
+            lambda: client.indexes.delete(name),
+            name,
+            "index",
+        )

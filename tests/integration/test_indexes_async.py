@@ -208,3 +208,53 @@ async def test_create_index_with_tags(async_client: AsyncPinecone) -> None:
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# configure-index
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_configure_index_updates_tags(async_client: AsyncPinecone) -> None:
+    """async configure() merges tags — add new tags, update existing, remove via empty string."""
+    name = unique_name("idx")
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            tags={"env": "integration-test", "version": "1", "to-remove": "yes"},
+            timeout=300,
+        )
+
+        # Add a new tag and update an existing tag
+        await async_client.indexes.configure(
+            name,
+            tags={"version": "2", "new-key": "new-val"},
+        )
+
+        desc = await async_client.indexes.describe(name)
+        assert desc.tags is not None
+        assert desc.tags.get("env") == "integration-test"   # untouched
+        assert desc.tags.get("version") == "2"              # updated
+        assert desc.tags.get("new-key") == "new-val"        # added
+        assert desc.tags.get("to-remove") == "yes"          # not yet removed
+
+        # Remove a tag by setting its value to ""
+        await async_client.indexes.configure(
+            name,
+            tags={"to-remove": ""},
+        )
+
+        desc2 = await async_client.indexes.describe(name)
+        assert desc2.tags is not None
+        assert "to-remove" not in desc2.tags or desc2.tags.get("to-remove") == ""
+        assert desc2.tags.get("version") == "2"             # preserved from previous configure
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
