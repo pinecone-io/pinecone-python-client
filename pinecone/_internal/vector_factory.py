@@ -184,12 +184,12 @@ class VectorFactory:
                     id_ = item["id"]
                 except KeyError:
                     return _from_dict(item)
-                if (
-                    isinstance(id_, str) and id_.isascii()
-                    and "\x00" not in id_ and "values" in item
-                ):
-                    raw_values = item["values"]
-                    converted = raw_values if isinstance(raw_values, list) else list(raw_values)
+                if type(id_) is str and id_.isascii() and "\x00" not in id_:
+                    try:
+                        raw_values = item["values"]
+                    except KeyError:
+                        return _from_dict(item)
+                    converted = raw_values if type(raw_values) is list else list(raw_values)
                     if converted:
                         return Vector(id_, converted)
             elif item_len == 3:
@@ -198,7 +198,7 @@ class VectorFactory:
                     id_ = item["id"]
                 except KeyError:
                     return _from_dict(item)
-                if isinstance(id_, str) and id_.isascii() and "\x00" not in id_:
+                if type(id_) is str and id_.isascii() and "\x00" not in id_:
                     try:
                         raw_values = item["values"]
                         raw_sparse = item["sparse_values"]
@@ -216,7 +216,7 @@ class VectorFactory:
                             and len(s_indices) == len(s_values)
                         ):
                             converted = (
-                                raw_values if isinstance(raw_values, list) else list(raw_values)
+                                raw_values if type(raw_values) is list else list(raw_values)
                             )
                             if not s_values or type(s_values[0]) is float:
                                 return Vector(
@@ -234,8 +234,8 @@ class VectorFactory:
             # Inline 2-element happy path to avoid function call overhead
             if len(item) == 2:
                 id_, values = item
-                if isinstance(id_, str) and id_.isascii() and "\x00" not in id_:
-                    converted = values if isinstance(values, list) else list(values)
+                if type(id_) is str and id_.isascii() and "\x00" not in id_:
+                    converted = values if type(values) is list else list(values)
                     if converted:
                         return Vector(id_, converted)
             return _from_tuple(item)
