@@ -9,14 +9,17 @@ at the SDK root with PINECONE_API_KEY set:
 
 from __future__ import annotations
 
+import asyncio
 import os
 import time
 import uuid
 from pathlib import Path
+from typing import AsyncGenerator
 
 import pytest
+import pytest_asyncio
 from dotenv import load_dotenv
-from pinecone import Pinecone
+from pinecone import AsyncPinecone, Pinecone
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -91,6 +94,41 @@ def cleanup_resource(
         print(f"  WARNING: Failed to clean up {resource_type} {resource_id}: {exc}")
 
 
+async def async_cleanup_resource(
+    delete_fn: object,
+    resource_id: str,
+    resource_type: str = "resource",
+) -> None:
+    """Async best-effort cleanup. Logs but never raises."""
+    try:
+        await delete_fn()  # type: ignore[operator]
+        print(f"  Cleaned up {resource_type}: {resource_id}")
+    except Exception as exc:
+        print(f"  WARNING: Failed to clean up {resource_type} {resource_id}: {exc}")
+
+
+async def async_poll_until(
+    query_fn: object,
+    check_fn: object,
+    *,
+    timeout: int = 60,
+    interval: int = 3,
+    description: str = "condition",
+) -> object:
+    """Async version of poll_until."""
+    start = time.time()
+    last_result = None
+    while time.time() - start < timeout:
+        try:
+            last_result = await query_fn()  # type: ignore[operator]
+            if check_fn(last_result):  # type: ignore[operator]
+                return last_result
+        except Exception:
+            pass
+        await asyncio.sleep(interval)
+    raise TimeoutError(f"{description} not satisfied after {timeout}s (last result: {last_result})")
+
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -108,3 +146,10 @@ def api_key() -> str:
 def client(api_key: str) -> Pinecone:
     """Session-scoped Pinecone client."""
     return Pinecone(api_key=api_key)
+
+
+@pytest_asyncio.fixture(scope="session")
+async def async_client(api_key: str) -> AsyncGenerator[AsyncPinecone, None]:
+    """Session-scoped async Pinecone client (REST)."""
+    async with AsyncPinecone(api_key=api_key) as pc:
+        yield pc
