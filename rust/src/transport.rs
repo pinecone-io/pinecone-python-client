@@ -461,7 +461,7 @@ impl GrpcChannel {
 
         if secure {
             endpoint_builder = endpoint_builder
-                .tls_config(ClientTlsConfig::new())
+                .tls_config(ClientTlsConfig::new().with_native_roots())
                 .map_err(|e| PyRuntimeError::new_err(format!("Failed to configure TLS: {e}")))?;
         }
 
