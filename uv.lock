@@ -455,7 +455,7 @@ wheels = [
 
 [[package]]
 name = "pinecone"
-version = "0.1.0"
+version = "9.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "httpx", extra = ["http2"] },

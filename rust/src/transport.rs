@@ -465,20 +465,27 @@ impl GrpcChannel {
                 .map_err(|e| PyRuntimeError::new_err(format!("Failed to configure TLS: {e}")))?;
         }
 
-        let channel = if let Some(proxy_url_str) = proxy_url {
-            let proxy_dst: http::Uri = proxy_url_str
-                .parse()
-                .map_err(|e| PyRuntimeError::new_err(format!("Invalid proxy URL '{proxy_url_str}': {e}")))?;
-            let mut http_connector = HttpConnector::new();
-            http_connector.enforce_http(false);
-            let tunnel_connector = Tunnel::new(proxy_dst, http_connector);
-            runtime
-                .block_on(endpoint_builder.connect_with_connector(tunnel_connector))
-                .map_err(|e| PyRuntimeError::new_err(format!("Failed to connect via proxy: {e}")))?
-        } else {
-            runtime
-                .block_on(endpoint_builder.connect())
-                .map_err(|e| PyRuntimeError::new_err(format!("Failed to connect: {e}")))?
+        // Use lazy connection — the channel establishes the actual TCP/TLS connection
+        // on the first RPC call, not at construction time. This means GrpcIndex
+        // construction never fails due to transient network issues; callers discover
+        // connectivity problems only when they make an actual request.
+        //
+        // connect_lazy() must be called within a Tokio runtime context so that
+        // hyper-util's TokioExecutor can register its executor. We use runtime.enter()
+        // to set the context without actually running any async code.
+        let channel = {
+            let _guard = runtime.enter();
+            if let Some(proxy_url_str) = proxy_url {
+                let proxy_dst: http::Uri = proxy_url_str
+                    .parse()
+                    .map_err(|e| PyRuntimeError::new_err(format!("Invalid proxy URL '{proxy_url_str}': {e}")))?;
+                let mut http_connector = HttpConnector::new();
+                http_connector.enforce_http(false);
+                let tunnel_connector = Tunnel::new(proxy_dst, http_connector);
+                endpoint_builder.connect_with_connector_lazy(tunnel_connector)
+            } else {
+                endpoint_builder.connect_lazy()
+            }
         };
 
         let interceptor = MetadataInterceptor::new(api_key, api_version)

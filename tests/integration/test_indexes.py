@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import pytest
+
 from pinecone import GrpcIndex, Index, Pinecone
 from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus
 from pinecone.models.indexes.specs import ServerlessSpec
-
 from tests.integration.conftest import cleanup_resource, unique_name
-
 
 # ---------------------------------------------------------------------------
 # list-indexes
@@ -162,10 +161,6 @@ def test_index_handle_rest(client: Pinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=True,
-    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
-)
 def test_index_handle_grpc(client: Pinecone) -> None:
     """pc.index(name=..., grpc=True) returns a GrpcIndex with the correct host."""
     name = unique_name("idx")

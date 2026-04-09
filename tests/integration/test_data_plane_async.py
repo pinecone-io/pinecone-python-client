@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import pytest
+
 from pinecone import AsyncIndex, AsyncPinecone
+from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.responses import FetchResponse, QueryResponse, UpsertResponse
 from pinecone.models.vectors.vector import ScoredVector, Vector
-from pinecone.models.indexes.specs import ServerlessSpec
-
 from tests.integration.conftest import async_cleanup_resource, async_poll_until, unique_name
-
 
 # ---------------------------------------------------------------------------
 # upsert — REST async

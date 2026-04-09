@@ -19,6 +19,7 @@ from typing import AsyncGenerator
 import pytest
 import pytest_asyncio
 from dotenv import load_dotenv
+
 from pinecone import AsyncPinecone, Pinecone
 
 

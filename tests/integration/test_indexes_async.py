@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import pytest
+
 from pinecone import AsyncIndex, AsyncPinecone
 from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus
 from pinecone.models.indexes.specs import ServerlessSpec
-
 from tests.integration.conftest import async_cleanup_resource, unique_name
-
 
 # ---------------------------------------------------------------------------
 # list-indexes
