@@ -9,7 +9,7 @@ from msgspec import Struct
 from pinecone.models.vectors.sparse import SparseValues
 
 
-class Vector(Struct, rename="camel", kw_only=True, gc=False):
+class Vector(Struct, rename="camel", gc=False):
     """A stored vector with optional sparse values and metadata.
 
     Attributes:

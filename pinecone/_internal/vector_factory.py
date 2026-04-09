@@ -58,7 +58,7 @@ class VectorFactory:
                 raise PineconeValueError(
                     "Vector must have at least one of non-empty dense values or sparse values"
                 )
-            return Vector(id=id_, values=converted)
+            return Vector(id_, converted)
         if length == 3:
             id_, values, metadata = item
             if not isinstance(id_, str):
@@ -80,7 +80,7 @@ class VectorFactory:
                 raise PineconeValueError(
                     "Vector must have at least one of non-empty dense values or sparse values"
                 )
-            return Vector(id=id_, values=converted, metadata=metadata)
+            return Vector(id_, converted, None, metadata)
         raise PineconeValueError(f"Vector tuple must have 2 or 3 elements, got {length}")
 
     @staticmethod
@@ -108,7 +108,7 @@ class VectorFactory:
                 raise PineconeValueError(
                     "Vector must have at least one of non-empty dense values or sparse values"
                 )
-            return Vector(id=id_, values=values)
+            return Vector(id_, values)
 
         # General path: validate keys and extract optional fields
         if not _RECOGNIZED_KEYS.issuperset(item):
@@ -136,12 +136,7 @@ class VectorFactory:
                 "Vector must have at least one of non-empty dense values or sparse values"
             )
 
-        return Vector(
-            id=id_,
-            values=values,
-            sparse_values=sparse,
-            metadata=metadata,
-        )
+        return Vector(id_, values, sparse, metadata)
 
     @staticmethod
     def _parse_sparse(raw: Any) -> SparseValues:
