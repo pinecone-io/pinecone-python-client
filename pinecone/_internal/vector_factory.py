@@ -132,7 +132,11 @@ class VectorFactory:
 
         return SparseValues(
             indices=indices if isinstance(indices, list) else list(indices),
-            values=[float(v) for v in values],
+            values=(
+                values
+                if isinstance(values, list) and (not values or isinstance(values[0], float))
+                else [float(v) for v in values]
+            ),
         )
 
     @staticmethod
