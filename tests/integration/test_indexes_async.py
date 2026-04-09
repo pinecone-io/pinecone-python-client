@@ -170,3 +170,41 @@ async def test_index_handle_rest_async(async_client: AsyncPinecone) -> None:
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# index-tags
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_create_index_with_tags(async_client: AsyncPinecone) -> None:
+    """Create a serverless index with tags asynchronously and verify they are returned by describe."""
+    name = unique_name("idx")
+    tags = {"env": "integration-test", "version": "1"}
+    try:
+        model = await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            tags=tags,
+            timeout=300,
+        )
+
+        # Tags should be present on the create response
+        assert model.tags is not None
+        assert model.tags.get("env") == "integration-test"
+        assert model.tags.get("version") == "1"
+
+        # Tags should also be present on describe
+        desc = await async_client.indexes.describe(name)
+        assert desc.tags is not None
+        assert desc.tags.get("env") == "integration-test"
+        assert desc.tags.get("version") == "1"
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
