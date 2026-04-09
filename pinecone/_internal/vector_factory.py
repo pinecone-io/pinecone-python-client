@@ -75,7 +75,8 @@ def _from_dict(item: dict[str, Any]) -> Vector:
         )
 
     # Fast path: common 2-key dict {"id": ..., "values": ...}
-    if len(item) == 2 and "values" in item:
+    item_len = len(item)
+    if item_len == 2 and "values" in item:
         raw_values = item["values"]
         values = raw_values if isinstance(raw_values, list) else list(raw_values)
         if not values:
@@ -83,6 +84,13 @@ def _from_dict(item: dict[str, Any]) -> Vector:
                 "Vector must have at least one of non-empty dense values or sparse values"
             )
         return Vector(id_, values)
+
+    # Fast path: 3-key dict {"id": ..., "values": ..., "sparse_values": ...}
+    if item_len == 3 and "values" in item and "sparse_values" in item:
+        raw_values = item["values"]
+        values = raw_values if isinstance(raw_values, list) else list(raw_values)
+        sv = _parse_sparse(item["sparse_values"])
+        return Vector(id_, values, sv, None)
 
     # General path: validate keys and extract optional fields
     if not _RECOGNIZED_KEYS.issuperset(item):
