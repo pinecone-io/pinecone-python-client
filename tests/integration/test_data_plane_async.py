@@ -6,7 +6,7 @@ import pytest
 
 from pinecone import AsyncIndex, AsyncPinecone
 from pinecone.models.indexes.specs import ServerlessSpec
-from pinecone.models.vectors.responses import FetchResponse, QueryResponse, UpsertResponse
+from pinecone.models.vectors.responses import FetchResponse, ListItem, ListResponse, QueryResponse, UpsertResponse
 from pinecone.models.vectors.vector import ScoredVector, Vector
 from tests.integration.conftest import async_cleanup_resource, async_poll_until, unique_name
 
@@ -165,6 +165,80 @@ async def test_fetch_vectors_rest_async(async_client: AsyncPinecone) -> None:
         assert abs(v1.values[1] - 0.2) < 1e-5
 
         assert isinstance(result.namespace, str)
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# list-vectors — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_list_vectors_rest_async(async_client: AsyncPinecone) -> None:
+    """List vectors via AsyncIndex (REST) and verify pagination structure and IDs."""
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        await idx.upsert(
+            vectors=[
+                {"id": "lst-v1", "values": [0.1, 0.2]},
+                {"id": "lst-v2", "values": [0.3, 0.4]},
+                {"id": "lst-v3", "values": [0.5, 0.6]},
+            ]
+        )
+
+        # Wait for all 3 vectors to appear in list results (eventual consistency)
+        async def _collect_ids() -> list[str]:
+            ids: list[str] = []
+            async for page in idx.list(prefix="lst-"):  # type: ignore[union-attr]
+                for item in page.vectors:
+                    if item.id is not None:
+                        ids.append(item.id)
+            return ids
+
+        await async_poll_until(
+            query_fn=_collect_ids,
+            check_fn=lambda ids: len(ids) >= 3,
+            timeout=120,
+            description="all 3 vectors listable after upsert",
+        )
+
+        # Collect all pages and verify structure
+        pages: list[ListResponse] = []
+        async for page in idx.list(prefix="lst-"):
+            pages.append(page)
+
+        assert len(pages) >= 1, "expected at least one page"
+        all_ids: list[str] = []
+        for page in pages:
+            assert isinstance(page, ListResponse)
+            assert isinstance(page.namespace, str)
+            for item in page.vectors:
+                assert isinstance(item, ListItem)
+                assert isinstance(item.id, str)
+                all_ids.append(item.id)
+
+        assert "lst-v1" in all_ids
+        assert "lst-v2" in all_ids
+        assert "lst-v3" in all_ids
     finally:
         if idx is not None:
             await idx.close()

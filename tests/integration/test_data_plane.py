@@ -6,7 +6,7 @@ import pytest
 
 from pinecone import Pinecone
 from pinecone.models.indexes.specs import ServerlessSpec
-from pinecone.models.vectors.responses import FetchResponse, QueryResponse, UpsertResponse
+from pinecone.models.vectors.responses import FetchResponse, ListItem, ListResponse, QueryResponse, UpsertResponse
 from pinecone.models.vectors.vector import ScoredVector, Vector
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 
@@ -253,5 +253,112 @@ def test_fetch_vectors_grpc(client: Pinecone) -> None:
         assert "v1" in result.vectors
         assert "v2" in result.vectors
         assert isinstance(result.vectors["v1"], Vector)
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# list-vectors — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_list_vectors_rest(client: Pinecone) -> None:
+    """List vectors via REST Index and verify pagination structure and IDs."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        index.upsert(
+            vectors=[
+                {"id": "lst-v1", "values": [0.1, 0.2]},
+                {"id": "lst-v2", "values": [0.3, 0.4]},
+                {"id": "lst-v3", "values": [0.5, 0.6]},
+            ]
+        )
+
+        # Wait for all 3 vectors to appear in list results (eventual consistency)
+        def _collect_ids() -> list[str]:
+            ids: list[str] = []
+            for page in index.list(prefix="lst-"):
+                for item in page.vectors:
+                    if item.id is not None:
+                        ids.append(item.id)
+            return ids
+
+        poll_until(
+            query_fn=_collect_ids,
+            check_fn=lambda ids: len(ids) >= 3,
+            timeout=120,
+            description="all 3 vectors listable after upsert",
+        )
+
+        # Collect all pages and verify structure
+        pages: list[ListResponse] = []
+        for page in index.list(prefix="lst-"):
+            pages.append(page)
+
+        assert len(pages) >= 1, "expected at least one page"
+        all_ids: list[str] = []
+        for page in pages:
+            assert isinstance(page, ListResponse)
+            assert isinstance(page.namespace, str)
+            for item in page.vectors:
+                assert isinstance(item, ListItem)
+                assert isinstance(item.id, str)
+                all_ids.append(item.id)
+
+        assert "lst-v1" in all_ids
+        assert "lst-v2" in all_ids
+        assert "lst-v3" in all_ids
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# list-vectors — gRPC (xfail: IT-0002)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.xfail(
+    strict=True,
+    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
+)
+def test_list_vectors_grpc(client: Pinecone) -> None:
+    """List vectors via GrpcIndex and verify structure."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        index.upsert(
+            vectors=[
+                {"id": "lst-v1", "values": [0.1, 0.2]},
+                {"id": "lst-v2", "values": [0.3, 0.4]},
+            ]
+        )
+
+        all_ids: list[str] = []
+        for page in index.list(prefix="lst-"):
+            assert isinstance(page, ListResponse)
+            for item in page.vectors:
+                assert isinstance(item, ListItem)
+                if item.id is not None:
+                    all_ids.append(item.id)
+
+        assert "lst-v1" in all_ids
+        assert "lst-v2" in all_ids
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
