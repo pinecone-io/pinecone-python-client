@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 from pinecone import Pinecone
+from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus
 from pinecone.models.indexes.specs import ServerlessSpec
 
 from tests.integration.conftest import cleanup_resource, unique_name
@@ -68,6 +69,56 @@ def test_create_serverless_index_becomes_ready(client: Pinecone) -> None:
         assert model.deletion_protection == "disabled"
         assert isinstance(model.host, str)
         assert len(model.host) > 0
+    finally:
+        cleanup_resource(
+            lambda: client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# describe-index
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_describe_index_returns_full_model(client: Pinecone) -> None:
+    """Create a serverless index, describe it, verify all IndexModel fields."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        desc = client.indexes.describe(name)
+
+        assert isinstance(desc, IndexModel)
+        assert desc.name == name
+        assert desc.dimension == 4
+        assert desc.metric == "dotproduct"
+        assert desc.vector_type == "dense"
+        assert desc.deletion_protection == "disabled"
+
+        # Status fields
+        assert isinstance(desc.status, IndexStatus)
+        assert desc.status.ready is True
+        assert isinstance(desc.status.state, str)
+        assert len(desc.status.state) > 0
+
+        # Spec is serverless
+        assert isinstance(desc.spec, IndexSpec)
+        assert desc.spec.serverless is not None
+        assert desc.spec.pod is None
+        assert desc.spec.serverless.cloud == "aws"
+        assert desc.spec.serverless.region == "us-east-1"
+
+        # Host is a non-empty string
+        assert isinstance(desc.host, str)
+        assert len(desc.host) > 0
     finally:
         cleanup_resource(
             lambda: client.indexes.delete(name),

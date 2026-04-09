@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 from pinecone import AsyncPinecone
+from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus
 from pinecone.models.indexes.specs import ServerlessSpec
 
 from tests.integration.conftest import async_cleanup_resource, unique_name
@@ -70,6 +71,57 @@ async def test_create_serverless_index_becomes_ready(async_client: AsyncPinecone
         assert model.deletion_protection == "disabled"
         assert isinstance(model.host, str)
         assert len(model.host) > 0
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# describe-index
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_describe_index_returns_full_model(async_client: AsyncPinecone) -> None:
+    """Create a serverless index asynchronously, describe it, verify all IndexModel fields."""
+    name = unique_name("idx")
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        desc = await async_client.indexes.describe(name)
+
+        assert isinstance(desc, IndexModel)
+        assert desc.name == name
+        assert desc.dimension == 4
+        assert desc.metric == "dotproduct"
+        assert desc.vector_type == "dense"
+        assert desc.deletion_protection == "disabled"
+
+        # Status fields
+        assert isinstance(desc.status, IndexStatus)
+        assert desc.status.ready is True
+        assert isinstance(desc.status.state, str)
+        assert len(desc.status.state) > 0
+
+        # Spec is serverless
+        assert isinstance(desc.spec, IndexSpec)
+        assert desc.spec.serverless is not None
+        assert desc.spec.pod is None
+        assert desc.spec.serverless.cloud == "aws"
+        assert desc.spec.serverless.region == "us-east-1"
+
+        # Host is a non-empty string
+        assert isinstance(desc.host, str)
+        assert len(desc.host) > 0
     finally:
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name),
