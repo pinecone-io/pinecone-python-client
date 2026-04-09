@@ -49,7 +49,7 @@ class PodSpecInfo(Struct, kw_only=True):
     replicas: int
     shards: int
     pods: int
-    metadata_config: dict[str, str] | None = None
+    metadata_config: dict[str, list[str]] | None = None
     source_collection: str | None = None
 
 

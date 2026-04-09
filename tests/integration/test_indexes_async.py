@@ -16,10 +16,6 @@ from tests.integration.conftest import async_cleanup_resource, unique_name
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    reason="SDK bug IT-0001: PodSpecInfo.metadata_config typed dict[str,str] but API returns dict[str,list[str]]",
-)
 async def test_list_indexes_returns_index_list(async_client: AsyncPinecone) -> None:
     """async pc.indexes.list() returns an IndexList that is iterable and supports len()."""
     result = await async_client.indexes.list()

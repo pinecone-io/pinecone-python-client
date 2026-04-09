@@ -15,10 +15,6 @@ from tests.integration.conftest import cleanup_resource, unique_name
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=True,
-    reason="SDK bug IT-0001: PodSpecInfo.metadata_config typed dict[str,str] but API returns dict[str,list[str]]",
-)
 def test_list_indexes_returns_index_list(client: Pinecone) -> None:
     """pc.indexes.list() returns an IndexList that is iterable and supports len()."""
     result = client.indexes.list()
