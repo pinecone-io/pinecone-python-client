@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     import pandas as pd  # type: ignore[import-untyped]
 
+from pinecone._internal.adapters.vectors_adapter import VectorsAdapter, extract_response_info
+from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host
 from pinecone._internal.vector_factory import VectorFactory
@@ -27,8 +29,10 @@ from pinecone.models.vectors.responses import (
     Pagination,
     QueryResponse,
     UpdateResponse,
+    UpsertRecordsResponse,
     UpsertResponse,
 )
+from pinecone.models.vectors.search import RerankConfig, SearchInputs, SearchRecordsResponse
 from pinecone.models.vectors.sparse import SparseValues
 from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector, Vector
@@ -167,6 +171,20 @@ class GrpcIndex:
         )
 
         self._executor = ThreadPoolExecutor()
+
+        # REST HTTP client for records operations (integrated inference).
+        # upsert_records and search use REST endpoints with no gRPC equivalent.
+        from pinecone._internal.http_client import HTTPClient
+
+        rest_config = PineconeConfig(
+            api_key=resolved_key,
+            host=self._host,
+            timeout=timeout,
+            source_tag=source_tag or "",
+            ssl_verify=secure,
+        )
+        self._http = HTTPClient(rest_config, DATA_PLANE_API_VERSION)
+        self._adapter = VectorsAdapter()
 
         logger.info("GrpcIndex client created for host %s", self._host)
 
@@ -902,6 +920,174 @@ class GrpcIndex:
             )
         )
         return future
+
+    def upsert_records(
+        self,
+        *,
+        records: builtins.list[dict[str, Any]],
+        namespace: str,
+    ) -> UpsertRecordsResponse:
+        """Upsert records for indexes with integrated inference.
+
+        Records are sent as newline-delimited JSON (NDJSON) over REST. Embeddings
+        are generated server-side. This method delegates to the REST endpoint
+        because the Pinecone gRPC API does not expose a records upsert operation.
+
+        Args:
+            records: List of record dicts. Each must contain an ``_id`` or
+                ``id`` field. Additional fields are passed through for
+                server-side embedding.
+            namespace (str): Target namespace (required). Use ``""`` for the
+                default namespace.
+
+        Returns:
+            :class:`UpsertRecordsResponse` with the count of records submitted.
+
+        Raises:
+            :exc:`ValidationError`: If namespace is invalid, records is empty, or
+                a record is missing an identifier field.
+        """
+        if not isinstance(namespace, str):
+            raise ValidationError("namespace must be a string")
+        if not namespace or not namespace.strip():
+            raise ValidationError("namespace must be a non-empty string")
+        if not records:
+            raise ValidationError("records must be a non-empty list")
+
+        for i, record in enumerate(records):
+            if "_id" not in record and "id" not in record:
+                raise ValidationError(f"Record at index {i} must contain an '_id' or 'id' field")
+
+        import orjson
+
+        normalized: builtins.list[dict[str, Any]] = []
+        for record in records:
+            r = dict(record)
+            if "_id" not in r and "id" in r:
+                r["_id"] = r.pop("id")
+            normalized.append(r)
+
+        ndjson_lines = [orjson.dumps(r).decode("utf-8") for r in normalized]
+        ndjson_body = "\n".join(ndjson_lines) + "\n"
+
+        logger.info(
+            "Upserting %d records into namespace %r (NDJSON via REST)", len(records), namespace
+        )
+        response = self._http.post(
+            f"/records/namespaces/{namespace}/upsert",
+            content=ndjson_body.encode("utf-8"),
+            headers={"Content-Type": "application/x-ndjson"},
+        )
+        result = UpsertRecordsResponse(record_count=len(records))
+        result.response_info = extract_response_info(response)
+        return result
+
+    def search(
+        self,
+        *,
+        namespace: str,
+        top_k: int,
+        inputs: SearchInputs | dict[str, Any] | None = None,
+        vector: builtins.list[float] | None = None,
+        id: str | None = None,
+        filter: dict[str, Any] | None = None,
+        fields: builtins.list[str] | None = None,
+        rerank: RerankConfig | dict[str, Any] | None = None,
+        match_terms: dict[str, Any] | None = None,
+    ) -> SearchRecordsResponse:
+        """Search records by text, vector, or ID with optional reranking.
+
+        Delegates to the REST endpoint because the Pinecone gRPC API does not
+        expose a records search operation for integrated inference indexes.
+
+        Args:
+            namespace (str): Namespace to search in (required).
+            top_k (int): Number of results to return (must be >= 1).
+            inputs (SearchInputs | dict[str, Any] | None): Inputs for
+                server-side embedding (e.g. ``{"text": "query text"}``).
+            vector (list[float] | None): Dense query vector values.
+            id (str | None): ID of an existing record to use as the query.
+            filter (dict[str, Any] | None): Metadata filter expression.
+            fields (list[str] | None): Field names to include in results.
+            rerank (RerankConfig | dict[str, Any] | None): Reranking configuration.
+            match_terms (dict[str, Any] | None): Term-matching constraint for
+                sparse search.
+
+        Returns:
+            :class:`SearchRecordsResponse` with hits and usage statistics.
+
+        Raises:
+            :exc:`ValidationError`: If namespace is invalid, top_k < 1, rerank
+                is missing required keys, or no query source is provided.
+        """
+        if not isinstance(namespace, str):
+            raise ValidationError("namespace must be a string")
+        if not namespace or not namespace.strip():
+            raise ValidationError("namespace must be a non-empty string")
+        if top_k < 1:
+            raise ValidationError(f"top_k must be a positive integer, got {top_k}")
+        if rerank is not None:
+            if "model" not in rerank:
+                raise ValidationError("rerank requires 'model' to be specified")
+            if "rank_fields" not in rerank:
+                raise ValidationError("rerank requires 'rank_fields' to be specified")
+        if inputs is None and vector is None and id is None:
+            raise ValidationError(
+                "At least one of inputs, vector, or id must be provided as a query source"
+            )
+
+        query_body: dict[str, Any] = {"top_k": top_k}
+        if inputs is not None:
+            query_body["inputs"] = inputs
+        if vector is not None:
+            query_body["vector"] = vector
+        if id is not None:
+            query_body["id"] = id
+        if filter is not None:
+            query_body["filter"] = filter
+        if match_terms is not None:
+            query_body["match_terms"] = match_terms
+
+        body: dict[str, Any] = {"query": query_body}
+        if fields is not None:
+            body["fields"] = fields
+        if rerank is not None:
+            body["rerank"] = rerank
+
+        logger.info("Searching namespace %r with top_k=%d (via REST)", namespace, top_k)
+        response = self._http.post(f"/records/namespaces/{namespace}/search", json=body)
+        result = self._adapter.to_search_response(response.content)
+        result.response_info = extract_response_info(response)
+        return result
+
+    def search_records(
+        self,
+        *,
+        namespace: str,
+        top_k: int,
+        inputs: SearchInputs | dict[str, Any] | None = None,
+        vector: builtins.list[float] | None = None,
+        id: str | None = None,
+        filter: dict[str, Any] | None = None,
+        fields: builtins.list[str] | None = None,
+        rerank: RerankConfig | dict[str, Any] | None = None,
+        match_terms: dict[str, Any] | None = None,
+    ) -> SearchRecordsResponse:
+        """Alias for :meth:`search`.
+
+        Prefer calling :meth:`search` directly — this alias exists for backwards compatibility.
+        """
+        return self.search(
+            namespace=namespace,
+            top_k=top_k,
+            inputs=inputs,
+            vector=vector,
+            id=id,
+            filter=filter,
+            fields=fields,
+            rerank=rerank,
+            match_terms=match_terms,
+        )
 
     def close(self) -> None:
         """Close the underlying gRPC channel and release resources."""

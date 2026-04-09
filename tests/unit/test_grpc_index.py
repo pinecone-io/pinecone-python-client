@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterator
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
+import respx
 
 from pinecone.errors.exceptions import PineconeConnectionError, ValidationError
 from pinecone.grpc import GrpcIndex
@@ -16,8 +19,10 @@ from pinecone.models.vectors.responses import (
     ListResponse,
     QueryResponse,
     UpdateResponse,
+    UpsertRecordsResponse,
     UpsertResponse,
 )
+from pinecone.models.vectors.search import SearchRecordsResponse
 from pinecone.models.vectors.vector import Vector
 
 # The GrpcChannel import is a lazy import inside __init__, so we need to
@@ -613,3 +618,188 @@ class TestGrpcErrorWrapping:
             grpc_index.fetch(ids=["v1"])
 
         assert exc_info.value.__cause__ is original
+
+
+# ---------------------------------------------------------------------------
+# Records API — REST fallback in GrpcIndex
+# ---------------------------------------------------------------------------
+
+_INDEX_HOST = "test-index-abc123.svc.pinecone.io"
+_INDEX_HOST_HTTPS = f"https://{_INDEX_HOST}"
+_UPSERT_RECORDS_URL = f"{_INDEX_HOST_HTTPS}/records/namespaces/test-ns/upsert"
+_SEARCH_URL = f"{_INDEX_HOST_HTTPS}/records/namespaces/test-ns/search"
+
+_SEARCH_RESPONSE: dict[str, object] = {
+    "result": {
+        "hits": [
+            {"_id": "doc-1", "_score": 0.95, "fields": {"text": "vector databases"}},
+            {"_id": "doc-2", "_score": 0.80, "fields": {"text": "similarity search"}},
+        ]
+    },
+    "usage": {"read_units": 3, "embed_total_tokens": 12},
+}
+
+
+class TestGrpcIndexUpsertRecords:
+    """GrpcIndex.upsert_records() delegates to REST (NDJSON) endpoint."""
+
+    @respx.mock
+    def test_upsert_records_basic(self, mock_channel: MagicMock) -> None:
+        respx.post(_UPSERT_RECORDS_URL).mock(return_value=httpx.Response(201))
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+
+        result = idx.upsert_records(
+            namespace="test-ns",
+            records=[{"_id": "r1", "text": "hello"}, {"_id": "r2", "text": "world"}],
+        )
+
+        assert isinstance(result, UpsertRecordsResponse)
+        assert result.record_count == 2
+
+    @respx.mock
+    def test_upsert_records_ndjson_content_type(self, mock_channel: MagicMock) -> None:
+        route = respx.post(_UPSERT_RECORDS_URL).mock(return_value=httpx.Response(201))
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        idx.upsert_records(namespace="test-ns", records=[{"_id": "r1", "text": "hello"}])
+
+        assert route.calls.last.request.headers["Content-Type"] == "application/x-ndjson"
+
+    @respx.mock
+    def test_upsert_records_ndjson_body(self, mock_channel: MagicMock) -> None:
+        route = respx.post(_UPSERT_RECORDS_URL).mock(return_value=httpx.Response(201))
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        idx.upsert_records(
+            namespace="test-ns",
+            records=[{"_id": "r1", "text": "hello"}, {"_id": "r2", "text": "world"}],
+        )
+
+        body = route.calls.last.request.content.decode("utf-8")
+        lines = body.strip().split("\n")
+        assert len(lines) == 2
+        assert json.loads(lines[0])["_id"] == "r1"
+        assert json.loads(lines[1])["_id"] == "r2"
+
+    @respx.mock
+    def test_upsert_records_id_alias_normalized(self, mock_channel: MagicMock) -> None:
+        """Records with 'id' key are normalized to '_id' in the NDJSON body."""
+        route = respx.post(_UPSERT_RECORDS_URL).mock(return_value=httpx.Response(201))
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        idx.upsert_records(namespace="test-ns", records=[{"id": "r1", "text": "hello"}])
+
+        body = route.calls.last.request.content.decode("utf-8")
+        parsed = json.loads(body.strip())
+        assert parsed["_id"] == "r1"
+        assert "id" not in parsed
+
+    def test_upsert_records_empty_namespace_raises(self, mock_channel: MagicMock) -> None:
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        with pytest.raises(ValidationError, match="non-empty"):
+            idx.upsert_records(namespace="", records=[{"_id": "r1"}])
+
+    def test_upsert_records_empty_records_raises(self, mock_channel: MagicMock) -> None:
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        with pytest.raises(ValidationError, match="non-empty"):
+            idx.upsert_records(namespace="test-ns", records=[])
+
+    def test_upsert_records_missing_id_raises(self, mock_channel: MagicMock) -> None:
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        with pytest.raises(ValidationError, match="_id.*id"):
+            idx.upsert_records(namespace="test-ns", records=[{"text": "no id here"}])
+
+
+class TestGrpcIndexSearch:
+    """GrpcIndex.search() delegates to REST endpoint."""
+
+    @respx.mock
+    def test_search_with_text_inputs(self, mock_channel: MagicMock) -> None:
+        respx.post(_SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+
+        response = idx.search(namespace="test-ns", top_k=5, inputs={"text": "vector search"})
+
+        assert isinstance(response, SearchRecordsResponse)
+        assert len(response.result.hits) == 2
+        assert response.result.hits[0].id == "doc-1"
+        assert response.result.hits[0].score == pytest.approx(0.95)
+        assert response.usage.read_units == 3
+
+    @respx.mock
+    def test_search_request_body_inputs(self, mock_channel: MagicMock) -> None:
+        route = respx.post(_SEARCH_URL).mock(
+            return_value=httpx.Response(200, json=_SEARCH_RESPONSE)
+        )
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        idx.search(namespace="test-ns", top_k=5, inputs={"text": "vector search"})
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["query"]["top_k"] == 5
+        assert body["query"]["inputs"] == {"text": "vector search"}
+
+    @respx.mock
+    def test_search_with_vector(self, mock_channel: MagicMock) -> None:
+        route = respx.post(_SEARCH_URL).mock(
+            return_value=httpx.Response(200, json=_SEARCH_RESPONSE)
+        )
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        idx.search(namespace="test-ns", top_k=5, vector=[0.1, 0.2, 0.3])
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["query"]["vector"] == [0.1, 0.2, 0.3]
+
+    @respx.mock
+    def test_search_with_rerank(self, mock_channel: MagicMock) -> None:
+        route = respx.post(_SEARCH_URL).mock(
+            return_value=httpx.Response(200, json=_SEARCH_RESPONSE)
+        )
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        idx.search(
+            namespace="test-ns",
+            top_k=5,
+            inputs={"text": "query"},
+            rerank={"model": "bge-reranker-v2-m3", "rank_fields": ["text"], "top_n": 3},
+        )
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["rerank"]["model"] == "bge-reranker-v2-m3"
+
+    def test_search_empty_namespace_raises(self, mock_channel: MagicMock) -> None:
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        with pytest.raises(ValidationError, match="non-empty"):
+            idx.search(namespace="", top_k=5, inputs={"text": "query"})
+
+    def test_search_top_k_zero_raises(self, mock_channel: MagicMock) -> None:
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        with pytest.raises(ValidationError, match="top_k"):
+            idx.search(namespace="test-ns", top_k=0, inputs={"text": "query"})
+
+    def test_search_no_query_source_raises(self, mock_channel: MagicMock) -> None:
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        with pytest.raises(ValidationError, match="inputs, vector, or id"):
+            idx.search(namespace="test-ns", top_k=5)
+
+    def test_search_rerank_missing_model_raises(self, mock_channel: MagicMock) -> None:
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        with pytest.raises(ValidationError, match="model"):
+            idx.search(
+                namespace="test-ns",
+                top_k=5,
+                inputs={"text": "q"},
+                rerank={"rank_fields": ["text"]},
+            )
+
+    @respx.mock
+    def test_search_records_alias(self, mock_channel: MagicMock) -> None:
+        """search_records() is an alias for search() and produces the same result."""
+        respx.post(_SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+
+        response = idx.search_records(namespace="test-ns", top_k=5, inputs={"text": "query"})
+
+        assert isinstance(response, SearchRecordsResponse)
+        assert len(response.result.hits) == 2
