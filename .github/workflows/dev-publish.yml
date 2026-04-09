@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 env:
   GCP_REGION: ${{ vars.GCP_REGION }}
