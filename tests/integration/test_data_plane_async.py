@@ -6,7 +6,7 @@ import pytest
 
 from pinecone import AsyncIndex, AsyncPinecone
 from pinecone.models.indexes.specs import ServerlessSpec
-from pinecone.models.vectors.responses import FetchResponse, ListItem, ListResponse, QueryResponse, UpdateResponse, UpsertResponse
+from pinecone.models.vectors.responses import DescribeIndexStatsResponse, FetchResponse, ListItem, ListResponse, NamespaceSummary, QueryResponse, UpdateResponse, UpsertResponse
 from pinecone.models.vectors.vector import ScoredVector, Vector
 from tests.integration.conftest import async_cleanup_resource, async_poll_until, unique_name
 
@@ -373,6 +373,72 @@ async def test_update_vectors_rest_async(async_client: AsyncPinecone) -> None:
         # Verify upd-v2 was not modified
         check = await idx.fetch(ids=["upd-v2"])
         assert abs(check.vectors["upd-v2"].values[0] - 0.3) < 1e-4
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# describe-stats — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_describe_index_stats_rest_async(async_client: AsyncPinecone) -> None:
+    """Call describe_index_stats() via AsyncIndex (REST) and verify response structure."""
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        # Upsert a few vectors so stats are non-trivial
+        await idx.upsert(
+            vectors=[
+                {"id": "st-v1", "values": [0.1, 0.2, 0.3]},
+                {"id": "st-v2", "values": [0.4, 0.5, 0.6]},
+            ]
+        )
+
+        # Wait until at least 1 vector is counted in stats (eventual consistency)
+        await async_poll_until(
+            query_fn=lambda: idx.describe_index_stats(),  # type: ignore[union-attr]
+            check_fn=lambda r: r.total_vector_count >= 1,
+            timeout=120,
+            description="at least 1 vector counted in stats after upsert",
+        )
+
+        stats = await idx.describe_index_stats()
+
+        assert isinstance(stats, DescribeIndexStatsResponse)
+        assert stats.dimension == 3
+        assert stats.total_vector_count >= 1
+        assert isinstance(stats.index_fullness, float)
+        assert 0.0 <= stats.index_fullness <= 1.0
+        assert isinstance(stats.namespaces, dict)
+        assert len(stats.namespaces) >= 1
+        # Verify at least one namespace entry has the expected structure
+        for ns_name, ns in stats.namespaces.items():
+            assert isinstance(ns_name, str)
+            assert isinstance(ns, NamespaceSummary)
+            assert isinstance(ns.vector_count, int)
+            assert ns.vector_count >= 0
+        # Total across namespaces should match total_vector_count
+        ns_total = sum(ns.vector_count for ns in stats.namespaces.values())
+        assert ns_total == stats.total_vector_count
     finally:
         if idx is not None:
             await idx.close()

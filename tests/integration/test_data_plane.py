@@ -6,7 +6,7 @@ import pytest
 
 from pinecone import Pinecone
 from pinecone.models.indexes.specs import ServerlessSpec
-from pinecone.models.vectors.responses import FetchResponse, ListItem, ListResponse, QueryResponse, UpdateResponse, UpsertResponse
+from pinecone.models.vectors.responses import DescribeIndexStatsResponse, FetchResponse, ListItem, ListResponse, NamespaceSummary, QueryResponse, UpdateResponse, UpsertResponse
 from pinecone.models.vectors.vector import ScoredVector, Vector
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 
@@ -563,5 +563,99 @@ def test_update_vectors_grpc(client: Pinecone) -> None:
             timeout=120,
             description="updated values reflected in fetch",
         )
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# describe-stats — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_describe_index_stats_rest(client: Pinecone) -> None:
+    """Call describe_index_stats() via REST Index and verify the response structure."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert a few vectors so stats are non-trivial
+        index.upsert(
+            vectors=[
+                {"id": "st-v1", "values": [0.1, 0.2, 0.3]},
+                {"id": "st-v2", "values": [0.4, 0.5, 0.6]},
+            ]
+        )
+
+        # Wait until at least 1 vector is counted in stats (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.describe_index_stats(),
+            check_fn=lambda r: r.total_vector_count >= 1,
+            timeout=120,
+            description="at least 1 vector counted in stats after upsert",
+        )
+
+        stats = index.describe_index_stats()
+
+        assert isinstance(stats, DescribeIndexStatsResponse)
+        assert stats.dimension == 3
+        assert stats.total_vector_count >= 1
+        assert isinstance(stats.index_fullness, float)
+        assert 0.0 <= stats.index_fullness <= 1.0
+        assert isinstance(stats.namespaces, dict)
+        assert len(stats.namespaces) >= 1
+        # Verify at least one namespace entry has the expected structure
+        for ns_name, ns in stats.namespaces.items():
+            assert isinstance(ns_name, str)
+            assert isinstance(ns, NamespaceSummary)
+            assert isinstance(ns.vector_count, int)
+            assert ns.vector_count >= 0
+        # Total across namespaces should match total_vector_count
+        ns_total = sum(ns.vector_count for ns in stats.namespaces.values())
+        assert ns_total == stats.total_vector_count
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# describe-stats — gRPC (xfail: IT-0002)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.xfail(
+    strict=True,
+    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
+)
+def test_describe_index_stats_grpc(client: Pinecone) -> None:
+    """Call describe_index_stats() via GrpcIndex and verify response structure."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        index.upsert(
+            vectors=[
+                {"id": "st-v1", "values": [0.1, 0.2, 0.3]},
+            ]
+        )
+
+        stats = index.describe_index_stats()
+
+        assert isinstance(stats, DescribeIndexStatsResponse)
+        assert stats.dimension == 3
+        assert isinstance(stats.total_vector_count, int)
+        assert isinstance(stats.index_fullness, float)
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
