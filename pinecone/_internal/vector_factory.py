@@ -11,6 +11,149 @@ from pinecone.models.vectors.vector import Vector
 _RECOGNIZED_KEYS = {"id", "values", "sparse_values", "metadata"}
 
 
+def _from_tuple(item: tuple[Any, ...]) -> Vector:
+    length = len(item)
+    if length == 2:
+        id_, values = item
+        if not isinstance(id_, str):
+            raise PineconeTypeError(
+                f"Vector ID must be a string, got {type(id_).__name__}"
+            )
+        if not id_.isascii():
+            raise PineconeValueError(
+                f"Vector ID must contain only ASCII characters, got: {id_!r}"
+            )
+        if "\x00" in id_:
+            raise PineconeValueError(
+                f"Vector ID must not contain null characters, got: {id_!r}"
+            )
+        converted = values if isinstance(values, list) else list(values)
+        if not converted:
+            raise PineconeValueError(
+                "Vector must have at least one of non-empty dense values or sparse values"
+            )
+        return Vector(id_, converted)
+    if length == 3:
+        id_, values, metadata = item
+        if not isinstance(id_, str):
+            raise PineconeTypeError(
+                f"Vector ID must be a string, got {type(id_).__name__}"
+            )
+        if not id_.isascii():
+            raise PineconeValueError(
+                f"Vector ID must contain only ASCII characters, got: {id_!r}"
+            )
+        if "\x00" in id_:
+            raise PineconeValueError(
+                f"Vector ID must not contain null characters, got: {id_!r}"
+            )
+        if metadata is not None and not isinstance(metadata, dict):
+            raise PineconeTypeError(f"metadata must be a dict, got {type(metadata).__name__}")
+        converted = values if isinstance(values, list) else list(values)
+        if not converted:
+            raise PineconeValueError(
+                "Vector must have at least one of non-empty dense values or sparse values"
+            )
+        return Vector(id_, converted, None, metadata)
+    raise PineconeValueError(f"Vector tuple must have 2 or 3 elements, got {length}")
+
+
+def _from_dict(item: dict[str, Any]) -> Vector:
+    try:
+        id_ = item["id"]
+    except KeyError:
+        raise PineconeValueError("Vector dict must contain an 'id' key")
+    if not isinstance(id_, str):
+        raise PineconeTypeError(f"Vector ID must be a string, got {type(id_).__name__}")
+    if not id_.isascii():
+        raise PineconeValueError(
+            f"Vector ID must contain only ASCII characters, got: {id_!r}"
+        )
+    if "\x00" in id_:
+        raise PineconeValueError(
+            f"Vector ID must not contain null characters, got: {id_!r}"
+        )
+
+    # Fast path: common 2-key dict {"id": ..., "values": ...}
+    if len(item) == 2 and "values" in item:
+        raw_values = item["values"]
+        values = raw_values if isinstance(raw_values, list) else list(raw_values)
+        if not values:
+            raise PineconeValueError(
+                "Vector must have at least one of non-empty dense values or sparse values"
+            )
+        return Vector(id_, values)
+
+    # General path: validate keys and extract optional fields
+    if not _RECOGNIZED_KEYS.issuperset(item):
+        extra = item.keys() - _RECOGNIZED_KEYS
+        raise PineconeValueError(f"Vector dict contains unrecognized keys: {sorted(extra)}")
+
+    raw_values = item.get("values")
+    values = (
+        (raw_values if isinstance(raw_values, list) else list(raw_values))
+        if raw_values is not None
+        else []
+    )
+
+    raw_sparse = item.get("sparse_values")
+    sparse: SparseValues | None = None
+    if raw_sparse is not None:
+        sparse = _parse_sparse(raw_sparse)
+
+    metadata = item.get("metadata")
+    if metadata is not None and not isinstance(metadata, dict):
+        raise PineconeTypeError(f"metadata must be a dict, got {type(metadata).__name__}")
+
+    if not values and sparse is None:
+        raise PineconeValueError(
+            "Vector must have at least one of non-empty dense values or sparse values"
+        )
+
+    return Vector(id_, values, sparse, metadata)
+
+
+def _parse_sparse(raw: Any) -> SparseValues:
+    if not isinstance(raw, dict):
+        raise PineconeTypeError(f"sparse_values must be a dict, got {type(raw).__name__}")
+    if "indices" not in raw or "values" not in raw:
+        missing = []
+        if "indices" not in raw:
+            missing.append("indices")
+        if "values" not in raw:
+            missing.append("values")
+        raise PineconeValueError(f"sparse_values dict is missing required keys: {missing}")
+
+    indices = raw["indices"]
+    values = raw["values"]
+
+    if len(indices) != len(values):
+        raise PineconeValueError(
+            f"sparse_values indices and values must have the same length, "
+            f"got {len(indices)} and {len(values)}"
+        )
+
+    if indices:
+        if not isinstance(indices[0], int):
+            raise PineconeTypeError(
+                f"sparse_values indices must be integers, got {type(indices[0]).__name__}"
+            )
+    if values:
+        if not isinstance(values[0], (int, float)):
+            raise PineconeTypeError(
+                f"sparse_values values must be floats, got {type(values[0]).__name__}"
+            )
+
+    return SparseValues(
+        indices=indices if isinstance(indices, list) else list(indices),
+        values=(
+            values
+            if isinstance(values, list) and (not values or isinstance(values[0], float))
+            else [float(v) for v in values]
+        ),
+    )
+
+
 class VectorFactory:
     """Converts user-provided vector inputs into canonical ``Vector`` objects.
 
@@ -26,9 +169,9 @@ class VectorFactory:
         """Convert a user-provided vector input to a ``Vector`` object."""
         item_type = type(item)
         if item_type is dict:
-            return VectorFactory._from_dict(item)
+            return _from_dict(item)
         if item_type is tuple:
-            return VectorFactory._from_tuple(item)
+            return _from_tuple(item)
         if isinstance(item, Vector):
             if not item.values and item.sparse_values is None:
                 raise PineconeValueError(
@@ -37,151 +180,8 @@ class VectorFactory:
             return item
         # Subclass fallback
         if isinstance(item, tuple):
-            return VectorFactory._from_tuple(item)
+            return _from_tuple(item)
         if isinstance(item, dict):
-            return VectorFactory._from_dict(item)
+            return _from_dict(item)
         raise PineconeTypeError(f"Expected Vector, tuple, or dict, got {type(item).__name__}")
-
-    @staticmethod
-    def _from_tuple(item: tuple[Any, ...]) -> Vector:
-        length = len(item)
-        if length == 2:
-            id_, values = item
-            if not isinstance(id_, str):
-                raise PineconeTypeError(
-                    f"Vector ID must be a string, got {type(id_).__name__}"
-                )
-            if not id_.isascii():
-                raise PineconeValueError(
-                    f"Vector ID must contain only ASCII characters, got: {id_!r}"
-                )
-            if "\x00" in id_:
-                raise PineconeValueError(
-                    f"Vector ID must not contain null characters, got: {id_!r}"
-                )
-            converted = values if isinstance(values, list) else list(values)
-            if not converted:
-                raise PineconeValueError(
-                    "Vector must have at least one of non-empty dense values or sparse values"
-                )
-            return Vector(id_, converted)
-        if length == 3:
-            id_, values, metadata = item
-            if not isinstance(id_, str):
-                raise PineconeTypeError(
-                    f"Vector ID must be a string, got {type(id_).__name__}"
-                )
-            if not id_.isascii():
-                raise PineconeValueError(
-                    f"Vector ID must contain only ASCII characters, got: {id_!r}"
-                )
-            if "\x00" in id_:
-                raise PineconeValueError(
-                    f"Vector ID must not contain null characters, got: {id_!r}"
-                )
-            if metadata is not None and not isinstance(metadata, dict):
-                raise PineconeTypeError(f"metadata must be a dict, got {type(metadata).__name__}")
-            converted = values if isinstance(values, list) else list(values)
-            if not converted:
-                raise PineconeValueError(
-                    "Vector must have at least one of non-empty dense values or sparse values"
-                )
-            return Vector(id_, converted, None, metadata)
-        raise PineconeValueError(f"Vector tuple must have 2 or 3 elements, got {length}")
-
-    @staticmethod
-    def _from_dict(item: dict[str, Any]) -> Vector:
-        try:
-            id_ = item["id"]
-        except KeyError:
-            raise PineconeValueError("Vector dict must contain an 'id' key")
-        if not isinstance(id_, str):
-            raise PineconeTypeError(f"Vector ID must be a string, got {type(id_).__name__}")
-        if not id_.isascii():
-            raise PineconeValueError(
-                f"Vector ID must contain only ASCII characters, got: {id_!r}"
-            )
-        if "\x00" in id_:
-            raise PineconeValueError(
-                f"Vector ID must not contain null characters, got: {id_!r}"
-            )
-
-        # Fast path: common 2-key dict {"id": ..., "values": ...}
-        if len(item) == 2 and "values" in item:
-            raw_values = item["values"]
-            values = raw_values if isinstance(raw_values, list) else list(raw_values)
-            if not values:
-                raise PineconeValueError(
-                    "Vector must have at least one of non-empty dense values or sparse values"
-                )
-            return Vector(id_, values)
-
-        # General path: validate keys and extract optional fields
-        if not _RECOGNIZED_KEYS.issuperset(item):
-            extra = item.keys() - _RECOGNIZED_KEYS
-            raise PineconeValueError(f"Vector dict contains unrecognized keys: {sorted(extra)}")
-
-        raw_values = item.get("values")
-        values = (
-            (raw_values if isinstance(raw_values, list) else list(raw_values))
-            if raw_values is not None
-            else []
-        )
-
-        raw_sparse = item.get("sparse_values")
-        sparse: SparseValues | None = None
-        if raw_sparse is not None:
-            sparse = VectorFactory._parse_sparse(raw_sparse)
-
-        metadata = item.get("metadata")
-        if metadata is not None and not isinstance(metadata, dict):
-            raise PineconeTypeError(f"metadata must be a dict, got {type(metadata).__name__}")
-
-        if not values and sparse is None:
-            raise PineconeValueError(
-                "Vector must have at least one of non-empty dense values or sparse values"
-            )
-
-        return Vector(id_, values, sparse, metadata)
-
-    @staticmethod
-    def _parse_sparse(raw: Any) -> SparseValues:
-        if not isinstance(raw, dict):
-            raise PineconeTypeError(f"sparse_values must be a dict, got {type(raw).__name__}")
-        if "indices" not in raw or "values" not in raw:
-            missing = []
-            if "indices" not in raw:
-                missing.append("indices")
-            if "values" not in raw:
-                missing.append("values")
-            raise PineconeValueError(f"sparse_values dict is missing required keys: {missing}")
-
-        indices = raw["indices"]
-        values = raw["values"]
-
-        if len(indices) != len(values):
-            raise PineconeValueError(
-                f"sparse_values indices and values must have the same length, "
-                f"got {len(indices)} and {len(values)}"
-            )
-
-        if indices:
-            if not isinstance(indices[0], int):
-                raise PineconeTypeError(
-                    f"sparse_values indices must be integers, got {type(indices[0]).__name__}"
-                )
-        if values:
-            if not isinstance(values[0], (int, float)):
-                raise PineconeTypeError(
-                    f"sparse_values values must be floats, got {type(values[0]).__name__}"
-                )
-
-        return SparseValues(
-            indices=indices if isinstance(indices, list) else list(indices),
-            values=(
-                values
-                if isinstance(values, list) and (not values or isinstance(values[0], float))
-                else [float(v) for v in values]
-            ),
-        )
 
