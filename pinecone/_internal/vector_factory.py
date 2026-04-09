@@ -41,7 +41,18 @@ class VectorFactory:
         length = len(item)
         if length == 2:
             id_, values = item
-            VectorFactory._validate_id(id_)
+            if not isinstance(id_, str):
+                raise PineconeTypeError(
+                    f"Vector ID must be a string, got {type(id_).__name__}"
+                )
+            if not id_.isascii():
+                raise PineconeValueError(
+                    f"Vector ID must contain only ASCII characters, got: {id_!r}"
+                )
+            if "\x00" in id_:
+                raise PineconeValueError(
+                    f"Vector ID must not contain null characters, got: {id_!r}"
+                )
             converted = values if isinstance(values, list) else list(values)
             if not converted:
                 raise PineconeValueError(
@@ -50,7 +61,18 @@ class VectorFactory:
             return Vector(id=id_, values=converted)
         if length == 3:
             id_, values, metadata = item
-            VectorFactory._validate_id(id_)
+            if not isinstance(id_, str):
+                raise PineconeTypeError(
+                    f"Vector ID must be a string, got {type(id_).__name__}"
+                )
+            if not id_.isascii():
+                raise PineconeValueError(
+                    f"Vector ID must contain only ASCII characters, got: {id_!r}"
+                )
+            if "\x00" in id_:
+                raise PineconeValueError(
+                    f"Vector ID must not contain null characters, got: {id_!r}"
+                )
             if metadata is not None and not isinstance(metadata, dict):
                 raise PineconeTypeError(f"metadata must be a dict, got {type(metadata).__name__}")
             converted = values if isinstance(values, list) else list(values)
@@ -70,7 +92,16 @@ class VectorFactory:
             raise PineconeValueError(f"Vector dict contains unrecognized keys: {sorted(extra)}")
 
         id_ = item["id"]
-        VectorFactory._validate_id(id_)
+        if not isinstance(id_, str):
+            raise PineconeTypeError(f"Vector ID must be a string, got {type(id_).__name__}")
+        if not id_.isascii():
+            raise PineconeValueError(
+                f"Vector ID must contain only ASCII characters, got: {id_!r}"
+            )
+        if "\x00" in id_:
+            raise PineconeValueError(
+                f"Vector ID must not contain null characters, got: {id_!r}"
+            )
 
         raw_values = item.get("values")
         values: list[float] = (
@@ -139,11 +170,3 @@ class VectorFactory:
             ),
         )
 
-    @staticmethod
-    def _validate_id(id_: Any) -> None:
-        if not isinstance(id_, str):
-            raise PineconeTypeError(f"Vector ID must be a string, got {type(id_).__name__}")
-        if not id_.isascii():
-            raise PineconeValueError(f"Vector ID must contain only ASCII characters, got: {id_!r}")
-        if "\x00" in id_:
-            raise PineconeValueError(f"Vector ID must not contain null characters, got: {id_!r}")
