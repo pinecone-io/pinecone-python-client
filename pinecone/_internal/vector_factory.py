@@ -177,8 +177,9 @@ class VectorFactory:
         """Convert a user-provided vector input to a ``Vector`` object."""
         item_type = type(item)
         if item_type is dict:
+            item_len = len(item)
             # Inline 2-key happy path to avoid function call overhead
-            if len(item) == 2:
+            if item_len == 2:
                 try:
                     id_ = item["id"]
                 except KeyError:
@@ -191,6 +192,43 @@ class VectorFactory:
                     converted = raw_values if isinstance(raw_values, list) else list(raw_values)
                     if converted:
                         return Vector(id_, converted)
+            elif item_len == 3:
+                # Inline 3-key sparse happy path: {"id", "values", "sparse_values"}
+                try:
+                    id_ = item["id"]
+                except KeyError:
+                    return _from_dict(item)
+                if isinstance(id_, str) and id_.isascii() and "\x00" not in id_:
+                    try:
+                        raw_values = item["values"]
+                        raw_sparse = item["sparse_values"]
+                    except KeyError:
+                        return _from_dict(item)
+                    if type(raw_sparse) is dict:
+                        try:
+                            s_indices = raw_sparse["indices"]
+                            s_values = raw_sparse["values"]
+                        except KeyError:
+                            return _from_dict(item)
+                        if (
+                            type(s_indices) is list
+                            and type(s_values) is list
+                            and len(s_indices) == len(s_values)
+                        ):
+                            converted = (
+                                raw_values if isinstance(raw_values, list) else list(raw_values)
+                            )
+                            if not s_values or type(s_values[0]) is float:
+                                return Vector(
+                                    id_, converted,
+                                    SparseValues(s_indices, s_values), None
+                                )
+                            else:
+                                return Vector(
+                                    id_, converted,
+                                    SparseValues(s_indices, [float(v) for v in s_values]),
+                                    None,
+                                )
             return _from_dict(item)
         if item_type is tuple:
             # Inline 2-element happy path to avoid function call overhead
