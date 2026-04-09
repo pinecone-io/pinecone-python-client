@@ -85,13 +85,10 @@ class VectorFactory:
 
     @staticmethod
     def _from_dict(item: dict[str, Any]) -> Vector:
-        if "id" not in item:
+        try:
+            id_ = item["id"]
+        except KeyError:
             raise PineconeValueError("Vector dict must contain an 'id' key")
-        if not _RECOGNIZED_KEYS.issuperset(item):
-            extra = item.keys() - _RECOGNIZED_KEYS
-            raise PineconeValueError(f"Vector dict contains unrecognized keys: {sorted(extra)}")
-
-        id_ = item["id"]
         if not isinstance(id_, str):
             raise PineconeTypeError(f"Vector ID must be a string, got {type(id_).__name__}")
         if not id_.isascii():
@@ -103,10 +100,27 @@ class VectorFactory:
                 f"Vector ID must not contain null characters, got: {id_!r}"
             )
 
+        # Fast path: common 2-key dict {"id": ..., "values": ...}
+        if len(item) == 2 and "values" in item:
+            raw_values = item["values"]
+            values = raw_values if isinstance(raw_values, list) else list(raw_values)
+            if not values:
+                raise PineconeValueError(
+                    "Vector must have at least one of non-empty dense values or sparse values"
+                )
+            return Vector(id=id_, values=values)
+
+        # General path: validate keys and extract optional fields
+        if not _RECOGNIZED_KEYS.issuperset(item):
+            extra = item.keys() - _RECOGNIZED_KEYS
+            raise PineconeValueError(f"Vector dict contains unrecognized keys: {sorted(extra)}")
+
         raw_values = item.get("values")
-        values: list[float] = (
-            raw_values if isinstance(raw_values, list) else list(raw_values)
-        ) if raw_values is not None else []
+        values = (
+            (raw_values if isinstance(raw_values, list) else list(raw_values))
+            if raw_values is not None
+            else []
+        )
 
         raw_sparse = item.get("sparse_values")
         sparse: SparseValues | None = None
