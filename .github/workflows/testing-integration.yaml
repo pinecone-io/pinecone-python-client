@@ -30,7 +30,7 @@ jobs:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         total_shards: [10]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup uv
         uses: ./.github/actions/setup-uv
         with:
@@ -59,7 +59,7 @@ jobs:
         shard: [1, 2, 3, 4, 5, 6, 7, 8]
         total_shards: [8]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup uv
         uses: ./.github/actions/setup-uv
         with:
@@ -86,7 +86,7 @@ jobs:
       matrix:
         python_version: ${{ fromJson(inputs.python_versions_json) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup uv
         uses: ./.github/actions/setup-uv
         with:

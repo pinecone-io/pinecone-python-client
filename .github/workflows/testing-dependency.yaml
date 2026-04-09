@@ -17,7 +17,7 @@ jobs:
     outputs:
       index_name: ${{ steps.setup-index.outputs.index_name }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/secret-decrypt
         id: decrypt-secret
         with:
@@ -68,7 +68,7 @@ jobs:
       - dependency-test-asyncio
       - dependency-test-grpc
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/secret-decrypt
         id: decrypt-secret
         with:
