@@ -11,6 +11,99 @@ from pinecone.models.vectors.vector import ScoredVector, Vector
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 
 # ---------------------------------------------------------------------------
+# delete-vectors — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_delete_vectors_rest(client: Pinecone) -> None:
+    """Delete vectors by IDs via REST Index and verify they are gone."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        index.upsert(
+            vectors=[
+                {"id": "del-v1", "values": [0.1, 0.2]},
+                {"id": "del-v2", "values": [0.3, 0.4]},
+                {"id": "del-v3", "values": [0.5, 0.6]},
+            ]
+        )
+
+        # Wait for all 3 vectors to be fetchable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["del-v1", "del-v2", "del-v3"]),
+            check_fn=lambda r: len(r.vectors) == 3,
+            timeout=120,
+            description="all 3 vectors fetchable before delete",
+        )
+
+        # Delete just v1 and v2 by IDs
+        result = index.delete(ids=["del-v1", "del-v2"])
+        assert result is None  # delete returns None on success
+
+        # Wait until deleted vectors are gone (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["del-v1", "del-v2"]),
+            check_fn=lambda r: len(r.vectors) == 0,
+            timeout=120,
+            description="deleted vectors gone after delete",
+        )
+
+        # Verify v3 is still present
+        remaining = index.fetch(ids=["del-v3"])
+        assert isinstance(remaining, FetchResponse)
+        assert "del-v3" in remaining.vectors
+        assert "del-v1" not in remaining.vectors
+        assert "del-v2" not in remaining.vectors
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# delete-vectors — gRPC (xfail: IT-0002)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.xfail(
+    strict=True,
+    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
+)
+def test_delete_vectors_grpc(client: Pinecone) -> None:
+    """Delete vectors by IDs via GrpcIndex and verify they are gone."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        index.upsert(
+            vectors=[
+                {"id": "del-v1", "values": [0.1, 0.2]},
+                {"id": "del-v2", "values": [0.3, 0.4]},
+            ]
+        )
+
+        index.delete(ids=["del-v1"])
+
+        remaining = index.fetch(ids=["del-v1", "del-v2"])
+        assert "del-v1" not in remaining.vectors
+        assert "del-v2" in remaining.vectors
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+# ---------------------------------------------------------------------------
 # upsert — REST sync
 # ---------------------------------------------------------------------------
 
