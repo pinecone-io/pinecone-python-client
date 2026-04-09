@@ -171,6 +171,13 @@ class VectorFactory:
         if item_type is dict:
             return _from_dict(item)
         if item_type is tuple:
+            # Inline 2-element happy path to avoid function call overhead
+            if len(item) == 2:
+                id_, values = item
+                if isinstance(id_, str) and id_.isascii() and "\x00" not in id_:
+                    converted = values if isinstance(values, list) else list(values)
+                    if converted:
+                        return Vector(id_, converted)
             return _from_tuple(item)
         if isinstance(item, Vector):
             if not item.values and item.sparse_values is None:
