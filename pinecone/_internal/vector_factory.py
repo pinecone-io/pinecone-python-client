@@ -145,8 +145,8 @@ def _parse_sparse(raw: Any) -> SparseValues:
             )
 
     return SparseValues(
-        indices=indices if isinstance(indices, list) else list(indices),
-        values=(
+        indices if isinstance(indices, list) else list(indices),
+        (
             values
             if isinstance(values, list) and (not values or isinstance(values[0], float))
             else [float(v) for v in values]

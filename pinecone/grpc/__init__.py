@@ -69,7 +69,7 @@ def _dict_to_vector(vid: str, data: dict[str, Any]) -> Vector:
     sparse = None
     sv = data.get("sparse_values")
     if sv is not None:
-        sparse = SparseValues(indices=sv["indices"], values=sv["values"])
+        sparse = SparseValues(sv["indices"], sv["values"])
     return Vector(
         id=vid,
         values=data.get("values", []),
@@ -83,7 +83,7 @@ def _dict_to_scored_vector(data: dict[str, Any]) -> ScoredVector:
     sparse = None
     sv = data.get("sparse_values")
     if sv is not None:
-        sparse = SparseValues(indices=sv["indices"], values=sv["values"])
+        sparse = SparseValues(sv["indices"], sv["values"])
     return ScoredVector(
         id=data["id"],
         score=data.get("score", 0.0),
