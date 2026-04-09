@@ -87,8 +87,8 @@ class VectorFactory:
     def _from_dict(item: dict[str, Any]) -> Vector:
         if "id" not in item:
             raise PineconeValueError("Vector dict must contain an 'id' key")
-        extra = set(item.keys()) - _RECOGNIZED_KEYS
-        if extra:
+        if not _RECOGNIZED_KEYS.issuperset(item):
+            extra = item.keys() - _RECOGNIZED_KEYS
             raise PineconeValueError(f"Vector dict contains unrecognized keys: {sorted(extra)}")
 
         id_ = item["id"]
