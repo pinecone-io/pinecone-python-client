@@ -6,7 +6,7 @@ import pytest
 
 from pinecone import AsyncIndex, AsyncPinecone
 from pinecone.models.indexes.specs import ServerlessSpec
-from pinecone.models.vectors.responses import FetchResponse, ListItem, ListResponse, QueryResponse, UpsertResponse
+from pinecone.models.vectors.responses import FetchResponse, ListItem, ListResponse, QueryResponse, UpdateResponse, UpsertResponse
 from pinecone.models.vectors.vector import ScoredVector, Vector
 from tests.integration.conftest import async_cleanup_resource, async_poll_until, unique_name
 
@@ -304,6 +304,75 @@ async def test_list_vectors_rest_async(async_client: AsyncPinecone) -> None:
         assert "lst-v1" in all_ids
         assert "lst-v2" in all_ids
         assert "lst-v3" in all_ids
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# update-vectors — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_update_vectors_rest_async(async_client: AsyncPinecone) -> None:
+    """Update a vector's values via AsyncIndex (REST) and verify the change is reflected."""
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        await idx.upsert(
+            vectors=[
+                {"id": "upd-v1", "values": [0.1, 0.2]},
+                {"id": "upd-v2", "values": [0.3, 0.4]},
+            ]
+        )
+
+        # Wait for vectors to be fetchable (eventual consistency)
+        await async_poll_until(
+            query_fn=lambda: idx.fetch(ids=["upd-v1", "upd-v2"]),  # type: ignore[union-attr]
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="vectors fetchable before update",
+        )
+
+        # Update upd-v1 with new values
+        result = await idx.update(id="upd-v1", values=[0.9, 0.8])
+
+        assert isinstance(result, UpdateResponse)
+        # The update API returns {} on success; matched_records may be None
+        assert result.matched_records is None or isinstance(result.matched_records, int)
+
+        # Poll until the updated values are reflected
+        await async_poll_until(
+            query_fn=lambda: idx.fetch(ids=["upd-v1"]),  # type: ignore[union-attr]
+            check_fn=lambda r: (
+                "upd-v1" in r.vectors
+                and len(r.vectors["upd-v1"].values) == 2
+                and abs(r.vectors["upd-v1"].values[0] - 0.9) < 1e-4
+            ),
+            timeout=120,
+            description="updated values reflected in fetch",
+        )
+
+        # Verify upd-v2 was not modified
+        check = await idx.fetch(ids=["upd-v2"])
+        assert abs(check.vectors["upd-v2"].values[0] - 0.3) < 1e-4
     finally:
         if idx is not None:
             await idx.close()

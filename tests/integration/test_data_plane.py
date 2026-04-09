@@ -6,7 +6,7 @@ import pytest
 
 from pinecone import Pinecone
 from pinecone.models.indexes.specs import ServerlessSpec
-from pinecone.models.vectors.responses import FetchResponse, ListItem, ListResponse, QueryResponse, UpsertResponse
+from pinecone.models.vectors.responses import FetchResponse, ListItem, ListResponse, QueryResponse, UpdateResponse, UpsertResponse
 from pinecone.models.vectors.vector import ScoredVector, Vector
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 
@@ -453,5 +453,115 @@ def test_list_vectors_grpc(client: Pinecone) -> None:
 
         assert "lst-v1" in all_ids
         assert "lst-v2" in all_ids
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# update-vectors — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_update_vectors_rest(client: Pinecone) -> None:
+    """Update a vector's values via REST Index and verify the change is reflected."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        index.upsert(
+            vectors=[
+                {"id": "upd-v1", "values": [0.1, 0.2]},
+                {"id": "upd-v2", "values": [0.3, 0.4]},
+            ]
+        )
+
+        # Wait for vectors to be fetchable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["upd-v1", "upd-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="vectors fetchable before update",
+        )
+
+        # Update upd-v1 with new values
+        result = index.update(id="upd-v1", values=[0.9, 0.8])
+
+        assert isinstance(result, UpdateResponse)
+        # The update API returns {} on success; matched_records may be None
+        assert result.matched_records is None or isinstance(result.matched_records, int)
+
+        # Poll until the updated values are reflected
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["upd-v1"]),
+            check_fn=lambda r: (
+                "upd-v1" in r.vectors
+                and len(r.vectors["upd-v1"].values) == 2
+                and abs(r.vectors["upd-v1"].values[0] - 0.9) < 1e-4
+            ),
+            timeout=120,
+            description="updated values reflected in fetch",
+        )
+
+        # Verify upd-v2 was not modified
+        check = index.fetch(ids=["upd-v2"])
+        assert abs(check.vectors["upd-v2"].values[0] - 0.3) < 1e-4
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# update-vectors — gRPC (xfail: IT-0002)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.xfail(
+    strict=True,
+    reason="SDK bug IT-0002: pinecone._grpc Rust extension not installed; ModuleNotFoundError on GrpcIndex creation",
+)
+def test_update_vectors_grpc(client: Pinecone) -> None:
+    """Update a vector's values via GrpcIndex and verify the change is reflected."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        index.upsert(
+            vectors=[
+                {"id": "upd-v1", "values": [0.1, 0.2]},
+            ]
+        )
+
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["upd-v1"]),
+            check_fn=lambda r: "upd-v1" in r.vectors,
+            timeout=120,
+            description="vector fetchable before update",
+        )
+
+        result = index.update(id="upd-v1", values=[0.9, 0.8])
+        assert isinstance(result, UpdateResponse)
+
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["upd-v1"]),
+            check_fn=lambda r: (
+                "upd-v1" in r.vectors
+                and abs(r.vectors["upd-v1"].values[0] - 0.9) < 1e-4
+            ),
+            timeout=120,
+            description="updated values reflected in fetch",
+        )
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
