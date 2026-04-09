@@ -42,7 +42,7 @@ class VectorFactory:
         if length == 2:
             id_, values = item
             VectorFactory._validate_id(id_)
-            converted = list(values)
+            converted = values if isinstance(values, list) else list(values)
             if not converted:
                 raise PineconeValueError(
                     "Vector must have at least one of non-empty dense values or sparse values"
@@ -53,7 +53,7 @@ class VectorFactory:
             VectorFactory._validate_id(id_)
             if metadata is not None and not isinstance(metadata, dict):
                 raise PineconeTypeError(f"metadata must be a dict, got {type(metadata).__name__}")
-            converted = list(values)
+            converted = values if isinstance(values, list) else list(values)
             if not converted:
                 raise PineconeValueError(
                     "Vector must have at least one of non-empty dense values or sparse values"
@@ -73,7 +73,9 @@ class VectorFactory:
         VectorFactory._validate_id(id_)
 
         raw_values = item.get("values")
-        values: list[float] = list(raw_values) if raw_values is not None else []
+        values: list[float] = (
+            raw_values if isinstance(raw_values, list) else list(raw_values)
+        ) if raw_values is not None else []
 
         raw_sparse = item.get("sparse_values")
         sparse: SparseValues | None = None
@@ -129,7 +131,7 @@ class VectorFactory:
                 )
 
         return SparseValues(
-            indices=list(indices),
+            indices=indices if isinstance(indices, list) else list(indices),
             values=[float(v) for v in values],
         )
 
