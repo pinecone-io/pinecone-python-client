@@ -33,14 +33,15 @@ def _validate_host(host: str) -> str:
 
 def _vector_to_dict(v: Vector) -> dict[str, Any]:
     """Serialize a Vector to a dict matching the API wire format."""
+    id_ = v.id
+    vals = v.values
     sv = v.sparse_values
+    md = v.metadata
     if sv is not None:
         sv_dict: dict[str, Any] = {"indices": sv.indices, "values": sv.values}
-        md = v.metadata
         if md is not None:
-            return {"id": v.id, "values": v.values, "sparseValues": sv_dict, "metadata": md}
-        return {"id": v.id, "values": v.values, "sparseValues": sv_dict}
-    md = v.metadata
+            return {"id": id_, "values": vals, "sparseValues": sv_dict, "metadata": md}
+        return {"id": id_, "values": vals, "sparseValues": sv_dict}
     if md is not None:
-        return {"id": v.id, "values": v.values, "metadata": md}
-    return {"id": v.id, "values": v.values}
+        return {"id": id_, "values": vals, "metadata": md}
+    return {"id": id_, "values": vals}
