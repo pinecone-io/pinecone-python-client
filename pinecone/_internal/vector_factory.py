@@ -24,17 +24,17 @@ class VectorFactory:
     @staticmethod
     def build(item: Any) -> Vector:
         """Convert a user-provided vector input to a ``Vector`` object."""
+        item_type = type(item)
+        if item_type is dict:
+            return VectorFactory._from_dict(item)
+        if item_type is tuple:
+            return VectorFactory._from_tuple(item)
         if isinstance(item, Vector):
             if not item.values and item.sparse_values is None:
                 raise PineconeValueError(
                     "Vector must have at least one of non-empty dense values or sparse values"
                 )
             return item
-        item_type = type(item)
-        if item_type is tuple:
-            return VectorFactory._from_tuple(item)
-        if item_type is dict:
-            return VectorFactory._from_dict(item)
         # Subclass fallback
         if isinstance(item, tuple):
             return VectorFactory._from_tuple(item)
