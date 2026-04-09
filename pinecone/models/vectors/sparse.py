@@ -5,7 +5,7 @@ from __future__ import annotations
 from msgspec import Struct
 
 
-class SparseValues(Struct, rename="camel", kw_only=True):
+class SparseValues(Struct, rename="camel", kw_only=True, gc=False):
     """Sparse vector representation with indices and values.
 
     Attributes:
