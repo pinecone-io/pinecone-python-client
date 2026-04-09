@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import pytest
-import pytest_asyncio
 from pinecone import AsyncPinecone
+from pinecone.models.indexes.specs import ServerlessSpec
+
+from tests.integration.conftest import async_cleanup_resource, unique_name
 
 
 # ---------------------------------------------------------------------------
@@ -37,3 +39,40 @@ async def test_list_indexes_returns_index_list(async_client: AsyncPinecone) -> N
     for name in names:
         assert isinstance(name, str)
         assert len(name) > 0
+
+
+# ---------------------------------------------------------------------------
+# create-index
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_create_serverless_index_becomes_ready(async_client: AsyncPinecone) -> None:
+    """Create a serverless index asynchronously, wait for ready state, verify fields, then delete."""
+    name = unique_name("idx")
+    try:
+        model = await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        assert model.name == name
+        assert model.dimension == 2
+        assert model.metric == "cosine"
+        assert model.status.ready is True
+        assert model.status.state == "Ready"
+        assert model.spec.serverless is not None
+        assert model.spec.serverless.cloud == "aws"
+        assert model.spec.serverless.region == "us-east-1"
+        assert model.deletion_protection == "disabled"
+        assert isinstance(model.host, str)
+        assert len(model.host) > 0
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )

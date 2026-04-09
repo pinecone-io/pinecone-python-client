@@ -148,8 +148,12 @@ def client(api_key: str) -> Pinecone:
     return Pinecone(api_key=api_key)
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="function")
 async def async_client(api_key: str) -> AsyncGenerator[AsyncPinecone, None]:
-    """Session-scoped async Pinecone client (REST)."""
+    """Function-scoped async Pinecone client (REST).
+
+    Function scope avoids event-loop-closed errors when HTTP/2 connections
+    are open at session teardown.
+    """
     async with AsyncPinecone(api_key=api_key) as pc:
         yield pc
