@@ -26,7 +26,7 @@ from pinecone.errors.exceptions import (
 
 
 def test_version() -> None:
-    assert __version__ == "0.1.0"
+    assert __version__ == "9.0.0"
 
 
 def test_config_defaults() -> None:

@@ -140,7 +140,7 @@ if TYPE_CHECKING:
     from pinecone.models.vectors.vector import Vector
     from pinecone.utils.filter_builder import Field
 
-__version__ = "0.1.0"
+__version__ = "9.0.0"
 
 if _os.environ.get("PINECONE_DEBUG"):
     _logging.getLogger("pinecone").setLevel(_logging.DEBUG)
