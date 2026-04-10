@@ -53,6 +53,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from pinecone._client import Pinecone
+    from pinecone._internal.config import PineconeConfig, RetryConfig
     from pinecone.admin import Admin
     from pinecone.async_client.async_index import AsyncIndex
     from pinecone.async_client.pinecone import AsyncPinecone
@@ -153,8 +154,7 @@ __version__ = "9.0.0"
 if _os.environ.get("PINECONE_DEBUG"):
     _logging.getLogger("pinecone").setLevel(_logging.DEBUG)
 
-# Lightweight imports — exception classes and config are small and always needed.
-from pinecone._internal.config import PineconeConfig, RetryConfig
+# Lightweight imports — exception classes are small and always needed.
 from pinecone.errors.exceptions import (
     ApiError,
     ConflictError,
@@ -361,6 +361,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "Page": ("pinecone.models.pagination", "Page"),
     "Paginator": ("pinecone.models.pagination", "Paginator"),
     "Pinecone": ("pinecone._client", "Pinecone"),
+    "PineconeConfig": ("pinecone._internal.config", "PineconeConfig"),
     "PodSpec": ("pinecone.models.indexes.specs", "PodSpec"),
     "PodType": ("pinecone.models.enums", "PodType"),
     "ProjectList": ("pinecone.models.admin.project", "ProjectList"),
@@ -382,6 +383,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ResponseInfo": ("pinecone.models.vectors.responses", "ResponseInfo"),
     "RestoreJobList": ("pinecone.models.backups.list", "RestoreJobList"),
     "RestoreJobModel": ("pinecone.models.backups.model", "RestoreJobModel"),
+    "RetryConfig": ("pinecone._internal.config", "RetryConfig"),
     "SearchInputs": ("pinecone.models.vectors.search", "SearchInputs"),
     "SearchRecordsResponse": (
         "pinecone.models.vectors.search",
