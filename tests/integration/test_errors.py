@@ -117,7 +117,7 @@ def test_dimension_mismatch_raises_typed_error_rest(client: Pinecone) -> None:
 @pytest.mark.xfail(
     strict=True,
     reason=(
-        "SDK bug IT-0004: gRPC _call_channel wraps PineconeValueError (INVALID_ARGUMENT) "
+        "SDK bug IT-0007: gRPC _call_channel wraps PineconeValueError (INVALID_ARGUMENT) "
         "as PineconeConnectionError; should raise ApiError(status_code=400) for transport parity"
     ),
 )
