@@ -15,7 +15,7 @@ import pytest_asyncio  # noqa: F401
 from pinecone import AsyncPinecone, EmbedConfig, IntegratedSpec, Vector
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.sparse import SparseValues
-from pinecone.models.vectors.responses import FetchResponse, UpdateResponse, UpsertRecordsResponse, UpsertResponse
+from pinecone.models.vectors.responses import DescribeIndexStatsResponse, FetchResponse, NamespaceSummary, UpdateResponse, UpsertRecordsResponse, UpsertResponse
 from pinecone.models.vectors.search import Hit, SearchRecordsResponse
 from tests.integration.conftest import (
     async_cleanup_resource,
@@ -762,6 +762,101 @@ async def test_delete_by_filter_async(async_client: AsyncPinecone) -> None:
         obsolete_fetch = await index.fetch(ids=obsolete_ids)
         assert len(obsolete_fetch.vectors) == 0, \
             f"obsolete vectors should be deleted but found: {list(obsolete_fetch.vectors.keys())}"
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name), name, "index"
+        )
+
+
+# ---------------------------------------------------------------------------
+# delete-all-namespace — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_delete_all_namespace_async(async_client: AsyncPinecone) -> None:
+    """index.delete(delete_all=True, namespace=...) deletes all vectors in a named
+    namespace (async REST) while leaving other namespaces untouched.
+
+    Upserts 3 vectors into "dan-cleanup-ns" and 2 vectors into the default namespace.
+    Calls delete(delete_all=True, namespace="dan-cleanup-ns").
+    Polls describe_index_stats() until "dan-cleanup-ns" is absent or has vector_count==0.
+    Verifies the default namespace still has 2 vectors.
+    """
+    name = unique_name("idx")
+    NS = "dan-cleanup-ns"
+    default_ids = ["dan-def-1", "dan-def-2"]
+    ns_ids = ["dan-ns-1", "dan-ns-2", "dan-ns-3"]
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = async_client.index(name=name)
+
+        # Upsert into named namespace
+        ns_vectors = [
+            {"id": "dan-ns-1", "values": [0.1, 0.2]},
+            {"id": "dan-ns-2", "values": [0.3, 0.4]},
+            {"id": "dan-ns-3", "values": [0.5, 0.6]},
+        ]
+        result = await index.upsert(vectors=ns_vectors, namespace=NS)
+        assert isinstance(result, UpsertResponse)
+        assert result.upserted_count == 3
+
+        # Upsert into default namespace
+        def_vectors = [
+            {"id": "dan-def-1", "values": [0.7, 0.8]},
+            {"id": "dan-def-2", "values": [0.9, 0.1]},
+        ]
+        result2 = await index.upsert(vectors=def_vectors)
+        assert isinstance(result2, UpsertResponse)
+        assert result2.upserted_count == 2
+
+        # Wait for all vectors to be indexed in stats before deleting
+        await async_poll_until(
+            query_fn=lambda: index.describe_index_stats(),
+            check_fn=lambda r: r.total_vector_count >= 5,
+            timeout=120,
+            description="all 5 vectors appear in stats before delete-all (async)",
+        )
+
+        # Delete all vectors in the named namespace
+        await index.delete(delete_all=True, namespace=NS)
+
+        # Poll until the named namespace is gone or empty
+        await async_poll_until(
+            query_fn=lambda: index.describe_index_stats(),
+            check_fn=lambda r: NS not in r.namespaces or r.namespaces[NS].vector_count == 0,
+            timeout=120,
+            description="dan-cleanup-ns empty after delete_all=True (async)",
+        )
+
+        # Verify named-namespace vectors are gone from fetch
+        ns_fetch = await index.fetch(ids=ns_ids, namespace=NS)
+        assert isinstance(ns_fetch, FetchResponse)
+        assert len(ns_fetch.vectors) == 0, \
+            f"named-namespace vectors should be gone but found: {list(ns_fetch.vectors.keys())} (async)"
+
+        # Verify default namespace is unaffected
+        def_fetch = await index.fetch(ids=default_ids)
+        assert isinstance(def_fetch, FetchResponse)
+        for vid in default_ids:
+            assert vid in def_fetch.vectors, \
+                f"default-namespace vector {vid!r} should survive delete_all on different namespace (async)"
+
+        # Verify stats: named namespace is absent or has 0 vectors; total count == 2
+        stats = await index.describe_index_stats()
+        assert isinstance(stats, DescribeIndexStatsResponse)
+        if NS in stats.namespaces:
+            assert stats.namespaces[NS].vector_count == 0, \
+                f"dan-cleanup-ns should be empty but has {stats.namespaces[NS].vector_count} vectors (async)"
+        assert stats.total_vector_count == 2, \
+            f"only 2 default-namespace vectors should remain, got total={stats.total_vector_count} (async)"
 
     finally:
         await async_cleanup_resource(
