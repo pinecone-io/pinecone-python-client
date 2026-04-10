@@ -48,9 +48,35 @@ see :class:`Admin`.
 from __future__ import annotations
 
 import os as _os
-from typing import TYPE_CHECKING, Any
+
+from pinecone.errors.exceptions import (
+    ApiError,
+    ConflictError,
+    ForbiddenError,
+    IndexInitFailedError,
+    NotFoundError,
+    PineconeConnectionError,
+    PineconeError,
+    PineconeTimeoutError,
+    PineconeTypeError,
+    PineconeValueError,
+    ResponseParsingError,
+    ServiceError,
+    UnauthorizedError,
+)
+
+# Avoid importing typing at runtime — its transitive deps (re, enum,
+# collections, contextlib, functools, warnings) add ~28ms to cold import.
+# All annotations use PEP 563 (from __future__ import annotations), so
+# typing.Any is a string at runtime and never evaluated.
+# mypy recognises a module-level `TYPE_CHECKING = False` as a type-checking
+# guard, so the if-block below is analysed by type checkers but skipped at
+# runtime.
+TYPE_CHECKING = False
 
 if TYPE_CHECKING:
+    from typing import Any
+
     from pinecone._client import Pinecone
     from pinecone._internal.config import PineconeConfig, RetryConfig
     from pinecone.admin import Admin
@@ -154,23 +180,6 @@ if _os.environ.get("PINECONE_DEBUG"):
     import logging as _logging
 
     _logging.getLogger("pinecone").setLevel(_logging.DEBUG)
-
-# Lightweight imports — exception classes are small and always needed.
-from pinecone.errors.exceptions import (
-    ApiError,
-    ConflictError,
-    ForbiddenError,
-    IndexInitFailedError,
-    NotFoundError,
-    PineconeConnectionError,
-    PineconeError,
-    PineconeTimeoutError,
-    PineconeTypeError,
-    PineconeValueError,
-    ResponseParsingError,
-    ServiceError,
-    UnauthorizedError,
-)
 
 __all__ = [
     "__version__",
