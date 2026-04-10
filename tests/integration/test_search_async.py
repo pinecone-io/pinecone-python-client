@@ -4,6 +4,7 @@ Covers:
   - search-records: basic text search (async)
   - search-with-rerank: text search with inline reranking (async)
   - search-by-id: search using a stored record ID as the query vector (async)
+  - search-with-filter: text search with a metadata filter expression (async)
 
 Note on integrated index creation
 ----------------------------------
@@ -297,6 +298,105 @@ async def test_search_by_id_rest_async(
             assert isinstance(hit.score, float)
 
         # Usage should reflect a read operation
+        assert isinstance(response.usage, SearchUsage)
+        assert response.usage.read_units > 0
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name), name, "index"
+        )
+
+
+# ---------------------------------------------------------------------------
+# search-with-filter — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_search_with_filter_rest_async(
+    async_client: AsyncPinecone, client: Pinecone, api_key: str
+) -> None:
+    """search() with a metadata filter returns only records matching the filter (async).
+
+    Upserts records with two distinct category values ('science' and 'history').
+    A filter for category=science must return only science records; no history
+    record should appear. The fields parameter is used to verify category values
+    in the returned hits.
+    """
+    name = unique_name("idx")
+    namespace = "swf-ns"
+    try:
+        # Create integrated index via direct HTTP call (SDK uses wrong endpoint — IT-0003)
+        _create_integrated_index(api_key, name)
+
+        # Wait for the index to become ready using the sync client
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        # Populate the async client's host cache before calling index()
+        desc = await async_client.indexes.describe(name)
+        index = async_client.index(host=desc.host)
+
+        # Upsert records with a 'category' metadata field for filtering
+        await index.upsert_records(
+            namespace=namespace,
+            records=[
+                {"_id": "swf-sci-1", "text": "Quantum mechanics describes subatomic particles.", "category": "science"},
+                {"_id": "swf-sci-2", "text": "DNA encodes the genetic information of organisms.", "category": "science"},
+                {"_id": "swf-sci-3", "text": "Gravity is a fundamental force in physics.", "category": "science"},
+                {"_id": "swf-hist-1", "text": "The Roman Empire lasted for centuries.", "category": "history"},
+                {"_id": "swf-hist-2", "text": "The Renaissance was a cultural movement in Europe.", "category": "history"},
+            ],
+        )
+
+        # Wait for records to be searchable (eventual consistency)
+        await async_poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=5,
+                inputs={"text": "science and research"},
+            ),
+            check_fn=lambda r: len(r.result.hits) >= 3,
+            timeout=120,
+            description="all records searchable before filter test (async)",
+        )
+
+        # Search with category=science filter, requesting category field in hits
+        response = await index.search(
+            namespace=namespace,
+            top_k=5,
+            inputs={"text": "science and research"},
+            filter={"category": {"$eq": "science"}},
+            fields=["category"],
+        )
+
+        assert isinstance(response, SearchRecordsResponse)
+        assert len(response.result.hits) > 0
+        # Must not exceed the 3 science records
+        assert len(response.result.hits) <= 3
+
+        # Every hit must be a science record — no history records should appear
+        returned_ids = {hit.id for hit in response.result.hits}
+        assert not returned_ids.intersection({"swf-hist-1", "swf-hist-2"}), (
+            f"History records leaked through filter: {returned_ids}"
+        )
+
+        # All returned hits should have category=science in their fields
+        for hit in response.result.hits:
+            assert isinstance(hit, Hit)
+            assert isinstance(hit.id, str)
+            assert isinstance(hit.score, float)
+            assert hit.id.startswith("swf-sci-"), f"Unexpected hit id: {hit.id!r}"
+            if hit.fields:
+                assert hit.fields.get("category") == "science", (
+                    f"Expected category=science, got {hit.fields.get('category')!r}"
+                )
+
+        # Usage should be populated
         assert isinstance(response.usage, SearchUsage)
         assert response.usage.read_units > 0
 
