@@ -47,7 +47,6 @@ see :class:`Admin`.
 
 from __future__ import annotations
 
-import logging as _logging
 import os as _os
 from typing import TYPE_CHECKING, Any
 
@@ -152,6 +151,8 @@ if TYPE_CHECKING:
 __version__ = "9.0.0"
 
 if _os.environ.get("PINECONE_DEBUG"):
+    import logging as _logging
+
     _logging.getLogger("pinecone").setLevel(_logging.DEBUG)
 
 # Lightweight imports — exception classes are small and always needed.
