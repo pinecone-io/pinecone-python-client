@@ -15,7 +15,7 @@ import pytest_asyncio  # noqa: F401
 from pinecone import AsyncPinecone, EmbedConfig, IntegratedSpec, Vector
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.sparse import SparseValues
-from pinecone.models.vectors.responses import FetchResponse, UpsertRecordsResponse, UpsertResponse
+from pinecone.models.vectors.responses import FetchResponse, UpdateResponse, UpsertRecordsResponse, UpsertResponse
 from pinecone.models.vectors.search import Hit, SearchRecordsResponse
 from tests.integration.conftest import (
     async_cleanup_resource,
@@ -401,6 +401,83 @@ async def test_upsert_records_async(async_client: AsyncPinecone) -> None:
         assert isinstance(first_hit.id, str)
         assert isinstance(first_hit.score, float)
         assert first_hit.id.startswith("urec-")
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name), name, "index"
+        )
+
+
+# ---------------------------------------------------------------------------
+# update-metadata — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_update_metadata_async(async_client: AsyncPinecone) -> None:
+    """index.update(id=..., set_metadata=...) merges metadata, not replaces (async REST).
+
+    Verifies:
+    - After update(set_metadata={"color": "blue"}), fetch returns color == "blue"
+    - The existing key "size" == 5 is preserved (merge semantics)
+    - update() returns an UpdateResponse
+    """
+    name = unique_name("idx")
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        desc = await async_client.indexes.describe(name)
+        index = async_client.index(host=desc.host)
+
+        # Upsert a vector with two metadata fields
+        await index.upsert(vectors=[{
+            "id": "um-v1",
+            "values": [0.1, 0.2],
+            "metadata": {"color": "red", "size": 5},
+        }])
+
+        # Wait for vector to be fetchable
+        await async_poll_until(
+            query_fn=lambda: index.fetch(ids=["um-v1"]),
+            check_fn=lambda r: "um-v1" in r.vectors,
+            timeout=120,
+            description="um-v1 fetchable before update (async)",
+        )
+
+        # Update only the "color" field — "size" should survive (merge semantics)
+        update_resp = await index.update(id="um-v1", set_metadata={"color": "blue"})
+        assert isinstance(update_resp, UpdateResponse)
+
+        # Poll until the metadata change propagates
+        async def _color_updated() -> object:
+            r = await index.fetch(ids=["um-v1"])
+            if "um-v1" not in r.vectors:
+                return None
+            meta = r.vectors["um-v1"].metadata
+            if meta is None or meta.get("color") != "blue":
+                return None
+            return r
+
+        fetched = await async_poll_until(
+            query_fn=_color_updated,
+            check_fn=lambda r: r is not None,
+            timeout=120,
+            description="um-v1 color updated to blue (async)",
+        )
+
+        v = fetched.vectors["um-v1"]  # type: ignore[union-attr]
+        assert v.metadata is not None
+        # Updated field
+        assert v.metadata.get("color") == "blue", \
+            f"expected color='blue', got {v.metadata.get('color')!r}"
+        # Preserved field — merge semantics (NOT replaced)
+        assert v.metadata.get("size") == 5, \
+            f"expected size=5 to be preserved but got {v.metadata.get('size')!r}"
 
     finally:
         await async_cleanup_resource(

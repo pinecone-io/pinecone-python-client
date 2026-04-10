@@ -14,7 +14,7 @@ import pytest
 from pinecone import EmbedConfig, IntegratedSpec, Pinecone, Vector
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.sparse import SparseValues
-from pinecone.models.vectors.responses import FetchResponse, UpsertRecordsResponse, UpsertResponse
+from pinecone.models.vectors.responses import FetchResponse, UpdateResponse, UpsertRecordsResponse, UpsertResponse
 from pinecone.models.vectors.search import Hit, SearchRecordsResponse
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name, wait_for_ready
 
@@ -673,6 +673,147 @@ def test_upsert_records_grpc(client: Pinecone) -> None:
         assert isinstance(first_hit.id, str)
         assert isinstance(first_hit.score, float)
         assert first_hit.id.startswith("urec-")
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# update-metadata — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_update_metadata_rest(client: Pinecone) -> None:
+    """index.update(id=..., set_metadata=...) merges metadata, not replaces (REST sync).
+
+    Verifies:
+    - After update(set_metadata={"color": "blue"}), fetch returns color == "blue"
+    - The existing key "size" == 5 is preserved (merge semantics)
+    - update() returns an UpdateResponse
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert a vector with two metadata fields
+        index.upsert(vectors=[{
+            "id": "um-v1",
+            "values": [0.1, 0.2],
+            "metadata": {"color": "red", "size": 5},
+        }])
+
+        # Wait for vector to be fetchable
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["um-v1"]),
+            check_fn=lambda r: "um-v1" in r.vectors,
+            timeout=120,
+            description="um-v1 fetchable before update",
+        )
+
+        # Update only the "color" field — "size" should survive (merge semantics)
+        update_resp = index.update(id="um-v1", set_metadata={"color": "blue"})
+        assert isinstance(update_resp, UpdateResponse)
+
+        # Poll until the metadata change propagates
+        def _color_updated() -> object:
+            r = index.fetch(ids=["um-v1"])
+            if "um-v1" not in r.vectors:
+                return None
+            meta = r.vectors["um-v1"].metadata
+            if meta is None or meta.get("color") != "blue":
+                return None
+            return r
+
+        fetched = poll_until(
+            query_fn=_color_updated,
+            check_fn=lambda r: r is not None,
+            timeout=120,
+            description="um-v1 color updated to blue (REST)",
+        )
+
+        v = fetched.vectors["um-v1"]  # type: ignore[union-attr]
+        assert v.metadata is not None
+        # Updated field
+        assert v.metadata.get("color") == "blue", \
+            f"expected color='blue', got {v.metadata.get('color')!r}"
+        # Preserved field — merge semantics (NOT replaced)
+        assert v.metadata.get("size") == 5, \
+            f"expected size=5 to be preserved but got {v.metadata.get('size')!r}"
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# update-metadata — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_update_metadata_grpc(client: Pinecone) -> None:
+    """index.update(id=..., set_metadata=...) merges metadata, not replaces (gRPC).
+
+    Verifies the same merge semantics as the REST sync test but via gRPC transport.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        # Upsert a vector with two metadata fields
+        index.upsert(vectors=[{
+            "id": "um-v1",
+            "values": [0.1, 0.2],
+            "metadata": {"color": "red", "size": 5},
+        }])
+
+        # Wait for vector to be fetchable
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["um-v1"]),
+            check_fn=lambda r: "um-v1" in r.vectors,
+            timeout=120,
+            description="um-v1 fetchable before update (gRPC)",
+        )
+
+        # Update only the "color" field — "size" should survive
+        update_resp = index.update(id="um-v1", set_metadata={"color": "blue"})
+        assert isinstance(update_resp, UpdateResponse)
+
+        # Poll until the metadata change propagates
+        def _color_updated_grpc() -> object:
+            r = index.fetch(ids=["um-v1"])
+            if "um-v1" not in r.vectors:
+                return None
+            meta = r.vectors["um-v1"].metadata
+            if meta is None or meta.get("color") != "blue":
+                return None
+            return r
+
+        fetched = poll_until(
+            query_fn=_color_updated_grpc,
+            check_fn=lambda r: r is not None,
+            timeout=120,
+            description="um-v1 color updated to blue (gRPC)",
+        )
+
+        v = fetched.vectors["um-v1"]  # type: ignore[union-attr]
+        assert v.metadata is not None
+        assert v.metadata.get("color") == "blue", \
+            f"expected color='blue', got {v.metadata.get('color')!r}"
+        assert v.metadata.get("size") == 5, \
+            f"expected size=5 to be preserved but got {v.metadata.get('size')!r}"
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
