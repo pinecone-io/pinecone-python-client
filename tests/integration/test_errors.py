@@ -113,19 +113,8 @@ def test_dimension_mismatch_raises_typed_error_rest(client: Pinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "SDK bug IT-0007: gRPC _call_channel wraps PineconeValueError (INVALID_ARGUMENT) "
-        "as PineconeConnectionError; should raise ApiError(status_code=400) for transport parity"
-    ),
-)
 def test_dimension_mismatch_raises_typed_error_grpc(client: Pinecone) -> None:
-    """Upsert a 3-dim vector into a 2-dim index raises ApiError (status_code=400, gRPC).
-
-    Currently fails: gRPC _call_channel converts PineconeValueError → PineconeConnectionError,
-    breaking transport parity with REST which raises ApiError(status_code=400).
-    """
+    """Upsert a 3-dim vector into a 2-dim index raises ApiError (status_code=400, gRPC)."""
     name = unique_name("idx")
     try:
         client.indexes.create(

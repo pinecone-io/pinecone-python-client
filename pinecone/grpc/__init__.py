@@ -17,7 +17,15 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host
 from pinecone._internal.vector_factory import VectorFactory
-from pinecone.errors.exceptions import PineconeConnectionError, PineconeValueError, ValidationError
+from pinecone.errors.exceptions import (
+    ApiError,
+    ForbiddenError,
+    NotFoundError,
+    PineconeConnectionError,
+    PineconeValueError,
+    UnauthorizedError,
+    ValidationError,
+)
 from pinecone.grpc._protocol import GrpcChannelProtocol
 from pinecone.grpc.future import PineconeFuture
 from pinecone.models.vectors.responses import (
@@ -194,17 +202,33 @@ class GrpcIndex:
         return self._host
 
     def _call_channel(self, method_name: str, *args: Any, **kwargs: Any) -> Any:
-        """Invoke a method on the gRPC channel, wrapping any raised exception.
+        """Invoke a method on the gRPC channel, mapping errors to typed SDK exceptions.
 
-        Rust/PyO3 exceptions have an unknown hierarchy at import time. This
-        wrapper catches all exceptions and re-raises them as
-        :exc:`PineconeConnectionError` so that callers' ``except PineconeError``
-        handlers always catch transport and protocol failures.
+        gRPC application-level errors are mapped to typed SDK exceptions that
+        match the REST transport, providing transport parity for callers:
+
+        - ``INVALID_ARGUMENT`` → :exc:`ApiError` (status_code=400)
+        - ``NOT_FOUND``        → :exc:`NotFoundError` (status_code=404)
+        - ``UNAUTHENTICATED``  → :exc:`UnauthorizedError` (status_code=401)
+        - ``PERMISSION_DENIED`` → :exc:`ForbiddenError` (status_code=403)
+        - All other exceptions → :exc:`PineconeConnectionError`
+
+        Rust/PyO3 exceptions have an unknown hierarchy at import time, so gRPC
+        status code strings are detected by inspecting the exception message.
         """
         try:
             return getattr(self._channel, method_name)(*args, **kwargs)
         except Exception as exc:
-            raise PineconeConnectionError(str(exc)) from exc
+            msg = str(exc)
+            if "INVALID_ARGUMENT" in msg:
+                raise ApiError(msg, status_code=400) from exc
+            if "NOT_FOUND" in msg:
+                raise NotFoundError(msg) from exc
+            if "UNAUTHENTICATED" in msg:
+                raise UnauthorizedError(msg) from exc
+            if "PERMISSION_DENIED" in msg:
+                raise ForbiddenError(msg) from exc
+            raise PineconeConnectionError(msg) from exc
 
     def upsert(
         self,

@@ -11,7 +11,15 @@ import httpx
 import pytest
 import respx
 
-from pinecone.errors.exceptions import PineconeConnectionError, ValidationError
+from pinecone.errors.exceptions import (
+    ApiError,
+    ForbiddenError,
+    NotFoundError,
+    PineconeConnectionError,
+    PineconeValueError,
+    UnauthorizedError,
+    ValidationError,
+)
 from pinecone.grpc import GrpcIndex
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
@@ -618,6 +626,76 @@ class TestGrpcErrorWrapping:
             grpc_index.fetch(ids=["v1"])
 
         assert exc_info.value.__cause__ is original
+
+    def test_invalid_argument_raises_api_error_400(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        """gRPC INVALID_ARGUMENT maps to ApiError(status_code=400) for transport parity."""
+        mock_channel.upsert.side_effect = PineconeValueError(
+            "gRPC INVALID_ARGUMENT: Vector dimension 3 does not match the dimension of the index 2"
+        )
+
+        with pytest.raises(ApiError) as exc_info:
+            grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1, 0.2, 0.3]}])
+
+        err = exc_info.value
+        assert err.status_code == 400
+        assert "INVALID_ARGUMENT" in str(err)
+
+    def test_invalid_argument_exception_chained(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        original = PineconeValueError("gRPC INVALID_ARGUMENT: bad dimension")
+        mock_channel.upsert.side_effect = original
+
+        with pytest.raises(ApiError) as exc_info:
+            grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1]}])
+
+        assert exc_info.value.__cause__ is original
+
+    def test_not_found_raises_not_found_error(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        """gRPC NOT_FOUND maps to NotFoundError(status_code=404)."""
+        mock_channel.fetch.side_effect = RuntimeError("gRPC NOT_FOUND: index does not exist")
+
+        with pytest.raises(NotFoundError) as exc_info:
+            grpc_index.fetch(ids=["v1"])
+
+        assert exc_info.value.status_code == 404
+
+    def test_unauthenticated_raises_unauthorized_error(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        """gRPC UNAUTHENTICATED maps to UnauthorizedError(status_code=401)."""
+        mock_channel.query.side_effect = RuntimeError("gRPC UNAUTHENTICATED: invalid api key")
+
+        with pytest.raises(UnauthorizedError) as exc_info:
+            grpc_index.query(top_k=1, vector=[0.1])
+
+        assert exc_info.value.status_code == 401
+
+    def test_permission_denied_raises_forbidden_error(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        """gRPC PERMISSION_DENIED maps to ForbiddenError(status_code=403)."""
+        mock_channel.describe_index_stats.side_effect = RuntimeError(
+            "gRPC PERMISSION_DENIED: access denied"
+        )
+
+        with pytest.raises(ForbiddenError) as exc_info:
+            grpc_index.describe_index_stats()
+
+        assert exc_info.value.status_code == 403
+
+    def test_unavailable_raises_connection_error(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        """gRPC UNAVAILABLE (transport failure) remains PineconeConnectionError."""
+        mock_channel.upsert.side_effect = RuntimeError("gRPC UNAVAILABLE: connection refused")
+
+        with pytest.raises(PineconeConnectionError):
+            grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1]}])
 
 
 # ---------------------------------------------------------------------------
