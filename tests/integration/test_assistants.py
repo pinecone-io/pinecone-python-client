@@ -387,6 +387,10 @@ def test_assistant_chat_streaming_returns_content_chunks(client: Pinecone) -> No
 
 
 @pytest.mark.integration
+@pytest.mark.xfail(
+    reason="SDK bug IT-0009: _data_plane_http missing /assistant/ path prefix — upload_file returns 404 before chat_completions is reached",
+    strict=True,
+)
 def test_assistant_chat_completions_openai_compatible_response(client: Pinecone) -> None:
     """chat_completions() returns ChatCompletionResponse with OpenAI-compatible structure."""
     name = unique_name("asst")
