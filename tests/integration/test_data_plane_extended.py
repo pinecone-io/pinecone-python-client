@@ -3,7 +3,7 @@
 Phase 2 Tier 1: metadata-filter, sparse-vectors, query-by-id, fetch-missing-ids,
 include-values-metadata, query-namespaces.
 """
-# area tags covered: metadata-filter, sparse-vectors, query-by-id
+# area tags covered: metadata-filter, sparse-vectors, query-by-id, fetch-missing-ids
 
 from __future__ import annotations
 
@@ -307,6 +307,106 @@ def test_query_by_id_grpc(client: Pinecone) -> None:
 
         match_ids = [m.id for m in result.matches]
         assert "qbi-v1" in match_ids
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# fetch-missing-ids — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_fetch_missing_ids_rest(client: Pinecone) -> None:
+    """fetch() with a mix of existing and non-existent IDs returns only existing vectors, no error (REST sync)."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert 2 known vectors
+        index.upsert(
+            vectors=[
+                {"id": "fmi-v1", "values": [0.1, 0.2]},
+                {"id": "fmi-v2", "values": [0.3, 0.4]},
+            ]
+        )
+
+        # Wait for both vectors to be fetchable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["fmi-v1", "fmi-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="both vectors fetchable before missing-id test",
+        )
+
+        # Fetch with a mix of existing and non-existent IDs — no error expected
+        fetch_resp = index.fetch(ids=["fmi-v1", "fmi-v2", "fmi-does-not-exist"])
+        assert isinstance(fetch_resp, FetchResponse)
+
+        # Only existing vectors are returned
+        assert "fmi-v1" in fetch_resp.vectors
+        assert "fmi-v2" in fetch_resp.vectors
+        assert "fmi-does-not-exist" not in fetch_resp.vectors
+        assert len(fetch_resp.vectors) == 2
+
+        # Each returned vector has correct structure
+        v1 = fetch_resp.vectors["fmi-v1"]
+        assert isinstance(v1, Vector)
+        assert v1.id == "fmi-v1"
+        assert len(v1.values) == 2
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# fetch-missing-ids — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_fetch_missing_ids_grpc(client: Pinecone) -> None:
+    """fetch() with a mix of existing and non-existent IDs returns only existing vectors, no error (gRPC)."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        # Upsert 2 known vectors
+        index.upsert(
+            vectors=[
+                {"id": "fmi-v1", "values": [0.1, 0.2]},
+                {"id": "fmi-v2", "values": [0.3, 0.4]},
+            ]
+        )
+
+        # Wait for both vectors to be fetchable
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["fmi-v1", "fmi-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="both vectors fetchable (grpc) before missing-id test",
+        )
+
+        # Fetch with a mix of existing and non-existent IDs — no error expected
+        fetch_resp = index.fetch(ids=["fmi-v1", "fmi-v2", "fmi-does-not-exist"])
+        assert isinstance(fetch_resp, FetchResponse)
+
+        # Only existing vectors are returned
+        assert "fmi-v1" in fetch_resp.vectors
+        assert "fmi-v2" in fetch_resp.vectors
+        assert "fmi-does-not-exist" not in fetch_resp.vectors
+        assert len(fetch_resp.vectors) == 2
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
 

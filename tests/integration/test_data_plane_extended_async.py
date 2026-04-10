@@ -3,7 +3,7 @@
 Phase 2 Tier 1: metadata-filter, sparse-vectors, query-by-id, fetch-missing-ids,
 include-values-metadata, query-namespaces.
 """
-# area tags covered: metadata-filter, sparse-vectors, query-by-id
+# area tags covered: metadata-filter, sparse-vectors, query-by-id, fetch-missing-ids
 
 from __future__ import annotations
 
@@ -242,6 +242,70 @@ async def test_query_by_id_rest_async(async_client: AsyncPinecone) -> None:
 
         match_ids = [m.id for m in result.matches]
         assert "qbi-v1" in match_ids
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# fetch-missing-ids — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_fetch_missing_ids_rest_async(async_client: AsyncPinecone) -> None:
+    """fetch() with a mix of existing and non-existent IDs returns only existing vectors, no error (REST async)."""
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # Populate host cache
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        # Upsert 2 known vectors
+        await idx.upsert(
+            vectors=[
+                {"id": "fmi-v1", "values": [0.1, 0.2]},
+                {"id": "fmi-v2", "values": [0.3, 0.4]},
+            ]
+        )
+
+        # Wait for both vectors to be fetchable (eventual consistency)
+        await async_poll_until(
+            query_fn=lambda: idx.fetch(ids=["fmi-v1", "fmi-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="both vectors fetchable (async) before missing-id test",
+        )
+
+        # Fetch with a mix of existing and non-existent IDs — no error expected
+        fetch_resp = await idx.fetch(ids=["fmi-v1", "fmi-v2", "fmi-does-not-exist"])
+        assert isinstance(fetch_resp, FetchResponse)
+
+        # Only existing vectors are returned
+        assert "fmi-v1" in fetch_resp.vectors
+        assert "fmi-v2" in fetch_resp.vectors
+        assert "fmi-does-not-exist" not in fetch_resp.vectors
+        assert len(fetch_resp.vectors) == 2
+
+        # Each returned vector has correct structure
+        v1 = fetch_resp.vectors["fmi-v1"]
+        assert isinstance(v1, Vector)
+        assert v1.id == "fmi-v1"
+        assert len(v1.values) == 2
     finally:
         if idx is not None:
             await idx.close()
