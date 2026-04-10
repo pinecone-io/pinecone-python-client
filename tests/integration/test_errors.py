@@ -9,7 +9,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import Pinecone
-from pinecone.errors import ApiError, NotFoundError, UnauthorizedError
+from pinecone.errors import ApiError, ConflictError, NotFoundError, UnauthorizedError
 from pinecone.models.indexes.specs import ServerlessSpec
 from tests.integration.conftest import cleanup_resource, unique_name
 
@@ -145,6 +145,43 @@ def test_dimension_mismatch_raises_typed_error_grpc(client: Pinecone) -> None:
 
         err = exc_info.value
         assert err.status_code == 400
+        msg = str(err)
+        assert len(msg) > 0
+        assert not msg.strip().isdigit()
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# error-duplicate-index
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_duplicate_index_raises_conflict_error(client: Pinecone) -> None:
+    """Creating an index with a name that already exists raises ConflictError (status_code=409)."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        with pytest.raises(ConflictError) as exc_info:
+            client.indexes.create(
+                name=name,
+                dimension=2,
+                metric="cosine",
+                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+                timeout=-1,  # skip waiting — index already exists
+            )
+
+        err = exc_info.value
+        assert isinstance(err, ApiError)
+        assert err.status_code == 409
         msg = str(err)
         assert len(msg) > 0
         assert not msg.strip().isdigit()
