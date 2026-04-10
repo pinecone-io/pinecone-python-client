@@ -95,18 +95,7 @@ def test_assistant_lifecycle_create_describe_list_update_delete(client: Pinecone
 # assistant-files
 # ---------------------------------------------------------------------------
 
-_XFAIL_IT0008 = pytest.mark.xfail(
-    reason=(
-        "SDK bug IT-0008: Assistants HTTP client uses wrong base path. "
-        "SDK posts to /assistants (404) instead of /assistant/assistants. "
-        "The Assistants class must prepend /assistant/ to its control-plane routes."
-    ),
-    strict=True,
-)
-
-
 @pytest.mark.integration
-@_XFAIL_IT0008
 def test_assistant_files_upload_list_describe_delete(client: Pinecone) -> None:
     """Upload a file to an assistant, list files, describe file, delete file."""
     name = unique_name("asst")
@@ -192,7 +181,6 @@ def test_assistant_files_upload_list_describe_delete(client: Pinecone) -> None:
 
 
 @pytest.mark.integration
-@_XFAIL_IT0008
 def test_assistant_chat_non_streaming_response(client: Pinecone) -> None:
     """Send a non-streaming chat message and verify ChatResponse structure."""
     name = unique_name("asst")
@@ -258,7 +246,6 @@ def test_assistant_chat_non_streaming_response(client: Pinecone) -> None:
 
 
 @pytest.mark.integration
-@_XFAIL_IT0008
 def test_assistant_context_retrieval(client: Pinecone) -> None:
     """Retrieve context from an assistant and verify ContextResponse structure."""
     name = unique_name("asst")
