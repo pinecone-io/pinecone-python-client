@@ -176,6 +176,12 @@ class VectorFactory:
     def build(item: Any) -> Vector:
         """Convert a user-provided vector input to a ``Vector`` object."""
         item_type = type(item)
+        if item_type is Vector:
+            if not item.values and item.sparse_values is None:
+                raise PineconeValueError(
+                    "Vector must have at least one of non-empty dense values or sparse values"
+                )
+            return item  # type: ignore[no-any-return]
         if item_type is dict:
             item_len = len(item)
             # Inline 2-key happy path to avoid function call overhead
@@ -239,12 +245,6 @@ class VectorFactory:
                     if converted:
                         return Vector(id_, converted)
             return _from_tuple(item)
-        if item_type is Vector:
-            if not item.values and item.sparse_values is None:
-                raise PineconeValueError(
-                    "Vector must have at least one of non-empty dense values or sparse values"
-                )
-            return item  # type: ignore[no-any-return]
         # Subclass fallback
         if isinstance(item, Vector):
             if not item.values and item.sparse_values is None:
