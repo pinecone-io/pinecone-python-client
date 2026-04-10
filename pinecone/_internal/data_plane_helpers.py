@@ -35,13 +35,12 @@ def _vector_to_dict(v: Vector) -> dict[str, Any]:
     """Serialize a Vector to a dict matching the API wire format."""
     id_ = v.id
     vals = v.values
-    sv = v.sparse_values
-    md = v.metadata
-    if sv is not None:
+    if v.sparse_values is not None:
+        sv = v.sparse_values
         sv_dict: dict[str, Any] = {"indices": sv.indices, "values": sv.values}
-        if md is not None:
-            return {"id": id_, "values": vals, "sparseValues": sv_dict, "metadata": md}
+        if v.metadata is not None:
+            return {"id": id_, "values": vals, "sparseValues": sv_dict, "metadata": v.metadata}
         return {"id": id_, "values": vals, "sparseValues": sv_dict}
-    if md is not None:
-        return {"id": id_, "values": vals, "metadata": md}
+    if v.metadata is not None:
+        return {"id": id_, "values": vals, "metadata": v.metadata}
     return {"id": id_, "values": vals}
