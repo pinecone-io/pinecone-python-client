@@ -12,7 +12,11 @@ import msgspec.structs
 import orjson
 
 from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
-from pinecone._internal.constants import ASSISTANT_API_VERSION, ASSISTANT_EVALUATION_BASE_URL
+from pinecone._internal.constants import (
+    ASSISTANT_API_VERSION,
+    ASSISTANT_EVALUATION_BASE_URL,
+    DEFAULT_BASE_URL,
+)
 from pinecone.errors.exceptions import (
     NotFoundError,
     PineconeError,
@@ -65,7 +69,21 @@ class Assistants:
         from pinecone._internal.http_client import HTTPClient as _HTTPClient
 
         self._config = config
-        self._http = _HTTPClient(config, ASSISTANT_API_VERSION)
+        cp_host = (config.host or DEFAULT_BASE_URL).rstrip("/")
+        cp_config = _PineconeConfig(
+            api_key=config.api_key,
+            host=f"{cp_host}/assistant",
+            timeout=config.timeout,
+            additional_headers=config.additional_headers,
+            source_tag=config.source_tag or "",
+            proxy_url=config.proxy_url or "",
+            proxy_headers=config.proxy_headers,
+            ssl_ca_certs=config.ssl_ca_certs,
+            ssl_verify=config.ssl_verify,
+            connection_pool_maxsize=config.connection_pool_maxsize,
+            retry_config=config.retry_config,
+        )
+        self._http = _HTTPClient(cp_config, ASSISTANT_API_VERSION)
         self._adapter = AssistantsAdapter()
         self._data_plane_clients: dict[str, HTTPClient] = {}
 

@@ -85,10 +85,10 @@ def test_create_assistant_region_case_sensitive(async_assistants: AsyncAssistant
 @respx.mock
 async def test_create_assistant_defaults(async_assistants: AsyncAssistants) -> None:
     """Default region is 'us', metadata is {}, instructions is None."""
-    route = respx.post(f"{BASE_URL}/assistants").mock(
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
@@ -112,7 +112,7 @@ async def test_create_assistant_defaults(async_assistants: AsyncAssistants) -> N
 @respx.mock
 async def test_create_assistant_immediate_return(async_assistants: AsyncAssistants) -> None:
     """timeout=-1 returns immediately without polling."""
-    route = respx.post(f"{BASE_URL}/assistants").mock(
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
@@ -126,7 +126,7 @@ async def test_create_assistant_immediate_return(async_assistants: AsyncAssistan
 @respx.mock
 async def test_create_assistant_with_all_params(async_assistants: AsyncAssistants) -> None:
     """Create with instructions, metadata, and region sends correct body."""
-    route = respx.post(f"{BASE_URL}/assistants").mock(
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
@@ -159,11 +159,11 @@ async def test_create_assistant_polls_until_ready(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """Polling loop calls GET until status is 'Ready'."""
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
-    poll_route = respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    poll_route = respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         side_effect=[
             httpx.Response(200, json=make_assistant_response(status="Initializing")),
             httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -183,10 +183,10 @@ async def test_create_assistant_polls_with_correct_interval(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """Polling sleeps with the correct interval between polls."""
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
@@ -212,10 +212,10 @@ async def test_create_assistant_timeout_raises(
     """Exceeding timeout raises PineconeTimeoutError with helpful message."""
     mock_monotonic.side_effect = [0.0, 6.0]  # type: ignore[union-attr]
 
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
@@ -234,11 +234,11 @@ async def test_create_assistant_timeout_zero_polls_once(
     """timeout=0 polls once, then raises if not ready."""
     mock_monotonic.side_effect = [0.0, 0.0, 0.1]  # type: ignore[union-attr]
 
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
-    poll_route = respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    poll_route = respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         side_effect=[
             httpx.Response(200, json=make_assistant_response(status="Initializing")),
             httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -265,10 +265,10 @@ async def test_create_assistant_status_case_sensitive(
     """Status check uses exact 'Ready' — 'ready' or 'READY' does not match."""
     mock_monotonic.side_effect = [0.0, 6.0]  # type: ignore[union-attr]
 
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="ready")),
     )
 
@@ -287,10 +287,10 @@ async def test_create_assistant_polls_indefinitely_when_no_timeout(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """When timeout is None, polling continues until Ready with no deadline."""
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         side_effect=[
             httpx.Response(200, json=make_assistant_response(status="Initializing")),
             httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -312,10 +312,10 @@ async def test_create_assistant_polls_indefinitely_when_no_timeout(
 @respx.mock
 async def test_create_assistant_accepts_us_region(async_assistants: AsyncAssistants) -> None:
     """Region 'us' is accepted."""
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
@@ -326,10 +326,10 @@ async def test_create_assistant_accepts_us_region(async_assistants: AsyncAssista
 @respx.mock
 async def test_create_assistant_accepts_eu_region(async_assistants: AsyncAssistants) -> None:
     """Region 'eu' is accepted."""
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
@@ -352,7 +352,7 @@ async def test_describe_assistant(async_assistants: AsyncAssistants) -> None:
         metadata={"team": "ml"},
         host="my-assistant-abc.svc.pinecone.io",
     )
-    route = respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    route = respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=response_data),
     )
 
@@ -372,7 +372,7 @@ async def test_describe_assistant(async_assistants: AsyncAssistants) -> None:
 @respx.mock
 async def test_describe_assistant_not_found(async_assistants: AsyncAssistants) -> None:
     """describe() lets 404 errors propagate from the HTTP client."""
-    respx.get(f"{BASE_URL}/assistants/nonexistent").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/nonexistent").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
@@ -389,7 +389,7 @@ async def test_describe_assistant_minimal_response(async_assistants: AsyncAssist
         instructions=None,
         host=None,
     )
-    respx.get(f"{BASE_URL}/assistants/minimal").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/minimal").mock(
         return_value=httpx.Response(200, json=response_data),
     )
 
@@ -409,7 +409,7 @@ async def test_describe_assistant_minimal_response(async_assistants: AsyncAssist
 @respx.mock
 async def test_list_assistants_empty(async_assistants: AsyncAssistants) -> None:
     """list() returns an AsyncPaginator that yields nothing when no assistants exist."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
@@ -422,7 +422,7 @@ async def test_list_assistants_empty(async_assistants: AsyncAssistants) -> None:
 @respx.mock
 async def test_list_assistants_single_page(async_assistants: AsyncAssistants) -> None:
     """list() returns an AsyncPaginator over all assistants from a single-page response."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -445,7 +445,7 @@ async def test_list_assistants_single_page(async_assistants: AsyncAssistants) ->
 @respx.mock
 async def test_list_assistants_multi_page(async_assistants: AsyncAssistants) -> None:
     """list() auto-paginates through multiple pages via AsyncPaginator."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         side_effect=[
             httpx.Response(
                 200,
@@ -479,7 +479,7 @@ async def test_list_assistants_multi_page(async_assistants: AsyncAssistants) -> 
 @respx.mock
 async def test_list_assistants_to_list(async_assistants: AsyncAssistants) -> None:
     """list().to_list() collects all assistants into a list."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -500,7 +500,7 @@ async def test_list_assistants_to_list(async_assistants: AsyncAssistants) -> Non
 @respx.mock
 async def test_list_assistants_iteration(async_assistants: AsyncAssistants) -> None:
     """list() supports direct async for-loop iteration."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -520,7 +520,7 @@ async def test_list_assistants_iteration(async_assistants: AsyncAssistants) -> N
 @respx.mock
 async def test_list_assistants_with_limit(async_assistants: AsyncAssistants) -> None:
     """list(limit=N) yields at most N items across all pages."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -544,7 +544,7 @@ async def test_list_assistants_with_limit(async_assistants: AsyncAssistants) -> 
 @respx.mock
 async def test_list_assistants_pages(async_assistants: AsyncAssistants) -> None:
     """list().pages() yields Page objects with items and has_more."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         side_effect=[
             httpx.Response(
                 200,
@@ -576,7 +576,7 @@ async def test_list_assistants_pages(async_assistants: AsyncAssistants) -> None:
 @respx.mock
 async def test_list_assistants_with_pagination_token(async_assistants: AsyncAssistants) -> None:
     """list(pagination_token=...) starts from the given token."""
-    route = respx.get(f"{BASE_URL}/assistants").mock(
+    route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={"assistants": [make_assistant_response(name="a2")]},
@@ -599,7 +599,7 @@ async def test_list_assistants_with_pagination_token(async_assistants: AsyncAssi
 @respx.mock
 async def test_list_assistants_page(async_assistants: AsyncAssistants) -> None:
     """list_page() returns single page with next token."""
-    route = respx.get(f"{BASE_URL}/assistants").mock(
+    route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -621,7 +621,7 @@ async def test_list_assistants_page(async_assistants: AsyncAssistants) -> None:
 @respx.mock
 async def test_list_assistants_page_last_page(async_assistants: AsyncAssistants) -> None:
     """list_page() returns no next token on the last page."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -638,7 +638,7 @@ async def test_list_assistants_page_last_page(async_assistants: AsyncAssistants)
 @respx.mock
 async def test_list_assistants_page_with_page_size(async_assistants: AsyncAssistants) -> None:
     """list_page() sends pageSize query param when provided."""
-    route = respx.get(f"{BASE_URL}/assistants").mock(
+    route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
@@ -653,7 +653,7 @@ async def test_list_assistants_page_with_pagination_token(
     async_assistants: AsyncAssistants,
 ) -> None:
     """list_page() sends paginationToken query param when provided."""
-    route = respx.get(f"{BASE_URL}/assistants").mock(
+    route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
@@ -668,7 +668,7 @@ async def test_list_assistants_page_omits_none_params(
     async_assistants: AsyncAssistants,
 ) -> None:
     """list_page() does not send params that are None."""
-    route = respx.get(f"{BASE_URL}/assistants").mock(
+    route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
@@ -691,7 +691,7 @@ async def test_update_assistant_instructions(async_assistants: AsyncAssistants) 
         name="my-assistant",
         instructions="Updated instructions.",
     )
-    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+    route = respx.patch(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=updated_response),
     )
 
@@ -717,7 +717,7 @@ async def test_update_assistant_metadata(async_assistants: AsyncAssistants) -> N
         name="my-assistant",
         metadata=new_metadata,
     )
-    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+    route = respx.patch(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=updated_response),
     )
 
@@ -740,7 +740,7 @@ async def test_update_assistant_both_fields(async_assistants: AsyncAssistants) -
         instructions="New instructions.",
         metadata={"env": "prod"},
     )
-    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+    route = respx.patch(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=updated_response),
     )
 
@@ -762,7 +762,7 @@ async def test_update_assistant_both_fields(async_assistants: AsyncAssistants) -
 async def test_update_assistant_omits_none_fields(async_assistants: AsyncAssistants) -> None:
     """update() only includes provided fields in the request body."""
     updated_response = make_assistant_response(name="my-assistant")
-    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+    route = respx.patch(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=updated_response),
     )
 
@@ -777,7 +777,7 @@ async def test_update_assistant_omits_none_fields(async_assistants: AsyncAssista
 @respx.mock
 async def test_update_assistant_not_found(async_assistants: AsyncAssistants) -> None:
     """update() lets 404 errors propagate from the HTTP client."""
-    respx.patch(f"{BASE_URL}/assistants/nonexistent").mock(
+    respx.patch(f"{BASE_URL}/assistant/assistants/nonexistent").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
@@ -794,10 +794,10 @@ async def test_update_assistant_not_found(async_assistants: AsyncAssistants) -> 
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_delete_assistant(mock_sleep: object, async_assistants: AsyncAssistants) -> None:
     """delete() sends DELETE then polls describe until 404 confirms deletion."""
-    route = respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+    route = respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
     )
-    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
@@ -808,7 +808,7 @@ async def test_delete_assistant(mock_sleep: object, async_assistants: AsyncAssis
 
     request = route.calls.last.request
     assert request.method == "DELETE"
-    assert str(request.url) == f"{BASE_URL}/assistants/my-assistant"
+    assert str(request.url) == f"{BASE_URL}/assistant/assistants/my-assistant"
 
 
 @respx.mock
@@ -817,10 +817,10 @@ async def test_delete_assistant_polls_until_gone(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """delete() polls describe every 5s; returns when 404 is received."""
-    respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
     )
-    describe_route = respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    describe_route = respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         side_effect=[
             httpx.Response(
                 200, json=make_assistant_response(name="my-assistant", status="Terminating")
@@ -848,7 +848,7 @@ async def test_delete_assistant_timeout_minus_one_skips_polling(
     async_assistants: AsyncAssistants,
 ) -> None:
     """delete(timeout=-1) returns immediately without polling."""
-    delete_route = respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+    delete_route = respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
     )
 
@@ -867,10 +867,10 @@ async def test_delete_assistant_timeout_raises(
     """Exceeding timeout raises PineconeTimeoutError."""
     mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
 
-    respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
     )
-    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(
             200, json=make_assistant_response(name="my-assistant", status="Terminating")
         ),
@@ -883,7 +883,7 @@ async def test_delete_assistant_timeout_raises(
 @respx.mock
 async def test_delete_assistant_not_found(async_assistants: AsyncAssistants) -> None:
     """delete() lets 404 errors from the initial DELETE propagate."""
-    respx.delete(f"{BASE_URL}/assistants/nonexistent").mock(
+    respx.delete(f"{BASE_URL}/assistant/assistants/nonexistent").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
@@ -921,7 +921,7 @@ async def test_async_pinecone_assistant_convenience_method() -> None:
         metadata={"team": "ml"},
         host="my-assistant-abc.svc.pinecone.io",
     )
-    route = respx.get(f"{CONTROL_PLANE_URL}/assistants/my-assistant").mock(
+    route = respx.get(f"{CONTROL_PLANE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=response_data),
     )
 
@@ -943,7 +943,7 @@ async def test_async_pinecone_assistant_not_found() -> None:
     """pc.assistant(name=...) raises NotFoundError when assistant does not exist."""
     from pinecone.async_client.pinecone import AsyncPinecone
 
-    respx.get(f"{CONTROL_PLANE_URL}/assistants/nonexistent").mock(
+    respx.get(f"{CONTROL_PLANE_URL}/assistant/assistants/nonexistent").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
@@ -1040,7 +1040,7 @@ async def test_data_plane_http_returns_client_for_host(
     """_data_plane_http() returns an AsyncHTTPClient configured with the assistant's host."""
     from pinecone._internal.http_client import AsyncHTTPClient
 
-    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(
             200,
             json=make_assistant_response(
@@ -1058,7 +1058,7 @@ async def test_data_plane_http_returns_client_for_host(
 @respx.mock
 async def test_data_plane_http_caches_client(async_assistants: AsyncAssistants) -> None:
     """_data_plane_http() returns the same client on repeated calls (no extra describe)."""
-    describe_route = respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    describe_route = respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(
             200,
             json=make_assistant_response(
@@ -1079,13 +1079,13 @@ async def test_data_plane_http_different_assistants_get_different_clients(
     async_assistants: AsyncAssistants,
 ) -> None:
     """_data_plane_http() caches separately per assistant name."""
-    respx.get(f"{BASE_URL}/assistants/assistant-a").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/assistant-a").mock(
         return_value=httpx.Response(
             200,
             json=make_assistant_response(name="assistant-a", host="host-a.svc.pinecone.io"),
         ),
     )
-    respx.get(f"{BASE_URL}/assistants/assistant-b").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/assistant-b").mock(
         return_value=httpx.Response(
             200,
             json=make_assistant_response(name="assistant-b", host="host-b.svc.pinecone.io"),
@@ -1105,7 +1105,7 @@ async def test_data_plane_http_raises_when_host_is_none(
     async_assistants: AsyncAssistants,
 ) -> None:
     """_data_plane_http() raises PineconeValueError when assistant has no host."""
-    respx.get(f"{BASE_URL}/assistants/no-host-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/no-host-assistant").mock(
         return_value=httpx.Response(
             200,
             json=make_assistant_response(name="no-host-assistant", host=None),
@@ -1121,7 +1121,7 @@ async def test_data_plane_http_raises_when_host_is_empty_string(
     async_assistants: AsyncAssistants,
 ) -> None:
     """_data_plane_http() raises PineconeValueError when assistant host is empty string."""
-    respx.get(f"{BASE_URL}/assistants/empty-host-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/empty-host-assistant").mock(
         return_value=httpx.Response(
             200,
             json=make_assistant_response(name="empty-host-assistant", host=""),
@@ -1140,7 +1140,7 @@ async def test_data_plane_http_raises_when_host_is_empty_string(
 @respx.mock
 async def test_async_describe_file_success(async_assistants: AsyncAssistants) -> None:
     """describe_file() sends GET /files/{name}/{id} via data-plane and returns AssistantFileModel."""  # noqa: E501
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1160,7 +1160,7 @@ async def test_async_describe_file_success(async_assistants: AsyncAssistants) ->
 @respx.mock
 async def test_async_describe_file_without_url(async_assistants: AsyncAssistants) -> None:
     """describe_file() does not send include_url param by default."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1176,7 +1176,7 @@ async def test_async_describe_file_without_url(async_assistants: AsyncAssistants
 @respx.mock
 async def test_async_describe_file_with_url(async_assistants: AsyncAssistants) -> None:
     """describe_file(include_url=True) sends include_url=true query param."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1198,7 +1198,7 @@ async def test_async_describe_file_with_url(async_assistants: AsyncAssistants) -
 @respx.mock
 async def test_async_describe_file_not_found(async_assistants: AsyncAssistants) -> None:
     """describe_file() raises NotFoundError when file does not exist."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant/nonexistent").mock(
@@ -1217,7 +1217,7 @@ async def test_async_describe_file_not_found(async_assistants: AsyncAssistants) 
 @respx.mock
 async def test_async_list_files_page_success(async_assistants: AsyncAssistants) -> None:
     """list_files_page() returns ListFilesResponse with files and next token."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1242,7 +1242,7 @@ async def test_async_list_files_page_success(async_assistants: AsyncAssistants) 
 @respx.mock
 async def test_async_list_files_page_last_page(async_assistants: AsyncAssistants) -> None:
     """list_files_page() returns no next token on the last page."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1259,7 +1259,7 @@ async def test_async_list_files_page_with_page_size(
     async_assistants: AsyncAssistants,
 ) -> None:
     """list_files_page() sends pageSize query param when provided."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1277,7 +1277,7 @@ async def test_async_list_files_page_with_pagination_token(
     async_assistants: AsyncAssistants,
 ) -> None:
     """list_files_page() sends paginationToken query param when provided."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1297,7 +1297,7 @@ async def test_async_list_files_page_with_filter(
     async_assistants: AsyncAssistants,
 ) -> None:
     """list_files_page() serializes filter dict to JSON string query param."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1320,7 +1320,7 @@ async def test_async_list_files_page_omits_none_params(
     async_assistants: AsyncAssistants,
 ) -> None:
     """list_files_page() does not send params that are None."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1350,7 +1350,7 @@ def test_async_list_files_returns_async_paginator(async_assistants: AsyncAssista
 @respx.mock
 async def test_async_list_files_empty(async_assistants: AsyncAssistants) -> None:
     """list_files() yields no items when no files exist."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1365,7 +1365,7 @@ async def test_async_list_files_empty(async_assistants: AsyncAssistants) -> None
 @respx.mock
 async def test_async_list_files_single_page(async_assistants: AsyncAssistants) -> None:
     """list_files() yields all files from a single-page response."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1391,7 +1391,7 @@ async def test_async_list_files_single_page(async_assistants: AsyncAssistants) -
 @respx.mock
 async def test_async_list_files_multi_page(async_assistants: AsyncAssistants) -> None:
     """list_files() auto-paginates through multiple pages collecting all files."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1428,7 +1428,7 @@ async def test_async_list_files_multi_page(async_assistants: AsyncAssistants) ->
 @respx.mock
 async def test_async_list_files_with_filter(async_assistants: AsyncAssistants) -> None:
     """list_files() passes filter to list_files_page on each request."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1453,7 +1453,7 @@ async def test_async_list_files_with_filter(async_assistants: AsyncAssistants) -
 @respx.mock
 async def test_async_list_files_limit_accepted(async_assistants: AsyncAssistants) -> None:
     """list_files() accepts a limit parameter and stops after that many items."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1482,7 +1482,7 @@ async def test_async_list_files_pagination_token_accepted(  # noqa: E501
     async_assistants: AsyncAssistants,
 ) -> None:
     """list_files() accepts a pagination_token to resume from a previous page."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1505,7 +1505,7 @@ async def test_async_list_files_pagination_token_accepted(  # noqa: E501
 @respx.mock
 async def test_async_list_files_async_for_loop(async_assistants: AsyncAssistants) -> None:
     """list_files() supports async for iteration."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1577,7 +1577,7 @@ async def test_async_upload_file_from_stream(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """upload_file with file_stream uploads and polls until Available."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1615,7 +1615,7 @@ async def test_async_upload_file_multimodal_true(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """multimodal=True is serialized as 'true' in query params."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1642,7 +1642,7 @@ async def test_async_upload_file_multimodal_false(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """multimodal=False is serialized as 'false' in query params."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1674,7 +1674,7 @@ async def test_async_upload_file_with_metadata_and_file_id(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """upload_file sends metadata as JSON string and file_id as query params."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1709,7 +1709,7 @@ async def test_async_upload_file_polls_with_correct_interval(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """upload_file polls every _UPLOAD_POLL_INTERVAL_SECONDS seconds."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1746,7 +1746,7 @@ async def test_async_upload_file_processing_failed(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """If processing fails, raises PineconeError with the server's error message."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1784,7 +1784,7 @@ async def test_async_upload_file_timeout_raises(
     """Timeout raises PineconeTimeoutError with operation ID in message."""
     mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
 
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1808,7 +1808,7 @@ async def test_async_upload_file_timeout_raises(
 @respx.mock
 async def test_async_upload_timeout_negative_one(async_assistants: AsyncAssistants) -> None:
     """upload_file(timeout=-1) calls describe_file once without polling."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1842,7 +1842,7 @@ async def test_async_delete_file_success(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """delete_file() sends DELETE then polls until 404 confirms deletion."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     delete_route = respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1866,7 +1866,7 @@ async def test_async_delete_file_polls_until_gone(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """delete_file() polls describe_file every 5s; returns when 404 received."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1898,7 +1898,7 @@ async def test_async_delete_file_timeout_minus_one_skips_polling(
     async_assistants: AsyncAssistants,
 ) -> None:
     """delete_file(timeout=-1) returns immediately without polling."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     delete_route = respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1922,7 +1922,7 @@ async def test_async_delete_file_timeout_raises(
     """Exceeding timeout raises PineconeTimeoutError."""
     mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
 
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1944,7 +1944,7 @@ async def test_async_delete_file_server_error_raises(
     mock_sleep: object, async_assistants: AsyncAssistants
 ) -> None:
     """delete_file() raises PineconeError if server-side deletion fails."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -2010,7 +2010,7 @@ async def test_async_context_with_query(async_assistants: AsyncAssistants) -> No
     """context() with query POSTs to /chat/{name}/context and returns ContextResponse."""
     from pinecone.models.assistant.context import ContextResponse
 
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
@@ -2033,7 +2033,7 @@ async def test_async_context_with_query(async_assistants: AsyncAssistants) -> No
 @respx.mock
 async def test_async_context_with_messages(async_assistants: AsyncAssistants) -> None:
     """context() with messages parses and sends them; does not send query."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
@@ -2057,7 +2057,7 @@ async def test_async_context_optional_params_included_when_provided(
     async_assistants: AsyncAssistants,
 ) -> None:
     """Optional parameters are sent in the request body when provided."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
@@ -2087,7 +2087,7 @@ async def test_async_context_optional_params_omitted_when_absent(
     async_assistants: AsyncAssistants,
 ) -> None:
     """Optional parameters are not included in the request body when not provided."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
@@ -2226,7 +2226,7 @@ def test_async_chat_json_streaming_validation(async_assistants: AsyncAssistants)
 @respx.mock
 async def test_async_chat_default_model(async_assistants: AsyncAssistants) -> None:
     """chat() defaults model to 'gpt-4o' when not specified."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
@@ -2263,7 +2263,7 @@ async def test_async_chat_default_model(async_assistants: AsyncAssistants) -> No
 @respx.mock
 async def test_async_chat_message_parsing(async_assistants: AsyncAssistants) -> None:
     """Dicts are converted to Message objects; missing role defaults to 'user'."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
@@ -2306,7 +2306,7 @@ async def test_async_chat_completions_default_stream_false(
     async_assistants: AsyncAssistants,
 ) -> None:
     """chat_completions() defaults stream to False and posts to the completions endpoint."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     completions_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
@@ -2348,7 +2348,7 @@ async def test_async_chat_completions_default_stream_false(
 @respx.mock
 async def test_async_chat_streaming_sse_parsing(async_assistants: AsyncAssistants) -> None:
     """Empty SSE lines are skipped and 'data:' prefix is stripped before JSON parsing."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
@@ -2384,7 +2384,7 @@ async def test_async_chat_streaming_sse_parsing(async_assistants: AsyncAssistant
 @respx.mock
 async def test_async_chat_streaming_chunk_dispatch(async_assistants: AsyncAssistants) -> None:
     """Correct chunk types are yielded based on the 'type' field in each SSE event."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
@@ -2433,7 +2433,7 @@ async def test_async_chat_streaming_chunk_dispatch(async_assistants: AsyncAssist
 @respx.mock
 async def test_async_chat_streaming_request_body(async_assistants: AsyncAssistants) -> None:
     """Streaming chat always includes stream=True and include_highlights in body."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
@@ -2469,7 +2469,7 @@ async def test_async_chat_completions_streaming_sse_parsing(
     async_assistants: AsyncAssistants,
 ) -> None:
     """chat_completions streaming parses SSE lines as ChatCompletionStreamChunk."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
@@ -2514,7 +2514,7 @@ async def test_async_chat_streaming_handles_done_sentinel(
     async_assistants: AsyncAssistants,
 ) -> None:
     """data: [DONE] terminates the stream cleanly without raising JSONDecodeError."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
@@ -2550,7 +2550,7 @@ async def test_async_chat_completions_streaming_handles_done_sentinel(
     async_assistants: AsyncAssistants,
 ) -> None:
     """data: [DONE] terminates the completions stream cleanly without raising."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (

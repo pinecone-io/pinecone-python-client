@@ -84,10 +84,10 @@ def test_create_assistant_region_case_sensitive(assistants: Assistants) -> None:
 @respx.mock
 def test_create_assistant_defaults(assistants: Assistants) -> None:
     """Default region is 'us', metadata is {}, instructions is None."""
-    route = respx.post(f"{BASE_URL}/assistants").mock(
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
@@ -111,7 +111,7 @@ def test_create_assistant_defaults(assistants: Assistants) -> None:
 @respx.mock
 def test_create_assistant_immediate_return(assistants: Assistants) -> None:
     """timeout=-1 returns immediately without polling."""
-    route = respx.post(f"{BASE_URL}/assistants").mock(
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
@@ -125,7 +125,7 @@ def test_create_assistant_immediate_return(assistants: Assistants) -> None:
 @respx.mock
 def test_create_assistant_with_all_params(assistants: Assistants) -> None:
     """Create with instructions, metadata, and region sends correct body."""
-    route = respx.post(f"{BASE_URL}/assistants").mock(
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
@@ -156,11 +156,11 @@ def test_create_assistant_with_all_params(assistants: Assistants) -> None:
 @patch("pinecone.client.assistants.time.sleep")
 def test_create_assistant_polls_until_ready(mock_sleep: object, assistants: Assistants) -> None:
     """Polling loop calls GET until status is 'Ready'."""
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
-    poll_route = respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    poll_route = respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         side_effect=[
             httpx.Response(200, json=make_assistant_response(status="Initializing")),
             httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -180,10 +180,10 @@ def test_create_assistant_polls_with_correct_interval(
     mock_sleep: object, assistants: Assistants
 ) -> None:
     """Polling sleeps with the correct interval between polls."""
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
@@ -213,10 +213,10 @@ def test_create_assistant_timeout_raises(
     # Simulate time progression: start=0, after first poll=6 (exceeds timeout=5)
     mock_monotonic.side_effect = [0.0, 6.0]  # type: ignore[union-attr]
 
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
@@ -236,11 +236,11 @@ def test_create_assistant_timeout_zero_polls_once(
     # start=0, first elapsed check=0.0 (not >= 0, so one iteration), second=0.1 (>= 0)
     mock_monotonic.side_effect = [0.0, 0.0, 0.1]  # type: ignore[union-attr]
 
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
-    poll_route = respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    poll_route = respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         side_effect=[
             httpx.Response(200, json=make_assistant_response(status="Initializing")),
             httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -268,10 +268,10 @@ def test_create_assistant_status_case_sensitive(
     """Status check uses exact 'Ready' — 'ready' or 'READY' does not match."""
     mock_monotonic.side_effect = [0.0, 6.0]  # type: ignore[union-attr]
 
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="ready")),
     )
 
@@ -290,10 +290,10 @@ def test_create_assistant_polls_indefinitely_when_no_timeout(
     mock_sleep: object, assistants: Assistants
 ) -> None:
     """When timeout is None, polling continues until Ready with no deadline."""
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         side_effect=[
             httpx.Response(200, json=make_assistant_response(status="Initializing")),
             httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -311,10 +311,10 @@ def test_create_assistant_polls_indefinitely_when_no_timeout(
 @patch("pinecone.client.assistants.time.sleep")
 def test_create_timeout_none(mock_sleep: object, assistants: Assistants) -> None:
     """timeout=None waits indefinitely until Ready."""
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
@@ -326,7 +326,7 @@ def test_create_timeout_none(mock_sleep: object, assistants: Assistants) -> None
 @respx.mock
 def test_create_timeout_negative_one(assistants: Assistants) -> None:
     """timeout=-1 returns immediately without polling."""
-    create_route = respx.post(f"{BASE_URL}/assistants").mock(
+    create_route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
     )
 
@@ -344,10 +344,10 @@ def test_create_timeout_negative_one(assistants: Assistants) -> None:
 @respx.mock
 def test_create_assistant_accepts_us_region(assistants: Assistants) -> None:
     """Region 'us' is accepted."""
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
@@ -358,10 +358,10 @@ def test_create_assistant_accepts_us_region(assistants: Assistants) -> None:
 @respx.mock
 def test_create_assistant_accepts_eu_region(assistants: Assistants) -> None:
     """Region 'eu' is accepted."""
-    respx.post(f"{BASE_URL}/assistants").mock(
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
 
@@ -384,7 +384,7 @@ def test_describe_assistant(assistants: Assistants) -> None:
         metadata={"team": "ml"},
         host="my-assistant-abc.svc.pinecone.io",
     )
-    route = respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    route = respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=response_data),
     )
 
@@ -404,7 +404,7 @@ def test_describe_assistant(assistants: Assistants) -> None:
 @respx.mock
 def test_describe_assistant_not_found(assistants: Assistants) -> None:
     """describe() lets 404 errors propagate from the HTTP client."""
-    respx.get(f"{BASE_URL}/assistants/nonexistent").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/nonexistent").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
@@ -421,7 +421,7 @@ def test_describe_assistant_minimal_response(assistants: Assistants) -> None:
         instructions=None,
         host=None,
     )
-    respx.get(f"{BASE_URL}/assistants/minimal").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/minimal").mock(
         return_value=httpx.Response(200, json=response_data),
     )
 
@@ -441,7 +441,7 @@ def test_describe_assistant_minimal_response(assistants: Assistants) -> None:
 @respx.mock
 def test_list_assistants_empty(assistants: Assistants) -> None:
     """list() returns a Paginator that yields nothing when no assistants exist."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
@@ -454,7 +454,7 @@ def test_list_assistants_empty(assistants: Assistants) -> None:
 @respx.mock
 def test_list_assistants_single_page(assistants: Assistants) -> None:
     """list() returns a Paginator over all assistants from a single-page response."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -477,7 +477,7 @@ def test_list_assistants_single_page(assistants: Assistants) -> None:
 @respx.mock
 def test_list_assistants_multi_page(assistants: Assistants) -> None:
     """list() auto-paginates through multiple pages via Paginator."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         side_effect=[
             httpx.Response(
                 200,
@@ -511,7 +511,7 @@ def test_list_assistants_multi_page(assistants: Assistants) -> None:
 @respx.mock
 def test_list_assistants_to_list(assistants: Assistants) -> None:
     """list().to_list() collects all assistants into a list."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -532,7 +532,7 @@ def test_list_assistants_to_list(assistants: Assistants) -> None:
 @respx.mock
 def test_list_assistants_iteration(assistants: Assistants) -> None:
     """list() supports direct for-loop iteration."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -552,7 +552,7 @@ def test_list_assistants_iteration(assistants: Assistants) -> None:
 @respx.mock
 def test_list_assistants_with_limit(assistants: Assistants) -> None:
     """list(limit=N) yields at most N items across all pages."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -576,7 +576,7 @@ def test_list_assistants_with_limit(assistants: Assistants) -> None:
 @respx.mock
 def test_list_assistants_pages(assistants: Assistants) -> None:
     """list().pages() yields Page objects with items and has_more."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         side_effect=[
             httpx.Response(
                 200,
@@ -608,7 +608,7 @@ def test_list_assistants_pages(assistants: Assistants) -> None:
 @respx.mock
 def test_list_assistants_with_pagination_token(assistants: Assistants) -> None:
     """list(pagination_token=...) starts from the given token."""
-    route = respx.get(f"{BASE_URL}/assistants").mock(
+    route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={"assistants": [make_assistant_response(name="a2")]},
@@ -631,7 +631,7 @@ def test_list_assistants_with_pagination_token(assistants: Assistants) -> None:
 @respx.mock
 def test_list_assistants_page(assistants: Assistants) -> None:
     """list_page() returns single page with next token."""
-    route = respx.get(f"{BASE_URL}/assistants").mock(
+    route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -653,7 +653,7 @@ def test_list_assistants_page(assistants: Assistants) -> None:
 @respx.mock
 def test_list_assistants_page_last_page(assistants: Assistants) -> None:
     """list_page() returns no next token on the last page."""
-    respx.get(f"{BASE_URL}/assistants").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(
             200,
             json={
@@ -670,7 +670,7 @@ def test_list_assistants_page_last_page(assistants: Assistants) -> None:
 @respx.mock
 def test_list_assistants_page_with_page_size(assistants: Assistants) -> None:
     """list_page() sends pageSize query param when provided."""
-    route = respx.get(f"{BASE_URL}/assistants").mock(
+    route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
@@ -683,7 +683,7 @@ def test_list_assistants_page_with_page_size(assistants: Assistants) -> None:
 @respx.mock
 def test_list_assistants_page_with_pagination_token(assistants: Assistants) -> None:
     """list_page() sends paginationToken query param when provided."""
-    route = respx.get(f"{BASE_URL}/assistants").mock(
+    route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
@@ -705,7 +705,7 @@ def test_update_assistant_instructions(assistants: Assistants) -> None:
         name="my-assistant",
         instructions="Updated instructions.",
     )
-    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+    route = respx.patch(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=updated_response),
     )
 
@@ -729,7 +729,7 @@ def test_update_assistant_metadata(assistants: Assistants) -> None:
         name="my-assistant",
         metadata=new_metadata,
     )
-    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+    route = respx.patch(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=updated_response),
     )
 
@@ -752,7 +752,7 @@ def test_update_assistant_both_fields(assistants: Assistants) -> None:
         instructions="New instructions.",
         metadata={"env": "prod"},
     )
-    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+    route = respx.patch(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=updated_response),
     )
 
@@ -777,7 +777,7 @@ def test_update_assistant_clear_instructions(assistants: Assistants) -> None:
         name="my-assistant",
         instructions="",
     )
-    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+    route = respx.patch(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=updated_response),
     )
 
@@ -794,7 +794,7 @@ def test_update_assistant_clear_instructions(assistants: Assistants) -> None:
 def test_update_assistant_omits_none_fields(assistants: Assistants) -> None:
     """update() only includes provided fields in the request body."""
     updated_response = make_assistant_response(name="my-assistant")
-    route = respx.patch(f"{BASE_URL}/assistants/my-assistant").mock(
+    route = respx.patch(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=updated_response),
     )
 
@@ -809,7 +809,7 @@ def test_update_assistant_omits_none_fields(assistants: Assistants) -> None:
 @respx.mock
 def test_update_assistant_not_found(assistants: Assistants) -> None:
     """update() lets 404 errors propagate from the HTTP client."""
-    respx.patch(f"{BASE_URL}/assistants/nonexistent").mock(
+    respx.patch(f"{BASE_URL}/assistant/assistants/nonexistent").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
@@ -831,10 +831,10 @@ def test_update_assistant_not_found(assistants: Assistants) -> None:
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_assistant(mock_sleep: object, assistants: Assistants) -> None:
     """delete() sends DELETE then polls describe until 404 confirms deletion."""
-    delete_route = respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+    delete_route = respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
     )
-    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
@@ -845,17 +845,17 @@ def test_delete_assistant(mock_sleep: object, assistants: Assistants) -> None:
 
     request = delete_route.calls.last.request
     assert request.method == "DELETE"
-    assert str(request.url) == f"{BASE_URL}/assistants/my-assistant"
+    assert str(request.url) == f"{BASE_URL}/assistant/assistants/my-assistant"
 
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_assistant_polls_until_gone(mock_sleep: object, assistants: Assistants) -> None:
     """delete() polls describe every 5s; returns when 404 is received."""
-    respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
     )
-    describe_route = respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    describe_route = respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         side_effect=[
             httpx.Response(
                 200, json=make_assistant_response(name="my-assistant", status="Terminating")
@@ -883,7 +883,7 @@ def test_delete_assistant_polls_until_gone(mock_sleep: object, assistants: Assis
 @respx.mock
 def test_delete_assistant_timeout_minus_one_skips_polling(assistants: Assistants) -> None:
     """delete(timeout=-1) returns immediately without polling."""
-    delete_route = respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+    delete_route = respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
     )
 
@@ -902,10 +902,10 @@ def test_delete_assistant_timeout_raises(
     """Exceeding timeout raises PineconeTimeoutError."""
     mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
 
-    respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
     )
-    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(
             200, json=make_assistant_response(name="my-assistant", status="Terminating")
         ),
@@ -924,10 +924,10 @@ def test_delete_timeout_exceeded(
     """Exceeding timeout during delete raises PineconeTimeoutError."""
     mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
 
-    respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
     )
-    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(
             200, json=make_assistant_response(name="my-assistant", status="Terminating")
         ),
@@ -943,10 +943,10 @@ def test_delete_assistant_polls_indefinitely_when_no_timeout(
     mock_sleep: object, assistants: Assistants
 ) -> None:
     """When timeout is None, polling continues until 404 with no deadline."""
-    respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
     )
-    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         side_effect=[
             httpx.Response(
                 200, json=make_assistant_response(name="my-assistant", status="Terminating")
@@ -969,7 +969,7 @@ def test_delete_assistant_polls_indefinitely_when_no_timeout(
 @respx.mock
 def test_delete_assistant_not_found(assistants: Assistants) -> None:
     """delete() lets 404 errors propagate from the initial DELETE request."""
-    respx.delete(f"{BASE_URL}/assistants/nonexistent").mock(
+    respx.delete(f"{BASE_URL}/assistant/assistants/nonexistent").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
@@ -985,10 +985,10 @@ def test_delete_assistant_propagates_non_404_errors_during_poll(
     """Non-404 errors during polling propagate instead of being swallowed."""
     from pinecone.errors.exceptions import ServiceError
 
-    respx.delete(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
     )
-    respx.get(f"{BASE_URL}/assistants/my-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(500, json={"error": "Internal server error"}),
     )
 
@@ -1004,7 +1004,7 @@ def test_delete_assistant_propagates_non_404_errors_during_poll(
 @respx.mock
 def test_list_assistants_page_omits_none_params(assistants: Assistants) -> None:
     """list_page() does not send params that are None."""
-    route = respx.get(f"{BASE_URL}/assistants").mock(
+    route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
 
@@ -1033,7 +1033,7 @@ def test_pinecone_assistant_convenience_method() -> None:
         metadata={"team": "ml"},
         host="my-assistant-abc.svc.pinecone.io",
     )
-    route = respx.get(f"{CONTROL_PLANE_URL}/assistants/my-assistant").mock(
+    route = respx.get(f"{CONTROL_PLANE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(200, json=response_data),
     )
 
@@ -1052,7 +1052,7 @@ def test_pinecone_assistant_convenience_method() -> None:
 @respx.mock
 def test_pinecone_assistant_not_found() -> None:
     """pc.assistant(name=...) raises NotFoundError when assistant does not exist."""
-    respx.get(f"{CONTROL_PLANE_URL}/assistants/nonexistent").mock(
+    respx.get(f"{CONTROL_PLANE_URL}/assistant/assistants/nonexistent").mock(
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
@@ -1104,7 +1104,7 @@ def test_upload_file_both_path_and_stream(assistants: Assistants) -> None:
 def test_upload_file_multimodal_serialization(mock_sleep: object, assistants: Assistants) -> None:
     """multimodal bool is converted to lowercase string in query params."""
     # Mock describe call for data-plane host resolution
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
 
@@ -1136,7 +1136,7 @@ def test_upload_file_multimodal_false_serialization(
     mock_sleep: object, assistants: Assistants
 ) -> None:
     """multimodal=False is sent as 'false' string."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1167,7 +1167,7 @@ def test_upload_file_multimodal_false_serialization(
 @patch("pinecone.client.assistants.time.sleep")
 def test_upload_file_from_stream(mock_sleep: object, assistants: Assistants) -> None:
     """upload_file with file_stream uploads and polls until Available."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1203,7 +1203,7 @@ def test_upload_file_from_stream(mock_sleep: object, assistants: Assistants) -> 
 @patch("pinecone.client.assistants.time.sleep")
 def test_upload_file_with_metadata_and_file_id(mock_sleep: object, assistants: Assistants) -> None:
     """upload_file sends metadata as JSON string and file_id as query params."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1239,7 +1239,7 @@ def test_upload_file_polls_with_correct_interval(
     mock_sleep: object, assistants: Assistants
 ) -> None:
     """upload_file polls every 5 seconds while processing."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1274,7 +1274,7 @@ def test_upload_file_polls_with_correct_interval(
 @patch("pinecone.client.assistants.time.sleep")
 def test_upload_file_processing_failed(mock_sleep: object, assistants: Assistants) -> None:
     """If processing fails, raises PineconeError with server's error message."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1312,7 +1312,7 @@ def test_upload_file_timeout_raises(
     """Timeout raises PineconeTimeoutError with operation ID in message."""
     mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
 
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1336,7 +1336,7 @@ def test_upload_file_timeout_raises(
 @respx.mock
 def test_upload_timeout_negative_one(assistants: Assistants) -> None:
     """upload_file(timeout=-1) calls describe_file once without polling."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1368,7 +1368,7 @@ def test_upload_timeout_negative_one(assistants: Assistants) -> None:
 @patch("pinecone.client.assistants.time.sleep")
 def test_upload_file_caches_data_plane_client(mock_sleep: object, assistants: Assistants) -> None:
     """Second upload to same assistant reuses cached data-plane client."""
-    describe_route = respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    describe_route = respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1398,7 +1398,7 @@ def test_upload_file_caches_data_plane_client(mock_sleep: object, assistants: As
 @respx.mock
 def test_describe_file_success(assistants: Assistants) -> None:
     """describe_file() sends GET /files/{name}/{id} and returns AssistantFileModel."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1416,7 +1416,7 @@ def test_describe_file_success(assistants: Assistants) -> None:
 @respx.mock
 def test_describe_file_without_url(assistants: Assistants) -> None:
     """describe_file() does not send include_url param by default."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1432,7 +1432,7 @@ def test_describe_file_without_url(assistants: Assistants) -> None:
 @respx.mock
 def test_describe_file_with_url(assistants: Assistants) -> None:
     """describe_file(include_url=True) sends include_url=true query param."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1454,7 +1454,7 @@ def test_describe_file_with_url(assistants: Assistants) -> None:
 @respx.mock
 def test_describe_file_not_found(assistants: Assistants) -> None:
     """describe_file() raises NotFoundError when file does not exist."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant/nonexistent").mock(
@@ -1475,7 +1475,7 @@ def test_list_files_page_success(assistants: Assistants) -> None:
     """list_files_page() returns ListFilesResponse with files and next token."""
     from pinecone.models.assistant.list import ListFilesResponse
 
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1500,7 +1500,7 @@ def test_list_files_page_success(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_page_last_page(assistants: Assistants) -> None:
     """list_files_page() returns no next token on the last page."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1515,7 +1515,7 @@ def test_list_files_page_last_page(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_page_with_page_size(assistants: Assistants) -> None:
     """list_files_page() sends pageSize query param when provided."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1531,7 +1531,7 @@ def test_list_files_page_with_page_size(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_page_with_pagination_token(assistants: Assistants) -> None:
     """list_files_page() sends paginationToken query param when provided."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1547,7 +1547,7 @@ def test_list_files_page_with_pagination_token(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_page_with_filter(assistants: Assistants) -> None:
     """list_files_page() serializes filter dict to JSON string query param."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1568,7 +1568,7 @@ def test_list_files_page_with_filter(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_page_omits_none_params(assistants: Assistants) -> None:
     """list_files_page() does not send params that are None."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1591,7 +1591,7 @@ def test_list_files_page_omits_none_params(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_empty(assistants: Assistants) -> None:
     """list_files() returns a Paginator that yields nothing when no files exist."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1607,7 +1607,7 @@ def test_list_files_empty(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_single_page(assistants: Assistants) -> None:
     """list_files() returns a Paginator over files from a single-page response."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1631,7 +1631,7 @@ def test_list_files_single_page(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_multi_page(assistants: Assistants) -> None:
     """list_files() auto-paginates through multiple pages via Paginator."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1668,7 +1668,7 @@ def test_list_files_multi_page(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_to_list(assistants: Assistants) -> None:
     """list_files().to_list() collects all files into a list."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1692,7 +1692,7 @@ def test_list_files_to_list(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_iteration(assistants: Assistants) -> None:
     """list_files() supports direct for-loop iteration."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1715,7 +1715,7 @@ def test_list_files_iteration(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_with_limit(assistants: Assistants) -> None:
     """list_files(limit=N) yields at most N items across all pages."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1742,7 +1742,7 @@ def test_list_files_with_limit(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_pages(assistants: Assistants) -> None:
     """list_files().pages() yields Page objects with items and has_more."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1777,7 +1777,7 @@ def test_list_files_pages(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_with_pagination_token(assistants: Assistants) -> None:
     """list_files(pagination_token=...) starts from the given token."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1800,7 +1800,7 @@ def test_list_files_with_pagination_token(assistants: Assistants) -> None:
 @respx.mock
 def test_list_files_propagates_filter_through_pages(assistants: Assistants) -> None:
     """list_files() sends the same filter on every paginated request."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
@@ -1839,7 +1839,7 @@ def test_list_files_propagates_filter_through_pages(assistants: Assistants) -> N
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_file_success(mock_sleep: object, assistants: Assistants) -> None:
     """delete_file() sends DELETE then polls until 404 confirms deletion."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     delete_route = respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1859,7 +1859,7 @@ def test_delete_file_success(mock_sleep: object, assistants: Assistants) -> None
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_file_polls_until_gone(mock_sleep: object, assistants: Assistants) -> None:
     """delete_file() polls describe_file every 5s; returns when 404 received."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1887,7 +1887,7 @@ def test_delete_file_polls_until_gone(mock_sleep: object, assistants: Assistants
 @respx.mock
 def test_delete_file_timeout_minus_one_skips_polling(assistants: Assistants) -> None:
     """delete_file(timeout=-1) returns immediately without polling."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     delete_route = respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1911,7 +1911,7 @@ def test_delete_file_timeout_raises(
     """Exceeding timeout raises PineconeTimeoutError."""
     mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
 
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1929,7 +1929,7 @@ def test_delete_file_timeout_raises(
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_file_server_error_raises(mock_sleep: object, assistants: Assistants) -> None:
     """delete_file() raises PineconeError if server-side deletion fails."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.delete(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
@@ -1972,7 +1972,7 @@ def test_chat_json_streaming_validation(assistants: Assistants) -> None:
 @respx.mock
 def test_chat_default_model(assistants: Assistants) -> None:
     """chat() defaults model to 'gpt-4o' when not specified."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
@@ -2009,7 +2009,7 @@ def test_chat_default_model(assistants: Assistants) -> None:
 @respx.mock
 def test_chat_message_parsing(assistants: Assistants) -> None:
     """Dicts are converted to Message objects; missing role defaults to 'user'."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
@@ -2050,7 +2050,7 @@ def test_chat_message_parsing(assistants: Assistants) -> None:
 @respx.mock
 def test_chat_completions_default_stream_false(assistants: Assistants) -> None:
     """chat_completions() defaults stream to False and posts to the completions endpoint."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     completions_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
@@ -2092,7 +2092,7 @@ def test_chat_completions_default_stream_false(assistants: Assistants) -> None:
 @respx.mock
 def test_chat_completions_no_model_validation(assistants: Assistants) -> None:
     """chat_completions() accepts any model string without client-side validation."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     completions_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
@@ -2134,7 +2134,7 @@ def test_chat_completions_no_model_validation(assistants: Assistants) -> None:
 @respx.mock
 def test_chat_streaming_sse_parsing(assistants: Assistants) -> None:
     """Empty SSE lines are skipped and 'data:' prefix is stripped before JSON parsing."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     # SSE payload: empty lines between events, data: prefix on each event
@@ -2172,7 +2172,7 @@ def test_chat_streaming_sse_parsing(assistants: Assistants) -> None:
 @respx.mock
 def test_chat_streaming_chunk_dispatch(assistants: Assistants) -> None:
     """Correct chunk types are yielded based on the 'type' field in each SSE event."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
@@ -2222,7 +2222,7 @@ def test_chat_streaming_chunk_dispatch(assistants: Assistants) -> None:
 @respx.mock
 def test_chat_streaming_request_body(assistants: Assistants) -> None:
     """Streaming chat always includes stream=True and include_highlights in body."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
@@ -2256,7 +2256,7 @@ def test_chat_streaming_request_body(assistants: Assistants) -> None:
 @respx.mock
 def test_chat_completions_streaming_sse_parsing(assistants: Assistants) -> None:
     """chat_completions streaming parses SSE lines as ChatCompletionStreamChunk."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
@@ -2300,7 +2300,7 @@ def test_chat_completions_streaming_sse_parsing(assistants: Assistants) -> None:
 @respx.mock
 def test_chat_streaming_handles_done_sentinel(assistants: Assistants) -> None:
     """data: [DONE] terminates the stream cleanly without raising JSONDecodeError."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
@@ -2331,7 +2331,7 @@ def test_chat_streaming_handles_done_sentinel(assistants: Assistants) -> None:
 @respx.mock
 def test_chat_streaming_skips_sse_comments(assistants: Assistants) -> None:
     """SSE comment lines (:...) and event: lines are silently skipped."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
@@ -2370,7 +2370,7 @@ def test_chat_streaming_skips_sse_comments(assistants: Assistants) -> None:
 @respx.mock
 def test_chat_completions_streaming_handles_done_sentinel(assistants: Assistants) -> None:
     """data: [DONE] terminates the completions stream cleanly without raising."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
@@ -2404,7 +2404,7 @@ def test_chat_completions_streaming_handles_done_sentinel(assistants: Assistants
 @respx.mock
 def test_chat_completions_streaming_skips_sse_comments(assistants: Assistants) -> None:
     """SSE comment lines (:...) and event: lines are silently skipped in completions stream."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     sse_body = (
@@ -2479,7 +2479,7 @@ def test_context_with_query(assistants: Assistants) -> None:
     """context() with query POSTs to /chat/{name}/context and returns ContextResponse."""
     from pinecone.models.assistant.context import ContextResponse
 
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
@@ -2502,7 +2502,7 @@ def test_context_with_query(assistants: Assistants) -> None:
 @respx.mock
 def test_context_with_messages(assistants: Assistants) -> None:
     """context() with messages parses and sends them; does not send query."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
@@ -2524,7 +2524,7 @@ def test_context_with_messages(assistants: Assistants) -> None:
 @respx.mock
 def test_context_optional_params_included_when_provided(assistants: Assistants) -> None:
     """Optional parameters are sent in the request body when provided."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
@@ -2552,7 +2552,7 @@ def test_context_optional_params_included_when_provided(assistants: Assistants) 
 @respx.mock
 def test_context_optional_params_omitted_when_absent(assistants: Assistants) -> None:
     """Optional parameters are not included in the request body when not provided."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     context_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/context").mock(
@@ -2885,7 +2885,7 @@ def test_chat_streaming_timeout_raises_pinecone_timeout_error(
     assistants: Assistants,
 ) -> None:
     """httpx.ReadTimeout during streaming is wrapped as PineconeTimeoutError."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
@@ -2907,7 +2907,7 @@ def test_chat_streaming_connect_error_raises_pinecone_connection_error(
     assistants: Assistants,
 ) -> None:
     """httpx.ConnectError during streaming is wrapped as PineconeConnectionError."""
-    respx.get(f"{BASE_URL}/assistants/test-assistant").mock(
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
     respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
