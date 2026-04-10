@@ -10,7 +10,7 @@ import pytest
 import pytest_asyncio
 
 from pinecone import AsyncPinecone
-from pinecone.errors import ApiError, UnauthorizedError
+from pinecone.errors import ApiError, NotFoundError, UnauthorizedError
 
 
 # ---------------------------------------------------------------------------
@@ -45,3 +45,40 @@ async def test_bad_api_key_error_message_is_human_readable_async() -> None:
     msg = str(err)
     assert len(msg) > 0
     assert not msg.strip().isdigit()
+
+
+# ---------------------------------------------------------------------------
+# error-nonexistent-index
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_describe_nonexistent_index_raises_not_found_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """indexes.describe() on a non-existent name raises NotFoundError (typed, status_code=404)."""
+    with pytest.raises(NotFoundError) as exc_info:
+        await async_client.indexes.describe("index-that-does-not-exist-xyz")
+
+    err = exc_info.value
+    assert isinstance(err, ApiError)
+    assert err.status_code == 404
+    # Error message must be human-readable (non-empty, not just a number)
+    msg = str(err)
+    assert len(msg) > 0
+    assert not msg.strip().isdigit()
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_delete_nonexistent_index_raises_not_found_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """indexes.delete() on a non-existent name raises NotFoundError (typed, status_code=404)."""
+    with pytest.raises(NotFoundError) as exc_info:
+        await async_client.indexes.delete("index-that-does-not-exist-xyz")
+
+    err = exc_info.value
+    assert isinstance(err, ApiError)
+    assert err.status_code == 404
