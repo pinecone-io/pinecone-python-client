@@ -3,6 +3,7 @@
 Phase 2 Tier 1: metadata-filter, sparse-vectors, query-by-id, fetch-missing-ids,
 include-values-metadata, query-namespaces.
 """
+# area tags covered: metadata-filter, sparse-vectors, query-by-id
 
 from __future__ import annotations
 
@@ -202,6 +203,110 @@ def test_sparse_vectors_rest(client: Pinecone) -> None:
         match_ids = {m.id for m in query_resp.matches}
         # sv-v1 shares the same sparse indices — it should rank highly
         assert "sv-v1" in match_ids
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# query-by-id — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_query_by_id_rest(client: Pinecone) -> None:
+    """Query by stored vector ID returns a QueryResponse with the same structure as query-by-vector (REST sync)."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert 3 vectors
+        index.upsert(
+            vectors=[
+                {"id": "qbi-v1", "values": [0.1, 0.2]},
+                {"id": "qbi-v2", "values": [0.3, 0.4]},
+                {"id": "qbi-v3", "values": [0.9, 0.1]},
+            ]
+        )
+
+        # Wait for all 3 vectors to be queryable before querying by ID
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 3,
+            timeout=120,
+            description="all 3 vectors queryable before query-by-id",
+        )
+
+        # Query by ID — use qbi-v1 as the query seed
+        result = index.query(id="qbi-v1", top_k=3)
+        assert isinstance(result, QueryResponse)
+        assert len(result.matches) >= 1
+
+        # Each match must have id and score
+        for match in result.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+
+        # The top match should be the query vector itself
+        match_ids = [m.id for m in result.matches]
+        assert "qbi-v1" in match_ids
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# query-by-id — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_query_by_id_grpc(client: Pinecone) -> None:
+    """Query by stored vector ID returns a QueryResponse via GrpcIndex."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        # Upsert 3 vectors
+        index.upsert(
+            vectors=[
+                {"id": "qbi-v1", "values": [0.1, 0.2]},
+                {"id": "qbi-v2", "values": [0.3, 0.4]},
+                {"id": "qbi-v3", "values": [0.9, 0.1]},
+            ]
+        )
+
+        # Wait until vectors are queryable
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 3,
+            timeout=120,
+            description="all 3 vectors queryable (grpc) before query-by-id",
+        )
+
+        # Query by ID
+        result = index.query(id="qbi-v1", top_k=3)
+        assert isinstance(result, QueryResponse)
+        assert len(result.matches) >= 1
+
+        for match in result.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+
+        match_ids = [m.id for m in result.matches]
+        assert "qbi-v1" in match_ids
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
 

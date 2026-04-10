@@ -3,6 +3,7 @@
 Phase 2 Tier 1: metadata-filter, sparse-vectors, query-by-id, fetch-missing-ids,
 include-values-metadata, query-namespaces.
 """
+# area tags covered: metadata-filter, sparse-vectors, query-by-id
 
 from __future__ import annotations
 
@@ -179,6 +180,68 @@ async def test_sparse_vectors_rest_async(async_client: AsyncPinecone) -> None:
         assert len(query_resp.matches) >= 1
         match_ids = {m.id for m in query_resp.matches}
         assert "sv-v1" in match_ids
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# query-by-id — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_query_by_id_rest_async(async_client: AsyncPinecone) -> None:
+    """Query by stored vector ID returns a QueryResponse with same structure as query-by-vector (REST async)."""
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # Populate host cache so pc.index(name=...) can resolve it
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        # Upsert 3 vectors
+        await idx.upsert(
+            vectors=[
+                {"id": "qbi-v1", "values": [0.1, 0.2]},
+                {"id": "qbi-v2", "values": [0.3, 0.4]},
+                {"id": "qbi-v3", "values": [0.9, 0.1]},
+            ]
+        )
+
+        # Wait for all 3 vectors to be queryable
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.1, 0.2], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 3,
+            timeout=120,
+            description="all 3 vectors queryable (async) before query-by-id",
+        )
+
+        # Query by ID
+        result = await idx.query(id="qbi-v1", top_k=3)
+        assert isinstance(result, QueryResponse)
+        assert len(result.matches) >= 1
+
+        for match in result.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+
+        match_ids = [m.id for m in result.matches]
+        assert "qbi-v1" in match_ids
     finally:
         if idx is not None:
             await idx.close()
