@@ -7,13 +7,11 @@ than raw HTTP errors or generic exceptions.
 from __future__ import annotations
 
 import pytest
-import pytest_asyncio
 
 from pinecone import AsyncPinecone
 from pinecone.errors import ApiError, ConflictError, NotFoundError, UnauthorizedError
 from pinecone.models.indexes.specs import ServerlessSpec
 from tests.integration.conftest import async_cleanup_resource, unique_name
-
 
 # ---------------------------------------------------------------------------
 # error-bad-api-key

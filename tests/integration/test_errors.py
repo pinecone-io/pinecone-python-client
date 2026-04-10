@@ -13,7 +13,6 @@ from pinecone.errors import ApiError, ConflictError, NotFoundError, Unauthorized
 from pinecone.models.indexes.specs import ServerlessSpec
 from tests.integration.conftest import cleanup_resource, unique_name
 
-
 # ---------------------------------------------------------------------------
 # error-bad-api-key
 # ---------------------------------------------------------------------------
