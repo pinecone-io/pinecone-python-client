@@ -49,22 +49,6 @@ from __future__ import annotations
 
 import os as _os
 
-from pinecone.errors.exceptions import (
-    ApiError,
-    ConflictError,
-    ForbiddenError,
-    IndexInitFailedError,
-    NotFoundError,
-    PineconeConnectionError,
-    PineconeError,
-    PineconeTimeoutError,
-    PineconeTypeError,
-    PineconeValueError,
-    ResponseParsingError,
-    ServiceError,
-    UnauthorizedError,
-)
-
 # Avoid importing typing at runtime — its transitive deps (re, enum,
 # collections, contextlib, functools, warnings) add ~28ms to cold import.
 # All annotations use PEP 563 (from __future__ import annotations), so
@@ -82,6 +66,21 @@ if TYPE_CHECKING:
     from pinecone.admin import Admin
     from pinecone.async_client.async_index import AsyncIndex
     from pinecone.async_client.pinecone import AsyncPinecone
+    from pinecone.errors.exceptions import (
+        ApiError,
+        ConflictError,
+        ForbiddenError,
+        IndexInitFailedError,
+        NotFoundError,
+        PineconeConnectionError,
+        PineconeError,
+        PineconeTimeoutError,
+        PineconeTypeError,
+        PineconeValueError,
+        ResponseParsingError,
+        ServiceError,
+        UnauthorizedError,
+    )
     from pinecone.grpc import GrpcIndex
     from pinecone.grpc.future import PineconeFuture
     from pinecone.index import Index
@@ -293,6 +292,19 @@ __all__ = [
 # Lazy-load heavy classes to keep cold import under 10ms.
 # Importing Pinecone/AsyncPinecone/Index eagerly pulls in httpx (~120ms).
 _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
+    "ApiError": ("pinecone.errors.exceptions", "ApiError"),
+    "ConflictError": ("pinecone.errors.exceptions", "ConflictError"),
+    "ForbiddenError": ("pinecone.errors.exceptions", "ForbiddenError"),
+    "IndexInitFailedError": ("pinecone.errors.exceptions", "IndexInitFailedError"),
+    "NotFoundError": ("pinecone.errors.exceptions", "NotFoundError"),
+    "PineconeConnectionError": ("pinecone.errors.exceptions", "PineconeConnectionError"),
+    "PineconeError": ("pinecone.errors.exceptions", "PineconeError"),
+    "PineconeTimeoutError": ("pinecone.errors.exceptions", "PineconeTimeoutError"),
+    "PineconeTypeError": ("pinecone.errors.exceptions", "PineconeTypeError"),
+    "PineconeValueError": ("pinecone.errors.exceptions", "PineconeValueError"),
+    "ResponseParsingError": ("pinecone.errors.exceptions", "ResponseParsingError"),
+    "ServiceError": ("pinecone.errors.exceptions", "ServiceError"),
+    "UnauthorizedError": ("pinecone.errors.exceptions", "UnauthorizedError"),
     "Admin": ("pinecone.admin", "Admin"),
     "APIKeyList": ("pinecone.models.admin.api_key", "APIKeyList"),
     "APIKeyModel": ("pinecone.models.admin.api_key", "APIKeyModel"),
