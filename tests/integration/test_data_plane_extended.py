@@ -3,7 +3,8 @@
 Phase 2 Tier 1: metadata-filter, sparse-vectors, query-by-id, fetch-missing-ids,
 include-values-metadata, query-namespaces.
 """
-# area tags covered: metadata-filter, sparse-vectors, query-by-id, fetch-missing-ids
+# area tags covered: metadata-filter, sparse-vectors, query-by-id, fetch-missing-ids,
+# include-values-metadata
 
 from __future__ import annotations
 
@@ -474,5 +475,143 @@ def test_sparse_vectors_grpc(client: Pinecone) -> None:
         assert isinstance(query_resp, QueryResponse)
         assert len(query_resp.matches) >= 1
         assert "sv-v1" in {m.id for m in query_resp.matches}
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# include-values-metadata — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_include_values_metadata_rest(client: Pinecone) -> None:
+    """Query with include_values=True/include_metadata=True returns values and metadata on matches;
+    query with defaults returns empty values and None metadata (REST sync)."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert vectors with metadata
+        index.upsert(
+            vectors=[
+                {"id": "ivm-v1", "values": [0.1, 0.2, 0.3], "metadata": {"color": "red", "rank": 1}},
+                {"id": "ivm-v2", "values": [0.4, 0.5, 0.6], "metadata": {"color": "blue", "rank": 2}},
+            ]
+        )
+
+        # Wait for both vectors to be queryable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2, 0.3], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="both vectors queryable before include-values-metadata test",
+        )
+
+        # Query with include_values=True, include_metadata=True
+        result = index.query(
+            vector=[0.1, 0.2, 0.3],
+            top_k=5,
+            include_values=True,
+            include_metadata=True,
+        )
+        assert isinstance(result, QueryResponse)
+        assert len(result.matches) >= 1
+
+        top_match = result.matches[0]
+        assert isinstance(top_match, ScoredVector)
+        # values should be a non-empty list of floats
+        assert isinstance(top_match.values, list)
+        assert len(top_match.values) == 3
+        assert all(isinstance(v, float) for v in top_match.values)
+        # metadata should be a dict
+        assert isinstance(top_match.metadata, dict)
+        assert "color" in top_match.metadata
+        assert "rank" in top_match.metadata
+
+        # Verify all matches have values and metadata
+        for match in result.matches:
+            assert len(match.values) == 3
+            assert match.metadata is not None
+
+        # Query with defaults (no include_values, no include_metadata)
+        default_result = index.query(vector=[0.1, 0.2, 0.3], top_k=5)
+        assert isinstance(default_result, QueryResponse)
+        assert len(default_result.matches) >= 1
+
+        default_match = default_result.matches[0]
+        assert isinstance(default_match, ScoredVector)
+        # Default: values should be empty, metadata should be None
+        assert default_match.values == []
+        assert default_match.metadata is None
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# include-values-metadata — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_include_values_metadata_grpc(client: Pinecone) -> None:
+    """Query with include_values=True/include_metadata=True returns values and metadata (gRPC)."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        # Upsert vectors with metadata
+        index.upsert(
+            vectors=[
+                {"id": "ivm-v1", "values": [0.1, 0.2, 0.3], "metadata": {"color": "red"}},
+                {"id": "ivm-v2", "values": [0.4, 0.5, 0.6], "metadata": {"color": "blue"}},
+            ]
+        )
+
+        # Wait for vectors to be queryable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2, 0.3], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="both vectors queryable (grpc) before include-values-metadata test",
+        )
+
+        # Query with include_values=True, include_metadata=True
+        result = index.query(
+            vector=[0.1, 0.2, 0.3],
+            top_k=5,
+            include_values=True,
+            include_metadata=True,
+        )
+        assert isinstance(result, QueryResponse)
+        assert len(result.matches) >= 1
+
+        top_match = result.matches[0]
+        assert isinstance(top_match, ScoredVector)
+        assert isinstance(top_match.values, list)
+        assert len(top_match.values) == 3
+        assert isinstance(top_match.metadata, dict)
+        assert "color" in top_match.metadata
+
+        # Query with defaults — values empty, metadata None
+        default_result = index.query(vector=[0.1, 0.2, 0.3], top_k=5)
+        assert isinstance(default_result, QueryResponse)
+        assert len(default_result.matches) >= 1
+
+        default_match = default_result.matches[0]
+        assert default_match.values == []
+        assert default_match.metadata is None
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
