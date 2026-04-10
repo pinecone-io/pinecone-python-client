@@ -112,6 +112,91 @@ def test_upsert_formats_rest(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
+# upsert-batch — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_upsert_batch_rest(client: Pinecone) -> None:
+    """Upsert 200 vectors in a single call via REST sync.
+
+    Verifies:
+    - upserted_count == 200
+    - describe_index_stats() reports total_vector_count >= 200 after consistency
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        vectors = [
+            {"id": f"batch-{i}", "values": [float(i) / 200, 1.0 - float(i) / 200]}
+            for i in range(200)
+        ]
+
+        result = index.upsert(vectors=vectors)
+        assert isinstance(result, UpsertResponse)
+        assert result.upserted_count == 200
+
+        # Poll until all 200 vectors are registered in stats
+        stats = poll_until(
+            query_fn=lambda: index.describe_index_stats(),
+            check_fn=lambda r: r.total_vector_count >= 200,
+            timeout=120,
+            description="total_vector_count >= 200 in stats",
+        )
+        assert stats.total_vector_count >= 200
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# upsert-batch — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_upsert_batch_grpc(client: Pinecone) -> None:
+    """Upsert 200 vectors in a single call via gRPC."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        vectors = [
+            {"id": f"batch-{i}", "values": [float(i) / 200, 1.0 - float(i) / 200]}
+            for i in range(200)
+        ]
+
+        result = index.upsert(vectors=vectors)
+        assert isinstance(result, UpsertResponse)
+        assert result.upserted_count == 200
+
+        # Poll until all 200 vectors are registered in stats
+        stats = poll_until(
+            query_fn=lambda: index.describe_index_stats(),
+            check_fn=lambda r: r.total_vector_count >= 200,
+            timeout=120,
+            description="total_vector_count >= 200 in stats via gRPC",
+        )
+        assert stats.total_vector_count >= 200
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
 # upsert-formats — gRPC
 # ---------------------------------------------------------------------------
 

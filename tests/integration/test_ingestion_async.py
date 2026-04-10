@@ -118,3 +118,52 @@ async def test_upsert_formats_async(async_client: AsyncPinecone) -> None:
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name), name, "index"
         )
+
+
+# ---------------------------------------------------------------------------
+# upsert-batch — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_upsert_batch_async(async_client: AsyncPinecone) -> None:
+    """Upsert 200 vectors in a single call via async REST.
+
+    Verifies:
+    - upserted_count == 200
+    - describe_index_stats() reports total_vector_count >= 200 after consistency
+    """
+    name = unique_name("idx")
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        desc = await async_client.indexes.describe(name)
+        index = async_client.index(host=desc.host)
+
+        vectors = [
+            {"id": f"batch-{i}", "values": [float(i) / 200, 1.0 - float(i) / 200]}
+            for i in range(200)
+        ]
+
+        result = await index.upsert(vectors=vectors)
+        assert isinstance(result, UpsertResponse)
+        assert result.upserted_count == 200
+
+        # Poll until all 200 vectors are registered in stats
+        stats = await async_poll_until(
+            query_fn=lambda: index.describe_index_stats(),
+            check_fn=lambda r: r.total_vector_count >= 200,
+            timeout=120,
+            description="total_vector_count >= 200 in stats (async)",
+        )
+        assert stats.total_vector_count >= 200
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name), name, "index"
+        )
