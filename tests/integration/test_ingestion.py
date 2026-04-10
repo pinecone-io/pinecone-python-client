@@ -480,6 +480,138 @@ def test_upsert_records_rest(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
+# upsert-records-batch — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_upsert_records_batch_rest(client: Pinecone) -> None:
+    """Upsert 50 records in one call to an integrated-inference index via REST sync.
+
+    Verifies:
+    - upsert_records() returns UpsertRecordsResponse with record_count == 50
+    - Records become searchable via search(inputs={"text": ...})
+    - Hit structure has id (str) and score (float)
+    """
+    name = unique_name("idx")
+    namespace = "urb-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "text"},
+                ),
+            ),
+        )
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        index = client.index(name=name)
+
+        records = [
+            {"_id": f"urb-{i}", "text": f"Record number {i}: vector database similarity search use case {i}."}
+            for i in range(50)
+        ]
+        response = index.upsert_records(records=records, namespace=namespace)
+        assert isinstance(response, UpsertRecordsResponse)
+        assert response.record_count == 50
+
+        # Poll until at least some records are searchable (eventual consistency)
+        search_resp = poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=10,
+                inputs={"text": "vector database similarity search"},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=120,
+            description="batch upserted records searchable via REST",
+        )
+
+        assert isinstance(search_resp, SearchRecordsResponse)
+        assert len(search_resp.result.hits) > 0
+        first_hit = search_resp.result.hits[0]
+        assert isinstance(first_hit, Hit)
+        assert isinstance(first_hit.id, str)
+        assert isinstance(first_hit.score, float)
+        assert first_hit.id.startswith("urb-")
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# upsert-records-batch — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_upsert_records_batch_grpc(client: Pinecone) -> None:
+    """Upsert 50 records in one call to an integrated-inference index via gRPC handle.
+
+    GrpcIndex.upsert_records() and GrpcIndex.search() both delegate to REST.
+    Verifies the gRPC index handle can be used for both operations.
+    """
+    name = unique_name("idx")
+    namespace = "urb-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "text"},
+                ),
+            ),
+        )
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        index = client.index(name=name, grpc=True)
+
+        records = [
+            {"_id": f"urb-{i}", "text": f"Record number {i}: vector database similarity search use case {i}."}
+            for i in range(50)
+        ]
+        response = index.upsert_records(records=records, namespace=namespace)
+        assert isinstance(response, UpsertRecordsResponse)
+        assert response.record_count == 50
+
+        # Poll until at least some records are searchable via gRPC (REST fallback)
+        search_resp = poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=10,
+                inputs={"text": "vector database similarity search"},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=120,
+            description="batch upserted records searchable via gRPC transport",
+        )
+
+        assert isinstance(search_resp, SearchRecordsResponse)
+        assert len(search_resp.result.hits) > 0
+        first_hit = search_resp.result.hits[0]
+        assert isinstance(first_hit, Hit)
+        assert isinstance(first_hit.id, str)
+        assert isinstance(first_hit.score, float)
+        assert first_hit.id.startswith("urb-")
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
 # upsert-records — gRPC
 # ---------------------------------------------------------------------------
 

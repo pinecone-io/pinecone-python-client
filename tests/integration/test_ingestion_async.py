@@ -256,6 +256,82 @@ async def test_upsert_overwrite_async(async_client: AsyncPinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
+# upsert-records-batch — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_upsert_records_batch_async(async_client: AsyncPinecone) -> None:
+    """Upsert 50 records in one call to an integrated-inference index via async REST.
+
+    Verifies:
+    - upsert_records() returns UpsertRecordsResponse with record_count == 50
+    - Records become searchable via search(inputs={"text": ...})
+    - Hit structure has id (str) and score (float)
+    """
+    name = unique_name("idx")
+    namespace = "urb-ns"
+    try:
+        await async_client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "text"},
+                ),
+            ),
+        )
+
+        # Wait for the index to be ready via async polling
+        await async_poll_until(
+            query_fn=lambda: async_client.indexes.describe(name),
+            check_fn=lambda r: r.status.ready,
+            timeout=300,
+            interval=5,
+            description=f"integrated index {name!r} ready",
+        )
+
+        # Populate host cache and get async index handle
+        desc = await async_client.indexes.describe(name)
+        index = async_client.index(host=desc.host)
+
+        records = [
+            {"_id": f"urb-{i}", "text": f"Record number {i}: vector database similarity search use case {i}."}
+            for i in range(50)
+        ]
+        response = await index.upsert_records(records=records, namespace=namespace)
+        assert isinstance(response, UpsertRecordsResponse)
+        assert response.record_count == 50
+
+        # Poll until at least some records are searchable (eventual consistency)
+        search_resp = await async_poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=10,
+                inputs={"text": "vector database similarity search"},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=120,
+            description="batch upserted records searchable via async REST",
+        )
+
+        assert isinstance(search_resp, SearchRecordsResponse)
+        assert len(search_resp.result.hits) > 0
+        first_hit = search_resp.result.hits[0]
+        assert isinstance(first_hit, Hit)
+        assert isinstance(first_hit.id, str)
+        assert isinstance(first_hit.score, float)
+        assert first_hit.id.startswith("urb-")
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name), name, "index"
+        )
+
+
+# ---------------------------------------------------------------------------
 # upsert-records — REST async
 # ---------------------------------------------------------------------------
 
