@@ -15,6 +15,7 @@ from pinecone.models.vectors.responses import (
     QueryResponse,
     UpsertResponse,
 )
+from pinecone.models.vectors.sparse import SparseValues
 from pinecone.models.vectors.vector import ScoredVector, Vector
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 
@@ -122,5 +123,151 @@ def test_metadata_filter_grpc(client: Pinecone) -> None:
         ids = {m.id for m in result.matches}
         assert "mf-v1" in ids
         assert "mf-v2" not in ids
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# sparse-vectors — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_sparse_vectors_rest(client: Pinecone) -> None:
+    """Upsert hybrid (dense+sparse) vectors; fetch returns sparse_values; query with sparse_vector works (REST sync)."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert vectors with both dense values and sparse values
+        upsert_resp = index.upsert(
+            vectors=[
+                {
+                    "id": "sv-v1",
+                    "values": [0.1, 0.2, 0.3, 0.4],
+                    "sparse_values": {"indices": [0, 5], "values": [0.5, 0.8]},
+                },
+                {
+                    "id": "sv-v2",
+                    "values": [0.5, 0.6, 0.7, 0.8],
+                    "sparse_values": {"indices": [2, 7], "values": [0.3, 0.9]},
+                },
+            ]
+        )
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 2
+
+        # Wait for vectors to be fetchable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["sv-v1", "sv-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="sparse vectors fetchable",
+        )
+
+        # Fetch and verify sparse_values are returned
+        fetch_resp = index.fetch(ids=["sv-v1", "sv-v2"])
+        assert isinstance(fetch_resp, FetchResponse)
+        assert "sv-v1" in fetch_resp.vectors
+        v1 = fetch_resp.vectors["sv-v1"]
+        assert isinstance(v1, Vector)
+        assert v1.sparse_values is not None
+        assert isinstance(v1.sparse_values, SparseValues)
+        assert v1.sparse_values.indices == [0, 5]
+        assert len(v1.sparse_values.values) == 2
+        assert abs(v1.sparse_values.values[0] - 0.5) < 1e-4
+        assert abs(v1.sparse_values.values[1] - 0.8) < 1e-4
+
+        # Also verify v2 has sparse values
+        v2 = fetch_resp.vectors["sv-v2"]
+        assert v2.sparse_values is not None
+        assert isinstance(v2.sparse_values, SparseValues)
+        assert v2.sparse_values.indices == [2, 7]
+
+        # Query with a sparse vector and verify matches are returned
+        query_resp = index.query(
+            vector=[0.1, 0.2, 0.3, 0.4],
+            sparse_vector={"indices": [0, 5], "values": [0.5, 0.8]},
+            top_k=5,
+            include_values=True,
+        )
+        assert isinstance(query_resp, QueryResponse)
+        assert len(query_resp.matches) >= 1
+        match_ids = {m.id for m in query_resp.matches}
+        # sv-v1 shares the same sparse indices — it should rank highly
+        assert "sv-v1" in match_ids
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# sparse-vectors — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_sparse_vectors_grpc(client: Pinecone) -> None:
+    """Upsert hybrid (dense+sparse) vectors; fetch returns sparse_values; query with sparse_vector works (gRPC)."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        # Upsert vectors with both dense values and sparse values
+        upsert_resp = index.upsert(
+            vectors=[
+                {
+                    "id": "sv-v1",
+                    "values": [0.1, 0.2, 0.3, 0.4],
+                    "sparse_values": {"indices": [0, 5], "values": [0.5, 0.8]},
+                },
+                {
+                    "id": "sv-v2",
+                    "values": [0.5, 0.6, 0.7, 0.8],
+                    "sparse_values": {"indices": [2, 7], "values": [0.3, 0.9]},
+                },
+            ]
+        )
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 2
+
+        # Wait for vectors to be fetchable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["sv-v1", "sv-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="sparse vectors fetchable via gRPC",
+        )
+
+        # Fetch and verify sparse_values are returned
+        fetch_resp = index.fetch(ids=["sv-v1", "sv-v2"])
+        assert isinstance(fetch_resp, FetchResponse)
+        assert "sv-v1" in fetch_resp.vectors
+        v1 = fetch_resp.vectors["sv-v1"]
+        assert isinstance(v1, Vector)
+        assert v1.sparse_values is not None
+        assert isinstance(v1.sparse_values, SparseValues)
+        assert v1.sparse_values.indices == [0, 5]
+
+        # Query with a sparse vector and verify matches are returned
+        query_resp = index.query(
+            vector=[0.1, 0.2, 0.3, 0.4],
+            sparse_vector={"indices": [0, 5], "values": [0.5, 0.8]},
+            top_k=5,
+        )
+        assert isinstance(query_resp, QueryResponse)
+        assert len(query_resp.matches) >= 1
+        assert "sv-v1" in {m.id for m in query_resp.matches}
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
