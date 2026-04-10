@@ -1,4 +1,9 @@
-"""Integration tests for search-records with integrated inference — sync (REST + gRPC)."""
+"""Integration tests for search-records with integrated inference — sync (REST + gRPC).
+
+Covers:
+  - search-records: basic text search
+  - search-with-rerank: text search with inline reranking
+"""
 
 from __future__ import annotations
 
@@ -132,5 +137,92 @@ def test_search_records_grpc(client: Pinecone, api_key: str) -> None:
             inputs={"text": "similarity search"},
         )
         assert len(response.result.hits) > 0
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# search-with-rerank — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_search_with_rerank_rest(client: Pinecone, api_key: str) -> None:
+    """search() with inline rerank parameter re-ranks hits and populates usage.rerank_units."""
+    name = unique_name("idx")
+    namespace = "rerank-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "text"},
+                ),
+            ),
+        )
+
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        index = client.index(name=name)
+
+        # Upsert records with varied text content
+        index.upsert_records(
+            namespace=namespace,
+            records=[
+                {"_id": "rr-1", "text": "Vector databases enable fast similarity search at scale."},
+                {"_id": "rr-2", "text": "RAG combines retrieval with language model generation."},
+                {"_id": "rr-3", "text": "Embeddings are dense vector representations of text data."},
+                {"_id": "rr-4", "text": "Python is a popular programming language for AI projects."},
+                {"_id": "rr-5", "text": "Pinecone provides serverless vector database infrastructure."},
+            ],
+        )
+
+        # Wait for records to be searchable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=5,
+                inputs={"text": "vector database similarity search"},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=120,
+            description="records searchable before rerank test",
+        )
+
+        # Search with inline reranking — top_n=3 limits results after reranking
+        response = index.search(
+            namespace=namespace,
+            top_k=5,
+            inputs={"text": "vector database similarity search"},
+            rerank={
+                "model": "bge-reranker-v2-m3",
+                "rank_fields": ["text"],
+                "top_n": 3,
+            },
+        )
+
+        assert isinstance(response, SearchRecordsResponse)
+        # top_n=3 caps the number of hits after reranking
+        assert len(response.result.hits) > 0
+        assert len(response.result.hits) <= 3
+
+        # Each hit has id and score
+        for hit in response.result.hits:
+            assert isinstance(hit, Hit)
+            assert isinstance(hit.id, str)
+            assert isinstance(hit.score, float)
+
+        # Rerank usage should be populated
+        assert isinstance(response.usage, SearchUsage)
+        assert response.usage.rerank_units is not None
+        assert response.usage.rerank_units > 0
+
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
