@@ -685,3 +685,85 @@ async def test_update_by_filter_async(async_client: AsyncPinecone) -> None:
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name), name, "index"
         )
+
+
+# ---------------------------------------------------------------------------
+# delete-by-filter — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_delete_by_filter_async(async_client: AsyncPinecone) -> None:
+    """index.delete(filter=...) removes only vectors matching the filter (async REST).
+
+    Upserts 5 vectors: 2 with status="obsolete", 3 with status="active".
+    Calls delete(filter={"status": {"$eq": "obsolete"}}).
+    Polls until the 2 obsolete vectors are absent from fetch.
+    Verifies the 3 active vectors remain intact.
+    """
+    name = unique_name("idx")
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = async_client.index(name=name)
+
+        # 2 obsolete + 3 active vectors
+        vectors = [
+            {"id": "dbf-o1", "values": [0.1, 0.2], "metadata": {"status": "obsolete"}},
+            {"id": "dbf-o2", "values": [0.2, 0.3], "metadata": {"status": "obsolete"}},
+            {"id": "dbf-a1", "values": [0.5, 0.6], "metadata": {"status": "active"}},
+            {"id": "dbf-a2", "values": [0.6, 0.7], "metadata": {"status": "active"}},
+            {"id": "dbf-a3", "values": [0.7, 0.8], "metadata": {"status": "active"}},
+        ]
+        result = await index.upsert(vectors=vectors)
+        assert isinstance(result, UpsertResponse)
+        assert result.upserted_count == 5
+
+        all_ids = ["dbf-o1", "dbf-o2", "dbf-a1", "dbf-a2", "dbf-a3"]
+        obsolete_ids = ["dbf-o1", "dbf-o2"]
+        active_ids = ["dbf-a1", "dbf-a2", "dbf-a3"]
+
+        # Wait for all 5 vectors to be fetchable before deleting
+        await async_poll_until(
+            query_fn=lambda: index.fetch(ids=all_ids),
+            check_fn=lambda r: len(r.vectors) == 5,
+            timeout=120,
+            description="all 5 delete-by-filter vectors fetchable (async)",
+        )
+
+        # Delete only the obsolete vectors via metadata filter
+        await index.delete(filter={"status": {"$eq": "obsolete"}})
+
+        # Poll until both obsolete vectors disappear from fetch
+        await async_poll_until(
+            query_fn=lambda: index.fetch(ids=obsolete_ids),
+            check_fn=lambda r: len(r.vectors) == 0,
+            timeout=120,
+            description="obsolete vectors deleted by filter (async)",
+        )
+
+        # Verify active vectors still present
+        active_fetch = await index.fetch(ids=active_ids)
+        assert isinstance(active_fetch, FetchResponse)
+        for vid in active_ids:
+            assert vid in active_fetch.vectors, \
+                f"active vector {vid!r} should remain after filter-delete (async)"
+            v = active_fetch.vectors[vid]
+            assert v.metadata is not None
+            assert v.metadata.get("status") == "active", \
+                f"{vid} should still have status='active', got {v.metadata.get('status')!r}"
+
+        # Confirm obsolete vectors are truly gone
+        obsolete_fetch = await index.fetch(ids=obsolete_ids)
+        assert len(obsolete_fetch.vectors) == 0, \
+            f"obsolete vectors should be deleted but found: {list(obsolete_fetch.vectors.keys())}"
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name), name, "index"
+        )
