@@ -215,3 +215,97 @@ def test_rerank_string_inputs_auto_wrapped(client: Pinecone) -> None:
         # SDK wraps strings as {"text": ...} before sending
         assert ranked.document is not None
         assert "text" in ranked.document
+
+
+# ---------------------------------------------------------------------------
+# list_models / get_model
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_list_models_returns_nonempty_list(client: Pinecone) -> None:
+    """list_models() returns a ModelInfoList with at least one known model."""
+    result = client.inference.list_models()
+
+    assert len(result) > 0
+    names = result.names()
+    assert isinstance(names, list)
+    assert "multilingual-e5-large" in names
+
+
+@pytest.mark.integration
+def test_list_models_supports_iteration_and_indexing(client: Pinecone) -> None:
+    """ModelInfoList supports len(), iteration, integer indexing, and 'models' key."""
+    result = client.inference.list_models()
+
+    # Integer indexing
+    first = result[0]
+    assert isinstance(first.model, str)
+    assert len(first.model) > 0
+
+    # Iteration produces ModelInfo objects
+    items = list(result)
+    assert len(items) == len(result)
+    assert all(hasattr(m, "model") for m in items)
+
+    # String key access
+    models_list = result["models"]
+    assert isinstance(models_list, list)
+    assert len(models_list) == len(result)
+
+
+@pytest.mark.integration
+def test_list_models_filter_by_type_embed(client: Pinecone) -> None:
+    """list_models(type='embed') returns only embed models."""
+    result = client.inference.list_models(type="embed")
+
+    assert len(result) > 0
+    for model_info in result:
+        assert model_info.type == "embed"
+
+
+@pytest.mark.integration
+def test_list_models_filter_by_type_rerank(client: Pinecone) -> None:
+    """list_models(type='rerank') returns only rerank models."""
+    result = client.inference.list_models(type="rerank")
+
+    assert len(result) > 0
+    for model_info in result:
+        assert model_info.type == "rerank"
+
+
+@pytest.mark.integration
+def test_get_model_returns_model_info(client: Pinecone) -> None:
+    """get_model() returns a ModelInfo with name, vector_type, and default_dimension."""
+    model_info = client.inference.get_model(model="multilingual-e5-large")
+
+    # Required fields
+    assert model_info.model == "multilingual-e5-large"
+    assert model_info.type == "embed"
+
+    # Alias property
+    assert model_info.name == "multilingual-e5-large"
+
+    # Embed-specific fields
+    assert model_info.vector_type is not None
+    assert model_info.default_dimension is not None
+    assert isinstance(model_info.default_dimension, int)
+    assert model_info.default_dimension > 0
+
+    # Bracket access
+    assert model_info["model"] == "multilingual-e5-large"
+    assert model_info["name"] == "multilingual-e5-large"  # alias
+    assert "model" in model_info
+    assert "name" in model_info  # alias
+
+
+@pytest.mark.integration
+def test_get_model_rerank_model(client: Pinecone) -> None:
+    """get_model() works for rerank models; vector_type and default_dimension are None."""
+    model_info = client.inference.get_model(model="bge-reranker-v2-m3")
+
+    assert model_info.model == "bge-reranker-v2-m3"
+    assert model_info.type == "rerank"
+    # Rerank models don't produce vectors
+    assert model_info.vector_type is None
+    assert model_info.default_dimension is None

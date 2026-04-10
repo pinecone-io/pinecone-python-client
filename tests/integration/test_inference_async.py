@@ -169,3 +169,103 @@ async def test_rerank_return_documents_false_async(async_client: AsyncPinecone) 
     assert len(result.data) == len(documents)
     for ranked in result.data:
         assert ranked.document is None
+
+
+# ---------------------------------------------------------------------------
+# list_models / get_model (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_list_models_returns_nonempty_list_async(async_client: AsyncPinecone) -> None:
+    """async list_models() returns a ModelInfoList with at least one known model."""
+    result = await async_client.inference.list_models()
+
+    assert len(result) > 0
+    names = result.names()
+    assert isinstance(names, list)
+    assert "multilingual-e5-large" in names
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_list_models_supports_iteration_and_indexing_async(async_client: AsyncPinecone) -> None:
+    """async: ModelInfoList supports len(), iteration, integer indexing, and 'models' key."""
+    result = await async_client.inference.list_models()
+
+    # Integer indexing
+    first = result[0]
+    assert isinstance(first.model, str)
+    assert len(first.model) > 0
+
+    # Iteration produces ModelInfo objects
+    items = list(result)
+    assert len(items) == len(result)
+    assert all(hasattr(m, "model") for m in items)
+
+    # String key access
+    models_list = result["models"]
+    assert isinstance(models_list, list)
+    assert len(models_list) == len(result)
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_list_models_filter_by_type_embed_async(async_client: AsyncPinecone) -> None:
+    """async list_models(type='embed') returns only embed models."""
+    result = await async_client.inference.list_models(type="embed")
+
+    assert len(result) > 0
+    for model_info in result:
+        assert model_info.type == "embed"
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_list_models_filter_by_type_rerank_async(async_client: AsyncPinecone) -> None:
+    """async list_models(type='rerank') returns only rerank models."""
+    result = await async_client.inference.list_models(type="rerank")
+
+    assert len(result) > 0
+    for model_info in result:
+        assert model_info.type == "rerank"
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_get_model_returns_model_info_async(async_client: AsyncPinecone) -> None:
+    """async get_model() returns a ModelInfo with name, vector_type, and default_dimension."""
+    model_info = await async_client.inference.get_model(model="multilingual-e5-large")
+
+    # Required fields
+    assert model_info.model == "multilingual-e5-large"
+    assert model_info.type == "embed"
+
+    # Alias property
+    assert model_info.name == "multilingual-e5-large"
+
+    # Embed-specific fields
+    assert model_info.vector_type is not None
+    assert model_info.default_dimension is not None
+    assert isinstance(model_info.default_dimension, int)
+    assert model_info.default_dimension > 0
+
+    # Bracket access
+    assert model_info["model"] == "multilingual-e5-large"
+    assert model_info["name"] == "multilingual-e5-large"  # alias
+    assert "model" in model_info
+    assert "name" in model_info  # alias
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_get_model_rerank_model_async(async_client: AsyncPinecone) -> None:
+    """async get_model() works for rerank models; vector_type and default_dimension are None."""
+    model_info = await async_client.inference.get_model(model="bge-reranker-v2-m3")
+
+    assert model_info.model == "bge-reranker-v2-m3"
+    assert model_info.type == "rerank"
+    # Rerank models don't produce vectors
+    assert model_info.vector_type is None
+    assert model_info.default_dimension is None
