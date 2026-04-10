@@ -11,11 +11,12 @@ from __future__ import annotations
 import math
 import pytest
 
-from pinecone import Pinecone, Vector
+from pinecone import EmbedConfig, IntegratedSpec, Pinecone, Vector
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.sparse import SparseValues
-from pinecone.models.vectors.responses import FetchResponse, UpsertResponse
-from tests.integration.conftest import cleanup_resource, poll_until, unique_name
+from pinecone.models.vectors.responses import FetchResponse, UpsertRecordsResponse, UpsertResponse
+from pinecone.models.vectors.search import Hit, SearchRecordsResponse
+from tests.integration.conftest import cleanup_resource, poll_until, unique_name, wait_for_ready
 
 
 # ---------------------------------------------------------------------------
@@ -405,6 +406,141 @@ def test_upsert_formats_grpc(client: Pinecone) -> None:
         assert v4.sparse_values.indices == [0, 2]
         assert v4.metadata is not None
         assert v4.metadata.get("fmt") == "dict"
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# upsert-records — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_upsert_records_rest(client: Pinecone) -> None:
+    """Upsert records into an integrated-inference index via REST sync.
+
+    Verifies:
+    - upsert_records() returns UpsertRecordsResponse with record_count == N
+    - Uploaded records become searchable via search(inputs={"text": ...})
+    - Hit structure has id (str) and score (float)
+    """
+    name = unique_name("idx")
+    namespace = "urec-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "text"},
+                ),
+            ),
+        )
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        index = client.index(name=name)
+
+        records = [
+            {"_id": "urec-1", "text": "Vector databases enable fast similarity search."},
+            {"_id": "urec-2", "text": "RAG combines retrieval with language model generation."},
+            {"_id": "urec-3", "text": "Embeddings are dense vector representations of data."},
+        ]
+        response = index.upsert_records(records=records, namespace=namespace)
+        assert isinstance(response, UpsertRecordsResponse)
+        assert response.record_count == 3
+
+        # Poll until records are searchable (eventual consistency)
+        search_resp = poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=5,
+                inputs={"text": "similarity search with embeddings"},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=120,
+            description="upserted records searchable via REST",
+        )
+
+        assert isinstance(search_resp, SearchRecordsResponse)
+        assert len(search_resp.result.hits) > 0
+        first_hit = search_resp.result.hits[0]
+        assert isinstance(first_hit, Hit)
+        assert isinstance(first_hit.id, str)
+        assert isinstance(first_hit.score, float)
+        assert first_hit.id.startswith("urec-")
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# upsert-records — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_upsert_records_grpc(client: Pinecone) -> None:
+    """Upsert records into an integrated-inference index via gRPC transport.
+
+    GrpcIndex.upsert_records() delegates to REST (no gRPC equivalent).
+    GrpcIndex.search() also uses REST for integrated search.
+    Verifies the gRPC index handle can be used for both operations.
+    """
+    name = unique_name("idx")
+    namespace = "urec-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "text"},
+                ),
+            ),
+        )
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        index = client.index(name=name, grpc=True)
+
+        records = [
+            {"_id": "urec-1", "text": "Vector databases enable fast similarity search."},
+            {"_id": "urec-2", "text": "RAG combines retrieval with language model generation."},
+            {"_id": "urec-3", "text": "Embeddings are dense vector representations of data."},
+        ]
+        response = index.upsert_records(records=records, namespace=namespace)
+        assert isinstance(response, UpsertRecordsResponse)
+        assert response.record_count == 3
+
+        # Poll until records are searchable via gRPC search (REST fallback)
+        search_resp = poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=5,
+                inputs={"text": "similarity search with embeddings"},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=120,
+            description="upserted records searchable via gRPC transport",
+        )
+
+        assert isinstance(search_resp, SearchRecordsResponse)
+        assert len(search_resp.result.hits) > 0
+        first_hit = search_resp.result.hits[0]
+        assert isinstance(first_hit, Hit)
+        assert isinstance(first_hit.id, str)
+        assert isinstance(first_hit.score, float)
+        assert first_hit.id.startswith("urec-")
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
