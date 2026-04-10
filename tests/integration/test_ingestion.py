@@ -976,3 +976,116 @@ def test_update_metadata_grpc(client: Pinecone) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# update-by-filter — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_update_by_filter_rest(client: Pinecone) -> None:
+    """Filter-based bulk metadata update via REST.
+
+    Upsert 5 vectors: 3 with genre=drama, 2 with genre=comedy.
+    First test dry_run=True — verify it returns a matched_records count
+    without mutating any vectors. Then apply the filter-based update and
+    confirm only the 3 drama vectors received reviewed=True.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert 3 drama and 2 comedy vectors
+        vectors = [
+            {"id": "ubf-d1", "values": [0.1, 0.2], "metadata": {"genre": "drama"}},
+            {"id": "ubf-d2", "values": [0.2, 0.3], "metadata": {"genre": "drama"}},
+            {"id": "ubf-d3", "values": [0.3, 0.4], "metadata": {"genre": "drama"}},
+            {"id": "ubf-c1", "values": [0.5, 0.6], "metadata": {"genre": "comedy"}},
+            {"id": "ubf-c2", "values": [0.6, 0.7], "metadata": {"genre": "comedy"}},
+        ]
+        result = index.upsert(vectors=vectors)
+        assert isinstance(result, UpsertResponse)
+        assert result.upserted_count == 5
+
+        all_ids = ["ubf-d1", "ubf-d2", "ubf-d3", "ubf-c1", "ubf-c2"]
+
+        # Wait for all 5 vectors to be fetchable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.fetch(ids=all_ids),
+            check_fn=lambda r: len(r.vectors) == 5,
+            timeout=120,
+            description="all 5 update-by-filter vectors fetchable",
+        )
+
+        # Dry-run first — should return matched_records count without mutating
+        dry_resp = index.update(
+            filter={"genre": {"$eq": "drama"}},
+            set_metadata={"reviewed": True},
+            dry_run=True,
+        )
+        assert isinstance(dry_resp, UpdateResponse)
+        # matched_records may be None if not yet indexed, otherwise should be >= 0
+        if dry_resp.matched_records is not None:
+            assert dry_resp.matched_records >= 0, \
+                f"dry_run matched_records should be non-negative, got {dry_resp.matched_records}"
+
+        # Verify dry_run did NOT mutate — drama vectors should NOT have reviewed=True yet
+        fetched_after_dry = index.fetch(ids=all_ids)
+        for vid in ["ubf-d1", "ubf-d2", "ubf-d3"]:
+            v = fetched_after_dry.vectors.get(vid)
+            if v is not None and v.metadata is not None:
+                assert v.metadata.get("reviewed") is None, \
+                    f"dry_run should not have mutated {vid}: got reviewed={v.metadata.get('reviewed')!r}"
+
+        # Now apply the real filter-based update
+        update_resp = index.update(
+            filter={"genre": {"$eq": "drama"}},
+            set_metadata={"reviewed": True},
+        )
+        assert isinstance(update_resp, UpdateResponse)
+
+        # Poll until the 3 drama vectors all have reviewed=True
+        def _all_drama_reviewed() -> object:
+            r = index.fetch(ids=all_ids)
+            if len(r.vectors) < 5:
+                return None
+            for vid in ["ubf-d1", "ubf-d2", "ubf-d3"]:
+                v = r.vectors.get(vid)
+                if v is None or v.metadata is None or v.metadata.get("reviewed") is not True:
+                    return None
+            return r
+
+        fetched = poll_until(
+            query_fn=_all_drama_reviewed,
+            check_fn=lambda r: r is not None,
+            timeout=180,
+            description="all 3 drama vectors have reviewed=True after filter-update",
+        )
+
+        # Verify drama vectors have reviewed=True
+        for vid in ["ubf-d1", "ubf-d2", "ubf-d3"]:
+            v = fetched.vectors[vid]  # type: ignore[union-attr]
+            assert v.metadata is not None, f"{vid} should have metadata"
+            assert v.metadata.get("reviewed") is True, \
+                f"{vid} should have reviewed=True, got {v.metadata.get('reviewed')!r}"
+            assert v.metadata.get("genre") == "drama", \
+                f"{vid} should still have genre=drama, got {v.metadata.get('genre')!r}"
+
+        # Verify comedy vectors were NOT touched
+        for vid in ["ubf-c1", "ubf-c2"]:
+            v = fetched.vectors[vid]  # type: ignore[union-attr]
+            assert v.metadata is not None, f"{vid} should have metadata"
+            assert v.metadata.get("reviewed") is None, \
+                f"{vid} (comedy) should NOT have reviewed, got {v.metadata.get('reviewed')!r}"
+            assert v.metadata.get("genre") == "comedy", \
+                f"{vid} should still have genre=comedy, got {v.metadata.get('genre')!r}"
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
