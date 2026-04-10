@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import os
-import re
 from dataclasses import dataclass, field
 from typing import ClassVar
 
@@ -35,6 +33,8 @@ def normalize_source_tag(tag: str | None) -> str:
     """
     if not tag:
         return ""
+    import re
+
     lowered = tag.lower()
     cleaned = re.sub(r"[^a-z0-9_ :]", "", lowered)
     return cleaned.replace(" ", "_")
@@ -45,6 +45,8 @@ def _parse_additional_headers_env() -> dict[str, str]:
     raw = os.environ.get("PINECONE_ADDITIONAL_HEADERS", "")
     if not raw:
         return {}
+    import json
+
     try:
         parsed = json.loads(raw)
         if isinstance(parsed, dict):
