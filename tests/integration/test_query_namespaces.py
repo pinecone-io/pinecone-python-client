@@ -116,3 +116,82 @@ def test_query_namespaces_filter_rest(client: Pinecone) -> None:
         assert results.usage.read_units >= 2
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-many — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_query_namespaces_many_rest(client: Pinecone) -> None:
+    """query_namespaces() across 5+ namespaces merges and sorts results; ns_usage has entry per namespace (REST sync)."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert 2 vectors into each of 5 namespaces
+        namespaces = [f"qnm-ns-{i}" for i in range(5)]
+        for i, ns in enumerate(namespaces):
+            base = float(i) / 5.0
+            index.upsert(
+                vectors=[
+                    {"id": f"{ns}-v1", "values": [base, 1.0 - base]},
+                    {"id": f"{ns}-v2", "values": [1.0 - base, base]},
+                ],
+                namespace=ns,
+            )
+
+        # Wait for each namespace to have both vectors queryable
+        for ns in namespaces:
+            poll_until(
+                query_fn=lambda ns=ns: index.query(vector=[0.5, 0.5], top_k=10, namespace=ns),
+                check_fn=lambda r: len(r.matches) >= 2,
+                timeout=120,
+                description=f"{ns} vectors queryable before query_namespaces_many",
+            )
+
+        # Query across all 5 namespaces at once
+        results = index.query_namespaces(
+            vector=[0.5, 0.5],
+            namespaces=namespaces,
+            metric="cosine",
+            top_k=5,
+        )
+
+        # Verify result type and structure
+        assert isinstance(results, QueryNamespacesResults)
+        assert isinstance(results.matches, list)
+        assert len(results.matches) >= 1
+
+        # Each match must be a ScoredVector
+        for match in results.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+
+        # Results must be sorted by descending score (merged across namespaces)
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True), (
+            f"Matches not sorted by descending score: {scores}"
+        )
+
+        # ns_usage must contain an entry for every queried namespace
+        assert isinstance(results.ns_usage, dict)
+        for ns in namespaces:
+            assert ns in results.ns_usage, (
+                f"Expected ns_usage entry for {ns!r}, got keys: {list(results.ns_usage.keys())}"
+            )
+
+        # Total usage must be present and reflect work across all namespaces
+        assert results.usage is not None
+        assert isinstance(results.usage.read_units, int)
+        assert results.usage.read_units >= len(namespaces)
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
