@@ -3,6 +3,7 @@
 Covers:
   - search-records: basic text search (async)
   - search-with-rerank: text search with inline reranking (async)
+  - search-by-id: search using a stored record ID as the query vector (async)
 
 Note on integrated index creation
 ----------------------------------
@@ -219,6 +220,85 @@ async def test_search_with_rerank_rest_async(
         assert isinstance(response.usage, SearchUsage)
         assert response.usage.rerank_units is not None
         assert response.usage.rerank_units > 0
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name), name, "index"
+        )
+
+
+# ---------------------------------------------------------------------------
+# search-by-id — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_search_by_id_rest_async(
+    async_client: AsyncPinecone, client: Pinecone, api_key: str
+) -> None:
+    """search(id=...) uses a stored record's embedding as the query vector (async).
+
+    Verifies that search-by-id returns a SearchRecordsResponse with the same
+    structure as search-by-text: hits list, hit.id (str), hit.score (float),
+    and usage.read_units > 0.
+    """
+    name = unique_name("idx")
+    namespace = "sid-ns"
+    try:
+        # Create integrated index via direct HTTP call (SDK uses wrong endpoint — IT-0003)
+        _create_integrated_index(api_key, name)
+
+        # Wait for the index to become ready using the sync client
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        # Populate the async client's host cache before calling index()
+        desc = await async_client.indexes.describe(name)
+        index = async_client.index(host=desc.host)
+
+        # Upsert records — embeddings are generated server-side from the text field
+        await index.upsert_records(
+            namespace=namespace,
+            records=[
+                {"_id": "sid-1", "text": "Vector databases enable fast similarity search."},
+                {"_id": "sid-2", "text": "RAG combines retrieval with language model generation."},
+                {"_id": "sid-3", "text": "Embeddings are dense vector representations of data."},
+            ],
+        )
+
+        # Wait until records are searchable (eventual consistency)
+        await async_poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=3,
+                inputs={"text": "similarity search"},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=120,
+            description="records searchable (async) before search-by-id",
+        )
+
+        # Search using an existing record ID as the query seed
+        response = await index.search(namespace=namespace, top_k=3, id="sid-1")
+
+        assert isinstance(response, SearchRecordsResponse)
+        assert isinstance(response.result, SearchResult)
+        assert len(response.result.hits) > 0
+        assert len(response.result.hits) <= 3
+
+        # Verify hit structure is identical to search-by-text
+        for hit in response.result.hits:
+            assert isinstance(hit, Hit)
+            assert isinstance(hit.id, str)
+            assert isinstance(hit.score, float)
+
+        # Usage should reflect a read operation
+        assert isinstance(response.usage, SearchUsage)
+        assert response.usage.read_units > 0
 
     finally:
         await async_cleanup_resource(
