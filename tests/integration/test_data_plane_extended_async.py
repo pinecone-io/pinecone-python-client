@@ -4,7 +4,7 @@ Phase 2 Tier 1: metadata-filter, sparse-vectors, query-by-id, fetch-missing-ids,
 include-values-metadata, query-namespaces.
 """
 # area tags covered: metadata-filter, sparse-vectors, query-by-id, fetch-missing-ids,
-# include-values-metadata
+# include-values-metadata, query-namespaces
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ import pytest
 
 from pinecone import AsyncIndex, AsyncPinecone
 from pinecone.models.indexes.specs import ServerlessSpec
+from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
 from pinecone.models.vectors.responses import (
     FetchResponse,
     QueryResponse,
@@ -393,6 +394,108 @@ async def test_include_values_metadata_rest_async(async_client: AsyncPinecone) -
         # Default: values should be empty, metadata should be None
         assert default_match.values == []
         assert default_match.metadata is None
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_query_namespaces_rest_async(async_client: AsyncPinecone) -> None:
+    """query_namespaces() fans out queries across multiple namespaces and merges results (REST async)."""
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # Populate host cache so pc.index(name=...) can resolve it
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        # Upsert different vectors into two named namespaces
+        await idx.upsert(
+            vectors=[
+                {"id": "qn-ns1-v1", "values": [0.1, 0.2]},
+                {"id": "qn-ns1-v2", "values": [0.3, 0.4]},
+            ],
+            namespace="qn-ns1",
+        )
+        await idx.upsert(
+            vectors=[
+                {"id": "qn-ns2-v1", "values": [0.5, 0.6]},
+                {"id": "qn-ns2-v2", "values": [0.7, 0.8]},
+            ],
+            namespace="qn-ns2",
+        )
+
+        # Wait until at least one vector from each namespace is queryable
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.1, 0.2], top_k=10, namespace="qn-ns1"),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="ns1 vectors queryable (async) before query_namespaces",
+        )
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.1, 0.2], top_k=10, namespace="qn-ns2"),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="ns2 vectors queryable (async) before query_namespaces",
+        )
+
+        # Call query_namespaces across both namespaces
+        results = await idx.query_namespaces(
+            vector=[0.1, 0.2],
+            namespaces=["qn-ns1", "qn-ns2"],
+            metric="cosine",
+            top_k=5,
+        )
+
+        # Verify result type and structure
+        assert isinstance(results, QueryNamespacesResults)
+
+        # Merged matches list: sorted by score (descending for cosine), up to top_k
+        assert isinstance(results.matches, list)
+        assert len(results.matches) >= 1
+
+        # Each match is a ScoredVector with id and score
+        for match in results.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+
+        # Matches come from both namespaces
+        match_ids = {m.id for m in results.matches}
+        assert len(match_ids & {"qn-ns1-v1", "qn-ns1-v2"}) >= 1
+        assert len(match_ids & {"qn-ns2-v1", "qn-ns2-v2"}) >= 1
+
+        # Scores should be in descending order (cosine: higher is better)
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True)
+
+        # usage has read_units (sum across namespaces)
+        assert results.usage is not None
+        assert isinstance(results.usage.read_units, int)
+        assert results.usage.read_units >= 2  # at least 1 per namespace
+
+        # ns_usage has per-namespace usage
+        assert isinstance(results.ns_usage, dict)
+        assert "qn-ns1" in results.ns_usage
+        assert "qn-ns2" in results.ns_usage
     finally:
         if idx is not None:
             await idx.close()
