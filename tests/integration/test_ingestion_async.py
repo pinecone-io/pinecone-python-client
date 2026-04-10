@@ -483,3 +483,89 @@ async def test_update_metadata_async(async_client: AsyncPinecone) -> None:
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name), name, "index"
         )
+
+
+# ---------------------------------------------------------------------------
+# update-sparse — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_update_sparse_async(async_client: AsyncPinecone) -> None:
+    """index.update(id=..., sparse_values=...) replaces sparse component while preserving dense values (async REST).
+
+    Verifies:
+    - Upsert hybrid vector with sparse_values {"indices": [0, 3], "values": [0.5, 0.8]}
+    - Update with new sparse_values {"indices": [1, 2], "values": [0.9, 0.7]}
+    - Fetch and verify new sparse indices/values present
+    - Dense values [0.1, 0.2, 0.3, 0.4] are unchanged
+    - update() returns an UpdateResponse
+    """
+    name = unique_name("idx")
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        desc = await async_client.indexes.describe(name)
+        index = async_client.index(host=desc.host)
+
+        # Upsert hybrid vector with initial sparse values
+        await index.upsert(vectors=[{
+            "id": "us-v1",
+            "values": [0.1, 0.2, 0.3, 0.4],
+            "sparse_values": {"indices": [0, 3], "values": [0.5, 0.8]},
+        }])
+
+        # Wait for vector to be fetchable
+        await async_poll_until(
+            query_fn=lambda: index.fetch(ids=["us-v1"]),
+            check_fn=lambda r: "us-v1" in r.vectors,
+            timeout=120,
+            description="us-v1 fetchable before sparse update (async)",
+        )
+
+        # Update only the sparse values — dense values should be preserved
+        update_resp = await index.update(
+            id="us-v1",
+            sparse_values={"indices": [1, 2], "values": [0.9, 0.7]},
+        )
+        assert isinstance(update_resp, UpdateResponse)
+
+        # Poll until the sparse values change propagates
+        async def _sparse_updated() -> object:
+            r = await index.fetch(ids=["us-v1"])
+            if "us-v1" not in r.vectors:
+                return None
+            v = r.vectors["us-v1"]
+            if v.sparse_values is None or v.sparse_values.indices != [1, 2]:
+                return None
+            return r
+
+        fetched = await async_poll_until(
+            query_fn=_sparse_updated,
+            check_fn=lambda r: r is not None,
+            timeout=120,
+            description="us-v1 sparse values updated to indices=[1, 2] (async)",
+        )
+
+        v = fetched.vectors["us-v1"]  # type: ignore[union-attr]
+        # New sparse values present
+        assert v.sparse_values is not None, "sparse_values should be present after update (async)"
+        assert isinstance(v.sparse_values, SparseValues)
+        assert v.sparse_values.indices == [1, 2], \
+            f"expected sparse indices [1, 2], got {v.sparse_values.indices}"
+        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.sparse_values.values, [0.9, 0.7])), \
+            f"expected sparse values [0.9, 0.7], got {v.sparse_values.values}"
+        # Dense values preserved
+        assert len(v.values) == 4, f"expected 4 dense values, got {len(v.values)}"
+        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.values, [0.1, 0.2, 0.3, 0.4])), \
+            f"expected dense values [0.1, 0.2, 0.3, 0.4], got {v.values}"
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name), name, "index"
+        )
