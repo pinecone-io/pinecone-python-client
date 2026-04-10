@@ -10,6 +10,8 @@ import pytest
 
 from pinecone import Pinecone
 from pinecone.errors import ApiError, NotFoundError, UnauthorizedError
+from pinecone.models.indexes.specs import ServerlessSpec
+from tests.integration.conftest import cleanup_resource, unique_name
 
 
 # ---------------------------------------------------------------------------
@@ -75,3 +77,76 @@ def test_delete_nonexistent_index_raises_not_found(client: Pinecone) -> None:
     err = exc_info.value
     assert isinstance(err, ApiError)
     assert err.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# error-dimension-mismatch
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_dimension_mismatch_raises_typed_error_rest(client: Pinecone) -> None:
+    """Upsert a 3-dim vector into a 2-dim index raises ApiError (status_code=400, REST sync)."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        with pytest.raises(ApiError) as exc_info:
+            index.upsert(
+                vectors=[{"id": "dim-v1", "values": [0.1, 0.2, 0.3]}]
+            )
+
+        err = exc_info.value
+        assert err.status_code == 400
+        # Error message must be human-readable
+        msg = str(err)
+        assert len(msg) > 0
+        assert not msg.strip().isdigit()
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+@pytest.mark.integration
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "SDK bug IT-0004: gRPC _call_channel wraps PineconeValueError (INVALID_ARGUMENT) "
+        "as PineconeConnectionError; should raise ApiError(status_code=400) for transport parity"
+    ),
+)
+def test_dimension_mismatch_raises_typed_error_grpc(client: Pinecone) -> None:
+    """Upsert a 3-dim vector into a 2-dim index raises ApiError (status_code=400, gRPC).
+
+    Currently fails: gRPC _call_channel converts PineconeValueError → PineconeConnectionError,
+    breaking transport parity with REST which raises ApiError(status_code=400).
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        with pytest.raises(ApiError) as exc_info:
+            index.upsert(
+                vectors=[{"id": "dim-v1", "values": [0.1, 0.2, 0.3]}]
+            )
+
+        err = exc_info.value
+        assert err.status_code == 400
+        msg = str(err)
+        assert len(msg) > 0
+        assert not msg.strip().isdigit()
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

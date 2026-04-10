@@ -11,6 +11,8 @@ import pytest_asyncio
 
 from pinecone import AsyncPinecone
 from pinecone.errors import ApiError, NotFoundError, UnauthorizedError
+from pinecone.models.indexes.specs import ServerlessSpec
+from tests.integration.conftest import async_cleanup_resource, unique_name
 
 
 # ---------------------------------------------------------------------------
@@ -82,3 +84,43 @@ async def test_delete_nonexistent_index_raises_not_found_async(
     err = exc_info.value
     assert isinstance(err, ApiError)
     assert err.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# error-dimension-mismatch
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_dimension_mismatch_raises_typed_error_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """Upsert a 3-dim vector into a 2-dim index raises ApiError (status_code=400, REST async)."""
+    name = unique_name("idx")
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        # Populate host cache so pc.index(name=...) can resolve it
+        await async_client.indexes.describe(name)
+        index = async_client.index(name=name)
+
+        with pytest.raises(ApiError) as exc_info:
+            await index.upsert(
+                vectors=[{"id": "dim-v1", "values": [0.1, 0.2, 0.3]}]
+            )
+
+        err = exc_info.value
+        assert err.status_code == 400
+        msg = str(err)
+        assert len(msg) > 0
+        assert not msg.strip().isdigit()
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name), name, "index"
+        )
