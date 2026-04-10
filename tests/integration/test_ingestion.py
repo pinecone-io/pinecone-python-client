@@ -4,6 +4,7 @@ Phase 3 area tags: upsert-formats, upsert-batch, upsert-overwrite,
 upsert-records, upsert-records-batch, update-metadata, update-sparse,
 update-by-filter, delete-by-filter, delete-all-namespace
 """
+# ruff: noqa: E501
 
 from __future__ import annotations
 
@@ -191,6 +192,152 @@ def test_upsert_batch_grpc(client: Pinecone) -> None:
             description="total_vector_count >= 200 in stats via gRPC",
         )
         assert stats.total_vector_count >= 200
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# upsert-overwrite — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_upsert_overwrite_rest(client: Pinecone) -> None:
+    """Second upsert of the same ID fully replaces values AND metadata (REST sync).
+
+    Verifies:
+    - Initial upsert stores values [0.1, 0.2] and metadata {"v": 1}
+    - Second upsert of same ID with values [0.9, 0.8] and metadata {"v": 2, "new_key": "hello"}
+      completely replaces the first write — old values and old metadata keys gone
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # First write
+        index.upsert(vectors=[{"id": "ow-1", "values": [0.1, 0.2], "metadata": {"v": 1, "original": "yes"}}])
+
+        # Wait for first write to be visible
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["ow-1"]),
+            check_fn=lambda r: "ow-1" in r.vectors,
+            timeout=120,
+            description="first upsert of ow-1 fetchable",
+        )
+
+        # Verify first write values before overwriting
+        fetched_before = index.fetch(ids=["ow-1"])
+        v_before = fetched_before.vectors["ow-1"]
+        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v_before.values, [0.1, 0.2]))
+        assert v_before.metadata is not None
+        assert v_before.metadata.get("v") == 1
+        assert v_before.metadata.get("original") == "yes"
+
+        # Second write — overwrite same ID
+        index.upsert(vectors=[{"id": "ow-1", "values": [0.9, 0.8], "metadata": {"v": 2, "new_key": "hello"}}])
+
+        # Wait for second write to propagate — poll until values change
+        def _second_write_visible() -> object:
+            r = index.fetch(ids=["ow-1"])
+            if "ow-1" not in r.vectors:
+                return None
+            v = r.vectors["ow-1"]
+            if not math.isclose(v.values[0], 0.9, rel_tol=1e-5):
+                return None
+            return r
+
+        fetched_after = poll_until(
+            query_fn=_second_write_visible,
+            check_fn=lambda r: r is not None,
+            timeout=120,
+            description="second upsert of ow-1 propagated (values[0] ~ 0.9)",
+        )
+
+        v_after = fetched_after.vectors["ow-1"]  # type: ignore[union-attr]
+        assert v_after.id == "ow-1"
+        # Values completely replaced
+        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v_after.values, [0.9, 0.8])), \
+            f"expected [0.9, 0.8] but got {v_after.values}"
+        # Metadata completely replaced — new keys present
+        assert v_after.metadata is not None
+        assert v_after.metadata.get("v") == 2
+        assert v_after.metadata.get("new_key") == "hello"
+        # Old metadata key gone
+        assert "original" not in v_after.metadata, \
+            f"old key 'original' should not persist after overwrite; got metadata={v_after.metadata}"
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# upsert-overwrite — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_upsert_overwrite_grpc(client: Pinecone) -> None:
+    """Second upsert of the same ID fully replaces values AND metadata (gRPC).
+
+    Verifies identical semantics to the REST overwrite test but via the gRPC transport.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        # First write
+        index.upsert(vectors=[{"id": "ow-1", "values": [0.1, 0.2], "metadata": {"v": 1, "original": "yes"}}])
+
+        # Wait for first write to be visible
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["ow-1"]),
+            check_fn=lambda r: "ow-1" in r.vectors,
+            timeout=120,
+            description="first upsert of ow-1 fetchable (gRPC)",
+        )
+
+        # Second write — overwrite same ID
+        index.upsert(vectors=[{"id": "ow-1", "values": [0.9, 0.8], "metadata": {"v": 2, "new_key": "hello"}}])
+
+        # Wait for second write to propagate
+        def _second_write_visible() -> object:
+            r = index.fetch(ids=["ow-1"])
+            if "ow-1" not in r.vectors:
+                return None
+            v = r.vectors["ow-1"]
+            if not math.isclose(v.values[0], 0.9, rel_tol=1e-5):
+                return None
+            return r
+
+        fetched_after = poll_until(
+            query_fn=_second_write_visible,
+            check_fn=lambda r: r is not None,
+            timeout=120,
+            description="second upsert of ow-1 propagated (gRPC)",
+        )
+
+        v_after = fetched_after.vectors["ow-1"]  # type: ignore[union-attr]
+        assert v_after.id == "ow-1"
+        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v_after.values, [0.9, 0.8])), \
+            f"expected [0.9, 0.8] but got {v_after.values}"
+        assert v_after.metadata is not None
+        assert v_after.metadata.get("v") == 2
+        assert v_after.metadata.get("new_key") == "hello"
+        assert "original" not in v_after.metadata, \
+            f"old key 'original' should not persist after overwrite; got metadata={v_after.metadata}"
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
