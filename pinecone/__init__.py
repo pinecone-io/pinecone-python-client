@@ -86,7 +86,15 @@ if TYPE_CHECKING:
     )
     from pinecone.models.collections.list import CollectionList
     from pinecone.models.collections.model import CollectionModel
-    from pinecone.models.enums import EmbedModel, RerankModel
+    from pinecone.models.enums import (
+        CloudProvider,
+        DeletionProtection,
+        EmbedModel,
+        Metric,
+        PodType,
+        RerankModel,
+        VectorType,
+    )
     from pinecone.models.imports.list import ImportList
     from pinecone.models.imports.model import ImportModel, StartImportResponse
     from pinecone.models.indexes.index import (
@@ -161,13 +169,6 @@ from pinecone.errors.exceptions import (
     ResponseParsingError,
     ServiceError,
     UnauthorizedError,
-)
-from pinecone.models.enums import (
-    CloudProvider,
-    DeletionProtection,
-    Metric,
-    PodType,
-    VectorType,
 )
 
 __all__ = [
@@ -296,6 +297,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "BackupModel": ("pinecone.models.backups.model", "BackupModel"),
     "ByocSpec": ("pinecone.models.indexes.specs", "ByocSpec"),
     "ByocSpecInfo": ("pinecone.models.indexes.index", "ByocSpecInfo"),
+    "CloudProvider": ("pinecone.models.enums", "CloudProvider"),
     "ChatCompletionResponse": ("pinecone.models.assistant.chat", "ChatCompletionResponse"),
     "ChatCompletionStreamChunk": (
         "pinecone.models.assistant.streaming",
@@ -311,6 +313,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "pinecone.models.backups.model",
         "CreateIndexFromBackupResponse",
     ),
+    "DeletionProtection": ("pinecone.models.enums", "DeletionProtection"),
     "DenseEmbedding": ("pinecone.models.inference.embed", "DenseEmbedding"),
     "DescribeIndexStatsResponse": (
         "pinecone.models.vectors.responses",
@@ -346,6 +349,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ListFilesResponse": ("pinecone.models.assistant.list", "ListFilesResponse"),
     "ListResponse": ("pinecone.models.vectors.responses", "ListResponse"),
     "Message": ("pinecone.models.assistant.message", "Message"),
+    "Metric": ("pinecone.models.enums", "Metric"),
     "ModelInfo": ("pinecone.models.inference.models", "ModelInfo"),
     "ModelInfoList": ("pinecone.models.inference.model_list", "ModelInfoList"),
     "NamespaceDescription": (
@@ -358,6 +362,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "Paginator": ("pinecone.models.pagination", "Paginator"),
     "Pinecone": ("pinecone._client", "Pinecone"),
     "PodSpec": ("pinecone.models.indexes.specs", "PodSpec"),
+    "PodType": ("pinecone.models.enums", "PodType"),
     "ProjectList": ("pinecone.models.admin.project", "ProjectList"),
     "ProjectModel": ("pinecone.models.admin.project", "ProjectModel"),
     "PodSpecInfo": ("pinecone.models.indexes.index", "PodSpecInfo"),
@@ -409,6 +414,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     ),
     "UpsertResponse": ("pinecone.models.vectors.responses", "UpsertResponse"),
     "Vector": ("pinecone.models.vectors.vector", "Vector"),
+    "VectorType": ("pinecone.models.enums", "VectorType"),
 }
 
 
