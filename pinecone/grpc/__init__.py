@@ -983,6 +983,19 @@ class GrpcIndex:
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
+
+        Examples:
+
+            pc = Pinecone(api_key="YOUR_API_KEY")
+            idx = pc.GrpcIndex("my-index")
+            response = idx.upsert_records(
+                namespace="articles-en",
+                records=[
+                    {"_id": "article-101", "text": "Vector databases enable similarity search."},
+                    {"_id": "article-102", "text": "RAG combines search with LLMs."},
+                ],
+            )
+            print(response.record_count)
         """
         if not isinstance(namespace, str):
             raise ValidationError("namespace must be a string")
