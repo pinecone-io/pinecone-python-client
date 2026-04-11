@@ -364,7 +364,16 @@ class Projects:
             if last_error is not None:
                 raise last_error
         finally:
-            self._admin.api_keys.delete(api_key_id=temp_key.key.id)
+            try:
+                self._admin.api_keys.delete(api_key_id=temp_key.key.id)
+            except Exception:
+                logger.warning(
+                    "Failed to delete temporary cleanup key %r for project %r; "
+                    "delete it manually via admin.api_keys.delete(api_key_id=%r)",
+                    temp_key.key.id,
+                    project_id,
+                    temp_key.key.id,
+                )
 
         self.delete(project_id=project_id)
 

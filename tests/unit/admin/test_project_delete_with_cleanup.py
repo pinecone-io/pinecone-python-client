@@ -10,7 +10,7 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.admin.projects import Projects
-from pinecone.errors.exceptions import PineconeError
+from pinecone.errors.exceptions import ApiError, PineconeError
 
 BASE_URL = "https://api.test.pinecone.io"
 
@@ -140,6 +140,49 @@ def test_delete_with_cleanup_no_admin_raises(http_client: HTTPClient) -> None:
 
     with pytest.raises(PineconeError, match="delete_with_cleanup requires an Admin"):
         projects.delete_with_cleanup(project_id="proj-123")
+
+
+def test_delete_with_cleanup_key_deletion_failure_does_not_block_project_delete(
+    projects: Projects, mock_admin: MagicMock
+) -> None:
+    """Verify project deletion still proceeds when temp key deletion fails after successful cleanup."""
+    temp_key = _make_temp_key()
+    mock_admin.api_keys.create.return_value = temp_key
+    mock_admin.api_keys.delete.side_effect = ApiError("server error", status_code=500)
+
+    with (
+        patch.object(projects, "_cleanup_project_resources"),
+        patch.object(projects, "delete") as mock_delete,
+    ):
+        # Should not raise — key deletion error is swallowed
+        projects.delete_with_cleanup(project_id="proj-123")
+
+        # Project deletion still called despite key deletion failure
+        mock_delete.assert_called_once_with(project_id="proj-123")
+
+
+def test_delete_with_cleanup_original_error_preserved_when_key_deletion_also_fails(
+    projects: Projects, mock_admin: MagicMock
+) -> None:
+    """Verify the original cleanup error propagates when both cleanup and key deletion fail."""
+    temp_key = _make_temp_key()
+    mock_admin.api_keys.create.return_value = temp_key
+    mock_admin.api_keys.delete.side_effect = ApiError("key delete error", status_code=500)
+
+    original_error = RuntimeError("original cleanup failure")
+
+    with (
+        patch.object(
+            projects, "_cleanup_project_resources", side_effect=original_error
+        ),
+        patch.object(projects, "delete") as mock_delete,
+        patch("pinecone.admin.projects.time.sleep"),
+    ):
+        with pytest.raises(RuntimeError, match="original cleanup failure"):
+            projects.delete_with_cleanup(project_id="proj-123", max_attempts=1)
+
+        # Project NOT deleted since cleanup failed
+        mock_delete.assert_not_called()
 
 
 def test_delete_with_cleanup_call_order(projects: Projects, mock_admin: MagicMock) -> None:
