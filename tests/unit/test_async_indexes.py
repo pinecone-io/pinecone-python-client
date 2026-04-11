@@ -1067,6 +1067,11 @@ async def test_configure_empty_name_raises(async_indexes: AsyncIndexes) -> None:
         await async_indexes.configure("")
 
 
+async def test_configure_invalid_deletion_protection_raises(async_indexes: AsyncIndexes) -> None:
+    with pytest.raises(ValidationError, match="deletion_protection"):
+        await async_indexes.configure("test-index", deletion_protection="invalid")
+
+
 @respx.mock
 async def test_configure_byoc_read_capacity_on_demand(
     async_indexes: AsyncIndexes,

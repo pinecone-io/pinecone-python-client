@@ -206,6 +206,11 @@ def test_configure_empty_name_raises(indexes: Indexes) -> None:
         indexes.configure("")
 
 
+def test_configure_invalid_deletion_protection_raises(indexes: Indexes) -> None:
+    with pytest.raises(ValidationError, match="deletion_protection"):
+        indexes.configure("test-index", deletion_protection="maybe")
+
+
 # ---------------------------------------------------------------------------
 # BYOC read_capacity
 # ---------------------------------------------------------------------------

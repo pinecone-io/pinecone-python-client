@@ -27,6 +27,15 @@ _VALID_METRICS = frozenset({"cosine", "euclidean", "dotproduct"})
 _VALID_DELETION_PROTECTION = frozenset({"enabled", "disabled"})
 
 
+def _validate_deletion_protection(deletion_protection: DeletionProtection | str) -> None:
+    resolved = resolve_enum_value(deletion_protection)
+    if resolved not in _VALID_DELETION_PROTECTION:
+        raise ValidationError(
+            f"deletion_protection must be one of {sorted(_VALID_DELETION_PROTECTION)}, "
+            f"got {resolved!r}"
+        )
+
+
 class IndexKwargs(TypedDict):
     """Typed kwargs for constructing :class:`~pinecone.index.Index` or
     :class:`~pinecone.async_client.async_index.AsyncIndex`.
@@ -98,12 +107,7 @@ def validate_create_inputs(
             f"metric must be one of {sorted(_VALID_METRICS)}, got {resolved_metric!r}"
         )
 
-    resolved_dp = resolve_enum_value(deletion_protection)
-    if resolved_dp not in _VALID_DELETION_PROTECTION:
-        raise ValidationError(
-            f"deletion_protection must be one of {sorted(_VALID_DELETION_PROTECTION)}, "
-            f"got {resolved_dp!r}"
-        )
+    _validate_deletion_protection(deletion_protection)
 
     if isinstance(spec, dict) and not ({"serverless", "pod", "byoc"} & spec.keys()):
         raise ValidationError("spec dict must contain a 'serverless', 'pod', or 'byoc' key")
@@ -171,12 +175,7 @@ def validate_byoc_inputs(
     if dimension is None:
         raise ValidationError("dimension is required for BYOC indexes")
 
-    resolved_dp = resolve_enum_value(deletion_protection)
-    if resolved_dp not in _VALID_DELETION_PROTECTION:
-        raise ValidationError(
-            f"deletion_protection must be one of {sorted(_VALID_DELETION_PROTECTION)}, "
-            f"got {resolved_dp!r}"
-        )
+    _validate_deletion_protection(deletion_protection)
 
 
 def build_byoc_body(
@@ -213,6 +212,7 @@ def validate_integrated_inputs(
     *,
     name: str,
     spec: IntegratedSpec,
+    deletion_protection: DeletionProtection | str = "disabled",
 ) -> None:
     """Client-side validation for integrated index creation."""
     require_non_empty("name", name)
@@ -226,6 +226,7 @@ def validate_integrated_inputs(
         raise ValidationError("embed model is required for integrated indexes")
     if not spec.embed.field_map:
         raise ValidationError("embed field_map is required for integrated indexes")
+    _validate_deletion_protection(deletion_protection)
 
 
 def build_integrated_body(

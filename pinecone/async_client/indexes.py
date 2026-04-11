@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.indexes_adapter import IndexesAdapter
 from pinecone._internal.indexes_helpers import (
+    _validate_deletion_protection,
     async_poll_index_until_ready,
     build_byoc_body,
     build_create_body,
@@ -268,6 +269,7 @@ class AsyncIndexes:
 
         # Deletion protection — only include when explicitly specified
         if deletion_protection is not None:
+            _validate_deletion_protection(deletion_protection)
             body["deletion_protection"] = resolve_enum_value(deletion_protection)
 
         # Tag merging — fetch current tags and merge
@@ -354,7 +356,9 @@ class AsyncIndexes:
                 )
         """
         if isinstance(spec, IntegratedSpec):
-            validate_integrated_inputs(name=name, spec=spec)
+            validate_integrated_inputs(
+                name=name, spec=spec, deletion_protection=deletion_protection
+            )
             body = build_integrated_body(
                 name=name,
                 spec=spec,

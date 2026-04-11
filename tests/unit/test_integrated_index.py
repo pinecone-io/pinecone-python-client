@@ -320,6 +320,22 @@ def test_create_integrated_missing_name_raises(indexes: Indexes) -> None:
         )
 
 
+def test_create_integrated_invalid_deletion_protection_raises(indexes: Indexes) -> None:
+    with pytest.raises(ValidationError, match="deletion_protection"):
+        indexes.create(
+            name="test-index",
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "my_text_field"},
+                ),
+            ),
+            deletion_protection="maybe",
+        )
+
+
 # ---------------------------------------------------------------------------
 # Polling
 # ---------------------------------------------------------------------------
