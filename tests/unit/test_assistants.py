@@ -337,6 +337,50 @@ def test_create_timeout_negative_one(assistants: Assistants) -> None:
 
 
 # ---------------------------------------------------------------------------
+# create() — terminal error states
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_assistant_failed_status(mock_sleep: object, assistants: Assistants) -> None:
+    """'Failed' status raises PineconeError immediately, not a timeout."""
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Failed")),
+    )
+
+    with pytest.raises(PineconeError, match="terminal state") as exc_info:
+        assistants.create(name="test-assistant", timeout=None)
+
+    assert "Failed" in str(exc_info.value)
+    assert "pc.assistants.describe" in str(exc_info.value)
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_assistant_initialization_failed_status(
+    mock_sleep: object, assistants: Assistants
+) -> None:
+    """'InitializationFailed' status raises PineconeError immediately, not a timeout."""
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(
+            200, json=make_assistant_response(status="InitializationFailed")
+        ),
+    )
+
+    with pytest.raises(PineconeError, match="terminal state") as exc_info:
+        assistants.create(name="test-assistant", timeout=None)
+
+    assert "InitializationFailed" in str(exc_info.value)
+
+
+# ---------------------------------------------------------------------------
 # create() — valid regions accepted
 # ---------------------------------------------------------------------------
 

@@ -1167,6 +1167,11 @@ class Assistants:
             model = self._adapter.to_assistant(response.content)
             if model.status == "Ready":
                 return model
+            if model.status in ("Failed", "InitializationFailed"):
+                raise PineconeError(
+                    f"Assistant '{name}' entered terminal state '{model.status}'. "
+                    f"Check status with pc.assistants.describe(name='{name}')."
+                )
             if timeout is not None:
                 elapsed = time.monotonic() - start
                 if elapsed >= timeout:
