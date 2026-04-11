@@ -46,7 +46,7 @@ class AsyncPinecone:
             on 500/502/503/504 for GET/HEAD).
 
     Raises:
-        :exc:`ValidationError`: If no API key can be resolved from arguments or
+        :exc:`PineconeValueError`: If no API key can be resolved from arguments or
             environment variables.
 
     Examples:
@@ -315,7 +315,7 @@ class AsyncPinecone:
             An :class:`IndexModel` describing the restored index.
 
         Raises:
-            :exc:`ValidationError`: If *name* or *backup_id* is empty.
+            :exc:`PineconeValueError`: If *name* or *backup_id* is empty.
             :exc:`PineconeTimeoutError`: If the index is not ready within the timeout.
             :exc:`ApiError`: If the API returns an error response.
 
@@ -409,7 +409,7 @@ class AsyncPinecone:
             An async :class:`AsyncIndex` data plane client.
 
         Raises:
-            :exc:`ValidationError`: If neither *name* nor *host* is provided, or if
+            :exc:`PineconeValueError`: If neither *name* nor *host* is provided, or if
                 *name* is given but the host has not been cached yet.
 
         Examples:

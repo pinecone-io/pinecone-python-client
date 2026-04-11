@@ -59,7 +59,7 @@ class AsyncBackups:
             A :class:`BackupModel` describing the created backup.
 
         Raises:
-            :exc:`ValidationError`: If *index_name* is empty.
+            :exc:`PineconeValueError`: If *index_name* is empty.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -158,7 +158,7 @@ class AsyncBackups:
             A :class:`BackupModel` with full backup details.
 
         Raises:
-            :exc:`ValidationError`: If *backup_id* is empty.
+            :exc:`PineconeValueError`: If *backup_id* is empty.
             :exc:`NotFoundError`: If the backup does not exist.
             :exc:`ApiError`: If the API returns another error response.
 
@@ -187,7 +187,7 @@ class AsyncBackups:
             A :class:`BackupModel` with full backup details.
 
         Raises:
-            :exc:`ValidationError`: If *backup_id* is empty.
+            :exc:`PineconeValueError`: If *backup_id* is empty.
             :exc:`NotFoundError`: If the backup does not exist.
             :exc:`ApiError`: If the API returns another error response.
 
@@ -208,7 +208,7 @@ class AsyncBackups:
             backup_id (str): The identifier of the backup to delete.
 
         Raises:
-            :exc:`ValidationError`: If *backup_id* is empty.
+            :exc:`PineconeValueError`: If *backup_id* is empty.
             :exc:`NotFoundError`: If the backup does not exist.
             :exc:`ApiError`: If the API returns another error response.
 

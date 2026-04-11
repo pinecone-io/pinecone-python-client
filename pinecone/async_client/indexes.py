@@ -106,7 +106,7 @@ class AsyncIndexes:
             status, deletion_protection, vector_type, and tags.
 
         Raises:
-            :exc:`ValidationError`: If *name* is empty.
+            :exc:`PineconeValueError`: If *name* is empty.
             :exc:`NotFoundError`: If the index does not exist.
             :exc:`ApiError`: If the API returns another error response.
 
@@ -137,7 +137,7 @@ class AsyncIndexes:
             True if the index exists, False otherwise.
 
         Raises:
-            :exc:`ValidationError`: If *name* is empty.
+            :exc:`PineconeValueError`: If *name* is empty.
             :exc:`ApiError`: If the API returns an error other than 404.
 
         Examples:
@@ -168,7 +168,7 @@ class AsyncIndexes:
                 Use ``-1`` to return immediately without polling.
 
         Raises:
-            :exc:`ValidationError`: If *name* is empty.
+            :exc:`PineconeValueError`: If *name* is empty.
             :exc:`NotFoundError`: If the index does not exist.
             :exc:`PineconeTimeoutError`: If the index still exists after *timeout* seconds.
             :exc:`ApiError`: If the API returns another error response.
@@ -231,7 +231,7 @@ class AsyncIndexes:
                 "scaling": "Manual", "manual": {"replicas": 2, "shards": 1}}}``.
 
         Raises:
-            :exc:`ValidationError`: If *name* is empty or *read_capacity* is invalid.
+            :exc:`PineconeValueError`: If *name* is empty or *read_capacity* is invalid.
             :exc:`NotFoundError`: If the index does not exist.
             :exc:`ApiError`: If the API returns another error response.
 
@@ -329,7 +329,7 @@ class AsyncIndexes:
             :class:`IndexModel` describing the created index.
 
         Raises:
-            :exc:`ValidationError`: If inputs fail client-side validation.
+            :exc:`PineconeValueError`: If inputs fail client-side validation.
             :exc:`NotFoundError`: If the index disappears during readiness polling.
             :exc:`IndexInitFailedError`: If the index fails to initialise.
             :exc:`PineconeTimeoutError`: If the index is not ready before the deadline.

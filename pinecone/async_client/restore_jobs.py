@@ -98,7 +98,7 @@ class AsyncRestoreJobs:
             A :class:`RestoreJobModel` with full restore job details.
 
         Raises:
-            :exc:`ValidationError`: If *job_id* is empty.
+            :exc:`PineconeValueError`: If *job_id* is empty.
             :exc:`NotFoundError`: If the restore job does not exist.
             :exc:`ApiError`: If the API returns another error response.
 
