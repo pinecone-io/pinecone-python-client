@@ -38,7 +38,7 @@ class QueryResponse(Struct, rename="camel", kw_only=True, gc=False):
     """Response from a query operation.
 
     Attributes:
-        matches (list[ScoredVector]): List of scored vectors sorted by descending similarity.
+        matches (list[ScoredVector]): List of scored vectors as returned by the API (ordered from most similar to least similar).
         namespace (str): Namespace that was queried. Defaults to ``""`` (the
             default namespace).
         usage (Usage | None): Read unit usage for this query, or ``None`` if not reported.
@@ -52,12 +52,9 @@ class QueryResponse(Struct, rename="camel", kw_only=True, gc=False):
     response_info: ResponseInfo | None = None
 
     def __post_init__(self) -> None:
-        """Normalize null namespace to empty string (claim unified-rs-0013).
-        Sort matches by descending score per the docstring contract."""
+        """Normalize null namespace to empty string (claim unified-rs-0013)."""
         if self.namespace is None:
             self.namespace = ""
-        if self.matches:
-            self.matches = sorted(self.matches, key=lambda m: m.score, reverse=True)
 
     @overload
     def __getitem__(self, key: Literal["matches"]) -> list[ScoredVector]: ...

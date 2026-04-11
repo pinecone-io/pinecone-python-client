@@ -14,7 +14,6 @@ from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
 from pinecone.models.vectors.vector import ScoredVector
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 
-
 # ---------------------------------------------------------------------------
 # query-namespaces-filter — REST sync
 # ---------------------------------------------------------------------------

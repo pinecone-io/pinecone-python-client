@@ -12,11 +12,10 @@ from __future__ import annotations
 import pytest
 
 from pinecone import Pinecone
-from pinecone.models.collections.model import CollectionModel
 from pinecone.models.collections.list import CollectionList
+from pinecone.models.collections.model import CollectionModel
 from pinecone.models.indexes.specs import PodSpec
-from tests.integration.conftest import cleanup_resource, poll_until, unique_name, wait_for_ready
-
+from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 
 # ---------------------------------------------------------------------------
 # collection-lifecycle — REST sync

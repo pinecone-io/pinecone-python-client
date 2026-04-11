@@ -9,20 +9,26 @@ update-by-filter, delete-by-filter, delete-all-namespace
 from __future__ import annotations
 
 import math
+
 import pytest
 import pytest_asyncio  # noqa: F401
 
 from pinecone import AsyncPinecone, EmbedConfig, IntegratedSpec, Vector
 from pinecone.models.indexes.specs import ServerlessSpec
-from pinecone.models.vectors.sparse import SparseValues
-from pinecone.models.vectors.responses import DescribeIndexStatsResponse, FetchResponse, NamespaceSummary, UpdateResponse, UpsertRecordsResponse, UpsertResponse
+from pinecone.models.vectors.responses import (
+    DescribeIndexStatsResponse,
+    FetchResponse,
+    UpdateResponse,
+    UpsertRecordsResponse,
+    UpsertResponse,
+)
 from pinecone.models.vectors.search import Hit, SearchRecordsResponse
+from pinecone.models.vectors.sparse import SparseValues
 from tests.integration.conftest import (
     async_cleanup_resource,
     async_poll_until,
     unique_name,
 )
-
 
 # ---------------------------------------------------------------------------
 # upsert-formats — REST async

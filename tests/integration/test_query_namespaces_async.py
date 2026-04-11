@@ -7,7 +7,6 @@ Phase 3 Tier 5: query-namespaces-filter, query-namespaces-many.
 from __future__ import annotations
 
 import pytest
-import pytest_asyncio
 
 from pinecone import AsyncPinecone
 from pinecone.async_client.async_index import AsyncIndex
@@ -19,7 +18,6 @@ from tests.integration.conftest import (
     async_poll_until,
     unique_name,
 )
-
 
 # ---------------------------------------------------------------------------
 # query-namespaces-filter — REST async

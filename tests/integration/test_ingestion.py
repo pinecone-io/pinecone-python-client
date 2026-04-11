@@ -9,15 +9,21 @@ update-by-filter, delete-by-filter, delete-all-namespace
 from __future__ import annotations
 
 import math
+
 import pytest
 
 from pinecone import EmbedConfig, IntegratedSpec, Pinecone, Vector
 from pinecone.models.indexes.specs import ServerlessSpec
-from pinecone.models.vectors.sparse import SparseValues
-from pinecone.models.vectors.responses import DescribeIndexStatsResponse, FetchResponse, NamespaceSummary, UpdateResponse, UpsertRecordsResponse, UpsertResponse
+from pinecone.models.vectors.responses import (
+    DescribeIndexStatsResponse,
+    FetchResponse,
+    UpdateResponse,
+    UpsertRecordsResponse,
+    UpsertResponse,
+)
 from pinecone.models.vectors.search import Hit, SearchRecordsResponse
+from pinecone.models.vectors.sparse import SparseValues
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name, wait_for_ready
-
 
 # ---------------------------------------------------------------------------
 # upsert-formats — REST sync

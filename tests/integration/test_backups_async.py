@@ -15,11 +15,10 @@ from __future__ import annotations
 import pytest
 
 from pinecone import AsyncPinecone
-from pinecone.models.backups.model import BackupModel
 from pinecone.models.backups.list import BackupList
+from pinecone.models.backups.model import BackupModel
 from pinecone.models.indexes.index import IndexModel
 from tests.integration.conftest import async_cleanup_resource, async_poll_until, unique_name
-
 
 # ---------------------------------------------------------------------------
 # backup-lifecycle — REST async
