@@ -196,6 +196,7 @@ class Indexes:
             try:
                 self.describe(name)
             except NotFoundError:
+                self._host_cache.pop(name, None)
                 return
             if timeout is not None:
                 elapsed = time.monotonic() - start

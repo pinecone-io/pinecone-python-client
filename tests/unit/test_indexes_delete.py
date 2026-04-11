@@ -75,6 +75,33 @@ def test_delete_removes_host_cache(indexes: Indexes, no_sleep: None) -> None:
 
 
 @respx.mock
+def test_delete_clears_stale_host_cache_after_polling(indexes: Indexes, no_sleep: None) -> None:
+    """Stale host cache entry added by describe() polling is cleared when delete completes.
+
+    Regression test for the bug where describe() re-adds the host to _host_cache during
+    each successful poll iteration. After the polling loop exits via NotFoundError, the
+    entry from the last successful describe() must be removed so that subsequent calls to
+    pc.index("my-index") don't use a dead host.
+    """
+    indexes._host_cache["my-index"] = "my-index-abc.svc.pinecone.io"
+
+    respx.delete(f"{BASE_URL}/indexes/my-index").mock(
+        return_value=httpx.Response(202),
+    )
+    # First describe returns 200 (describe re-adds host to cache), then 404
+    respx.get(f"{BASE_URL}/indexes/my-index").mock(
+        side_effect=[
+            httpx.Response(200, json=make_index_response()),
+            httpx.Response(404, json=make_error_response(404, "Not found")),
+        ],
+    )
+
+    indexes.delete("my-index")
+
+    assert "my-index" not in indexes._host_cache
+
+
+@respx.mock
 def test_delete_polls_until_gone(indexes: Indexes, no_sleep: None) -> None:
     """With explicit timeout, poll describe until index disappears."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
