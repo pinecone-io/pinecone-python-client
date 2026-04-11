@@ -588,13 +588,18 @@ class TestGrpcIndexClose:
         )
         mock_channel.close.side_effect = lambda: call_order.append("channel.close()")
 
+        mock_http = MagicMock()
+        mock_http.close.side_effect = lambda: call_order.append("http.close()")
+
         idx = _make_grpc_index(mock_channel)
         idx._executor = mock_executor
+        idx._http = mock_http
 
         idx.close()
 
-        assert call_order == ["shutdown(wait=True)", "channel.close()"]
+        assert call_order == ["shutdown(wait=True)", "channel.close()", "http.close()"]
         mock_executor.shutdown.assert_called_once_with(wait=True)
+        mock_http.close.assert_called_once()
 
 
 class TestGrpcErrorWrapping:

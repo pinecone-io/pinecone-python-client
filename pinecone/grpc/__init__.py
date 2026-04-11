@@ -1117,6 +1117,7 @@ class GrpcIndex:
         """Close the underlying gRPC channel and release resources."""
         self._executor.shutdown(wait=True)
         self._channel.close()
+        self._http.close()
 
     def __enter__(self) -> GrpcIndex:
         return self
