@@ -968,8 +968,12 @@ class GrpcIndex:
             :class:`UpsertRecordsResponse` with the count of records submitted.
 
         Raises:
-            :exc:`ValidationError`: If namespace is invalid, records is empty, or
-                a record is missing an identifier field.
+            :exc:`PineconeValueError`: If namespace is not a string or is empty/whitespace,
+                records is empty, or a record is missing an identifier field.
+            :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
+                fails (DNS, refused, transport error).
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
         """
         if not isinstance(namespace, str):
             raise ValidationError("namespace must be a string")
@@ -1041,8 +1045,12 @@ class GrpcIndex:
             :class:`SearchRecordsResponse` with hits and usage statistics.
 
         Raises:
-            :exc:`ValidationError`: If namespace is invalid, top_k < 1, rerank
-                is missing required keys, or no query source is provided.
+            :exc:`PineconeValueError`: If ``namespace`` is not a string, ``top_k < 1``,
+                or ``rerank`` is missing required keys.
+            :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
+                fails (DNS, refused, transport error).
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
         """
         if not isinstance(namespace, str):
             raise ValidationError("namespace must be a string")
@@ -1114,10 +1122,10 @@ class GrpcIndex:
         )
 
     def close(self) -> None:
-        """Close the underlying gRPC channel and release resources."""
+        """Close the underlying gRPC channel, REST client, and release resources."""
         self._executor.shutdown(wait=True)
-        self._channel.close()
         self._http.close()
+        self._channel.close()
 
     def __enter__(self) -> GrpcIndex:
         return self

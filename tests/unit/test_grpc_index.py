@@ -597,7 +597,7 @@ class TestGrpcIndexClose:
 
         idx.close()
 
-        assert call_order == ["shutdown(wait=True)", "channel.close()", "http.close()"]
+        assert call_order == ["shutdown(wait=True)", "http.close()", "channel.close()"]
         mock_executor.shutdown.assert_called_once_with(wait=True)
         mock_http.close.assert_called_once()
 
