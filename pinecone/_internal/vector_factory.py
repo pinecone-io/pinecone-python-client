@@ -220,6 +220,7 @@ class VectorFactory:
                             type(s_indices) is list
                             and type(s_values) is list
                             and len(s_indices) == len(s_values)
+                            and (not s_indices or type(s_indices[0]) is int)
                         ):
                             converted = (
                                 raw_values if type(raw_values) is list else list(raw_values)

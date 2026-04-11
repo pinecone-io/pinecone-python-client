@@ -214,6 +214,17 @@ class TestSparseValuesValidation:
                 }
             )
 
+    def test_sparse_string_index_in_3key_dict_rejected(self) -> None:
+        """Fast-path 3-key dict must raise PineconeTypeError for non-int indices."""
+        with pytest.raises(PineconeTypeError, match="indices must be integers"):
+            VectorFactory.build(
+                {
+                    "id": "x",
+                    "values": [1.0],
+                    "sparse_values": {"indices": ["a"], "values": [1.0]},
+                }
+            )
+
 
 class TestGeneralValidation:
     """unified-vecfmt-0016, 0017."""
