@@ -475,6 +475,12 @@ class AsyncIndex:
         if not vector:
             raise ValidationError("vector must be a non-empty list")
 
+        valid_metrics = {"cosine", "euclidean", "dotproduct"}
+        if metric not in valid_metrics:
+            raise ValidationError(
+                f"Invalid metric {metric!r}. Must be one of: {', '.join(sorted(valid_metrics))}"
+            )
+
         namespaces = list(dict.fromkeys(namespaces))
         effective_top_k = top_k if top_k is not None else 10
         aggregator = QueryResultsAggregator(metric=metric, top_k=effective_top_k)

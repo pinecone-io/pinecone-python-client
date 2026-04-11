@@ -104,6 +104,28 @@ class TestAsyncQueryNamespacesValidation:
                 metric="cosine",
             )
 
+    @pytest.mark.asyncio
+    async def test_query_namespaces_invalid_metric_raises(self) -> None:
+        idx = _make_index()
+        with pytest.raises(ValidationError, match="Invalid metric 'badmetric'"):
+            await idx.query_namespaces(
+                vector=[0.1, 0.2],
+                namespaces=["ns1"],
+                metric="badmetric",
+            )
+
+    @pytest.mark.asyncio
+    async def test_query_namespaces_invalid_metric_is_validation_error(self) -> None:
+        from pinecone.errors.exceptions import PineconeError
+
+        idx = _make_index()
+        with pytest.raises(PineconeError):
+            await idx.query_namespaces(
+                vector=[0.1, 0.2],
+                namespaces=["ns1"],
+                metric="invalid",
+            )
+
 
 class TestAsyncQueryNamespacesDedup:
     @pytest.mark.asyncio

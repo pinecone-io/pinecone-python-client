@@ -99,6 +99,26 @@ class TestQueryNamespacesValidation:
                 metric="cosine",
             )
 
+    def test_query_namespaces_invalid_metric_raises(self) -> None:
+        idx = _make_index()
+        with pytest.raises(ValidationError, match="Invalid metric 'badmetric'"):
+            idx.query_namespaces(
+                vector=[0.1, 0.2],
+                namespaces=["ns1"],
+                metric="badmetric",
+            )
+
+    def test_query_namespaces_invalid_metric_is_validation_error(self) -> None:
+        from pinecone.errors.exceptions import PineconeError
+
+        idx = _make_index()
+        with pytest.raises(PineconeError):
+            idx.query_namespaces(
+                vector=[0.1, 0.2],
+                namespaces=["ns1"],
+                metric="invalid",
+            )
+
 
 class TestQueryNamespacesDedup:
     def test_query_namespaces_deduplicates_namespaces(self) -> None:
