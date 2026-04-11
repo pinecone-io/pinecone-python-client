@@ -229,12 +229,14 @@ class VectorFactory:
                                     id_, converted,
                                     SparseValues(s_indices, s_values), None
                                 )
-                            else:
+                            elif isinstance(s_values[0], (int, float)):
                                 return Vector(
                                     id_, converted,
                                     SparseValues(s_indices, [float(v) for v in s_values]),
                                     None,
                                 )
+                            # else: non-numeric type → fall through to _from_dict
+                            # for proper PineconeTypeError via _parse_sparse
             return _from_dict(item)
         if item_type is tuple:
             # Inline 2-element happy path to avoid function call overhead

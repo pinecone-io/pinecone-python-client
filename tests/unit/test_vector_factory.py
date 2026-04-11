@@ -203,6 +203,17 @@ class TestSparseValuesValidation:
                 }
             )
 
+    def test_sparse_string_value_in_3key_dict_rejected(self) -> None:
+        """Fast-path 3-key dict must raise PineconeTypeError, not ValueError."""
+        with pytest.raises(PineconeTypeError, match="values must be floats"):
+            VectorFactory.build(
+                {
+                    "id": "x",
+                    "values": [1.0],
+                    "sparse_values": {"indices": [0], "values": ["bad"]},
+                }
+            )
+
 
 class TestGeneralValidation:
     """unified-vecfmt-0016, 0017."""
