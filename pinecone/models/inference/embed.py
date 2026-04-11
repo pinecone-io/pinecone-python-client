@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Any, Union
+from typing import Any, Union, overload
 
 from msgspec import Struct
 
@@ -124,6 +124,12 @@ class EmbeddingsList(Struct, kw_only=True):
     vector_type: str
     data: list[DenseEmbedding] | list[SparseEmbedding]
     usage: EmbedUsage
+
+    @overload
+    def __getitem__(self, key: int) -> DenseEmbedding | SparseEmbedding: ...
+
+    @overload
+    def __getitem__(self, key: str) -> Any: ...
 
     def __getitem__(self, key: int | str) -> Any:
         """Support integer indexing into data and string bracket access.

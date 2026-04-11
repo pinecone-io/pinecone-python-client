@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Any
+from typing import Any, overload
 
 from pinecone.models.inference.models import ModelInfo
 
@@ -47,6 +47,12 @@ class ModelInfoList:
             ['multilingual-e5-large', 'pinecone-sparse-english-v0']
         """
         return [m.model for m in self._models]
+
+    @overload
+    def __getitem__(self, key: int) -> ModelInfo: ...
+
+    @overload
+    def __getitem__(self, key: str) -> list[ModelInfo]: ...
 
     def __getitem__(self, key: int | str) -> Any:
         """Support integer indexing and string key access.
