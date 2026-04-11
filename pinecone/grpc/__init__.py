@@ -19,10 +19,13 @@ from pinecone._internal.data_plane_helpers import _validate_host
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import (
     ApiError,
+    ConflictError,
     ForbiddenError,
     NotFoundError,
     PineconeConnectionError,
+    PineconeTimeoutError,
     PineconeValueError,
+    ServiceError,
     UnauthorizedError,
     ValidationError,
 )
@@ -228,6 +231,12 @@ class GrpcIndex:
                 raise UnauthorizedError(msg) from exc
             if "PERMISSION_DENIED" in msg:
                 raise ForbiddenError(msg) from exc
+            if "DEADLINE_EXCEEDED" in msg:
+                raise PineconeTimeoutError(msg) from exc
+            if "ALREADY_EXISTS" in msg:
+                raise ConflictError(msg, status_code=409) from exc
+            if "RESOURCE_EXHAUSTED" in msg or "INTERNAL" in msg:
+                raise ServiceError(msg, status_code=500) from exc
             raise PineconeConnectionError(msg) from exc
 
     def upsert(

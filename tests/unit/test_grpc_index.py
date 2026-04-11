@@ -13,10 +13,13 @@ import respx
 
 from pinecone.errors.exceptions import (
     ApiError,
+    ConflictError,
     ForbiddenError,
     NotFoundError,
     PineconeConnectionError,
+    PineconeTimeoutError,
     PineconeValueError,
+    ServiceError,
     UnauthorizedError,
     ValidationError,
 )
@@ -701,6 +704,45 @@ class TestGrpcErrorWrapping:
 
         with pytest.raises(PineconeConnectionError):
             grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1]}])
+
+    def test_deadline_exceeded_raises_timeout_error(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        """gRPC DEADLINE_EXCEEDED maps to PineconeTimeoutError for transport parity."""
+        original = RuntimeError("gRPC DEADLINE_EXCEEDED: timeout")
+        mock_channel.query.side_effect = original
+
+        with pytest.raises(PineconeTimeoutError) as exc_info:
+            grpc_index.query(top_k=1, vector=[0.1])
+
+        assert "DEADLINE_EXCEEDED" in str(exc_info.value)
+        assert exc_info.value.__cause__ is original
+
+    def test_already_exists_raises_conflict_error(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        """gRPC ALREADY_EXISTS maps to ConflictError(status_code=409) for transport parity."""
+        original = RuntimeError("gRPC ALREADY_EXISTS: resource exists")
+        mock_channel.upsert.side_effect = original
+
+        with pytest.raises(ConflictError) as exc_info:
+            grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1]}])
+
+        assert exc_info.value.status_code == 409
+        assert exc_info.value.__cause__ is original
+
+    def test_internal_raises_service_error(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        """gRPC INTERNAL maps to ServiceError(status_code=500) for transport parity."""
+        original = RuntimeError("gRPC INTERNAL: server error")
+        mock_channel.fetch.side_effect = original
+
+        with pytest.raises(ServiceError) as exc_info:
+            grpc_index.fetch(ids=["v1"])
+
+        assert exc_info.value.status_code == 500
+        assert exc_info.value.__cause__ is original
 
 
 # ---------------------------------------------------------------------------
