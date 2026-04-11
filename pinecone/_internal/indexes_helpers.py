@@ -46,6 +46,7 @@ class IndexKwargs(TypedDict):
     additional_headers: dict[str, str]
     timeout: float
     proxy_url: str
+    proxy_headers: dict[str, str]
     ssl_ca_certs: str | None
     ssl_verify: bool
     source_tag: str
