@@ -1024,6 +1024,32 @@ class AsyncAssistants:
 
         Raises:
             :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+            Non-streaming chat completion:
+
+            >>> import asyncio
+            >>> from pinecone import AsyncPinecone
+            >>> pc = AsyncPinecone(api_key="your-api-key")
+            >>> async def main() -> None:
+            ...     response = await pc.assistants.chat_completions(
+            ...         assistant_name="research-assistant",
+            ...         messages=[{"content": "Explain quantum entanglement briefly."}],
+            ...     )
+            ...     print(response.choices[0].message.content)
+            >>> asyncio.run(main())
+
+            Streaming chat completion:
+
+            >>> async def stream_main() -> None:
+            ...     stream = await pc.assistants.chat_completions(
+            ...         assistant_name="research-assistant",
+            ...         messages=[{"content": "Explain quantum entanglement briefly."}],
+            ...         stream=True,
+            ...     )
+            ...     async for chunk in stream:
+            ...         print(chunk)
+            >>> asyncio.run(stream_main())
         """
         parsed: List[Message] = [
             m if isinstance(m, Message) else Message.from_dict(m) for m in messages

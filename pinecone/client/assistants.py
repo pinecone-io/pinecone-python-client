@@ -1002,6 +1002,28 @@ class Assistants:
 
         Raises:
             :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+            Non-streaming chat completion:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> response = pc.assistants.chat_completions(
+            ...     assistant_name="research-assistant",
+            ...     messages=[{"content": "Explain quantum entanglement briefly."}],
+            ... )
+            >>> response.choices[0].message.content
+            'Quantum entanglement is a phenomenon...'
+
+            Streaming chat completion:
+
+            >>> stream = pc.assistants.chat_completions(
+            ...     assistant_name="research-assistant",
+            ...     messages=[{"content": "Explain quantum entanglement briefly."}],
+            ...     stream=True,
+            ... )
+            >>> for chunk in stream:
+            ...     print(chunk)
         """
         parsed: List[Message] = [
             m if isinstance(m, Message) else Message.from_dict(m) for m in messages
