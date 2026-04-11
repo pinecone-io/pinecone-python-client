@@ -1050,6 +1050,10 @@ class GrpcIndex:
         Delegates to the REST endpoint because the Pinecone gRPC API does not
         expose a records search operation for integrated inference indexes.
 
+        .. note::
+           Use this method for indexes with integrated inference. For classic
+           indexes where you provide your own vectors, use :meth:`query`.
+
         Args:
             namespace (str): Namespace to search in (required).
             top_k (int): Number of results to return (must be >= 1).
@@ -1059,9 +1063,16 @@ class GrpcIndex:
             id (str | None): ID of an existing record to use as the query.
             filter (dict[str, Any] | None): Metadata filter expression.
             fields (list[str] | None): Field names to include in results.
-            rerank (RerankConfig | dict[str, Any] | None): Reranking configuration.
+                When ``None``, the server returns all available fields.
+            rerank (RerankConfig | dict[str, Any] | None): Reranking
+                configuration with ``model`` (required), ``rank_fields``
+                (required), and optional ``top_n``, ``parameters``, ``query``
+                keys. Use :class:`RerankConfig` for IDE autocompletion.
             match_terms (dict[str, Any] | None): Term-matching constraint for
-                sparse search.
+                sparse search. Requires keys ``"strategy"`` (currently only
+                ``"all"``) and ``"terms"`` (list of strings). Only supported
+                for sparse indexes using ``pinecone-sparse-english-v0``.
+                ``None`` disables term matching.
 
         Returns:
             :class:`SearchRecordsResponse` with hits and usage statistics.
@@ -1073,6 +1084,36 @@ class GrpcIndex:
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
+
+        Examples:
+
+            response = idx.search(
+                namespace="articles-en",
+                top_k=10,
+                inputs={"text": "benefits of vector databases for search"},
+            )
+            for hit in response.result.hits:
+                print(hit.id, hit.score)
+
+            Search with reranking:
+
+                response = idx.search(
+                    namespace="articles-en",
+                    top_k=10,
+                    inputs={"text": "benefits of vector databases"},
+                    rerank={
+                        "model": "bge-reranker-v2-m3",
+                        "rank_fields": ["text"],
+                        "top_n": 5,
+                    },
+                )
+                for hit in response.result.hits:
+                    print(hit.id, hit.score)
+
+        .. note::
+           Use inline ``rerank`` when searching and reranking in a single call.
+           Use ``pc.inference.rerank()`` when reranking results from a different
+           source or when you need to rerank without searching.
         """
         if not isinstance(namespace, str):
             raise ValidationError("namespace must be a string")
