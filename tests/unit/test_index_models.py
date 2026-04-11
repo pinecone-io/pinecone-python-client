@@ -39,7 +39,7 @@ class TestIndexModel:
         assert model.name == "test-index"
         assert model.dimension == 1536
         assert model.metric == "cosine"
-        assert model.host == "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
+        assert model.host == "https://test-index-abc1234.svc.us-east1-gcp.pinecone.io"
         assert model.deletion_protection == "disabled"
         assert model.vector_type == "dense"
         assert model.status.ready is True
@@ -145,6 +145,18 @@ class TestIndexModel:
         model = msgspec.convert(data, IndexModel)
         assert model.metric == "euclidean"
         assert model.vector_type == "sparse"
+
+    def test_host_bare_gets_https_prefix(self) -> None:
+        """IndexModel normalizes bare hostname to https:// on construction."""
+        data = make_index_response(host="my-index-abc.svc.pinecone.io")
+        model = msgspec.convert(data, IndexModel)
+        assert model.host == "https://my-index-abc.svc.pinecone.io"
+
+    def test_host_with_https_unchanged(self) -> None:
+        """IndexModel preserves an already-prefixed https:// host."""
+        data = make_index_response(host="https://my-index-abc.svc.pinecone.io")
+        model = msgspec.convert(data, IndexModel)
+        assert model.host == "https://my-index-abc.svc.pinecone.io"
 
 
 class TestIndexList:

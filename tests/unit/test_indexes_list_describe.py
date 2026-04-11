@@ -86,7 +86,7 @@ def test_describe_index(indexes: Indexes) -> None:
     assert result.name == "test-index"
     assert result.dimension == 1536
     assert result.metric == "cosine"
-    assert result.host == "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
+    assert result.host == "https://test-index-abc1234.svc.us-east1-gcp.pinecone.io"
     assert result.vector_type == "dense"
     assert result.deletion_protection == "disabled"
     assert result.status.ready is True
@@ -105,7 +105,7 @@ def test_describe_index_caches_host(indexes: Indexes) -> None:
     indexes.describe("test-index")
 
     assert "test-index" in indexes._host_cache
-    assert indexes._host_cache["test-index"] == "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
+    assert indexes._host_cache["test-index"] == "https://test-index-abc1234.svc.us-east1-gcp.pinecone.io"
 
 
 @respx.mock

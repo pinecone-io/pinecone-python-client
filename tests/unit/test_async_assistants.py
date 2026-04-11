@@ -363,7 +363,7 @@ async def test_describe_assistant(async_assistants: AsyncAssistants) -> None:
     assert result.status == "Ready"
     assert result.instructions == "Be helpful."
     assert result.metadata == {"team": "ml"}
-    assert result.host == "my-assistant-abc.svc.pinecone.io"
+    assert result.host == "https://my-assistant-abc.svc.pinecone.io"
     assert result.created_at == "2025-01-15T12:00:00Z"
     assert result.updated_at == "2025-01-15T12:00:00Z"
     assert route.call_count == 1
@@ -933,7 +933,7 @@ async def test_async_pinecone_assistant_convenience_method() -> None:
     assert result.status == "Ready"
     assert result.instructions == "Be helpful."
     assert result.metadata == {"team": "ml"}
-    assert result.host == "my-assistant-abc.svc.pinecone.io"
+    assert result.host == "https://my-assistant-abc.svc.pinecone.io"
     assert route.call_count == 1
 
 

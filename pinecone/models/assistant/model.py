@@ -6,6 +6,7 @@ from typing import Any
 
 from msgspec import Struct
 
+from pinecone._internal.config import normalize_host
 from pinecone.models.assistant._mixin import StructDictMixin
 
 
@@ -36,3 +37,8 @@ class AssistantModel(StructDictMixin, Struct, kw_only=True):
     host: str | None = None
     created_at: str | None = None
     updated_at: str | None = None
+
+    def __post_init__(self) -> None:
+        """Normalize host to always include https:// scheme when present."""
+        if self.host is not None:
+            self.host = normalize_host(self.host)

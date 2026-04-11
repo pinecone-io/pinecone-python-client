@@ -104,7 +104,7 @@ async def test_describe_index(async_indexes: AsyncIndexes) -> None:
     assert result.name == "test-index"
     assert result.dimension == 1536
     assert result.metric == "cosine"
-    assert result.host == "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
+    assert result.host == "https://test-index-abc1234.svc.us-east1-gcp.pinecone.io"
     assert result.vector_type == "dense"
     assert result.deletion_protection == "disabled"
     assert result.status.ready is True
@@ -123,7 +123,7 @@ async def test_describe_index_caches_host(async_indexes: AsyncIndexes) -> None:
     await async_indexes.describe("test-index")
 
     assert "test-index" in async_indexes._host_cache
-    expected_host = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
+    expected_host = "https://test-index-abc1234.svc.us-east1-gcp.pinecone.io"
     assert async_indexes._host_cache["test-index"] == expected_host
 
 

@@ -53,6 +53,34 @@ class TestAssistantModelDictAccess:
         assert "" not in self.model
 
 
+class TestAssistantModelHostNormalization:
+    def test_bare_host_gets_https_prefix(self) -> None:
+        """AssistantModel normalizes bare hostname to https:// on construction."""
+        model = AssistantModel(
+            name="test",
+            status="Ready",
+            host="my-assistant.svc.pinecone.io",
+        )
+        assert model.host == "https://my-assistant.svc.pinecone.io"
+
+    def test_host_with_https_unchanged(self) -> None:
+        """AssistantModel preserves an already-prefixed https:// host."""
+        model = AssistantModel(
+            name="test",
+            status="Ready",
+            host="https://my-assistant.svc.pinecone.io",
+        )
+        assert model.host == "https://my-assistant.svc.pinecone.io"
+
+    def test_none_host_stays_none(self) -> None:
+        """AssistantModel leaves host as None when not provided."""
+        model = AssistantModel(
+            name="test",
+            status="Ready",
+        )
+        assert model.host is None
+
+
 class TestAssistantFileModelDictAccess:
     def setup_method(self) -> None:
         self.model = AssistantFileModel(

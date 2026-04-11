@@ -6,6 +6,8 @@ from typing import Any
 
 from msgspec import Struct
 
+from pinecone._internal.config import normalize_host
+
 
 class IndexStatus(Struct, kw_only=True):
     """Status of an index.
@@ -110,6 +112,10 @@ class IndexModel(Struct, kw_only=True):
     dimension: int | None = None
     deletion_protection: str = "disabled"
     tags: dict[str, str] | None = None
+
+    def __post_init__(self) -> None:
+        """Normalize host to always include https:// scheme."""
+        self.host = normalize_host(self.host)
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. index['name'])."""
