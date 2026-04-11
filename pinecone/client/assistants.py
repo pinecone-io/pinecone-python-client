@@ -952,10 +952,10 @@ class Assistants:
                     if v is not None
                 }
 
-        if stream:
-            return self._chat_streaming(assistant_name=assistant_name, body=body)
-
         http = self._data_plane_http(assistant_name)
+        if stream:
+            return self._chat_streaming(http=http, url=f"/chat/{assistant_name}", body=body)
+
         response = http.post(f"/chat/{assistant_name}", json=body)
         return self._adapter.to_chat_response(response.content)
 
@@ -1017,27 +1017,30 @@ class Assistants:
         if filter is not None:
             body["filter"] = filter
 
-        if stream:
-            return self._chat_completions_streaming(assistant_name=assistant_name, body=body)
-
         http = self._data_plane_http(assistant_name)
+        if stream:
+            url = f"/chat/{assistant_name}/chat/completions"
+            return self._chat_completions_streaming(http=http, url=url, body=body)
+
         response = http.post(f"/chat/{assistant_name}/chat/completions", json=body)
         return self._adapter.to_chat_completion_response(response.content)
 
     def _chat_streaming(
         self,
         *,
-        assistant_name: str,
+        http: HTTPClient,
+        url: str,
         body: dict[str, Any],
     ) -> Iterator[ChatStreamChunk]:
         """Stream Pinecone-native chat chunks via SSE.
 
-        POSTs to ``/chat/{assistant_name}`` with ``stream=True`` in the body,
+        POSTs to the given URL with ``stream=True`` in the body,
         parses each SSE line, and yields typed chunk objects dispatched by the
         ``type`` field.
 
         Args:
-            assistant_name: Name of the assistant to chat with.
+            http: Pre-resolved data-plane HTTP client for the assistant.
+            url: Request URL path (e.g. ``/chat/{assistant_name}``).
             body: Pre-built request body (must include ``stream=True``).
 
         Yields:
@@ -1048,10 +1051,9 @@ class Assistants:
         Raises:
             :exc:`ApiError`: If the server returns an HTTP error.
         """
-        http = self._data_plane_http(assistant_name)
         with http.stream(
             "POST",
-            f"/chat/{assistant_name}",
+            url,
             content=orjson.dumps(body),
             headers={"Content-Type": "application/json"},
         ) as response:
@@ -1074,17 +1076,18 @@ class Assistants:
     def _chat_completions_streaming(
         self,
         *,
-        assistant_name: str,
+        http: HTTPClient,
+        url: str,
         body: dict[str, Any],
     ) -> Iterator[ChatCompletionStreamChunk]:
         """Stream OpenAI-compatible chat completion chunks via SSE.
 
-        POSTs to ``/chat/{assistant_name}/chat/completions`` with ``stream=True``
-        in the body and yields each SSE line parsed as a
-        :class:`ChatCompletionStreamChunk`.
+        POSTs to the given URL with ``stream=True`` in the body and yields each
+        SSE line parsed as a :class:`ChatCompletionStreamChunk`.
 
         Args:
-            assistant_name: Name of the assistant to chat with.
+            http: Pre-resolved data-plane HTTP client for the assistant.
+            url: Request URL path (e.g. ``/chat/{assistant_name}/chat/completions``).
             body: Pre-built request body (must include ``stream=True``).
 
         Yields:
@@ -1093,10 +1096,9 @@ class Assistants:
         Raises:
             :exc:`ApiError`: If the server returns an HTTP error.
         """
-        http = self._data_plane_http(assistant_name)
         with http.stream(
             "POST",
-            f"/chat/{assistant_name}/chat/completions",
+            url,
             content=orjson.dumps(body),
             headers={"Content-Type": "application/json"},
         ) as response:
