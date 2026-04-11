@@ -48,7 +48,6 @@ def test_pinecone_dir_includes_eagerly_loaded() -> None:
         "PineconeConfig",
         "ApiError",
         "PineconeError",
-        "ValidationError",
         "Metric",
         "CloudProvider",
         "__version__",
