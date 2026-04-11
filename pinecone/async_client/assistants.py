@@ -126,7 +126,7 @@ class AsyncAssistants:
                 raise PineconeValueError(f"Assistant '{assistant_name}' has no data-plane host")
             data_config = _PineconeConfig(
                 api_key=self._config.api_key,
-                host=f"https://{assistant.host}",
+                host=f"{assistant.host.rstrip('/')}/assistant",
                 timeout=self._config.timeout,
                 additional_headers=self._config.additional_headers,
                 source_tag=self._config.source_tag or "",

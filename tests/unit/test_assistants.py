@@ -1066,7 +1066,7 @@ def test_pinecone_assistant_not_found() -> None:
 # ---------------------------------------------------------------------------
 
 DATA_PLANE_HOST = "test-assistant-abc123.svc.pinecone.io"
-DATA_PLANE_URL = f"https://{DATA_PLANE_HOST}"
+DATA_PLANE_URL = f"https://{DATA_PLANE_HOST}/assistant"
 
 
 def test_upload_file_path_not_found(assistants: Assistants) -> None:

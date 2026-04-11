@@ -36,7 +36,7 @@ from tests.factories import (
 
 BASE_URL = "https://api.test.pinecone.io"
 DATA_PLANE_HOST = "test-assistant-abc123.svc.pinecone.io"
-DATA_PLANE_URL = f"https://{DATA_PLANE_HOST}"
+DATA_PLANE_URL = f"https://{DATA_PLANE_HOST}/assistant"
 
 
 @pytest.fixture()
@@ -1052,7 +1052,7 @@ async def test_data_plane_http_returns_client_for_host(
     client = await async_assistants._data_plane_http("my-assistant")
 
     assert isinstance(client, AsyncHTTPClient)
-    assert client._config.host == "https://my-assistant-abc.svc.pinecone.io"
+    assert client._config.host == "https://my-assistant-abc.svc.pinecone.io/assistant"
 
 
 @respx.mock
@@ -1096,8 +1096,8 @@ async def test_data_plane_http_different_assistants_get_different_clients(
     client_b = await async_assistants._data_plane_http("assistant-b")
 
     assert client_a is not client_b
-    assert client_a._config.host == "https://host-a.svc.pinecone.io"
-    assert client_b._config.host == "https://host-b.svc.pinecone.io"
+    assert client_a._config.host == "https://host-a.svc.pinecone.io/assistant"
+    assert client_b._config.host == "https://host-b.svc.pinecone.io/assistant"
 
 
 @respx.mock

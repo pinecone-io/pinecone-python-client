@@ -333,10 +333,6 @@ async def test_assistant_context_retrieval(
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    reason="SDK bug IT-0009: _data_plane_http missing /assistant/ path prefix — upload_file/chat return 404",
-    strict=True,
-)
 async def test_assistant_chat_streaming_returns_content_chunks(
     async_client: AsyncPinecone,
 ) -> None:
@@ -415,10 +411,6 @@ async def test_assistant_chat_streaming_returns_content_chunks(
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    reason="SDK bug IT-0009: _data_plane_http missing /assistant/ path prefix — upload_file returns 404 before chat_completions is reached",
-    strict=True,
-)
 async def test_assistant_chat_completions_openai_compatible_response(
     async_client: AsyncPinecone,
 ) -> None:
@@ -496,7 +488,7 @@ async def test_assistant_chat_completions_openai_compatible_response(
 async def test_assistant_evaluate_alignment_scores(
     async_client: AsyncPinecone,
 ) -> None:
-    """evaluate_alignment() returns AlignmentResult with correctness/completeness/alignment scores."""
+    """evaluate_alignment() returns AlignmentResult with correctness/completeness scores."""
     # evaluate_alignment is stateless — no assistant or file needed
     result = await async_client.assistants.evaluate_alignment(
         question="What is the capital of France?",

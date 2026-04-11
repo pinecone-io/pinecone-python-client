@@ -25,7 +25,7 @@ from pinecone.models.assistant.context import ContextResponse
 from pinecone.models.assistant.evaluation import AlignmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.model import AssistantModel
-from pinecone.models.assistant.streaming import ChatStreamChunk, StreamContentChunk
+from pinecone.models.assistant.streaming import StreamContentChunk
 from tests.integration.conftest import cleanup_resource, unique_name, wait_for_ready
 
 # ---------------------------------------------------------------------------
@@ -99,6 +99,7 @@ def test_assistant_lifecycle_create_describe_list_update_delete(client: Pinecone
 # ---------------------------------------------------------------------------
 # assistant-files
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_assistant_files_upload_list_describe_delete(client: Pinecone) -> None:
@@ -313,10 +314,6 @@ def test_assistant_context_retrieval(client: Pinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    reason="SDK bug IT-0009: _data_plane_http missing /assistant/ path prefix — upload_file/chat return 404",
-    strict=True,
-)
 def test_assistant_chat_streaming_returns_content_chunks(client: Pinecone) -> None:
     """Stream chat(stream=True), verify at least one content chunk with non-empty text."""
     name = unique_name("asst")
@@ -387,10 +384,6 @@ def test_assistant_chat_streaming_returns_content_chunks(client: Pinecone) -> No
 
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    reason="SDK bug IT-0009: _data_plane_http missing /assistant/ path prefix — upload_file returns 404 before chat_completions is reached",
-    strict=True,
-)
 def test_assistant_chat_completions_openai_compatible_response(client: Pinecone) -> None:
     """chat_completions() returns ChatCompletionResponse with OpenAI-compatible structure."""
     name = unique_name("asst")
@@ -460,7 +453,7 @@ def test_assistant_chat_completions_openai_compatible_response(client: Pinecone)
 
 @pytest.mark.integration
 def test_assistant_evaluate_alignment_scores(client: Pinecone) -> None:
-    """evaluate_alignment() returns AlignmentResult with correctness/completeness/alignment scores."""
+    """evaluate_alignment() returns AlignmentResult with correctness/completeness scores."""
     # evaluate_alignment is stateless — no assistant or file needed
     result = client.assistants.evaluate_alignment(
         question="What is the capital of France?",
