@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import contextlib
 import io
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
@@ -19,6 +20,7 @@ from pinecone.async_client.assistants import (
 )
 from pinecone.errors.exceptions import (
     NotFoundError,
+    PineconeConnectionError,
     PineconeError,
     PineconeTimeoutError,
     PineconeValueError,
@@ -2578,3 +2580,305 @@ async def test_async_chat_completions_streaming_handles_done_sentinel(
     assert len(chunks) == 1
     assert isinstance(chunks[0], ChatCompletionStreamChunk)
     assert chunks[0].choices[0].delta.role == "assistant"
+
+
+# ---------------------------------------------------------------------------
+# create() — timeout=-1 and timeout=None
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_create_timeout_none(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """timeout=None waits indefinitely until Ready."""
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    result = await async_assistants.create(name="test-assistant", timeout=None)
+
+    assert result.status == "Ready"
+
+
+@respx.mock
+async def test_async_create_timeout_negative_one(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """timeout=-1 returns immediately without polling."""
+    create_route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+
+    result = await async_assistants.create(name="test-assistant", timeout=-1)
+
+    assert result.status == "Initializing"
+    assert create_route.call_count == 1
+
+
+# ---------------------------------------------------------------------------
+# delete() — timeout exceeded, indefinite polling, and error propagation
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.time.monotonic")
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_delete_timeout_exceeded(
+    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
+) -> None:
+    """Exceeding timeout during delete raises PineconeTimeoutError."""
+    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+
+    respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
+        return_value=httpx.Response(204),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
+        return_value=httpx.Response(
+            200, json=make_assistant_response(name="my-assistant", status="Terminating")
+        ),
+    )
+
+    with pytest.raises(PineconeTimeoutError):
+        await async_assistants.delete(name="my-assistant", timeout=10)
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_delete_assistant_polls_indefinitely_when_no_timeout(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """When timeout is None, polling continues until 404 with no deadline."""
+    respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
+        return_value=httpx.Response(204),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
+        side_effect=[
+            httpx.Response(
+                200, json=make_assistant_response(name="my-assistant", status="Terminating")
+            ),
+            httpx.Response(
+                200, json=make_assistant_response(name="my-assistant", status="Terminating")
+            ),
+            httpx.Response(
+                200, json=make_assistant_response(name="my-assistant", status="Terminating")
+            ),
+            httpx.Response(404, json={"error": "Not found"}),
+        ],
+    )
+
+    result = await async_assistants.delete(name="my-assistant")
+
+    assert result is None
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_delete_assistant_propagates_non_404_errors_during_poll(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """Non-404 errors during polling propagate instead of being swallowed."""
+    from pinecone.errors.exceptions import ServiceError
+
+    respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
+        return_value=httpx.Response(204),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
+        return_value=httpx.Response(500, json={"error": "Internal server error"}),
+    )
+
+    with pytest.raises(ServiceError):
+        await async_assistants.delete(name="my-assistant")
+
+
+# ---------------------------------------------------------------------------
+# _chat_streaming() — transport error wrapping
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_chat_streaming_timeout_raises_pinecone_timeout_error(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """httpx.ReadTimeout during streaming is wrapped as PineconeTimeoutError."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        side_effect=httpx.ReadTimeout("test"),
+    )
+
+    with pytest.raises(PineconeTimeoutError):
+        async_iter = await async_assistants.chat(
+            assistant_name="test-assistant",
+            messages=[{"content": "Hello"}],
+            stream=True,
+        )
+        async for _ in async_iter:  # type: ignore[union-attr]
+            pass
+
+
+@respx.mock
+async def test_async_chat_streaming_connect_error_raises_pinecone_connection_error(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """httpx.ConnectError during streaming is wrapped as PineconeConnectionError."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        side_effect=httpx.ConnectError("Connection refused"),
+    )
+
+    with pytest.raises(PineconeConnectionError):
+        async_iter = await async_assistants.chat(
+            assistant_name="test-assistant",
+            messages=[{"content": "Hello"}],
+            stream=True,
+        )
+        async for _ in async_iter:  # type: ignore[union-attr]
+            pass
+
+
+# ---------------------------------------------------------------------------
+# _chat_streaming() — config timeout propagation
+# ---------------------------------------------------------------------------
+
+
+async def test_async_chat_streaming_uses_config_timeout() -> None:
+    """Custom PineconeConfig.timeout is forwarded to the underlying httpx stream call."""
+    from pinecone._internal.constants import ASSISTANT_API_VERSION
+    from pinecone._internal.http_client import AsyncHTTPClient as _AsyncHTTPClient
+
+    config = PineconeConfig(api_key="test-key", host=BASE_URL, timeout=300.0)
+    custom_assistants = AsyncAssistants(config=config)
+
+    # Pre-populate the data plane client cache to avoid needing a describe() mock.
+    data_config = PineconeConfig(api_key="test-key", host=DATA_PLANE_URL, timeout=300.0)
+    data_plane_client = _AsyncHTTPClient(data_config, ASSISTANT_API_VERSION)
+    custom_assistants._data_plane_clients["test-assistant"] = data_plane_client
+
+    captured_timeout: list[float | None] = []
+
+    @contextlib.asynccontextmanager  # type: ignore[misc]
+    async def _mock_httpx_stream(
+        method: str,
+        url: str,
+        *,
+        content: bytes | None = None,
+        headers: dict[str, str] | None = None,
+        timeout: float | None = None,
+    ):  # type: ignore[misc]
+        captured_timeout.append(timeout)
+        mock_resp = MagicMock()
+        mock_resp.is_success = True
+
+        async def _aiter_lines():  # type: ignore[misc]
+            yield (
+                'data: {"type": "message_end", "id": "e1",'
+                ' "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}}'
+            )
+
+        mock_resp.aiter_lines.return_value = _aiter_lines()
+        yield mock_resp
+
+    # Force-initialize the underlying httpx client, then swap in the mock.
+    mock_httpx_client = MagicMock()
+    mock_httpx_client.stream = _mock_httpx_stream
+    data_plane_client._client = mock_httpx_client
+
+    async_iter = await custom_assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        stream=True,
+    )
+    async for _ in async_iter:  # type: ignore[union-attr]
+        pass
+
+    assert len(captured_timeout) == 1
+    assert captured_timeout[0] == 300.0
+
+
+# ---------------------------------------------------------------------------
+# _chat_streaming — SSE comment guards
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_chat_streaming_skips_sse_comments(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """SSE comment lines (:...) and event: lines are silently skipped."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b": this is a comment\n"
+        b"event: ping\n"
+        b'data: {"type": "message_start", "model": "gpt-4o", "role": "assistant"}\n'
+        b"retry: 3000\n"
+        b'data: {"type": "message_end", "id": "end1",'
+        b' "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}}\n'
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import StreamMessageEnd, StreamMessageStart
+
+    async_iter = await async_assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        stream=True,
+    )
+    chunks = [chunk async for chunk in async_iter]  # type: ignore[union-attr]
+
+    # Only the two data: lines produce chunks; comment, event:, retry: are skipped
+    assert len(chunks) == 2
+    assert isinstance(chunks[0], StreamMessageStart)
+    assert isinstance(chunks[1], StreamMessageEnd)
+
+
+# ---------------------------------------------------------------------------
+# _chat_completions_streaming — SSE comment guards
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_chat_completions_streaming_skips_sse_comments(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """SSE comment lines (:...) and event: lines are silently skipped in completions stream."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    sse_body = (
+        b": keep-alive\n"
+        b"event: message\n"
+        b'data: {"id": "cmpl1", "choices": [{"index": 0,'
+        b' "delta": {"content": "Hello"}, "finish_reason": null}]}\n'
+        b"retry: 1000\n"
+        b'data: {"id": "cmpl2", "choices": [{"index": 0,'
+        b' "delta": {}, "finish_reason": "stop"}]}\n'
+    )
+    respx.post(f"{DATA_PLANE_URL}/chat/test-assistant/chat/completions").mock(
+        return_value=httpx.Response(200, content=sse_body),
+    )
+
+    from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
+
+    async_iter = await async_assistants.chat_completions(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        stream=True,
+    )
+    chunks = [chunk async for chunk in async_iter]  # type: ignore[union-attr]
+
+    assert len(chunks) == 2
+    assert all(isinstance(c, ChatCompletionStreamChunk) for c in chunks)
+    assert chunks[0].choices[0].delta.content == "Hello"
+    assert chunks[1].choices[0].finish_reason == "stop"
