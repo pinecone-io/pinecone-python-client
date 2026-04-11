@@ -340,7 +340,7 @@ class Index:
                 server-side embedding.
             namespace (str): Target namespace (required). Unlike :meth:`upsert`,
                 namespace has no default because the records API requires an
-                explicit namespace. Use ``""`` for the default namespace.
+                explicit namespace (must be non-empty).
 
         Returns:
             :class:`UpsertRecordsResponse` with the count of records submitted.
