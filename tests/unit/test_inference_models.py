@@ -104,6 +104,19 @@ class TestEmbeddingsList:
         assert len(result) == 1
         assert result[0].sparse_values == [0.5]
 
+    def test_embeddings_list_contains_item(self) -> None:
+        emb = DenseEmbedding(values=[0.1, 0.2])
+        usage = EmbedUsage(total_tokens=5)
+        result = EmbeddingsList(
+            model="multilingual-e5-large",
+            vector_type="dense",
+            data=[emb],
+            usage=usage,
+        )
+        assert emb in result  # item membership via __iter__
+        assert "model" in result  # field-name check preserved
+        assert "missing" not in result
+
 
 class TestRerankResult:
     def test_rerank_result_struct(self) -> None:

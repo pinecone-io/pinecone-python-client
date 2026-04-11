@@ -114,6 +114,13 @@ class TestListNamespacesResponse:
         assert list(response) == []
         assert len(response) == 0
 
+    def test_list_namespaces_response_contains_item(self) -> None:
+        ns = NamespaceDescription(name="ns1", record_count=10)
+        response = ListNamespacesResponse(namespaces=[ns], total_count=1)
+        assert ns in response  # item membership via __iter__
+        assert "namespaces" in response  # field-name check preserved
+        assert "missing" not in response
+
 
 class TestVectorsAdapterNamespaces:
     def test_adapter_decode_namespace_description(self) -> None:

@@ -147,8 +147,10 @@ class EmbeddingsList(Struct, kw_only=True):
         return getattr(self, key)
 
     def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'model' in embeddings``)."""
-        return key in self.__struct_fields__
+        """Support ``in`` for field names (str) and embedding membership."""
+        if isinstance(key, str):
+            return key in self.__struct_fields__
+        return key in self.data
 
     def __len__(self) -> int:
         return len(self.data)

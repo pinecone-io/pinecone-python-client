@@ -244,6 +244,13 @@ class TestListResponseIteration:
         with pytest.raises(KeyError):
             response["bogus"]
 
+    def test_list_response_contains_item(self) -> None:
+        item = ListItem(id="vec-1")
+        response = ListResponse(vectors=[item], namespace="ns")
+        assert item in response  # item membership via __iter__
+        assert "vectors" in response  # field-name check preserved
+        assert "missing" not in response
+
 
 class TestBracketAccess:
     """Tests for __getitem__ bracket access on data plane response models."""

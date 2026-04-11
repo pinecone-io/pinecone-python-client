@@ -310,8 +310,10 @@ class ListResponse(Struct, rename="camel", kw_only=True, gc=False):
         return getattr(self, key)
 
     def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'vectors' in response``)."""
-        return key in self.__struct_fields__
+        """Support ``in`` for field names (str) and vector membership."""
+        if isinstance(key, str):
+            return key in self.__struct_fields__
+        return key in self.vectors
 
     def __len__(self) -> int:
         return len(self.vectors)

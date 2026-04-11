@@ -89,8 +89,10 @@ class ListNamespacesResponse(Struct, kw_only=True):
         return getattr(self, key)
 
     def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'namespaces' in response``)."""
-        return key in self.__struct_fields__
+        """Support ``in`` for field names (str) and namespace membership."""
+        if isinstance(key, str):
+            return key in self.__struct_fields__
+        return key in self.namespaces
 
     def __len__(self) -> int:
         return len(self.namespaces)
