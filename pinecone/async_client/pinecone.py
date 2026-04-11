@@ -57,7 +57,10 @@ class AsyncPinecone:
             desc = await pc.indexes.describe("my-index")
             index = pc.index(host=desc.host)
             async with index:
-                results = await index.query(vector=[0.1, 0.2, 0.3], top_k=5)
+                results = await index.query(
+                    vector=[0.012, -0.087, 0.153, ...],  # 1536-dim embedding
+                    top_k=10,
+                )
 
     .. note:: **Differences from sync Pinecone**
 

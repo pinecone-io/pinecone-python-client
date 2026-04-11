@@ -38,7 +38,8 @@ class QueryResponse(Struct, rename="camel", kw_only=True, gc=False):
     """Response from a query operation.
 
     Attributes:
-        matches (list[ScoredVector]): List of scored vectors as returned by the API (ordered from most similar to least similar).
+        matches (list[ScoredVector]): List of scored vectors as returned by the API (ordered from
+            most similar to least similar).
         namespace (str): Namespace that was queried. Defaults to ``""`` (the
             default namespace).
         usage (Usage | None): Read unit usage for this query, or ``None`` if not reported.
