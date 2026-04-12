@@ -973,3 +973,82 @@ async def test_upsert_from_dataframe_not_supported_async(async_client: AsyncPine
 
     with pytest.raises(NotImplementedError, match="upsert_from_dataframe is not supported for async clients"):
         await index.upsert_from_dataframe(df=None)  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# upsert_records "id" field normalization and "_id" precedence — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_upsert_records_id_field_normalization_async(async_client: AsyncPinecone) -> None:
+    """upsert_records normalizes "id" key → "_id" before sending to the API (async).
+
+    Verifies unified-bp-0007 (partial): A record submitted for upsert must contain
+    either '_id' or 'id'; 'id' is normalized to '_id' when '_id' is absent.
+
+    Mirrors test_upsert_records_id_field_normalization_rest for the async transport.
+
+    NOTE: The dual-key case ("_id" AND "id" both present) is tracked in IT-0012.
+    """
+    name = unique_name("idx")
+    namespace = "id-norm-ns"
+    try:
+        await async_client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "text"},
+                ),
+            ),
+        )
+
+        # Wait for the index to be ready via async polling
+        await async_poll_until(
+            query_fn=lambda: async_client.indexes.describe(name),
+            check_fn=lambda r: r.status.ready,
+            timeout=300,
+            interval=5,
+            description=f"integrated index {name!r} ready",
+        )
+
+        desc = await async_client.indexes.describe(name)
+        index = async_client.index(host=desc.host)
+
+        # Record with only "id" key — SDK must rename it to "_id" before sending
+        records = [
+            {"id": "id-field-record", "text": "The id field is normalized to _id before sending."},
+            {"_id": "underscore-id-record", "text": "Standard _id key for comparison."},
+        ]
+        response = await index.upsert_records(records=records, namespace=namespace)
+        assert isinstance(response, UpsertRecordsResponse)
+        assert response.record_count == 2
+
+        # Poll until both records appear in search results
+        search_resp = await async_poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=5,
+                inputs={"text": "id normalization field"},
+            ),
+            check_fn=lambda r: len(r.result.hits) >= 2,
+            timeout=120,
+            description="both upserted records searchable (id normalization test, async)",
+        )
+
+        hit_ids = {hit.id for hit in search_resp.result.hits}
+        assert "id-field-record" in hit_ids, (
+            f"Expected 'id-field-record' in hit IDs (id key normalised to _id) but got: {hit_ids}"
+        )
+        assert "underscore-id-record" in hit_ids, (
+            f"Expected 'underscore-id-record' in hit IDs but got: {hit_ids}"
+        )
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name), name, "index"
+        )

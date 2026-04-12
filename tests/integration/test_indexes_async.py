@@ -358,6 +358,7 @@ async def test_delete_index_timeout_minus1_returns_immediately_async(
     - unified-rs-0002: index deletion returns no response body (None)
     """
     import asyncio
+
     from pinecone.errors import NotFoundError
     name = unique_name("idx")
     deleted = False

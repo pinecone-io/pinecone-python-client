@@ -1511,3 +1511,76 @@ def test_delete_mode_validation_rest(client: Pinecone) -> None:
     # All three combined raises PineconeValueError
     with pytest.raises(PineconeValueError):
         index.delete(ids=["v1"], delete_all=True, filter={"category": {"$eq": "test"}})
+
+
+# ---------------------------------------------------------------------------
+# upsert_records "id" field normalization and "_id" precedence — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_upsert_records_id_field_normalization_rest(client: Pinecone) -> None:
+    """upsert_records normalizes "id" key → "_id" before sending to the API.
+
+    Verifies unified-bp-0007 (partial): A record submitted for upsert must contain
+    either '_id' or 'id'; 'id' is normalized to '_id' when '_id' is absent.
+
+    The SDK renames "id" → "_id" when only "id" is supplied (index/__init__.py:391-392).
+    A record with only the "id" key must be stored with that value as the vector ID.
+
+    NOTE: The dual-key case ("_id" AND "id" both present) is tracked in IT-0012.
+    The SDK currently sends both keys to the API, which returns 400; the correct
+    behaviour is to strip "id" when "_id" is already present.
+    """
+    name = unique_name("idx")
+    namespace = "id-norm-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "text"},
+                ),
+            ),
+        )
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+        index = client.index(name=name)
+
+        # Record with only "id" key — SDK must rename it to "_id" before sending
+        records = [
+            {"id": "id-field-record", "text": "The id field is normalized to _id before sending."},
+            {"_id": "underscore-id-record", "text": "Standard _id key for comparison."},
+        ]
+        response = index.upsert_records(records=records, namespace=namespace)
+        assert isinstance(response, UpsertRecordsResponse)
+        assert response.record_count == 2
+
+        # Poll until both records appear in search results
+        search_resp = poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=5,
+                inputs={"text": "id normalization field"},
+            ),
+            check_fn=lambda r: len(r.result.hits) >= 2,
+            timeout=120,
+            description="both upserted records searchable (id normalization test)",
+        )
+
+        hit_ids = {hit.id for hit in search_resp.result.hits}
+        assert "id-field-record" in hit_ids, (
+            f"Expected 'id-field-record' in hit IDs (id key normalised to _id) but got: {hit_ids}"
+        )
+        assert "underscore-id-record" in hit_ids, (
+            f"Expected 'underscore-id-record' in hit IDs but got: {hit_ids}"
+        )
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
