@@ -6,6 +6,7 @@ import pytest
 
 from pinecone import AsyncPinecone
 from pinecone.errors import PineconeTypeError, PineconeValueError
+from pinecone.models.inference.embed import SparseEmbedding
 
 # ---------------------------------------------------------------------------
 # embed (async)
@@ -31,6 +32,44 @@ async def test_embed_single_string_async(async_client: AsyncPinecone) -> None:
     assert len(embedding.values) > 0
     assert all(isinstance(v, float) for v in embedding.values)
     assert embedding.vector_type == "dense"
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_embed_sparse_model_returns_sparse_embeddings_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """async embed() with pinecone-sparse-english-v0 returns SparseEmbedding objects.
+
+    Async variant of test_embed_sparse_model_returns_sparse_embeddings. Verifies
+    unified-enum-0006 and the sparse decode path in InferenceAdapter.
+    """
+    inputs = [
+        "What is vector search?",
+        "Pinecone is a managed vector database.",
+    ]
+    result = await async_client.inference.embed(
+        model="pinecone-sparse-english-v0",
+        inputs=inputs,
+        parameters={"input_type": "passage"},
+    )
+
+    assert result.model == "pinecone-sparse-english-v0"
+    assert result.vector_type == "sparse"
+    assert len(result) == len(inputs)
+    assert result.usage.total_tokens > 0
+
+    for emb in result:
+        assert isinstance(emb, SparseEmbedding)
+        assert emb.vector_type == "sparse"
+        assert isinstance(emb.sparse_values, list)
+        assert isinstance(emb.sparse_indices, list)
+        assert len(emb.sparse_values) > 0
+        assert len(emb.sparse_indices) > 0
+        assert len(emb.sparse_values) == len(emb.sparse_indices)
+        assert all(isinstance(v, float) for v in emb.sparse_values)
+        assert all(isinstance(i, int) for i in emb.sparse_indices)
+        assert emb.sparse_tokens is None
 
 
 @pytest.mark.integration

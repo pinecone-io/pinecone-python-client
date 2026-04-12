@@ -6,6 +6,7 @@ import pytest
 
 from pinecone import Pinecone
 from pinecone.errors import PineconeTypeError, PineconeValueError
+from pinecone.models.inference.embed import SparseEmbedding
 from tests.integration.conftest import (  # noqa: F401 — re-exported for type use
     cleanup_resource,
     poll_until,
@@ -62,6 +63,51 @@ def test_embed_multiple_inputs(client: Pinecone) -> None:
     # Embeddings are not all zeros
     for emb in result.data:
         assert any(v != 0.0 for v in emb.values)
+
+
+@pytest.mark.integration
+def test_embed_sparse_model_returns_sparse_embeddings(client: Pinecone) -> None:
+    """embed() with pinecone-sparse-english-v0 returns SparseEmbedding objects.
+
+    Verifies unified-enum-0006 (sparse model is known/available) and exercises
+    the sparse branch in InferenceAdapter.to_embeddings_list():
+
+        if envelope.vector_type == "sparse":
+            embeddings = [SparseEmbedding(...) for item in envelope.data]
+
+    All existing embed tests use multilingual-e5-large (dense), so this branch
+    has never been exercised in integration tests before.
+    """
+    inputs = [
+        "What is vector search?",
+        "Pinecone is a managed vector database.",
+    ]
+    result = client.inference.embed(
+        model="pinecone-sparse-english-v0",
+        inputs=inputs,
+        parameters={"input_type": "passage"},
+    )
+
+    # Top-level response shape
+    assert result.model == "pinecone-sparse-english-v0"
+    assert result.vector_type == "sparse"
+    assert len(result) == len(inputs)
+    assert result.usage.total_tokens > 0
+
+    # Each item is a SparseEmbedding with non-empty parallel arrays
+    for emb in result:
+        assert isinstance(emb, SparseEmbedding)
+        assert emb.vector_type == "sparse"
+        assert isinstance(emb.sparse_values, list)
+        assert isinstance(emb.sparse_indices, list)
+        assert len(emb.sparse_values) > 0
+        assert len(emb.sparse_indices) > 0
+        # Parallel arrays must have the same length
+        assert len(emb.sparse_values) == len(emb.sparse_indices)
+        assert all(isinstance(v, float) for v in emb.sparse_values)
+        assert all(isinstance(i, int) for i in emb.sparse_indices)
+        # Without return_tokens, sparse_tokens is None
+        assert emb.sparse_tokens is None
 
 
 @pytest.mark.integration
