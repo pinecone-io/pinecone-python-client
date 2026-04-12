@@ -11,9 +11,16 @@ from __future__ import annotations
 
 import pytest
 
-from pinecone import EmbedConfig, IntegratedSpec, Pinecone
+from pinecone import EmbedConfig, IntegratedSpec, Pinecone, UpsertRecordsResponse
 from pinecone.errors.exceptions import PineconeValueError
-from pinecone.models.vectors.search import Hit, RerankConfig, SearchInputs, SearchRecordsResponse, SearchResult, SearchUsage
+from pinecone.models.vectors.search import (
+    Hit,
+    RerankConfig,
+    SearchInputs,
+    SearchRecordsResponse,
+    SearchResult,
+    SearchUsage,
+)
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name, wait_for_ready
 
 # ---------------------------------------------------------------------------
@@ -181,9 +188,18 @@ def test_search_with_rerank_rest(client: Pinecone, api_key: str) -> None:
             records=[
                 {"_id": "rr-1", "text": "Vector databases enable fast similarity search at scale."},
                 {"_id": "rr-2", "text": "RAG combines retrieval with language model generation."},
-                {"_id": "rr-3", "text": "Embeddings are dense vector representations of text data."},
-                {"_id": "rr-4", "text": "Python is a popular programming language for AI projects."},
-                {"_id": "rr-5", "text": "Pinecone provides serverless vector database infrastructure."},
+                {
+                    "_id": "rr-3",
+                    "text": "Embeddings are dense vector representations of text data.",
+                },
+                {
+                    "_id": "rr-4",
+                    "text": "Python is a popular programming language for AI projects.",
+                },
+                {
+                    "_id": "rr-5",
+                    "text": "Pinecone provides serverless vector database infrastructure.",
+                },
             ],
         )
 
@@ -352,11 +368,31 @@ def test_search_with_filter_rest(client: Pinecone, api_key: str) -> None:
         index.upsert_records(
             namespace=namespace,
             records=[
-                {"_id": "swf-sci-1", "text": "Quantum mechanics describes subatomic particles.", "category": "science"},
-                {"_id": "swf-sci-2", "text": "DNA encodes the genetic information of organisms.", "category": "science"},
-                {"_id": "swf-sci-3", "text": "Gravity is a fundamental force in physics.", "category": "science"},
-                {"_id": "swf-hist-1", "text": "The Roman Empire lasted for centuries.", "category": "history"},
-                {"_id": "swf-hist-2", "text": "The Renaissance was a cultural movement in Europe.", "category": "history"},
+                {
+                    "_id": "swf-sci-1",
+                    "text": "Quantum mechanics describes subatomic particles.",
+                    "category": "science",
+                },
+                {
+                    "_id": "swf-sci-2",
+                    "text": "DNA encodes the genetic information of organisms.",
+                    "category": "science",
+                },
+                {
+                    "_id": "swf-sci-3",
+                    "text": "Gravity is a fundamental force in physics.",
+                    "category": "science",
+                },
+                {
+                    "_id": "swf-hist-1",
+                    "text": "The Roman Empire lasted for centuries.",
+                    "category": "history",
+                },
+                {
+                    "_id": "swf-hist-2",
+                    "text": "The Renaissance was a cultural movement in Europe.",
+                    "category": "history",
+                },
             ],
         )
 
@@ -450,9 +486,21 @@ def test_search_with_filter_grpc(client: Pinecone, api_key: str) -> None:
         index.upsert_records(
             namespace=namespace,
             records=[
-                {"_id": "swf-sci-1", "text": "Quantum mechanics describes subatomic particles.", "category": "science"},
-                {"_id": "swf-sci-2", "text": "DNA encodes the genetic information of organisms.", "category": "science"},
-                {"_id": "swf-hist-1", "text": "The Roman Empire lasted for centuries.", "category": "history"},
+                {
+                    "_id": "swf-sci-1",
+                    "text": "Quantum mechanics describes subatomic particles.",
+                    "category": "science",
+                },
+                {
+                    "_id": "swf-sci-2",
+                    "text": "DNA encodes the genetic information of organisms.",
+                    "category": "science",
+                },
+                {
+                    "_id": "swf-hist-1",
+                    "text": "The Roman Empire lasted for centuries.",
+                    "category": "history",
+                },
             ],
         )
 
@@ -752,6 +800,104 @@ def test_search_records_alias_with_typed_inputs_grpc(client: Pinecone, api_key: 
 
         assert isinstance(response, SearchRecordsResponse)
         assert len(response.result.hits) > 0
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# search with match_terms (sparse integrated index) — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_search_with_match_terms_rest(client: Pinecone, api_key: str) -> None:
+    """search() with match_terms restricts results to records containing all specified terms.
+
+    Creates an integrated sparse index (pinecone-sparse-english-v0), upserts three records
+    where two contain the term "astronaut" and one does not, then verifies that
+    match_terms={"strategy": "all", "terms": ["astronaut"]} filters results so that
+    only records with "astronaut" in their sparse vector are returned.
+
+    Verifies:
+    - unified-vec-0059: The match-terms search constraint is only supported on sparse
+      indexes using the designated sparse-embedding model (pinecone-sparse-english-v0),
+      and correctly restricts search results to records containing all specified terms.
+    """
+    name = unique_name("idx")
+    namespace = "mt-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="pinecone-sparse-english-v0",
+                    field_map={"text": "text"},
+                ),
+            ),
+            vector_type="sparse",
+            metric="dotproduct",
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # mt-r1 and mt-r3 contain "astronaut"; mt-r2 does not
+        records = [
+            {"_id": "mt-r1", "text": "astronaut training in zero gravity conditions"},
+            {"_id": "mt-r2", "text": "submarine underwater navigation using sonar"},
+            {"_id": "mt-r3", "text": "astronaut performs spacewalk outside the station"},
+        ]
+        resp = index.upsert_records(records=records, namespace=namespace)
+        assert isinstance(resp, UpsertRecordsResponse)
+        assert resp.record_count == 3
+
+        # Poll until at least 1 hit appears for any query (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=10,
+                inputs={"text": "space exploration"},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=120,
+            description="records searchable after upsert (match_terms test)",
+        )
+
+        # Search WITH match_terms — should only return astronaut records
+        match_resp = index.search(
+            namespace=namespace,
+            top_k=10,
+            inputs={"text": "space exploration"},
+            match_terms={"strategy": "all", "terms": ["astronaut"]},
+        )
+        assert isinstance(match_resp, SearchRecordsResponse)
+        assert isinstance(match_resp.result, SearchResult)
+
+        match_ids = {hit.id for hit in match_resp.result.hits}
+
+        # "mt-r2" (submarine, no "astronaut" term) must not appear in results
+        assert "mt-r2" not in match_ids, (
+            f"Record 'mt-r2' (no 'astronaut' term) should be excluded by match_terms; "
+            f"got hits: {match_ids}"
+        )
+
+        # All returned hits must be astronaut records
+        assert match_ids.issubset({"mt-r1", "mt-r3"}), (
+            f"Only astronaut records should appear with match_terms=['astronaut']; got: {match_ids}"
+        )
+
+        # At least one astronaut record must appear
+        assert len(match_ids) >= 1, (
+            "Expected at least one hit with match_terms=['astronaut'], got none"
+        )
+
+        # Verify hit structure
+        for hit in match_resp.result.hits:
+            assert isinstance(hit, Hit)
+            assert isinstance(hit.id, str)
+            assert isinstance(hit.score, float)
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
