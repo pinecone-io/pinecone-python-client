@@ -21,6 +21,81 @@ from pinecone.models.indexes.index import IndexModel
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 
 # ---------------------------------------------------------------------------
+# backup-get-alias — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_backup_get_alias_and_default_description_rest(client: Pinecone) -> None:
+    """Verify unified-bak-0007 (default description is empty/null when omitted)
+    and unified-bak-0012 (get() and describe() are aliases returning identical results).
+
+    Creates a backup WITHOUT specifying description to exercise the default.
+    Then calls both describe() and get() and confirms the returned BackupModel
+    fields are consistent between the two methods.
+
+    Area tag: backup-get-alias
+    Transport: rest
+    """
+    index_name = unique_name("idx")
+    backup_id: str | None = None
+
+    try:
+        # 1. Create a small serverless index to back up
+        client.indexes.create(
+            name=index_name,
+            dimension=2,
+            metric="cosine",
+            spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
+            timeout=120,
+        )
+
+        # 2. Create a backup WITHOUT specifying description (SDK default is "")
+        backup = client.backups.create(
+            index_name=index_name,
+            name=unique_name("bk"),
+            # description omitted on purpose — verifies unified-bak-0007
+        )
+        assert isinstance(backup, BackupModel)
+        backup_id = backup.backup_id
+
+        # unified-bak-0007: description should be empty ("" or None, not a
+        # non-empty user-provided string)
+        assert backup.description in ("", None), (
+            f"Expected description to be '' or None when omitted, got {backup.description!r}"
+        )
+
+        # 3. Call describe() — verifies the basic path we already test
+        described = client.backups.describe(backup_id=backup_id)
+        assert isinstance(described, BackupModel)
+        assert described.backup_id == backup_id
+
+        # 4. Call get() — unified-bak-0012: must return identical result to describe()
+        gotten = client.backups.get(backup_id=backup_id)
+        assert isinstance(gotten, BackupModel)
+        assert gotten.backup_id == described.backup_id
+        assert gotten.source_index_name == described.source_index_name
+        assert gotten.cloud == described.cloud
+        assert gotten.region == described.region
+        # Both describe() and get() should agree on the description field
+        assert gotten.description == described.description, (
+            f"get().description={gotten.description!r} != "
+            f"describe().description={described.description!r}"
+        )
+
+    finally:
+        if backup_id is not None:
+            cleanup_resource(
+                lambda: client.backups.delete(backup_id=backup_id),
+                backup_id,
+                "backup",
+            )
+        cleanup_resource(
+            lambda: client.indexes.delete(index_name),
+            index_name,
+            "index",
+        )
+
+# ---------------------------------------------------------------------------
 # backup-lifecycle — REST sync
 # ---------------------------------------------------------------------------
 
