@@ -299,7 +299,9 @@ async def test_list_models_returns_nonempty_list_async(async_client: AsyncPineco
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_list_models_supports_iteration_and_indexing_async(async_client: AsyncPinecone) -> None:
+async def test_list_models_supports_iteration_and_indexing_async(
+    async_client: AsyncPinecone,
+) -> None:
     """async: ModelInfoList supports len(), iteration, integer indexing, and 'models' key."""
     result = await async_client.inference.list_models()
 
@@ -493,8 +495,12 @@ async def test_rerank_dict_documents_with_rank_fields_async(async_client: AsyncP
 
         # Dict documents are passed through as-is (not wrapped in {"text": ...})
         # so the original "body" and "category" keys must be present in the returned doc
-        assert "body" in ranked.document, f"'body' key missing from ranked.document: {ranked.document}"
-        assert "category" in ranked.document, f"'category' key missing from ranked.document: {ranked.document}"
+        assert "body" in ranked.document, (
+            f"'body' key missing from ranked.document: {ranked.document}"
+        )
+        assert "category" in ranked.document, (
+            f"'category' key missing from ranked.document: {ranked.document}"
+        )
 
     # The most relevant document should be one of the AI/ML ones (indexes 1 or 2)
     assert result.data[0].index in {1, 2}, (
@@ -541,3 +547,44 @@ async def test_list_models_filter_by_vector_type_and_invalid_values_async(
     # invalid vector_type → PineconeValueError, no HTTP call
     with pytest.raises(PineconeValueError):
         await async_client.inference.list_models(vector_type="invalid_vector_type")
+
+
+# ---------------------------------------------------------------------------
+# model dict-like access error behaviors on real API responses (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_model_dict_keyerror_and_readonly_async(async_client: AsyncPinecone) -> None:
+    """Dict-like access on model objects from real async API responses raises correct errors.
+
+    Uses list_models() (no resources created or cleaned up) to obtain a real
+    ModelInfo object deserialized from the live API, then verifies:
+
+    - unified-model-0007: model["nonexistent_key"] raises KeyError
+    - unified-model-0010: model["model"] = "x" raises TypeError (read-only)
+
+    Also verifies positive behaviors work on real deserialized data:
+    - model["model"] returns a string (existing key subscript access)
+    - "model" in model → True
+    - "totally_absent_key" in model → False
+    """
+    models = await async_client.inference.list_models()
+    assert len(models) > 0, "list_models() must return at least one model for this test"
+
+    model_info = models[0]
+
+    # --- unified-model-0007: KeyError on non-existent key ---
+    with pytest.raises(KeyError):
+        _ = model_info["nonexistent_key_xyz"]
+
+    # --- unified-model-0010: no item assignment (read-only) ---
+    with pytest.raises(TypeError):
+        model_info["model"] = "injected"  # type: ignore[index]
+
+    # Positive: existing-key access and membership tests work on real data
+    assert isinstance(model_info["model"], str)
+    assert len(model_info["model"]) > 0
+    assert "model" in model_info
+    assert "totally_absent_key_xyz" not in model_info
