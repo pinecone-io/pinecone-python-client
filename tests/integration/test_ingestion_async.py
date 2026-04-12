@@ -910,3 +910,42 @@ async def test_upsert_records_validation_async(async_client: AsyncPinecone) -> N
             records=[{"_id": "v1", "text": "hello"}],
             namespace="   ",
         )
+
+
+# ---------------------------------------------------------------------------
+# delete() mode validation — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_delete_mode_validation_async(async_client: AsyncPinecone) -> None:
+    """delete() raises PineconeValueError for conflicting or absent mode selection (async).
+
+    Verifies claim unified-vec-0041: The delete operation accepts exactly one of:
+    a list of identifiers, a delete-all flag, or a metadata filter; combining modes
+    is not allowed. Passing no mode at all is also rejected.
+
+    All validation is client-side; no real index is created. The AsyncIndex is
+    constructed with a dummy host so that validation fires before any HTTP request.
+    """
+    index = async_client.index(host="fake-index.svc.pinecone.io")
+
+    # No mode at all raises PineconeValueError
+    with pytest.raises(PineconeValueError):
+        await index.delete()
+
+    # ids + filter combined raises PineconeValueError
+    with pytest.raises(PineconeValueError):
+        await index.delete(ids=["v1"], filter={"category": {"$eq": "test"}})
+
+    # ids + delete_all combined raises PineconeValueError
+    with pytest.raises(PineconeValueError):
+        await index.delete(ids=["v1"], delete_all=True)
+
+    # delete_all + filter combined raises PineconeValueError
+    with pytest.raises(PineconeValueError):
+        await index.delete(delete_all=True, filter={"category": {"$eq": "test"}})
+
+    # All three combined raises PineconeValueError
+    with pytest.raises(PineconeValueError):
+        await index.delete(ids=["v1"], delete_all=True, filter={"category": {"$eq": "test"}})
