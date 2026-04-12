@@ -404,3 +404,57 @@ def test_delete_index_timeout_minus1_returns_immediately(client: Pinecone) -> No
     finally:
         if not deleted:
             cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# configure-index returns None and preserves unspecified fields
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_configure_returns_none_and_preserves_deletion_protection(client: Pinecone) -> None:
+    """configure() always returns None; omitting deletion_protection leaves it unchanged.
+
+    Verifies claims:
+    - unified-index-0029: configure-index discards the API response and returns None
+    - unified-index-0022: when configure is called without deletion_protection, the
+      current value is preserved (the SDK omits the field from the PATCH body)
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # Enable deletion protection — must return None
+        result1 = client.indexes.configure(name, deletion_protection="enabled")
+        assert result1 is None, "configure() must return None (unified-index-0029)"
+
+        # Verify deletion protection is now "enabled"
+        desc1 = client.indexes.describe(name)
+        assert desc1.deletion_protection == "enabled"
+
+        # Configure just a tag — no deletion_protection argument — must return None
+        result2 = client.indexes.configure(name, tags={"test-key": "test-val"})
+        assert result2 is None, "configure() must return None (unified-index-0029)"
+
+        # Describe again: deletion_protection must still be "enabled" (preserved, not reset)
+        desc2 = client.indexes.describe(name)
+        assert desc2.deletion_protection == "enabled", (
+            "deletion_protection must be preserved when configure() is called without it "
+            "(unified-index-0022)"
+        )
+        # Also verify the tag was applied
+        assert desc2.tags is not None
+        assert desc2.tags.get("test-key") == "test-val"
+
+    finally:
+        # Ensure deletion protection is disabled before attempting to delete
+        try:
+            client.indexes.configure(name, deletion_protection="disabled")
+        except Exception:
+            pass
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
