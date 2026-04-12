@@ -6,6 +6,7 @@ import pytest
 
 from pinecone import AsyncIndex, AsyncPinecone
 from pinecone.errors import ForbiddenError
+from pinecone.errors.exceptions import PineconeValueError
 from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus
 from pinecone.models.indexes.specs import ServerlessSpec
 from tests.integration.conftest import async_cleanup_resource, unique_name
@@ -454,3 +455,78 @@ async def test_configure_returns_none_and_preserves_deletion_protection_async(
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# async index factory requires prior describe; delete clears cache
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_async_index_factory_requires_prior_describe_rest_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """AsyncPinecone.index(name) raises PineconeValueError when host not cached;
+    works after describe(); raises again after delete() clears the cache.
+
+    Verifies claims:
+    - unified-index-0020: Deleting an index removes that index's cached host URL.
+    - unified-index-0024: The async index client does not auto-fetch the host on
+      cache miss; it raises PineconeValueError instead.
+
+    Sequence:
+    1. Create index.
+    2. Call async_client.index(name) — cache is empty → PineconeValueError.
+    3. Call await async_client.indexes.describe(name) — populates cache.
+    4. Call async_client.index(name) — cache hit → returns AsyncIndex.
+    5. Delete the index (clears cache, waits for gone).
+    6. Call async_client.index(name) — cache miss → PineconeValueError again.
+    """
+    name = unique_name("idx")
+    deleted = False
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        # create() with timeout polling already populated the cache via describe.
+        # Clear it to simulate a cold-cache scenario for the factory test.
+        async_client._host_cache.pop(name, None)
+
+        # Step 2: cache is empty — async factory raises instead of auto-fetching
+        # (unlike sync Pinecone.index() which triggers a new describe call)
+        with pytest.raises(PineconeValueError):
+            async_client.index(name=name)
+
+        # Step 3: describe() populates the cache as a side effect
+        await async_client.indexes.describe(name)
+        assert name in async_client._host_cache, (
+            "Host must be cached after indexes.describe(name) (unified-index-0019)"
+        )
+
+        # Step 4: cache hit — factory succeeds
+        idx = async_client.index(name=name)
+        assert isinstance(idx, AsyncIndex)
+
+        # Step 5: delete clears cache immediately and polls until gone
+        await async_client.indexes.delete(name)
+        deleted = True
+
+        assert name not in async_client._host_cache, (
+            "Host cache must be cleared after delete() (unified-index-0020)"
+        )
+
+        # Step 6: cache miss again → PineconeValueError (no auto-describe in async)
+        with pytest.raises(PineconeValueError):
+            async_client.index(name=name)
+
+    finally:
+        if not deleted:
+            await async_cleanup_resource(
+                lambda: async_client.indexes.delete(name),
+                name,
+                "index",
+            )

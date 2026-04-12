@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import GrpcIndex, Index, Pinecone
-from pinecone.errors import ForbiddenError
+from pinecone.errors import ForbiddenError, NotFoundError
 from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus
 from pinecone.models.indexes.specs import ServerlessSpec
 from tests.integration.conftest import cleanup_resource, unique_name
@@ -458,3 +458,60 @@ def test_configure_returns_none_and_preserves_deletion_protection(client: Pineco
         except Exception:
             pass
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# host-cache invalidation after delete
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_delete_index_clears_host_cache_rest(client: Pinecone) -> None:
+    """Deleting an index clears the cached host URL; pc.index(name) then raises NotFoundError.
+
+    Verifies claims:
+    - unified-index-0020: Deleting an index removes that index's cached host URL.
+
+    Sequence:
+    1. Create index (populates nothing in cache yet).
+    2. Call pc.index(name) — triggers describe + caches the resolved host.
+    3. Verify the cache entry now exists.
+    4. Delete the index (default timeout — polls until fully gone, clears cache).
+    5. Verify cache entry was removed.
+    6. Call pc.index(name) again — cache miss → fresh describe → NotFoundError.
+    """
+    name = unique_name("idx")
+    deleted = False
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # Step 2: resolve host via name — this populates the cache
+        idx = client.index(name=name)
+        assert isinstance(idx, Index)
+
+        # Step 3: host should now be cached
+        assert name in client._host_cache, (
+            "Host must be cached after pc.index(name=name) (unified-index-0019)"
+        )
+
+        # Step 4: delete clears cache immediately then polls until gone
+        client.indexes.delete(name)
+        deleted = True
+
+        # Step 5: cache entry must be gone
+        assert name not in client._host_cache, (
+            "Host cache must be cleared after delete() (unified-index-0020)"
+        )
+
+        # Step 6: cache miss → auto-describe → NotFoundError (index is gone)
+        with pytest.raises(NotFoundError):
+            client.index(name=name)
+
+    finally:
+        if not deleted:
+            cleanup_resource(lambda: client.indexes.delete(name), name, "index")
