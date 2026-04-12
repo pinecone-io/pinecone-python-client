@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import Pinecone
+from pinecone.errors import ApiError
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
@@ -860,5 +861,63 @@ def test_list_paginated_returns_single_page_grpc(client: Pinecone) -> None:
         assert {"pg-v1", "pg-v2", "pg-v3"} <= ids
         # No pagination token on the final page
         assert page.pagination is None or page.pagination.next is None
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# describe-stats with filter — serverless rejects (REST sync)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_describe_index_stats_filter_unsupported_on_serverless_rest(client: Pinecone) -> None:
+    """Verify describe_index_stats(filter=...) raises ApiError(400) on a serverless index."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert one vector so the index has some content
+        index.upsert(vectors=[{"id": "fs-v1", "values": [0.1, 0.2, 0.3]}])
+
+        # The filter parameter is not supported on serverless/starter indexes —
+        # the API returns 400 and the SDK should surface it as ApiError.
+        with pytest.raises(ApiError) as exc_info:
+            index.describe_index_stats(filter={"tag": {"$eq": "a"}})
+
+        assert exc_info.value.status_code == 400
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# describe-stats with filter — serverless rejects (gRPC)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_describe_index_stats_filter_unsupported_on_serverless_grpc(client: Pinecone) -> None:
+    """Verify describe_index_stats(filter=...) raises an error on a serverless index via gRPC."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        index.upsert(vectors=[{"id": "fg-v1", "values": [0.1, 0.2, 0.3]}])
+
+        # The filter parameter is not supported on serverless/starter indexes via gRPC either.
+        with pytest.raises(Exception):
+            index.describe_index_stats(filter={"tag": {"$eq": "a"}})
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")

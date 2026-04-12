@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import AsyncIndex, AsyncPinecone
+from pinecone.errors import ApiError
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
@@ -603,6 +604,47 @@ async def test_list_paginated_returns_single_page_rest_async(
         limited_page = await idx.list_paginated(prefix="pg-", limit=2)
         assert isinstance(limited_page, ListResponse)
         assert len(limited_page.vectors) <= 2
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# describe-stats with filter — serverless rejects (REST async)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_describe_index_stats_filter_unsupported_on_serverless_rest_async(async_client: AsyncPinecone) -> None:
+    """Verify describe_index_stats(filter=...) raises ApiError(400) on a serverless index (async)."""
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        # Upsert one vector so the index has some content
+        await idx.upsert(vectors=[{"id": "fa-v1", "values": [0.1, 0.2, 0.3]}])
+
+        # The filter parameter is not supported on serverless/starter indexes —
+        # the API returns 400 and the SDK should surface it as ApiError.
+        with pytest.raises(ApiError) as exc_info:
+            await idx.describe_index_stats(filter={"tag": {"$eq": "a"}})
+
+        assert exc_info.value.status_code == 400
     finally:
         if idx is not None:
             await idx.close()
