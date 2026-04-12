@@ -295,6 +295,33 @@ def test_query_input_validation_rest() -> None:
 
 
 @pytest.mark.integration
+def test_update_input_validation_rest() -> None:
+    """update() client-side validation raises PineconeValueError before any API call (REST sync).
+
+    Uses a fake host so no real index or network call is required; all checks
+    fire synchronously before the HTTP request would be made.
+
+    Verifies:
+    - unified-vec-0042: both id and filter rejected
+    - unified-vec-0042: neither id nor filter rejected
+    - update() uses keyword-only params (TypeError on positional args)
+    """
+    index = Index(host="fake-index.svc.pinecone.io", api_key="testkey")
+
+    # unified-vec-0042: both id and filter rejected
+    with pytest.raises(PineconeValueError):
+        index.update(id="some-id", filter={"genre": {"$eq": "drama"}}, set_metadata={"x": 1})
+
+    # unified-vec-0042: neither id nor filter rejected
+    with pytest.raises(PineconeValueError):
+        index.update(set_metadata={"x": 1})
+
+    # update() uses keyword-only params — positional call raises TypeError
+    with pytest.raises(TypeError):
+        index.update("some-id")  # type: ignore[misc]
+
+
+@pytest.mark.integration
 def test_query_input_validation_grpc() -> None:
     """query() client-side validation raises PineconeValueError before any gRPC call.
 
@@ -327,3 +354,25 @@ def test_query_input_validation_grpc() -> None:
     # unified-vec-0040: positional arguments rejected by Python (keyword-only)
     with pytest.raises(TypeError):
         index.query([0.1, 0.2], 5)  # type: ignore[misc]
+
+
+@pytest.mark.integration
+def test_update_input_validation_grpc() -> None:
+    """update() client-side validation raises PineconeValueError before any gRPC call.
+
+    Uses a fake host so no real server is needed; validation fires before
+    the gRPC channel is called.
+
+    Verifies:
+    - unified-vec-0042: both id and filter rejected
+    - unified-vec-0042: neither id nor filter rejected
+    """
+    index = GrpcIndex(host="fake-index.svc.pinecone.io", api_key="testkey")
+
+    # unified-vec-0042: both id and filter rejected
+    with pytest.raises(PineconeValueError):
+        index.update(id="some-id", filter={"genre": {"$eq": "drama"}}, set_metadata={"x": 1})
+
+    # unified-vec-0042: neither id nor filter rejected
+    with pytest.raises(PineconeValueError):
+        index.update(set_metadata={"x": 1})

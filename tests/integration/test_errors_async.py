@@ -275,3 +275,33 @@ async def test_query_input_validation_async() -> None:
             await index.query([0.1, 0.2], 5)  # type: ignore[misc]
     finally:
         await index.close()
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_update_input_validation_async() -> None:
+    """update() client-side validation raises PineconeValueError before any API call (async REST).
+
+    Uses a fake host so no real index or network call is required; all checks
+    fire synchronously before any await would be reached.
+
+    Verifies:
+    - unified-vec-0042: both id and filter rejected
+    - unified-vec-0042: neither id nor filter rejected
+    - update() uses keyword-only params (TypeError on positional args)
+    """
+    index = AsyncIndex(host="fake-index.svc.pinecone.io", api_key="testkey")
+    try:
+        # unified-vec-0042: both id and filter rejected
+        with pytest.raises(PineconeValueError):
+            await index.update(id="some-id", filter={"genre": {"$eq": "drama"}}, set_metadata={"x": 1})
+
+        # unified-vec-0042: neither id nor filter rejected
+        with pytest.raises(PineconeValueError):
+            await index.update(set_metadata={"x": 1})
+
+        # update() uses keyword-only params — positional call raises TypeError
+        with pytest.raises(TypeError):
+            await index.update("some-id")  # type: ignore[misc]
+    finally:
+        await index.close()
