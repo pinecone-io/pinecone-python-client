@@ -38,7 +38,7 @@ line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W", "UP", "B", "ASYNC", "S", "T20", "N"]
+select = ["E", "F", "I", "W", "UP", "B", "ASYNC", "S", "T20", "N", "C4"]
 ignore = ["ASYNC109"]
 
 [tool.ruff.lint.isort]

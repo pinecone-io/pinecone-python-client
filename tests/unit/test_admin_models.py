@@ -53,12 +53,12 @@ class TestOrganizationModel:
             org["missing"]
 
     def test_organization_list_names(self) -> None:
-        kwargs = dict(
-            plan="Free",
-            payment_status="Active",
-            created_at="2025-01-01T00:00:00Z",
-            support_tier="Basic",
-        )
+        kwargs = {
+            "plan": "Free",
+            "payment_status": "Active",
+            "created_at": "2025-01-01T00:00:00Z",
+            "support_tier": "Basic",
+        }
         orgs = OrganizationList(
             [
                 OrganizationModel(id="org-1", name="Alpha", **kwargs),
@@ -69,12 +69,12 @@ class TestOrganizationModel:
         assert orgs.names() == ["Alpha", "Beta", "Gamma"]
 
     def test_organization_list_len_and_iter(self) -> None:
-        kwargs = dict(
-            plan="Free",
-            payment_status="Active",
-            created_at="2025-01-01T00:00:00Z",
-            support_tier="Basic",
-        )
+        kwargs = {
+            "plan": "Free",
+            "payment_status": "Active",
+            "created_at": "2025-01-01T00:00:00Z",
+            "support_tier": "Basic",
+        }
         orgs = OrganizationList(
             [
                 OrganizationModel(id="org-1", name="Alpha", **kwargs),
