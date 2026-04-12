@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+import builtins
 import logging
 import os
 import time
 from collections.abc import AsyncIterator
-from typing import IO, TYPE_CHECKING, Any, List
+from typing import IO, TYPE_CHECKING, Any
 
 import msgspec
 import msgspec.structs
@@ -772,7 +773,7 @@ class AsyncAssistants:
         *,
         assistant_name: str,
         query: str | None = None,
-        messages: List[Message | dict[str, str]] | None = None,
+        messages: builtins.list[Message | dict[str, str]] | None = None,
         filter: dict[str, Any] | None = None,
         top_k: int | None = None,
         snippet_size: int | None = None,
@@ -836,7 +837,7 @@ class AsyncAssistants:
             body["query"] = query
         else:
             assert messages is not None
-            parsed: List[Message] = [
+            parsed: list[Message] = [
                 m if isinstance(m, Message) else Message.from_dict(m) for m in messages
             ]
             body["messages"] = [{"role": m.role, "content": m.content} for m in parsed]
@@ -860,7 +861,7 @@ class AsyncAssistants:
         self,
         *,
         assistant_name: str,
-        messages: List[Message | dict[str, str]],
+        messages: builtins.list[Message | dict[str, str]],
         model: str = "gpt-4o",
         stream: bool = False,
         temperature: float | None = None,
@@ -902,7 +903,7 @@ class AsyncAssistants:
         if stream and json_response:
             raise PineconeValueError("json_response cannot be used with stream=True")
 
-        parsed: List[Message] = [
+        parsed: list[Message] = [
             m if isinstance(m, Message) else Message.from_dict(m) for m in messages
         ]
 
@@ -990,7 +991,7 @@ class AsyncAssistants:
         self,
         *,
         assistant_name: str,
-        messages: List[Message | dict[str, str]],
+        messages: builtins.list[Message | dict[str, str]],
         model: str = "gpt-4o",
         stream: bool = False,
         temperature: float | None = None,
@@ -1051,7 +1052,7 @@ class AsyncAssistants:
             ...         print(chunk)
             >>> asyncio.run(stream_main())
         """
-        parsed: List[Message] = [
+        parsed: list[Message] = [
             m if isinstance(m, Message) else Message.from_dict(m) for m in messages
         ]
 

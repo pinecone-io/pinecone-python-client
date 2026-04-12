@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator, Callable, Generator
-from typing import Awaitable, Generic, TypeVar
+from collections.abc import AsyncGenerator, Awaitable, Callable, Generator
+from typing import Generic, TypeVar
 
 T = TypeVar("T")
 

@@ -13,13 +13,13 @@ Usage::
 
 from __future__ import annotations
 
-from typing import Any, Union
+from typing import Any
 
 # Value types accepted by equality / set operators.
-ScalarValue = Union[str, int, float, bool]
+ScalarValue = str | int | float | bool
 
 # Value types accepted by ordering (numeric-only) operators.
-NumericValue = Union[int, float]
+NumericValue = int | float
 
 
 class Condition:

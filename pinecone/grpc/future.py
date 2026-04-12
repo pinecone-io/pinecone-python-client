@@ -7,8 +7,9 @@ stdlib ``TimeoutError`` when a result is not ready in time.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from concurrent.futures import Future
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from pinecone.errors.exceptions import PineconeTimeoutError
 

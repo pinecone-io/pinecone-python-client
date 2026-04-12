@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Any, Union, overload
+from typing import Any, overload
 
 from msgspec import Struct
 
@@ -104,7 +104,7 @@ class SparseEmbedding(Struct, kw_only=True):
         return f"SparseEmbedding({', '.join(parts)})"
 
 
-Embedding = Union[DenseEmbedding, SparseEmbedding]
+Embedding = DenseEmbedding | SparseEmbedding
 
 
 class EmbeddingsList(Struct, kw_only=True):
