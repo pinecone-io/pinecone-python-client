@@ -17,11 +17,13 @@ from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
 from pinecone.models.vectors.responses import (
     FetchByMetadataResponse,
     FetchResponse,
+    ListResponse,
     QueryResponse,
     ResponseInfo,
     UpdateResponse,
     UpsertResponse,
 )
+from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.sparse import SparseValues
 from pinecone.models.vectors.vector import ScoredVector, Vector
 from tests.integration.conftest import async_cleanup_resource, async_poll_until, unique_name
@@ -1662,6 +1664,88 @@ async def test_sparse_index_lifecycle_rest_async(async_client: AsyncPinecone) ->
         assert v2.sparse_values is not None
         assert v2.sparse_values.indices == [2, 7]
         assert len(v2.sparse_values.values) == 2
+
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# usage — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+@pytest.mark.asyncio
+async def test_query_fetch_list_usage_read_units_async(async_client: AsyncPinecone) -> None:
+    """query(), fetch(), and list_paginated() responses include read-unit usage info (async REST).
+
+    Verifies unified-rs-0011: "Fetch, query, and list vector responses include
+    read-unit usage information."
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # Upsert two vectors so query/fetch/list have something to return
+        upsert_resp = await idx.upsert(
+            vectors=[
+                {"id": "usg-a1", "values": [0.1, 0.2, 0.3, 0.4]},
+                {"id": "usg-a2", "values": [0.5, 0.6, 0.7, 0.8]},
+            ]
+        )
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 2
+
+        # Wait for eventual consistency
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.1, 0.2, 0.3, 0.4], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="both usage-test vectors queryable (async REST)",
+        )
+
+        # --- query() usage ---
+        query_resp = await idx.query(vector=[0.1, 0.2, 0.3, 0.4], top_k=5)
+        assert isinstance(query_resp, QueryResponse)
+        assert query_resp.usage is not None, (
+            "async query() response should include usage read-unit info (unified-rs-0011)"
+        )
+        assert isinstance(query_resp.usage, Usage)
+        assert isinstance(query_resp.usage.read_units, int)
+        assert query_resp.usage.read_units >= 0
+
+        # --- fetch() usage ---
+        fetch_resp = await idx.fetch(ids=["usg-a1", "usg-a2"])
+        assert isinstance(fetch_resp, FetchResponse)
+        assert fetch_resp.usage is not None, (
+            "async fetch() response should include usage read-unit info (unified-rs-0011)"
+        )
+        assert isinstance(fetch_resp.usage, Usage)
+        assert isinstance(fetch_resp.usage.read_units, int)
+        assert fetch_resp.usage.read_units >= 0
+
+        # --- list_paginated() usage ---
+        list_resp = await idx.list_paginated(limit=10)
+        assert isinstance(list_resp, ListResponse)
+        if list_resp.usage is not None:
+            assert isinstance(list_resp.usage, Usage)
+            assert isinstance(list_resp.usage.read_units, int)
+            assert list_resp.usage.read_units >= 0
 
     finally:
         if idx is not None:

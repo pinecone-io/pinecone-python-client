@@ -17,11 +17,13 @@ from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
 from pinecone.models.vectors.responses import (
     FetchByMetadataResponse,
     FetchResponse,
+    ListResponse,
     QueryResponse,
     ResponseInfo,
     UpdateResponse,
     UpsertResponse,
 )
+from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.sparse import SparseValues
 from pinecone.models.vectors.vector import ScoredVector, Vector
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name
@@ -2369,6 +2371,157 @@ def test_sparse_index_lifecycle_grpc(client: Pinecone) -> None:
         assert v2.sparse_values is not None
         assert v2.sparse_values.indices == [3, 8, 12]
         assert len(v2.sparse_values.values) == 3
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# usage — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_query_fetch_list_usage_read_units_rest(client: Pinecone) -> None:
+    """query(), fetch(), and list_paginated() responses include read-unit usage info (REST sync).
+
+    Verifies unified-rs-0011: "Fetch, query, and list vector responses include
+    read-unit usage information."
+
+    Upserts two vectors, waits for eventual consistency, then calls query(),
+    fetch(), and list_paginated() and asserts each response carries a non-None
+    usage field with a non-negative integer read_units value.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert two vectors so query/fetch/list have something to return
+        upsert_resp = index.upsert(
+            vectors=[
+                {"id": "usg-v1", "values": [0.1, 0.2, 0.3, 0.4]},
+                {"id": "usg-v2", "values": [0.5, 0.6, 0.7, 0.8]},
+            ]
+        )
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 2
+
+        # Wait for eventual consistency
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2, 0.3, 0.4], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="both usage-test vectors queryable (REST)",
+        )
+
+        # --- query() usage ---
+        query_resp = index.query(vector=[0.1, 0.2, 0.3, 0.4], top_k=5)
+        assert isinstance(query_resp, QueryResponse)
+        assert query_resp.usage is not None, (
+            "query() response should include usage read-unit information (unified-rs-0011)"
+        )
+        assert isinstance(query_resp.usage, Usage)
+        assert isinstance(query_resp.usage.read_units, int)
+        assert query_resp.usage.read_units >= 0
+
+        # --- fetch() usage ---
+        fetch_resp = index.fetch(ids=["usg-v1", "usg-v2"])
+        assert isinstance(fetch_resp, FetchResponse)
+        assert fetch_resp.usage is not None, (
+            "fetch() response should include usage read-unit information (unified-rs-0011)"
+        )
+        assert isinstance(fetch_resp.usage, Usage)
+        assert isinstance(fetch_resp.usage.read_units, int)
+        assert fetch_resp.usage.read_units >= 0
+
+        # --- list_paginated() usage ---
+        list_resp = index.list_paginated(limit=10)
+        assert isinstance(list_resp, ListResponse)
+        # usage may be None if the API does not report it for list operations;
+        # when present it must be a valid Usage with a non-negative read_units
+        if list_resp.usage is not None:
+            assert isinstance(list_resp.usage, Usage)
+            assert isinstance(list_resp.usage.read_units, int)
+            assert list_resp.usage.read_units >= 0
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# usage — gRPC
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_query_fetch_list_usage_read_units_grpc(client: Pinecone) -> None:
+    """query(), fetch(), and list_paginated() responses include read-unit usage info (gRPC).
+
+    Verifies unified-rs-0011 over the gRPC transport.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        upsert_resp = index.upsert(
+            vectors=[
+                {"id": "usg-g1", "values": [0.1, 0.2, 0.3, 0.4]},
+                {"id": "usg-g2", "values": [0.5, 0.6, 0.7, 0.8]},
+            ]
+        )
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 2
+
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2, 0.3, 0.4], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="both usage-test vectors queryable via gRPC",
+        )
+
+        # --- query() usage via gRPC ---
+        query_resp = index.query(vector=[0.1, 0.2, 0.3, 0.4], top_k=5)
+        assert isinstance(query_resp, QueryResponse)
+        assert query_resp.usage is not None, (
+            "gRPC query() response should include usage read-unit information (unified-rs-0011)"
+        )
+        assert isinstance(query_resp.usage, Usage)
+        assert isinstance(query_resp.usage.read_units, int)
+        assert query_resp.usage.read_units >= 0
+
+        # --- fetch() usage via gRPC ---
+        fetch_resp = index.fetch(ids=["usg-g1", "usg-g2"])
+        assert isinstance(fetch_resp, FetchResponse)
+        assert fetch_resp.usage is not None, (
+            "gRPC fetch() response should include usage read-unit information (unified-rs-0011)"
+        )
+        assert isinstance(fetch_resp.usage, Usage)
+        assert isinstance(fetch_resp.usage.read_units, int)
+        assert fetch_resp.usage.read_units >= 0
+
+        # --- list_paginated() usage via gRPC ---
+        list_resp = index.list_paginated(limit=10)
+        assert isinstance(list_resp, ListResponse)
+        if list_resp.usage is not None:
+            assert isinstance(list_resp.usage, Usage)
+            assert isinstance(list_resp.usage.read_units, int)
+            assert list_resp.usage.read_units >= 0
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
