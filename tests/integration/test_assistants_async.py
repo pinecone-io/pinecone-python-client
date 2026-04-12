@@ -20,7 +20,7 @@ import tempfile
 
 import pytest
 
-from pinecone import AsyncPinecone
+from pinecone import AsyncPinecone, PineconeValueError
 from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
 from pinecone.models.assistant.context import ContextResponse
 from pinecone.models.assistant.evaluation import AlignmentResult
@@ -598,3 +598,50 @@ async def test_assistant_evaluate_alignment_scores(
     assert isinstance(result.facts, list)
     assert hasattr(result, "usage")
     assert result.usage is not None
+
+
+# ---------------------------------------------------------------------------
+# assistant-validation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_assistant_create_region_validation_and_chat_stream_json_conflict_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """Region validation and stream+json_response mutual exclusivity fire before any API call (async).
+
+    Verifies (async path):
+    - unified-assistant-0013: create() raises PineconeValueError for regions other than
+      "us" or "eu"
+    - unified-assistant-0015: Region validation is case-sensitive — "US" and "EU" are
+      rejected
+    - unified-chat-0012: chat() raises PineconeValueError when stream=True and
+      json_response=True are specified together, before any API call
+
+    No real assistant is created. All validations are client-side.
+    """
+    # unified-assistant-0013: invalid region raises PineconeValueError
+    with pytest.raises(PineconeValueError):
+        await async_client.assistants.create(name="validation-test", region="au")
+
+    with pytest.raises(PineconeValueError):
+        await async_client.assistants.create(name="validation-test", region="invalid-region")
+
+    # unified-assistant-0015: case-sensitive — uppercase "US" and "EU" are rejected
+    with pytest.raises(PineconeValueError):
+        await async_client.assistants.create(name="validation-test", region="US")
+
+    with pytest.raises(PineconeValueError):
+        await async_client.assistants.create(name="validation-test", region="EU")
+
+    # unified-chat-0012: stream=True + json_response=True raises PineconeValueError
+    # before any network call; assistant_name does not need to exist
+    with pytest.raises(PineconeValueError):
+        await async_client.assistants.chat(
+            assistant_name="does-not-matter",
+            messages=[{"content": "test query"}],
+            stream=True,
+            json_response=True,
+        )
