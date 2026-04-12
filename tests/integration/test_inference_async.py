@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import AsyncPinecone
+from pinecone.errors import PineconeTypeError, PineconeValueError
 
 # ---------------------------------------------------------------------------
 # embed (async)
@@ -269,3 +270,41 @@ async def test_get_model_rerank_model_async(async_client: AsyncPinecone) -> None
     # Rerank models don't produce vectors
     assert model_info.vector_type is None
     assert model_info.default_dimension is None
+
+
+# ---------------------------------------------------------------------------
+# rerank — input validation (async, client-side, no API call)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_rerank_documents_validation_rest_async(async_client: AsyncPinecone) -> None:
+    """async rerank() raises PineconeValueError for empty docs, PineconeTypeError for non-list.
+
+    Verifies unified-inf-0018 (empty list rejected) and unified-inf-0019 (non-list rejected).
+    These validations happen client-side before any HTTP request is made.
+    """
+    # unified-inf-0018: empty list must be rejected
+    with pytest.raises(PineconeValueError):
+        await async_client.inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="test query",
+            documents=[],
+        )
+
+    # unified-inf-0019: non-list documents (plain string) must be rejected
+    with pytest.raises(PineconeTypeError):
+        await async_client.inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="test query",
+            documents="not a list",  # type: ignore[arg-type]
+        )
+
+    # unified-inf-0019: non-list documents (integer) must be rejected
+    with pytest.raises(PineconeTypeError):
+        await async_client.inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="test query",
+            documents=42,  # type: ignore[arg-type]
+        )
