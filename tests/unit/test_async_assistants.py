@@ -1563,9 +1563,7 @@ async def test_async_list_files_async_for_loop(async_assistants: AsyncAssistants
         ),
     )
 
-    collected = []
-    async for f in async_assistants.list_files(assistant_name="test-assistant"):
-        collected.append(f)
+    collected = [f async for f in async_assistants.list_files(assistant_name="test-assistant")]
 
     assert len(collected) == 1
     assert isinstance(collected[0], AssistantFileModel)

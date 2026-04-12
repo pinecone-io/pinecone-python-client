@@ -371,12 +371,12 @@ def test_list_vectors_rest(client: Pinecone) -> None:
 
         # Wait for all 3 vectors to appear in list results (eventual consistency)
         def _collect_ids() -> list[str]:
-            ids: list[str] = []
-            for page in index.list(prefix="lst-"):
-                for item in page.vectors:
-                    if item.id is not None:
-                        ids.append(item.id)
-            return ids
+            return [
+                item.id
+                for page in index.list(prefix="lst-")
+                for item in page.vectors
+                if item.id is not None
+            ]
 
         poll_until(
             query_fn=_collect_ids,
@@ -386,9 +386,7 @@ def test_list_vectors_rest(client: Pinecone) -> None:
         )
 
         # Collect all pages and verify structure
-        pages: list[ListResponse] = []
-        for page in index.list(prefix="lst-"):
-            pages.append(page)
+        pages: list[ListResponse] = list(index.list(prefix="lst-"))
 
         assert len(pages) >= 1, "expected at least one page"
         all_ids: list[str] = []

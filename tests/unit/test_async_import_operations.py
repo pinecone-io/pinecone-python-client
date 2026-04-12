@@ -240,9 +240,7 @@ class TestAsyncListImports:
             ],
         )
         idx = _make_async_index()
-        results: list[ImportModel] = []
-        async for item in idx.list_imports():
-            results.append(item)
+        results: list[ImportModel] = [item async for item in idx.list_imports()]
 
         assert len(results) == 3
         assert [r.id for r in results] == ["imp-1", "imp-2", "imp-3"]
@@ -259,9 +257,7 @@ class TestAsyncListImports:
             return_value=httpx.Response(200, json=_make_list_response(imports)),
         )
         idx = _make_async_index()
-        results: list[ImportModel] = []
-        async for item in idx.list_imports():
-            results.append(item)
+        results: list[ImportModel] = [item async for item in idx.list_imports()]
 
         assert len(results) == 2
         assert all(isinstance(r, ImportModel) for r in results)
@@ -276,9 +272,7 @@ class TestAsyncListImports:
             return_value=httpx.Response(200, json=_make_list_response([])),
         )
         idx = _make_async_index()
-        results: list[ImportModel] = []
-        async for item in idx.list_imports():
-            results.append(item)
+        results: list[ImportModel] = [item async for item in idx.list_imports()]
 
         assert results == []
 

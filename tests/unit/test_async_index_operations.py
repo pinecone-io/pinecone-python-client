@@ -574,9 +574,7 @@ class TestAsyncList:
 
         respx.get(LIST_URL).mock(side_effect=_side_effect)
         idx = _make_async_index()
-        pages: list[ListResponse] = []
-        async for page in idx.list():
-            pages.append(page)
+        pages: list[ListResponse] = [page async for page in idx.list()]
 
         assert len(pages) == 2
         assert pages[0].vectors[0].id == "v1"
@@ -597,9 +595,7 @@ class TestAsyncList:
             ),
         )
         idx = _make_async_index()
-        pages: list[ListResponse] = []
-        async for page in idx.list():
-            pages.append(page)
+        pages: list[ListResponse] = [page async for page in idx.list()]
 
         assert len(pages) == 1
 
@@ -643,9 +639,7 @@ class TestAsyncList:
 
         respx.get(LIST_URL).mock(side_effect=_side_effect)
         idx = _make_async_index()
-        pages: list[ListResponse] = []
-        async for page in idx.list():
-            pages.append(page)
+        pages: list[ListResponse] = [page async for page in idx.list()]
 
         assert len(pages) == 2
         assert pages[0].vectors[0].id == "v1"
@@ -666,9 +660,7 @@ class TestAsyncList:
             ),
         )
         idx = _make_async_index()
-        pages: list[ListResponse] = []
-        async for page in idx.list():
-            pages.append(page)
+        pages: list[ListResponse] = [page async for page in idx.list()]
 
         assert len(pages) == 0
 

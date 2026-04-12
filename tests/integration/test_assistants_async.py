@@ -371,9 +371,7 @@ async def test_assistant_chat_streaming_returns_content_chunks(
         )
 
         # Consume the entire async stream
-        chunks: list[ChatStreamChunk] = []
-        async for chunk in stream:
-            chunks.append(chunk)
+        chunks: list[ChatStreamChunk] = [chunk async for chunk in stream]
 
         # Must have received at least one chunk
         assert len(chunks) > 0, "Expected at least one chunk from async streaming chat"

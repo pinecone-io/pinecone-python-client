@@ -120,9 +120,7 @@ class TestAsyncListNamespaces:
         respx.get(NS_URL).mock(side_effect=_side_effect)
 
         idx = _make_async_index()
-        pages: list[ListNamespacesResponse] = []
-        async for page in idx.list_namespaces():
-            pages.append(page)
+        pages: list[ListNamespacesResponse] = [page async for page in idx.list_namespaces()]
 
         assert len(pages) == 2
         assert pages[0].namespaces[0].name == "ns1"
@@ -148,9 +146,7 @@ class TestAsyncListNamespaces:
         )
 
         idx = _make_async_index()
-        pages: list[ListNamespacesResponse] = []
-        async for page in idx.list_namespaces():
-            pages.append(page)
+        pages: list[ListNamespacesResponse] = [page async for page in idx.list_namespaces()]
 
         assert len(pages) == 1
         assert len(pages[0].namespaces) == 2

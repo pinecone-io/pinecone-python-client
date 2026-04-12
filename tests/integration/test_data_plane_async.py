@@ -281,12 +281,12 @@ async def test_list_vectors_rest_async(async_client: AsyncPinecone) -> None:
 
         # Wait for all 3 vectors to appear in list results (eventual consistency)
         async def _collect_ids() -> list[str]:
-            ids: list[str] = []
-            async for page in idx.list(prefix="lst-"):  # type: ignore[union-attr]
-                for item in page.vectors:
-                    if item.id is not None:
-                        ids.append(item.id)
-            return ids
+            return [
+                item.id
+                async for page in idx.list(prefix="lst-")  # type: ignore[union-attr]
+                for item in page.vectors
+                if item.id is not None
+            ]
 
         await async_poll_until(
             query_fn=_collect_ids,
@@ -296,9 +296,7 @@ async def test_list_vectors_rest_async(async_client: AsyncPinecone) -> None:
         )
 
         # Collect all pages and verify structure
-        pages: list[ListResponse] = []
-        async for page in idx.list(prefix="lst-"):
-            pages.append(page)
+        pages: list[ListResponse] = [page async for page in idx.list(prefix="lst-")]
 
         assert len(pages) >= 1, "expected at least one page"
         all_ids: list[str] = []
