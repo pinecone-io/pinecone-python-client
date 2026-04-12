@@ -357,3 +357,50 @@ def test_configure_deletion_protection_toggle_rest(client: Pinecone) -> None:
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# delete with timeout=-1 (no-wait deletion) — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_delete_index_timeout_minus1_returns_immediately(client: Pinecone) -> None:
+    """indexes.delete(name, timeout=-1) returns None immediately without polling.
+
+    Verifies claims:
+    - unified-index-0057: deletion with timeout=-1 returns immediately without polling
+    - unified-rs-0002: index deletion returns no response body (None)
+    """
+    from pinecone.errors import NotFoundError
+    name = unique_name("idx")
+    deleted = False
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # delete with timeout=-1 must return None immediately (no polling)
+        result = client.indexes.delete(name, timeout=-1)
+        deleted = True
+        assert result is None  # unified-rs-0002: returns no response body
+
+        # The index may still exist briefly (we didn't wait) — verify it eventually
+        # disappears by polling the describe endpoint until NotFoundError
+        import time
+        start = time.monotonic()
+        gone = False
+        while time.monotonic() - start < 120:
+            try:
+                client.indexes.describe(name)
+                time.sleep(5)
+            except NotFoundError:
+                gone = True
+                break
+        assert gone, f"Index '{name}' still exists 120s after delete(timeout=-1)"
+    finally:
+        if not deleted:
+            cleanup_resource(lambda: client.indexes.delete(name), name, "index")

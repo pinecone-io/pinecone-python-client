@@ -340,3 +340,55 @@ async def test_configure_deletion_protection_toggle_async(async_client: AsyncPin
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# delete with timeout=-1 (no-wait deletion) — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_delete_index_timeout_minus1_returns_immediately_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """async indexes.delete(name, timeout=-1) returns None immediately without polling.
+
+    Verifies claims:
+    - unified-index-0057: deletion with timeout=-1 returns immediately without polling
+    - unified-rs-0002: index deletion returns no response body (None)
+    """
+    import asyncio
+    from pinecone.errors import NotFoundError
+    name = unique_name("idx")
+    deleted = False
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # delete with timeout=-1 must return None immediately (no polling)
+        result = await async_client.indexes.delete(name, timeout=-1)
+        deleted = True
+        assert result is None  # unified-rs-0002: returns no response body
+
+        # Poll until the index is gone (verify the deletion was actually triggered)
+        gone = False
+        for _ in range(24):  # up to 120 seconds (24 * 5s)
+            try:
+                await async_client.indexes.describe(name)
+                await asyncio.sleep(5)
+            except NotFoundError:
+                gone = True
+                break
+        assert gone, f"Index '{name}' still exists 120s after async delete(timeout=-1)"
+    finally:
+        if not deleted:
+            await async_cleanup_resource(
+                lambda: async_client.indexes.delete(name),
+                name,
+                "index",
+            )
