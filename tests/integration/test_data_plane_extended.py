@@ -1870,3 +1870,188 @@ def test_response_info_populated_on_data_plane_responses_rest(client: Pinecone) 
 # is N/A — pure gRPC operations (upsert, query, fetch) use the binary gRPC protocol
 # and do not call extract_response_info(), so response_info is None on those responses.
 # Only gRPC operations that delegate to REST (upsert_records, search) set response_info.
+
+
+# ---------------------------------------------------------------------------
+# unicode metadata round-trip — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_unicode_metadata_round_trip_rest(client: Pinecone) -> None:
+    """Unicode/multibyte metadata values (CJK, emoji, accented Latin) survive a full
+    upsert → fetch → query round-trip; metadata filter equality on a unicode string value
+    works correctly end-to-end (REST sync).
+
+    Depth escalation: boundary value — all existing metadata tests use ASCII-only values;
+    unicode serialization through orjson has never been verified in integration tests.
+
+    Related: unified-wf-0001 (orjson UTF-8 serialization of request bodies);
+             unified-filter-0006 (filter field values support strings).
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Two vectors: one with unicode/emoji metadata, one with plain ASCII.
+        # unicode_meta vector uses CJK, emoji, and accented Latin characters.
+        unicode_meta = {
+            "lang": "日本語",          # Japanese
+            "emoji": "🚀🌊",          # multi-codepoint emoji
+            "accented": "café naïve",  # accented Latin
+            "cjk": "中文",             # Chinese
+        }
+        ascii_meta = {"lang": "english", "emoji": "none", "accented": "plain"}
+
+        index.upsert(
+            vectors=[
+                {"id": "uni-v1", "values": [0.1, 0.9], "metadata": unicode_meta},
+                {"id": "uni-v2", "values": [0.9, 0.1], "metadata": ascii_meta},
+            ]
+        )
+
+        # Wait until both vectors are queryable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.9], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="unicode-metadata vectors queryable",
+        )
+
+        # --- fetch: verify unicode metadata is preserved byte-for-byte ---
+        fetch_resp = index.fetch(ids=["uni-v1", "uni-v2"])
+        assert isinstance(fetch_resp, FetchResponse)
+        assert "uni-v1" in fetch_resp.vectors, "uni-v1 missing from fetch response"
+        v1 = fetch_resp.vectors["uni-v1"]
+        assert v1.metadata is not None, "uni-v1 metadata should not be None"
+        assert v1.metadata.get("lang") == "日本語", (
+            f"CJK lang mismatch: expected '日本語', got {v1.metadata.get('lang')!r}"
+        )
+        assert v1.metadata.get("emoji") == "🚀🌊", (
+            f"Emoji mismatch: expected '🚀🌊', got {v1.metadata.get('emoji')!r}"
+        )
+        assert v1.metadata.get("accented") == "café naïve", (
+            f"Accented mismatch: expected 'café naïve', got {v1.metadata.get('accented')!r}"
+        )
+        assert v1.metadata.get("cjk") == "中文", (
+            f"CJK mismatch: expected '中文', got {v1.metadata.get('cjk')!r}"
+        )
+
+        # --- query with include_metadata: verify metadata returned in query results ---
+        query_resp = index.query(
+            vector=[0.1, 0.9],
+            top_k=10,
+            include_metadata=True,
+        )
+        assert isinstance(query_resp, QueryResponse)
+        uni_matches = [m for m in query_resp.matches if m.id == "uni-v1"]
+        assert len(uni_matches) == 1, "uni-v1 should appear in top-10 results"
+        uni_m = uni_matches[0]
+        assert uni_m.metadata is not None
+        assert uni_m.metadata.get("lang") == "日本語"
+        assert uni_m.metadata.get("emoji") == "🚀🌊"
+
+        # --- metadata filter on unicode string value ---
+        # Only uni-v1 should match the CJK lang filter; uni-v2 has lang="english"
+        filtered = index.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter={"lang": {"$eq": "日本語"}},
+            include_metadata=True,
+        )
+        assert isinstance(filtered, QueryResponse)
+        filtered_ids = {m.id for m in filtered.matches}
+        assert "uni-v1" in filtered_ids, (
+            f"uni-v1 (lang='日本語') missing from unicode filter result: {filtered_ids}"
+        )
+        assert "uni-v2" not in filtered_ids, (
+            f"uni-v2 (lang='english') leaked into unicode filter result: {filtered_ids}"
+        )
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# unicode metadata round-trip — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_unicode_metadata_round_trip_grpc(client: Pinecone) -> None:
+    """Unicode/multibyte metadata values survive a full upsert → fetch → query
+    round-trip via gRPC transport.
+
+    Depth escalation: same boundary value as the REST variant, but verifies
+    that protobuf/gRPC serialization also handles unicode metadata correctly.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        unicode_meta = {
+            "lang": "日本語",
+            "emoji": "🚀🌊",
+            "accented": "café naïve",
+            "cjk": "中文",
+        }
+
+        index.upsert(
+            vectors=[
+                {"id": "uni-g1", "values": [0.1, 0.9], "metadata": unicode_meta},
+                {"id": "uni-g2", "values": [0.9, 0.1], "metadata": {"lang": "english"}},
+            ]
+        )
+
+        # Wait until both vectors are queryable
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.9], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="gRPC unicode-metadata vectors queryable",
+        )
+
+        # Fetch and verify unicode metadata round-trip
+        fetch_resp = index.fetch(ids=["uni-g1"])
+        assert isinstance(fetch_resp, FetchResponse)
+        assert "uni-g1" in fetch_resp.vectors
+        v1 = fetch_resp.vectors["uni-g1"]
+        assert v1.metadata is not None
+        assert v1.metadata.get("lang") == "日本語", (
+            f"gRPC CJK lang mismatch: expected '日本語', got {v1.metadata.get('lang')!r}"
+        )
+        assert v1.metadata.get("emoji") == "🚀🌊", (
+            f"gRPC Emoji mismatch: expected '🚀🌊', got {v1.metadata.get('emoji')!r}"
+        )
+        assert v1.metadata.get("cjk") == "中文", (
+            f"gRPC CJK mismatch: expected '中文', got {v1.metadata.get('cjk')!r}"
+        )
+
+        # Query with unicode metadata filter on gRPC transport
+        filtered = index.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter={"lang": {"$eq": "日本語"}},
+            include_metadata=True,
+        )
+        assert isinstance(filtered, QueryResponse)
+        filtered_ids = {m.id for m in filtered.matches}
+        assert "uni-g1" in filtered_ids, (
+            f"gRPC: uni-g1 (lang='日本語') missing from unicode filter result: {filtered_ids}"
+        )
+        assert "uni-g2" not in filtered_ids, (
+            f"gRPC: uni-g2 (lang='english') leaked into unicode filter result: {filtered_ids}"
+        )
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
