@@ -2525,3 +2525,157 @@ def test_query_fetch_list_usage_read_units_grpc(client: Pinecone) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# query-after-delete — operation sequence: upsert → query → delete → query
+# REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_query_after_delete_reflects_deletion_rest(client: Pinecone) -> None:
+    """Deleted vectors no longer appear in subsequent query() results (REST sync).
+
+    Verifies the operation sequence: upsert → query (both present) → delete one
+    vector → query again → deleted vector absent, remaining vector still present.
+
+    All existing delete tests verify removal via fetch(); this test exercises the
+    independent query path to confirm delete/query consistency (depth-escalation
+    operation-sequence test).
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert two vectors with clearly distinct values
+        index.upsert(
+            vectors=[
+                {"id": "qad-v1", "values": [1.0, 0.0, 0.0, 0.0]},
+                {"id": "qad-v2", "values": [0.0, 1.0, 0.0, 0.0]},
+            ]
+        )
+
+        # Wait until both vectors are queryable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.query(vector=[1.0, 0.0, 0.0, 0.0], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="both vectors queryable before delete",
+        )
+
+        # Baseline: query returns both vectors
+        pre_delete = index.query(vector=[1.0, 0.0, 0.0, 0.0], top_k=10)
+        pre_ids = {m.id for m in pre_delete.matches}
+        assert "qad-v1" in pre_ids, "qad-v1 should appear before delete"
+        assert "qad-v2" in pre_ids, "qad-v2 should appear before delete"
+
+        # Delete only qad-v1
+        result = index.delete(ids=["qad-v1"])
+        assert result is None
+
+        # Wait until qad-v1 is gone from fetch (deletion confirmed)
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["qad-v1"]),
+            check_fn=lambda r: "qad-v1" not in r.vectors,
+            timeout=120,
+            description="qad-v1 absent from fetch after delete",
+        )
+
+        # Post-delete query: qad-v1 must NOT appear; qad-v2 must still appear
+        poll_until(
+            query_fn=lambda: index.query(vector=[1.0, 0.0, 0.0, 0.0], top_k=10),
+            check_fn=lambda r: "qad-v1" not in {m.id for m in r.matches},
+            timeout=120,
+            description="qad-v1 absent from query results after delete",
+        )
+
+        post_delete = index.query(vector=[1.0, 0.0, 0.0, 0.0], top_k=10)
+        assert isinstance(post_delete, QueryResponse)
+        post_ids = {m.id for m in post_delete.matches}
+        assert "qad-v1" not in post_ids, (
+            "qad-v1 should not appear in query results after deletion"
+        )
+        assert "qad-v2" in post_ids, (
+            "qad-v2 should still appear in query results after deleting a different vector"
+        )
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# query-after-delete — gRPC
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_query_after_delete_reflects_deletion_grpc(client: Pinecone) -> None:
+    """Deleted vectors no longer appear in subsequent query() results (gRPC).
+
+    Same operation sequence as the REST variant but exercising the gRPC transport.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        index.upsert(
+            vectors=[
+                {"id": "qadg-v1", "values": [1.0, 0.0, 0.0, 0.0]},
+                {"id": "qadg-v2", "values": [0.0, 1.0, 0.0, 0.0]},
+            ]
+        )
+
+        # Wait until both vectors are queryable
+        poll_until(
+            query_fn=lambda: index.query(vector=[1.0, 0.0, 0.0, 0.0], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="both gRPC vectors queryable before delete",
+        )
+
+        # Delete qadg-v1
+        index.delete(ids=["qadg-v1"])
+
+        # Wait until qadg-v1 is gone from fetch
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["qadg-v1"]),
+            check_fn=lambda r: "qadg-v1" not in r.vectors,
+            timeout=120,
+            description="qadg-v1 absent from gRPC fetch after delete",
+        )
+
+        # Post-delete query via gRPC
+        poll_until(
+            query_fn=lambda: index.query(vector=[1.0, 0.0, 0.0, 0.0], top_k=10),
+            check_fn=lambda r: "qadg-v1" not in {m.id for m in r.matches},
+            timeout=120,
+            description="qadg-v1 absent from gRPC query results after delete",
+        )
+
+        post_delete = index.query(vector=[1.0, 0.0, 0.0, 0.0], top_k=10)
+        assert isinstance(post_delete, QueryResponse)
+        post_ids = {m.id for m in post_delete.matches}
+        assert "qadg-v1" not in post_ids, (
+            "qadg-v1 should not appear in gRPC query results after deletion"
+        )
+        assert "qadg-v2" in post_ids, (
+            "qadg-v2 should still appear in gRPC query results after deleting a different vector"
+        )
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

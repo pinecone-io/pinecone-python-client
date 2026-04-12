@@ -1755,3 +1755,96 @@ async def test_query_fetch_list_usage_read_units_async(async_client: AsyncPineco
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# query-after-delete — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_query_after_delete_reflects_deletion_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """Deleted vectors no longer appear in subsequent query() results (REST async).
+
+    Mirrors test_query_after_delete_reflects_deletion_rest for the async transport.
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        await idx.upsert(
+            vectors=[
+                {"id": "qada-v1", "values": [1.0, 0.0, 0.0, 0.0]},
+                {"id": "qada-v2", "values": [0.0, 1.0, 0.0, 0.0]},
+            ]
+        )
+
+        # Wait until both vectors are queryable
+        async def _query_both() -> QueryResponse:
+            return await idx.query(vector=[1.0, 0.0, 0.0, 0.0], top_k=10)  # type: ignore[union-attr]
+
+        await async_poll_until(
+            query_fn=_query_both,
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="both async vectors queryable before delete",
+        )
+
+        # Baseline: query returns both vectors
+        pre_delete = await idx.query(vector=[1.0, 0.0, 0.0, 0.0], top_k=10)
+        pre_ids = {m.id for m in pre_delete.matches}
+        assert "qada-v1" in pre_ids, "qada-v1 should appear before delete"
+        assert "qada-v2" in pre_ids, "qada-v2 should appear before delete"
+
+        # Delete only qada-v1
+        result = await idx.delete(ids=["qada-v1"])
+        assert result is None
+
+        # Wait until qada-v1 is gone from fetch
+        async def _fetch_v1() -> FetchResponse:
+            return await idx.fetch(ids=["qada-v1"])  # type: ignore[union-attr]
+
+        await async_poll_until(
+            query_fn=_fetch_v1,
+            check_fn=lambda r: "qada-v1" not in r.vectors,
+            timeout=120,
+            description="qada-v1 absent from async fetch after delete",
+        )
+
+        # Post-delete query: qada-v1 must NOT appear; qada-v2 must still appear
+        await async_poll_until(
+            query_fn=_query_both,
+            check_fn=lambda r: "qada-v1" not in {m.id for m in r.matches},
+            timeout=120,
+            description="qada-v1 absent from async query results after delete",
+        )
+
+        post_delete = await idx.query(vector=[1.0, 0.0, 0.0, 0.0], top_k=10)
+        assert isinstance(post_delete, QueryResponse)
+        post_ids = {m.id for m in post_delete.matches}
+        assert "qada-v1" not in post_ids, (
+            "qada-v1 should not appear in async query results after deletion"
+        )
+        assert "qada-v2" in post_ids, (
+            "qada-v2 should still appear in async query results after deleting a different vector"
+        )
+
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
