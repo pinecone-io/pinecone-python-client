@@ -74,6 +74,37 @@ async def test_embed_sparse_model_returns_sparse_embeddings_async(
 
 @pytest.mark.integration
 @pytest.mark.asyncio
+async def test_embed_list_of_dict_inputs_async(async_client: AsyncPinecone) -> None:
+    """async embed() accepts a list of dicts as inputs and returns one embedding per dict.
+
+    Async variant of test_embed_list_of_dict_inputs. Verifies unified-inf-0009:
+    the embed operation accepts list[dict] inputs end-to-end with the real API.
+    """
+    inputs = [
+        {"text": "What is a vector database?"},
+        {"text": "Pinecone is a managed vector database service."},
+    ]
+    result = await async_client.inference.embed(
+        model="multilingual-e5-large",
+        inputs=inputs,
+        parameters={"input_type": "passage"},
+    )
+
+    assert result.model == "multilingual-e5-large"
+    assert result.vector_type == "dense"
+    assert len(result) == len(inputs)
+    assert result.usage.total_tokens > 0
+
+    for emb in result:
+        assert isinstance(emb.values, list)
+        assert len(emb.values) > 0
+        assert all(isinstance(v, float) for v in emb.values)
+
+    assert result.data[0].values != result.data[1].values
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_embed_multiple_inputs_async(async_client: AsyncPinecone) -> None:
     """async embed() with multiple inputs returns one embedding per input."""
     inputs = [

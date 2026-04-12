@@ -111,6 +111,43 @@ def test_embed_sparse_model_returns_sparse_embeddings(client: Pinecone) -> None:
 
 
 @pytest.mark.integration
+def test_embed_list_of_dict_inputs(client: Pinecone) -> None:
+    """embed() accepts a list of dicts as inputs and returns one embedding per dict.
+
+    Verifies unified-inf-0009: "The embed operation accepts a list of strings,
+    a list of dictionaries, or a single bare string as inputs."
+
+    All existing embed integration tests pass strings. This test exercises the
+    dict pass-through path in normalize_embed_inputs(), where list[dict] is sent
+    to the API as-is (each dict must have a "text" key). The unit tests cover
+    the normalization logic; this confirms the dict format is accepted end-to-end
+    by the real API.
+    """
+    inputs = [
+        {"text": "What is a vector database?"},
+        {"text": "Pinecone is a managed vector database service."},
+    ]
+    result = client.inference.embed(
+        model="multilingual-e5-large",
+        inputs=inputs,
+        parameters={"input_type": "passage"},
+    )
+
+    assert result.model == "multilingual-e5-large"
+    assert result.vector_type == "dense"
+    assert len(result) == len(inputs)
+    assert result.usage.total_tokens > 0
+
+    for emb in result:
+        assert isinstance(emb.values, list)
+        assert len(emb.values) > 0
+        assert all(isinstance(v, float) for v in emb.values)
+
+    # Two different texts produce different embeddings
+    assert result.data[0].values != result.data[1].values
+
+
+@pytest.mark.integration
 def test_embed_query_vs_passage(client: Pinecone) -> None:
     """embed() with input_type=query vs passage produces different embeddings."""
     text = ["vector databases enable semantic search"]
