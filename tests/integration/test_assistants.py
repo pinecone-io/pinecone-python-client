@@ -790,3 +790,71 @@ def test_describe_file_signed_url_rest(client: Pinecone) -> None:
             name,
             "assistant",
         )
+
+
+# ---------------------------------------------------------------------------
+# assistant-chat-dict-no-role
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_chat_message_dict_role_default_rest(client: Pinecone) -> None:
+    """chat() with a message dict that omits 'role' defaults role to 'user'.
+
+    All existing chat tests pass {"role": "user", "content": "..."}.
+    This test passes {"content": "..."} (no role key) and verifies that:
+    1. The SDK converts the dict via Message.from_dict(), defaulting role to "user"
+    2. The API call succeeds — confirming the role was correctly populated
+    3. A valid ChatResponse is returned
+
+    Verifies unified-chat-0020 and unified-chat-0019.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        assistant = client.assistants.create(name=name, instructions="You are a helpful assistant.")
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-norol-"
+        ) as f:
+            f.write("Pinecone is a managed vector database supporting dense and sparse vectors.")
+            tmp_path = f.name
+
+        client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        # Pass a message dict WITHOUT a "role" key — SDK should default to "user"
+        response = client.assistants.chat(
+            assistant_name=name,
+            messages=[{"content": "What is Pinecone?"}],
+            stream=False,
+        )
+
+        # A valid ChatResponse means the SDK defaulted role="user" and the API accepted it
+        assert isinstance(response, ChatResponse)
+        assert isinstance(response.id, str)
+        assert len(response.id) > 0
+        assert response.message.role == "assistant"
+        assert isinstance(response.message.content, str)
+        assert len(response.message.content) > 0
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
