@@ -14,6 +14,7 @@ These tests make real API calls and require PINECONE_API_KEY in the environment.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import tempfile
 
@@ -169,10 +170,8 @@ def test_assistant_files_upload_list_describe_delete(client: Pinecone) -> None:
     finally:
         # Clean up temp file
         if tmp_path is not None:
-            try:
+            with contextlib.suppress(Exception):
                 os.unlink(tmp_path)
-            except Exception:
-                pass
         # Delete the assistant (also cleans up any remaining files)
         cleanup_resource(
             lambda: client.assistants.delete(name=name, timeout=60),
@@ -235,10 +234,8 @@ def test_assistant_chat_non_streaming_response(client: Pinecone) -> None:
 
     finally:
         if tmp_path is not None:
-            try:
+            with contextlib.suppress(Exception):
                 os.unlink(tmp_path)
-            except Exception:
-                pass
         cleanup_resource(
             lambda: client.assistants.delete(name=name, timeout=60),
             name,
@@ -297,10 +294,8 @@ def test_assistant_context_retrieval(client: Pinecone) -> None:
 
     finally:
         if tmp_path is not None:
-            try:
+            with contextlib.suppress(Exception):
                 os.unlink(tmp_path)
-            except Exception:
-                pass
         cleanup_resource(
             lambda: client.assistants.delete(name=name, timeout=60),
             name,
@@ -367,10 +362,8 @@ def test_assistant_chat_streaming_returns_content_chunks(client: Pinecone) -> No
 
     finally:
         if tmp_path is not None:
-            try:
+            with contextlib.suppress(Exception):
                 os.unlink(tmp_path)
-            except Exception:
-                pass
         cleanup_resource(
             lambda: client.assistants.delete(name=name, timeout=60),
             name,
@@ -435,10 +428,8 @@ def test_assistant_chat_completions_openai_compatible_response(client: Pinecone)
 
     finally:
         if tmp_path is not None:
-            try:
+            with contextlib.suppress(Exception):
                 os.unlink(tmp_path)
-            except Exception:
-                pass
         cleanup_resource(
             lambda: client.assistants.delete(name=name, timeout=60),
             name,

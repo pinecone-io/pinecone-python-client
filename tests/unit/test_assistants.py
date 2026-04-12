@@ -2713,8 +2713,8 @@ def test_model_dict_access_assistant() -> None:
     assert len(model) == len(model.__struct_fields__)
 
     # keys()
-    assert "name" in model.keys()
-    assert "status" in model.keys()
+    assert "name" in model
+    assert "status" in model
 
     # values()
     vals = model.values()
@@ -2742,7 +2742,7 @@ def test_model_dict_access_file() -> None:
     assert "name" in model
     assert "nonexistent" not in model
     assert len(model) == len(model.__struct_fields__)
-    assert "name" in model.keys()
+    assert "name" in model
     assert "test-file.pdf" in model.values()
     assert dict(model.items())["id"] == "file-abc123"
     assert model.get("size") == 1024

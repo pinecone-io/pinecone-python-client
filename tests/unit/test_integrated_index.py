@@ -396,20 +396,19 @@ def test_create_integrated_init_failed_raises(indexes: Indexes) -> None:
         ),
     )
 
-    with patch("pinecone.client.indexes.time.sleep"):
-        with pytest.raises(PineconeError, match="InitializationFailed"):
-            indexes.create(
-                name="my-integrated-index",
-                spec=IntegratedSpec(
-                    cloud="aws",
-                    region="us-east-1",
-                    embed=EmbedConfig(
-                        model="multilingual-e5-large",
-                        field_map={"text": "my_text_field"},
-                    ),
+    with patch("pinecone.client.indexes.time.sleep"), pytest.raises(PineconeError, match="InitializationFailed"):
+        indexes.create(
+            name="my-integrated-index",
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "my_text_field"},
                 ),
-                timeout=300,
-            )
+            ),
+            timeout=300,
+        )
 
 
 @respx.mock

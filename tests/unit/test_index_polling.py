@@ -106,14 +106,13 @@ def test_create_init_failed_raises_immediately(indexes: Indexes) -> None:
         ),
     )
 
-    with patch("pinecone.client.indexes.time.sleep"):
-        with pytest.raises(IndexInitFailedError) as exc_info:
-            indexes.create(
-                name="test-index",
-                dimension=1536,
-                spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
-                timeout=300,
-            )
+    with patch("pinecone.client.indexes.time.sleep"), pytest.raises(IndexInitFailedError) as exc_info:
+        indexes.create(
+            name="test-index",
+            dimension=1536,
+            spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
+            timeout=300,
+        )
 
     assert exc_info.value.index_name == "test-index"
     assert "InitializationFailed" in str(exc_info.value)
@@ -140,14 +139,13 @@ def test_create_timeout_raises(indexes: Indexes) -> None:
         ),
     )
 
-    with patch("pinecone.client.indexes.time.sleep"):
-        with pytest.raises(PineconeTimeoutError, match="not ready after"):
-            indexes.create(
-                name="test-index",
-                dimension=1536,
-                spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
-                timeout=1,
-            )
+    with patch("pinecone.client.indexes.time.sleep"), pytest.raises(PineconeTimeoutError, match="not ready after"):
+        indexes.create(
+            name="test-index",
+            dimension=1536,
+            spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
+            timeout=1,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -274,9 +272,8 @@ def test_delete_timeout_raises(indexes: Indexes) -> None:
         return_value=httpx.Response(200, json=make_index_response()),
     )
 
-    with patch("pinecone.client.indexes.time.sleep"):
-        with pytest.raises(PineconeTimeoutError, match="still exists after"):
-            indexes.delete("test-index", timeout=1)
+    with patch("pinecone.client.indexes.time.sleep"), pytest.raises(PineconeTimeoutError, match="still exists after"):
+        indexes.delete("test-index", timeout=1)
 
 
 # ---------------------------------------------------------------------------

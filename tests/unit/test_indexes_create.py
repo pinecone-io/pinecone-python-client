@@ -406,14 +406,13 @@ def test_create_init_failed_raises(indexes: Indexes) -> None:
         ),
     )
 
-    with patch("pinecone.client.indexes.time.sleep"):
-        with pytest.raises(IndexInitFailedError, match="InitializationFailed"):
-            indexes.create(
-                name="test-index",
-                dimension=1536,
-                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-                timeout=300,
-            )
+    with patch("pinecone.client.indexes.time.sleep"), pytest.raises(IndexInitFailedError, match="InitializationFailed"):
+        indexes.create(
+            name="test-index",
+            dimension=1536,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
 
 
 @respx.mock

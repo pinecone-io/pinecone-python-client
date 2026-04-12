@@ -141,16 +141,14 @@ def _parse_sparse(raw: Any) -> SparseValues:
             f"got {len(indices)} and {len(values)}"
         )
 
-    if indices:
-        if not isinstance(indices[0], int):
-            raise PineconeTypeError(
-                f"sparse_values indices must be integers, got {type(indices[0]).__name__}"
-            )
-    if values:
-        if not isinstance(values[0], (int, float)):
-            raise PineconeTypeError(
-                f"sparse_values values must be floats, got {type(values[0]).__name__}"
-            )
+    if indices and not isinstance(indices[0], int):
+        raise PineconeTypeError(
+            f"sparse_values indices must be integers, got {type(indices[0]).__name__}"
+        )
+    if values and not isinstance(values[0], (int, float)):
+        raise PineconeTypeError(
+            f"sparse_values values must be floats, got {type(values[0]).__name__}"
+        )
 
     return SparseValues(
         indices if isinstance(indices, list) else list(indices),

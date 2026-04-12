@@ -14,6 +14,7 @@ These tests make real API calls and require PINECONE_API_KEY in the environment.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import tempfile
 
@@ -175,10 +176,8 @@ async def test_assistant_files_upload_list_describe_delete(
     finally:
         # Clean up temp file
         if tmp_path is not None:
-            try:
+            with contextlib.suppress(Exception):
                 os.unlink(tmp_path)
-            except Exception:
-                pass
         # Delete the assistant
         await async_cleanup_resource(
             lambda: async_client.assistants.delete(name=name, timeout=60),
@@ -247,10 +246,8 @@ async def test_assistant_chat_non_streaming_response(
 
     finally:
         if tmp_path is not None:
-            try:
+            with contextlib.suppress(Exception):
                 os.unlink(tmp_path)
-            except Exception:
-                pass
         await async_cleanup_resource(
             lambda: async_client.assistants.delete(name=name, timeout=60),
             name,
@@ -315,10 +312,8 @@ async def test_assistant_context_retrieval(
 
     finally:
         if tmp_path is not None:
-            try:
+            with contextlib.suppress(Exception):
                 os.unlink(tmp_path)
-            except Exception:
-                pass
         await async_cleanup_resource(
             lambda: async_client.assistants.delete(name=name, timeout=60),
             name,
@@ -393,10 +388,8 @@ async def test_assistant_chat_streaming_returns_content_chunks(
 
     finally:
         if tmp_path is not None:
-            try:
+            with contextlib.suppress(Exception):
                 os.unlink(tmp_path)
-            except Exception:
-                pass
         await async_cleanup_resource(
             lambda: async_client.assistants.delete(name=name, timeout=60),
             name,
@@ -467,10 +460,8 @@ async def test_assistant_chat_completions_openai_compatible_response(
 
     finally:
         if tmp_path is not None:
-            try:
+            with contextlib.suppress(Exception):
                 os.unlink(tmp_path)
-            except Exception:
-                pass
         await async_cleanup_resource(
             lambda: async_client.assistants.delete(name=name, timeout=60),
             name,

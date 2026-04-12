@@ -289,9 +289,8 @@ async def test_delete_timeout_exceeded(async_indexes: AsyncIndexes) -> None:
         return_value=httpx.Response(200, json=make_index_response()),
     )
 
-    with patch("pinecone.async_client.indexes.asyncio.sleep"):
-        with pytest.raises(PineconeTimeoutError, match=r"still exists after 1s"):
-            await async_indexes.delete("test-index", timeout=1)
+    with patch("pinecone.async_client.indexes.asyncio.sleep"), pytest.raises(PineconeTimeoutError, match=r"still exists after 1s"):
+        await async_indexes.delete("test-index", timeout=1)
 
 
 @respx.mock
@@ -720,14 +719,13 @@ async def test_create_init_failed_raises(async_indexes: AsyncIndexes) -> None:
         ),
     )
 
-    with patch("pinecone.async_client.indexes.asyncio.sleep"):
-        with pytest.raises(IndexInitFailedError):
-            await async_indexes.create(
-                name="test-index",
-                dimension=1536,
-                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-                timeout=300,
-            )
+    with patch("pinecone.async_client.indexes.asyncio.sleep"), pytest.raises(IndexInitFailedError):
+        await async_indexes.create(
+            name="test-index",
+            dimension=1536,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
 
 
 @respx.mock

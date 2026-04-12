@@ -38,8 +38,8 @@ line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W", "UP", "B", "ASYNC", "S", "T20", "N", "C4"]
-ignore = ["ASYNC109"]
+select = ["E", "F", "I", "W", "UP", "B", "ASYNC", "S", "T20", "N", "C4", "SIM"]
+ignore = ["ASYNC109", "SIM108"]
 
 [tool.ruff.lint.isort]
 required-imports = ["from __future__ import annotations"]
@@ -47,7 +47,7 @@ required-imports = ["from __future__ import annotations"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["E501", "B905", "S101", "S105", "S106", "S107", "S110", "T20"]
 "pinecone/_internal/http_client.py" = ["S311"]
-"pinecone/grpc/future.py" = ["S110"]
+"pinecone/grpc/future.py" = ["S110", "SIM105"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

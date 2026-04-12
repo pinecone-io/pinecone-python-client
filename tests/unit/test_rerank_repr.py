@@ -26,7 +26,7 @@ class TestRankedDocumentRepr:
     def test_repr_with_none_document(self) -> None:
         doc = RankedDocument(index=2, score=0.31)
         r = repr(doc)
-        assert "RankedDocument(index=2, score=0.31, document=None)" == r
+        assert r == "RankedDocument(index=2, score=0.31, document=None)"
 
     def test_repr_truncates_at_80_chars(self) -> None:
         text = "A" * 80 + "B" * 20
