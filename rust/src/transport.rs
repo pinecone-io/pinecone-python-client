@@ -7,8 +7,8 @@ use pyo3::types::PyDict;
 use tonic::service::interceptor::InterceptedService;
 use tonic::transport::{Channel, ClientTlsConfig};
 
-use crate::proto::vector_service_client::VectorServiceClient;
 use crate::proto;
+use crate::proto::vector_service_client::VectorServiceClient;
 use crate::retry::{retry_on_unavailable, RetryConfig};
 
 /// Maximum gRPC message size for both send and receive (128 MB).
@@ -23,7 +23,9 @@ fn normalize_source_tag(tag: &str) -> String {
     let lowered = tag.to_lowercase();
     let cleaned: String = lowered
         .chars()
-        .filter(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || *c == '_' || *c == ' ' || *c == ':')
+        .filter(|c| {
+            c.is_ascii_lowercase() || c.is_ascii_digit() || *c == '_' || *c == ' ' || *c == ':'
+        })
         .map(|c| if c == ' ' { '_' } else { c })
         .collect();
     cleaned
@@ -53,7 +55,10 @@ fn ensure_port(endpoint: &str) -> String {
         let host_port = after_scheme.split('/').next().unwrap_or(after_scheme);
         // Check for port: look for `:digits` at the end, but be careful with IPv6
         // brackets like `[::1]:443`.
-        if host_port.ends_with(']') || !host_port.contains(':') || (host_port.starts_with('[') && !host_port.contains("]:")) {
+        if host_port.ends_with(']')
+            || !host_port.contains(':')
+            || (host_port.starts_with('[') && !host_port.contains("]:"))
+        {
             // No port found — append :443
             // Insert before any path component
             let path_start = scheme_end + 3 + host_port.len();
@@ -73,7 +78,10 @@ struct MetadataInterceptor {
 }
 
 impl MetadataInterceptor {
-    fn new(api_key: &str, api_version: &str) -> Result<Self, tonic::metadata::errors::InvalidMetadataValue> {
+    fn new(
+        api_key: &str,
+        api_version: &str,
+    ) -> Result<Self, tonic::metadata::errors::InvalidMetadataValue> {
         Ok(Self {
             api_key: api_key.parse()?,
             api_version: api_version.parse()?,
@@ -82,7 +90,10 @@ impl MetadataInterceptor {
 }
 
 impl tonic::service::Interceptor for MetadataInterceptor {
-    fn call(&mut self, mut request: tonic::Request<()>) -> Result<tonic::Request<()>, tonic::Status> {
+    fn call(
+        &mut self,
+        mut request: tonic::Request<()>,
+    ) -> Result<tonic::Request<()>, tonic::Status> {
         let metadata = request.metadata_mut();
         metadata.insert("api-key", self.api_key.clone());
         metadata.insert(
@@ -293,10 +304,7 @@ fn py_dict_to_struct(dict: &Bound<'_, PyDict>) -> PyResult<prost_types::Struct> 
 }
 
 /// Convert a proto SparseValues into a Python dict with "indices" and "values" keys.
-fn sparse_values_to_py_dict(
-    py: Python<'_>,
-    sv: &proto::SparseValues,
-) -> PyResult<Py<PyDict>> {
+fn sparse_values_to_py_dict(py: Python<'_>, sv: &proto::SparseValues) -> PyResult<Py<PyDict>> {
     let dict = PyDict::new(py);
     dict.set_item("indices", &sv.indices)?;
     dict.set_item("values", &sv.values)?;
@@ -393,10 +401,7 @@ fn py_dict_to_metadata_schema(dict: &Bound<'_, PyDict>) -> PyResult<proto::Metad
             .get_item("filterable")?
             .ok_or_else(|| PyRuntimeError::new_err("field properties missing 'filterable'"))?
             .extract()?;
-        fields.insert(
-            key_str,
-            proto::MetadataFieldProperties { filterable },
-        );
+        fields.insert(key_str, proto::MetadataFieldProperties { filterable });
     }
     Ok(proto::MetadataSchema { fields })
 }
@@ -476,9 +481,9 @@ impl GrpcChannel {
         let channel = {
             let _guard = runtime.enter();
             if let Some(proxy_url_str) = proxy_url {
-                let proxy_dst: http::Uri = proxy_url_str
-                    .parse()
-                    .map_err(|e| PyRuntimeError::new_err(format!("Invalid proxy URL '{proxy_url_str}': {e}")))?;
+                let proxy_dst: http::Uri = proxy_url_str.parse().map_err(|e| {
+                    PyRuntimeError::new_err(format!("Invalid proxy URL '{proxy_url_str}': {e}"))
+                })?;
                 let mut http_connector = HttpConnector::new();
                 http_connector.enforce_http(false);
                 let tunnel_connector = Tunnel::new(proxy_dst, http_connector);
@@ -556,11 +561,12 @@ impl GrpcChannel {
         #[allow(clippy::result_large_err)]
         let response = py
             .allow_threads(|| {
-                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
-                    let mut c = client.clone();
-                    let r = request.clone();
-                    async move { c.upsert(r).await }
-                }))
+                self.runtime
+                    .block_on(retry_on_unavailable(&retry_config, || {
+                        let mut c = client.clone();
+                        let r = request.clone();
+                        async move { c.upsert(r).await }
+                    }))
             })
             .map_err(status_to_py_err)?;
 
@@ -630,11 +636,12 @@ impl GrpcChannel {
         #[allow(clippy::result_large_err)]
         let response = py
             .allow_threads(|| {
-                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
-                    let mut c = client.clone();
-                    let r = request.clone();
-                    async move { c.query(r).await }
-                }))
+                self.runtime
+                    .block_on(retry_on_unavailable(&retry_config, || {
+                        let mut c = client.clone();
+                        let r = request.clone();
+                        async move { c.query(r).await }
+                    }))
             })
             .map_err(status_to_py_err)?;
 
@@ -681,11 +688,12 @@ impl GrpcChannel {
         #[allow(clippy::result_large_err)]
         let response = py
             .allow_threads(|| {
-                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
-                    let mut c = client.clone();
-                    let r = request.clone();
-                    async move { c.fetch(r).await }
-                }))
+                self.runtime
+                    .block_on(retry_on_unavailable(&retry_config, || {
+                        let mut c = client.clone();
+                        let r = request.clone();
+                        async move { c.fetch(r).await }
+                    }))
             })
             .map_err(status_to_py_err)?;
 
@@ -736,11 +744,12 @@ impl GrpcChannel {
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
         py.allow_threads(|| {
-            self.runtime.block_on(retry_on_unavailable(&retry_config, || {
-                let mut c = client.clone();
-                let r = request.clone();
-                async move { c.delete(r).await }
-            }))
+            self.runtime
+                .block_on(retry_on_unavailable(&retry_config, || {
+                    let mut c = client.clone();
+                    let r = request.clone();
+                    async move { c.delete(r).await }
+                }))
         })
         .map_err(status_to_py_err)?;
 
@@ -780,9 +789,7 @@ impl GrpcChannel {
             sparse_values: sparse_values
                 .map(|sv| py_dict_to_sparse_values(&sv))
                 .transpose()?,
-            set_metadata: set_metadata
-                .map(|md| py_dict_to_struct(&md))
-                .transpose()?,
+            set_metadata: set_metadata.map(|md| py_dict_to_struct(&md)).transpose()?,
             namespace: namespace.unwrap_or("").to_string(),
             filter: filter.map(|f| py_dict_to_struct(&f)).transpose()?,
             dry_run,
@@ -793,11 +800,12 @@ impl GrpcChannel {
         #[allow(clippy::result_large_err)]
         let response = py
             .allow_threads(|| {
-                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
-                    let mut c = client.clone();
-                    let r = request.clone();
-                    async move { c.update(r).await }
-                }))
+                self.runtime
+                    .block_on(retry_on_unavailable(&retry_config, || {
+                        let mut c = client.clone();
+                        let r = request.clone();
+                        async move { c.update(r).await }
+                    }))
             })
             .map_err(status_to_py_err)?;
 
@@ -841,11 +849,12 @@ impl GrpcChannel {
         #[allow(clippy::result_large_err)]
         let response = py
             .allow_threads(|| {
-                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
-                    let mut c = client.clone();
-                    let r = request.clone();
-                    async move { c.list(r).await }
-                }))
+                self.runtime
+                    .block_on(retry_on_unavailable(&retry_config, || {
+                        let mut c = client.clone();
+                        let r = request.clone();
+                        async move { c.list(r).await }
+                    }))
             })
             .map_err(status_to_py_err)?;
 
@@ -901,11 +910,12 @@ impl GrpcChannel {
         #[allow(clippy::result_large_err)]
         let response = py
             .allow_threads(|| {
-                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
-                    let mut c = client.clone();
-                    let r = request.clone();
-                    async move { c.describe_index_stats(r).await }
-                }))
+                self.runtime
+                    .block_on(retry_on_unavailable(&retry_config, || {
+                        let mut c = client.clone();
+                        let r = request.clone();
+                        async move { c.describe_index_stats(r).await }
+                    }))
             })
             .map_err(status_to_py_err)?;
 
@@ -968,11 +978,12 @@ impl GrpcChannel {
         #[allow(clippy::result_large_err)]
         let response = py
             .allow_threads(|| {
-                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
-                    let mut c = client.clone();
-                    let r = request.clone();
-                    async move { c.list_namespaces(r).await }
-                }))
+                self.runtime
+                    .block_on(retry_on_unavailable(&retry_config, || {
+                        let mut c = client.clone();
+                        let r = request.clone();
+                        async move { c.list_namespaces(r).await }
+                    }))
             })
             .map_err(status_to_py_err)?;
 
@@ -1002,11 +1013,7 @@ impl GrpcChannel {
     /// Returns:
     ///     Dict with "name", "record_count", and optional "schema" and "indexed_fields".
     #[pyo3(signature = (namespace))]
-    fn describe_namespace(
-        &self,
-        py: Python<'_>,
-        namespace: &str,
-    ) -> PyResult<Py<PyDict>> {
+    fn describe_namespace(&self, py: Python<'_>, namespace: &str) -> PyResult<Py<PyDict>> {
         let request = proto::DescribeNamespaceRequest {
             namespace: namespace.to_string(),
         };
@@ -1016,11 +1023,12 @@ impl GrpcChannel {
         #[allow(clippy::result_large_err)]
         let response = py
             .allow_threads(|| {
-                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
-                    let mut c = client.clone();
-                    let r = request.clone();
-                    async move { c.describe_namespace(r).await }
-                }))
+                self.runtime
+                    .block_on(retry_on_unavailable(&retry_config, || {
+                        let mut c = client.clone();
+                        let r = request.clone();
+                        async move { c.describe_namespace(r).await }
+                    }))
             })
             .map_err(status_to_py_err)?;
 
@@ -1036,11 +1044,7 @@ impl GrpcChannel {
     /// Returns:
     ///     Empty dict.
     #[pyo3(signature = (namespace))]
-    fn delete_namespace(
-        &self,
-        py: Python<'_>,
-        namespace: &str,
-    ) -> PyResult<Py<PyDict>> {
+    fn delete_namespace(&self, py: Python<'_>, namespace: &str) -> PyResult<Py<PyDict>> {
         let request = proto::DeleteNamespaceRequest {
             namespace: namespace.to_string(),
         };
@@ -1049,11 +1053,12 @@ impl GrpcChannel {
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
         py.allow_threads(|| {
-            self.runtime.block_on(retry_on_unavailable(&retry_config, || {
-                let mut c = client.clone();
-                let r = request.clone();
-                async move { c.delete_namespace(r).await }
-            }))
+            self.runtime
+                .block_on(retry_on_unavailable(&retry_config, || {
+                    let mut c = client.clone();
+                    let r = request.clone();
+                    async move { c.delete_namespace(r).await }
+                }))
         })
         .map_err(status_to_py_err)?;
 
@@ -1077,9 +1082,7 @@ impl GrpcChannel {
         name: &str,
         schema: Option<Bound<'_, PyDict>>,
     ) -> PyResult<Py<PyDict>> {
-        let metadata_schema = schema
-            .map(|s| py_dict_to_metadata_schema(&s))
-            .transpose()?;
+        let metadata_schema = schema.map(|s| py_dict_to_metadata_schema(&s)).transpose()?;
 
         let request = proto::CreateNamespaceRequest {
             name: name.to_string(),
@@ -1091,11 +1094,12 @@ impl GrpcChannel {
         #[allow(clippy::result_large_err)]
         let response = py
             .allow_threads(|| {
-                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
-                    let mut c = client.clone();
-                    let r = request.clone();
-                    async move { c.create_namespace(r).await }
-                }))
+                self.runtime
+                    .block_on(retry_on_unavailable(&retry_config, || {
+                        let mut c = client.clone();
+                        let r = request.clone();
+                        async move { c.create_namespace(r).await }
+                    }))
             })
             .map_err(status_to_py_err)?;
 
@@ -1135,11 +1139,12 @@ impl GrpcChannel {
         #[allow(clippy::result_large_err)]
         let response = py
             .allow_threads(|| {
-                self.runtime.block_on(retry_on_unavailable(&retry_config, || {
-                    let mut c = client.clone();
-                    let r = request.clone();
-                    async move { c.fetch_by_metadata(r).await }
-                }))
+                self.runtime
+                    .block_on(retry_on_unavailable(&retry_config, || {
+                        let mut c = client.clone();
+                        let r = request.clone();
+                        async move { c.fetch_by_metadata(r).await }
+                    }))
             })
             .map_err(status_to_py_err)?;
 
@@ -1224,7 +1229,11 @@ mod tests {
             "test-api-key-123"
         );
         assert_eq!(
-            metadata.get("x-pinecone-api-version").unwrap().to_str().unwrap(),
+            metadata
+                .get("x-pinecone-api-version")
+                .unwrap()
+                .to_str()
+                .unwrap(),
             "2025-10"
         );
 
@@ -1240,14 +1249,20 @@ mod tests {
         let endpoint = Channel::from_shared("https://example.pinecone.io:443".to_string())
             .expect("valid endpoint");
         let result = endpoint.tls_config(ClientTlsConfig::new());
-        assert!(result.is_ok(), "TLS config should succeed on a valid endpoint");
+        assert!(
+            result.is_ok(),
+            "TLS config should succeed on a valid endpoint"
+        );
     }
 
     #[test]
     fn insecure_endpoint_builder_succeeds() {
         // Verify that creating an endpoint without TLS config does not error
         let endpoint = Channel::from_shared("http://localhost:5080".to_string());
-        assert!(endpoint.is_ok(), "Insecure endpoint should be constructable");
+        assert!(
+            endpoint.is_ok(),
+            "Insecure endpoint should be constructable"
+        );
     }
 
     #[test]
@@ -1261,7 +1276,10 @@ mod tests {
         // If timeouts were invalid, the builder methods would panic or error.
         // Verify TLS still works after timeouts are set.
         let result = endpoint.tls_config(ClientTlsConfig::new());
-        assert!(result.is_ok(), "Endpoint with default timeouts should be configurable");
+        assert!(
+            result.is_ok(),
+            "Endpoint with default timeouts should be configurable"
+        );
     }
 
     #[test]
@@ -1272,7 +1290,10 @@ mod tests {
             .timeout(Duration::from_secs_f64(60.0))
             .connect_timeout(Duration::from_secs_f64(5.0));
         let result = endpoint.tls_config(ClientTlsConfig::new());
-        assert!(result.is_ok(), "Endpoint with custom timeouts should be configurable");
+        assert!(
+            result.is_ok(),
+            "Endpoint with custom timeouts should be configurable"
+        );
     }
 
     #[test]
@@ -1283,7 +1304,10 @@ mod tests {
             .timeout(Duration::from_secs_f64(0.5))
             .connect_timeout(Duration::from_secs_f64(0.1));
         let result = endpoint.tls_config(ClientTlsConfig::new());
-        assert!(result.is_ok(), "Endpoint with fractional timeouts should be configurable");
+        assert!(
+            result.is_ok(),
+            "Endpoint with fractional timeouts should be configurable"
+        );
     }
 
     #[test]
@@ -1317,9 +1341,18 @@ mod tests {
     fn grpc_code_to_http_status_maps_api_error_codes() {
         // ApiError subclasses should get an HTTP status code.
         assert_eq!(grpc_code_to_http_status(tonic::Code::NotFound), Some(404));
-        assert_eq!(grpc_code_to_http_status(tonic::Code::AlreadyExists), Some(409));
-        assert_eq!(grpc_code_to_http_status(tonic::Code::Unauthenticated), Some(401));
-        assert_eq!(grpc_code_to_http_status(tonic::Code::PermissionDenied), Some(403));
+        assert_eq!(
+            grpc_code_to_http_status(tonic::Code::AlreadyExists),
+            Some(409)
+        );
+        assert_eq!(
+            grpc_code_to_http_status(tonic::Code::Unauthenticated),
+            Some(401)
+        );
+        assert_eq!(
+            grpc_code_to_http_status(tonic::Code::PermissionDenied),
+            Some(403)
+        );
         assert_eq!(grpc_code_to_http_status(tonic::Code::Internal), Some(500));
         assert_eq!(grpc_code_to_http_status(tonic::Code::Unknown), Some(500));
     }
@@ -1327,12 +1360,18 @@ mod tests {
     #[test]
     fn grpc_code_to_http_status_returns_none_for_non_api_errors() {
         // Non-ApiError exception types should not get an HTTP status code.
-        assert_eq!(grpc_code_to_http_status(tonic::Code::DeadlineExceeded), None);
+        assert_eq!(
+            grpc_code_to_http_status(tonic::Code::DeadlineExceeded),
+            None
+        );
         assert_eq!(grpc_code_to_http_status(tonic::Code::Unavailable), None);
         assert_eq!(grpc_code_to_http_status(tonic::Code::InvalidArgument), None);
         assert_eq!(grpc_code_to_http_status(tonic::Code::Ok), None);
         assert_eq!(grpc_code_to_http_status(tonic::Code::Cancelled), None);
-        assert_eq!(grpc_code_to_http_status(tonic::Code::ResourceExhausted), None);
+        assert_eq!(
+            grpc_code_to_http_status(tonic::Code::ResourceExhausted),
+            None
+        );
     }
 
     #[test]
@@ -1393,10 +1432,7 @@ mod tests {
 
     #[test]
     fn ensure_port_handles_http_scheme() {
-        assert_eq!(
-            ensure_port("http://localhost"),
-            "http://localhost:443"
-        );
+        assert_eq!(ensure_port("http://localhost"), "http://localhost:443");
         assert_eq!(
             ensure_port("http://localhost:5080"),
             "http://localhost:5080"
@@ -1432,7 +1468,10 @@ mod tests {
         let endpoint = Channel::from_shared("https://example.pinecone.io:443".to_string())
             .expect("valid endpoint");
         let result = endpoint.tls_config(ClientTlsConfig::new());
-        assert!(result.is_ok(), "Endpoint without proxy should configure TLS successfully");
+        assert!(
+            result.is_ok(),
+            "Endpoint without proxy should configure TLS successfully"
+        );
     }
 
     #[test]

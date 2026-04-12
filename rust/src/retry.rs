@@ -147,10 +147,7 @@ mod tests {
         .await;
 
         assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().code(),
-            tonic::Code::ResourceExhausted
-        );
+        assert_eq!(result.unwrap_err().code(), tonic::Code::ResourceExhausted);
         assert_eq!(call_count.load(Ordering::SeqCst), 1);
     }
 
