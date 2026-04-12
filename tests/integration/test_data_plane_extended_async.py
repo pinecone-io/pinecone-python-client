@@ -504,3 +504,124 @@ async def test_query_namespaces_rest_async(async_client: AsyncPinecone) -> None:
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# metadata-filter numeric comparisons ($gt, $gte, $lt, $lte, $ne) — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_metadata_filter_numeric_operators_rest_async(async_client: AsyncPinecone) -> None:
+    """Numeric comparison operators ($gt, $gte, $lt, $lte, $ne) filter vectors correctly (REST async).
+
+    Verifies unified-filter-0001: Can build metadata filters using not-equal,
+    greater-than, greater-than-or-equal, less-than, and less-than-or-equal operators.
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # Upsert 4 vectors with distinct integer year metadata values
+        await idx.upsert(
+            vectors=[
+                {"id": "nf-v1", "values": [0.1, 0.2], "metadata": {"year": 2019}},
+                {"id": "nf-v2", "values": [0.3, 0.4], "metadata": {"year": 2020}},
+                {"id": "nf-v3", "values": [0.5, 0.6], "metadata": {"year": 2021}},
+                {"id": "nf-v4", "values": [0.7, 0.8], "metadata": {"year": 2022}},
+            ]
+        )
+
+        # Wait until all 4 vectors are visible
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.5, 0.5], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 4,
+            timeout=120,
+            description="all 4 vectors queryable before numeric filter tests (async)",
+        )
+
+        # $gt: 2020 — only years strictly greater than 2020 (2021, 2022)
+        gt_result = await idx.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter={"year": {"$gt": 2020}},
+            include_metadata=True,
+        )
+        assert isinstance(gt_result, QueryResponse)
+        gt_ids = {m.id for m in gt_result.matches}
+        assert "nf-v3" in gt_ids
+        assert "nf-v4" in gt_ids
+        assert "nf-v1" not in gt_ids
+        assert "nf-v2" not in gt_ids
+
+        # $gte: 2020 — years >= 2020 (2020, 2021, 2022)
+        gte_result = await idx.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter={"year": {"$gte": 2020}},
+            include_metadata=True,
+        )
+        assert isinstance(gte_result, QueryResponse)
+        gte_ids = {m.id for m in gte_result.matches}
+        assert "nf-v2" in gte_ids
+        assert "nf-v3" in gte_ids
+        assert "nf-v4" in gte_ids
+        assert "nf-v1" not in gte_ids
+
+        # $lt: 2021 — years strictly less than 2021 (2019, 2020)
+        lt_result = await idx.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter={"year": {"$lt": 2021}},
+            include_metadata=True,
+        )
+        assert isinstance(lt_result, QueryResponse)
+        lt_ids = {m.id for m in lt_result.matches}
+        assert "nf-v1" in lt_ids
+        assert "nf-v2" in lt_ids
+        assert "nf-v3" not in lt_ids
+        assert "nf-v4" not in lt_ids
+
+        # $lte: 2021 — years <= 2021 (2019, 2020, 2021)
+        lte_result = await idx.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter={"year": {"$lte": 2021}},
+            include_metadata=True,
+        )
+        assert isinstance(lte_result, QueryResponse)
+        lte_ids = {m.id for m in lte_result.matches}
+        assert "nf-v1" in lte_ids
+        assert "nf-v2" in lte_ids
+        assert "nf-v3" in lte_ids
+        assert "nf-v4" not in lte_ids
+
+        # $ne: 2021 — years not equal to 2021 (2019, 2020, 2022)
+        ne_result = await idx.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter={"year": {"$ne": 2021}},
+            include_metadata=True,
+        )
+        assert isinstance(ne_result, QueryResponse)
+        ne_ids = {m.id for m in ne_result.matches}
+        assert "nf-v1" in ne_ids
+        assert "nf-v2" in ne_ids
+        assert "nf-v4" in ne_ids
+        assert "nf-v3" not in ne_ids
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
