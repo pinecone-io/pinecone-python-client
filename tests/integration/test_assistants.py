@@ -694,3 +694,99 @@ def test_upload_file_from_byte_stream_with_metadata(client: Pinecone) -> None:
             name,
             "assistant",
         )
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_describe_file_signed_url_rest(client: Pinecone) -> None:
+    """describe_file(include_url=True) returns a non-None signed_url string;
+    describe_file() without include_url returns signed_url=None.
+
+    Verifies:
+    - unified-file-0009: Can request a signed download URL when retrieving file metadata.
+    - unified-file-0025: When requesting a signed URL, include-url='true' is sent to the API.
+    - unified-file-0026: When not requesting a signed URL, the include-url param is omitted.
+    - unified-file-0056: The signed URL defaults to None when absent from the API response.
+    """
+    name = unique_name("asst")
+    file_id: str | None = None
+    try:
+        # Create assistant
+        assistant = client.assistants.create(name=name, instructions="Test signed URL.")
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # Upload a small text file
+        content = b"Pinecone vector database enables fast semantic search."
+        stream = io.BytesIO(content)
+        file_model = client.assistants.upload_file(
+            assistant_name=name,
+            file_stream=stream,
+            file_name="signed-url-test.txt",
+            timeout=120,
+        )
+        assert isinstance(file_model, AssistantFileModel)
+        assert file_model.id is not None
+        file_id = file_model.id
+
+        # Wait until the file is ready
+        wait_for_ready(
+            lambda: (
+                client.assistants.describe_file(
+                    assistant_name=name, file_id=file_id
+                ).status
+                in ("Available", "Processed")
+            ),
+            timeout=120,
+            interval=5,
+            description=f"file {file_id}",
+        )
+
+        # Without include_url — signed_url should be None (default behavior)
+        without_url = client.assistants.describe_file(
+            assistant_name=name,
+            file_id=file_id,
+        )
+        assert isinstance(without_url, AssistantFileModel)
+        assert without_url.signed_url is None, (
+            f"Expected signed_url=None without include_url=True, got {without_url.signed_url!r}"
+        )
+
+        # With include_url=True — signed_url should be a non-None string
+        with_url = client.assistants.describe_file(
+            assistant_name=name,
+            file_id=file_id,
+            include_url=True,
+        )
+        assert isinstance(with_url, AssistantFileModel)
+        assert with_url.signed_url is not None, (
+            "Expected a signed_url string when include_url=True, got None"
+        )
+        assert isinstance(with_url.signed_url, str), (
+            f"Expected signed_url to be a str, got {type(with_url.signed_url)}"
+        )
+        assert len(with_url.signed_url) > 0, "Expected non-empty signed_url"
+
+        # The core file identity fields should be the same in both responses
+        assert with_url.id == without_url.id
+        assert with_url.name == without_url.name
+
+        # Clean up file
+        client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
+        file_id = None
+
+    finally:
+        if file_id is not None:
+            with contextlib.suppress(Exception):
+                client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
