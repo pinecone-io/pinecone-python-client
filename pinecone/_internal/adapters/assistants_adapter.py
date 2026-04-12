@@ -62,16 +62,21 @@ class AssistantsAdapter:
         try:
             raw: dict[str, object] = orjson.loads(data)
             metrics = raw["metrics"]
-            assert isinstance(metrics, dict)
+            if not isinstance(metrics, dict):
+                raise TypeError(f"Expected dict for 'metrics', got {type(metrics).__name__}")
             scores = AlignmentScores(
                 correctness=float(metrics["correctness"]),
                 completeness=float(metrics["completeness"]),
                 alignment=float(metrics["alignment"]),
             )
             reasoning = raw["reasoning"]
-            assert isinstance(reasoning, dict)
+            if not isinstance(reasoning, dict):
+                raise TypeError(f"Expected dict for 'reasoning', got {type(reasoning).__name__}")
             evaluated_facts = reasoning["evaluated_facts"]
-            assert isinstance(evaluated_facts, list)
+            if not isinstance(evaluated_facts, list):
+                raise TypeError(
+                    f"Expected list for 'evaluated_facts', got {type(evaluated_facts).__name__}"
+                )
             facts = [
                 EntailmentResult(
                     fact=str(item["fact"]["content"]),
@@ -80,7 +85,8 @@ class AssistantsAdapter:
                 for item in evaluated_facts
             ]
             u = raw["usage"]
-            assert isinstance(u, dict)
+            if not isinstance(u, dict):
+                raise TypeError(f"Expected dict for 'usage', got {type(u).__name__}")
             usage = ChatUsage(
                 prompt_tokens=int(u["prompt_tokens"]),
                 completion_tokens=int(u["completion_tokens"]),

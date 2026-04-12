@@ -193,8 +193,7 @@ class Projects:
         try:
             if project_id is not None:
                 self.describe(project_id=project_id)
-            else:
-                assert name is not None
+            elif name is not None:
                 self.describe_by_name(name=name)
         except NotFoundError:
             return False

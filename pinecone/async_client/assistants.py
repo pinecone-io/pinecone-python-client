@@ -667,7 +667,8 @@ class AsyncAssistants:
             handle = io.BytesIO(await anyio.Path(file_path).read_bytes())
             upload_name = os.path.basename(file_path)
         else:
-            assert file_stream is not None
+            if file_stream is None:
+                raise PineconeValueError("Exactly one of file_path or file_stream must be provided")
             handle = file_stream
             upload_name = file_name or "upload"
 
@@ -833,7 +834,8 @@ class AsyncAssistants:
         if query_truthy:
             body["query"] = query
         else:
-            assert messages is not None
+            if messages is None:
+                raise PineconeValueError("Exactly one of query or messages must be provided.")
             parsed: list[Message] = [
                 m if isinstance(m, Message) else Message.from_dict(m) for m in messages
             ]
