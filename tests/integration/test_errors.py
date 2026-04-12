@@ -208,3 +208,79 @@ def test_invalid_index_host_raises_value_error() -> None:
 
     with pytest.raises(PineconeValueError):
         GrpcIndex(host="", api_key="testkey")
+
+
+# ---------------------------------------------------------------------------
+# error-query-validation  (unified-vec-0038, unified-vec-0039, unified-vec-0040)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_query_input_validation_rest() -> None:
+    """query() client-side validation raises PineconeValueError before any API call (REST sync).
+
+    Uses a fake host so no real index or network call is required; all checks
+    fire synchronously before the HTTP request would be made.
+
+    Verifies:
+    - unified-vec-0038: top_k < 1 is rejected
+    - unified-vec-0039: both vector and id supplied is rejected
+    - unified-vec-0039: neither vector nor id is rejected
+    - unified-vec-0040: positional arguments raise TypeError
+    """
+    index = Index(host="fake-index.svc.pinecone.io", api_key="testkey")
+
+    # unified-vec-0038: top_k=0 rejected
+    with pytest.raises(PineconeValueError):
+        index.query(top_k=0, vector=[0.1, 0.2])
+
+    # unified-vec-0038: negative top_k rejected
+    with pytest.raises(PineconeValueError):
+        index.query(top_k=-5, vector=[0.1, 0.2])
+
+    # unified-vec-0039: both vector and id rejected
+    with pytest.raises(PineconeValueError):
+        index.query(top_k=5, vector=[0.1, 0.2], id="some-id")
+
+    # unified-vec-0039: neither vector nor id rejected
+    with pytest.raises(PineconeValueError):
+        index.query(top_k=5)
+
+    # unified-vec-0040: positional arguments rejected by Python (keyword-only)
+    with pytest.raises(TypeError):
+        index.query([0.1, 0.2], 5)  # type: ignore[misc]
+
+
+@pytest.mark.integration
+def test_query_input_validation_grpc() -> None:
+    """query() client-side validation raises PineconeValueError before any gRPC call.
+
+    All validations fire before self._call_channel() so no real server is needed.
+
+    Verifies:
+    - unified-vec-0038: top_k < 1 is rejected
+    - unified-vec-0039: both vector and id supplied is rejected
+    - unified-vec-0039: neither vector nor id is rejected
+    - unified-vec-0040: positional arguments raise TypeError
+    """
+    index = GrpcIndex(host="fake-index.svc.pinecone.io", api_key="testkey")
+
+    # unified-vec-0038: top_k=0 rejected
+    with pytest.raises(PineconeValueError):
+        index.query(top_k=0, vector=[0.1, 0.2])
+
+    # unified-vec-0038: negative top_k rejected
+    with pytest.raises(PineconeValueError):
+        index.query(top_k=-3, vector=[0.1, 0.2])
+
+    # unified-vec-0039: both vector and id rejected
+    with pytest.raises(PineconeValueError):
+        index.query(top_k=5, vector=[0.1, 0.2], id="some-id")
+
+    # unified-vec-0039: neither vector nor id rejected
+    with pytest.raises(PineconeValueError):
+        index.query(top_k=5)
+
+    # unified-vec-0040: positional arguments rejected by Python (keyword-only)
+    with pytest.raises(TypeError):
+        index.query([0.1, 0.2], 5)  # type: ignore[misc]

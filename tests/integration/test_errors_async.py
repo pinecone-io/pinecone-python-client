@@ -193,3 +193,47 @@ async def test_invalid_index_host_raises_value_error_async() -> None:
     # unified-index-0048: proxy_headers not yet supported for async client
     with pytest.raises(NotImplementedError):
         AsyncPinecone(api_key="testkey", proxy_headers={"X-Proxy-Auth": "secret"})
+
+
+# ---------------------------------------------------------------------------
+# error-query-validation  (unified-vec-0038, unified-vec-0039, unified-vec-0040)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_query_input_validation_async() -> None:
+    """async query() client-side validation raises PineconeValueError before any API call.
+
+    Uses a fake host so no real index or network call is required; validation
+    fires synchronously inside the async function before the HTTP request.
+
+    Verifies:
+    - unified-vec-0038: top_k < 1 is rejected
+    - unified-vec-0039: both vector and id supplied is rejected
+    - unified-vec-0039: neither vector nor id is rejected
+    - unified-vec-0040: positional arguments raise TypeError
+    """
+    index = AsyncIndex(host="fake-index.svc.pinecone.io", api_key="testkey")
+    try:
+        # unified-vec-0038: top_k=0 rejected
+        with pytest.raises(PineconeValueError):
+            await index.query(top_k=0, vector=[0.1, 0.2])
+
+        # unified-vec-0038: negative top_k rejected
+        with pytest.raises(PineconeValueError):
+            await index.query(top_k=-5, vector=[0.1, 0.2])
+
+        # unified-vec-0039: both vector and id rejected
+        with pytest.raises(PineconeValueError):
+            await index.query(top_k=5, vector=[0.1, 0.2], id="some-id")
+
+        # unified-vec-0039: neither vector nor id rejected
+        with pytest.raises(PineconeValueError):
+            await index.query(top_k=5)
+
+        # unified-vec-0040: positional arguments rejected by Python (keyword-only)
+        with pytest.raises(TypeError):
+            await index.query([0.1, 0.2], 5)  # type: ignore[misc]
+    finally:
+        await index.close()
