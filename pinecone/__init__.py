@@ -181,13 +181,12 @@ if _os.environ.get("PINECONE_DEBUG"):
     _logging.getLogger("pinecone").setLevel(_logging.DEBUG)
 
 __all__ = [
-    "__version__",
-    "Admin",
-    "AlignmentResult",
-    "ApiError",
     "APIKeyList",
     "APIKeyModel",
     "APIKeyWithSecret",
+    "Admin",
+    "AlignmentResult",
+    "ApiError",
     "AssistantFileModel",
     "AssistantModel",
     "AsyncIndex",
@@ -212,8 +211,8 @@ __all__ = [
     "DenseEmbedding",
     "DescribeIndexStatsResponse",
     "EmbedConfig",
-    "EmbeddingsList",
     "EmbedModel",
+    "EmbeddingsList",
     "FetchByMetadataResponse",
     "FetchResponse",
     "Field",
@@ -287,6 +286,7 @@ __all__ = [
     "UpsertResponse",
     "Vector",
     "VectorType",
+    "__version__",
 ]
 
 # Lazy-load heavy classes to keep cold import under 10ms.

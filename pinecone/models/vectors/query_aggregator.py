@@ -58,14 +58,14 @@ class QueryResultsAggregator:
     """
 
     __slots__ = (
-        "_metric",
-        "_top_k",
-        "_heap",
         "_counter",
         "_finalized",
-        "_read_units",
-        "_ns_usage",
+        "_heap",
         "_is_bigger_better",
+        "_metric",
+        "_ns_usage",
+        "_read_units",
+        "_top_k",
     )
 
     def __init__(self, *, metric: str, top_k: int = 10) -> None:

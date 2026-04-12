@@ -159,4 +159,3 @@ class VectorsAdapter:
         The delete endpoint returns an empty JSON object ``{}``.
         No model is needed — this method exists for adapter completeness.
         """
-        return None

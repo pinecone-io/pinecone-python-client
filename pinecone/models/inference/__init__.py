@@ -14,9 +14,9 @@ from pinecone.models.inference.rerank import RankedDocument, RerankResult, Reran
 
 __all__ = [
     "DenseEmbedding",
+    "EmbedUsage",
     "Embedding",
     "EmbeddingsList",
-    "EmbedUsage",
     "ModelInfo",
     "ModelInfoList",
     "ModelInfoSupportedParameter",

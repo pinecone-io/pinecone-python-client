@@ -228,7 +228,7 @@ class VectorFactory:
                                     id_, converted,
                                     SparseValues(s_indices, s_values), None
                                 )
-                            elif isinstance(s_values[0], (int, float)):
+                            if isinstance(s_values[0], (int, float)):
                                 return Vector(
                                     id_, converted,
                                     SparseValues(s_indices, [float(v) for v in s_values]),

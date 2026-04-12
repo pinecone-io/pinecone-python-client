@@ -38,7 +38,7 @@ line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W", "UP", "B", "ASYNC", "S", "T20", "N", "C4", "SIM", "PERF", "RUF", "PT", "TID"]
+select = ["E", "F", "I", "W", "UP", "B", "ASYNC", "S", "T20", "N", "C4", "SIM", "PERF", "RUF", "PT", "TID", "RET"]
 ignore = ["ASYNC109", "SIM108", "PERF203", "RUF002"]
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
