@@ -1,4 +1,5 @@
 """Exception hierarchy for the Pinecone SDK."""
+from __future__ import annotations
 
 from pinecone.errors.exceptions import (
     ApiError,

@@ -1,4 +1,5 @@
 """Assistant data models."""
+from __future__ import annotations
 
 from pinecone.models.assistant.chat import (
     ChatCitation,

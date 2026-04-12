@@ -1,4 +1,5 @@
 """Unit tests for normalize_host()."""
+from __future__ import annotations
 
 import pytest
 

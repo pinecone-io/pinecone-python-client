@@ -1,4 +1,5 @@
 """Shared constants for the Pinecone SDK."""
+from __future__ import annotations
 
 CONTROL_PLANE_API_VERSION: str = "2025-10"
 DATA_PLANE_API_VERSION: str = "2025-10"
