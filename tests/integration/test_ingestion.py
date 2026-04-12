@@ -1584,3 +1584,137 @@ def test_upsert_records_id_field_normalization_rest(client: Pinecone) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# upsert-duplicate-ids — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_upsert_duplicate_ids_in_batch_rest(client: Pinecone) -> None:
+    """Duplicate vector IDs within a single upsert batch: last entry wins (REST sync).
+
+    Sends a batch of 3 vectors where "dup-v1" appears twice with different
+    values and metadata.  Verifies:
+    - The upsert call succeeds (no error)
+    - After eventual consistency, exactly one record exists for "dup-v1"
+    - The last submitted values for "dup-v1" are the ones persisted (last-write-wins)
+    - The non-duplicate "dup-v2" is also stored correctly
+
+    Depth-escalation boundary test: no existing test exercises duplicate IDs
+    within a single batch call.  Claim: none — discovered via API surface analysis
+    (depth escalation boundary value test).
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Submit 3 vectors: "dup-v1" appears twice (first and last), "dup-v2" once
+        first_values = [0.1, 0.2]
+        last_values = [0.9, 0.8]
+        vectors = [
+            {"id": "dup-v1", "values": first_values, "metadata": {"version": 1}},
+            {"id": "dup-v2", "values": [0.5, 0.5]},
+            {"id": "dup-v1", "values": last_values, "metadata": {"version": 2}},
+        ]
+
+        result = index.upsert(vectors=vectors)
+        assert isinstance(result, UpsertResponse)
+        # upserted_count may be 2 (unique IDs) or 3 (total submitted); both are acceptable
+        assert result.upserted_count >= 1, (
+            f"upserted_count should be at least 1, got {result.upserted_count}"
+        )
+
+        # Wait for both unique IDs to be fetchable
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["dup-v1", "dup-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="both dup-v1 and dup-v2 fetchable after duplicate batch upsert",
+        )
+
+        fetched = index.fetch(ids=["dup-v1", "dup-v2"])
+        assert isinstance(fetched, FetchResponse)
+
+        # Exactly one record for each ID (duplicate in the batch did NOT create two entries)
+        assert len(fetched.vectors) == 2, (
+            f"Expected exactly 2 unique vectors in fetch result, got {len(fetched.vectors)}: "
+            f"{list(fetched.vectors.keys())}"
+        )
+        assert "dup-v1" in fetched.vectors, "dup-v1 should be in fetched vectors"
+        assert "dup-v2" in fetched.vectors, "dup-v2 should be in fetched vectors"
+
+        # Last-write-wins: the second submission of "dup-v1" (last_values) should prevail
+        v1 = fetched.vectors["dup-v1"]
+        assert v1.values is not None, "dup-v1 should have values"
+        assert len(v1.values) == 2, f"dup-v1 should have 2 values, got {len(v1.values)}"
+        assert abs(v1.values[0] - last_values[0]) < 1e-4 and abs(v1.values[1] - last_values[1]) < 1e-4, (
+            f"dup-v1 should have last_values {last_values!r} (last-write-wins), "
+            f"got {v1.values!r}"
+        )
+
+        # Control: dup-v2 values are unaffected
+        v2 = fetched.vectors["dup-v2"]
+        assert v2.values is not None, "dup-v2 should have values"
+        assert abs(v2.values[0] - 0.5) < 1e-4 and abs(v2.values[1] - 0.5) < 1e-4, (
+            f"dup-v2 should have values [0.5, 0.5], got {v2.values!r}"
+        )
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# upsert-duplicate-ids — gRPC sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_upsert_duplicate_ids_in_batch_grpc(client: Pinecone) -> None:
+    """Duplicate vector IDs within a single upsert batch: last entry wins (gRPC)."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        first_values = [0.1, 0.2]
+        last_values = [0.9, 0.8]
+        vectors = [
+            {"id": "dup-v1", "values": first_values, "metadata": {"version": 1}},
+            {"id": "dup-v2", "values": [0.5, 0.5]},
+            {"id": "dup-v1", "values": last_values, "metadata": {"version": 2}},
+        ]
+
+        result = index.upsert(vectors=vectors)
+        assert isinstance(result, UpsertResponse)
+        assert result.upserted_count >= 1
+
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["dup-v1", "dup-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="both dup-v1 and dup-v2 fetchable (gRPC)",
+        )
+
+        fetched = index.fetch(ids=["dup-v1", "dup-v2"])
+        assert len(fetched.vectors) == 2
+        v1 = fetched.vectors["dup-v1"]
+        assert v1.values is not None
+        assert abs(v1.values[0] - last_values[0]) < 1e-4 and abs(v1.values[1] - last_values[1]) < 1e-4, (
+            f"gRPC: dup-v1 should have last_values {last_values!r}, got {v1.values!r}"
+        )
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

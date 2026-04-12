@@ -1052,3 +1052,82 @@ async def test_upsert_records_id_field_normalization_async(async_client: AsyncPi
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name), name, "index"
         )
+
+
+# ---------------------------------------------------------------------------
+# upsert-duplicate-ids — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_upsert_duplicate_ids_in_batch_async(async_client: AsyncPinecone) -> None:
+    """Duplicate vector IDs within a single upsert batch: last entry wins (async REST).
+
+    Sends a batch of 3 vectors where "dup-v1" appears twice with different
+    values and metadata.  Verifies:
+    - The upsert call succeeds (no error)
+    - After eventual consistency, exactly one record exists for "dup-v1"
+    - The last submitted values for "dup-v1" are the ones persisted (last-write-wins)
+    - The non-duplicate "dup-v2" is also stored correctly
+
+    Depth-escalation boundary test.
+    """
+    name = unique_name("idx")
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = async_client.index(name=name)
+
+        first_values = [0.1, 0.2]
+        last_values = [0.9, 0.8]
+        vectors = [
+            {"id": "dup-v1", "values": first_values, "metadata": {"version": 1}},
+            {"id": "dup-v2", "values": [0.5, 0.5]},
+            {"id": "dup-v1", "values": last_values, "metadata": {"version": 2}},
+        ]
+
+        result = await index.upsert(vectors=vectors)
+        assert isinstance(result, UpsertResponse)
+        assert result.upserted_count >= 1, (
+            f"upserted_count should be at least 1, got {result.upserted_count}"
+        )
+
+        await async_poll_until(
+            query_fn=lambda: index.fetch(ids=["dup-v1", "dup-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="both dup-v1 and dup-v2 fetchable after duplicate batch upsert (async)",
+        )
+
+        fetched = await index.fetch(ids=["dup-v1", "dup-v2"])
+        assert isinstance(fetched, FetchResponse)
+        assert len(fetched.vectors) == 2, (
+            f"Expected exactly 2 unique vectors, got {len(fetched.vectors)}: "
+            f"{list(fetched.vectors.keys())}"
+        )
+        assert "dup-v1" in fetched.vectors
+        assert "dup-v2" in fetched.vectors
+
+        v1 = fetched.vectors["dup-v1"]
+        assert v1.values is not None
+        assert len(v1.values) == 2
+        assert abs(v1.values[0] - last_values[0]) < 1e-4 and abs(v1.values[1] - last_values[1]) < 1e-4, (
+            f"async: dup-v1 should have last_values {last_values!r} (last-write-wins), "
+            f"got {v1.values!r}"
+        )
+
+        v2 = fetched.vectors["dup-v2"]
+        assert v2.values is not None
+        assert abs(v2.values[0] - 0.5) < 1e-4 and abs(v2.values[1] - 0.5) < 1e-4, (
+            f"async: dup-v2 should have values [0.5, 0.5], got {v2.values!r}"
+        )
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name), name, "index"
+        )
