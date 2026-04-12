@@ -731,3 +731,94 @@ async def test_namespace_crud_lifecycle_rest_async(async_client: AsyncPinecone) 
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# list_paginated multi-page — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_list_paginated_multi_page_rest_async(async_client: AsyncPinecone) -> None:
+    """list_paginated() with limit=2 returns a token when more pages exist; following the token
+    reaches the next page; the final page has no token (async variant).
+
+    Verifies claims:
+    - unified-vec-0030: paginated list method returns a single page (caller must follow token)
+    - unified-vec-0056: list-paginated returns no pagination token on the final page
+    - unified-pag-0002: vector listing supports cursor-based pagination via single-page method
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        # Upsert 4 vectors with a shared prefix
+        await idx.upsert(
+            vectors=[
+                {"id": "mp-v1", "values": [0.1, 0.2]},
+                {"id": "mp-v2", "values": [0.3, 0.4]},
+                {"id": "mp-v3", "values": [0.5, 0.6]},
+                {"id": "mp-v4", "values": [0.7, 0.8]},
+            ]
+        )
+
+        # Wait until all 4 vectors appear in list results
+        async def _list_all() -> ListResponse:
+            return await idx.list_paginated(prefix="mp-", limit=100)  # type: ignore[union-attr]
+
+        await async_poll_until(
+            query_fn=_list_all,
+            check_fn=lambda r: len(r.vectors) >= 4,
+            timeout=120,
+            description="all 4 vectors listable after upsert",
+        )
+
+        # Traverse all pages manually using limit=2 (forces at least 2 pages)
+        all_ids: list[str] = []
+        token: str | None = None
+        pages_seen = 0
+
+        while True:
+            page = await idx.list_paginated(prefix="mp-", limit=2, pagination_token=token)
+            assert isinstance(page, ListResponse)
+            assert isinstance(page.vectors, list)
+            assert len(page.vectors) <= 2  # limit is respected each page
+
+            for item in page.vectors:
+                assert isinstance(item, ListItem)
+                assert isinstance(item.id, str)
+                all_ids.append(item.id)
+
+            pages_seen += 1
+
+            # Extract next token (if any)
+            if page.pagination is not None and page.pagination.next is not None:
+                # More pages exist — token should be a non-empty string
+                assert isinstance(page.pagination.next, str)
+                assert len(page.pagination.next) > 0
+                token = page.pagination.next
+            else:
+                # Final page — no token (unified-vec-0056)
+                break
+
+        # Collected all 4 IDs across pages
+        assert {"mp-v1", "mp-v2", "mp-v3", "mp-v4"} <= set(all_ids)
+        # Required at least 2 pages (limit=2, 4 vectors → ≥2 pages)
+        assert pages_seen >= 2
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
