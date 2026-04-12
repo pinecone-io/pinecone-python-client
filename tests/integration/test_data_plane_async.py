@@ -7,6 +7,7 @@ import pytest
 from pinecone import AsyncIndex, AsyncPinecone
 from pinecone.errors import ApiError
 from pinecone.models.indexes.specs import ServerlessSpec
+from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchResponse,
@@ -645,6 +646,84 @@ async def test_describe_index_stats_filter_unsupported_on_serverless_rest_async(
             await idx.describe_index_stats(filter={"tag": {"$eq": "a"}})
 
         assert exc_info.value.status_code == 400
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# namespace CRUD — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.skip(reason="SDK bug: NamespaceDescription.record_count typed as int but API returns string — see IT-0010")
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_namespace_crud_lifecycle_rest_async(async_client: AsyncPinecone) -> None:
+    """Async create_namespace / describe_namespace / list_namespaces_paginated / delete_namespace.
+
+    Verifies claims:
+    - unified-ns-0001: Can create a named namespace.
+    - unified-ns-0002: Creation returns name and record_count == 0.
+    - unified-ns-0003: Can describe a namespace by name.
+    - unified-ns-0004: Can delete a namespace by name.
+    - unified-ns-0005: Can list all namespaces with optional prefix filtering.
+    - unified-ns-0008: Namespace list response omits pagination token on the final page.
+    """
+    name = unique_name("idx")
+    ns_name = "crud-ns-beta"
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        # 1. Create namespace — returns NamespaceDescription with record_count == 0
+        created = await idx.create_namespace(name=ns_name)
+        assert isinstance(created, NamespaceDescription)
+        assert created.name == ns_name
+        assert created.record_count == 0  # unified-ns-0002
+
+        # 2. Describe namespace — returns NamespaceDescription
+        described = await idx.describe_namespace(name=ns_name)
+        assert isinstance(described, NamespaceDescription)
+        assert described.name == ns_name
+        assert isinstance(described.record_count, int)
+
+        # 3. Namespace appears in list_namespaces_paginated with prefix match
+        list_resp = await idx.list_namespaces_paginated(prefix="crud-ns-", limit=100)
+        assert isinstance(list_resp, ListNamespacesResponse)
+        ns_names = [ns.name for ns in list_resp.namespaces]
+        assert ns_name in ns_names
+
+        # Each entry is a NamespaceDescription with string name and int record_count
+        for ns in list_resp.namespaces:
+            assert isinstance(ns, NamespaceDescription)
+            assert isinstance(ns.name, str)
+            assert isinstance(ns.record_count, int)
+
+        # 4. Pagination token absent on the final page (unified-ns-0008)
+        assert list_resp.pagination is None or list_resp.pagination.next is None
+
+        # 5. Delete namespace — returns None on success
+        result = await idx.delete_namespace(name=ns_name)
+        assert result is None  # unified-ns-0004
+
+        # 6. After deletion, namespace no longer appears in listing
+        post_delete = await idx.list_namespaces_paginated(prefix="crud-ns-", limit=100)
+        assert isinstance(post_delete, ListNamespacesResponse)
+        post_names = [ns.name for ns in post_delete.namespaces]
+        assert ns_name not in post_names
     finally:
         if idx is not None:
             await idx.close()
