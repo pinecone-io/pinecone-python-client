@@ -445,7 +445,6 @@ def test_assistant_chat_completions_openai_compatible_response(client: Pinecone)
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(reason="SDK bug: ChatReference.file typed as str but API returns AssistantFileModel object — see IT-0011")
 @pytest.mark.integration
 def test_assistant_chat_typed_message_objects(client: Pinecone) -> None:
     """Verify chat() accepts typed Message objects, not just plain dicts (unified-chat-0003).

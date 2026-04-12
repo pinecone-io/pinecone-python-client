@@ -475,7 +475,6 @@ async def test_assistant_chat_completions_openai_compatible_response(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(reason="SDK bug: ChatReference.file typed as str but API returns AssistantFileModel object — see IT-0011")
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_assistant_chat_typed_message_objects(

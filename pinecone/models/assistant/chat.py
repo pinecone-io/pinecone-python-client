@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from msgspec import Struct
 
+from pinecone.models.assistant.file_model import AssistantFileModel
+
 
 class ChatUsage(Struct, kw_only=True):
     """Token usage information for a chat request.
@@ -35,13 +37,13 @@ class ChatReference(Struct, kw_only=True):
     """A single reference within a citation.
 
     Attributes:
-        file: The name or identifier of the source file.
+        file: The source file object with metadata.
         pages: Optional list of page numbers in the source file.
         highlight: Optional highlight from the referenced document,
             or ``None`` when highlights are not requested.
     """
 
-    file: str
+    file: AssistantFileModel
     pages: list[int] | None = None
     highlight: ChatHighlight | None = None
 
