@@ -229,7 +229,7 @@ class HTTPClient:
     def __init__(self, config: PineconeConfig, api_version: str) -> None:
         self._config = config
         self._headers = _build_headers(config, api_version)
-        verify: str | bool = config.ssl_ca_certs if config.ssl_ca_certs else config.ssl_verify
+        verify: str | bool = config.ssl_ca_certs or config.ssl_verify
         pool_size = (
             config.connection_pool_maxsize
             if config.connection_pool_maxsize > 0
@@ -382,9 +382,7 @@ class AsyncHTTPClient:
     def _ensure_client(self) -> httpx.AsyncClient:
         """Return the underlying client, creating it on first use."""
         if self._client is None:
-            verify: str | bool = (
-                self._config.ssl_ca_certs if self._config.ssl_ca_certs else self._config.ssl_verify
-            )
+            verify: str | bool = self._config.ssl_ca_certs or self._config.ssl_verify
             pool_size = (
                 self._config.connection_pool_maxsize
                 if self._config.connection_pool_maxsize > 0

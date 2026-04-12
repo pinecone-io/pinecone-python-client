@@ -546,7 +546,7 @@ class GrpcIndex:
             set_metadata=set_metadata,
             namespace=namespace or None,
             filter=filter,
-            dry_run=dry_run if dry_run else None,
+            dry_run=dry_run or None,
         )
 
         return UpdateResponse(matched_records=result.get("matched_records"))
