@@ -17,6 +17,7 @@ from pinecone.models.vectors.responses import (
     FetchByMetadataResponse,
     FetchResponse,
     QueryResponse,
+    UpdateResponse,
     UpsertResponse,
 )
 from pinecone.models.vectors.sparse import SparseValues
@@ -1268,5 +1269,211 @@ def test_fetch_by_metadata_pagination_rest(client: Pinecone) -> None:
         assert collected_ids == target_ids, (
             f"Unexpected IDs in paginated result: {collected_ids - target_ids}"
         )
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# query-filter-reflects-metadata-update — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_query_filter_reflects_metadata_update_rest(client: Pinecone) -> None:
+    """After updating a vector's metadata via update(id=...), a query with a
+    metadata filter must reflect the new value — not just a subsequent fetch().
+
+    Tests the operation sequence:
+      upsert → query-with-filter (baseline) → update-metadata
+      → poll until query-with-filter shows updated state → verify.
+
+    Claim: unified-vec-0011 — Can update a single vector's metadata by
+    identifier; the change is reflected in subsequent filtered queries.
+    Area tag: update-and-query-sequence
+    Transport: rest
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert 3 vectors: 2 drama, 1 comedy
+        vectors = [
+            {"id": "qmu-v1", "values": [0.1, 0.2], "metadata": {"genre": "drama"}},
+            {"id": "qmu-v2", "values": [0.3, 0.4], "metadata": {"genre": "drama"}},
+            {"id": "qmu-v3", "values": [0.5, 0.6], "metadata": {"genre": "comedy"}},
+        ]
+        upsert_resp = index.upsert(vectors=vectors)
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 3
+
+        # Wait until all 3 are queryable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 3,
+            timeout=120,
+            description="all 3 qmu vectors queryable (REST)",
+        )
+
+        # Baseline: drama filter returns 2 vectors
+        drama_baseline = index.query(
+            vector=[0.1, 0.2],
+            top_k=10,
+            filter={"genre": {"$eq": "drama"}},
+            include_metadata=True,
+        )
+        assert isinstance(drama_baseline, QueryResponse)
+        drama_ids_before = {m.id for m in drama_baseline.matches}
+        assert "qmu-v1" in drama_ids_before, "qmu-v1 (drama) should match drama filter"
+        assert "qmu-v2" in drama_ids_before, "qmu-v2 (drama) should match drama filter"
+        assert "qmu-v3" not in drama_ids_before, "qmu-v3 (comedy) must not match drama filter"
+
+        # Update qmu-v1: overwrite genre from "drama" to "comedy"
+        update_resp = index.update(
+            id="qmu-v1",
+            set_metadata={"genre": "comedy"},
+        )
+        assert isinstance(update_resp, UpdateResponse)
+
+        # Poll until the filter index reflects the update:
+        # drama filter should now return only qmu-v2 (qmu-v1 switched to comedy)
+        def _drama_filter_updated() -> QueryResponse | None:
+            r = index.query(
+                vector=[0.1, 0.2],
+                top_k=10,
+                filter={"genre": {"$eq": "drama"}},
+                include_metadata=True,
+            )
+            ids = {m.id for m in r.matches}
+            # Success: qmu-v1 is gone from drama; qmu-v2 still present
+            if "qmu-v1" not in ids and "qmu-v2" in ids:
+                return r
+            return None
+
+        updated_drama_resp = poll_until(
+            query_fn=_drama_filter_updated,
+            check_fn=lambda r: r is not None,
+            timeout=180,
+            description="drama filter reflects metadata update for qmu-v1 (REST)",
+        )
+
+        assert updated_drama_resp is not None
+        drama_ids_after = {m.id for m in updated_drama_resp.matches}
+        assert "qmu-v2" in drama_ids_after, "qmu-v2 should still match drama filter"
+        assert "qmu-v1" not in drama_ids_after, "qmu-v1 should no longer match drama filter"
+        assert "qmu-v3" not in drama_ids_after, "qmu-v3 (comedy) must not match drama filter"
+
+        # qmu-v1 should now match comedy filter (verify updated metadata propagated)
+        comedy_resp = index.query(
+            vector=[0.1, 0.2],
+            top_k=10,
+            filter={"genre": {"$eq": "comedy"}},
+            include_metadata=True,
+        )
+        assert isinstance(comedy_resp, QueryResponse)
+        comedy_ids = {m.id for m in comedy_resp.matches}
+        assert "qmu-v1" in comedy_ids, \
+            f"qmu-v1 should match comedy filter after update; got: {comedy_ids}"
+        assert "qmu-v3" in comedy_ids, \
+            f"qmu-v3 (original comedy) should still match; got: {comedy_ids}"
+
+        # Confirm metadata in comedy query result has updated value
+        v1_match = next((m for m in comedy_resp.matches if m.id == "qmu-v1"), None)
+        assert v1_match is not None
+        assert v1_match.metadata is not None
+        assert v1_match.metadata.get("genre") == "comedy", (
+            f"qmu-v1 metadata.genre should be 'comedy' after update, "
+            f"got {v1_match.metadata.get('genre')!r}"
+        )
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# query-filter-reflects-metadata-update — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_query_filter_reflects_metadata_update_grpc(client: Pinecone) -> None:
+    """Same as REST variant but via gRPC transport.
+
+    Claim: unified-vec-0011 — gRPC update and query paths reflect the same
+    metadata change in filtered query results.
+    Area tag: update-and-query-sequence
+    Transport: grpc
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        vectors = [
+            {"id": "qmug-v1", "values": [0.1, 0.2], "metadata": {"genre": "drama"}},
+            {"id": "qmug-v2", "values": [0.3, 0.4], "metadata": {"genre": "drama"}},
+            {"id": "qmug-v3", "values": [0.5, 0.6], "metadata": {"genre": "comedy"}},
+        ]
+        upsert_resp = index.upsert(vectors=vectors)
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 3
+
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 3,
+            timeout=120,
+            description="all 3 qmug vectors queryable (gRPC)",
+        )
+
+        # Baseline drama query
+        drama_baseline = index.query(
+            vector=[0.1, 0.2],
+            top_k=10,
+            filter={"genre": {"$eq": "drama"}},
+            include_metadata=True,
+        )
+        assert isinstance(drama_baseline, QueryResponse)
+        assert "qmug-v1" in {m.id for m in drama_baseline.matches}
+        assert "qmug-v2" in {m.id for m in drama_baseline.matches}
+
+        # Update qmug-v1 genre to comedy via gRPC
+        update_resp = index.update(
+            id="qmug-v1",
+            set_metadata={"genre": "comedy"},
+        )
+        assert isinstance(update_resp, UpdateResponse)
+
+        def _drama_filter_updated_grpc() -> QueryResponse | None:
+            r = index.query(
+                vector=[0.1, 0.2],
+                top_k=10,
+                filter={"genre": {"$eq": "drama"}},
+                include_metadata=True,
+            )
+            ids = {m.id for m in r.matches}
+            if "qmug-v1" not in ids and "qmug-v2" in ids:
+                return r
+            return None
+
+        updated_resp = poll_until(
+            query_fn=_drama_filter_updated_grpc,
+            check_fn=lambda r: r is not None,
+            timeout=180,
+            description="drama filter reflects metadata update for qmug-v1 (gRPC)",
+        )
+        assert updated_resp is not None
+        assert "qmug-v2" in {m.id for m in updated_resp.matches}
+        assert "qmug-v1" not in {m.id for m in updated_resp.matches}
+
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")

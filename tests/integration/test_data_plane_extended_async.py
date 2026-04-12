@@ -17,6 +17,7 @@ from pinecone.models.vectors.responses import (
     FetchByMetadataResponse,
     FetchResponse,
     QueryResponse,
+    UpdateResponse,
     UpsertResponse,
 )
 from pinecone.models.vectors.sparse import SparseValues
@@ -971,6 +972,126 @@ async def test_fetch_by_metadata_pagination_rest_async(async_client: AsyncPineco
         assert collected_ids == target_ids, (
             f"Unexpected IDs in paginated result (async): {collected_ids - target_ids}"
         )
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# query-filter-reflects-metadata-update — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_query_filter_reflects_metadata_update_rest_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """After updating a vector's metadata via update(id=...), a query with a
+    metadata filter must reflect the new value — verifying the async REST path.
+
+    Claim: unified-vec-0011 — Can update a single vector's metadata by
+    identifier; the change is reflected in subsequent filtered queries.
+    Area tag: update-and-query-sequence
+    Transport: rest-async
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        vectors = [
+            {"id": "qmua-v1", "values": [0.1, 0.2], "metadata": {"genre": "drama"}},
+            {"id": "qmua-v2", "values": [0.3, 0.4], "metadata": {"genre": "drama"}},
+            {"id": "qmua-v3", "values": [0.5, 0.6], "metadata": {"genre": "comedy"}},
+        ]
+        upsert_resp = await idx.upsert(vectors=vectors)
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 3
+
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.1, 0.2], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 3,
+            timeout=120,
+            description="all 3 qmua vectors queryable (async)",
+        )
+
+        # Baseline: drama filter returns qmua-v1 and qmua-v2
+        drama_baseline = await idx.query(
+            vector=[0.1, 0.2],
+            top_k=10,
+            filter={"genre": {"$eq": "drama"}},
+            include_metadata=True,
+        )
+        assert isinstance(drama_baseline, QueryResponse)
+        drama_ids_before = {m.id for m in drama_baseline.matches}
+        assert "qmua-v1" in drama_ids_before
+        assert "qmua-v2" in drama_ids_before
+        assert "qmua-v3" not in drama_ids_before
+
+        # Update qmua-v1: change genre from drama to comedy
+        update_resp = await idx.update(
+            id="qmua-v1",
+            set_metadata={"genre": "comedy"},
+        )
+        assert isinstance(update_resp, UpdateResponse)
+
+        # Poll until drama filter no longer returns qmua-v1
+        async def _drama_updated() -> QueryResponse | None:
+            r = await idx.query(
+                vector=[0.1, 0.2],
+                top_k=10,
+                filter={"genre": {"$eq": "drama"}},
+                include_metadata=True,
+            )
+            ids = {m.id for m in r.matches}
+            if "qmua-v1" not in ids and "qmua-v2" in ids:
+                return r
+            return None
+
+        updated_drama_resp = await async_poll_until(
+            query_fn=_drama_updated,
+            check_fn=lambda r: r is not None,
+            timeout=180,
+            description="drama filter reflects metadata update for qmua-v1 (async)",
+        )
+        assert updated_drama_resp is not None
+        drama_ids_after = {m.id for m in updated_drama_resp.matches}
+        assert "qmua-v2" in drama_ids_after
+        assert "qmua-v1" not in drama_ids_after
+
+        # qmua-v1 should now appear in comedy filter
+        comedy_resp = await idx.query(
+            vector=[0.1, 0.2],
+            top_k=10,
+            filter={"genre": {"$eq": "comedy"}},
+            include_metadata=True,
+        )
+        assert isinstance(comedy_resp, QueryResponse)
+        comedy_ids = {m.id for m in comedy_resp.matches}
+        assert "qmua-v1" in comedy_ids, \
+            f"qmua-v1 should match comedy filter after update; got: {comedy_ids}"
+        assert "qmua-v3" in comedy_ids, \
+            f"qmua-v3 (original comedy) should still match; got: {comedy_ids}"
+
+        # Confirm metadata in result has updated value
+        v1_match = next((m for m in comedy_resp.matches if m.id == "qmua-v1"), None)
+        assert v1_match is not None
+        assert v1_match.metadata is not None
+        assert v1_match.metadata.get("genre") == "comedy"
+
     finally:
         if idx is not None:
             await idx.close()
