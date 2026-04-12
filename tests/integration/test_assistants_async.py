@@ -744,6 +744,95 @@ async def test_upload_file_from_byte_stream_with_metadata_async(
 @pytest.mark.integration
 @pytest.mark.asyncio
 @pytest.mark.timeout(300)
+async def test_upload_file_input_validation_and_delete_returns_none_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """upload_file() client-side validation fires before any API call; delete_file() returns None.
+
+    Verifies (async path):
+    - unified-file-0035: Uploading a file from a nonexistent local path raises PineconeValueError.
+    - unified-file-0030: Successful file deletion returns no value (None).
+    Mutual-exclusivity check (both/neither file_path+file_stream) also verified.
+    """
+    # --- Part 1: Client-side validation (no API call needed) ---
+
+    # Both file_path AND file_stream → PineconeValueError before any HTTP request
+    with pytest.raises(PineconeValueError):
+        await async_client.assistants.upload_file(
+            assistant_name="doesnt-matter",
+            file_path="/some/path.txt",
+            file_stream=io.BytesIO(b"data"),
+        )
+
+    # Neither file_path nor file_stream → PineconeValueError
+    with pytest.raises(PineconeValueError):
+        await async_client.assistants.upload_file(assistant_name="doesnt-matter")
+
+    # Nonexistent path → PineconeValueError (unified-file-0035)
+    with pytest.raises(PineconeValueError, match="File not found"):
+        await async_client.assistants.upload_file(
+            assistant_name="doesnt-matter",
+            file_path="/nonexistent/path/to/file.txt",
+        )
+
+    # --- Part 2: delete_file() returns None (unified-file-0030) ---
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    file_id: str | None = None
+    try:
+        await async_client.assistants.create(name=name, instructions="Validation test assistant.")
+
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # Create a small temp text file
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-val-"
+        ) as f:
+            f.write("Validation test content.")
+            tmp_path = f.name
+
+        file_model = await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+        assert isinstance(file_model, AssistantFileModel)
+        file_id = file_model.id
+
+        # unified-file-0030: delete_file returns None
+        result = await async_client.assistants.delete_file(
+            assistant_name=name,
+            file_id=file_id,
+            timeout=60,
+        )
+        assert result is None, f"Expected delete_file to return None, got {result!r}"
+        file_id = None  # mark as cleaned up
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        if file_id is not None:
+            with contextlib.suppress(Exception):
+                await async_client.assistants.delete_file(
+                    assistant_name=name, file_id=file_id, timeout=60
+                )
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(300)
 async def test_describe_file_signed_url_async(async_client: AsyncPinecone) -> None:
     """describe_file(include_url=True) returns a non-None signed_url string;
     describe_file() without include_url returns signed_url=None.
