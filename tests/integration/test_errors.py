@@ -215,6 +215,49 @@ def test_invalid_index_host_raises_value_error() -> None:
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# error-invalid-spec-dict-key  (unified-index-0044)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_create_index_invalid_spec_dict_key(client: Pinecone) -> None:
+    """indexes.create() with a spec dict missing a recognized key raises PineconeValueError.
+
+    Verifies unified-index-0044: the SDK rejects spec dicts that do not contain
+    a 'serverless', 'pod', or 'byoc' key.  Validation fires synchronously before
+    any HTTP request is made, so no index resource is created or cleaned up.
+
+    Three cases are checked:
+    - empty dict: no key at all
+    - dict with an unrecognized key: {"invalid": {...}}
+    - dict with a case-wrong key: {"SERVERLESS": {...}} (case-sensitive match)
+    """
+    # empty spec dict
+    with pytest.raises(PineconeValueError):
+        client.indexes.create(
+            name="test-idx-spec",
+            dimension=2,
+            spec={},
+        )
+
+    # unrecognized key — value doesn't matter, key is what's checked
+    with pytest.raises(PineconeValueError):
+        client.indexes.create(
+            name="test-idx-spec",
+            dimension=2,
+            spec={"invalid": {"cloud": "aws", "region": "us-east-1"}},
+        )
+
+    # case-sensitive: 'SERVERLESS' is not recognized (must be lowercase)
+    with pytest.raises(PineconeValueError):
+        client.indexes.create(
+            name="test-idx-spec",
+            dimension=2,
+            spec={"SERVERLESS": {"cloud": "aws", "region": "us-east-1"}},
+        )
+
+
 @pytest.mark.integration
 def test_query_input_validation_rest() -> None:
     """query() client-side validation raises PineconeValueError before any API call (REST sync).

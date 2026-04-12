@@ -196,6 +196,44 @@ async def test_invalid_index_host_raises_value_error_async() -> None:
 
 
 # ---------------------------------------------------------------------------
+# error-invalid-spec-dict-key  (unified-index-0044)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_create_index_invalid_spec_dict_key_async(async_client: AsyncPinecone) -> None:
+    """async indexes.create() with a spec dict missing a recognized key raises PineconeValueError.
+
+    Verifies unified-index-0044 for the async transport: validation fires before
+    any awaited HTTP request, so no index resource is created.
+    """
+    # empty spec dict
+    with pytest.raises(PineconeValueError):
+        await async_client.indexes.create(
+            name="test-idx-spec",
+            dimension=2,
+            spec={},
+        )
+
+    # unrecognized key
+    with pytest.raises(PineconeValueError):
+        await async_client.indexes.create(
+            name="test-idx-spec",
+            dimension=2,
+            spec={"invalid": {"cloud": "aws", "region": "us-east-1"}},
+        )
+
+    # case-sensitive: 'SERVERLESS' is not recognized
+    with pytest.raises(PineconeValueError):
+        await async_client.indexes.create(
+            name="test-idx-spec",
+            dimension=2,
+            spec={"SERVERLESS": {"cloud": "aws", "region": "us-east-1"}},
+        )
+
+
+# ---------------------------------------------------------------------------
 # error-query-validation  (unified-vec-0038, unified-vec-0039, unified-vec-0040)
 # ---------------------------------------------------------------------------
 
