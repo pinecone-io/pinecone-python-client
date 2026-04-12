@@ -799,3 +799,84 @@ async def test_fetch_by_metadata_rest_async(async_client: AsyncPinecone) -> None
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# metadata-filter $exists operator — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_metadata_filter_exists_operator_rest_async(async_client: AsyncPinecone) -> None:
+    """Field.exists() filter ($exists: True) returns only vectors that have the field (REST async).
+
+    Verifies unified-filter-0003: Can build metadata filters using a field-exists operator.
+
+    Upserts 3 vectors: two with a "premium" field (True/False) and one without.
+    Queries with Field("premium").exists() and asserts only the two vectors that
+    carry the "premium" key are returned — the third (which lacks the key) is excluded.
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # Populate host cache
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        # v1 and v2 carry "premium" field; v3 does not
+        await idx.upsert(
+            vectors=[
+                {"id": "ex-v1", "values": [0.1, 0.2, 0.3], "metadata": {"category": "A", "premium": True}},
+                {"id": "ex-v2", "values": [0.4, 0.5, 0.6], "metadata": {"category": "B", "premium": False}},
+                {"id": "ex-v3", "values": [0.7, 0.8, 0.9], "metadata": {"category": "C"}},
+            ]
+        )
+
+        # Wait until all 3 vectors are queryable (eventual consistency)
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.1, 0.2, 0.3], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 3,
+            timeout=120,
+            description="all 3 vectors queryable before exists filter test (async)",
+        )
+
+        # Query using Field.exists() — only vectors with "premium" field should match
+        result = await idx.query(
+            vector=[0.1, 0.2, 0.3],
+            top_k=10,
+            filter=Field("premium").exists().to_dict(),
+            include_metadata=True,
+        )
+
+        assert isinstance(result, QueryResponse)
+        matched_ids = {m.id for m in result.matches}
+
+        # v1 and v2 both have "premium" — must appear
+        assert "ex-v1" in matched_ids, f"Expected ex-v1 in matches (async), got {matched_ids}"
+        assert "ex-v2" in matched_ids, f"Expected ex-v2 in matches (async), got {matched_ids}"
+
+        # v3 has no "premium" field — must not appear
+        assert "ex-v3" not in matched_ids, f"Expected ex-v3 excluded (async), got {matched_ids}"
+
+        # Metadata is returned and each match has the "premium" key
+        for match in result.matches:
+            assert isinstance(match.metadata, dict)
+            assert "premium" in match.metadata, (
+                f"Match {match.id!r} missing 'premium' key in metadata (async): {match.metadata}"
+            )
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )

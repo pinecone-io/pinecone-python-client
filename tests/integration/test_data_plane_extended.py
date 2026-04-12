@@ -1052,3 +1052,130 @@ def test_fetch_by_metadata_rest(client: Pinecone) -> None:
             assert len(vec.values) == 3
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# metadata-filter $exists operator — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_metadata_filter_exists_operator_rest(client: Pinecone) -> None:
+    """Field.exists() filter ($exists: True) returns only vectors that have the field (REST sync).
+
+    Verifies unified-filter-0003: Can build metadata filters using a field-exists operator.
+
+    Upserts 3 vectors: two with a "premium" field (True/False) and one without.
+    Queries with Field("premium").exists() and asserts only the two vectors that
+    carry the "premium" key are returned — the third (which lacks the key) is excluded.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # v1 and v2 carry "premium" field; v3 does not
+        index.upsert(
+            vectors=[
+                {"id": "ex-v1", "values": [0.1, 0.2, 0.3], "metadata": {"category": "A", "premium": True}},
+                {"id": "ex-v2", "values": [0.4, 0.5, 0.6], "metadata": {"category": "B", "premium": False}},
+                {"id": "ex-v3", "values": [0.7, 0.8, 0.9], "metadata": {"category": "C"}},
+            ]
+        )
+
+        # Wait until all 3 vectors are queryable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2, 0.3], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 3,
+            timeout=120,
+            description="all 3 vectors queryable before exists filter test",
+        )
+
+        # Query using Field.exists() — only vectors with "premium" field should match
+        exists_filter = Field("premium").exists()
+        result = index.query(
+            vector=[0.1, 0.2, 0.3],
+            top_k=10,
+            filter=exists_filter.to_dict(),
+            include_metadata=True,
+        )
+
+        assert isinstance(result, QueryResponse)
+        matched_ids = {m.id for m in result.matches}
+
+        # v1 and v2 both have "premium" — must appear
+        assert "ex-v1" in matched_ids, f"Expected ex-v1 in matches, got {matched_ids}"
+        assert "ex-v2" in matched_ids, f"Expected ex-v2 in matches, got {matched_ids}"
+
+        # v3 has no "premium" field — must not appear
+        assert "ex-v3" not in matched_ids, f"Expected ex-v3 excluded from matches, got {matched_ids}"
+
+        # Metadata is returned and each match has the "premium" key
+        for match in result.matches:
+            assert isinstance(match.metadata, dict)
+            assert "premium" in match.metadata, (
+                f"Match {match.id!r} missing 'premium' key in metadata: {match.metadata}"
+            )
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# metadata-filter $exists operator — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_metadata_filter_exists_operator_grpc(client: Pinecone) -> None:
+    """Field.exists() filter ($exists: True) works the same way over gRPC transport.
+
+    Verifies unified-filter-0003 on the gRPC transport.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        # v1 and v2 carry "premium" field; v3 does not
+        index.upsert(
+            vectors=[
+                {"id": "ex-v1", "values": [0.1, 0.2, 0.3], "metadata": {"category": "A", "premium": True}},
+                {"id": "ex-v2", "values": [0.4, 0.5, 0.6], "metadata": {"category": "B", "premium": False}},
+                {"id": "ex-v3", "values": [0.7, 0.8, 0.9], "metadata": {"category": "C"}},
+            ]
+        )
+
+        # Wait until all 3 vectors are queryable
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2, 0.3], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 3,
+            timeout=120,
+            description="all 3 vectors queryable (grpc) before exists filter test",
+        )
+
+        # Query using Field.exists() via gRPC
+        result = index.query(
+            vector=[0.1, 0.2, 0.3],
+            top_k=10,
+            filter=Field("premium").exists().to_dict(),
+            include_metadata=True,
+        )
+
+        assert isinstance(result, QueryResponse)
+        matched_ids = {m.id for m in result.matches}
+
+        assert "ex-v1" in matched_ids, f"Expected ex-v1 in matches (grpc), got {matched_ids}"
+        assert "ex-v2" in matched_ids, f"Expected ex-v2 in matches (grpc), got {matched_ids}"
+        assert "ex-v3" not in matched_ids, f"Expected ex-v3 excluded (grpc), got {matched_ids}"
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
