@@ -481,3 +481,41 @@ def test_rerank_dict_documents_with_rank_fields(client: Pinecone) -> None:
     assert result.data[0].index in {1, 2}, (
         f"Expected AI/ML doc to rank first, got index {result.data[0].index}"
     )
+
+
+# ---------------------------------------------------------------------------
+# list_models — vector_type filter and invalid-value validation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_list_models_filter_by_vector_type_and_invalid_values(client: Pinecone) -> None:
+    """list_models() supports vector_type filter and rejects invalid type/vector_type values.
+
+    Verifies unified-inf-0020: the list-models operation accepts only "embed" and "rerank"
+    as the type filter, and only "dense" and "sparse" as the vector-type filter. Invalid
+    values are rejected client-side with PineconeValueError before any HTTP request.
+    """
+    # vector_type="dense" → only dense embed models returned
+    dense_result = client.inference.list_models(vector_type="dense")
+    assert len(dense_result) > 0
+    for model_info in dense_result:
+        assert model_info.vector_type == "dense", (
+            f"Expected vector_type='dense', got {model_info.vector_type!r} for model {model_info.model!r}"
+        )
+
+    # vector_type="sparse" → only sparse embed models returned
+    sparse_result = client.inference.list_models(vector_type="sparse")
+    assert len(sparse_result) > 0
+    for model_info in sparse_result:
+        assert model_info.vector_type == "sparse", (
+            f"Expected vector_type='sparse', got {model_info.vector_type!r} for model {model_info.model!r}"
+        )
+
+    # invalid type → PineconeValueError, no HTTP call
+    with pytest.raises(PineconeValueError):
+        client.inference.list_models(type="invalid_type")
+
+    # invalid vector_type → PineconeValueError, no HTTP call
+    with pytest.raises(PineconeValueError):
+        client.inference.list_models(vector_type="invalid_vector_type")

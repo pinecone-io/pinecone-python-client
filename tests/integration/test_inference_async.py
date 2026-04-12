@@ -429,3 +429,44 @@ async def test_rerank_dict_documents_with_rank_fields_async(async_client: AsyncP
     assert result.data[0].index in {1, 2}, (
         f"Expected AI/ML doc to rank first, got index {result.data[0].index}"
     )
+
+
+# ---------------------------------------------------------------------------
+# list_models — vector_type filter and invalid-value validation (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_list_models_filter_by_vector_type_and_invalid_values_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """async list_models() supports vector_type filter and rejects invalid type/vector_type values.
+
+    Verifies unified-inf-0020 on the async transport: only "embed"/"rerank" accepted for type,
+    only "dense"/"sparse" accepted for vector_type. Invalid values raise PineconeValueError
+    client-side.
+    """
+    # vector_type="dense" → only dense embed models returned
+    dense_result = await async_client.inference.list_models(vector_type="dense")
+    assert len(dense_result) > 0
+    for model_info in dense_result:
+        assert model_info.vector_type == "dense", (
+            f"Expected vector_type='dense', got {model_info.vector_type!r} for model {model_info.model!r}"
+        )
+
+    # vector_type="sparse" → only sparse embed models returned
+    sparse_result = await async_client.inference.list_models(vector_type="sparse")
+    assert len(sparse_result) > 0
+    for model_info in sparse_result:
+        assert model_info.vector_type == "sparse", (
+            f"Expected vector_type='sparse', got {model_info.vector_type!r} for model {model_info.model!r}"
+        )
+
+    # invalid type → PineconeValueError, no HTTP call
+    with pytest.raises(PineconeValueError):
+        await async_client.inference.list_models(type="invalid_type")
+
+    # invalid vector_type → PineconeValueError, no HTTP call
+    with pytest.raises(PineconeValueError):
+        await async_client.inference.list_models(vector_type="invalid_vector_type")
