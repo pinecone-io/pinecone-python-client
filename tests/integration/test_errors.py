@@ -407,3 +407,61 @@ def test_namespace_name_must_be_string_rest() -> None:
         # delete_namespace rejects non-string name
         with pytest.raises(PineconeValueError, match="string"):
             index.delete_namespace(name=bad_name)  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# error-exception-attributes  (unified-http-0017)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_api_error_exposes_status_reason_headers_body_rest(client: Pinecone) -> None:
+    """ApiError subclasses expose status_code, reason, headers, and body for error diagnosis.
+
+    Verifies unified-http-0017: all API exception objects carry diagnostic
+    fields populated from the HTTP response.  Two real API call failure paths
+    are exercised:
+
+    1. UnauthorizedError (401) — bad API key
+    2. NotFoundError (404)     — describe a nonexistent index
+
+    For each:
+    - status_code is an int matching the HTTP status
+    - reason is a non-empty string (HTTP reason phrase, e.g. "Unauthorized")
+    - headers is a non-empty dict (at minimum Content-Type is always present)
+    - body attribute exists and is either a dict or None
+    """
+    # --- 1. UnauthorizedError (401) from a bad API key ---
+    bad_client = Pinecone(api_key="invalid-key-for-attribute-test")
+    with pytest.raises(UnauthorizedError) as exc_info:
+        bad_client.indexes.list()
+
+    err = exc_info.value
+    # status_code is correct int
+    assert err.status_code == 401
+    assert isinstance(err.status_code, int)
+    # reason is a non-empty string
+    assert err.reason is not None
+    assert isinstance(err.reason, str)
+    assert len(err.reason) > 0
+    # headers is a non-empty dict (API always returns at least Content-Type)
+    assert err.headers is not None
+    assert isinstance(err.headers, dict)
+    assert len(err.headers) > 0
+    # body is either a dict or None (attribute must exist)
+    assert err.body is None or isinstance(err.body, dict)
+
+    # --- 2. NotFoundError (404) from describing a nonexistent index ---
+    with pytest.raises(NotFoundError) as exc_info2:
+        client.indexes.describe("index-does-not-exist-attr-test")
+
+    err2 = exc_info2.value
+    assert err2.status_code == 404
+    assert isinstance(err2.status_code, int)
+    assert err2.reason is not None
+    assert isinstance(err2.reason, str)
+    assert len(err2.reason) > 0
+    assert err2.headers is not None
+    assert isinstance(err2.headers, dict)
+    assert len(err2.headers) > 0
+    assert err2.body is None or isinstance(err2.body, dict)

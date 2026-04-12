@@ -338,3 +338,60 @@ async def test_namespace_name_must_be_string_async() -> None:
                 await index.delete_namespace(name=bad_name)  # type: ignore[arg-type]
     finally:
         await index.close()
+
+
+# ---------------------------------------------------------------------------
+# error-exception-attributes  (unified-http-0017)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_api_error_exposes_status_reason_headers_body_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """ApiError subclasses expose status_code, reason, headers, and body (async REST).
+
+    Verifies unified-http-0017: all API exception objects carry diagnostic
+    fields populated from the HTTP response.  Two real API call failure paths
+    are exercised:
+
+    1. UnauthorizedError (401) — bad API key
+    2. NotFoundError (404)     — describe a nonexistent index
+
+    For each:
+    - status_code is an int matching the HTTP status
+    - reason is a non-empty string (HTTP reason phrase)
+    - headers is a non-empty dict
+    - body attribute exists and is either a dict or None
+    """
+    # --- 1. UnauthorizedError (401) from a bad API key ---
+    async with AsyncPinecone(api_key="invalid-key-for-attribute-test") as bad_client:
+        with pytest.raises(UnauthorizedError) as exc_info:
+            await bad_client.indexes.list()
+
+    err = exc_info.value
+    assert err.status_code == 401
+    assert isinstance(err.status_code, int)
+    assert err.reason is not None
+    assert isinstance(err.reason, str)
+    assert len(err.reason) > 0
+    assert err.headers is not None
+    assert isinstance(err.headers, dict)
+    assert len(err.headers) > 0
+    assert err.body is None or isinstance(err.body, dict)
+
+    # --- 2. NotFoundError (404) from describing a nonexistent index ---
+    with pytest.raises(NotFoundError) as exc_info2:
+        await async_client.indexes.describe("index-does-not-exist-attr-test")
+
+    err2 = exc_info2.value
+    assert err2.status_code == 404
+    assert isinstance(err2.status_code, int)
+    assert err2.reason is not None
+    assert isinstance(err2.reason, str)
+    assert len(err2.reason) > 0
+    assert err2.headers is not None
+    assert isinstance(err2.headers, dict)
+    assert len(err2.headers) > 0
+    assert err2.body is None or isinstance(err2.body, dict)
