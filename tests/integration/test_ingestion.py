@@ -11,7 +11,7 @@ import math
 
 import pytest
 
-from pinecone import EmbedConfig, IntegratedSpec, Pinecone, Vector
+from pinecone import EmbedConfig, IntegratedSpec, Pinecone, PineconeValueError, Vector
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
@@ -1431,3 +1431,45 @@ def test_delete_all_namespace_grpc(client: Pinecone) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# upsert-records input validation — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_upsert_records_validation_rest(client: Pinecone) -> None:
+    """upsert_records raises PineconeValueError before any API call for invalid inputs.
+
+    Verifies claims:
+    - unified-vec-0049: Record upsert requires a non-empty records list.
+    - unified-vec-0048: Each record must contain an '_id' or 'id' identifier field.
+
+    All validation is client-side; no real index is created. The Index is
+    constructed with a dummy host so that validation fires before any HTTP call.
+    """
+    index = client.index(host="https://dummy.example.com")
+
+    # unified-vec-0049: empty records list raises PineconeValueError
+    with pytest.raises(PineconeValueError):
+        index.upsert_records(records=[], namespace="test-ns")
+
+    # unified-vec-0048: record missing both '_id' and 'id' raises PineconeValueError
+    with pytest.raises(PineconeValueError):
+        index.upsert_records(
+            records=[{"text": "no identifier field here"}],
+            namespace="test-ns",
+        )
+
+    # namespace must be a non-empty string — whitespace-only is rejected
+    with pytest.raises(PineconeValueError):
+        index.upsert_records(
+            records=[{"_id": "v1", "text": "hello"}],
+            namespace="",
+        )
+
+    with pytest.raises(PineconeValueError):
+        index.upsert_records(
+            records=[{"_id": "v1", "text": "hello"}],
+            namespace="   ",
+        )
