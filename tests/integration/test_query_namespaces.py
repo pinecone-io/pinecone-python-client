@@ -1,8 +1,9 @@
 """Integration tests for advanced query_namespaces operations (sync REST).
 
 Phase 3 Tier 5: query-namespaces-filter, query-namespaces-many.
+ET-019: query-namespaces-dedup.
 """
-# area tags covered: query-namespaces-filter, query-namespaces-many
+# area tags covered: query-namespaces-filter, query-namespaces-many, query-namespaces-dedup
 
 from __future__ import annotations
 
@@ -113,6 +114,96 @@ def test_query_namespaces_filter_rest(client: Pinecone) -> None:
         assert results.usage is not None
         assert isinstance(results.usage.read_units, int)
         assert results.usage.read_units >= 2
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-dedup — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_query_namespaces_dedup_rest(client: Pinecone) -> None:
+    """query_namespaces() deduplicates repeated namespaces: no vector appears twice, ns_usage has one key per unique namespace (REST sync).
+
+    Verifies unified-vec-0034: duplicate entries in the namespaces list are
+    removed before fan-out, so each namespace is queried exactly once.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert distinct vectors into two namespaces
+        index.upsert(
+            vectors=[
+                {"id": "qnd-ns1-v1", "values": [0.1, 0.9]},
+                {"id": "qnd-ns1-v2", "values": [0.9, 0.1]},
+            ],
+            namespace="qnd-ns1",
+        )
+        index.upsert(
+            vectors=[
+                {"id": "qnd-ns2-v1", "values": [0.5, 0.5]},
+                {"id": "qnd-ns2-v2", "values": [0.6, 0.4]},
+            ],
+            namespace="qnd-ns2",
+        )
+
+        # Wait for both namespaces to be queryable
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.5, 0.5], top_k=10, namespace="qnd-ns1"),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="qnd-ns1 vectors queryable before dedup test",
+        )
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.5, 0.5], top_k=10, namespace="qnd-ns2"),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="qnd-ns2 vectors queryable before dedup test",
+        )
+
+        # Query with a duplicated namespaces list: ns1 appears twice
+        results = index.query_namespaces(
+            vector=[0.5, 0.5],
+            namespaces=["qnd-ns1", "qnd-ns2", "qnd-ns1"],
+            metric="cosine",
+            top_k=10,
+        )
+
+        assert isinstance(results, QueryNamespacesResults)
+        assert isinstance(results.matches, list)
+
+        # Each match is a ScoredVector
+        for match in results.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+
+        # Dedup: no vector ID should appear more than once in results
+        result_ids = [m.id for m in results.matches]
+        assert len(result_ids) == len(set(result_ids)), (
+            f"Duplicate vector IDs in results (ns1 was queried twice): {result_ids}"
+        )
+
+        # ns_usage must have exactly 2 keys — the deduplicated set
+        assert isinstance(results.ns_usage, dict)
+        assert set(results.ns_usage.keys()) == {"qnd-ns1", "qnd-ns2"}, (
+            f"Expected ns_usage keys {{'qnd-ns1','qnd-ns2'}}, got {set(results.ns_usage.keys())}"
+        )
+
+        # Scores must be in descending order
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True), (
+            f"Matches not sorted by descending score: {scores}"
+        )
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
 

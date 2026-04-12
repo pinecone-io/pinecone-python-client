@@ -1,8 +1,9 @@
 """Integration tests for advanced query_namespaces operations (async REST).
 
 Phase 3 Tier 5: query-namespaces-filter, query-namespaces-many.
+ET-019: query-namespaces-dedup.
 """
-# area tags covered: query-namespaces-filter, query-namespaces-many
+# area tags covered: query-namespaces-filter, query-namespaces-many, query-namespaces-dedup
 
 from __future__ import annotations
 
@@ -121,6 +122,107 @@ async def test_query_namespaces_filter_rest_async(async_client: AsyncPinecone) -
         assert results.usage is not None
         assert isinstance(results.usage.read_units, int)
         assert results.usage.read_units >= 2
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-dedup — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_query_namespaces_dedup_rest_async(async_client: AsyncPinecone) -> None:
+    """query_namespaces() deduplicates repeated namespaces: no vector appears twice, ns_usage has one key per unique namespace (REST async).
+
+    Verifies unified-vec-0034: duplicate entries in the namespaces list are
+    removed before fan-out, so each namespace is queried exactly once.
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # Populate host cache so async_client.index(name=...) can resolve it
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        # Upsert distinct vectors into two namespaces
+        await idx.upsert(
+            vectors=[
+                {"id": "qnd-ns1-v1", "values": [0.1, 0.9]},
+                {"id": "qnd-ns1-v2", "values": [0.9, 0.1]},
+            ],
+            namespace="qnd-ns1",
+        )
+        await idx.upsert(
+            vectors=[
+                {"id": "qnd-ns2-v1", "values": [0.5, 0.5]},
+                {"id": "qnd-ns2-v2", "values": [0.6, 0.4]},
+            ],
+            namespace="qnd-ns2",
+        )
+
+        # Wait for both namespaces to be queryable
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.5, 0.5], top_k=10, namespace="qnd-ns1"),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="qnd-ns1 vectors queryable (async) before dedup test",
+        )
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.5, 0.5], top_k=10, namespace="qnd-ns2"),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="qnd-ns2 vectors queryable (async) before dedup test",
+        )
+
+        # Query with a duplicated namespaces list: ns1 appears twice
+        results = await idx.query_namespaces(
+            vector=[0.5, 0.5],
+            namespaces=["qnd-ns1", "qnd-ns2", "qnd-ns1"],
+            metric="cosine",
+            top_k=10,
+        )
+
+        assert isinstance(results, QueryNamespacesResults)
+        assert isinstance(results.matches, list)
+
+        # Each match is a ScoredVector
+        for match in results.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+
+        # Dedup: no vector ID should appear more than once in results
+        result_ids = [m.id for m in results.matches]
+        assert len(result_ids) == len(set(result_ids)), (
+            f"Duplicate vector IDs in results (ns1 was queried twice): {result_ids}"
+        )
+
+        # ns_usage must have exactly 2 keys — the deduplicated set
+        assert isinstance(results.ns_usage, dict)
+        assert set(results.ns_usage.keys()) == {"qnd-ns1", "qnd-ns2"}, (
+            f"Expected ns_usage keys {{'qnd-ns1','qnd-ns2'}}, got {set(results.ns_usage.keys())}"
+        )
+
+        # Scores must be in descending order
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True), (
+            f"Matches not sorted by descending score: {scores}"
+        )
     finally:
         if idx is not None:
             await idx.close()
