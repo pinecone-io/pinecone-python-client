@@ -2631,7 +2631,9 @@ def test_context_response_decodes_without_id() -> None:
                     "type": "text",
                     "content": "Pinecone is a vector database.",
                     "score": 0.95,
-                    "reference": {"file": "pinecone-overview.pdf"},
+                    "reference": {
+                        "file": make_context_response()["snippets"][0]["reference"]["file"]
+                    },
                 }
             ],
             "usage": {"prompt_tokens": 10, "completion_tokens": 0, "total_tokens": 10},

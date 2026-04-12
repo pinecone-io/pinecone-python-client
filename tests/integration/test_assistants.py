@@ -660,9 +660,7 @@ def test_upload_file_from_byte_stream_with_metadata(client: Pinecone) -> None:
         # Poll until file processing completes
         wait_for_ready(
             lambda: (
-                client.assistants.describe_file(
-                    assistant_name=name, file_id=file_id
-                ).status
+                client.assistants.describe_file(assistant_name=name, file_id=file_id).status
                 in ("Available", "Processed")
             ),
             timeout=120,
@@ -738,9 +736,7 @@ def test_describe_file_signed_url_rest(client: Pinecone) -> None:
         # Wait until the file is ready
         wait_for_ready(
             lambda: (
-                client.assistants.describe_file(
-                    assistant_name=name, file_id=file_id
-                ).status
+                client.assistants.describe_file(assistant_name=name, file_id=file_id).status
                 in ("Available", "Processed")
             ),
             timeout=120,
@@ -1005,7 +1001,6 @@ def test_context_retrieval_validation_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(reason="SDK bug: FileReference.file typed as str but API returns AssistantFileModel object — see IT-0013")
 @pytest.mark.integration
 def test_context_retrieval_with_query_param_rest(client: Pinecone) -> None:
     """context() with query parameter (not messages) returns ContextResponse with typed snippet structure.
@@ -1054,10 +1049,10 @@ def test_context_retrieval_with_query_param_rest(client: Pinecone) -> None:
 
         # Wait for file to be indexed before calling context
         wait_for_ready(
-            lambda: client.assistants.describe_file(
-                assistant_name=name, file_id=file_id
-            ).status
-            in ("Available", "Processed"),
+            lambda: (
+                client.assistants.describe_file(assistant_name=name, file_id=file_id).status
+                in ("Available", "Processed")
+            ),
             timeout=120,
             interval=5,
             description=f"file {file_id}",
@@ -1086,8 +1081,10 @@ def test_context_retrieval_with_query_param_rest(client: Pinecone) -> None:
                 f"Expected float score, got {type(snippet.score)}"
             )
             assert hasattr(snippet, "reference"), "Snippet missing reference attribute"
-            assert isinstance(snippet.reference.file, str) and snippet.reference.file != "", (
-                f"Expected non-empty file reference, got {snippet.reference.file!r}"
+            assert isinstance(snippet.reference.file, AssistantFileModel)
+            assert isinstance(snippet.reference.file.name, str)
+            assert snippet.reference.file.name != "", (
+                f"Expected non-empty file reference name, got {snippet.reference.file.name!r}"
             )
             if isinstance(snippet, TextSnippet):
                 assert isinstance(snippet.content, str) and len(snippet.content) > 0, (

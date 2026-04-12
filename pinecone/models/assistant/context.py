@@ -7,6 +7,7 @@ from typing import TypeAlias
 from msgspec import Struct
 
 from pinecone.models.assistant.chat import ChatUsage
+from pinecone.models.assistant.file_model import AssistantFileModel
 
 
 class ContextImageData(Struct, kw_only=True):
@@ -54,13 +55,13 @@ class FileReference(Struct, kw_only=True):
     """A reference to a source file.
 
     Attributes:
-        file: The name or identifier of the source file.
+        file: The source file object returned by the API.
         pages: The list of page numbers relevant to the snippet, when
             the source is a paginated document (e.g. PDF). ``None`` for
             text, JSON, or Markdown sources.
     """
 
-    file: str
+    file: AssistantFileModel
     pages: list[int] | None = None
 
 

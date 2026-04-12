@@ -356,7 +356,11 @@ def make_context_response(**overrides: Any) -> dict[str, Any]:
                 "type": "text",
                 "content": "Pinecone is a vector database.",
                 "score": 0.95,
-                "reference": {"file": "pinecone-overview.pdf"},
+                "reference": {
+                    "file": make_assistant_file_response(
+                        name="pinecone-overview.pdf", id="file-abc123"
+                    )
+                },
             }
         ],
         "usage": {"prompt_tokens": 10, "completion_tokens": 0, "total_tokens": 10},

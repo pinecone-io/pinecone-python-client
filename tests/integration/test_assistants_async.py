@@ -704,9 +704,7 @@ async def test_upload_file_from_byte_stream_with_metadata_async(
 
         # Poll until file processing completes
         await async_poll_until(
-            lambda: async_client.assistants.describe_file(
-                assistant_name=name, file_id=file_id
-            ),
+            lambda: async_client.assistants.describe_file(assistant_name=name, file_id=file_id),
             lambda f: f.status in ("Available", "Processed"),
             timeout=120,
             interval=5,
@@ -727,9 +725,7 @@ async def test_upload_file_from_byte_stream_with_metadata_async(
         assert described.metadata.get("category") == "sdk-docs"
 
         # Clean up file
-        await async_client.assistants.delete_file(
-            assistant_name=name, file_id=file_id, timeout=60
-        )
+        await async_client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
         file_id = None
 
     finally:
@@ -762,9 +758,7 @@ async def test_describe_file_signed_url_async(async_client: AsyncPinecone) -> No
     file_id: str | None = None
     try:
         # Create assistant
-        assistant = await async_client.assistants.create(
-            name=name, instructions="Test signed URL."
-        )
+        assistant = await async_client.assistants.create(name=name, instructions="Test signed URL.")
         assert isinstance(assistant, AssistantModel)
 
         await async_poll_until(
@@ -790,9 +784,7 @@ async def test_describe_file_signed_url_async(async_client: AsyncPinecone) -> No
 
         # Wait until the file is ready
         await async_poll_until(
-            lambda: async_client.assistants.describe_file(
-                assistant_name=name, file_id=file_id
-            ),
+            lambda: async_client.assistants.describe_file(assistant_name=name, file_id=file_id),
             lambda f: f.status in ("Available", "Processed"),
             timeout=120,
             interval=5,
@@ -829,9 +821,7 @@ async def test_describe_file_signed_url_async(async_client: AsyncPinecone) -> No
         assert with_url.name == without_url.name
 
         # Clean up file
-        await async_client.assistants.delete_file(
-            assistant_name=name, file_id=file_id, timeout=60
-        )
+        await async_client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
         file_id = None
 
     finally:
@@ -1072,7 +1062,6 @@ async def test_context_retrieval_validation_async(async_client: AsyncPinecone) -
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(reason="SDK bug: FileReference.file typed as str but API returns AssistantFileModel object — see IT-0013")
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_context_retrieval_with_query_param_async(
@@ -1125,9 +1114,7 @@ async def test_context_retrieval_with_query_param_async(
 
         # Wait for file to be indexed before calling context
         await async_poll_until(
-            lambda: async_client.assistants.describe_file(
-                assistant_name=name, file_id=file_id
-            ),
+            lambda: async_client.assistants.describe_file(assistant_name=name, file_id=file_id),
             lambda f: f.status in ("Available", "Processed"),
             timeout=120,
             interval=5,
@@ -1157,8 +1144,10 @@ async def test_context_retrieval_with_query_param_async(
                 f"Expected float score, got {type(snippet.score)}"
             )
             assert hasattr(snippet, "reference"), "Snippet missing reference attribute"
-            assert isinstance(snippet.reference.file, str) and snippet.reference.file != "", (
-                f"Expected non-empty file reference, got {snippet.reference.file!r}"
+            assert isinstance(snippet.reference.file, AssistantFileModel)
+            assert isinstance(snippet.reference.file.name, str)
+            assert snippet.reference.file.name != "", (
+                f"Expected non-empty file reference name, got {snippet.reference.file.name!r}"
             )
             if isinstance(snippet, TextSnippet):
                 assert isinstance(snippet.content, str) and len(snippet.content) > 0, (
