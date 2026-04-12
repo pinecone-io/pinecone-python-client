@@ -880,3 +880,102 @@ async def test_metadata_filter_exists_operator_rest_async(async_client: AsyncPin
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# fetch_by_metadata multi-page pagination — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_fetch_by_metadata_pagination_rest_async(async_client: AsyncPinecone) -> None:
+    """fetch_by_metadata() with limit and pagination_token iterates across pages (REST async).
+
+    Upserts 5 vectors all with genre=scifi.  Calls fetch_by_metadata with
+    limit=2 to force multiple pages.  Uses async_poll_until to wait until the
+    paginated traversal covers all 5 vectors (the cursor-scan index can lag the
+    count index after a recent upsert).  Verifies:
+    - Each page returns at most 2 vectors (limit respected).
+    - Pagination tokens are returned when more results exist.
+    - No vector ID appears on more than one page (no cursor back-tracking).
+    - All 5 genre=scifi vectors appear across the collected pages.
+    - The final page has no pagination token (last-page sentinel).
+
+    Verifies:
+    - unified-vec-0010: Can fetch vectors by metadata filter with pagination.
+    - unified-vec-0024: Fetch-by-metadata respects the limit parameter.
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # Upsert 5 vectors — all with genre=scifi so all match the filter
+        target_ids = {"fbm-p1", "fbm-p2", "fbm-p3", "fbm-p4", "fbm-p5"}
+        await idx.upsert(
+            vectors=[
+                {"id": "fbm-p1", "values": [0.1, 0.2, 0.3], "metadata": {"genre": "scifi"}},
+                {"id": "fbm-p2", "values": [0.2, 0.3, 0.4], "metadata": {"genre": "scifi"}},
+                {"id": "fbm-p3", "values": [0.3, 0.4, 0.5], "metadata": {"genre": "scifi"}},
+                {"id": "fbm-p4", "values": [0.4, 0.5, 0.6], "metadata": {"genre": "scifi"}},
+                {"id": "fbm-p5", "values": [0.5, 0.6, 0.7], "metadata": {"genre": "scifi"}},
+            ]
+        )
+
+        async def _paginate_all() -> set[str]:
+            """Collect all IDs returned by limit=2 pagination, asserting invariants."""
+            seen: set[str] = set()
+            tok: str | None = None
+            page = 0
+            while True:
+                r = await idx.fetch_by_metadata(  # type: ignore[union-attr]
+                    filter={"genre": {"$eq": "scifi"}},
+                    limit=2,
+                    pagination_token=tok,
+                )
+                assert isinstance(r, FetchByMetadataResponse)
+                # Limit must be respected
+                assert len(r.vectors) <= 2, (
+                    f"Page {page} returned {len(r.vectors)} vectors (limit=2, async)"
+                )
+                # No duplicate vector IDs across pages
+                for vid in r.vectors:
+                    assert vid not in seen, f"Duplicate ID {vid!r} on page {page} (async)"
+                    seen.add(vid)
+                page += 1
+                tok = r.pagination.next if r.pagination else None
+                if not tok:
+                    break
+            return seen
+
+        # Poll until the cursor-scan index is consistent with the upserted data.
+        # The count index and cursor-scan index can temporarily diverge after a
+        # very recent upsert; retrying the full paginated traversal is the
+        # correct eventual-consistency guard here.
+        collected_ids = await async_poll_until(
+            query_fn=_paginate_all,
+            check_fn=lambda ids: target_ids.issubset(ids),
+            timeout=120,
+            description="all 5 fbm-pagination vectors reachable via cursor scan (async)",
+        )
+
+        # All 5 target vectors must appear and no extra vectors
+        assert collected_ids == target_ids, (
+            f"Unexpected IDs in paginated result (async): {collected_ids - target_ids}"
+        )
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
