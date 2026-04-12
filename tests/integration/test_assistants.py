@@ -23,7 +23,7 @@ import pytest
 
 from pinecone import Pinecone, PineconeValueError
 from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
-from pinecone.models.assistant.context import ContextResponse
+from pinecone.models.assistant.context import ContextResponse, TextSnippet
 from pinecone.models.assistant.evaluation import AlignmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.model import AssistantModel
@@ -998,3 +998,108 @@ def test_context_retrieval_validation_rest(client: Pinecone) -> None:
         # Any other exception (ApiError, NotFoundError, etc.) is acceptable here —
         # the assistant does not exist and the API will reject the request.
         pass
+
+
+# ---------------------------------------------------------------------------
+# assistant-context-query-param
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.skip(reason="SDK bug: FileReference.file typed as str but API returns AssistantFileModel object — see IT-0013")
+@pytest.mark.integration
+def test_context_retrieval_with_query_param_rest(client: Pinecone) -> None:
+    """context() with query parameter (not messages) returns ContextResponse with typed snippet structure.
+
+    Verifies:
+    - unified-context-0001: Can retrieve context using a plain text query string (query param)
+    - unified-context-0021: Response contains snippets list and usage statistics
+    - unified-context-0023: Text snippets have content (str), score (float), and reference.file (str)
+    The top_k=2 limit is also verified against the returned snippet count.
+    """
+    name = unique_name("asst")
+    file_id: str | None = None
+    tmp_path: str | None = None
+    try:
+        assistant = client.assistants.create(
+            name=name, instructions="You help answer questions about vector databases."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # Upload a text file with content the assistant can retrieve snippets from
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-qctx-"
+        ) as f:
+            f.write(
+                "Pinecone is a managed vector database optimized for semantic similarity search. "
+                "It stores vector embeddings and enables fast nearest-neighbor retrieval. "
+                "Pinecone supports metadata filtering, sparse-dense hybrid search, and "
+                "both serverless and pod-based deployment modes."
+            )
+            tmp_path = f.name
+
+        file_model = client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+        assert isinstance(file_model, AssistantFileModel)
+        file_id = file_model.id
+
+        # Wait for file to be indexed before calling context
+        wait_for_ready(
+            lambda: client.assistants.describe_file(
+                assistant_name=name, file_id=file_id
+            ).status
+            in ("Available", "Processed"),
+            timeout=120,
+            interval=5,
+            description=f"file {file_id}",
+        )
+
+        # Use the query parameter (plain text string), not messages
+        response = client.assistants.context(
+            assistant_name=name,
+            query="What is Pinecone?",
+            top_k=2,
+        )
+
+        # unified-context-0021: response has snippets list and usage
+        assert isinstance(response, ContextResponse)
+        assert isinstance(response.snippets, list)
+        assert response.usage is not None
+
+        # top_k=2 must limit the result to at most 2 snippets
+        assert len(response.snippets) <= 2, (
+            f"Expected at most 2 snippets with top_k=2, got {len(response.snippets)}"
+        )
+
+        # unified-context-0023: each text snippet has content, score (float), and reference.file
+        for snippet in response.snippets:
+            assert isinstance(snippet.score, float), (
+                f"Expected float score, got {type(snippet.score)}"
+            )
+            assert hasattr(snippet, "reference"), "Snippet missing reference attribute"
+            assert isinstance(snippet.reference.file, str) and snippet.reference.file != "", (
+                f"Expected non-empty file reference, got {snippet.reference.file!r}"
+            )
+            if isinstance(snippet, TextSnippet):
+                assert isinstance(snippet.content, str) and len(snippet.content) > 0, (
+                    "TextSnippet.content should be a non-empty string"
+                )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
