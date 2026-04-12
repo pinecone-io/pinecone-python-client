@@ -1,4 +1,5 @@
 """Unit tests for PineconeConfig."""
+
 from __future__ import annotations
 
 from pinecone._internal.config import PineconeConfig

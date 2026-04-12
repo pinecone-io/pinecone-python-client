@@ -105,7 +105,10 @@ def test_describe_index_caches_host(indexes: Indexes) -> None:
     indexes.describe("test-index")
 
     assert "test-index" in indexes._host_cache
-    assert indexes._host_cache["test-index"] == "https://test-index-abc1234.svc.us-east1-gcp.pinecone.io"
+    assert (
+        indexes._host_cache["test-index"]
+        == "https://test-index-abc1234.svc.us-east1-gcp.pinecone.io"
+    )
 
 
 @respx.mock

@@ -1,4 +1,5 @@
 """Vector models subpackage with lazy loading."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any

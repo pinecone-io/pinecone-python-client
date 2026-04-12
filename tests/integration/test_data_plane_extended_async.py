@@ -23,8 +23,8 @@ from pinecone.models.vectors.responses import (
     UpdateResponse,
     UpsertResponse,
 )
-from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.sparse import SparseValues
+from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector, Vector
 from tests.integration.conftest import async_cleanup_resource, async_poll_until, unique_name
 

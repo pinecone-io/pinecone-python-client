@@ -69,8 +69,7 @@ class TestAsyncQueryNamespacesMerge:
             ns = kwargs["namespace"]
             if ns == "ns1":
                 return _make_query_response([_scored("a", 0.9), _scored("b", 0.7)])
-            else:
-                return _make_query_response([_scored("c", 0.95), _scored("d", 0.6)])
+            return _make_query_response([_scored("c", 0.95), _scored("d", 0.6)])
 
         with patch.object(idx, "query", new_callable=AsyncMock, side_effect=query_side_effect):
             result = await idx.query_namespaces(

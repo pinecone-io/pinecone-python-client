@@ -1,4 +1,5 @@
 """Tests for AssistantModel and AssistantFileModel dict-like access."""
+
 from __future__ import annotations
 
 import pytest

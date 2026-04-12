@@ -406,7 +406,10 @@ def test_create_init_failed_raises(indexes: Indexes) -> None:
         ),
     )
 
-    with patch("pinecone.client.indexes.time.sleep"), pytest.raises(IndexInitFailedError, match="InitializationFailed"):
+    with (
+        patch("pinecone.client.indexes.time.sleep"),
+        pytest.raises(IndexInitFailedError, match="InitializationFailed"),
+    ):
         indexes.create(
             name="test-index",
             dimension=1536,

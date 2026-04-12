@@ -1176,7 +1176,6 @@ def test_update_by_filter_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(reason="SDK bug: GrpcIndex.update(filter=...) passes id=None as positional arg to Rust channel which requires a string — see IT-0015")
 @pytest.mark.integration
 def test_update_by_filter_grpc(client: Pinecone) -> None:
     """Filter-based bulk metadata update via gRPC (transport parity with REST).

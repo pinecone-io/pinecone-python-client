@@ -16,17 +16,11 @@ def _from_tuple(item: tuple[Any, ...]) -> Vector:
     if length == 2:
         id_, values = item
         if not isinstance(id_, str):
-            raise PineconeTypeError(
-                f"Vector ID must be a string, got {type(id_).__name__}"
-            )
+            raise PineconeTypeError(f"Vector ID must be a string, got {type(id_).__name__}")
         if not id_.isascii():
-            raise PineconeValueError(
-                f"Vector ID must contain only ASCII characters, got: {id_!r}"
-            )
+            raise PineconeValueError(f"Vector ID must contain only ASCII characters, got: {id_!r}")
         if "\x00" in id_:
-            raise PineconeValueError(
-                f"Vector ID must not contain null characters, got: {id_!r}"
-            )
+            raise PineconeValueError(f"Vector ID must not contain null characters, got: {id_!r}")
         converted = values if isinstance(values, list) else list(values)
         if not converted:
             raise PineconeValueError(
@@ -36,17 +30,11 @@ def _from_tuple(item: tuple[Any, ...]) -> Vector:
     if length == 3:
         id_, values, metadata = item
         if not isinstance(id_, str):
-            raise PineconeTypeError(
-                f"Vector ID must be a string, got {type(id_).__name__}"
-            )
+            raise PineconeTypeError(f"Vector ID must be a string, got {type(id_).__name__}")
         if not id_.isascii():
-            raise PineconeValueError(
-                f"Vector ID must contain only ASCII characters, got: {id_!r}"
-            )
+            raise PineconeValueError(f"Vector ID must contain only ASCII characters, got: {id_!r}")
         if "\x00" in id_:
-            raise PineconeValueError(
-                f"Vector ID must not contain null characters, got: {id_!r}"
-            )
+            raise PineconeValueError(f"Vector ID must not contain null characters, got: {id_!r}")
         if metadata is not None and not isinstance(metadata, dict):
             raise PineconeTypeError(f"metadata must be a dict, got {type(metadata).__name__}")
         converted = values if isinstance(values, list) else list(values)
@@ -66,13 +54,9 @@ def _from_dict(item: dict[str, Any]) -> Vector:
     if not isinstance(id_, str):
         raise PineconeTypeError(f"Vector ID must be a string, got {type(id_).__name__}")
     if not id_.isascii():
-        raise PineconeValueError(
-            f"Vector ID must contain only ASCII characters, got: {id_!r}"
-        )
+        raise PineconeValueError(f"Vector ID must contain only ASCII characters, got: {id_!r}")
     if "\x00" in id_:
-        raise PineconeValueError(
-            f"Vector ID must not contain null characters, got: {id_!r}"
-        )
+        raise PineconeValueError(f"Vector ID must not contain null characters, got: {id_!r}")
 
     # Fast path: common 2-key dict {"id": ..., "values": ...}
     item_len = len(item)
@@ -220,17 +204,15 @@ class VectorFactory:
                             and len(s_indices) == len(s_values)
                             and (not s_indices or type(s_indices[0]) is int)
                         ):
-                            converted = (
-                                raw_values if type(raw_values) is list else list(raw_values)
-                            )
+                            converted = raw_values if type(raw_values) is list else list(raw_values)
                             if not s_values or type(s_values[0]) is float:
                                 return Vector(
-                                    id_, converted,
-                                    SparseValues(s_indices, s_values), None
+                                    id_, converted, SparseValues(s_indices, s_values), None
                                 )
                             if isinstance(s_values[0], (int, float)):
                                 return Vector(
-                                    id_, converted,
+                                    id_,
+                                    converted,
                                     SparseValues(s_indices, [float(v) for v in s_values]),
                                     None,
                                 )
@@ -258,4 +240,3 @@ class VectorFactory:
         if isinstance(item, dict):
             return _from_dict(item)
         raise PineconeTypeError(f"Expected Vector, tuple, or dict, got {type(item).__name__}")
-

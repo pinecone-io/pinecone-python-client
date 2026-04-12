@@ -289,7 +289,10 @@ async def test_delete_timeout_exceeded(async_indexes: AsyncIndexes) -> None:
         return_value=httpx.Response(200, json=make_index_response()),
     )
 
-    with patch("pinecone.async_client.indexes.asyncio.sleep"), pytest.raises(PineconeTimeoutError, match=r"still exists after 1s"):
+    with (
+        patch("pinecone.async_client.indexes.asyncio.sleep"),
+        pytest.raises(PineconeTimeoutError, match=r"still exists after 1s"),
+    ):
         await async_indexes.delete("test-index", timeout=1)
 
 

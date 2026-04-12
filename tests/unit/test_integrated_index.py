@@ -396,7 +396,10 @@ def test_create_integrated_init_failed_raises(indexes: Indexes) -> None:
         ),
     )
 
-    with patch("pinecone.client.indexes.time.sleep"), pytest.raises(PineconeError, match="InitializationFailed"):
+    with (
+        patch("pinecone.client.indexes.time.sleep"),
+        pytest.raises(PineconeError, match="InitializationFailed"),
+    ):
         indexes.create(
             name="my-integrated-index",
             spec=IntegratedSpec(

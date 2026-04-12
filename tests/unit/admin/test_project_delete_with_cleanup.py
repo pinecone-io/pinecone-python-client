@@ -172,9 +172,7 @@ def test_delete_with_cleanup_original_error_preserved_when_key_deletion_also_fai
     original_error = RuntimeError("original cleanup failure")
 
     with (
-        patch.object(
-            projects, "_cleanup_project_resources", side_effect=original_error
-        ),
+        patch.object(projects, "_cleanup_project_resources", side_effect=original_error),
         patch.object(projects, "delete") as mock_delete,
         patch("pinecone.admin.projects.time.sleep"),
     ):

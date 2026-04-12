@@ -1,4 +1,5 @@
 """Inference API response models."""
+
 from __future__ import annotations
 
 from pinecone.models.inference.embed import (

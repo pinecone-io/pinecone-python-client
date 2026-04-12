@@ -66,8 +66,7 @@ class TestQueryNamespacesMerge:
             ns = kwargs["namespace"]
             if ns == "ns1":
                 return _make_query_response([_scored("a", 0.9), _scored("b", 0.7)])
-            else:
-                return _make_query_response([_scored("c", 0.95), _scored("d", 0.6)])
+            return _make_query_response([_scored("c", 0.95), _scored("d", 0.6)])
 
         with patch.object(idx, "query", side_effect=query_side_effect):
             result = idx.query_namespaces(

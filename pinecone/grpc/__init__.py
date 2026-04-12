@@ -538,9 +538,12 @@ class GrpcIndex:
                 sv_dict = sparse_values
 
         logger.info("Updating vectors via gRPC in namespace %r", namespace)
+        # The Rust channel's update() requires `id` as a positional string arg.
+        # For filter-based updates id is None, so pass "" which the API ignores
+        # when a filter is provided.
         result = self._call_channel(
             "update",
-            id,
+            id if id is not None else "",
             values=values,
             sparse_values=sv_dict,
             set_metadata=set_metadata,

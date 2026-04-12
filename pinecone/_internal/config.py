@@ -26,7 +26,7 @@ def normalize_host(host: str | None) -> str:
     # http://https://, http://http://.
     for outer in ("https://", "http://"):
         if host.startswith(outer):
-            remainder = host[len(outer):]
+            remainder = host[len(outer) :]
             if remainder.startswith(("http://", "https://")):
                 # Strip the outer scheme; keep the inner scheme intact.
                 host = remainder
