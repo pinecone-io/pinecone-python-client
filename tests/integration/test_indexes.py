@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import GrpcIndex, Index, Pinecone
+from pinecone.errors import ForbiddenError
 from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus
 from pinecone.models.indexes.specs import ServerlessSpec
 from tests.integration.conftest import cleanup_resource, unique_name
@@ -309,6 +310,48 @@ def test_configure_index_updates_tags(client: Pinecone) -> None:
         assert "to-remove" not in desc2.tags or desc2.tags.get("to-remove") == ""
         assert desc2.tags.get("version") == "2"             # preserved from previous configure
     finally:
+        cleanup_resource(
+            lambda: client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+@pytest.mark.integration
+def test_configure_deletion_protection_toggle_rest(client: Pinecone) -> None:
+    """configure() can enable and disable deletion protection; delete raises ForbiddenError when enabled."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # Enable deletion protection
+        client.indexes.configure(name, deletion_protection="enabled")
+
+        desc = client.indexes.describe(name)
+        assert desc.deletion_protection == "enabled"
+
+        # Attempting to delete a protected index must raise ForbiddenError (HTTP 403)
+        with pytest.raises(ForbiddenError) as exc_info:
+            client.indexes.delete(name)
+        assert exc_info.value.status_code == 403
+
+        # Disable deletion protection so the index can be cleaned up
+        client.indexes.configure(name, deletion_protection="disabled")
+
+        desc2 = client.indexes.describe(name)
+        assert desc2.deletion_protection == "disabled"
+    finally:
+        # Ensure protection is off before deletion (in case test failed mid-way)
+        try:
+            client.indexes.configure(name, deletion_protection="disabled")
+        except Exception:
+            pass
         cleanup_resource(
             lambda: client.indexes.delete(name),
             name,

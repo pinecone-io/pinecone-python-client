@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import AsyncIndex, AsyncPinecone
+from pinecone.errors import ForbiddenError
 from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus
 from pinecone.models.indexes.specs import ServerlessSpec
 from tests.integration.conftest import async_cleanup_resource, unique_name
@@ -291,6 +292,49 @@ async def test_configure_index_updates_tags(async_client: AsyncPinecone) -> None
         assert "to-remove" not in desc2.tags or desc2.tags.get("to-remove") == ""
         assert desc2.tags.get("version") == "2"             # preserved from previous configure
     finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_configure_deletion_protection_toggle_async(async_client: AsyncPinecone) -> None:
+    """async configure() can enable/disable deletion protection; delete raises ForbiddenError when enabled."""
+    name = unique_name("idx")
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # Enable deletion protection
+        await async_client.indexes.configure(name, deletion_protection="enabled")
+
+        desc = await async_client.indexes.describe(name)
+        assert desc.deletion_protection == "enabled"
+
+        # Attempting to delete a protected index must raise ForbiddenError (HTTP 403)
+        with pytest.raises(ForbiddenError) as exc_info:
+            await async_client.indexes.delete(name)
+        assert exc_info.value.status_code == 403
+
+        # Disable deletion protection so the index can be cleaned up
+        await async_client.indexes.configure(name, deletion_protection="disabled")
+
+        desc2 = await async_client.indexes.describe(name)
+        assert desc2.deletion_protection == "disabled"
+    finally:
+        # Ensure protection is off before deletion (in case test failed mid-way)
+        try:
+            await async_client.indexes.configure(name, deletion_protection="disabled")
+        except Exception:
+            pass
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name),
             name,
