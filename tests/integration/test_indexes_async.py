@@ -211,6 +211,44 @@ async def test_create_index_with_tags(async_client: AsyncPinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
+# index-exists
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_index_exists_returns_correct_bool(async_client: AsyncPinecone) -> None:
+    """async indexes.exists() returns False before creation, True after, and False after deletion."""
+    name = unique_name("idx")
+
+    # Before creation: non-existent name → False
+    assert await async_client.indexes.exists(name) is False
+
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # After creation: existing index → True
+        assert await async_client.indexes.exists(name) is True
+
+        # Delete the index and wait for it to disappear
+        await async_client.indexes.delete(name, timeout=120)
+
+        # After deletion: name no longer exists → False
+        assert await async_client.indexes.exists(name) is False
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
 # configure-index
 # ---------------------------------------------------------------------------
 

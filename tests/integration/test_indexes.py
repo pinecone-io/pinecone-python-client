@@ -231,6 +231,43 @@ def test_create_index_with_tags(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
+# index-exists
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_index_exists_returns_correct_bool(client: Pinecone) -> None:
+    """indexes.exists() returns False before creation, True after, and False after deletion."""
+    name = unique_name("idx")
+
+    # Before creation: non-existent name → False
+    assert client.indexes.exists(name) is False
+
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # After creation: existing index → True
+        assert client.indexes.exists(name) is True
+
+        # Delete the index and wait for it to disappear
+        client.indexes.delete(name, timeout=120)
+
+        # After deletion: name no longer exists → False
+        assert client.indexes.exists(name) is False
+    finally:
+        cleanup_resource(
+            lambda: client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
 # configure-index
 # ---------------------------------------------------------------------------
 
