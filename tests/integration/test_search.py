@@ -13,7 +13,7 @@ import pytest
 
 from pinecone import EmbedConfig, IntegratedSpec, Pinecone
 from pinecone.errors.exceptions import PineconeValueError
-from pinecone.models.vectors.search import Hit, SearchRecordsResponse, SearchResult, SearchUsage
+from pinecone.models.vectors.search import Hit, RerankConfig, SearchInputs, SearchRecordsResponse, SearchResult, SearchUsage
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name, wait_for_ready
 
 # ---------------------------------------------------------------------------
@@ -608,3 +608,150 @@ def test_search_input_validation_rest(client: Pinecone) -> None:
             inputs={"text": "hello"},
             rerank={"model": "bge-reranker-v2-m3"},
         )
+
+
+# ---------------------------------------------------------------------------
+# search_records() alias with typed SearchInputs + RerankConfig objects — REST
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_search_records_alias_with_typed_inputs_rest(client: Pinecone, api_key: str) -> None:
+    """search_records() alias works with typed SearchInputs and RerankConfig objects.
+
+    Verifies:
+    - unified-vec-0031: search_records() is an alias for search() with identical behavior
+    - Flexible input formats: SearchInputs(text=...) accepted in place of plain dict
+    - Flexible input formats: RerankConfig(model=..., rank_fields=...) accepted in place of plain dict
+    """
+    name = unique_name("idx")
+    namespace = "alias-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "text"},
+                ),
+            ),
+        )
+
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        index = client.index(name=name)
+
+        index.upsert_records(
+            namespace=namespace,
+            records=[
+                {"_id": "a-1", "text": "Vector databases enable fast similarity search at scale."},
+                {"_id": "a-2", "text": "RAG combines retrieval with language model generation."},
+                {"_id": "a-3", "text": "Embeddings are dense vector representations of text data."},
+            ],
+        )
+
+        # Poll using plain dict to establish searchability before using typed objects
+        poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=3,
+                inputs={"text": "vector similarity search"},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=120,
+            description="records searchable before alias test",
+        )
+
+        # Call search_records() alias with typed SearchInputs and RerankConfig objects
+        response = index.search_records(
+            namespace=namespace,
+            top_k=3,
+            inputs=SearchInputs(text="vector similarity search"),
+            rerank=RerankConfig(model="bge-reranker-v2-m3", rank_fields=["text"], top_n=2),
+        )
+
+        assert isinstance(response, SearchRecordsResponse)
+        assert isinstance(response.result, SearchResult)
+        assert len(response.result.hits) > 0
+        assert len(response.result.hits) <= 2  # top_n=2 caps hits after reranking
+
+        for hit in response.result.hits:
+            assert isinstance(hit, Hit)
+            assert isinstance(hit.id, str)
+            assert isinstance(hit.score, float)
+
+        assert isinstance(response.usage, SearchUsage)
+        assert response.usage.read_units > 0
+        assert response.usage.rerank_units is not None
+        assert response.usage.rerank_units > 0
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+@pytest.mark.integration
+def test_search_records_alias_with_typed_inputs_grpc(client: Pinecone, api_key: str) -> None:
+    """GrpcIndex.search_records() alias with typed SearchInputs delegates to REST search.
+
+    Verifies that the gRPC index exposes the same search_records() alias and accepts
+    typed SearchInputs in place of a plain dict.
+    """
+    name = unique_name("idx")
+    namespace = "alias-grpc-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "text"},
+                ),
+            ),
+        )
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        index = client.index(name=name, grpc=True)
+
+        index.upsert_records(
+            namespace=namespace,
+            records=[
+                {"_id": "g-1", "text": "Vector databases enable fast similarity search."},
+            ],
+        )
+
+        # Poll until searchable
+        poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=1,
+                inputs={"text": "vector search"},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=120,
+            description="records searchable before grpc alias test",
+        )
+
+        # Call search_records() alias with typed SearchInputs
+        response = index.search_records(
+            namespace=namespace,
+            top_k=1,
+            inputs=SearchInputs(text="vector search"),
+        )
+
+        assert isinstance(response, SearchRecordsResponse)
+        assert len(response.result.hits) > 0
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

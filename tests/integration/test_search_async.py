@@ -22,7 +22,7 @@ import pytest
 
 from pinecone import AsyncPinecone, Pinecone
 from pinecone.errors.exceptions import PineconeValueError
-from pinecone.models.vectors.search import Hit, SearchRecordsResponse, SearchResult, SearchUsage
+from pinecone.models.vectors.search import Hit, RerankConfig, SearchInputs, SearchRecordsResponse, SearchResult, SearchUsage
 from tests.integration.conftest import (
     async_cleanup_resource,
     async_poll_until,
@@ -467,3 +467,85 @@ async def test_search_input_validation_rest_async(async_client: AsyncPinecone) -
             )
     finally:
         await index.close()
+
+
+# ---------------------------------------------------------------------------
+# search_records() alias with typed SearchInputs + RerankConfig objects — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_search_records_alias_with_typed_inputs_async(
+    async_client: AsyncPinecone, client: Pinecone, api_key: str
+) -> None:
+    """AsyncIndex.search_records() alias works with typed SearchInputs and RerankConfig objects.
+
+    Verifies:
+    - unified-vec-0031: search_records() is an alias for search() with identical behavior (async)
+    - Flexible input formats: SearchInputs(text=...) accepted in place of plain dict
+    - Flexible input formats: RerankConfig(model=..., rank_fields=...) accepted in place of plain dict
+    """
+    name = unique_name("idx")
+    namespace = "alias-async-ns"
+    try:
+        # Create integrated index via direct HTTP call (SDK uses wrong endpoint — IT-0003)
+        _create_integrated_index(api_key, name)
+
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        desc = await async_client.indexes.describe(name)
+        index = async_client.index(host=desc.host)
+
+        await index.upsert_records(
+            namespace=namespace,
+            records=[
+                {"_id": "aa-1", "text": "Vector databases enable fast similarity search at scale."},
+                {"_id": "aa-2", "text": "RAG combines retrieval with language model generation."},
+                {"_id": "aa-3", "text": "Embeddings are dense vector representations of text data."},
+            ],
+        )
+
+        # Poll using plain dict to establish searchability
+        await async_poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=3,
+                inputs={"text": "vector similarity search"},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=120,
+            description="records searchable before async alias test",
+        )
+
+        # Call search_records() alias with typed SearchInputs and RerankConfig objects
+        response = await index.search_records(
+            namespace=namespace,
+            top_k=3,
+            inputs=SearchInputs(text="vector similarity search"),
+            rerank=RerankConfig(model="bge-reranker-v2-m3", rank_fields=["text"], top_n=2),
+        )
+
+        assert isinstance(response, SearchRecordsResponse)
+        assert isinstance(response.result, SearchResult)
+        assert len(response.result.hits) > 0
+        assert len(response.result.hits) <= 2  # top_n=2 caps hits after reranking
+
+        for hit in response.result.hits:
+            assert isinstance(hit, Hit)
+            assert isinstance(hit.id, str)
+            assert isinstance(hit.score, float)
+
+        assert isinstance(response.usage, SearchUsage)
+        assert response.usage.read_units > 0
+        assert response.usage.rerank_units is not None
+        assert response.usage.rerank_units > 0
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name), name, "index"
+        )
