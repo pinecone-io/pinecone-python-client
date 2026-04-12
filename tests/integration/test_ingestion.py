@@ -28,6 +28,7 @@ from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 # upsert-formats — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_upsert_formats_rest(client: Pinecone) -> None:
     """Upsert using all accepted input formats in a single call via REST.
@@ -81,7 +82,9 @@ def test_upsert_formats_rest(client: Pinecone) -> None:
         v1 = fetched.vectors["fmt-v1"]
         assert v1.id == "fmt-v1"
         assert len(v1.values) == 4
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v1.values, [0.1, 0.2, 0.3, 0.4]))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v1.values, [0.1, 0.2, 0.3, 0.4])
+        )
         assert v1.metadata is not None
         assert v1.metadata.get("fmt") == "object"
         assert v1.metadata.get("n") == 1
@@ -90,13 +93,17 @@ def test_upsert_formats_rest(client: Pinecone) -> None:
         v2 = fetched.vectors["fmt-v2"]
         assert v2.id == "fmt-v2"
         assert len(v2.values) == 4
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v2.values, [0.2, 0.3, 0.4, 0.5]))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v2.values, [0.2, 0.3, 0.4, 0.5])
+        )
 
         # Verify Format 3: (id, values, metadata) tuple
         v3 = fetched.vectors["fmt-v3"]
         assert v3.id == "fmt-v3"
         assert len(v3.values) == 4
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v3.values, [0.3, 0.4, 0.5, 0.6]))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v3.values, [0.3, 0.4, 0.5, 0.6])
+        )
         assert v3.metadata is not None
         assert v3.metadata.get("fmt") == "tuple3"
         assert v3.metadata.get("n") == 3
@@ -105,11 +112,15 @@ def test_upsert_formats_rest(client: Pinecone) -> None:
         v4 = fetched.vectors["fmt-v4"]
         assert v4.id == "fmt-v4"
         assert len(v4.values) == 4
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v4.values, [0.4, 0.5, 0.6, 0.7]))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v4.values, [0.4, 0.5, 0.6, 0.7])
+        )
         assert v4.sparse_values is not None
         assert isinstance(v4.sparse_values, SparseValues)
         assert v4.sparse_values.indices == [0, 2]
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v4.sparse_values.values, [0.9, 0.8]))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v4.sparse_values.values, [0.9, 0.8])
+        )
         assert v4.metadata is not None
         assert v4.metadata.get("fmt") == "dict"
         assert v4.metadata.get("n") == 4
@@ -121,6 +132,7 @@ def test_upsert_formats_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # upsert-batch — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_upsert_batch_rest(client: Pinecone) -> None:
@@ -167,6 +179,7 @@ def test_upsert_batch_rest(client: Pinecone) -> None:
 # upsert-batch — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_upsert_batch_grpc(client: Pinecone) -> None:
     """Upsert 200 vectors in a single call via gRPC."""
@@ -207,6 +220,7 @@ def test_upsert_batch_grpc(client: Pinecone) -> None:
 # upsert-overwrite — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_upsert_overwrite_rest(client: Pinecone) -> None:
     """Second upsert of the same ID fully replaces values AND metadata (REST sync).
@@ -228,7 +242,9 @@ def test_upsert_overwrite_rest(client: Pinecone) -> None:
         index = client.index(name=name)
 
         # First write
-        index.upsert(vectors=[{"id": "ow-1", "values": [0.1, 0.2], "metadata": {"v": 1, "original": "yes"}}])
+        index.upsert(
+            vectors=[{"id": "ow-1", "values": [0.1, 0.2], "metadata": {"v": 1, "original": "yes"}}]
+        )
 
         # Wait for first write to be visible
         poll_until(
@@ -247,7 +263,9 @@ def test_upsert_overwrite_rest(client: Pinecone) -> None:
         assert v_before.metadata.get("original") == "yes"
 
         # Second write — overwrite same ID
-        index.upsert(vectors=[{"id": "ow-1", "values": [0.9, 0.8], "metadata": {"v": 2, "new_key": "hello"}}])
+        index.upsert(
+            vectors=[{"id": "ow-1", "values": [0.9, 0.8], "metadata": {"v": 2, "new_key": "hello"}}]
+        )
 
         # Wait for second write to propagate — poll until values change
         def _second_write_visible() -> object:
@@ -269,15 +287,17 @@ def test_upsert_overwrite_rest(client: Pinecone) -> None:
         v_after = fetched_after.vectors["ow-1"]  # type: ignore[union-attr]
         assert v_after.id == "ow-1"
         # Values completely replaced
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v_after.values, [0.9, 0.8])), \
+        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v_after.values, [0.9, 0.8])), (
             f"expected [0.9, 0.8] but got {v_after.values}"
+        )
         # Metadata completely replaced — new keys present
         assert v_after.metadata is not None
         assert v_after.metadata.get("v") == 2
         assert v_after.metadata.get("new_key") == "hello"
         # Old metadata key gone
-        assert "original" not in v_after.metadata, \
+        assert "original" not in v_after.metadata, (
             f"old key 'original' should not persist after overwrite; got metadata={v_after.metadata}"
+        )
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
@@ -286,6 +306,7 @@ def test_upsert_overwrite_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # upsert-overwrite — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_upsert_overwrite_grpc(client: Pinecone) -> None:
@@ -305,7 +326,9 @@ def test_upsert_overwrite_grpc(client: Pinecone) -> None:
         index = client.index(name=name, grpc=True)
 
         # First write
-        index.upsert(vectors=[{"id": "ow-1", "values": [0.1, 0.2], "metadata": {"v": 1, "original": "yes"}}])
+        index.upsert(
+            vectors=[{"id": "ow-1", "values": [0.1, 0.2], "metadata": {"v": 1, "original": "yes"}}]
+        )
 
         # Wait for first write to be visible
         poll_until(
@@ -316,7 +339,9 @@ def test_upsert_overwrite_grpc(client: Pinecone) -> None:
         )
 
         # Second write — overwrite same ID
-        index.upsert(vectors=[{"id": "ow-1", "values": [0.9, 0.8], "metadata": {"v": 2, "new_key": "hello"}}])
+        index.upsert(
+            vectors=[{"id": "ow-1", "values": [0.9, 0.8], "metadata": {"v": 2, "new_key": "hello"}}]
+        )
 
         # Wait for second write to propagate
         def _second_write_visible() -> object:
@@ -337,13 +362,15 @@ def test_upsert_overwrite_grpc(client: Pinecone) -> None:
 
         v_after = fetched_after.vectors["ow-1"]  # type: ignore[union-attr]
         assert v_after.id == "ow-1"
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v_after.values, [0.9, 0.8])), \
+        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v_after.values, [0.9, 0.8])), (
             f"expected [0.9, 0.8] but got {v_after.values}"
+        )
         assert v_after.metadata is not None
         assert v_after.metadata.get("v") == 2
         assert v_after.metadata.get("new_key") == "hello"
-        assert "original" not in v_after.metadata, \
+        assert "original" not in v_after.metadata, (
             f"old key 'original' should not persist after overwrite; got metadata={v_after.metadata}"
+        )
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
@@ -352,6 +379,7 @@ def test_upsert_overwrite_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # upsert-formats — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_upsert_formats_grpc(client: Pinecone) -> None:
@@ -419,6 +447,7 @@ def test_upsert_formats_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # upsert-records — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_upsert_records_rest(client: Pinecone) -> None:
@@ -488,6 +517,7 @@ def test_upsert_records_rest(client: Pinecone) -> None:
 # upsert-records-batch — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_upsert_records_batch_rest(client: Pinecone) -> None:
     """Upsert 50 records in one call to an integrated-inference index via REST sync.
@@ -520,7 +550,10 @@ def test_upsert_records_batch_rest(client: Pinecone) -> None:
         index = client.index(name=name)
 
         records = [
-            {"_id": f"urb-{i}", "text": f"Record number {i}: vector database similarity search use case {i}."}
+            {
+                "_id": f"urb-{i}",
+                "text": f"Record number {i}: vector database similarity search use case {i}.",
+            }
             for i in range(50)
         ]
         response = index.upsert_records(records=records, namespace=namespace)
@@ -555,6 +588,7 @@ def test_upsert_records_batch_rest(client: Pinecone) -> None:
 # upsert-records-batch — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_upsert_records_batch_grpc(client: Pinecone) -> None:
     """Upsert 50 records in one call to an integrated-inference index via gRPC handle.
@@ -585,7 +619,10 @@ def test_upsert_records_batch_grpc(client: Pinecone) -> None:
         index = client.index(name=name, grpc=True)
 
         records = [
-            {"_id": f"urb-{i}", "text": f"Record number {i}: vector database similarity search use case {i}."}
+            {
+                "_id": f"urb-{i}",
+                "text": f"Record number {i}: vector database similarity search use case {i}.",
+            }
             for i in range(50)
         ]
         response = index.upsert_records(records=records, namespace=namespace)
@@ -619,6 +656,7 @@ def test_upsert_records_batch_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # upsert-records — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_upsert_records_grpc(client: Pinecone) -> None:
@@ -687,6 +725,7 @@ def test_upsert_records_grpc(client: Pinecone) -> None:
 # update-metadata — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_update_metadata_rest(client: Pinecone) -> None:
     """index.update(id=..., set_metadata=...) merges metadata, not replaces (REST sync).
@@ -708,11 +747,15 @@ def test_update_metadata_rest(client: Pinecone) -> None:
         index = client.index(name=name)
 
         # Upsert a vector with two metadata fields
-        index.upsert(vectors=[{
-            "id": "um-v1",
-            "values": [0.1, 0.2],
-            "metadata": {"color": "red", "size": 5},
-        }])
+        index.upsert(
+            vectors=[
+                {
+                    "id": "um-v1",
+                    "values": [0.1, 0.2],
+                    "metadata": {"color": "red", "size": 5},
+                }
+            ]
+        )
 
         # Wait for vector to be fetchable
         poll_until(
@@ -746,11 +789,13 @@ def test_update_metadata_rest(client: Pinecone) -> None:
         v = fetched.vectors["um-v1"]  # type: ignore[union-attr]
         assert v.metadata is not None
         # Updated field
-        assert v.metadata.get("color") == "blue", \
+        assert v.metadata.get("color") == "blue", (
             f"expected color='blue', got {v.metadata.get('color')!r}"
+        )
         # Preserved field — merge semantics (NOT replaced)
-        assert v.metadata.get("size") == 5, \
+        assert v.metadata.get("size") == 5, (
             f"expected size=5 to be preserved but got {v.metadata.get('size')!r}"
+        )
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
@@ -759,6 +804,7 @@ def test_update_metadata_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # update-sparse — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_update_sparse_rest(client: Pinecone) -> None:
@@ -783,11 +829,15 @@ def test_update_sparse_rest(client: Pinecone) -> None:
         index = client.index(name=name)
 
         # Upsert hybrid vector with initial sparse values
-        index.upsert(vectors=[{
-            "id": "us-v1",
-            "values": [0.1, 0.2, 0.3, 0.4],
-            "sparse_values": {"indices": [0, 3], "values": [0.5, 0.8]},
-        }])
+        index.upsert(
+            vectors=[
+                {
+                    "id": "us-v1",
+                    "values": [0.1, 0.2, 0.3, 0.4],
+                    "sparse_values": {"indices": [0, 3], "values": [0.5, 0.8]},
+                }
+            ]
+        )
 
         # Wait for vector to be fetchable
         poll_until(
@@ -825,14 +875,17 @@ def test_update_sparse_rest(client: Pinecone) -> None:
         # New sparse values present
         assert v.sparse_values is not None, "sparse_values should be present after update"
         assert isinstance(v.sparse_values, SparseValues)
-        assert v.sparse_values.indices == [1, 2], \
+        assert v.sparse_values.indices == [1, 2], (
             f"expected sparse indices [1, 2], got {v.sparse_values.indices}"
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.sparse_values.values, [0.9, 0.7])), \
-            f"expected sparse values [0.9, 0.7], got {v.sparse_values.values}"
+        )
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.sparse_values.values, [0.9, 0.7])
+        ), f"expected sparse values [0.9, 0.7], got {v.sparse_values.values}"
         # Dense values preserved
         assert len(v.values) == 4, f"expected 4 dense values, got {len(v.values)}"
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.values, [0.1, 0.2, 0.3, 0.4])), \
-            f"expected dense values [0.1, 0.2, 0.3, 0.4], got {v.values}"
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.values, [0.1, 0.2, 0.3, 0.4])
+        ), f"expected dense values [0.1, 0.2, 0.3, 0.4], got {v.values}"
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
@@ -841,6 +894,7 @@ def test_update_sparse_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # update-sparse — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_update_sparse_grpc(client: Pinecone) -> None:
@@ -860,11 +914,15 @@ def test_update_sparse_grpc(client: Pinecone) -> None:
         index = client.index(name=name, grpc=True)
 
         # Upsert hybrid vector with initial sparse values
-        index.upsert(vectors=[{
-            "id": "us-v1",
-            "values": [0.1, 0.2, 0.3, 0.4],
-            "sparse_values": {"indices": [0, 3], "values": [0.5, 0.8]},
-        }])
+        index.upsert(
+            vectors=[
+                {
+                    "id": "us-v1",
+                    "values": [0.1, 0.2, 0.3, 0.4],
+                    "sparse_values": {"indices": [0, 3], "values": [0.5, 0.8]},
+                }
+            ]
+        )
 
         # Wait for vector to be fetchable
         poll_until(
@@ -902,14 +960,17 @@ def test_update_sparse_grpc(client: Pinecone) -> None:
         # New sparse values present
         assert v.sparse_values is not None, "sparse_values should be present after update (gRPC)"
         assert isinstance(v.sparse_values, SparseValues)
-        assert v.sparse_values.indices == [1, 2], \
+        assert v.sparse_values.indices == [1, 2], (
             f"expected sparse indices [1, 2], got {v.sparse_values.indices}"
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.sparse_values.values, [0.9, 0.7])), \
-            f"expected sparse values [0.9, 0.7], got {v.sparse_values.values}"
+        )
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.sparse_values.values, [0.9, 0.7])
+        ), f"expected sparse values [0.9, 0.7], got {v.sparse_values.values}"
         # Dense values preserved
         assert len(v.values) == 4, f"expected 4 dense values, got {len(v.values)}"
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.values, [0.1, 0.2, 0.3, 0.4])), \
-            f"expected dense values [0.1, 0.2, 0.3, 0.4], got {v.values}"
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.values, [0.1, 0.2, 0.3, 0.4])
+        ), f"expected dense values [0.1, 0.2, 0.3, 0.4], got {v.values}"
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
@@ -918,6 +979,7 @@ def test_update_sparse_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # update-metadata — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_update_metadata_grpc(client: Pinecone) -> None:
@@ -937,11 +999,15 @@ def test_update_metadata_grpc(client: Pinecone) -> None:
         index = client.index(name=name, grpc=True)
 
         # Upsert a vector with two metadata fields
-        index.upsert(vectors=[{
-            "id": "um-v1",
-            "values": [0.1, 0.2],
-            "metadata": {"color": "red", "size": 5},
-        }])
+        index.upsert(
+            vectors=[
+                {
+                    "id": "um-v1",
+                    "values": [0.1, 0.2],
+                    "metadata": {"color": "red", "size": 5},
+                }
+            ]
+        )
 
         # Wait for vector to be fetchable
         poll_until(
@@ -974,10 +1040,12 @@ def test_update_metadata_grpc(client: Pinecone) -> None:
 
         v = fetched.vectors["um-v1"]  # type: ignore[union-attr]
         assert v.metadata is not None
-        assert v.metadata.get("color") == "blue", \
+        assert v.metadata.get("color") == "blue", (
             f"expected color='blue', got {v.metadata.get('color')!r}"
-        assert v.metadata.get("size") == 5, \
+        )
+        assert v.metadata.get("size") == 5, (
             f"expected size=5 to be preserved but got {v.metadata.get('size')!r}"
+        )
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
@@ -986,6 +1054,7 @@ def test_update_metadata_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # update-by-filter — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_update_by_filter_rest(client: Pinecone) -> None:
@@ -1038,16 +1107,18 @@ def test_update_by_filter_rest(client: Pinecone) -> None:
         assert isinstance(dry_resp, UpdateResponse)
         # matched_records may be None if not yet indexed, otherwise should be >= 0
         if dry_resp.matched_records is not None:
-            assert dry_resp.matched_records >= 0, \
+            assert dry_resp.matched_records >= 0, (
                 f"dry_run matched_records should be non-negative, got {dry_resp.matched_records}"
+            )
 
         # Verify dry_run did NOT mutate — drama vectors should NOT have reviewed=True yet
         fetched_after_dry = index.fetch(ids=all_ids)
         for vid in ["ubf-d1", "ubf-d2", "ubf-d3"]:
             v = fetched_after_dry.vectors.get(vid)
             if v is not None and v.metadata is not None:
-                assert v.metadata.get("reviewed") is None, \
+                assert v.metadata.get("reviewed") is None, (
                     f"dry_run should not have mutated {vid}: got reviewed={v.metadata.get('reviewed')!r}"
+                )
 
         # Now apply the real filter-based update
         update_resp = index.update(
@@ -1078,19 +1149,23 @@ def test_update_by_filter_rest(client: Pinecone) -> None:
         for vid in ["ubf-d1", "ubf-d2", "ubf-d3"]:
             v = fetched.vectors[vid]  # type: ignore[union-attr]
             assert v.metadata is not None, f"{vid} should have metadata"
-            assert v.metadata.get("reviewed") is True, \
+            assert v.metadata.get("reviewed") is True, (
                 f"{vid} should have reviewed=True, got {v.metadata.get('reviewed')!r}"
-            assert v.metadata.get("genre") == "drama", \
+            )
+            assert v.metadata.get("genre") == "drama", (
                 f"{vid} should still have genre=drama, got {v.metadata.get('genre')!r}"
+            )
 
         # Verify comedy vectors were NOT touched
         for vid in ["ubf-c1", "ubf-c2"]:
             v = fetched.vectors[vid]  # type: ignore[union-attr]
             assert v.metadata is not None, f"{vid} should have metadata"
-            assert v.metadata.get("reviewed") is None, \
+            assert v.metadata.get("reviewed") is None, (
                 f"{vid} (comedy) should NOT have reviewed, got {v.metadata.get('reviewed')!r}"
-            assert v.metadata.get("genre") == "comedy", \
+            )
+            assert v.metadata.get("genre") == "comedy", (
                 f"{vid} should still have genre=comedy, got {v.metadata.get('genre')!r}"
+            )
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
@@ -1099,6 +1174,7 @@ def test_update_by_filter_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # delete-by-filter — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_delete_by_filter_rest(client: Pinecone) -> None:
@@ -1159,17 +1235,20 @@ def test_delete_by_filter_rest(client: Pinecone) -> None:
         active_fetch = index.fetch(ids=active_ids)
         assert isinstance(active_fetch, FetchResponse)
         for vid in active_ids:
-            assert vid in active_fetch.vectors, \
+            assert vid in active_fetch.vectors, (
                 f"active vector {vid!r} should remain after filter-delete"
+            )
             v = active_fetch.vectors[vid]
             assert v.metadata is not None
-            assert v.metadata.get("status") == "active", \
+            assert v.metadata.get("status") == "active", (
                 f"{vid} should still have status='active', got {v.metadata.get('status')!r}"
+            )
 
         # Confirm obsolete vectors are truly gone
         obsolete_fetch = index.fetch(ids=obsolete_ids)
-        assert len(obsolete_fetch.vectors) == 0, \
+        assert len(obsolete_fetch.vectors) == 0, (
             f"obsolete vectors should be deleted but found: {list(obsolete_fetch.vectors.keys())}"
+        )
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
@@ -1178,6 +1257,7 @@ def test_delete_by_filter_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # delete-by-filter — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_delete_by_filter_grpc(client: Pinecone) -> None:
@@ -1236,17 +1316,20 @@ def test_delete_by_filter_grpc(client: Pinecone) -> None:
         active_fetch = index.fetch(ids=active_ids)
         assert isinstance(active_fetch, FetchResponse)
         for vid in active_ids:
-            assert vid in active_fetch.vectors, \
+            assert vid in active_fetch.vectors, (
                 f"active vector {vid!r} should remain after filter-delete (gRPC)"
+            )
             v = active_fetch.vectors[vid]
             assert v.metadata is not None
-            assert v.metadata.get("status") == "active", \
+            assert v.metadata.get("status") == "active", (
                 f"{vid} should still have status='active', got {v.metadata.get('status')!r}"
+            )
 
         # Confirm obsolete vectors are truly gone
         obsolete_fetch = index.fetch(ids=obsolete_ids)
-        assert len(obsolete_fetch.vectors) == 0, \
+        assert len(obsolete_fetch.vectors) == 0, (
             f"obsolete vectors should be deleted but found: {list(obsolete_fetch.vectors.keys())}"
+        )
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
@@ -1255,6 +1338,7 @@ def test_delete_by_filter_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # delete-all-namespace — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_delete_all_namespace_rest(client: Pinecone) -> None:
@@ -1321,24 +1405,28 @@ def test_delete_all_namespace_rest(client: Pinecone) -> None:
         # Verify named-namespace vectors are gone from fetch
         ns_fetch = index.fetch(ids=ns_ids, namespace=ns)
         assert isinstance(ns_fetch, FetchResponse)
-        assert len(ns_fetch.vectors) == 0, \
+        assert len(ns_fetch.vectors) == 0, (
             f"named-namespace vectors should be gone but found: {list(ns_fetch.vectors.keys())}"
+        )
 
         # Verify default namespace is unaffected
         def_fetch = index.fetch(ids=default_ids)
         assert isinstance(def_fetch, FetchResponse)
         for vid in default_ids:
-            assert vid in def_fetch.vectors, \
+            assert vid in def_fetch.vectors, (
                 f"default-namespace vector {vid!r} should survive delete_all on different namespace"
+            )
 
         # Verify stats: named namespace is absent or has 0 vectors; total count == 2
         stats = index.describe_index_stats()
         assert isinstance(stats, DescribeIndexStatsResponse)
         if ns in stats.namespaces:
-            assert stats.namespaces[ns].vector_count == 0, \
+            assert stats.namespaces[ns].vector_count == 0, (
                 f"dan-cleanup-ns should be empty but has {stats.namespaces[ns].vector_count} vectors"
-        assert stats.total_vector_count == 2, \
+            )
+        assert stats.total_vector_count == 2, (
             f"only 2 default-namespace vectors should remain, got total={stats.total_vector_count}"
+        )
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
@@ -1347,6 +1435,7 @@ def test_delete_all_namespace_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # delete-all-namespace — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_delete_all_namespace_grpc(client: Pinecone) -> None:
@@ -1410,24 +1499,28 @@ def test_delete_all_namespace_grpc(client: Pinecone) -> None:
         # Verify named-namespace vectors are gone from fetch
         ns_fetch = index.fetch(ids=ns_ids, namespace=ns)
         assert isinstance(ns_fetch, FetchResponse)
-        assert len(ns_fetch.vectors) == 0, \
+        assert len(ns_fetch.vectors) == 0, (
             f"named-namespace vectors should be gone but found: {list(ns_fetch.vectors.keys())} (gRPC)"
+        )
 
         # Verify default namespace is unaffected
         def_fetch = index.fetch(ids=default_ids)
         assert isinstance(def_fetch, FetchResponse)
         for vid in default_ids:
-            assert vid in def_fetch.vectors, \
+            assert vid in def_fetch.vectors, (
                 f"default-namespace vector {vid!r} should survive delete_all on different namespace (gRPC)"
+            )
 
         # Verify stats: named namespace is absent or has 0 vectors; total count == 2
         stats = index.describe_index_stats()
         assert isinstance(stats, DescribeIndexStatsResponse)
         if ns in stats.namespaces:
-            assert stats.namespaces[ns].vector_count == 0, \
+            assert stats.namespaces[ns].vector_count == 0, (
                 f"dan-cleanup-ns should be empty but has {stats.namespaces[ns].vector_count} vectors (gRPC)"
-        assert stats.total_vector_count == 2, \
+            )
+        assert stats.total_vector_count == 2, (
             f"only 2 default-namespace vectors should remain, got total={stats.total_vector_count} (gRPC)"
+        )
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
@@ -1436,6 +1529,7 @@ def test_delete_all_namespace_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # upsert-records input validation — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_upsert_records_validation_rest(client: Pinecone) -> None:
@@ -1478,6 +1572,7 @@ def test_upsert_records_validation_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # delete() mode validation — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_delete_mode_validation_rest(client: Pinecone) -> None:
@@ -1522,15 +1617,9 @@ def test_delete_mode_validation_rest(client: Pinecone) -> None:
 def test_upsert_records_id_field_normalization_rest(client: Pinecone) -> None:
     """upsert_records normalizes "id" key → "_id" before sending to the API.
 
-    Verifies unified-bp-0007 (partial): A record submitted for upsert must contain
-    either '_id' or 'id'; 'id' is normalized to '_id' when '_id' is absent.
-
-    The SDK renames "id" → "_id" when only "id" is supplied (index/__init__.py:391-392).
-    A record with only the "id" key must be stored with that value as the vector ID.
-
-    NOTE: The dual-key case ("_id" AND "id" both present) is tracked in IT-0012.
-    The SDK currently sends both keys to the API, which returns 400; the correct
-    behaviour is to strip "id" when "_id" is already present.
+    Verifies unified-bp-0007: A record submitted for upsert must contain either '_id'
+    or 'id'; 'id' is normalized to '_id' when '_id' is absent, and '_id' takes
+    precedence when both keys are present (stripping the extra 'id' key).
     """
     name = unique_name("idx")
     namespace = "id-norm-ns"
@@ -1553,25 +1642,29 @@ def test_upsert_records_id_field_normalization_rest(client: Pinecone) -> None:
         )
         index = client.index(name=name)
 
-        # Record with only "id" key — SDK must rename it to "_id" before sending
+        # Three normalization cases:
+        # 1. Only "id" key — SDK must rename it to "_id" before sending
+        # 2. Only "_id" key — no change needed
+        # 3. Both "_id" and "id" — "_id" wins; "id" must be stripped before sending
         records = [
             {"id": "id-field-record", "text": "The id field is normalized to _id before sending."},
             {"_id": "underscore-id-record", "text": "Standard _id key for comparison."},
+            {"_id": "underscore-id-wins", "id": "plain-id-loses", "text": "both keys test"},
         ]
         response = index.upsert_records(records=records, namespace=namespace)
         assert isinstance(response, UpsertRecordsResponse)
-        assert response.record_count == 2
+        assert response.record_count == 3
 
-        # Poll until both records appear in search results
+        # Poll until all records appear in search results
         search_resp = poll_until(
             query_fn=lambda: index.search(
                 namespace=namespace,
                 top_k=5,
                 inputs={"text": "id normalization field"},
             ),
-            check_fn=lambda r: len(r.result.hits) >= 2,
+            check_fn=lambda r: len(r.result.hits) >= 3,
             timeout=120,
-            description="both upserted records searchable (id normalization test)",
+            description="all upserted records searchable (id normalization test)",
         )
 
         hit_ids = {hit.id for hit in search_resp.result.hits}
@@ -1581,6 +1674,12 @@ def test_upsert_records_id_field_normalization_rest(client: Pinecone) -> None:
         assert "underscore-id-record" in hit_ids, (
             f"Expected 'underscore-id-record' in hit IDs but got: {hit_ids}"
         )
+        assert "underscore-id-wins" in hit_ids, (
+            f"Expected 'underscore-id-wins' in hit IDs (_id takes precedence) but got: {hit_ids}"
+        )
+        assert "plain-id-loses" not in hit_ids, (
+            f"Expected 'plain-id-loses' NOT in hit IDs (id stripped when _id present) but got: {hit_ids}"
+        )
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
@@ -1589,6 +1688,7 @@ def test_upsert_records_id_field_normalization_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # upsert-duplicate-ids — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_upsert_duplicate_ids_in_batch_rest(client: Pinecone) -> None:
@@ -1655,10 +1755,9 @@ def test_upsert_duplicate_ids_in_batch_rest(client: Pinecone) -> None:
         v1 = fetched.vectors["dup-v1"]
         assert v1.values is not None, "dup-v1 should have values"
         assert len(v1.values) == 2, f"dup-v1 should have 2 values, got {len(v1.values)}"
-        assert abs(v1.values[0] - last_values[0]) < 1e-4 and abs(v1.values[1] - last_values[1]) < 1e-4, (
-            f"dup-v1 should have last_values {last_values!r} (last-write-wins), "
-            f"got {v1.values!r}"
-        )
+        assert (
+            abs(v1.values[0] - last_values[0]) < 1e-4 and abs(v1.values[1] - last_values[1]) < 1e-4
+        ), f"dup-v1 should have last_values {last_values!r} (last-write-wins), got {v1.values!r}"
 
         # Control: dup-v2 values are unaffected
         v2 = fetched.vectors["dup-v2"]
@@ -1674,6 +1773,7 @@ def test_upsert_duplicate_ids_in_batch_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # upsert-duplicate-ids — gRPC sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_upsert_duplicate_ids_in_batch_grpc(client: Pinecone) -> None:
@@ -1712,9 +1812,9 @@ def test_upsert_duplicate_ids_in_batch_grpc(client: Pinecone) -> None:
         assert len(fetched.vectors) == 2
         v1 = fetched.vectors["dup-v1"]
         assert v1.values is not None
-        assert abs(v1.values[0] - last_values[0]) < 1e-4 and abs(v1.values[1] - last_values[1]) < 1e-4, (
-            f"gRPC: dup-v1 should have last_values {last_values!r}, got {v1.values!r}"
-        )
+        assert (
+            abs(v1.values[0] - last_values[0]) < 1e-4 and abs(v1.values[1] - last_values[1]) < 1e-4
+        ), f"gRPC: dup-v1 should have last_values {last_values!r}, got {v1.values!r}"
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")

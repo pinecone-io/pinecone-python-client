@@ -33,6 +33,7 @@ from tests.integration.conftest import (
 # upsert-formats — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_upsert_formats_async(async_client: AsyncPinecone) -> None:
@@ -88,7 +89,9 @@ async def test_upsert_formats_async(async_client: AsyncPinecone) -> None:
         v1 = fetched.vectors["fmt-v1"]
         assert v1.id == "fmt-v1"
         assert len(v1.values) == 4
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v1.values, [0.1, 0.2, 0.3, 0.4]))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v1.values, [0.1, 0.2, 0.3, 0.4])
+        )
         assert v1.metadata is not None
         assert v1.metadata.get("fmt") == "object"
         assert v1.metadata.get("n") == 1
@@ -97,13 +100,17 @@ async def test_upsert_formats_async(async_client: AsyncPinecone) -> None:
         v2 = fetched.vectors["fmt-v2"]
         assert v2.id == "fmt-v2"
         assert len(v2.values) == 4
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v2.values, [0.2, 0.3, 0.4, 0.5]))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v2.values, [0.2, 0.3, 0.4, 0.5])
+        )
 
         # Verify Format 3: (id, values, metadata) tuple
         v3 = fetched.vectors["fmt-v3"]
         assert v3.id == "fmt-v3"
         assert len(v3.values) == 4
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v3.values, [0.3, 0.4, 0.5, 0.6]))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v3.values, [0.3, 0.4, 0.5, 0.6])
+        )
         assert v3.metadata is not None
         assert v3.metadata.get("fmt") == "tuple3"
         assert v3.metadata.get("n") == 3
@@ -112,24 +119,27 @@ async def test_upsert_formats_async(async_client: AsyncPinecone) -> None:
         v4 = fetched.vectors["fmt-v4"]
         assert v4.id == "fmt-v4"
         assert len(v4.values) == 4
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v4.values, [0.4, 0.5, 0.6, 0.7]))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v4.values, [0.4, 0.5, 0.6, 0.7])
+        )
         assert v4.sparse_values is not None
         assert isinstance(v4.sparse_values, SparseValues)
         assert v4.sparse_values.indices == [0, 2]
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v4.sparse_values.values, [0.9, 0.8]))
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v4.sparse_values.values, [0.9, 0.8])
+        )
         assert v4.metadata is not None
         assert v4.metadata.get("fmt") == "dict"
         assert v4.metadata.get("n") == 4
 
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
 # upsert-batch — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -171,14 +181,13 @@ async def test_upsert_batch_async(async_client: AsyncPinecone) -> None:
         assert stats.total_vector_count >= 200
 
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
 # upsert-overwrite — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -203,7 +212,9 @@ async def test_upsert_overwrite_async(async_client: AsyncPinecone) -> None:
         index = async_client.index(host=desc.host)
 
         # First write
-        await index.upsert(vectors=[{"id": "ow-1", "values": [0.1, 0.2], "metadata": {"v": 1, "original": "yes"}}])
+        await index.upsert(
+            vectors=[{"id": "ow-1", "values": [0.1, 0.2], "metadata": {"v": 1, "original": "yes"}}]
+        )
 
         # Wait for first write to be visible
         await async_poll_until(
@@ -222,7 +233,9 @@ async def test_upsert_overwrite_async(async_client: AsyncPinecone) -> None:
         assert v_before.metadata.get("original") == "yes"
 
         # Second write — overwrite same ID
-        await index.upsert(vectors=[{"id": "ow-1", "values": [0.9, 0.8], "metadata": {"v": 2, "new_key": "hello"}}])
+        await index.upsert(
+            vectors=[{"id": "ow-1", "values": [0.9, 0.8], "metadata": {"v": 2, "new_key": "hello"}}]
+        )
 
         # Wait for second write to propagate — poll until values change
         async def _second_write_visible() -> object:
@@ -244,25 +257,26 @@ async def test_upsert_overwrite_async(async_client: AsyncPinecone) -> None:
         v_after = fetched_after.vectors["ow-1"]  # type: ignore[union-attr]
         assert v_after.id == "ow-1"
         # Values completely replaced
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v_after.values, [0.9, 0.8])), \
+        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v_after.values, [0.9, 0.8])), (
             f"expected [0.9, 0.8] but got {v_after.values}"
+        )
         # Metadata completely replaced — new keys present
         assert v_after.metadata is not None
         assert v_after.metadata.get("v") == 2
         assert v_after.metadata.get("new_key") == "hello"
         # Old metadata key gone
-        assert "original" not in v_after.metadata, \
+        assert "original" not in v_after.metadata, (
             f"old key 'original' should not persist after overwrite; got metadata={v_after.metadata}"
+        )
 
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
 # upsert-records-batch — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -303,7 +317,10 @@ async def test_upsert_records_batch_async(async_client: AsyncPinecone) -> None:
         index = async_client.index(host=desc.host)
 
         records = [
-            {"_id": f"urb-{i}", "text": f"Record number {i}: vector database similarity search use case {i}."}
+            {
+                "_id": f"urb-{i}",
+                "text": f"Record number {i}: vector database similarity search use case {i}.",
+            }
             for i in range(50)
         ]
         response = await index.upsert_records(records=records, namespace=namespace)
@@ -331,14 +348,13 @@ async def test_upsert_records_batch_async(async_client: AsyncPinecone) -> None:
         assert first_hit.id.startswith("urb-")
 
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
 # upsert-records — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -408,14 +424,13 @@ async def test_upsert_records_async(async_client: AsyncPinecone) -> None:
         assert first_hit.id.startswith("urec-")
 
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
 # update-metadata — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -440,11 +455,15 @@ async def test_update_metadata_async(async_client: AsyncPinecone) -> None:
         index = async_client.index(host=desc.host)
 
         # Upsert a vector with two metadata fields
-        await index.upsert(vectors=[{
-            "id": "um-v1",
-            "values": [0.1, 0.2],
-            "metadata": {"color": "red", "size": 5},
-        }])
+        await index.upsert(
+            vectors=[
+                {
+                    "id": "um-v1",
+                    "values": [0.1, 0.2],
+                    "metadata": {"color": "red", "size": 5},
+                }
+            ]
+        )
 
         # Wait for vector to be fetchable
         await async_poll_until(
@@ -478,21 +497,22 @@ async def test_update_metadata_async(async_client: AsyncPinecone) -> None:
         v = fetched.vectors["um-v1"]  # type: ignore[union-attr]
         assert v.metadata is not None
         # Updated field
-        assert v.metadata.get("color") == "blue", \
+        assert v.metadata.get("color") == "blue", (
             f"expected color='blue', got {v.metadata.get('color')!r}"
+        )
         # Preserved field — merge semantics (NOT replaced)
-        assert v.metadata.get("size") == 5, \
+        assert v.metadata.get("size") == 5, (
             f"expected size=5 to be preserved but got {v.metadata.get('size')!r}"
+        )
 
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
 # update-sparse — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -519,11 +539,15 @@ async def test_update_sparse_async(async_client: AsyncPinecone) -> None:
         index = async_client.index(host=desc.host)
 
         # Upsert hybrid vector with initial sparse values
-        await index.upsert(vectors=[{
-            "id": "us-v1",
-            "values": [0.1, 0.2, 0.3, 0.4],
-            "sparse_values": {"indices": [0, 3], "values": [0.5, 0.8]},
-        }])
+        await index.upsert(
+            vectors=[
+                {
+                    "id": "us-v1",
+                    "values": [0.1, 0.2, 0.3, 0.4],
+                    "sparse_values": {"indices": [0, 3], "values": [0.5, 0.8]},
+                }
+            ]
+        )
 
         # Wait for vector to be fetchable
         await async_poll_until(
@@ -561,24 +585,26 @@ async def test_update_sparse_async(async_client: AsyncPinecone) -> None:
         # New sparse values present
         assert v.sparse_values is not None, "sparse_values should be present after update (async)"
         assert isinstance(v.sparse_values, SparseValues)
-        assert v.sparse_values.indices == [1, 2], \
+        assert v.sparse_values.indices == [1, 2], (
             f"expected sparse indices [1, 2], got {v.sparse_values.indices}"
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.sparse_values.values, [0.9, 0.7])), \
-            f"expected sparse values [0.9, 0.7], got {v.sparse_values.values}"
+        )
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.sparse_values.values, [0.9, 0.7])
+        ), f"expected sparse values [0.9, 0.7], got {v.sparse_values.values}"
         # Dense values preserved
         assert len(v.values) == 4, f"expected 4 dense values, got {len(v.values)}"
-        assert all(math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.values, [0.1, 0.2, 0.3, 0.4])), \
-            f"expected dense values [0.1, 0.2, 0.3, 0.4], got {v.values}"
+        assert all(
+            math.isclose(a, b, rel_tol=1e-5) for a, b in zip(v.values, [0.1, 0.2, 0.3, 0.4])
+        ), f"expected dense values [0.1, 0.2, 0.3, 0.4], got {v.values}"
 
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
 # update-by-filter — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -632,16 +658,18 @@ async def test_update_by_filter_async(async_client: AsyncPinecone) -> None:
         assert isinstance(dry_resp, UpdateResponse)
         # matched_records may be None if not yet indexed, otherwise should be >= 0
         if dry_resp.matched_records is not None:
-            assert dry_resp.matched_records >= 0, \
+            assert dry_resp.matched_records >= 0, (
                 f"dry_run matched_records should be non-negative, got {dry_resp.matched_records}"
+            )
 
         # Verify dry_run did NOT mutate — drama vectors should NOT have reviewed=True yet
         fetched_after_dry = await index.fetch(ids=all_ids)
         for vid in ["ubf-d1", "ubf-d2", "ubf-d3"]:
             v = fetched_after_dry.vectors.get(vid)
             if v is not None and v.metadata is not None:
-                assert v.metadata.get("reviewed") is None, \
+                assert v.metadata.get("reviewed") is None, (
                     f"dry_run should not have mutated {vid}: got reviewed={v.metadata.get('reviewed')!r}"
+                )
 
         # Now apply the real filter-based update
         update_resp = await index.update(
@@ -672,29 +700,32 @@ async def test_update_by_filter_async(async_client: AsyncPinecone) -> None:
         for vid in ["ubf-d1", "ubf-d2", "ubf-d3"]:
             v = fetched.vectors[vid]  # type: ignore[union-attr]
             assert v.metadata is not None, f"{vid} should have metadata"
-            assert v.metadata.get("reviewed") is True, \
+            assert v.metadata.get("reviewed") is True, (
                 f"{vid} should have reviewed=True, got {v.metadata.get('reviewed')!r}"
-            assert v.metadata.get("genre") == "drama", \
+            )
+            assert v.metadata.get("genre") == "drama", (
                 f"{vid} should still have genre=drama, got {v.metadata.get('genre')!r}"
+            )
 
         # Verify comedy vectors were NOT touched
         for vid in ["ubf-c1", "ubf-c2"]:
             v = fetched.vectors[vid]  # type: ignore[union-attr]
             assert v.metadata is not None, f"{vid} should have metadata"
-            assert v.metadata.get("reviewed") is None, \
+            assert v.metadata.get("reviewed") is None, (
                 f"{vid} (comedy) should NOT have reviewed, got {v.metadata.get('reviewed')!r}"
-            assert v.metadata.get("genre") == "comedy", \
+            )
+            assert v.metadata.get("genre") == "comedy", (
                 f"{vid} should still have genre=comedy, got {v.metadata.get('genre')!r}"
+            )
 
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
 # delete-by-filter — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -756,27 +787,29 @@ async def test_delete_by_filter_async(async_client: AsyncPinecone) -> None:
         active_fetch = await index.fetch(ids=active_ids)
         assert isinstance(active_fetch, FetchResponse)
         for vid in active_ids:
-            assert vid in active_fetch.vectors, \
+            assert vid in active_fetch.vectors, (
                 f"active vector {vid!r} should remain after filter-delete (async)"
+            )
             v = active_fetch.vectors[vid]
             assert v.metadata is not None
-            assert v.metadata.get("status") == "active", \
+            assert v.metadata.get("status") == "active", (
                 f"{vid} should still have status='active', got {v.metadata.get('status')!r}"
+            )
 
         # Confirm obsolete vectors are truly gone
         obsolete_fetch = await index.fetch(ids=obsolete_ids)
-        assert len(obsolete_fetch.vectors) == 0, \
+        assert len(obsolete_fetch.vectors) == 0, (
             f"obsolete vectors should be deleted but found: {list(obsolete_fetch.vectors.keys())}"
+        )
 
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
 # delete-all-namespace — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -844,34 +877,37 @@ async def test_delete_all_namespace_async(async_client: AsyncPinecone) -> None:
         # Verify named-namespace vectors are gone from fetch
         ns_fetch = await index.fetch(ids=ns_ids, namespace=ns)
         assert isinstance(ns_fetch, FetchResponse)
-        assert len(ns_fetch.vectors) == 0, \
+        assert len(ns_fetch.vectors) == 0, (
             f"named-namespace vectors should be gone but found: {list(ns_fetch.vectors.keys())} (async)"
+        )
 
         # Verify default namespace is unaffected
         def_fetch = await index.fetch(ids=default_ids)
         assert isinstance(def_fetch, FetchResponse)
         for vid in default_ids:
-            assert vid in def_fetch.vectors, \
+            assert vid in def_fetch.vectors, (
                 f"default-namespace vector {vid!r} should survive delete_all on different namespace (async)"
+            )
 
         # Verify stats: named namespace is absent or has 0 vectors; total count == 2
         stats = await index.describe_index_stats()
         assert isinstance(stats, DescribeIndexStatsResponse)
         if ns in stats.namespaces:
-            assert stats.namespaces[ns].vector_count == 0, \
+            assert stats.namespaces[ns].vector_count == 0, (
                 f"dan-cleanup-ns should be empty but has {stats.namespaces[ns].vector_count} vectors (async)"
-        assert stats.total_vector_count == 2, \
+            )
+        assert stats.total_vector_count == 2, (
             f"only 2 default-namespace vectors should remain, got total={stats.total_vector_count} (async)"
+        )
 
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
 # upsert-records input validation — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -915,6 +951,7 @@ async def test_upsert_records_validation_async(async_client: AsyncPinecone) -> N
 # ---------------------------------------------------------------------------
 # delete() mode validation — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -971,7 +1008,9 @@ async def test_upsert_from_dataframe_not_supported_async(async_client: AsyncPine
     # No network call is made — NotImplementedError is raised synchronously.
     index = async_client.index(host="fake-index.svc.pinecone.io")
 
-    with pytest.raises(NotImplementedError, match="upsert_from_dataframe is not supported for async clients"):
+    with pytest.raises(
+        NotImplementedError, match="upsert_from_dataframe is not supported for async clients"
+    ):
         await index.upsert_from_dataframe(df=None)  # type: ignore[arg-type]
 
 
@@ -985,12 +1024,11 @@ async def test_upsert_from_dataframe_not_supported_async(async_client: AsyncPine
 async def test_upsert_records_id_field_normalization_async(async_client: AsyncPinecone) -> None:
     """upsert_records normalizes "id" key → "_id" before sending to the API (async).
 
-    Verifies unified-bp-0007 (partial): A record submitted for upsert must contain
-    either '_id' or 'id'; 'id' is normalized to '_id' when '_id' is absent.
+    Verifies unified-bp-0007: A record submitted for upsert must contain either '_id'
+    or 'id'; 'id' is normalized to '_id' when '_id' is absent, and '_id' takes
+    precedence when both keys are present (stripping the extra 'id' key).
 
     Mirrors test_upsert_records_id_field_normalization_rest for the async transport.
-
-    NOTE: The dual-key case ("_id" AND "id" both present) is tracked in IT-0012.
     """
     name = unique_name("idx")
     namespace = "id-norm-ns"
@@ -1019,25 +1057,29 @@ async def test_upsert_records_id_field_normalization_async(async_client: AsyncPi
         desc = await async_client.indexes.describe(name)
         index = async_client.index(host=desc.host)
 
-        # Record with only "id" key — SDK must rename it to "_id" before sending
+        # Three normalization cases:
+        # 1. Only "id" key — SDK must rename it to "_id" before sending
+        # 2. Only "_id" key — no change needed
+        # 3. Both "_id" and "id" — "_id" wins; "id" must be stripped before sending
         records = [
             {"id": "id-field-record", "text": "The id field is normalized to _id before sending."},
             {"_id": "underscore-id-record", "text": "Standard _id key for comparison."},
+            {"_id": "underscore-id-wins", "id": "plain-id-loses", "text": "both keys test"},
         ]
         response = await index.upsert_records(records=records, namespace=namespace)
         assert isinstance(response, UpsertRecordsResponse)
-        assert response.record_count == 2
+        assert response.record_count == 3
 
-        # Poll until both records appear in search results
+        # Poll until all records appear in search results
         search_resp = await async_poll_until(
             query_fn=lambda: index.search(
                 namespace=namespace,
                 top_k=5,
                 inputs={"text": "id normalization field"},
             ),
-            check_fn=lambda r: len(r.result.hits) >= 2,
+            check_fn=lambda r: len(r.result.hits) >= 3,
             timeout=120,
-            description="both upserted records searchable (id normalization test, async)",
+            description="all upserted records searchable (id normalization test, async)",
         )
 
         hit_ids = {hit.id for hit in search_resp.result.hits}
@@ -1047,16 +1089,21 @@ async def test_upsert_records_id_field_normalization_async(async_client: AsyncPi
         assert "underscore-id-record" in hit_ids, (
             f"Expected 'underscore-id-record' in hit IDs but got: {hit_ids}"
         )
+        assert "underscore-id-wins" in hit_ids, (
+            f"Expected 'underscore-id-wins' in hit IDs (_id takes precedence) but got: {hit_ids}"
+        )
+        assert "plain-id-loses" not in hit_ids, (
+            f"Expected 'plain-id-loses' NOT in hit IDs (id stripped when _id present) but got: {hit_ids}"
+        )
 
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
 # upsert-duplicate-ids — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -1116,7 +1163,9 @@ async def test_upsert_duplicate_ids_in_batch_async(async_client: AsyncPinecone) 
         v1 = fetched.vectors["dup-v1"]
         assert v1.values is not None
         assert len(v1.values) == 2
-        assert abs(v1.values[0] - last_values[0]) < 1e-4 and abs(v1.values[1] - last_values[1]) < 1e-4, (
+        assert (
+            abs(v1.values[0] - last_values[0]) < 1e-4 and abs(v1.values[1] - last_values[1]) < 1e-4
+        ), (
             f"async: dup-v1 should have last_values {last_values!r} (last-write-wins), "
             f"got {v1.values!r}"
         )
@@ -1128,6 +1177,4 @@ async def test_upsert_duplicate_ids_in_batch_async(async_client: AsyncPinecone) 
         )
 
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")

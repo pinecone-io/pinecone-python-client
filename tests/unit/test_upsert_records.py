@@ -139,6 +139,25 @@ class TestUpsertRecords:
         assert parsed_1["_id"] == "r2"
         assert "id" not in parsed_1
 
+    @respx.mock
+    def test_upsert_records_both_id_keys_underscore_wins(self) -> None:
+        """When both '_id' and 'id' are present, '_id' takes precedence and 'id' is stripped."""
+        route = respx.post(UPSERT_URL).mock(
+            return_value=httpx.Response(201),
+        )
+        idx = _make_index()
+        result = idx.upsert_records(
+            namespace="test-ns",
+            records=[{"_id": "underscore-id-wins", "id": "plain-id-loses", "text": "both keys test"}],
+        )
+
+        assert result.record_count == 1
+        body = route.calls.last.request.content.decode("utf-8")
+        parsed = json.loads(body.strip())
+        assert parsed["_id"] == "underscore-id-wins"
+        assert "id" not in parsed
+        assert parsed["text"] == "both keys test"
+
     def test_upsert_records_keyword_only(self) -> None:
         idx = _make_index()
         with pytest.raises(TypeError):

@@ -390,6 +390,8 @@ class Index:
             r = dict(record)  # shallow copy
             if "_id" not in r and "id" in r:
                 r["_id"] = r.pop("id")
+            elif "_id" in r and "id" in r:
+                del r["id"]  # _id takes precedence; strip the extra key
             normalized.append(r)
 
         ndjson_lines = [orjson.dumps(r).decode("utf-8") for r in normalized]
