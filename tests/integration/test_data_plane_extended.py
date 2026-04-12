@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from pinecone import Pinecone
+from pinecone import Field, Pinecone
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
 from pinecone.models.vectors.responses import (
@@ -818,5 +818,170 @@ def test_metadata_filter_numeric_operators_rest(client: Pinecone) -> None:
         assert "nf-v2" in ne_ids
         assert "nf-v4" in ne_ids
         assert "nf-v3" not in ne_ids
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# metadata-filter logical operators ($nin, &, |) via Field builder — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_metadata_filter_logical_operators_rest(client: Pinecone) -> None:
+    """$nin, logical AND (&), and logical OR (|) via the Field builder filter correctly (REST sync).
+
+    Verifies:
+      unified-filter-0002 — not-in-list ($nin) operator
+      unified-filter-0004 — combining filters with & (AND) and | (OR)
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert 4 vectors with genre + year metadata
+        index.upsert(
+            vectors=[
+                {"id": "lo-v1", "values": [0.1, 0.2], "metadata": {"genre": "comedy", "year": 2020}},
+                {"id": "lo-v2", "values": [0.3, 0.4], "metadata": {"genre": "action", "year": 2021}},
+                {"id": "lo-v3", "values": [0.5, 0.6], "metadata": {"genre": "comedy", "year": 2022}},
+                {"id": "lo-v4", "values": [0.7, 0.8], "metadata": {"genre": "horror", "year": 2021}},
+            ]
+        )
+
+        # Wait until all 4 vectors are visible
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.5, 0.5], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 4,
+            timeout=120,
+            description="all 4 vectors queryable before logical filter tests",
+        )
+
+        # $nin: genres NOT in ["horror", "action"] → should return only comedy vectors (v1, v3)
+        nin_filter = Field("genre").not_in(["horror", "action"])
+        nin_result = index.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter=nin_filter.to_dict(),
+            include_metadata=True,
+        )
+        assert isinstance(nin_result, QueryResponse)
+        nin_ids = {m.id for m in nin_result.matches}
+        assert "lo-v1" in nin_ids
+        assert "lo-v3" in nin_ids
+        assert "lo-v2" not in nin_ids
+        assert "lo-v4" not in nin_ids
+
+        # & (AND): genre == comedy AND year >= 2021 → should return only v3 (2022)
+        and_filter = (Field("genre") == "comedy") & Field("year").gte(2021)
+        and_result = index.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter=and_filter.to_dict(),
+            include_metadata=True,
+        )
+        assert isinstance(and_result, QueryResponse)
+        and_ids = {m.id for m in and_result.matches}
+        assert "lo-v3" in and_ids
+        assert "lo-v1" not in and_ids  # comedy but year 2020 < 2021
+        assert "lo-v2" not in and_ids  # action
+        assert "lo-v4" not in and_ids  # horror
+
+        # | (OR): genre == horror OR genre == action → should return v2 and v4
+        or_filter = (Field("genre") == "horror") | (Field("genre") == "action")
+        or_result = index.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter=or_filter.to_dict(),
+            include_metadata=True,
+        )
+        assert isinstance(or_result, QueryResponse)
+        or_ids = {m.id for m in or_result.matches}
+        assert "lo-v2" in or_ids
+        assert "lo-v4" in or_ids
+        assert "lo-v1" not in or_ids
+        assert "lo-v3" not in or_ids
+
+        # Verify to_dict() produces the correct wire-format dicts
+        assert and_filter.to_dict() == {
+            "$and": [{"genre": {"$eq": "comedy"}}, {"year": {"$gte": 2021}}]
+        }
+        assert or_filter.to_dict() == {
+            "$or": [{"genre": {"$eq": "horror"}}, {"genre": {"$eq": "action"}}]
+        }
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# metadata-filter logical operators ($nin, &, |) via Field builder — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_metadata_filter_logical_operators_grpc(client: Pinecone) -> None:
+    """$nin and logical AND (&) via the Field builder filter correctly (gRPC).
+
+    Verifies unified-filter-0002 and unified-filter-0004 on the gRPC transport.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        index.upsert(
+            vectors=[
+                {"id": "lo-v1", "values": [0.1, 0.2], "metadata": {"genre": "comedy", "year": 2020}},
+                {"id": "lo-v2", "values": [0.3, 0.4], "metadata": {"genre": "action", "year": 2021}},
+                {"id": "lo-v3", "values": [0.5, 0.6], "metadata": {"genre": "comedy", "year": 2022}},
+                {"id": "lo-v4", "values": [0.7, 0.8], "metadata": {"genre": "horror", "year": 2021}},
+            ]
+        )
+
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.5, 0.5], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 4,
+            timeout=120,
+            description="all 4 vectors queryable (grpc) before logical filter tests",
+        )
+
+        # $nin: genres NOT in ["horror", "action"] → comedy vectors only (v1, v3)
+        nin_filter = Field("genre").not_in(["horror", "action"])
+        nin_result = index.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter=nin_filter.to_dict(),
+        )
+        assert isinstance(nin_result, QueryResponse)
+        nin_ids = {m.id for m in nin_result.matches}
+        assert "lo-v1" in nin_ids
+        assert "lo-v3" in nin_ids
+        assert "lo-v2" not in nin_ids
+        assert "lo-v4" not in nin_ids
+
+        # & (AND): genre == comedy AND year >= 2021 → v3 only
+        and_filter = (Field("genre") == "comedy") & Field("year").gte(2021)
+        and_result = index.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter=and_filter.to_dict(),
+        )
+        assert isinstance(and_result, QueryResponse)
+        and_ids = {m.id for m in and_result.matches}
+        assert "lo-v3" in and_ids
+        assert "lo-v1" not in and_ids
+        assert "lo-v2" not in and_ids
+        assert "lo-v4" not in and_ids
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")

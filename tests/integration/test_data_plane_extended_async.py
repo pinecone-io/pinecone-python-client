@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import pytest
 
-from pinecone import AsyncIndex, AsyncPinecone
+from pinecone import AsyncIndex, AsyncPinecone, Field
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
 from pinecone.models.vectors.responses import (
@@ -617,6 +617,105 @@ async def test_metadata_filter_numeric_operators_rest_async(async_client: AsyncP
         assert "nf-v2" in ne_ids
         assert "nf-v4" in ne_ids
         assert "nf-v3" not in ne_ids
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# metadata-filter logical operators ($nin, &, |) via Field builder — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_metadata_filter_logical_operators_rest_async(async_client: AsyncPinecone) -> None:
+    """$nin, logical AND (&), and logical OR (|) via the Field builder filter correctly (REST async).
+
+    Verifies:
+      unified-filter-0002 — not-in-list ($nin) operator
+      unified-filter-0004 — combining filters with & (AND) and | (OR)
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        # Upsert 4 vectors with genre + year metadata
+        await idx.upsert(
+            vectors=[
+                {"id": "lo-v1", "values": [0.1, 0.2], "metadata": {"genre": "comedy", "year": 2020}},
+                {"id": "lo-v2", "values": [0.3, 0.4], "metadata": {"genre": "action", "year": 2021}},
+                {"id": "lo-v3", "values": [0.5, 0.6], "metadata": {"genre": "comedy", "year": 2022}},
+                {"id": "lo-v4", "values": [0.7, 0.8], "metadata": {"genre": "horror", "year": 2021}},
+            ]
+        )
+
+        # Wait until all 4 vectors are visible
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.5, 0.5], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 4,
+            timeout=120,
+            description="all 4 vectors queryable before logical filter tests (async)",
+        )
+
+        # $nin: genres NOT in ["horror", "action"] → comedy vectors only (v1, v3)
+        nin_filter = Field("genre").not_in(["horror", "action"])
+        nin_result = await idx.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter=nin_filter.to_dict(),
+            include_metadata=True,
+        )
+        assert isinstance(nin_result, QueryResponse)
+        nin_ids = {m.id for m in nin_result.matches}
+        assert "lo-v1" in nin_ids
+        assert "lo-v3" in nin_ids
+        assert "lo-v2" not in nin_ids
+        assert "lo-v4" not in nin_ids
+
+        # & (AND): genre == comedy AND year >= 2021 → v3 only (comedy + 2022)
+        and_filter = (Field("genre") == "comedy") & Field("year").gte(2021)
+        and_result = await idx.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter=and_filter.to_dict(),
+            include_metadata=True,
+        )
+        assert isinstance(and_result, QueryResponse)
+        and_ids = {m.id for m in and_result.matches}
+        assert "lo-v3" in and_ids
+        assert "lo-v1" not in and_ids
+        assert "lo-v2" not in and_ids
+        assert "lo-v4" not in and_ids
+
+        # | (OR): genre == horror OR genre == action → v2 and v4
+        or_filter = (Field("genre") == "horror") | (Field("genre") == "action")
+        or_result = await idx.query(
+            vector=[0.5, 0.5],
+            top_k=10,
+            filter=or_filter.to_dict(),
+            include_metadata=True,
+        )
+        assert isinstance(or_result, QueryResponse)
+        or_ids = {m.id for m in or_result.matches}
+        assert "lo-v2" in or_ids
+        assert "lo-v4" in or_ids
+        assert "lo-v1" not in or_ids
+        assert "lo-v3" not in or_ids
     finally:
         if idx is not None:
             await idx.close()
