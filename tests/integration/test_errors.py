@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from pinecone import Pinecone
+from pinecone import GrpcIndex, Index, Pinecone, PineconeValueError
 from pinecone.errors import ApiError, ConflictError, NotFoundError, UnauthorizedError
 from pinecone.models.indexes.specs import ServerlessSpec
 from tests.integration.conftest import cleanup_resource, unique_name
@@ -175,3 +175,36 @@ def test_duplicate_index_raises_conflict_error(client: Pinecone) -> None:
         assert not msg.strip().isdigit()
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# error-invalid-host  (unified-index-0043)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_invalid_index_host_raises_value_error() -> None:
+    """Index and GrpcIndex raise PineconeValueError for hosts without a dot or 'localhost'.
+
+    Verifies unified-index-0043: host URL validation fires at construction time,
+    before any network call is attempted. A host string must contain a dot or
+    the substring 'localhost' to be considered a plausible URL.
+    """
+    # REST Index: no-dot host rejected
+    with pytest.raises(PineconeValueError):
+        Index(host="nodot", api_key="testkey")
+
+    # REST Index: empty string rejected
+    with pytest.raises(PineconeValueError):
+        Index(host="", api_key="testkey")
+
+    # REST Index: whitespace-only rejected
+    with pytest.raises(PineconeValueError):
+        Index(host="   ", api_key="testkey")
+
+    # GrpcIndex: same validation applies
+    with pytest.raises(PineconeValueError):
+        GrpcIndex(host="nodot", api_key="testkey")
+
+    with pytest.raises(PineconeValueError):
+        GrpcIndex(host="", api_key="testkey")

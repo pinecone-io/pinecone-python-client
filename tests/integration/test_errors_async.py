@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from pinecone import AsyncPinecone
+from pinecone import AsyncIndex, AsyncPinecone, PineconeValueError
 from pinecone.errors import ApiError, ConflictError, NotFoundError, UnauthorizedError
 from pinecone.models.indexes.specs import ServerlessSpec
 from tests.integration.conftest import async_cleanup_resource, unique_name
@@ -164,3 +164,32 @@ async def test_duplicate_index_raises_conflict_error_async(
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name), name, "index"
         )
+
+
+# ---------------------------------------------------------------------------
+# error-invalid-host  (unified-index-0043 + unified-index-0048)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_invalid_index_host_raises_value_error_async() -> None:
+    """AsyncIndex raises PineconeValueError for hosts without a dot or 'localhost'.
+
+    Verifies unified-index-0043 for the async REST transport: host URL
+    validation fires at construction time, before any network call.
+
+    Also verifies unified-index-0048: AsyncPinecone raises NotImplementedError
+    when proxy_headers are supplied (not yet supported for the async client).
+    """
+    # AsyncIndex: no-dot host rejected
+    with pytest.raises(PineconeValueError):
+        AsyncIndex(host="nodot", api_key="testkey")
+
+    # AsyncIndex: empty string rejected
+    with pytest.raises(PineconeValueError):
+        AsyncIndex(host="", api_key="testkey")
+
+    # unified-index-0048: proxy_headers not yet supported for async client
+    with pytest.raises(NotImplementedError):
+        AsyncPinecone(api_key="testkey", proxy_headers={"X-Proxy-Auth": "secret"})
