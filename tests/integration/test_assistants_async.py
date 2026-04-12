@@ -27,7 +27,11 @@ from pinecone.models.assistant.context import ContextResponse, TextSnippet
 from pinecone.models.assistant.evaluation import AlignmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.model import AssistantModel
-from pinecone.models.assistant.streaming import ChatStreamChunk, StreamContentChunk
+from pinecone.models.assistant.streaming import (
+    ChatCompletionStreamChunk,
+    ChatStreamChunk,
+    StreamContentChunk,
+)
 from tests.integration.conftest import async_cleanup_resource, async_poll_until, unique_name
 
 # ---------------------------------------------------------------------------
@@ -1242,6 +1246,113 @@ async def test_context_retrieval_with_query_param_async(
                 assert isinstance(snippet.content, str) and len(snippet.content) > 0, (
                     "TextSnippet.content should be a non-empty string"
                 )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# assistant-chat-completions-streaming
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_chat_completions_streaming_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """chat_completions(stream=True) returns AsyncIterator[ChatCompletionStreamChunk] (async).
+
+    Verifies:
+    - unified-stream-0002: Chat completions support streaming mode that returns chunks
+      lazily as they arrive (async variant).
+    - ChatCompletionStreamChunk structure: each chunk has id (str) and choices list;
+      each choice has index (int), delta with optional content (str), and optional
+      finish_reason.
+    - At least one chunk has non-empty delta.content; full concatenated response is non-empty.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        assistant = await async_client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-ccstream-"
+        ) as f:
+            f.write("Pinecone is a managed vector database for AI-powered search.")
+            tmp_path = f.name
+
+        await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        # chat_completions(stream=True) returns AsyncIterator[ChatCompletionStreamChunk]
+        stream = await async_client.assistants.chat_completions(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What is Pinecone?"}],
+            stream=True,
+        )
+
+        # Consume the full async stream
+        chunks: list[ChatCompletionStreamChunk] = [chunk async for chunk in stream]
+
+        # Must receive at least one chunk
+        assert len(chunks) > 0, "Expected at least one ChatCompletionStreamChunk"
+
+        # Every chunk must conform to the expected structure
+        for chunk in chunks:
+            assert isinstance(chunk, ChatCompletionStreamChunk), (
+                f"Expected ChatCompletionStreamChunk, got {type(chunk)}"
+            )
+            assert isinstance(chunk.id, str) and chunk.id != "", (
+                f"ChatCompletionStreamChunk.id must be a non-empty string, got {chunk.id!r}"
+            )
+            assert isinstance(chunk.choices, list), "choices must be a list"
+            for choice in chunk.choices:
+                assert isinstance(choice.index, int), "choice.index must be int"
+                assert choice.delta.content is None or isinstance(choice.delta.content, str), (
+                    f"delta.content must be str or None, got {type(choice.delta.content)}"
+                )
+
+        # At least one chunk must carry delta content
+        content_choices = [
+            c
+            for chunk in chunks
+            for c in chunk.choices
+            if c.delta.content is not None and c.delta.content != ""
+        ]
+        assert len(content_choices) > 0, (
+            "Expected at least one chunk with non-empty delta.content"
+        )
+
+        # Concatenated response must be meaningful
+        full_content = "".join(
+            c.delta.content
+            for chunk in chunks
+            for c in chunk.choices
+            if c.delta.content is not None
+        )
+        assert len(full_content) > 0, "Concatenated streaming content must not be empty"
 
     finally:
         if tmp_path is not None:
