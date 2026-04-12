@@ -471,6 +471,94 @@ async def test_assistant_chat_completions_openai_compatible_response(
 
 
 # ---------------------------------------------------------------------------
+# assistant-chat-typed-messages
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.skip(reason="SDK bug: ChatReference.file typed as str but API returns AssistantFileModel object — see IT-0011")
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_assistant_chat_typed_message_objects(
+    async_client: AsyncPinecone,
+) -> None:
+    """Verify chat() accepts typed Message objects in async mode (unified-chat-0003).
+
+    Sends a multi-turn conversation where both the initial user message and the
+    follow-up (including the prior assistant turn) are typed Message objects.
+    """
+    from pinecone.models.assistant.message import Message
+
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        assistant = await async_client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-typed-async-"
+        ) as f:
+            f.write("Pinecone is a managed vector database. It stores dense and sparse vectors.")
+            tmp_path = f.name
+
+        await async_client.assistants.upload_file(
+            assistant_name=name, file_path=tmp_path, timeout=120
+        )
+
+        # --- Turn 1: typed Message object (not a plain dict) ---
+        first_message = Message(role="user", content="What is Pinecone?")
+        assert isinstance(first_message, Message)
+
+        first_response = await async_client.assistants.chat(
+            assistant_name=name,
+            messages=[first_message],
+            stream=False,
+        )
+        assert isinstance(first_response, ChatResponse)
+        assert first_response.message.role == "assistant"
+        assert isinstance(first_response.message.content, str)
+        assert len(first_response.message.content) > 0
+
+        # --- Turn 2: full typed-object history (user + assistant + user) ---
+        history = [
+            first_message,
+            Message(role="assistant", content=first_response.message.content),
+            Message(role="user", content="What vectors does it support?"),
+        ]
+        assert all(isinstance(m, Message) for m in history)
+
+        second_response = await async_client.assistants.chat(
+            assistant_name=name,
+            messages=history,
+            stream=False,
+        )
+        assert isinstance(second_response, ChatResponse)
+        assert second_response.message.role == "assistant"
+        assert isinstance(second_response.message.content, str)
+        assert len(second_response.message.content) > 0
+        assert second_response.id != first_response.id
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
 # assistant-evaluate
 # ---------------------------------------------------------------------------
 
