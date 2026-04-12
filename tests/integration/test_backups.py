@@ -15,6 +15,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import Pinecone
+from pinecone.errors.exceptions import NotFoundError
 from pinecone.models.backups.list import BackupList, RestoreJobList
 from pinecone.models.backups.model import BackupModel, RestoreJobModel
 from pinecone.models.indexes.index import IndexModel
@@ -413,3 +414,47 @@ def test_restore_jobs_list_and_describe_rest(client: Pinecone) -> None:
             source_index_name,
             "index (source)",
         )
+
+
+# ---------------------------------------------------------------------------
+# backup-error-paths — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_backup_and_restore_job_error_paths(client: Pinecone) -> None:
+    """Keyword-only enforcement and not-found errors for backups and restore jobs.
+
+    Verifies:
+    - unified-bak-0013: All backup and restore_job method parameters must be passed
+      as keyword arguments; positional args raise TypeError (enforced by *).
+    - unified-bak-0017: Describing a backup that does not exist raises NotFoundError.
+    - unified-bak-0018: Describing a restore job with an invalid ID raises an error.
+
+    No resources are created — keyword-only checks are pure Python, and the
+    not-found errors are live API responses to known-bogus identifiers.
+
+    Area tag: backup-error-paths
+    Transport: rest
+    """
+    # --- unified-bak-0013: keyword-only enforcement ---
+    # Each backup/restore_jobs method uses *, so positional args raise TypeError.
+    with pytest.raises(TypeError):
+        client.backups.describe("definitely-not-a-keyword-arg")  # type: ignore[call-arg]
+
+    with pytest.raises(TypeError):
+        client.backups.delete("definitely-not-a-keyword-arg")  # type: ignore[call-arg]
+
+    with pytest.raises(TypeError):
+        client.backups.create("some-index-name")  # type: ignore[call-arg]
+
+    with pytest.raises(TypeError):
+        client.restore_jobs.describe("definitely-not-a-keyword-arg")  # type: ignore[call-arg]
+
+    # --- unified-bak-0017: nonexistent backup raises NotFoundError ---
+    with pytest.raises(NotFoundError):
+        client.backups.describe(backup_id="nonexistent-backup-id-xyz-000")
+
+    # --- unified-bak-0018: nonexistent restore job raises an error ---
+    with pytest.raises(NotFoundError):
+        client.restore_jobs.describe(job_id="nonexistent-restore-job-id-xyz-000")

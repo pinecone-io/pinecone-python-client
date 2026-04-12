@@ -15,6 +15,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import AsyncPinecone
+from pinecone.errors.exceptions import NotFoundError
 from pinecone.models.backups.list import BackupList, RestoreJobList
 from pinecone.models.backups.model import BackupModel, RestoreJobModel
 from pinecone.models.indexes.index import IndexModel
@@ -288,6 +289,50 @@ async def test_create_index_from_backup_async(async_client: AsyncPinecone) -> No
             source_index_name,
             "index (source)",
         )
+
+
+# ---------------------------------------------------------------------------
+# backup-error-paths — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_backup_and_restore_job_error_paths_async(async_client: AsyncPinecone) -> None:
+    """Keyword-only enforcement and not-found errors for backups and restore jobs (async).
+
+    Verifies:
+    - unified-bak-0013: All async backup and restore_job method parameters must be
+      passed as keyword arguments; positional args raise TypeError (enforced by *).
+    - unified-bak-0017: Describing a nonexistent backup raises NotFoundError.
+    - unified-bak-0018: Describing a nonexistent restore job raises NotFoundError.
+
+    No resources are created — keyword-only checks are pure Python, and the
+    not-found errors are live API responses to known-bogus identifiers.
+
+    Area tag: backup-error-paths
+    Transport: rest-async
+    """
+    # --- unified-bak-0013: keyword-only enforcement (async variants) ---
+    with pytest.raises(TypeError):
+        await async_client.backups.describe("definitely-not-a-keyword-arg")  # type: ignore[call-arg]
+
+    with pytest.raises(TypeError):
+        await async_client.backups.delete("definitely-not-a-keyword-arg")  # type: ignore[call-arg]
+
+    with pytest.raises(TypeError):
+        await async_client.backups.create("some-index-name")  # type: ignore[call-arg]
+
+    with pytest.raises(TypeError):
+        await async_client.restore_jobs.describe("definitely-not-a-keyword-arg")  # type: ignore[call-arg]
+
+    # --- unified-bak-0017: nonexistent backup raises NotFoundError ---
+    with pytest.raises(NotFoundError):
+        await async_client.backups.describe(backup_id="nonexistent-backup-id-xyz-000")
+
+    # --- unified-bak-0018: nonexistent restore job raises NotFoundError ---
+    with pytest.raises(NotFoundError):
+        await async_client.restore_jobs.describe(job_id="nonexistent-restore-job-id-xyz-000")
 
 
 # ---------------------------------------------------------------------------
