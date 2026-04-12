@@ -25,6 +25,7 @@ from tests.integration.conftest import async_cleanup_resource, async_poll_until,
 # backup-get-alias — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_backup_get_alias_and_default_description_async(async_client: AsyncPinecone) -> None:
@@ -93,9 +94,11 @@ async def test_backup_get_alias_and_default_description_async(async_client: Asyn
             "index",
         )
 
+
 # ---------------------------------------------------------------------------
 # backup-lifecycle — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -188,6 +191,7 @@ async def test_backup_lifecycle_async(async_client: AsyncPinecone) -> None:
 # ---------------------------------------------------------------------------
 # create-index-from-backup — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -339,6 +343,7 @@ async def test_backup_and_restore_job_error_paths_async(async_client: AsyncPinec
 # restore-jobs — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_restore_jobs_list_and_describe_async(async_client: AsyncPinecone) -> None:
@@ -394,9 +399,7 @@ async def test_restore_jobs_list_and_describe_async(async_client: AsyncPinecone)
         # 5. Poll restore_jobs.list() until the restore job for our index appears
         job_list = await async_poll_until(
             query_fn=lambda: async_client.restore_jobs.list(),
-            check_fn=lambda lst: any(
-                j.target_index_name == restore_index_name for j in lst
-            ),
+            check_fn=lambda lst: any(j.target_index_name == restore_index_name for j in lst),
             timeout=60,
             interval=5,
             description=f"restore job for {restore_index_name!r} visible in list",

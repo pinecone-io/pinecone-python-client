@@ -109,9 +109,7 @@ async def test_dimension_mismatch_raises_typed_error_async(
         index = async_client.index(name=name)
 
         with pytest.raises(ApiError) as exc_info:
-            await index.upsert(
-                vectors=[{"id": "dim-v1", "values": [0.1, 0.2, 0.3]}]
-            )
+            await index.upsert(vectors=[{"id": "dim-v1", "values": [0.1, 0.2, 0.3]}])
 
         err = exc_info.value
         assert err.status_code == 400
@@ -119,9 +117,7 @@ async def test_dimension_mismatch_raises_typed_error_async(
         assert len(msg) > 0
         assert not msg.strip().isdigit()
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
@@ -161,9 +157,7 @@ async def test_duplicate_index_raises_conflict_error_async(
         assert len(msg) > 0
         assert not msg.strip().isdigit()
     finally:
-        await async_cleanup_resource(
-            lambda: async_client.indexes.delete(name), name, "index"
-        )
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
 
 
 # ---------------------------------------------------------------------------
@@ -294,7 +288,9 @@ async def test_update_input_validation_async() -> None:
     try:
         # unified-vec-0042: both id and filter rejected
         with pytest.raises(PineconeValueError):
-            await index.update(id="some-id", filter={"genre": {"$eq": "drama"}}, set_metadata={"x": 1})
+            await index.update(
+                id="some-id", filter={"genre": {"$eq": "drama"}}, set_metadata={"x": 1}
+            )
 
         # unified-vec-0042: neither id nor filter rejected
         with pytest.raises(PineconeValueError):

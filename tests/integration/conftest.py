@@ -26,6 +26,7 @@ from pinecone import AsyncPinecone, Pinecone
 def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "integration: marks tests as real-API integration tests")
 
+
 # Load .env from the SDK root (two levels up from tests/integration/)
 _env_path = Path(__file__).resolve().parent.parent.parent / ".env"
 load_dotenv(_env_path)
@@ -34,6 +35,7 @@ load_dotenv(_env_path)
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def wait_for_ready(
     check_fn: object,
@@ -133,6 +135,7 @@ async def async_poll_until(
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="session")
 def api_key() -> str:

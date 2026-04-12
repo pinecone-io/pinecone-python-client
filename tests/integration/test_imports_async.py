@@ -29,6 +29,7 @@ _TEST_URI = "s3://pinecone-test-public/"
 # import-lifecycle — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_import_lifecycle_async(async_client: AsyncPinecone) -> None:

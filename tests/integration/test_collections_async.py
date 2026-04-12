@@ -22,6 +22,7 @@ from tests.integration.conftest import async_cleanup_resource, async_poll_until,
 # collection-lifecycle — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_collection_lifecycle_async(async_client: AsyncPinecone) -> None:
@@ -53,11 +54,13 @@ async def test_collection_lifecycle_async(async_client: AsyncPinecone) -> None:
         # 2. Seed vectors — get the index host from describe() for async
         desc = await async_client.indexes.describe(index_name)
         index = async_client.index(host=desc.host)
-        upsert_result = await index.upsert(vectors=[
-            {"id": "col-v1", "values": [0.1, 0.9]},
-            {"id": "col-v2", "values": [0.5, 0.5]},
-            {"id": "col-v3", "values": [0.9, 0.1]},
-        ])
+        upsert_result = await index.upsert(
+            vectors=[
+                {"id": "col-v1", "values": [0.1, 0.9]},
+                {"id": "col-v2", "values": [0.5, 0.5]},
+                {"id": "col-v3", "values": [0.9, 0.1]},
+            ]
+        )
         assert upsert_result.upserted_count == 3
 
         # Wait for vectors to be indexed before snapshotting
@@ -123,6 +126,7 @@ async def test_collection_lifecycle_async(async_client: AsyncPinecone) -> None:
 # ---------------------------------------------------------------------------
 # collection-from-serverless — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio

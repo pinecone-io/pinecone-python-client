@@ -22,6 +22,7 @@ from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 # collection-lifecycle — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_collection_lifecycle_rest(client: Pinecone) -> None:
     """Full collection CRUD lifecycle: create a pod index, seed vectors,
@@ -51,11 +52,13 @@ def test_collection_lifecycle_rest(client: Pinecone) -> None:
 
         # 2. Seed a few vectors so the collection has data
         index = client.index(name=index_name)
-        upsert_result = index.upsert(vectors=[
-            {"id": "col-v1", "values": [0.1, 0.9]},
-            {"id": "col-v2", "values": [0.5, 0.5]},
-            {"id": "col-v3", "values": [0.9, 0.1]},
-        ])
+        upsert_result = index.upsert(
+            vectors=[
+                {"id": "col-v1", "values": [0.1, 0.9]},
+                {"id": "col-v2", "values": [0.5, 0.5]},
+                {"id": "col-v3", "values": [0.9, 0.1]},
+            ]
+        )
         assert upsert_result.upserted_count == 3
 
         # Wait for vectors to be indexed before snapshotting
@@ -121,6 +124,7 @@ def test_collection_lifecycle_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # collection-from-serverless — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_collection_from_serverless_raises_error_rest(client: Pinecone) -> None:

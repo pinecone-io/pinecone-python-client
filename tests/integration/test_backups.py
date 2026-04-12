@@ -25,6 +25,7 @@ from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 # backup-get-alias — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_backup_get_alias_and_default_description_rest(client: Pinecone) -> None:
     """Verify unified-bak-0007 (default description is empty/null when omitted)
@@ -96,9 +97,11 @@ def test_backup_get_alias_and_default_description_rest(client: Pinecone) -> None
             "index",
         )
 
+
 # ---------------------------------------------------------------------------
 # backup-lifecycle — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_backup_lifecycle_rest(client: Pinecone) -> None:
@@ -190,6 +193,7 @@ def test_backup_lifecycle_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # create-index-from-backup — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_create_index_from_backup_rest(client: Pinecone) -> None:
@@ -296,6 +300,7 @@ def test_create_index_from_backup_rest(client: Pinecone) -> None:
 # restore-jobs — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_restore_jobs_list_and_describe_rest(client: Pinecone) -> None:
     """Verify pc.restore_jobs.list() and pc.restore_jobs.describe() structure.
@@ -354,9 +359,7 @@ def test_restore_jobs_list_and_describe_rest(client: Pinecone) -> None:
         #    (there may be a brief eventual-consistency delay before it's visible)
         job_list = poll_until(
             query_fn=lambda: client.restore_jobs.list(),
-            check_fn=lambda lst: any(
-                j.target_index_name == restore_index_name for j in lst
-            ),
+            check_fn=lambda lst: any(j.target_index_name == restore_index_name for j in lst),
             timeout=60,
             interval=5,
             description=f"restore job for {restore_index_name!r} visible in list",

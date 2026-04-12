@@ -98,9 +98,7 @@ def test_dimension_mismatch_raises_typed_error_rest(client: Pinecone) -> None:
         index = client.index(name=name)
 
         with pytest.raises(ApiError) as exc_info:
-            index.upsert(
-                vectors=[{"id": "dim-v1", "values": [0.1, 0.2, 0.3]}]
-            )
+            index.upsert(vectors=[{"id": "dim-v1", "values": [0.1, 0.2, 0.3]}])
 
         err = exc_info.value
         assert err.status_code == 400
@@ -127,9 +125,7 @@ def test_dimension_mismatch_raises_typed_error_grpc(client: Pinecone) -> None:
         index = client.index(name=name, grpc=True)
 
         with pytest.raises(ApiError) as exc_info:
-            index.upsert(
-                vectors=[{"id": "dim-v1", "values": [0.1, 0.2, 0.3]}]
-            )
+            index.upsert(vectors=[{"id": "dim-v1", "values": [0.1, 0.2, 0.3]}])
 
         err = exc_info.value
         assert err.status_code == 400

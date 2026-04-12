@@ -18,5 +18,6 @@ async def test_async_client_init_with_api_key(async_client: AsyncPinecone) -> No
 
     # version should be a non-empty string
     from pinecone import __version__
+
     assert isinstance(__version__, str)
     assert len(__version__) > 0

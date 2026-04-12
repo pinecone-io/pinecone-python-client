@@ -30,6 +30,7 @@ from tests.integration.conftest import async_cleanup_resource, async_poll_until,
 # metadata-filter — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_metadata_filter_rest_async(async_client: AsyncPinecone) -> None:
@@ -52,9 +53,21 @@ async def test_metadata_filter_rest_async(async_client: AsyncPinecone) -> None:
         # Upsert vectors with metadata
         await idx.upsert(
             vectors=[
-                {"id": "mf-v1", "values": [0.1, 0.2], "metadata": {"genre": "comedy", "year": 2020}},
-                {"id": "mf-v2", "values": [0.3, 0.4], "metadata": {"genre": "action", "year": 2021}},
-                {"id": "mf-v3", "values": [0.5, 0.6], "metadata": {"genre": "comedy", "year": 2022}},
+                {
+                    "id": "mf-v1",
+                    "values": [0.1, 0.2],
+                    "metadata": {"genre": "comedy", "year": 2020},
+                },
+                {
+                    "id": "mf-v2",
+                    "values": [0.3, 0.4],
+                    "metadata": {"genre": "action", "year": 2021},
+                },
+                {
+                    "id": "mf-v3",
+                    "values": [0.5, 0.6],
+                    "metadata": {"genre": "comedy", "year": 2022},
+                },
             ]
         )
 
@@ -110,6 +123,7 @@ async def test_metadata_filter_rest_async(async_client: AsyncPinecone) -> None:
 # ---------------------------------------------------------------------------
 # sparse-vectors — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -200,6 +214,7 @@ async def test_sparse_vectors_rest_async(async_client: AsyncPinecone) -> None:
 # query-by-id — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_query_by_id_rest_async(async_client: AsyncPinecone) -> None:
@@ -261,6 +276,7 @@ async def test_query_by_id_rest_async(async_client: AsyncPinecone) -> None:
 # ---------------------------------------------------------------------------
 # fetch-missing-ids — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -326,6 +342,7 @@ async def test_fetch_missing_ids_rest_async(async_client: AsyncPinecone) -> None
 # include-values-metadata — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_include_values_metadata_rest_async(async_client: AsyncPinecone) -> None:
@@ -349,8 +366,16 @@ async def test_include_values_metadata_rest_async(async_client: AsyncPinecone) -
         # Upsert vectors with metadata
         await idx.upsert(
             vectors=[
-                {"id": "ivm-v1", "values": [0.1, 0.2, 0.3], "metadata": {"color": "red", "rank": 1}},
-                {"id": "ivm-v2", "values": [0.4, 0.5, 0.6], "metadata": {"color": "blue", "rank": 2}},
+                {
+                    "id": "ivm-v1",
+                    "values": [0.1, 0.2, 0.3],
+                    "metadata": {"color": "red", "rank": 1},
+                },
+                {
+                    "id": "ivm-v2",
+                    "values": [0.4, 0.5, 0.6],
+                    "metadata": {"color": "blue", "rank": 2},
+                },
             ]
         )
 
@@ -411,6 +436,7 @@ async def test_include_values_metadata_rest_async(async_client: AsyncPinecone) -
 # ---------------------------------------------------------------------------
 # query-namespaces — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -513,6 +539,7 @@ async def test_query_namespaces_rest_async(async_client: AsyncPinecone) -> None:
 # ---------------------------------------------------------------------------
 # metadata-filter numeric comparisons ($gt, $gte, $lt, $lte, $ne) — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -635,6 +662,7 @@ async def test_metadata_filter_numeric_operators_rest_async(async_client: AsyncP
 # metadata-filter logical operators ($nin, &, |) via Field builder — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_metadata_filter_logical_operators_rest_async(async_client: AsyncPinecone) -> None:
@@ -661,10 +689,26 @@ async def test_metadata_filter_logical_operators_rest_async(async_client: AsyncP
         # Upsert 4 vectors with genre + year metadata
         await idx.upsert(
             vectors=[
-                {"id": "lo-v1", "values": [0.1, 0.2], "metadata": {"genre": "comedy", "year": 2020}},
-                {"id": "lo-v2", "values": [0.3, 0.4], "metadata": {"genre": "action", "year": 2021}},
-                {"id": "lo-v3", "values": [0.5, 0.6], "metadata": {"genre": "comedy", "year": 2022}},
-                {"id": "lo-v4", "values": [0.7, 0.8], "metadata": {"genre": "horror", "year": 2021}},
+                {
+                    "id": "lo-v1",
+                    "values": [0.1, 0.2],
+                    "metadata": {"genre": "comedy", "year": 2020},
+                },
+                {
+                    "id": "lo-v2",
+                    "values": [0.3, 0.4],
+                    "metadata": {"genre": "action", "year": 2021},
+                },
+                {
+                    "id": "lo-v3",
+                    "values": [0.5, 0.6],
+                    "metadata": {"genre": "comedy", "year": 2022},
+                },
+                {
+                    "id": "lo-v4",
+                    "values": [0.7, 0.8],
+                    "metadata": {"genre": "horror", "year": 2021},
+                },
             ]
         )
 
@@ -734,6 +778,7 @@ async def test_metadata_filter_logical_operators_rest_async(async_client: AsyncP
 # fetch-by-metadata — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_fetch_by_metadata_rest_async(async_client: AsyncPinecone) -> None:
@@ -758,9 +803,21 @@ async def test_fetch_by_metadata_rest_async(async_client: AsyncPinecone) -> None
         # Upsert vectors with metadata; only v1 and v3 have genre=comedy
         await idx.upsert(
             vectors=[
-                {"id": "fm-v1", "values": [0.1, 0.2, 0.3], "metadata": {"genre": "comedy", "year": 2020}},
-                {"id": "fm-v2", "values": [0.4, 0.5, 0.6], "metadata": {"genre": "action", "year": 2021}},
-                {"id": "fm-v3", "values": [0.7, 0.8, 0.9], "metadata": {"genre": "comedy", "year": 2022}},
+                {
+                    "id": "fm-v1",
+                    "values": [0.1, 0.2, 0.3],
+                    "metadata": {"genre": "comedy", "year": 2020},
+                },
+                {
+                    "id": "fm-v2",
+                    "values": [0.4, 0.5, 0.6],
+                    "metadata": {"genre": "action", "year": 2021},
+                },
+                {
+                    "id": "fm-v3",
+                    "values": [0.7, 0.8, 0.9],
+                    "metadata": {"genre": "comedy", "year": 2022},
+                },
             ]
         )
 
@@ -808,6 +865,7 @@ async def test_fetch_by_metadata_rest_async(async_client: AsyncPinecone) -> None
 # metadata-filter $exists operator — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_metadata_filter_exists_operator_rest_async(async_client: AsyncPinecone) -> None:
@@ -837,8 +895,16 @@ async def test_metadata_filter_exists_operator_rest_async(async_client: AsyncPin
         # v1 and v2 carry "premium" field; v3 does not
         await idx.upsert(
             vectors=[
-                {"id": "ex-v1", "values": [0.1, 0.2, 0.3], "metadata": {"category": "A", "premium": True}},
-                {"id": "ex-v2", "values": [0.4, 0.5, 0.6], "metadata": {"category": "B", "premium": False}},
+                {
+                    "id": "ex-v1",
+                    "values": [0.1, 0.2, 0.3],
+                    "metadata": {"category": "A", "premium": True},
+                },
+                {
+                    "id": "ex-v2",
+                    "values": [0.4, 0.5, 0.6],
+                    "metadata": {"category": "B", "premium": False},
+                },
                 {"id": "ex-v3", "values": [0.7, 0.8, 0.9], "metadata": {"category": "C"}},
             ]
         )
@@ -988,6 +1054,7 @@ async def test_fetch_by_metadata_pagination_rest_async(async_client: AsyncPineco
 # query-filter-reflects-metadata-update — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_query_filter_reflects_metadata_update_rest_async(
@@ -1083,10 +1150,12 @@ async def test_query_filter_reflects_metadata_update_rest_async(
         )
         assert isinstance(comedy_resp, QueryResponse)
         comedy_ids = {m.id for m in comedy_resp.matches}
-        assert "qmua-v1" in comedy_ids, \
+        assert "qmua-v1" in comedy_ids, (
             f"qmua-v1 should match comedy filter after update; got: {comedy_ids}"
-        assert "qmua-v3" in comedy_ids, \
+        )
+        assert "qmua-v3" in comedy_ids, (
             f"qmua-v3 (original comedy) should still match; got: {comedy_ids}"
+        )
 
         # Confirm metadata in result has updated value
         v1_match = next((m for m in comedy_resp.matches if m.id == "qmua-v1"), None)
@@ -1107,6 +1176,7 @@ async def test_query_filter_reflects_metadata_update_rest_async(
 # ---------------------------------------------------------------------------
 # unusual ASCII vector IDs — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -1137,8 +1207,10 @@ async def test_unusual_ascii_ids_round_trip_rest_async(async_client: AsyncPineco
         idx = async_client.index(name=name)
 
         # Upsert vectors with unusual IDs
-        vectors = [(vid, [float(i + 1) * 0.1, float(i + 2) * 0.1, float(i + 3) * 0.1])
-                   for i, vid in enumerate(unusual_ids)]
+        vectors = [
+            (vid, [float(i + 1) * 0.1, float(i + 2) * 0.1, float(i + 3) * 0.1])
+            for i, vid in enumerate(unusual_ids)
+        ]
         upsert_resp = await idx.upsert(vectors=vectors)
         assert isinstance(upsert_resp, UpsertResponse)
         assert upsert_resp.upserted_count == len(unusual_ids)
@@ -1165,8 +1237,9 @@ async def test_unusual_ascii_ids_round_trip_rest_async(async_client: AsyncPineco
         )
         assert isinstance(query_resp, QueryResponse)
         match_ids = {m.id for m in query_resp.matches}
-        assert first_id in match_ids, \
+        assert first_id in match_ids, (
             f"queried ID {first_id!r} should appear in its own query results (async); got {match_ids}"
+        )
         for m in query_resp.matches:
             assert isinstance(m, ScoredVector)
             assert isinstance(m.id, str)
@@ -1193,6 +1266,7 @@ async def test_unusual_ascii_ids_round_trip_rest_async(async_client: AsyncPineco
 # metadata-filter boolean values — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 async def test_metadata_filter_boolean_values_rest_async(async_client: AsyncPinecone) -> None:
     """Boolean filter values ($eq: True / $eq: False) return the correct vectors (REST async).
@@ -1218,7 +1292,11 @@ async def test_metadata_filter_boolean_values_rest_async(async_client: AsyncPine
         await idx.upsert(
             vectors=[
                 {"id": "bool-a1", "values": [0.1, 0.2], "metadata": {"active": True, "label": "a"}},
-                {"id": "bool-a2", "values": [0.3, 0.4], "metadata": {"active": False, "label": "b"}},
+                {
+                    "id": "bool-a2",
+                    "values": [0.3, 0.4],
+                    "metadata": {"active": False, "label": "b"},
+                },
                 {"id": "bool-a3", "values": [0.5, 0.6], "metadata": {"active": True, "label": "c"}},
             ]
         )
@@ -1281,6 +1359,7 @@ async def test_metadata_filter_boolean_values_rest_async(async_client: AsyncPine
 # ---------------------------------------------------------------------------
 # response_info header population — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -1364,6 +1443,7 @@ async def test_response_info_populated_on_data_plane_responses_async(
 # unicode metadata round-trip — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 async def test_unicode_metadata_round_trip_rest_async(async_client: AsyncPinecone) -> None:
     """Unicode/multibyte metadata values (CJK, emoji, accented Latin) survive a full
@@ -1387,10 +1467,10 @@ async def test_unicode_metadata_round_trip_rest_async(async_client: AsyncPinecon
 
         # Two vectors: one with unicode/emoji metadata, one with plain ASCII.
         unicode_meta = {
-            "lang": "日本語",          # Japanese
-            "emoji": "🚀🌊",          # multi-codepoint emoji
+            "lang": "日本語",  # Japanese
+            "emoji": "🚀🌊",  # multi-codepoint emoji
             "accented": "café naïve",  # accented Latin
-            "cjk": "中文",             # Chinese
+            "cjk": "中文",  # Chinese
         }
         ascii_meta = {"lang": "english", "emoji": "none", "accented": "plain"}
 
@@ -1471,6 +1551,7 @@ async def test_unicode_metadata_round_trip_rest_async(async_client: AsyncPinecon
 # sparse-index-lifecycle — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_sparse_index_lifecycle_rest_async(async_client: AsyncPinecone) -> None:
@@ -1498,9 +1579,7 @@ async def test_sparse_index_lifecycle_rest_async(async_client: AsyncPinecone) ->
         assert model.vector_type == "sparse", (
             f"Expected vector_type='sparse', got {model.vector_type!r}"
         )
-        assert model.metric == "dotproduct", (
-            f"Expected metric='dotproduct', got {model.metric!r}"
-        )
+        assert model.metric == "dotproduct", f"Expected metric='dotproduct', got {model.metric!r}"
         assert model.dimension is None, (
             f"Sparse index must have dimension=None, got {model.dimension!r}"
         )

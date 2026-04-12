@@ -25,6 +25,7 @@ from tests.integration.conftest import async_cleanup_resource, async_poll_until,
 # delete-vectors — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_delete_vectors_rest_async(async_client: AsyncPinecone) -> None:
@@ -86,9 +87,11 @@ async def test_delete_vectors_rest_async(async_client: AsyncPinecone) -> None:
             "index",
         )
 
+
 # ---------------------------------------------------------------------------
 # upsert — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -132,6 +135,7 @@ async def test_upsert_vectors_rest_async(async_client: AsyncPinecone) -> None:
 # ---------------------------------------------------------------------------
 # query — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -191,6 +195,7 @@ async def test_query_by_vector_rest_async(async_client: AsyncPinecone) -> None:
 # ---------------------------------------------------------------------------
 # fetch — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -254,6 +259,7 @@ async def test_fetch_vectors_rest_async(async_client: AsyncPinecone) -> None:
 # ---------------------------------------------------------------------------
 # list-vectors — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -327,6 +333,7 @@ async def test_list_vectors_rest_async(async_client: AsyncPinecone) -> None:
 # update-vectors — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_update_vectors_rest_async(async_client: AsyncPinecone) -> None:
@@ -396,6 +403,7 @@ async def test_update_vectors_rest_async(async_client: AsyncPinecone) -> None:
 # describe-stats — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_describe_index_stats_rest_async(async_client: AsyncPinecone) -> None:
@@ -461,6 +469,7 @@ async def test_describe_index_stats_rest_async(async_client: AsyncPinecone) -> N
 # ---------------------------------------------------------------------------
 # namespaces — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -543,6 +552,7 @@ async def test_namespaces_rest_async(async_client: AsyncPinecone) -> None:
 # list_paginated — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_list_paginated_returns_single_page_rest_async(
@@ -619,9 +629,12 @@ async def test_list_paginated_returns_single_page_rest_async(
 # describe-stats with filter — serverless rejects (REST async)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_describe_index_stats_filter_unsupported_on_serverless_rest_async(async_client: AsyncPinecone) -> None:
+async def test_describe_index_stats_filter_unsupported_on_serverless_rest_async(
+    async_client: AsyncPinecone,
+) -> None:
     """Verify describe_index_stats(filter=...) raises ApiError(400) on a serverless index (async)."""
     name = unique_name("idx")
     idx: AsyncIndex | None = None
@@ -659,6 +672,7 @@ async def test_describe_index_stats_filter_unsupported_on_serverless_rest_async(
 # ---------------------------------------------------------------------------
 # namespace CRUD — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -737,6 +751,7 @@ async def test_namespace_crud_lifecycle_rest_async(async_client: AsyncPinecone) 
 # list_namespaces generator — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_list_namespaces_generator_rest_async(async_client: AsyncPinecone) -> None:
@@ -788,7 +803,9 @@ async def test_list_namespaces_generator_rest_async(async_client: AsyncPinecone)
         # Verify shape of every yielded page and its namespace descriptions
         for page in pages:
             assert isinstance(page, ListNamespacesResponse)
-            assert len(page.namespaces) >= 1, "Each yielded page must contain at least one namespace"
+            assert len(page.namespaces) >= 1, (
+                "Each yielded page must contain at least one namespace"
+            )
             for ns in page.namespaces:
                 assert isinstance(ns, NamespaceDescription)
                 assert isinstance(ns.name, str) and ns.name.startswith("lnsgen-ns-")
@@ -806,6 +823,7 @@ async def test_list_namespaces_generator_rest_async(async_client: AsyncPinecone)
 # ---------------------------------------------------------------------------
 # list_paginated multi-page — REST async
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -898,6 +916,7 @@ async def test_list_paginated_multi_page_rest_async(async_client: AsyncPinecone)
 # delete-nonexistent-ids — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 async def test_delete_nonexistent_ids_returns_none_async(async_client: AsyncPinecone) -> None:
     """Delete with IDs that were never upserted (or already deleted) returns None.
@@ -940,6 +959,58 @@ async def test_delete_nonexistent_ids_returns_none_async(async_client: AsyncPine
     finally:
         if idx is not None:
             await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# context-manager — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_index_context_manager_async(async_client: AsyncPinecone) -> None:
+    """AsyncIndex supports the async context manager protocol.
+
+    Verifies unified-async-0002: the async index client implements __aenter__
+    and __aexit__ for automatic resource cleanup.
+
+    - 'async with idx as ai:' allows operations inside the block
+    - __aenter__ returns the index object itself (not a copy)
+    - describe_index_stats() works normally inside the context
+    - After the with-block exits (__aexit__ calls close()), calling close()
+      again must not raise (idempotent resource release)
+
+    Area tag: context-manager
+    Transport: rest-async
+    """
+    name = unique_name("idx")
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        async_index = async_client.index(name=name)
+        async with async_index as ai:
+            # __aenter__ must return the same object
+            assert ai is async_index, "__aenter__ must return self"
+            assert isinstance(ai, AsyncIndex)
+            # Operations work inside the context
+            stats = await ai.describe_index_stats()
+            assert isinstance(stats, DescribeIndexStatsResponse)
+            assert isinstance(stats.total_vector_count, int)
+        # After __aexit__ called close(), calling close() again must not raise
+        await async_index.close()
+
+    finally:
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name),
             name,

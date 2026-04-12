@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from pinecone import Pinecone
+from pinecone import GrpcIndex, Index, Pinecone
 from pinecone.errors import ApiError
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
@@ -24,6 +24,7 @@ from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 # ---------------------------------------------------------------------------
 # delete-vectors — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_delete_vectors_rest(client: Pinecone) -> None:
@@ -81,6 +82,7 @@ def test_delete_vectors_rest(client: Pinecone) -> None:
 # delete-vectors — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_delete_vectors_grpc(client: Pinecone) -> None:
     """Delete vectors by IDs via GrpcIndex and verify they are gone."""
@@ -110,9 +112,11 @@ def test_delete_vectors_grpc(client: Pinecone) -> None:
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
 
+
 # ---------------------------------------------------------------------------
 # upsert — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_upsert_vectors_rest(client: Pinecone) -> None:
@@ -145,6 +149,7 @@ def test_upsert_vectors_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # query — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_query_by_vector_rest(client: Pinecone) -> None:
@@ -195,6 +200,7 @@ def test_query_by_vector_rest(client: Pinecone) -> None:
 # upsert — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_upsert_vectors_grpc(client: Pinecone) -> None:
     """Upsert vectors via GrpcIndex and verify upserted_count."""
@@ -226,6 +232,7 @@ def test_upsert_vectors_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # query — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_query_by_vector_grpc(client: Pinecone) -> None:
@@ -260,6 +267,7 @@ def test_query_by_vector_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # fetch — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_fetch_vectors_rest(client: Pinecone) -> None:
@@ -314,6 +322,7 @@ def test_fetch_vectors_rest(client: Pinecone) -> None:
 # fetch — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_fetch_vectors_grpc(client: Pinecone) -> None:
     """Fetch vectors by ID via GrpcIndex and verify returned vector data."""
@@ -348,6 +357,7 @@ def test_fetch_vectors_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # list-vectors — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_list_vectors_rest(client: Pinecone) -> None:
@@ -411,6 +421,7 @@ def test_list_vectors_rest(client: Pinecone) -> None:
 # list-vectors — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_list_vectors_grpc(client: Pinecone) -> None:
     """List vectors via GrpcIndex and verify structure."""
@@ -449,6 +460,7 @@ def test_list_vectors_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # update-vectors — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_update_vectors_rest(client: Pinecone) -> None:
@@ -509,6 +521,7 @@ def test_update_vectors_rest(client: Pinecone) -> None:
 # update-vectors — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_update_vectors_grpc(client: Pinecone) -> None:
     """Update a vector's values via GrpcIndex and verify the change is reflected."""
@@ -542,8 +555,7 @@ def test_update_vectors_grpc(client: Pinecone) -> None:
         poll_until(
             query_fn=lambda: index.fetch(ids=["upd-v1"]),
             check_fn=lambda r: (
-                "upd-v1" in r.vectors
-                and abs(r.vectors["upd-v1"].values[0] - 0.9) < 1e-4
+                "upd-v1" in r.vectors and abs(r.vectors["upd-v1"].values[0] - 0.9) < 1e-4
             ),
             timeout=120,
             description="updated values reflected in fetch",
@@ -555,6 +567,7 @@ def test_update_vectors_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # describe-stats — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_describe_index_stats_rest(client: Pinecone) -> None:
@@ -612,6 +625,7 @@ def test_describe_index_stats_rest(client: Pinecone) -> None:
 # describe-stats — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_describe_index_stats_grpc(client: Pinecone) -> None:
     """Call describe_index_stats() via GrpcIndex and verify response structure."""
@@ -645,6 +659,7 @@ def test_describe_index_stats_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # namespaces — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_namespaces_rest(client: Pinecone) -> None:
@@ -719,6 +734,7 @@ def test_namespaces_rest(client: Pinecone) -> None:
 # namespaces — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_namespaces_grpc(client: Pinecone) -> None:
     """Upsert to named namespace via GrpcIndex and query within it."""
@@ -754,6 +770,7 @@ def test_namespaces_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # list_paginated — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_list_paginated_returns_single_page_rest(client: Pinecone) -> None:
@@ -821,6 +838,7 @@ def test_list_paginated_returns_single_page_rest(client: Pinecone) -> None:
 # list_paginated — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_list_paginated_returns_single_page_grpc(client: Pinecone) -> None:
     """list_paginated() via GrpcIndex returns one page with correct structure."""
@@ -870,6 +888,7 @@ def test_list_paginated_returns_single_page_grpc(client: Pinecone) -> None:
 # describe-stats with filter — serverless rejects (REST sync)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_describe_index_stats_filter_unsupported_on_serverless_rest(client: Pinecone) -> None:
     """Verify describe_index_stats(filter=...) raises ApiError(400) on a serverless index."""
@@ -901,6 +920,7 @@ def test_describe_index_stats_filter_unsupported_on_serverless_rest(client: Pine
 # describe-stats with filter — serverless rejects (gRPC)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_describe_index_stats_filter_unsupported_on_serverless_grpc(client: Pinecone) -> None:
     """Verify describe_index_stats(filter=...) raises an error on a serverless index via gRPC."""
@@ -927,6 +947,7 @@ def test_describe_index_stats_filter_unsupported_on_serverless_grpc(client: Pine
 # ---------------------------------------------------------------------------
 # namespace CRUD — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_namespace_crud_lifecycle_rest(client: Pinecone) -> None:
@@ -996,6 +1017,7 @@ def test_namespace_crud_lifecycle_rest(client: Pinecone) -> None:
 # list_namespaces generator — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_list_namespaces_generator_rest(client: Pinecone) -> None:
     """list_namespaces() generator yields ListNamespacesResponse pages with NamespaceDescription
@@ -1043,7 +1065,9 @@ def test_list_namespaces_generator_rest(client: Pinecone) -> None:
         # Verify shape of every yielded page and its namespace descriptions
         for page in pages:
             assert isinstance(page, ListNamespacesResponse)
-            assert len(page.namespaces) >= 1, "Each yielded page must contain at least one namespace"
+            assert len(page.namespaces) >= 1, (
+                "Each yielded page must contain at least one namespace"
+            )
             for ns in page.namespaces:
                 assert isinstance(ns, NamespaceDescription)
                 assert isinstance(ns.name, str) and ns.name.startswith("lnsgen-ns-")
@@ -1055,6 +1079,7 @@ def test_list_namespaces_generator_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # list_paginated multi-page — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_list_paginated_multi_page_rest(client: Pinecone) -> None:
@@ -1135,6 +1160,7 @@ def test_list_paginated_multi_page_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # delete-nonexistent-ids — REST sync + gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_delete_nonexistent_ids_returns_none_rest(client: Pinecone) -> None:
@@ -1217,6 +1243,90 @@ def test_delete_nonexistent_ids_returns_none_grpc(client: Pinecone) -> None:
 
         second = index.delete(ids=["dn-g1"])
         assert second is None
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# context-manager — REST sync + gRPC
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_index_context_manager_rest(client: Pinecone) -> None:
+    """REST Index supports the context manager protocol.
+
+    Verifies unified-async-0002 (sync equivalent): the REST index client
+    implements __enter__ / __exit__ for automatic resource cleanup.
+
+    - 'with idx as rest_idx:' makes operations available inside the block
+    - __enter__ returns the index object itself (not a copy)
+    - describe_index_stats() works normally inside the context
+    - After the with-block exits (__exit__ calls close()), calling close()
+      again must not raise (idempotent resource release)
+
+    Area tag: context-manager
+    Transport: rest
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        rest_idx = client.index(name=name)
+        with rest_idx as idx:
+            # __enter__ must return the same object
+            assert idx is rest_idx, "__enter__ must return self"
+            assert isinstance(idx, Index)
+            # Operations work inside the context
+            stats = idx.describe_index_stats()
+            assert isinstance(stats, DescribeIndexStatsResponse)
+            assert isinstance(stats.total_vector_count, int)
+        # After __exit__ called close(), calling close() again must not raise
+        rest_idx.close()
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+@pytest.mark.skip(reason="SDK bug: GrpcIndex.close() calls self._channel.close() but GrpcChannel (Rust) has no close() method — AttributeError — see IT-0014")
+@pytest.mark.integration
+def test_index_context_manager_grpc(client: Pinecone) -> None:
+    """GrpcIndex supports the context manager protocol.
+
+    Verifies unified-async-0002 (gRPC equivalent): GrpcIndex implements
+    __enter__ / __exit__ so it can be used as a context manager.
+
+    DISABLED: GrpcIndex.close() raises AttributeError because the underlying
+    GrpcChannel (Rust) object does not implement close(). See IT-0014.
+
+    Area tag: context-manager
+    Transport: grpc
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        grpc_idx = client.index(name=name, grpc=True)
+        with grpc_idx as gidx:
+            assert gidx is grpc_idx, "__enter__ must return self"
+            assert isinstance(gidx, GrpcIndex)
+            stats = gidx.describe_index_stats()
+            assert isinstance(stats, DescribeIndexStatsResponse)
+            assert isinstance(stats.total_vector_count, int)
+        grpc_idx.close()
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")

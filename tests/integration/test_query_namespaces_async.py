@@ -24,6 +24,7 @@ from tests.integration.conftest import (
 # query-namespaces-filter — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_query_namespaces_filter_rest_async(async_client: AsyncPinecone) -> None:
@@ -136,6 +137,7 @@ async def test_query_namespaces_filter_rest_async(async_client: AsyncPinecone) -
 # query-namespaces-dedup — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_query_namespaces_dedup_rest_async(async_client: AsyncPinecone) -> None:
@@ -237,6 +239,7 @@ async def test_query_namespaces_dedup_rest_async(async_client: AsyncPinecone) ->
 # query-namespaces-many — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_query_namespaces_many_rest_async(async_client: AsyncPinecone) -> None:
@@ -327,6 +330,7 @@ async def test_query_namespaces_many_rest_async(async_client: AsyncPinecone) -> 
 # query-namespaces-default-top-k — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_query_namespaces_default_top_k_rest_async(async_client: AsyncPinecone) -> None:
@@ -354,8 +358,7 @@ async def test_query_namespaces_default_top_k_rest_async(async_client: AsyncPine
 
         # Upsert 7 vectors into each of 2 namespaces = 14 total (exceeds default top_k=10)
         ns_a_vectors = [
-            {"id": f"qtka-ns-a-{i}", "values": [float(i) / 7, 1.0 - float(i) / 7]}
-            for i in range(7)
+            {"id": f"qtka-ns-a-{i}", "values": [float(i) / 7, 1.0 - float(i) / 7]} for i in range(7)
         ]
         ns_b_vectors = [
             {"id": f"qtka-ns-b-{i}", "values": [float(i) / 14, 1.0 - float(i) / 14]}

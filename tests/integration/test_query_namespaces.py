@@ -19,6 +19,7 @@ from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 # query-namespaces-filter — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_query_namespaces_filter_rest(client: Pinecone) -> None:
     """query_namespaces() with filter applies it per-namespace and returns metadata (REST sync)."""
@@ -122,6 +123,7 @@ def test_query_namespaces_filter_rest(client: Pinecone) -> None:
 # query-namespaces-dedup — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_query_namespaces_dedup_rest(client: Pinecone) -> None:
     """query_namespaces() deduplicates repeated namespaces: no vector appears twice, ns_usage has one key per unique namespace (REST sync).
@@ -212,6 +214,7 @@ def test_query_namespaces_dedup_rest(client: Pinecone) -> None:
 # query-namespaces-many — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_query_namespaces_many_rest(client: Pinecone) -> None:
     """query_namespaces() across 5+ namespaces merges and sorts results; ns_usage has entry per namespace (REST sync)."""
@@ -291,6 +294,7 @@ def test_query_namespaces_many_rest(client: Pinecone) -> None:
 # query-namespaces-default-top-k — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_query_namespaces_default_top_k_rest(client: Pinecone) -> None:
     """query_namespaces() defaults top_k to 10 when not specified (REST sync).
@@ -315,8 +319,7 @@ def test_query_namespaces_default_top_k_rest(client: Pinecone) -> None:
 
         # Upsert 7 vectors into each of 2 namespaces = 14 total (exceeds default top_k=10)
         ns_a_vectors = [
-            {"id": f"qtk-ns-a-{i}", "values": [float(i) / 7, 1.0 - float(i) / 7]}
-            for i in range(7)
+            {"id": f"qtk-ns-a-{i}", "values": [float(i) / 7, 1.0 - float(i) / 7]} for i in range(7)
         ]
         ns_b_vectors = [
             {"id": f"qtk-ns-b-{i}", "values": [float(i) / 14, 1.0 - float(i) / 14]}

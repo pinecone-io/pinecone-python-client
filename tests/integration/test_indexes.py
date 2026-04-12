@@ -14,6 +14,7 @@ from tests.integration.conftest import cleanup_resource, unique_name
 # list-indexes
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_list_indexes_returns_index_list(client: Pinecone) -> None:
     """pc.indexes.list() returns an IndexList that is iterable and supports len()."""
@@ -40,6 +41,7 @@ def test_list_indexes_returns_index_list(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # create-index
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_create_serverless_index_becomes_ready(client: Pinecone) -> None:
@@ -76,6 +78,7 @@ def test_create_serverless_index_becomes_ready(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # describe-index
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_describe_index_returns_full_model(client: Pinecone) -> None:
@@ -126,6 +129,7 @@ def test_describe_index_returns_full_model(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # index-handle
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_index_handle_rest(client: Pinecone) -> None:
@@ -198,6 +202,7 @@ def test_index_handle_grpc(client: Pinecone) -> None:
 # index-tags
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_create_index_with_tags(client: Pinecone) -> None:
     """Create a serverless index with tags and verify they are returned by describe."""
@@ -234,6 +239,7 @@ def test_create_index_with_tags(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # index-exists
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_index_exists_returns_correct_bool(client: Pinecone) -> None:
@@ -272,6 +278,7 @@ def test_index_exists_returns_correct_bool(client: Pinecone) -> None:
 # configure-index
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_configure_index_updates_tags(client: Pinecone) -> None:
     """configure() merges tags — add new tags, update existing tags, remove tags via empty string."""
@@ -294,10 +301,10 @@ def test_configure_index_updates_tags(client: Pinecone) -> None:
 
         desc = client.indexes.describe(name)
         assert desc.tags is not None
-        assert desc.tags.get("env") == "integration-test"   # untouched
-        assert desc.tags.get("version") == "2"              # updated
-        assert desc.tags.get("new-key") == "new-val"        # added
-        assert desc.tags.get("to-remove") == "yes"          # not yet removed
+        assert desc.tags.get("env") == "integration-test"  # untouched
+        assert desc.tags.get("version") == "2"  # updated
+        assert desc.tags.get("new-key") == "new-val"  # added
+        assert desc.tags.get("to-remove") == "yes"  # not yet removed
 
         # Remove a tag by setting its value to ""
         client.indexes.configure(
@@ -308,7 +315,7 @@ def test_configure_index_updates_tags(client: Pinecone) -> None:
         desc2 = client.indexes.describe(name)
         assert desc2.tags is not None
         assert "to-remove" not in desc2.tags or desc2.tags.get("to-remove") == ""
-        assert desc2.tags.get("version") == "2"             # preserved from previous configure
+        assert desc2.tags.get("version") == "2"  # preserved from previous configure
     finally:
         cleanup_resource(
             lambda: client.indexes.delete(name),
@@ -363,6 +370,7 @@ def test_configure_deletion_protection_toggle_rest(client: Pinecone) -> None:
 # delete with timeout=-1 (no-wait deletion) — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_delete_index_timeout_minus1_returns_immediately(client: Pinecone) -> None:
     """indexes.delete(name, timeout=-1) returns None immediately without polling.
@@ -372,6 +380,7 @@ def test_delete_index_timeout_minus1_returns_immediately(client: Pinecone) -> No
     - unified-rs-0002: index deletion returns no response body (None)
     """
     from pinecone.errors import NotFoundError
+
     name = unique_name("idx")
     deleted = False
     try:
@@ -391,6 +400,7 @@ def test_delete_index_timeout_minus1_returns_immediately(client: Pinecone) -> No
         # The index may still exist briefly (we didn't wait) — verify it eventually
         # disappears by polling the describe endpoint until NotFoundError
         import time
+
         start = time.monotonic()
         gone = False
         while time.monotonic() - start < 120:
@@ -409,6 +419,7 @@ def test_delete_index_timeout_minus1_returns_immediately(client: Pinecone) -> No
 # ---------------------------------------------------------------------------
 # configure-index returns None and preserves unspecified fields
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_configure_returns_none_and_preserves_deletion_protection(client: Pinecone) -> None:
@@ -463,6 +474,7 @@ def test_configure_returns_none_and_preserves_deletion_protection(client: Pineco
 # ---------------------------------------------------------------------------
 # host-cache invalidation after delete
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_delete_index_clears_host_cache_rest(client: Pinecone) -> None:

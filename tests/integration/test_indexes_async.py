@@ -15,6 +15,7 @@ from tests.integration.conftest import async_cleanup_resource, unique_name
 # list-indexes
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_list_indexes_returns_index_list(async_client: AsyncPinecone) -> None:
@@ -42,6 +43,7 @@ async def test_list_indexes_returns_index_list(async_client: AsyncPinecone) -> N
 # ---------------------------------------------------------------------------
 # create-index
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -79,6 +81,7 @@ async def test_create_serverless_index_becomes_ready(async_client: AsyncPinecone
 # ---------------------------------------------------------------------------
 # describe-index
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -131,6 +134,7 @@ async def test_describe_index_returns_full_model(async_client: AsyncPinecone) ->
 # index-handle
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_index_handle_rest_async(async_client: AsyncPinecone) -> None:
@@ -178,6 +182,7 @@ async def test_index_handle_rest_async(async_client: AsyncPinecone) -> None:
 # index-tags
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_create_index_with_tags(async_client: AsyncPinecone) -> None:
@@ -215,6 +220,7 @@ async def test_create_index_with_tags(async_client: AsyncPinecone) -> None:
 # ---------------------------------------------------------------------------
 # index-exists
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -254,6 +260,7 @@ async def test_index_exists_returns_correct_bool(async_client: AsyncPinecone) ->
 # configure-index
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_configure_index_updates_tags(async_client: AsyncPinecone) -> None:
@@ -277,10 +284,10 @@ async def test_configure_index_updates_tags(async_client: AsyncPinecone) -> None
 
         desc = await async_client.indexes.describe(name)
         assert desc.tags is not None
-        assert desc.tags.get("env") == "integration-test"   # untouched
-        assert desc.tags.get("version") == "2"              # updated
-        assert desc.tags.get("new-key") == "new-val"        # added
-        assert desc.tags.get("to-remove") == "yes"          # not yet removed
+        assert desc.tags.get("env") == "integration-test"  # untouched
+        assert desc.tags.get("version") == "2"  # updated
+        assert desc.tags.get("new-key") == "new-val"  # added
+        assert desc.tags.get("to-remove") == "yes"  # not yet removed
 
         # Remove a tag by setting its value to ""
         await async_client.indexes.configure(
@@ -291,7 +298,7 @@ async def test_configure_index_updates_tags(async_client: AsyncPinecone) -> None
         desc2 = await async_client.indexes.describe(name)
         assert desc2.tags is not None
         assert "to-remove" not in desc2.tags or desc2.tags.get("to-remove") == ""
-        assert desc2.tags.get("version") == "2"             # preserved from previous configure
+        assert desc2.tags.get("version") == "2"  # preserved from previous configure
     finally:
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name),
@@ -347,6 +354,7 @@ async def test_configure_deletion_protection_toggle_async(async_client: AsyncPin
 # delete with timeout=-1 (no-wait deletion) — REST async
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_delete_index_timeout_minus1_returns_immediately_async(
@@ -361,6 +369,7 @@ async def test_delete_index_timeout_minus1_returns_immediately_async(
     import asyncio
 
     from pinecone.errors import NotFoundError
+
     name = unique_name("idx")
     deleted = False
     try:
@@ -399,6 +408,7 @@ async def test_delete_index_timeout_minus1_returns_immediately_async(
 # ---------------------------------------------------------------------------
 # configure-index returns None and preserves unspecified fields
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -460,6 +470,7 @@ async def test_configure_returns_none_and_preserves_deletion_protection_async(
 # ---------------------------------------------------------------------------
 # async index factory requires prior describe; delete clears cache
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio

@@ -30,6 +30,7 @@ from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 # metadata-filter — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_metadata_filter_rest(client: Pinecone) -> None:
     """Query with metadata filters ($eq, $in) returns only matching vectors (REST sync)."""
@@ -47,9 +48,21 @@ def test_metadata_filter_rest(client: Pinecone) -> None:
         # Upsert vectors with metadata
         index.upsert(
             vectors=[
-                {"id": "mf-v1", "values": [0.1, 0.2], "metadata": {"genre": "comedy", "year": 2020}},
-                {"id": "mf-v2", "values": [0.3, 0.4], "metadata": {"genre": "action", "year": 2021}},
-                {"id": "mf-v3", "values": [0.5, 0.6], "metadata": {"genre": "comedy", "year": 2022}},
+                {
+                    "id": "mf-v1",
+                    "values": [0.1, 0.2],
+                    "metadata": {"genre": "comedy", "year": 2020},
+                },
+                {
+                    "id": "mf-v2",
+                    "values": [0.3, 0.4],
+                    "metadata": {"genre": "action", "year": 2021},
+                },
+                {
+                    "id": "mf-v3",
+                    "values": [0.5, 0.6],
+                    "metadata": {"genre": "comedy", "year": 2022},
+                },
             ]
         )
 
@@ -100,6 +113,7 @@ def test_metadata_filter_rest(client: Pinecone) -> None:
 # metadata-filter — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_metadata_filter_grpc(client: Pinecone) -> None:
     """Query with metadata filter via GrpcIndex returns only matching vectors."""
@@ -137,6 +151,7 @@ def test_metadata_filter_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # sparse-vectors — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_sparse_vectors_rest(client: Pinecone) -> None:
@@ -217,6 +232,7 @@ def test_sparse_vectors_rest(client: Pinecone) -> None:
 # query-by-id — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_query_by_id_rest(client: Pinecone) -> None:
     """Query by stored vector ID returns a QueryResponse with the same structure as query-by-vector (REST sync)."""
@@ -270,6 +286,7 @@ def test_query_by_id_rest(client: Pinecone) -> None:
 # query-by-id — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_query_by_id_grpc(client: Pinecone) -> None:
     """Query by stored vector ID returns a QueryResponse via GrpcIndex."""
@@ -320,6 +337,7 @@ def test_query_by_id_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # fetch-missing-ids — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_fetch_missing_ids_rest(client: Pinecone) -> None:
@@ -374,6 +392,7 @@ def test_fetch_missing_ids_rest(client: Pinecone) -> None:
 # fetch-missing-ids — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_fetch_missing_ids_grpc(client: Pinecone) -> None:
     """fetch() with a mix of existing and non-existent IDs returns only existing vectors, no error (gRPC)."""
@@ -420,6 +439,7 @@ def test_fetch_missing_ids_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # sparse-vectors — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_sparse_vectors_grpc(client: Pinecone) -> None:
@@ -488,6 +508,7 @@ def test_sparse_vectors_grpc(client: Pinecone) -> None:
 # include-values-metadata — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_include_values_metadata_rest(client: Pinecone) -> None:
     """Query with include_values=True/include_metadata=True returns values and metadata on matches;
@@ -506,8 +527,16 @@ def test_include_values_metadata_rest(client: Pinecone) -> None:
         # Upsert vectors with metadata
         index.upsert(
             vectors=[
-                {"id": "ivm-v1", "values": [0.1, 0.2, 0.3], "metadata": {"color": "red", "rank": 1}},
-                {"id": "ivm-v2", "values": [0.4, 0.5, 0.6], "metadata": {"color": "blue", "rank": 2}},
+                {
+                    "id": "ivm-v1",
+                    "values": [0.1, 0.2, 0.3],
+                    "metadata": {"color": "red", "rank": 1},
+                },
+                {
+                    "id": "ivm-v2",
+                    "values": [0.4, 0.5, 0.6],
+                    "metadata": {"color": "blue", "rank": 2},
+                },
             ]
         )
 
@@ -562,6 +591,7 @@ def test_include_values_metadata_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # include-values-metadata — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_include_values_metadata_grpc(client: Pinecone) -> None:
@@ -625,6 +655,7 @@ def test_include_values_metadata_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # query-namespaces — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_query_namespaces_rest(client: Pinecone) -> None:
@@ -716,6 +747,7 @@ def test_query_namespaces_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # metadata-filter numeric comparisons ($gt, $gte, $lt, $lte, $ne) — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_metadata_filter_numeric_operators_rest(client: Pinecone) -> None:
@@ -830,6 +862,7 @@ def test_metadata_filter_numeric_operators_rest(client: Pinecone) -> None:
 # metadata-filter logical operators ($nin, &, |) via Field builder — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_metadata_filter_logical_operators_rest(client: Pinecone) -> None:
     """$nin, logical AND (&), and logical OR (|) via the Field builder filter correctly (REST sync).
@@ -852,10 +885,26 @@ def test_metadata_filter_logical_operators_rest(client: Pinecone) -> None:
         # Upsert 4 vectors with genre + year metadata
         index.upsert(
             vectors=[
-                {"id": "lo-v1", "values": [0.1, 0.2], "metadata": {"genre": "comedy", "year": 2020}},
-                {"id": "lo-v2", "values": [0.3, 0.4], "metadata": {"genre": "action", "year": 2021}},
-                {"id": "lo-v3", "values": [0.5, 0.6], "metadata": {"genre": "comedy", "year": 2022}},
-                {"id": "lo-v4", "values": [0.7, 0.8], "metadata": {"genre": "horror", "year": 2021}},
+                {
+                    "id": "lo-v1",
+                    "values": [0.1, 0.2],
+                    "metadata": {"genre": "comedy", "year": 2020},
+                },
+                {
+                    "id": "lo-v2",
+                    "values": [0.3, 0.4],
+                    "metadata": {"genre": "action", "year": 2021},
+                },
+                {
+                    "id": "lo-v3",
+                    "values": [0.5, 0.6],
+                    "metadata": {"genre": "comedy", "year": 2022},
+                },
+                {
+                    "id": "lo-v4",
+                    "values": [0.7, 0.8],
+                    "metadata": {"genre": "horror", "year": 2021},
+                },
             ]
         )
 
@@ -927,6 +976,7 @@ def test_metadata_filter_logical_operators_rest(client: Pinecone) -> None:
 # metadata-filter logical operators ($nin, &, |) via Field builder — gRPC
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_metadata_filter_logical_operators_grpc(client: Pinecone) -> None:
     """$nin and logical AND (&) via the Field builder filter correctly (gRPC).
@@ -946,10 +996,26 @@ def test_metadata_filter_logical_operators_grpc(client: Pinecone) -> None:
 
         index.upsert(
             vectors=[
-                {"id": "lo-v1", "values": [0.1, 0.2], "metadata": {"genre": "comedy", "year": 2020}},
-                {"id": "lo-v2", "values": [0.3, 0.4], "metadata": {"genre": "action", "year": 2021}},
-                {"id": "lo-v3", "values": [0.5, 0.6], "metadata": {"genre": "comedy", "year": 2022}},
-                {"id": "lo-v4", "values": [0.7, 0.8], "metadata": {"genre": "horror", "year": 2021}},
+                {
+                    "id": "lo-v1",
+                    "values": [0.1, 0.2],
+                    "metadata": {"genre": "comedy", "year": 2020},
+                },
+                {
+                    "id": "lo-v2",
+                    "values": [0.3, 0.4],
+                    "metadata": {"genre": "action", "year": 2021},
+                },
+                {
+                    "id": "lo-v3",
+                    "values": [0.5, 0.6],
+                    "metadata": {"genre": "comedy", "year": 2022},
+                },
+                {
+                    "id": "lo-v4",
+                    "values": [0.7, 0.8],
+                    "metadata": {"genre": "horror", "year": 2021},
+                },
             ]
         )
 
@@ -995,6 +1061,7 @@ def test_metadata_filter_logical_operators_grpc(client: Pinecone) -> None:
 # fetch-by-metadata — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_fetch_by_metadata_rest(client: Pinecone) -> None:
     """fetch_by_metadata() returns vectors matching a filter, with correct response shape (REST sync).
@@ -1017,9 +1084,21 @@ def test_fetch_by_metadata_rest(client: Pinecone) -> None:
         # Upsert vectors with metadata; only v1 and v3 have genre=comedy
         index.upsert(
             vectors=[
-                {"id": "fm-v1", "values": [0.1, 0.2, 0.3], "metadata": {"genre": "comedy", "year": 2020}},
-                {"id": "fm-v2", "values": [0.4, 0.5, 0.6], "metadata": {"genre": "action", "year": 2021}},
-                {"id": "fm-v3", "values": [0.7, 0.8, 0.9], "metadata": {"genre": "comedy", "year": 2022}},
+                {
+                    "id": "fm-v1",
+                    "values": [0.1, 0.2, 0.3],
+                    "metadata": {"genre": "comedy", "year": 2020},
+                },
+                {
+                    "id": "fm-v2",
+                    "values": [0.4, 0.5, 0.6],
+                    "metadata": {"genre": "action", "year": 2021},
+                },
+                {
+                    "id": "fm-v3",
+                    "values": [0.7, 0.8, 0.9],
+                    "metadata": {"genre": "comedy", "year": 2022},
+                },
             ]
         )
 
@@ -1061,6 +1140,7 @@ def test_fetch_by_metadata_rest(client: Pinecone) -> None:
 # metadata-filter $exists operator — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_metadata_filter_exists_operator_rest(client: Pinecone) -> None:
     """Field.exists() filter ($exists: True) returns only vectors that have the field (REST sync).
@@ -1085,8 +1165,16 @@ def test_metadata_filter_exists_operator_rest(client: Pinecone) -> None:
         # v1 and v2 carry "premium" field; v3 does not
         index.upsert(
             vectors=[
-                {"id": "ex-v1", "values": [0.1, 0.2, 0.3], "metadata": {"category": "A", "premium": True}},
-                {"id": "ex-v2", "values": [0.4, 0.5, 0.6], "metadata": {"category": "B", "premium": False}},
+                {
+                    "id": "ex-v1",
+                    "values": [0.1, 0.2, 0.3],
+                    "metadata": {"category": "A", "premium": True},
+                },
+                {
+                    "id": "ex-v2",
+                    "values": [0.4, 0.5, 0.6],
+                    "metadata": {"category": "B", "premium": False},
+                },
                 {"id": "ex-v3", "values": [0.7, 0.8, 0.9], "metadata": {"category": "C"}},
             ]
         )
@@ -1116,7 +1204,9 @@ def test_metadata_filter_exists_operator_rest(client: Pinecone) -> None:
         assert "ex-v2" in matched_ids, f"Expected ex-v2 in matches, got {matched_ids}"
 
         # v3 has no "premium" field — must not appear
-        assert "ex-v3" not in matched_ids, f"Expected ex-v3 excluded from matches, got {matched_ids}"
+        assert "ex-v3" not in matched_ids, (
+            f"Expected ex-v3 excluded from matches, got {matched_ids}"
+        )
 
         # Metadata is returned and each match has the "premium" key
         for match in result.matches:
@@ -1131,6 +1221,7 @@ def test_metadata_filter_exists_operator_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # metadata-filter $exists operator — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_metadata_filter_exists_operator_grpc(client: Pinecone) -> None:
@@ -1152,8 +1243,16 @@ def test_metadata_filter_exists_operator_grpc(client: Pinecone) -> None:
         # v1 and v2 carry "premium" field; v3 does not
         index.upsert(
             vectors=[
-                {"id": "ex-v1", "values": [0.1, 0.2, 0.3], "metadata": {"category": "A", "premium": True}},
-                {"id": "ex-v2", "values": [0.4, 0.5, 0.6], "metadata": {"category": "B", "premium": False}},
+                {
+                    "id": "ex-v1",
+                    "values": [0.1, 0.2, 0.3],
+                    "metadata": {"category": "A", "premium": True},
+                },
+                {
+                    "id": "ex-v2",
+                    "values": [0.4, 0.5, 0.6],
+                    "metadata": {"category": "B", "premium": False},
+                },
                 {"id": "ex-v3", "values": [0.7, 0.8, 0.9], "metadata": {"category": "C"}},
             ]
         )
@@ -1279,6 +1378,7 @@ def test_fetch_by_metadata_pagination_rest(client: Pinecone) -> None:
 # query-filter-reflects-metadata-update — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_query_filter_reflects_metadata_update_rest(client: Pinecone) -> None:
     """After updating a vector's metadata via update(id=...), a query with a
@@ -1379,10 +1479,12 @@ def test_query_filter_reflects_metadata_update_rest(client: Pinecone) -> None:
         )
         assert isinstance(comedy_resp, QueryResponse)
         comedy_ids = {m.id for m in comedy_resp.matches}
-        assert "qmu-v1" in comedy_ids, \
+        assert "qmu-v1" in comedy_ids, (
             f"qmu-v1 should match comedy filter after update; got: {comedy_ids}"
-        assert "qmu-v3" in comedy_ids, \
+        )
+        assert "qmu-v3" in comedy_ids, (
             f"qmu-v3 (original comedy) should still match; got: {comedy_ids}"
+        )
 
         # Confirm metadata in comedy query result has updated value
         v1_match = next((m for m in comedy_resp.matches if m.id == "qmu-v1"), None)
@@ -1400,6 +1502,7 @@ def test_query_filter_reflects_metadata_update_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # query-filter-reflects-metadata-update — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_query_filter_reflects_metadata_update_grpc(client: Pinecone) -> None:
@@ -1485,6 +1588,7 @@ def test_query_filter_reflects_metadata_update_grpc(client: Pinecone) -> None:
 # unusual ASCII vector IDs — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_unusual_ascii_ids_round_trip_rest(client: Pinecone) -> None:
     """Vectors with unusual but valid ASCII IDs survive a full upsert→fetch→query→list round-trip.
@@ -1516,8 +1620,10 @@ def test_unusual_ascii_ids_round_trip_rest(client: Pinecone) -> None:
         index = client.index(name=name)
 
         # Upsert vectors with unusual IDs
-        vectors = [(vid, [float(i + 1) * 0.1, float(i + 2) * 0.1, float(i + 3) * 0.1])
-                   for i, vid in enumerate(unusual_ids)]
+        vectors = [
+            (vid, [float(i + 1) * 0.1, float(i + 2) * 0.1, float(i + 3) * 0.1])
+            for i, vid in enumerate(unusual_ids)
+        ]
         upsert_resp = index.upsert(vectors=vectors)
         assert isinstance(upsert_resp, UpsertResponse)
         assert upsert_resp.upserted_count == len(unusual_ids)
@@ -1548,8 +1654,9 @@ def test_unusual_ascii_ids_round_trip_rest(client: Pinecone) -> None:
         assert isinstance(query_resp, QueryResponse)
         assert len(query_resp.matches) >= 1
         match_ids = {m.id for m in query_resp.matches}
-        assert first_id in match_ids, \
+        assert first_id in match_ids, (
             f"queried ID {first_id!r} should appear in its own query results; got {match_ids}"
+        )
         for m in query_resp.matches:
             assert isinstance(m, ScoredVector)
             assert isinstance(m.id, str)
@@ -1570,6 +1677,7 @@ def test_unusual_ascii_ids_round_trip_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # unusual ASCII vector IDs — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_unusual_ascii_ids_round_trip_grpc(client: Pinecone) -> None:
@@ -1594,8 +1702,10 @@ def test_unusual_ascii_ids_round_trip_grpc(client: Pinecone) -> None:
         )
         index = client.index(name=name, grpc=True)
 
-        vectors = [(vid, [float(i + 1) * 0.1, float(i + 2) * 0.1, float(i + 3) * 0.1])
-                   for i, vid in enumerate(unusual_ids)]
+        vectors = [
+            (vid, [float(i + 1) * 0.1, float(i + 2) * 0.1, float(i + 3) * 0.1])
+            for i, vid in enumerate(unusual_ids)
+        ]
         upsert_resp = index.upsert(vectors=vectors)
         assert isinstance(upsert_resp, UpsertResponse)
         assert upsert_resp.upserted_count == len(unusual_ids)
@@ -1622,8 +1732,9 @@ def test_unusual_ascii_ids_round_trip_grpc(client: Pinecone) -> None:
         )
         assert isinstance(query_resp, QueryResponse)
         match_ids = {m.id for m in query_resp.matches}
-        assert first_id in match_ids, \
+        assert first_id in match_ids, (
             f"queried ID {first_id!r} should appear in its own query results (gRPC); got {match_ids}"
+        )
 
         # List — unusual IDs appear across pages
         all_listed_ids: set[str] = set()
@@ -1640,6 +1751,7 @@ def test_unusual_ascii_ids_round_trip_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # metadata-filter boolean values — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_metadata_filter_boolean_values_rest(client: Pinecone) -> None:
@@ -1667,7 +1779,11 @@ def test_metadata_filter_boolean_values_rest(client: Pinecone) -> None:
         index.upsert(
             vectors=[
                 {"id": "bool-v1", "values": [0.1, 0.2], "metadata": {"active": True, "label": "a"}},
-                {"id": "bool-v2", "values": [0.3, 0.4], "metadata": {"active": False, "label": "b"}},
+                {
+                    "id": "bool-v2",
+                    "values": [0.3, 0.4],
+                    "metadata": {"active": False, "label": "b"},
+                },
                 {"id": "bool-v3", "values": [0.5, 0.6], "metadata": {"active": True, "label": "c"}},
             ]
         )
@@ -1692,7 +1808,9 @@ def test_metadata_filter_boolean_values_rest(client: Pinecone) -> None:
         true_ids = {m.id for m in result_true.matches}
         assert "bool-v1" in true_ids, f"bool-v1 (active=True) missing from result: {true_ids}"
         assert "bool-v3" in true_ids, f"bool-v3 (active=True) missing from result: {true_ids}"
-        assert "bool-v2" not in true_ids, f"bool-v2 (active=False) leaked into active=True result: {true_ids}"
+        assert "bool-v2" not in true_ids, (
+            f"bool-v2 (active=False) leaked into active=True result: {true_ids}"
+        )
         # Verify metadata round-trip preserves boolean type
         for m in result_true.matches:
             assert m.metadata is not None
@@ -1710,8 +1828,12 @@ def test_metadata_filter_boolean_values_rest(client: Pinecone) -> None:
         assert isinstance(result_false, QueryResponse)
         false_ids = {m.id for m in result_false.matches}
         assert "bool-v2" in false_ids, f"bool-v2 (active=False) missing from result: {false_ids}"
-        assert "bool-v1" not in false_ids, f"bool-v1 (active=True) leaked into active=False result: {false_ids}"
-        assert "bool-v3" not in false_ids, f"bool-v3 (active=True) leaked into active=False result: {false_ids}"
+        assert "bool-v1" not in false_ids, (
+            f"bool-v1 (active=True) leaked into active=False result: {false_ids}"
+        )
+        assert "bool-v3" not in false_ids, (
+            f"bool-v3 (active=True) leaked into active=False result: {false_ids}"
+        )
         for m in result_false.matches:
             assert m.metadata is not None
             assert m.metadata.get("active") is False, (
@@ -1724,6 +1846,7 @@ def test_metadata_filter_boolean_values_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # metadata-filter boolean values — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_metadata_filter_boolean_values_grpc(client: Pinecone) -> None:
@@ -1791,6 +1914,7 @@ def test_metadata_filter_boolean_values_grpc(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # response_info header population — REST sync
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_response_info_populated_on_data_plane_responses_rest(client: Pinecone) -> None:
@@ -1877,6 +2001,7 @@ def test_response_info_populated_on_data_plane_responses_rest(client: Pinecone) 
 # unicode metadata round-trip — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_unicode_metadata_round_trip_rest(client: Pinecone) -> None:
     """Unicode/multibyte metadata values (CJK, emoji, accented Latin) survive a full
@@ -1903,10 +2028,10 @@ def test_unicode_metadata_round_trip_rest(client: Pinecone) -> None:
         # Two vectors: one with unicode/emoji metadata, one with plain ASCII.
         # unicode_meta vector uses CJK, emoji, and accented Latin characters.
         unicode_meta = {
-            "lang": "日本語",          # Japanese
-            "emoji": "🚀🌊",          # multi-codepoint emoji
+            "lang": "日本語",  # Japanese
+            "emoji": "🚀🌊",  # multi-codepoint emoji
             "accented": "café naïve",  # accented Latin
-            "cjk": "中文",             # Chinese
+            "cjk": "中文",  # Chinese
         }
         ascii_meta = {"lang": "english", "emoji": "none", "accented": "plain"}
 
@@ -1981,6 +2106,7 @@ def test_unicode_metadata_round_trip_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # unicode metadata round-trip — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_unicode_metadata_round_trip_grpc(client: Pinecone) -> None:
@@ -2062,6 +2188,7 @@ def test_unicode_metadata_round_trip_grpc(client: Pinecone) -> None:
 # sparse-index-lifecycle — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_sparse_index_lifecycle_rest(client: Pinecone) -> None:
     """Create sparse index (vector_type='sparse', no dimension), describe to verify properties, upsert sparse-only vectors, fetch back.
@@ -2087,9 +2214,7 @@ def test_sparse_index_lifecycle_rest(client: Pinecone) -> None:
         assert model.vector_type == "sparse", (
             f"Expected vector_type='sparse', got {model.vector_type!r}"
         )
-        assert model.metric == "dotproduct", (
-            f"Expected metric='dotproduct', got {model.metric!r}"
-        )
+        assert model.metric == "dotproduct", f"Expected metric='dotproduct', got {model.metric!r}"
         assert model.dimension is None, (
             f"Sparse index must have dimension=None, got {model.dimension!r}"
         )
@@ -2178,6 +2303,7 @@ def test_sparse_index_lifecycle_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 # sparse-index-lifecycle — gRPC
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.integration
 def test_sparse_index_lifecycle_grpc(client: Pinecone) -> None:

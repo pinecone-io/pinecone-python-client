@@ -29,6 +29,7 @@ _TEST_URI = "s3://pinecone-test-public/"
 # import-lifecycle — REST sync
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.integration
 def test_import_lifecycle_rest(client: Pinecone) -> None:
     """Full import lifecycle via sync REST: create a serverless index, call
