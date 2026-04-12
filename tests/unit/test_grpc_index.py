@@ -53,13 +53,13 @@ def _make_grpc_index(mock_channel: MagicMock, **kwargs: Any) -> GrpcIndex:
         )
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_channel() -> MagicMock:
     """Create a mock GrpcChannel."""
     return MagicMock()
 
 
-@pytest.fixture()
+@pytest.fixture
 def grpc_index(mock_channel: MagicMock) -> GrpcIndex:
     """Create a GrpcIndex with a mocked GrpcChannel."""
     return _make_grpc_index(mock_channel)

@@ -26,12 +26,12 @@ from tests.factories import (
 BASE_URL = "https://api.test.pinecone.io"
 
 
-@pytest.fixture()
+@pytest.fixture
 def config() -> PineconeConfig:
     return PineconeConfig(api_key="test-key", host=BASE_URL)
 
 
-@pytest.fixture()
+@pytest.fixture
 def inference(config: PineconeConfig) -> Inference:
     return Inference(config=config)
 

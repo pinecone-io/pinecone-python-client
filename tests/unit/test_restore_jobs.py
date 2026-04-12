@@ -18,13 +18,13 @@ from tests.factories import make_restore_job_response
 BASE_URL = "https://api.test.pinecone.io"
 
 
-@pytest.fixture()
+@pytest.fixture
 def http_client() -> HTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return HTTPClient(config, CONTROL_PLANE_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def restore_jobs(http_client: HTTPClient) -> RestoreJobs:
     return RestoreJobs(http=http_client)
 

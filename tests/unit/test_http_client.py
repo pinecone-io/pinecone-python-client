@@ -81,7 +81,7 @@ class TestBuildHeaders:
 
 class TestRaiseForStatus:
     @pytest.mark.parametrize(
-        "status_code,exception_type",
+        ("status_code", "exception_type"),
         [
             (401, UnauthorizedError),
             (403, ForbiddenError),

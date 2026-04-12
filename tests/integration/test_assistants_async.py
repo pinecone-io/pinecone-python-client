@@ -237,11 +237,14 @@ async def test_assistant_chat_non_streaming_response(
 
         # Verify ChatResponse structure
         assert isinstance(response, ChatResponse)
-        assert isinstance(response.id, str) and len(response.id) > 0
-        assert isinstance(response.model, str) and len(response.model) > 0
+        assert isinstance(response.id, str)
+        assert len(response.id) > 0
+        assert isinstance(response.model, str)
+        assert len(response.model) > 0
         assert hasattr(response, "message")
         assert response.message.role == "assistant"
-        assert isinstance(response.message.content, str) and len(response.message.content) > 0
+        assert isinstance(response.message.content, str)
+        assert len(response.message.content) > 0
         assert isinstance(response.finish_reason, str)
 
     finally:

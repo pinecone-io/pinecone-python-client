@@ -38,14 +38,14 @@ line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W", "UP", "B", "ASYNC", "S", "T20", "N", "C4", "SIM", "PERF", "RUF"]
+select = ["E", "F", "I", "W", "UP", "B", "ASYNC", "S", "T20", "N", "C4", "SIM", "PERF", "RUF", "PT"]
 ignore = ["ASYNC109", "SIM108", "PERF203", "RUF002"]
 
 [tool.ruff.lint.isort]
 required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["E501", "B905", "S101", "S105", "S106", "S107", "S110", "T20"]
+"tests/**" = ["E501", "B905", "S101", "S105", "S106", "S107", "S110", "T20", "PT019"]
 "pinecone/_internal/http_client.py" = ["S311"]
 "pinecone/grpc/future.py" = ["S110", "SIM105"]
 

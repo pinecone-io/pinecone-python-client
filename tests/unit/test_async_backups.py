@@ -18,13 +18,13 @@ from tests.factories import make_backup_response
 BASE_URL = "https://api.test.pinecone.io"
 
 
-@pytest.fixture()
+@pytest.fixture
 def async_http_client() -> AsyncHTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return AsyncHTTPClient(config, CONTROL_PLANE_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def async_backups(async_http_client: AsyncHTTPClient) -> AsyncBackups:
     return AsyncBackups(http=async_http_client)
 

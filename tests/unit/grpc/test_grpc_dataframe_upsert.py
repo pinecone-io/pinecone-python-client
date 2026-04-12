@@ -29,14 +29,14 @@ def _upsert_response(upserted_count: int) -> UpsertResponse:
     return UpsertResponse(upserted_count=upserted_count)
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_channel() -> MagicMock:
     ch = MagicMock()
     ch.upsert.return_value = {"upserted_count": 500}
     return ch
 
 
-@pytest.fixture()
+@pytest.fixture
 def grpc_index(mock_channel: MagicMock) -> GrpcIndex:
     return _make_grpc_index(mock_channel)
 

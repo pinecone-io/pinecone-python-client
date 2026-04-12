@@ -15,13 +15,13 @@ from pinecone.errors.exceptions import NotFoundError
 BASE_URL = "https://api.test.pinecone.io"
 
 
-@pytest.fixture()
+@pytest.fixture
 def http_client() -> HTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return HTTPClient(config, ADMIN_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def projects(http_client: HTTPClient) -> Projects:
     return Projects(http=http_client)
 

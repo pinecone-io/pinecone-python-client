@@ -45,7 +45,7 @@ class TestCloudProvider:
         assert CloudProvider.AWS in members
 
     def test_invalid_value(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="'invalid' is not a valid CloudProvider"):
             CloudProvider("invalid")
 
 
@@ -71,7 +71,7 @@ class TestMetric:
         assert len(members) == 3
 
     def test_invalid_value(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="'hamming' is not a valid Metric"):
             Metric("hamming")
 
 
@@ -95,7 +95,7 @@ class TestDeletionProtection:
         assert len(members) == 2
 
     def test_invalid_value(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="'maybe' is not a valid DeletionProtection"):
             DeletionProtection("maybe")
 
 
@@ -119,7 +119,7 @@ class TestVectorType:
         assert len(members) == 2
 
     def test_invalid_value(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="'hybrid' is not a valid VectorType"):
             VectorType("hybrid")
 
 
@@ -160,7 +160,7 @@ class TestPodType:
         assert len(members) == 12
 
     def test_invalid_value(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r"'p3\.x1' is not a valid PodType"):
             PodType("p3.x1")
 
 

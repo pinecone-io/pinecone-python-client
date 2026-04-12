@@ -22,13 +22,13 @@ from tests.factories import make_index_response
 BASE_URL = "https://api.test.pinecone.io"
 
 
-@pytest.fixture()
+@pytest.fixture
 def http_client() -> HTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return HTTPClient(config, CONTROL_PLANE_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def indexes(http_client: HTTPClient) -> Indexes:
     return Indexes(http=http_client)
 

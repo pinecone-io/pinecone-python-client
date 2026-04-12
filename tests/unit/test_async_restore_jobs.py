@@ -21,18 +21,18 @@ BASE_URL = "https://api.test.pinecone.io"
 DEFAULT_BASE_URL = "https://api.pinecone.io"
 
 
-@pytest.fixture()
+@pytest.fixture
 def async_http_client() -> AsyncHTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return AsyncHTTPClient(config, CONTROL_PLANE_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def async_restore_jobs(async_http_client: AsyncHTTPClient) -> AsyncRestoreJobs:
     return AsyncRestoreJobs(http=async_http_client)
 
 
-@pytest.fixture()
+@pytest.fixture
 def pc() -> AsyncPinecone:
     return AsyncPinecone(api_key="test-key")
 

@@ -19,24 +19,24 @@ from tests.factories import make_backup_response
 BASE_URL = "https://api.test.pinecone.io"
 
 
-@pytest.fixture()
+@pytest.fixture
 def http_client() -> HTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return HTTPClient(config, CONTROL_PLANE_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def backups(http_client: HTTPClient) -> Backups:
     return Backups(http=http_client)
 
 
-@pytest.fixture()
+@pytest.fixture
 def async_http_client() -> AsyncHTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return AsyncHTTPClient(config, CONTROL_PLANE_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def async_backups(async_http_client: AsyncHTTPClient) -> AsyncBackups:
     return AsyncBackups(http=async_http_client)
 
@@ -58,7 +58,7 @@ def test_create_backup_sends_empty_description_by_default(backups: Backups) -> N
 
 
 @respx.mock
-@pytest.mark.anyio()
+@pytest.mark.anyio
 async def test_async_create_backup_sends_empty_description_by_default(
     async_backups: AsyncBackups,
 ) -> None:

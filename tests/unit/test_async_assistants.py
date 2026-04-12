@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import io
 import json
@@ -41,7 +42,7 @@ DATA_PLANE_HOST = "test-assistant-abc123.svc.pinecone.io"
 DATA_PLANE_URL = f"https://{DATA_PLANE_HOST}/assistant"
 
 
-@pytest.fixture()
+@pytest.fixture
 def async_assistants() -> AsyncAssistants:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return AsyncAssistants(config=config)
@@ -56,8 +57,6 @@ def test_create_assistant_region_validation(async_assistants: AsyncAssistants) -
     """Invalid region raises PineconeValueError before any HTTP call."""
     with pytest.raises(PineconeValueError, match="region") as exc_info:
         # Run sync since validation happens before any await
-        import asyncio
-
         asyncio.get_event_loop().run_until_complete(
             async_assistants.create(name="test-assistant", region="ap-southeast-1")
         )
@@ -1187,7 +1186,7 @@ async def test_data_plane_http_raises_when_host_is_empty_string(
 
 @respx.mock
 async def test_async_describe_file_success(async_assistants: AsyncAssistants) -> None:
-    """describe_file() sends GET /files/{name}/{id} via data-plane and returns AssistantFileModel."""  # noqa: E501
+    """describe_file() sends GET /files/{name}/{id} via data-plane and returns AssistantFileModel."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
@@ -1526,7 +1525,7 @@ async def test_async_list_files_limit_accepted(async_assistants: AsyncAssistants
 
 
 @respx.mock
-async def test_async_list_files_pagination_token_accepted(  # noqa: E501
+async def test_async_list_files_pagination_token_accepted(
     async_assistants: AsyncAssistants,
 ) -> None:
     """list_files() accepts a pagination_token to resume from a previous page."""
@@ -2757,12 +2756,11 @@ async def test_async_chat_streaming_timeout_raises_pinecone_timeout_error(
     )
 
     with pytest.raises(PineconeTimeoutError):
-        async_iter = await async_assistants.chat(
+        async for _ in await async_assistants.chat(  # type: ignore[union-attr]
             assistant_name="test-assistant",
             messages=[{"content": "Hello"}],
             stream=True,
-        )
-        async for _ in async_iter:  # type: ignore[union-attr]
+        ):
             pass
 
 
@@ -2779,12 +2777,11 @@ async def test_async_chat_streaming_connect_error_raises_pinecone_connection_err
     )
 
     with pytest.raises(PineconeConnectionError):
-        async_iter = await async_assistants.chat(
+        async for _ in await async_assistants.chat(  # type: ignore[union-attr]
             assistant_name="test-assistant",
             messages=[{"content": "Hello"}],
             stream=True,
-        )
-        async for _ in async_iter:  # type: ignore[union-attr]
+        ):
             pass
 
 

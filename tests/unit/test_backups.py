@@ -18,13 +18,13 @@ from tests.factories import make_backup_response
 BASE_URL = "https://api.test.pinecone.io"
 
 
-@pytest.fixture()
+@pytest.fixture
 def http_client() -> HTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return HTTPClient(config, CONTROL_PLANE_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def backups(http_client: HTTPClient) -> Backups:
     return Backups(http=http_client)
 

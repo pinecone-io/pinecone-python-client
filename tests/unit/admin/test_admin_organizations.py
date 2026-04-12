@@ -37,13 +37,13 @@ def _org_response(
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def http_client() -> HTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return HTTPClient(config, ADMIN_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def organizations(http_client: HTTPClient) -> Organizations:
     return Organizations(http=http_client)
 

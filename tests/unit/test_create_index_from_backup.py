@@ -14,7 +14,7 @@ from tests.factories import make_index_response
 BASE_URL = "https://api.pinecone.io"
 
 
-@pytest.fixture()
+@pytest.fixture
 def pc() -> Pinecone:
     return Pinecone(api_key="test-key")
 

@@ -18,13 +18,13 @@ from tests.factories import make_collection_response, make_error_response
 BASE_URL = "https://api.test.pinecone.io"
 
 
-@pytest.fixture()
+@pytest.fixture
 def async_http_client() -> AsyncHTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return AsyncHTTPClient(config, CONTROL_PLANE_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def async_collections(async_http_client: AsyncHTTPClient) -> AsyncCollections:
     return AsyncCollections(http=async_http_client)
 

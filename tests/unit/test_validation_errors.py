@@ -28,7 +28,7 @@ class TestPineconeValueError:
         assert e.path is None
 
     def test_catch_with_value_error(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="bad"):
             raise PineconeValueError("bad")
 
     def test_catch_with_pinecone_error(self) -> None:

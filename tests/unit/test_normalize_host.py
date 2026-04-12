@@ -7,7 +7,7 @@ from pinecone._internal.config import normalize_host
 
 
 @pytest.mark.parametrize(
-    "input_host, expected",
+    ("input_host", "expected"),
     [
         # None / empty → empty string
         (None, ""),

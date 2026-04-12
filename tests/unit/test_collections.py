@@ -18,13 +18,13 @@ from tests.factories import make_collection_response, make_error_response
 BASE_URL = "https://api.test.pinecone.io"
 
 
-@pytest.fixture()
+@pytest.fixture
 def http_client() -> HTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return HTTPClient(config, CONTROL_PLANE_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def collections(http_client: HTTPClient) -> Collections:
     return Collections(http=http_client)
 

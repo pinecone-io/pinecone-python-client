@@ -26,20 +26,20 @@ def _make_temp_key(key_id: str = "tmpkey-001", value: str = "pcsk_secret") -> Ma
     return temp_key
 
 
-@pytest.fixture()
+@pytest.fixture
 def http_client() -> HTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return HTTPClient(config, ADMIN_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_admin() -> MagicMock:
     admin = MagicMock()
     admin.api_keys = MagicMock()
     return admin
 
 
-@pytest.fixture()
+@pytest.fixture
 def projects(http_client: HTTPClient, mock_admin: MagicMock) -> Projects:
     return Projects(http=http_client, admin=mock_admin)
 

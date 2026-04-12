@@ -4,7 +4,6 @@ Phase 3 area tags: upsert-formats, upsert-batch, upsert-overwrite,
 upsert-records, upsert-records-batch, update-metadata, update-sparse,
 update-by-filter, delete-by-filter, delete-all-namespace
 """
-# ruff: noqa: E501
 
 from __future__ import annotations
 

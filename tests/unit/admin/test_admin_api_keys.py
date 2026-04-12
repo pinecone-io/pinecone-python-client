@@ -44,13 +44,13 @@ def _api_key_with_secret_response(
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def http_client() -> HTTPClient:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     return HTTPClient(config, ADMIN_API_VERSION)
 
 
-@pytest.fixture()
+@pytest.fixture
 def api_keys(http_client: HTTPClient) -> ApiKeys:
     return ApiKeys(http=http_client)
 
