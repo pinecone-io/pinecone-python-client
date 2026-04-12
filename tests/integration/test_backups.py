@@ -15,8 +15,8 @@ from __future__ import annotations
 import pytest
 
 from pinecone import Pinecone
-from pinecone.models.backups.list import BackupList
-from pinecone.models.backups.model import BackupModel
+from pinecone.models.backups.list import BackupList, RestoreJobList
+from pinecone.models.backups.model import BackupModel, RestoreJobModel
 from pinecone.models.indexes.index import IndexModel
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 
@@ -273,6 +273,130 @@ def test_create_index_from_backup_rest(client: Pinecone) -> None:
 
     finally:
         # Clean up: restored index, then backup, then source index
+        cleanup_resource(
+            lambda: client.indexes.delete(restore_index_name),
+            restore_index_name,
+            "index (restored)",
+        )
+        if backup_id is not None:
+            cleanup_resource(
+                lambda: client.backups.delete(backup_id=backup_id),
+                backup_id,
+                "backup",
+            )
+        cleanup_resource(
+            lambda: client.indexes.delete(source_index_name),
+            source_index_name,
+            "index (source)",
+        )
+
+
+# ---------------------------------------------------------------------------
+# restore-jobs — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_restore_jobs_list_and_describe_rest(client: Pinecone) -> None:
+    """Verify pc.restore_jobs.list() and pc.restore_jobs.describe() structure.
+
+    Verifies:
+    - unified-bak-0005: Can describe a restore job by identifier, returning
+      its status, backup_id, target_index_name, and timestamps.
+    - unified-bak-0006: Can list all restore jobs in the project.
+
+    Creates a backup, starts a restore with timeout=-1 (non-blocking), then
+    exercises the restore_jobs namespace to verify RestoreJobList and
+    RestoreJobModel field shapes and bracket-access support.
+
+    Area tag: restore-jobs
+    Transport: rest
+    """
+    source_index_name = unique_name("idx")
+    restore_index_name = unique_name("idx")
+    backup_id: str | None = None
+
+    try:
+        # 1. Create a small source index
+        client.indexes.create(
+            name=source_index_name,
+            dimension=2,
+            metric="cosine",
+            spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
+            timeout=120,
+        )
+
+        # 2. Create a backup
+        backup = client.backups.create(
+            index_name=source_index_name,
+            name=unique_name("bk"),
+        )
+        assert isinstance(backup, BackupModel)
+        backup_id = backup.backup_id
+
+        # 3. Poll until backup is Ready (up to 5 minutes)
+        poll_until(
+            query_fn=lambda: client.backups.describe(backup_id=backup_id),
+            check_fn=lambda b: b.status == "Ready",
+            timeout=300,
+            interval=10,
+            description="backup Ready",
+        )
+
+        # 4. Start restore with timeout=-1 — triggers restore job without blocking
+        client.create_index_from_backup(
+            backup_id=backup_id,
+            name=restore_index_name,
+            timeout=-1,
+        )
+
+        # 5. Poll restore_jobs.list() until the restore job for our index appears
+        #    (there may be a brief eventual-consistency delay before it's visible)
+        job_list = poll_until(
+            query_fn=lambda: client.restore_jobs.list(),
+            check_fn=lambda lst: any(
+                j.target_index_name == restore_index_name for j in lst
+            ),
+            timeout=60,
+            interval=5,
+            description=f"restore job for {restore_index_name!r} visible in list",
+        )
+
+        # 6. Verify RestoreJobList container structure
+        assert isinstance(job_list, RestoreJobList)
+        assert len(job_list) >= 1
+
+        # 7. Find and inspect our specific restore job in the list
+        our_job = next(j for j in job_list if j.target_index_name == restore_index_name)
+        assert isinstance(our_job, RestoreJobModel)
+        # Required fields — must be non-empty strings
+        assert isinstance(our_job.restore_job_id, str) and our_job.restore_job_id
+        assert isinstance(our_job.backup_id, str) and our_job.backup_id == backup_id
+        assert isinstance(our_job.target_index_name, str)
+        assert our_job.target_index_name == restore_index_name
+        assert isinstance(our_job.target_index_id, str) and our_job.target_index_id
+        assert our_job.status in ("Pending", "InProgress", "Completed", "Failed")
+        assert isinstance(our_job.created_at, str) and our_job.created_at
+        # Optional fields
+        assert our_job.completed_at is None or isinstance(our_job.completed_at, str)
+        assert our_job.percent_complete is None or isinstance(our_job.percent_complete, float)
+        # Bracket access (unified-rs-0004 bracket access pattern)
+        assert our_job["restore_job_id"] == our_job.restore_job_id
+        assert our_job["backup_id"] == our_job.backup_id
+        assert "restore_job_id" in our_job
+        assert "nonexistent_field" not in our_job
+
+        # 8. Call restore_jobs.describe() — verify same job by ID
+        described = client.restore_jobs.describe(job_id=our_job.restore_job_id)
+        assert isinstance(described, RestoreJobModel)
+        assert described.restore_job_id == our_job.restore_job_id
+        assert described.backup_id == backup_id
+        assert described.target_index_name == restore_index_name
+        assert isinstance(described.target_index_id, str) and described.target_index_id
+        assert described.status in ("Pending", "InProgress", "Completed", "Failed")
+        assert isinstance(described.created_at, str) and described.created_at
+
+    finally:
+        # Clean up: restore index first (even if not ready), then backup, source index
         cleanup_resource(
             lambda: client.indexes.delete(restore_index_name),
             restore_index_name,
