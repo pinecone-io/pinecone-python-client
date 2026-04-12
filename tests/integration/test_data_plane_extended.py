@@ -14,6 +14,7 @@ from pinecone import Field, Pinecone
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
 from pinecone.models.vectors.responses import (
+    FetchByMetadataResponse,
     FetchResponse,
     QueryResponse,
     UpsertResponse,
@@ -983,5 +984,71 @@ def test_metadata_filter_logical_operators_grpc(client: Pinecone) -> None:
         assert "lo-v1" not in and_ids
         assert "lo-v2" not in and_ids
         assert "lo-v4" not in and_ids
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# fetch-by-metadata — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_fetch_by_metadata_rest(client: Pinecone) -> None:
+    """fetch_by_metadata() returns vectors matching a filter, with correct response shape (REST sync).
+
+    Verifies:
+    - unified-vec-0010: Can fetch vectors by metadata filter from a namespace.
+    - unified-vec-0024: No pagination token on a single-page result.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert vectors with metadata; only v1 and v3 have genre=comedy
+        index.upsert(
+            vectors=[
+                {"id": "fm-v1", "values": [0.1, 0.2, 0.3], "metadata": {"genre": "comedy", "year": 2020}},
+                {"id": "fm-v2", "values": [0.4, 0.5, 0.6], "metadata": {"genre": "action", "year": 2021}},
+                {"id": "fm-v3", "values": [0.7, 0.8, 0.9], "metadata": {"genre": "comedy", "year": 2022}},
+            ]
+        )
+
+        # Wait until all 3 vectors are indexed (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.describe_index_stats(),
+            check_fn=lambda r: r.total_vector_count >= 3,
+            timeout=120,
+            description="all 3 vectors indexed",
+        )
+
+        # Fetch only comedy vectors
+        response = index.fetch_by_metadata(filter={"genre": {"$eq": "comedy"}})
+
+        # Verify response type and shape
+        assert isinstance(response, FetchByMetadataResponse)
+        assert isinstance(response.vectors, dict)
+        assert isinstance(response.namespace, str)
+
+        # Only comedy vectors should be returned
+        assert "fm-v1" in response.vectors
+        assert "fm-v3" in response.vectors
+        assert "fm-v2" not in response.vectors
+
+        # Single page of 2 results — no pagination token
+        assert response.pagination is None or response.pagination.next is None
+
+        # Each returned vector has id and values
+        for vid, vec in response.vectors.items():
+            assert isinstance(vid, str)
+            assert vec.id == vid
+            assert isinstance(vec.values, list)
+            assert len(vec.values) == 3
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
