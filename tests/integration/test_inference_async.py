@@ -343,6 +343,39 @@ async def test_get_model_rerank_model_async(async_client: AsyncPinecone) -> None
 
 
 # ---------------------------------------------------------------------------
+# embed — input validation (async, client-side, no API call)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_embed_inputs_validation_rest_async(async_client: AsyncPinecone) -> None:
+    """async embed() raises PineconeValueError for empty inputs and PineconeTypeError for wrong type.
+
+    Verifies unified-inf-0016 (empty list rejected) and unified-inf-0017 (non-list rejected).
+    These validations fire client-side in normalize_embed_inputs() before any HTTP request.
+    Async variant of test_embed_inputs_validation_rest.
+    """
+    model = "multilingual-e5-large"
+
+    # unified-inf-0016: empty list must be rejected
+    with pytest.raises(PineconeValueError):
+        await async_client.inference.embed(model=model, inputs=[])
+
+    # unified-inf-0017: plain integer rejected
+    with pytest.raises(PineconeTypeError):
+        await async_client.inference.embed(model=model, inputs=42)  # type: ignore[arg-type]
+
+    # unified-inf-0017: tuple rejected (not str or list)
+    with pytest.raises(PineconeTypeError):
+        await async_client.inference.embed(model=model, inputs=("a", "b"))  # type: ignore[arg-type]
+
+    # unified-inf-0017: mixed list (string + integer) rejected
+    with pytest.raises(PineconeTypeError):
+        await async_client.inference.embed(model=model, inputs=["valid", 999])  # type: ignore[list-item]
+
+
+# ---------------------------------------------------------------------------
 # rerank — input validation (async, client-side, no API call)
 # ---------------------------------------------------------------------------
 
