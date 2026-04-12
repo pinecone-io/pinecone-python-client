@@ -920,3 +920,80 @@ async def test_chat_message_dict_role_default_async(
             name,
             "assistant",
         )
+
+
+# ---------------------------------------------------------------------------
+# assistant-update: metadata replace semantics
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_assistant_update_metadata_replaces_not_merges_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """assistants.update(metadata=...) fully replaces existing metadata; returns updated AssistantModel.
+
+    Verifies:
+    - unified-assistant-0021: Updating metadata fully replaces the existing metadata rather
+      than merging. Old keys absent from the new dict must disappear.
+    - unified-assistant-0030: Updating an assistant returns an AssistantModel with the
+      updated attributes visible immediately on the returned object.
+    """
+    name = unique_name("asst")
+    try:
+        # Create with two metadata keys that should disappear after the replace
+        assistant = await async_client.assistants.create(
+            name=name,
+            instructions="Initial instructions.",
+            metadata={"initial_key": "initial_val", "extra_key": "will_be_gone"},
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        # Wait for Ready before updating
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # Confirm initial metadata is present
+        described = await async_client.assistants.describe(name=name)
+        assert described.metadata is not None
+        assert described.metadata.get("initial_key") == "initial_val"
+        assert described.metadata.get("extra_key") == "will_be_gone"
+
+        # Update with a completely different metadata dict (replace, not merge)
+        updated = await async_client.assistants.update(name=name, metadata={"new_key": "new_val"})
+
+        # unified-assistant-0030: update() returns the updated AssistantModel immediately
+        assert isinstance(updated, AssistantModel)
+        assert updated.name == name
+        assert updated.metadata is not None
+
+        # unified-assistant-0021: replace semantics — old keys must be gone
+        assert updated.metadata.get("new_key") == "new_val", (
+            f"Expected new_key='new_val', got: {updated.metadata}"
+        )
+        assert "initial_key" not in updated.metadata, (
+            f"Expected initial_key to be absent after metadata replace, got: {updated.metadata}"
+        )
+        assert "extra_key" not in updated.metadata, (
+            f"Expected extra_key to be absent after metadata replace, got: {updated.metadata}"
+        )
+
+        # Verify persistence via a fresh describe call
+        re_described = await async_client.assistants.describe(name=name)
+        assert re_described.metadata is not None
+        assert re_described.metadata.get("new_key") == "new_val"
+        assert "initial_key" not in re_described.metadata
+        assert "extra_key" not in re_described.metadata
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
