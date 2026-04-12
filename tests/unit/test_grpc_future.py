@@ -214,5 +214,5 @@ class TestConcurrentFuturesCompatibility:
 
         f1.set_exception(RuntimeError("fail"))
 
-        done, not_done = wait([pf1, pf2], timeout=0.1, return_when=FIRST_EXCEPTION)
+        done, _not_done = wait([pf1, pf2], timeout=0.1, return_when=FIRST_EXCEPTION)
         assert pf1 in done

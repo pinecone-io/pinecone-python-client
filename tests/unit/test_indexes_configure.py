@@ -298,7 +298,7 @@ def test_configure_byoc_read_capacity_missing_mode(indexes: Indexes) -> None:
 
 def test_configure_rejects_pod_fields_with_read_capacity(indexes: Indexes) -> None:
     """Passing both pod fields and read_capacity raises ValidationError."""
-    with pytest.raises(ValidationError, match="pod.*read_capacity"):
+    with pytest.raises(ValidationError, match=r"pod.*read_capacity"):
         indexes.configure(
             "my-idx",
             replicas=2,

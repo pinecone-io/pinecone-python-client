@@ -828,7 +828,7 @@ class TestGrpcIndexUpsertRecords:
 
     def test_upsert_records_missing_id_raises(self, mock_channel: MagicMock) -> None:
         idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
-        with pytest.raises(ValidationError, match="_id.*id"):
+        with pytest.raises(ValidationError, match=r"_id.*id"):
             idx.upsert_records(namespace="test-ns", records=[{"text": "no id here"}])
 
 

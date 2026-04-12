@@ -1188,7 +1188,7 @@ async def test_configure_rejects_pod_fields_with_read_capacity(
     async_indexes: AsyncIndexes,
 ) -> None:
     """Passing both pod fields and read_capacity raises ValidationError."""
-    with pytest.raises(ValidationError, match="pod.*read_capacity"):
+    with pytest.raises(ValidationError, match=r"pod.*read_capacity"):
         await async_indexes.configure(
             "my-idx",
             replicas=2,
