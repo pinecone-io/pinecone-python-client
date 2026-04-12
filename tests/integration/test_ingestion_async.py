@@ -949,3 +949,27 @@ async def test_delete_mode_validation_async(async_client: AsyncPinecone) -> None
     # All three combined raises PineconeValueError
     with pytest.raises(PineconeValueError):
         await index.delete(ids=["v1"], delete_all=True, filter={"category": {"$eq": "test"}})
+
+
+# ---------------------------------------------------------------------------
+# upsert_from_dataframe — not supported on async client
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_upsert_from_dataframe_not_supported_async(async_client: AsyncPinecone) -> None:
+    """AsyncIndex raises NotImplementedError for upsert_from_dataframe.
+
+    Verifies unified-vec-0054: the async client does not support
+    upsert-from-DataFrame; calling it raises NotImplementedError immediately,
+    before any network call is made.
+
+    No resources are created or cleaned up in this test.
+    """
+    # Use a valid-looking fake host so the constructor does not reject it.
+    # No network call is made — NotImplementedError is raised synchronously.
+    index = async_client.index(host="fake-index.svc.pinecone.io")
+
+    with pytest.raises(NotImplementedError, match="upsert_from_dataframe is not supported for async clients"):
+        await index.upsert_from_dataframe(df=None)  # type: ignore[arg-type]
