@@ -321,3 +321,94 @@ async def test_query_namespaces_many_rest_async(async_client: AsyncPinecone) -> 
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-default-top-k — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_query_namespaces_default_top_k_rest_async(async_client: AsyncPinecone) -> None:
+    """query_namespaces() defaults top_k to 10 when not specified (REST async).
+
+    Verifies claim unified-vec-0028: Cross-namespace query defaults to returning
+    the top 10 results when top_k is not specified.
+
+    Strategy: upsert 7 vectors into two namespaces (14 total > 10 default), then
+    call query_namespaces without top_k and assert that at most 10 matches are
+    returned, confirming the default is applied.
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        host_info = await async_client.indexes.describe(name)
+        idx = async_client.index(host=host_info.host)
+
+        # Upsert 7 vectors into each of 2 namespaces = 14 total (exceeds default top_k=10)
+        ns_a_vectors = [
+            {"id": f"qtka-ns-a-{i}", "values": [float(i) / 7, 1.0 - float(i) / 7]}
+            for i in range(7)
+        ]
+        ns_b_vectors = [
+            {"id": f"qtka-ns-b-{i}", "values": [float(i) / 14, 1.0 - float(i) / 14]}
+            for i in range(7)
+        ]
+        await idx.upsert(vectors=ns_a_vectors, namespace="qtka-ns-a")
+        await idx.upsert(vectors=ns_b_vectors, namespace="qtka-ns-b")
+
+        # Wait for all 7 vectors in each namespace to become queryable
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.5, 0.5], top_k=10, namespace="qtka-ns-a"),
+            check_fn=lambda r: len(r.matches) >= 7,
+            timeout=120,
+            description="all 7 qtka-ns-a vectors queryable before default-top-k test",
+        )
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.5, 0.5], top_k=10, namespace="qtka-ns-b"),
+            check_fn=lambda r: len(r.matches) >= 7,
+            timeout=120,
+            description="all 7 qtka-ns-b vectors queryable before default-top-k test",
+        )
+
+        # Query without top_k — should use default of 10
+        results = await idx.query_namespaces(
+            vector=[0.5, 0.5],
+            namespaces=["qtka-ns-a", "qtka-ns-b"],
+            metric="cosine",
+        )
+
+        assert isinstance(results, QueryNamespacesResults)
+        assert isinstance(results.matches, list)
+        # Key assertion: default top_k caps results at 10 even though 14 vectors exist
+        assert len(results.matches) <= 10, (
+            f"Expected at most 10 matches (default top_k), got {len(results.matches)}"
+        )
+        assert len(results.matches) > 0, "Expected at least one match"
+
+        # Results must be sorted by descending score
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True), (
+            f"Matches not sorted by descending score: {scores}"
+        )
+
+        # Each match is a ScoredVector
+        for match in results.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )

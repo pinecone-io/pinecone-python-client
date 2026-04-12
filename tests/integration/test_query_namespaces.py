@@ -285,3 +285,85 @@ def test_query_namespaces_many_rest(client: Pinecone) -> None:
         assert results.usage.read_units >= len(namespaces)
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-default-top-k — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_query_namespaces_default_top_k_rest(client: Pinecone) -> None:
+    """query_namespaces() defaults top_k to 10 when not specified (REST sync).
+
+    Verifies claim unified-vec-0028: Cross-namespace query defaults to returning
+    the top 10 results when top_k is not specified.
+
+    Strategy: upsert 7 vectors into two namespaces (14 total > 10 default), then
+    call query_namespaces without top_k and assert that at most 10 matches are
+    returned, confirming the default is applied.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert 7 vectors into each of 2 namespaces = 14 total (exceeds default top_k=10)
+        ns_a_vectors = [
+            {"id": f"qtk-ns-a-{i}", "values": [float(i) / 7, 1.0 - float(i) / 7]}
+            for i in range(7)
+        ]
+        ns_b_vectors = [
+            {"id": f"qtk-ns-b-{i}", "values": [float(i) / 14, 1.0 - float(i) / 14]}
+            for i in range(7)
+        ]
+        index.upsert(vectors=ns_a_vectors, namespace="qtk-ns-a")
+        index.upsert(vectors=ns_b_vectors, namespace="qtk-ns-b")
+
+        # Wait for all 7 vectors in each namespace to become queryable
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.5, 0.5], top_k=10, namespace="qtk-ns-a"),
+            check_fn=lambda r: len(r.matches) >= 7,
+            timeout=120,
+            description="all 7 qtk-ns-a vectors queryable before default-top-k test",
+        )
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.5, 0.5], top_k=10, namespace="qtk-ns-b"),
+            check_fn=lambda r: len(r.matches) >= 7,
+            timeout=120,
+            description="all 7 qtk-ns-b vectors queryable before default-top-k test",
+        )
+
+        # Query without top_k — should use default of 10
+        results = index.query_namespaces(
+            vector=[0.5, 0.5],
+            namespaces=["qtk-ns-a", "qtk-ns-b"],
+            metric="cosine",
+        )
+
+        assert isinstance(results, QueryNamespacesResults)
+        assert isinstance(results.matches, list)
+        # Key assertion: default top_k caps results at 10 even though 14 vectors exist
+        assert len(results.matches) <= 10, (
+            f"Expected at most 10 matches (default top_k), got {len(results.matches)}"
+        )
+        assert len(results.matches) > 0, "Expected at least one match"
+
+        # Results must be sorted by descending score
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True), (
+            f"Matches not sorted by descending score: {scores}"
+        )
+
+        # Each match is a ScoredVector
+        for match in results.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
