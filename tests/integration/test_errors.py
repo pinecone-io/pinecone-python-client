@@ -376,3 +376,38 @@ def test_update_input_validation_grpc() -> None:
     # unified-vec-0042: neither id nor filter rejected
     with pytest.raises(PineconeValueError):
         index.update(set_metadata={"x": 1})
+
+
+# ---------------------------------------------------------------------------
+# namespace-name-must-be-string — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_namespace_name_must_be_string_rest() -> None:
+    """create_namespace(), describe_namespace(), and delete_namespace() raise
+    PineconeValueError when the name parameter is not a string.
+
+    Validation fires client-side before any HTTP request, so a fake host is
+    sufficient — no real index or API call is needed.
+
+    Verifies:
+    - unified-ns-0011: Namespace operations require the namespace parameter to be a string.
+    """
+    # Fake host: contains a dot so it passes the host URL format check.
+    index = Index(host="fake-index.svc.pinecone.io", api_key="testkey")
+
+    non_string_values = [42, None, ["my-ns"], True]
+
+    for bad_name in non_string_values:
+        # create_namespace rejects non-string name
+        with pytest.raises(PineconeValueError, match="string"):
+            index.create_namespace(name=bad_name)  # type: ignore[arg-type]
+
+        # describe_namespace rejects non-string name
+        with pytest.raises(PineconeValueError, match="string"):
+            index.describe_namespace(name=bad_name)  # type: ignore[arg-type]
+
+        # delete_namespace rejects non-string name
+        with pytest.raises(PineconeValueError, match="string"):
+            index.delete_namespace(name=bad_name)  # type: ignore[arg-type]

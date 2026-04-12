@@ -305,3 +305,40 @@ async def test_update_input_validation_async() -> None:
             await index.update("some-id")  # type: ignore[misc]
     finally:
         await index.close()
+
+
+# ---------------------------------------------------------------------------
+# namespace-name-must-be-string — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_namespace_name_must_be_string_async() -> None:
+    """create_namespace(), describe_namespace(), and delete_namespace() raise
+    PineconeValueError when the name parameter is not a string (async REST).
+
+    Validation fires client-side before any HTTP request, so a fake host is
+    sufficient — no real index or API call is needed.
+
+    Verifies:
+    - unified-ns-0011: Namespace operations require the namespace parameter to be a string.
+    """
+    index = AsyncIndex(host="fake-index.svc.pinecone.io", api_key="testkey")
+    try:
+        non_string_values = [42, None, ["my-ns"], True]
+
+        for bad_name in non_string_values:
+            # create_namespace rejects non-string name
+            with pytest.raises(PineconeValueError, match="string"):
+                await index.create_namespace(name=bad_name)  # type: ignore[arg-type]
+
+            # describe_namespace rejects non-string name
+            with pytest.raises(PineconeValueError, match="string"):
+                await index.describe_namespace(name=bad_name)  # type: ignore[arg-type]
+
+            # delete_namespace rejects non-string name
+            with pytest.raises(PineconeValueError, match="string"):
+                await index.delete_namespace(name=bad_name)  # type: ignore[arg-type]
+    finally:
+        await index.close()
