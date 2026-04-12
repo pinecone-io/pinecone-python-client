@@ -11,6 +11,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import AsyncIndex, AsyncPinecone, Field
+from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
 from pinecone.models.vectors.responses import (
@@ -1456,6 +1457,133 @@ async def test_unicode_metadata_round_trip_rest_async(async_client: AsyncPinecon
         assert "uni-a2" not in filtered_ids, (
             f"uni-a2 (lang='english') leaked into unicode filter result: {filtered_ids}"
         )
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# sparse-index-lifecycle — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_sparse_index_lifecycle_rest_async(async_client: AsyncPinecone) -> None:
+    """Create sparse index (vector_type='sparse', no dimension), describe to verify properties, upsert sparse-only vectors, fetch back (REST async).
+
+    Verifies:
+    - unified-sparse-0001: Sparse index can be created without specifying a dimension, using dotproduct metric.
+    - unified-sparse-0002: Described sparse index reports vector_type='sparse', metric='dotproduct', dimension=None.
+    - unified-vecfmt-0005: Can accept vectors as dictionaries with sparse values only (no dense values required).
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        # Create sparse index — no dimension, dotproduct metric, vector_type=sparse
+        model = await async_client.indexes.create(
+            name=name,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            vector_type="sparse",
+            metric="dotproduct",
+            timeout=300,
+        )
+
+        # Verify create() return — unified-sparse-0001
+        assert isinstance(model, IndexModel)
+        assert model.vector_type == "sparse", (
+            f"Expected vector_type='sparse', got {model.vector_type!r}"
+        )
+        assert model.metric == "dotproduct", (
+            f"Expected metric='dotproduct', got {model.metric!r}"
+        )
+        assert model.dimension is None, (
+            f"Sparse index must have dimension=None, got {model.dimension!r}"
+        )
+
+        # Populate host cache then get index handle
+        desc = await async_client.indexes.describe(name)
+
+        # Verify describe() — unified-sparse-0002
+        assert isinstance(desc, IndexModel)
+        assert desc.vector_type == "sparse", (
+            f"Described index: expected vector_type='sparse', got {desc.vector_type!r}"
+        )
+        assert desc.metric == "dotproduct", (
+            f"Described index: expected metric='dotproduct', got {desc.metric!r}"
+        )
+        assert desc.dimension is None, (
+            f"Described sparse index: expected dimension=None, got {desc.dimension!r}"
+        )
+        assert desc.status.ready is True
+
+        idx = async_client.index(name=name)
+
+        # Upsert sparse-only vectors (no dense values) — unified-vecfmt-0005
+        upsert_resp = await idx.upsert(
+            vectors=[
+                {
+                    "id": "sp-a1",
+                    "sparse_values": {"indices": [0, 5, 10], "values": [0.5, 0.8, 0.3]},
+                },
+                {
+                    "id": "sp-a2",
+                    "sparse_values": {"indices": [2, 7], "values": [0.3, 0.9]},
+                },
+            ]
+        )
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 2
+
+        # Wait for vectors to be fetchable (eventual consistency)
+        await async_poll_until(
+            query_fn=lambda: idx.fetch(ids=["sp-a1", "sp-a2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="sparse-only vectors fetchable after upsert (async REST)",
+        )
+
+        # Fetch and verify sparse-only structure
+        fetch_resp = await idx.fetch(ids=["sp-a1", "sp-a2"])
+        assert isinstance(fetch_resp, FetchResponse)
+        assert "sp-a1" in fetch_resp.vectors
+        assert "sp-a2" in fetch_resp.vectors
+
+        v1 = fetch_resp.vectors["sp-a1"]
+        assert isinstance(v1, Vector)
+        assert v1.id == "sp-a1"
+        # Sparse-only: dense values list must be empty
+        assert v1.values == [], (
+            f"Sparse-only vector 'sp-a1' should have empty dense values, got: {v1.values}"
+        )
+        # Sparse values are present and correct
+        assert v1.sparse_values is not None, (
+            "sparse_values must not be None for a sparse-only vector"
+        )
+        assert isinstance(v1.sparse_values, SparseValues)
+        assert v1.sparse_values.indices == [0, 5, 10], (
+            f"Expected sparse indices [0, 5, 10], got {v1.sparse_values.indices}"
+        )
+        assert len(v1.sparse_values.values) == 3
+        assert all(isinstance(x, float) for x in v1.sparse_values.values)
+        for actual, expected in zip(v1.sparse_values.values, [0.5, 0.8, 0.3]):
+            assert abs(actual - expected) < 1e-4, (
+                f"Sparse value mismatch: expected {expected}, got {actual}"
+            )
+
+        v2 = fetch_resp.vectors["sp-a2"]
+        assert isinstance(v2, Vector)
+        assert v2.values == [], (
+            f"Sparse-only vector 'sp-a2' should have empty dense values, got: {v2.values}"
+        )
+        assert v2.sparse_values is not None
+        assert v2.sparse_values.indices == [2, 7]
+        assert len(v2.sparse_values.values) == 2
+
     finally:
         if idx is not None:
             await idx.close()

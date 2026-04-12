@@ -11,6 +11,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import Field, Pinecone
+from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
 from pinecone.models.vectors.responses import (
@@ -2053,5 +2054,195 @@ def test_unicode_metadata_round_trip_grpc(client: Pinecone) -> None:
         assert "uni-g2" not in filtered_ids, (
             f"gRPC: uni-g2 (lang='english') leaked into unicode filter result: {filtered_ids}"
         )
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# sparse-index-lifecycle — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_sparse_index_lifecycle_rest(client: Pinecone) -> None:
+    """Create sparse index (vector_type='sparse', no dimension), describe to verify properties, upsert sparse-only vectors, fetch back.
+
+    Verifies:
+    - unified-sparse-0001: Sparse index can be created without specifying a dimension, using dotproduct metric.
+    - unified-sparse-0002: Described sparse index reports vector_type='sparse', metric='dotproduct', dimension=None.
+    - unified-vecfmt-0005: Can accept vectors as dictionaries with sparse values only (no dense values required).
+    """
+    name = unique_name("idx")
+    try:
+        # Create sparse index — no dimension, dotproduct metric, vector_type=sparse
+        model = client.indexes.create(
+            name=name,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            vector_type="sparse",
+            metric="dotproduct",
+            timeout=300,
+        )
+
+        # Verify create() return value — unified-sparse-0001
+        assert isinstance(model, IndexModel)
+        assert model.vector_type == "sparse", (
+            f"Expected vector_type='sparse', got {model.vector_type!r}"
+        )
+        assert model.metric == "dotproduct", (
+            f"Expected metric='dotproduct', got {model.metric!r}"
+        )
+        assert model.dimension is None, (
+            f"Sparse index must have dimension=None, got {model.dimension!r}"
+        )
+        assert model.status.ready is True
+        assert isinstance(model.host, str) and len(model.host) > 0
+
+        # Verify describe() — unified-sparse-0002
+        desc = client.indexes.describe(name)
+        assert isinstance(desc, IndexModel)
+        assert desc.vector_type == "sparse", (
+            f"Described index: expected vector_type='sparse', got {desc.vector_type!r}"
+        )
+        assert desc.metric == "dotproduct", (
+            f"Described index: expected metric='dotproduct', got {desc.metric!r}"
+        )
+        assert desc.dimension is None, (
+            f"Described sparse index: expected dimension=None, got {desc.dimension!r}"
+        )
+
+        # Upsert sparse-only vectors (no dense values) — unified-vecfmt-0005
+        index = client.index(name=name)
+        upsert_resp = index.upsert(
+            vectors=[
+                {
+                    "id": "sp-v1",
+                    "sparse_values": {"indices": [0, 5, 10], "values": [0.5, 0.8, 0.3]},
+                },
+                {
+                    "id": "sp-v2",
+                    "sparse_values": {"indices": [2, 7], "values": [0.3, 0.9]},
+                },
+            ]
+        )
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 2
+
+        # Wait for vectors to be fetchable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["sp-v1", "sp-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="sparse-only vectors fetchable after upsert (REST)",
+        )
+
+        # Fetch and verify sparse-only structure
+        fetch_resp = index.fetch(ids=["sp-v1", "sp-v2"])
+        assert isinstance(fetch_resp, FetchResponse)
+        assert "sp-v1" in fetch_resp.vectors
+        assert "sp-v2" in fetch_resp.vectors
+
+        v1 = fetch_resp.vectors["sp-v1"]
+        assert isinstance(v1, Vector)
+        assert v1.id == "sp-v1"
+        # Sparse-only: dense values list must be empty (no dense component)
+        assert v1.values == [], (
+            f"Sparse-only vector 'sp-v1' should have empty dense values, got: {v1.values}"
+        )
+        # Sparse values are present and correct
+        assert v1.sparse_values is not None, (
+            "sparse_values must not be None for a sparse-only vector"
+        )
+        assert isinstance(v1.sparse_values, SparseValues)
+        assert v1.sparse_values.indices == [0, 5, 10], (
+            f"Expected sparse indices [0, 5, 10], got {v1.sparse_values.indices}"
+        )
+        assert len(v1.sparse_values.values) == 3
+        assert all(isinstance(x, float) for x in v1.sparse_values.values)
+        for actual, expected in zip(v1.sparse_values.values, [0.5, 0.8, 0.3]):
+            assert abs(actual - expected) < 1e-4, (
+                f"Sparse value mismatch: expected {expected}, got {actual}"
+            )
+
+        v2 = fetch_resp.vectors["sp-v2"]
+        assert isinstance(v2, Vector)
+        assert v2.values == [], (
+            f"Sparse-only vector 'sp-v2' should have empty dense values, got: {v2.values}"
+        )
+        assert v2.sparse_values is not None
+        assert v2.sparse_values.indices == [2, 7]
+        assert len(v2.sparse_values.values) == 2
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# sparse-index-lifecycle — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_sparse_index_lifecycle_grpc(client: Pinecone) -> None:
+    """Create sparse index, upsert sparse-only vectors, fetch back via GrpcIndex.
+
+    Verifies (gRPC transport):
+    - unified-sparse-0001: Sparse index can be created without specifying a dimension.
+    - unified-vecfmt-0005: GrpcIndex accepts vector dicts with only sparse_values (no dense values).
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            vector_type="sparse",
+            metric="dotproduct",
+            timeout=300,
+        )
+
+        # Upsert sparse-only vectors via gRPC
+        index = client.index(name=name, grpc=True)
+        upsert_resp = index.upsert(
+            vectors=[
+                {
+                    "id": "sp-g1",
+                    "sparse_values": {"indices": [1, 4], "values": [0.6, 0.7]},
+                },
+                {
+                    "id": "sp-g2",
+                    "sparse_values": {"indices": [3, 8, 12], "values": [0.4, 0.9, 0.2]},
+                },
+            ]
+        )
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 2
+
+        # Wait for vectors to be fetchable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["sp-g1", "sp-g2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="sparse-only vectors fetchable after gRPC upsert",
+        )
+
+        # Fetch and verify sparse-only structure
+        fetch_resp = index.fetch(ids=["sp-g1", "sp-g2"])
+        assert isinstance(fetch_resp, FetchResponse)
+        assert "sp-g1" in fetch_resp.vectors
+        assert "sp-g2" in fetch_resp.vectors
+
+        v1 = fetch_resp.vectors["sp-g1"]
+        assert isinstance(v1, Vector)
+        assert v1.values == [], (
+            f"gRPC sparse-only vector 'sp-g1' should have empty dense values, got: {v1.values}"
+        )
+        assert v1.sparse_values is not None
+        assert isinstance(v1.sparse_values, SparseValues)
+        assert v1.sparse_values.indices == [1, 4]
+        assert len(v1.sparse_values.values) == 2
+
+        v2 = fetch_resp.vectors["sp-g2"]
+        assert v2.values == []
+        assert v2.sparse_values is not None
+        assert v2.sparse_values.indices == [3, 8, 12]
+        assert len(v2.sparse_values.values) == 3
+
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
