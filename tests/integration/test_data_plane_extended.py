@@ -1477,3 +1477,159 @@ def test_query_filter_reflects_metadata_update_grpc(client: Pinecone) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# unusual ASCII vector IDs — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_unusual_ascii_ids_round_trip_rest(client: Pinecone) -> None:
+    """Vectors with unusual but valid ASCII IDs survive a full upsert→fetch→query→list round-trip.
+
+    Verifies unified-ids-0001: IDs containing spaces, slashes, dots, colons, and
+    other printable ASCII punctuation are accepted end-to-end by the live API.
+    All integration tests to date only exercise simple alphanumeric IDs; this
+    test exercises the boundary of what the SDK allows.
+    """
+    name = unique_name("idx")
+    # IDs with unusual but valid ASCII characters (no non-ASCII, no null bytes).
+    # Spaces are excluded: URL-encoding spaces in fetch query params is unreliable
+    # across API versions (+ vs %20), so space-containing IDs are tested separately.
+    unusual_ids = [
+        "id/with/slashes",
+        "id.with.dots",
+        "id:colon:separated",
+        "id@special!chars",
+        "id[brackets]",
+    ]
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert vectors with unusual IDs
+        vectors = [(vid, [float(i + 1) * 0.1, float(i + 2) * 0.1, float(i + 3) * 0.1])
+                   for i, vid in enumerate(unusual_ids)]
+        upsert_resp = index.upsert(vectors=vectors)
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == len(unusual_ids)
+
+        # Wait until all vectors are fetchable (eventual consistency)
+        fetch_resp = poll_until(
+            query_fn=lambda: index.fetch(ids=unusual_ids),
+            check_fn=lambda r: len(r.vectors) == len(unusual_ids),
+            timeout=120,
+            description="all unusual-id vectors fetchable",
+        )
+        assert isinstance(fetch_resp, FetchResponse)
+        # Verify each ID round-trips correctly through fetch
+        for vid in unusual_ids:
+            assert vid in fetch_resp.vectors, f"ID {vid!r} missing from fetch response"
+            assert fetch_resp.vectors[vid].id == vid
+
+        # Query by ID — the queried vector must appear in the results and
+        # every match must be a valid ScoredVector. We do NOT assert it is the
+        # top match because all vectors have very similar cosine direction.
+        first_id = unusual_ids[0]
+        query_resp = poll_until(
+            query_fn=lambda: index.query(id=first_id, top_k=5),
+            check_fn=lambda r: any(m.id == first_id for m in r.matches),
+            timeout=60,
+            description=f"query-by-id returns {first_id!r}",
+        )
+        assert isinstance(query_resp, QueryResponse)
+        assert len(query_resp.matches) >= 1
+        match_ids = {m.id for m in query_resp.matches}
+        assert first_id in match_ids, \
+            f"queried ID {first_id!r} should appear in its own query results; got {match_ids}"
+        for m in query_resp.matches:
+            assert isinstance(m, ScoredVector)
+            assert isinstance(m.id, str)
+            assert isinstance(m.score, float)
+
+        # List — all unusual IDs must appear across pages
+        all_listed_ids: set[str] = set()
+        for page in index.list():
+            for item in page.vectors:
+                all_listed_ids.add(item.id)
+        for vid in unusual_ids:
+            assert vid in all_listed_ids, f"ID {vid!r} missing from list() output"
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# unusual ASCII vector IDs — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_unusual_ascii_ids_round_trip_grpc(client: Pinecone) -> None:
+    """Same round-trip as REST variant but over gRPC transport.
+
+    Verifies unified-ids-0001 holds for gRPC: upsert, fetch, query by ID,
+    and list all work correctly when vector IDs contain unusual ASCII characters.
+    """
+    name = unique_name("idx")
+    unusual_ids = [
+        "id/with/slashes",
+        "id.with.dots",
+        "id@special!chars",
+    ]
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        vectors = [(vid, [float(i + 1) * 0.1, float(i + 2) * 0.1, float(i + 3) * 0.1])
+                   for i, vid in enumerate(unusual_ids)]
+        upsert_resp = index.upsert(vectors=vectors)
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == len(unusual_ids)
+
+        # Wait until all vectors are fetchable
+        fetch_resp = poll_until(
+            query_fn=lambda: index.fetch(ids=unusual_ids),
+            check_fn=lambda r: len(r.vectors) == len(unusual_ids),
+            timeout=120,
+            description="all unusual-id vectors fetchable (gRPC)",
+        )
+        assert isinstance(fetch_resp, FetchResponse)
+        for vid in unusual_ids:
+            assert vid in fetch_resp.vectors, f"ID {vid!r} missing from fetch response (gRPC)"
+            assert fetch_resp.vectors[vid].id == vid
+
+        # Query by ID — queried vector must appear somewhere in results
+        first_id = unusual_ids[0]
+        query_resp = poll_until(
+            query_fn=lambda: index.query(id=first_id, top_k=5),
+            check_fn=lambda r: any(m.id == first_id for m in r.matches),
+            timeout=60,
+            description=f"query-by-id returns {first_id!r} (gRPC)",
+        )
+        assert isinstance(query_resp, QueryResponse)
+        match_ids = {m.id for m in query_resp.matches}
+        assert first_id in match_ids, \
+            f"queried ID {first_id!r} should appear in its own query results (gRPC); got {match_ids}"
+
+        # List — unusual IDs appear across pages
+        all_listed_ids: set[str] = set()
+        for page in index.list():
+            for item in page.vectors:
+                all_listed_ids.add(item.id)
+        for vid in unusual_ids:
+            assert vid in all_listed_ids, f"ID {vid!r} missing from list() output (gRPC)"
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

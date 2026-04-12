@@ -1100,3 +1100,88 @@ async def test_query_filter_reflects_metadata_update_rest_async(
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# unusual ASCII vector IDs — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_unusual_ascii_ids_round_trip_rest_async(async_client: AsyncPinecone) -> None:
+    """Vectors with unusual but valid ASCII IDs survive upsert→fetch→query→list (REST async).
+
+    Verifies unified-ids-0001: IDs containing spaces, slashes, dots, colons, and
+    other printable ASCII punctuation are accepted end-to-end by the live API via
+    the async client.
+    """
+    name = unique_name("idx")
+    unusual_ids = [
+        "id/with/slashes",
+        "id.with.dots",
+        "id:colon:separated",
+        "id@special!chars",
+        "id[brackets]",
+    ]
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # Upsert vectors with unusual IDs
+        vectors = [(vid, [float(i + 1) * 0.1, float(i + 2) * 0.1, float(i + 3) * 0.1])
+                   for i, vid in enumerate(unusual_ids)]
+        upsert_resp = await idx.upsert(vectors=vectors)
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == len(unusual_ids)
+
+        # Wait until all vectors are fetchable (eventual consistency)
+        fetch_resp = await async_poll_until(
+            query_fn=lambda: idx.fetch(ids=unusual_ids),
+            check_fn=lambda r: len(r.vectors) == len(unusual_ids),
+            timeout=120,
+            description="all unusual-id vectors fetchable (async)",
+        )
+        assert isinstance(fetch_resp, FetchResponse)
+        for vid in unusual_ids:
+            assert vid in fetch_resp.vectors, f"ID {vid!r} missing from fetch response (async)"
+            assert fetch_resp.vectors[vid].id == vid
+
+        # Query by ID — queried vector must appear somewhere in results
+        first_id = unusual_ids[0]
+        query_resp = await async_poll_until(
+            query_fn=lambda: idx.query(id=first_id, top_k=5),
+            check_fn=lambda r: any(m.id == first_id for m in r.matches),
+            timeout=60,
+            description=f"query-by-id returns {first_id!r} (async)",
+        )
+        assert isinstance(query_resp, QueryResponse)
+        match_ids = {m.id for m in query_resp.matches}
+        assert first_id in match_ids, \
+            f"queried ID {first_id!r} should appear in its own query results (async); got {match_ids}"
+        for m in query_resp.matches:
+            assert isinstance(m, ScoredVector)
+            assert isinstance(m.id, str)
+
+        # List — all unusual IDs must appear across pages
+        all_listed_ids: set[str] = set()
+        async for page in idx.list():
+            for item in page.vectors:
+                all_listed_ids.add(item.id)
+        for vid in unusual_ids:
+            assert vid in all_listed_ids, f"ID {vid!r} missing from list() output (async)"
+
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
