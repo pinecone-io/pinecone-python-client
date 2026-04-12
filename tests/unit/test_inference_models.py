@@ -29,7 +29,7 @@ class TestDenseEmbedding:
         emb = DenseEmbedding(values=[1.0])
         try:
             emb["nonexistent"]
-            assert False, "Expected KeyError"
+            raise AssertionError("Expected KeyError")
         except KeyError:
             pass
 
@@ -270,7 +270,7 @@ class TestModelInfoList:
         model_list = ModelInfoList([])
         try:
             model_list["invalid"]
-            assert False, "Expected KeyError"
+            raise AssertionError("Expected KeyError")
         except KeyError:
             pass
 

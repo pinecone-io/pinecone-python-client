@@ -95,7 +95,7 @@ class TestFetchByMetadataResponseDecode:
 
         try:
             resp["nonexistent"]
-            assert False, "Expected KeyError"
+            raise AssertionError("Expected KeyError")
         except KeyError:
             pass
 

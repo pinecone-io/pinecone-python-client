@@ -755,7 +755,7 @@ class GrpcIndex:
         except ImportError:
             raise RuntimeError(
                 "pandas is required for upsert_from_dataframe. Install it with: pip install pandas"
-            )
+            ) from None
 
         if not isinstance(df, pd.DataFrame):
             raise PineconeValueError("df must be a pandas DataFrame")

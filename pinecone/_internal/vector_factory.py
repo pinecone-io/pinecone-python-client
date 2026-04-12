@@ -61,8 +61,8 @@ def _from_tuple(item: tuple[Any, ...]) -> Vector:
 def _from_dict(item: dict[str, Any]) -> Vector:
     try:
         id_ = item["id"]
-    except KeyError:
-        raise PineconeValueError("Vector dict must contain an 'id' key")
+    except KeyError as err:
+        raise PineconeValueError("Vector dict must contain an 'id' key") from err
     if not isinstance(id_, str):
         raise PineconeTypeError(f"Vector ID must be a string, got {type(id_).__name__}")
     if not id_.isascii():
