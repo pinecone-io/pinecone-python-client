@@ -931,3 +931,70 @@ def test_assistant_update_metadata_replaces_not_merges(client: Pinecone) -> None
             name,
             "assistant",
         )
+
+
+# ---------------------------------------------------------------------------
+# assistant-context: context() input validation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_context_retrieval_validation_rest(client: Pinecone) -> None:
+    """context() raises PineconeValueError for invalid query/messages combos.
+
+    Verifies:
+    - unified-context-0008: Exactly one of query or messages must be truthy;
+      empty string and empty list are treated as not provided
+    - unified-context-0009: Providing both query and messages produces a
+      PineconeValueError before any API call
+    - unified-context-0010: Providing neither query nor messages produces a
+      PineconeValueError before any API call
+
+    No real assistant is created. All validations are client-side and fire
+    before any HTTP request, so any assistant_name value is acceptable.
+    """
+    # unified-context-0009: both query and messages provided → rejected
+    with pytest.raises(PineconeValueError):
+        client.assistants.context(
+            assistant_name="validation-test",
+            query="What is Pinecone?",
+            messages=[{"role": "user", "content": "What is Pinecone?"}],
+        )
+
+    # unified-context-0010: neither query nor messages provided → rejected
+    with pytest.raises(PineconeValueError):
+        client.assistants.context(
+            assistant_name="validation-test",
+        )
+
+    # unified-context-0008: empty string query treated as not provided → rejected (neither truthy)
+    with pytest.raises(PineconeValueError):
+        client.assistants.context(
+            assistant_name="validation-test",
+            query="",
+        )
+
+    # unified-context-0008: empty list messages treated as not provided → rejected (neither truthy)
+    with pytest.raises(PineconeValueError):
+        client.assistants.context(
+            assistant_name="validation-test",
+            messages=[],
+        )
+
+    # unified-context-0008: empty string query + valid messages → only messages truthy → no validation error
+    # (this call will reach the network; we only care it does NOT raise a PineconeValueError)
+    try:
+        client.assistants.context(
+            assistant_name="validation-test",
+            query="",
+            messages=[{"role": "user", "content": "test"}],
+        )
+    except PineconeValueError:
+        raise AssertionError(
+            "context() raised PineconeValueError when query='' and messages is non-empty — "
+            "empty string should be treated as not provided, leaving messages as the sole input"
+        )
+    except Exception:
+        # Any other exception (ApiError, NotFoundError, etc.) is acceptable here —
+        # the assistant does not exist and the API will reject the request.
+        pass
