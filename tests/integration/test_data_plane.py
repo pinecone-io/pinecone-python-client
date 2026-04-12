@@ -650,7 +650,7 @@ def test_describe_index_stats_grpc(client: Pinecone) -> None:
 def test_namespaces_rest(client: Pinecone) -> None:
     """Upsert to named namespace, query within it, verify namespace isolation."""
     name = unique_name("idx")
-    NAMED_NS = "ns-alpha"
+    named_ns = "ns-alpha"
     try:
         client.indexes.create(
             name=name,
@@ -667,7 +667,7 @@ def test_namespaces_rest(client: Pinecone) -> None:
                 {"id": "ns-v1", "values": [0.1, 0.2]},
                 {"id": "ns-v2", "values": [0.3, 0.4]},
             ],
-            namespace=NAMED_NS,
+            namespace=named_ns,
         )
         assert isinstance(ns_result, UpsertResponse)
         assert ns_result.upserted_count == 2
@@ -684,16 +684,16 @@ def test_namespaces_rest(client: Pinecone) -> None:
 
         # Wait until ns-alpha vectors are queryable in the named namespace
         poll_until(
-            query_fn=lambda: index.query(vector=[0.1, 0.2], top_k=10, namespace=NAMED_NS),
+            query_fn=lambda: index.query(vector=[0.1, 0.2], top_k=10, namespace=named_ns),
             check_fn=lambda r: len(r.matches) >= 2,
             timeout=120,
             description="named namespace vectors queryable",
         )
 
         # Query in the named namespace
-        ns_query = index.query(vector=[0.1, 0.2], top_k=10, namespace=NAMED_NS)
+        ns_query = index.query(vector=[0.1, 0.2], top_k=10, namespace=named_ns)
         assert isinstance(ns_query, QueryResponse)
-        assert ns_query.namespace == NAMED_NS
+        assert ns_query.namespace == named_ns
         ns_ids = {m.id for m in ns_query.matches}
         assert "ns-v1" in ns_ids
         assert "ns-v2" in ns_ids
@@ -709,8 +709,8 @@ def test_namespaces_rest(client: Pinecone) -> None:
         )
         stats = index.describe_index_stats()
         assert isinstance(stats.namespaces, dict)
-        assert NAMED_NS in stats.namespaces
-        assert stats.namespaces[NAMED_NS].vector_count == 2
+        assert named_ns in stats.namespaces
+        assert stats.namespaces[named_ns].vector_count == 2
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
 
@@ -723,7 +723,7 @@ def test_namespaces_rest(client: Pinecone) -> None:
 def test_namespaces_grpc(client: Pinecone) -> None:
     """Upsert to named namespace via GrpcIndex and query within it."""
     name = unique_name("idx")
-    NAMED_NS = "ns-alpha"
+    named_ns = "ns-alpha"
     try:
         client.indexes.create(
             name=name,
@@ -739,12 +739,12 @@ def test_namespaces_grpc(client: Pinecone) -> None:
                 {"id": "ns-v1", "values": [0.1, 0.2]},
                 {"id": "ns-v2", "values": [0.3, 0.4]},
             ],
-            namespace=NAMED_NS,
+            namespace=named_ns,
         )
 
-        result = index.query(vector=[0.1, 0.2], top_k=10, namespace=NAMED_NS)
+        result = index.query(vector=[0.1, 0.2], top_k=10, namespace=named_ns)
         assert isinstance(result, QueryResponse)
-        assert result.namespace == NAMED_NS
+        assert result.namespace == named_ns
         ids = {m.id for m in result.matches}
         assert "ns-v1" in ids or "ns-v2" in ids
     finally:

@@ -791,7 +791,7 @@ async def test_delete_all_namespace_async(async_client: AsyncPinecone) -> None:
     Verifies the default namespace still has 2 vectors.
     """
     name = unique_name("idx")
-    NS = "dan-cleanup-ns"
+    ns = "dan-cleanup-ns"
     default_ids = ["dan-def-1", "dan-def-2"]
     ns_ids = ["dan-ns-1", "dan-ns-2", "dan-ns-3"]
     try:
@@ -810,7 +810,7 @@ async def test_delete_all_namespace_async(async_client: AsyncPinecone) -> None:
             {"id": "dan-ns-2", "values": [0.3, 0.4]},
             {"id": "dan-ns-3", "values": [0.5, 0.6]},
         ]
-        result = await index.upsert(vectors=ns_vectors, namespace=NS)
+        result = await index.upsert(vectors=ns_vectors, namespace=ns)
         assert isinstance(result, UpsertResponse)
         assert result.upserted_count == 3
 
@@ -832,18 +832,18 @@ async def test_delete_all_namespace_async(async_client: AsyncPinecone) -> None:
         )
 
         # Delete all vectors in the named namespace
-        await index.delete(delete_all=True, namespace=NS)
+        await index.delete(delete_all=True, namespace=ns)
 
         # Poll until the named namespace is gone or empty
         await async_poll_until(
             query_fn=lambda: index.describe_index_stats(),
-            check_fn=lambda r: NS not in r.namespaces or r.namespaces[NS].vector_count == 0,
+            check_fn=lambda r: ns not in r.namespaces or r.namespaces[ns].vector_count == 0,
             timeout=120,
             description="dan-cleanup-ns empty after delete_all=True (async)",
         )
 
         # Verify named-namespace vectors are gone from fetch
-        ns_fetch = await index.fetch(ids=ns_ids, namespace=NS)
+        ns_fetch = await index.fetch(ids=ns_ids, namespace=ns)
         assert isinstance(ns_fetch, FetchResponse)
         assert len(ns_fetch.vectors) == 0, \
             f"named-namespace vectors should be gone but found: {list(ns_fetch.vectors.keys())} (async)"
@@ -858,9 +858,9 @@ async def test_delete_all_namespace_async(async_client: AsyncPinecone) -> None:
         # Verify stats: named namespace is absent or has 0 vectors; total count == 2
         stats = await index.describe_index_stats()
         assert isinstance(stats, DescribeIndexStatsResponse)
-        if NS in stats.namespaces:
-            assert stats.namespaces[NS].vector_count == 0, \
-                f"dan-cleanup-ns should be empty but has {stats.namespaces[NS].vector_count} vectors (async)"
+        if ns in stats.namespaces:
+            assert stats.namespaces[ns].vector_count == 0, \
+                f"dan-cleanup-ns should be empty but has {stats.namespaces[ns].vector_count} vectors (async)"
         assert stats.total_vector_count == 2, \
             f"only 2 default-namespace vectors should remain, got total={stats.total_vector_count} (async)"
 
