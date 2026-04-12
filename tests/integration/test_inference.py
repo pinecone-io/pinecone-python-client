@@ -197,6 +197,46 @@ def test_embed_iterable_and_indexable(client: Pinecone) -> None:
     assert "model" in result
 
 
+@pytest.mark.integration
+def test_embed_bare_string_auto_wrapped_rest(client: Pinecone) -> None:
+    """embed() with a single bare string (not a list) is auto-wrapped and returns 1 embedding.
+
+    Verifies unified-inf-0008: The embed operation accepts a single string input
+    and wraps it into a list automatically.  The normalize_embed_inputs() adapter
+    has a dedicated branch: `if isinstance(inputs, str): return [{"text": inputs}]`.
+    All other integration tests pass a list (even single-element lists), so that
+    branch has never been exercised end-to-end against the live API.
+    """
+    # Pass a bare string — NOT wrapped in a list
+    result = client.inference.embed(
+        model="multilingual-e5-large",
+        inputs="What is a vector database?",
+        parameters={"input_type": "passage", "truncate": "END"},
+    )
+
+    # The bare string should have been auto-wrapped → 1 embedding returned
+    assert result.model == "multilingual-e5-large"
+    assert result.vector_type == "dense"
+    assert len(result) == 1, "Bare string should be auto-wrapped to a single-element batch"
+    assert result.usage.total_tokens > 0
+
+    embedding = result.data[0]
+    assert isinstance(embedding.values, list)
+    assert len(embedding.values) > 0
+    assert all(isinstance(v, float) for v in embedding.values)
+    assert embedding.vector_type == "dense"
+
+    # The result should be identical to passing the same string in a list
+    result_as_list = client.inference.embed(
+        model="multilingual-e5-large",
+        inputs=["What is a vector database?"],
+        parameters={"input_type": "passage", "truncate": "END"},
+    )
+    assert len(result_as_list) == 1
+    # Same string → same embedding values (deterministic model)
+    assert result.data[0].values == result_as_list.data[0].values
+
+
 # ---------------------------------------------------------------------------
 # rerank
 # ---------------------------------------------------------------------------
