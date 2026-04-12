@@ -1295,16 +1295,12 @@ def test_index_context_manager_rest(client: Pinecone) -> None:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
 
 
-@pytest.mark.skip(reason="SDK bug: GrpcIndex.close() calls self._channel.close() but GrpcChannel (Rust) has no close() method — AttributeError — see IT-0014")
 @pytest.mark.integration
 def test_index_context_manager_grpc(client: Pinecone) -> None:
     """GrpcIndex supports the context manager protocol.
 
     Verifies unified-async-0002 (gRPC equivalent): GrpcIndex implements
     __enter__ / __exit__ so it can be used as a context manager.
-
-    DISABLED: GrpcIndex.close() raises AttributeError because the underlying
-    GrpcChannel (Rust) object does not implement close(). See IT-0014.
 
     Area tag: context-manager
     Transport: grpc
