@@ -12,6 +12,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import EmbedConfig, IntegratedSpec, Pinecone
+from pinecone.errors.exceptions import PineconeValueError
 from pinecone.models.vectors.search import Hit, SearchRecordsResponse, SearchResult, SearchUsage
 from tests.integration.conftest import cleanup_resource, poll_until, unique_name, wait_for_ready
 
@@ -548,3 +549,62 @@ def test_search_by_id_grpc(client: Pinecone, api_key: str) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# search() input validation — REST sync (no real index needed)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_search_input_validation_rest(client: Pinecone) -> None:
+    """search() client-side validation raises PineconeValueError before any API call.
+
+    Uses a fake host so no real index or network call is required; all checks
+    fire synchronously before the HTTP request would be made.
+
+    Verifies:
+    - unified-vec-0047: empty or non-string namespace is rejected
+    - unified-vec-0050: top_k < 1 is rejected
+    - unified-vec-0051: rerank dict missing 'model' or 'rank_fields' is rejected
+    """
+    # Fake host — no describe-index call; validation fires before any HTTP request
+    index = client.index(host="fake-index.svc.pinecone.io")
+
+    # unified-vec-0047: non-string namespace (None) rejected
+    with pytest.raises(PineconeValueError):
+        index.search(namespace=None, top_k=1, inputs={"text": "hello"})  # type: ignore[arg-type]
+
+    # unified-vec-0047: empty string namespace rejected
+    with pytest.raises(PineconeValueError):
+        index.search(namespace="", top_k=1, inputs={"text": "hello"})
+
+    # unified-vec-0047: whitespace-only namespace rejected
+    with pytest.raises(PineconeValueError):
+        index.search(namespace="   ", top_k=1, inputs={"text": "hello"})
+
+    # unified-vec-0050: top_k=0 rejected (must be >= 1)
+    with pytest.raises(PineconeValueError):
+        index.search(namespace="valid-ns", top_k=0, inputs={"text": "hello"})
+
+    # unified-vec-0050: negative top_k rejected
+    with pytest.raises(PineconeValueError):
+        index.search(namespace="valid-ns", top_k=-1, inputs={"text": "hello"})
+
+    # unified-vec-0051: rerank dict missing required 'model' key
+    with pytest.raises(PineconeValueError):
+        index.search(
+            namespace="valid-ns",
+            top_k=5,
+            inputs={"text": "hello"},
+            rerank={"rank_fields": ["text"]},
+        )
+
+    # unified-vec-0051: rerank dict missing required 'rank_fields' key
+    with pytest.raises(PineconeValueError):
+        index.search(
+            namespace="valid-ns",
+            top_k=5,
+            inputs={"text": "hello"},
+            rerank={"model": "bge-reranker-v2-m3"},
+        )
