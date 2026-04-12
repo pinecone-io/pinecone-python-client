@@ -38,7 +38,8 @@ line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "W", "UP", "B"]
+select = ["E", "F", "I", "W", "UP", "B", "ASYNC"]
+ignore = ["ASYNC109"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["E501", "B905"]

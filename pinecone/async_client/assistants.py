@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import asyncio
 import builtins
+import io
 import logging
 import os
 import time
 from collections.abc import AsyncIterator
 from typing import IO, TYPE_CHECKING, Any
 
+import anyio
 import msgspec
 import msgspec.structs
 import orjson
@@ -658,45 +660,40 @@ class AsyncAssistants:
         if (file_path is None) == (file_stream is None):
             raise PineconeValueError("Exactly one of file_path or file_stream must be provided")
 
-        opened_file: IO[bytes] | None = None
+        handle: IO[bytes]
         if file_path is not None:
-            if not os.path.isfile(file_path):
+            if not await anyio.Path(file_path).is_file():
                 raise PineconeValueError(f"File not found: {file_path}")
-            opened_file = open(file_path, "rb")  # noqa: SIM115
-            handle: IO[bytes] = opened_file
+            handle = io.BytesIO(await anyio.Path(file_path).read_bytes())
             upload_name = os.path.basename(file_path)
         else:
             assert file_stream is not None
             handle = file_stream
             upload_name = file_name or "upload"
 
-        try:
-            data_http = await self._data_plane_http(assistant_name)
+        data_http = await self._data_plane_http(assistant_name)
 
-            params: dict[str, str] = {}
-            if metadata is not None:
-                params["metadata"] = _json.dumps(metadata)
-            if multimodal is not None:
-                params["multimodal"] = str(multimodal).lower()
-            if file_id is not None:
-                params["file_id"] = file_id
+        params: dict[str, str] = {}
+        if metadata is not None:
+            params["metadata"] = _json.dumps(metadata)
+        if multimodal is not None:
+            params["multimodal"] = str(multimodal).lower()
+        if file_id is not None:
+            params["file_id"] = file_id
 
-            logger.info("Uploading file %r to assistant %r", upload_name, assistant_name)
-            response = await data_http.post(
-                f"/files/{assistant_name}",
-                files={"file": (upload_name, handle)},
-                params=params,
-            )
-            file_model = self._adapter.to_file(response.content)
-            logger.debug(
-                "Uploaded file %r (id=%s, status=%s)",
-                upload_name,
-                file_model.id,
-                file_model.status,
-            )
-        finally:
-            if opened_file is not None:
-                opened_file.close()
+        logger.info("Uploading file %r to assistant %r", upload_name, assistant_name)
+        response = await data_http.post(
+            f"/files/{assistant_name}",
+            files={"file": (upload_name, handle)},
+            params=params,
+        )
+        file_model = self._adapter.to_file(response.content)
+        logger.debug(
+            "Uploaded file %r (id=%s, status=%s)",
+            upload_name,
+            file_model.id,
+            file_model.status,
+        )
 
         if timeout == -1:
             return await self.describe_file(assistant_name=assistant_name, file_id=file_model.id)
