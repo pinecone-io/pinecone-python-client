@@ -17,6 +17,7 @@ from pinecone.models.vectors.responses import (
     FetchByMetadataResponse,
     FetchResponse,
     QueryResponse,
+    ResponseInfo,
     UpdateResponse,
     UpsertResponse,
 )
@@ -1266,6 +1267,88 @@ async def test_metadata_filter_boolean_values_rest_async(async_client: AsyncPine
             assert m.metadata.get("active") is False, (
                 f"Match {m.id!r}: expected active=False, got {m.metadata.get('active')!r}"
             )
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# response_info header population — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_response_info_populated_on_data_plane_responses_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """response_info is populated as a ResponseInfo struct after real async API calls.
+
+    Verifies unified-rs-0010 on the async REST transport: Response objects carry
+    HTTP response header information accessible via a response-info field.
+
+    The async data-plane path also calls extract_response_info() after each response.
+    This test confirms the structural invariant (non-None ResponseInfo with correctly
+    typed fields) without asserting on specific header values, which depend on
+    whether the API includes x-pinecone-request-id in its responses.
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # --- upsert ---
+        upsert_result = await idx.upsert(
+            vectors=[
+                {"id": "ri-a1", "values": [0.1, 0.2]},
+                {"id": "ri-a2", "values": [0.3, 0.4]},
+            ]
+        )
+        assert isinstance(upsert_result, UpsertResponse)
+        assert upsert_result.response_info is not None, (
+            "AsyncIndex UpsertResponse.response_info should be set (non-None) after a real API call"
+        )
+        assert isinstance(upsert_result.response_info, ResponseInfo)
+        ri = upsert_result.response_info
+        assert ri.request_id is None or isinstance(ri.request_id, str)
+        assert ri.lsn_reconciled is None or isinstance(ri.lsn_reconciled, int)
+        assert ri.lsn_committed is None or isinstance(ri.lsn_committed, int)
+
+        # --- query (via async_poll_until for eventual consistency) ---
+        query_result = await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.1, 0.2], top_k=2),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="ri-a1 and ri-a2 queryable (async)",
+        )
+        assert isinstance(query_result, QueryResponse)
+        assert query_result.response_info is not None
+        assert isinstance(query_result.response_info, ResponseInfo)
+        qri = query_result.response_info
+        assert qri.request_id is None or isinstance(qri.request_id, str)
+        assert qri.lsn_reconciled is None or isinstance(qri.lsn_reconciled, int)
+        assert qri.lsn_committed is None or isinstance(qri.lsn_committed, int)
+
+        # --- fetch ---
+        fetch_result = await idx.fetch(ids=["ri-a1", "ri-a2"])
+        assert isinstance(fetch_result, FetchResponse)
+        assert fetch_result.response_info is not None
+        assert isinstance(fetch_result.response_info, ResponseInfo)
+        fri = fetch_result.response_info
+        assert fri.request_id is None or isinstance(fri.request_id, str)
+        assert fri.lsn_reconciled is None or isinstance(fri.lsn_reconciled, int)
+        assert fri.lsn_committed is None or isinstance(fri.lsn_committed, int)
     finally:
         if idx is not None:
             await idx.close()

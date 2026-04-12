@@ -17,6 +17,7 @@ from pinecone.models.vectors.responses import (
     FetchByMetadataResponse,
     FetchResponse,
     QueryResponse,
+    ResponseInfo,
     UpdateResponse,
     UpsertResponse,
 )
@@ -1784,3 +1785,88 @@ def test_metadata_filter_boolean_values_grpc(client: Pinecone) -> None:
         assert "bool-g3" not in false_ids, f"bool-g3 leaked into false filter (gRPC): {false_ids}"
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# response_info header population — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_response_info_populated_on_data_plane_responses_rest(client: Pinecone) -> None:
+    """response_info is populated as a ResponseInfo struct after real data-plane API calls.
+
+    Verifies unified-rs-0010: Response objects carry HTTP response header information
+    accessible via a response-info field.
+
+    The SDK always creates a ResponseInfo object after each data-plane response
+    (via extract_response_info()). This test confirms:
+    - response_info is not None on UpsertResponse, QueryResponse, and FetchResponse
+    - response_info is a ResponseInfo instance with the correct field types
+    - Individual header fields (request_id, lsn_*) may be None when the API
+      does not return those headers; the structural invariant is what we verify here.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # --- upsert ---
+        upsert_result = index.upsert(
+            vectors=[
+                {"id": "ri-v1", "values": [0.1, 0.2]},
+                {"id": "ri-v2", "values": [0.3, 0.4]},
+            ]
+        )
+        assert isinstance(upsert_result, UpsertResponse)
+        assert upsert_result.response_info is not None, (
+            "UpsertResponse.response_info should be set (non-None) after a real API call"
+        )
+        assert isinstance(upsert_result.response_info, ResponseInfo)
+        # Field types are correct: str | None and int | None
+        ri = upsert_result.response_info
+        assert ri.request_id is None or isinstance(ri.request_id, str)
+        assert ri.lsn_reconciled is None or isinstance(ri.lsn_reconciled, int)
+        assert ri.lsn_committed is None or isinstance(ri.lsn_committed, int)
+
+        # --- query (via poll_until for eventual consistency) ---
+        query_result = poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2], top_k=2),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="ri-v1 and ri-v2 queryable",
+        )
+        assert isinstance(query_result, QueryResponse)
+        assert query_result.response_info is not None, (
+            "QueryResponse.response_info should be set after a real API call"
+        )
+        assert isinstance(query_result.response_info, ResponseInfo)
+        qri = query_result.response_info
+        assert qri.request_id is None or isinstance(qri.request_id, str)
+        assert qri.lsn_reconciled is None or isinstance(qri.lsn_reconciled, int)
+        assert qri.lsn_committed is None or isinstance(qri.lsn_committed, int)
+
+        # --- fetch ---
+        fetch_result = index.fetch(ids=["ri-v1", "ri-v2"])
+        assert isinstance(fetch_result, FetchResponse)
+        assert fetch_result.response_info is not None, (
+            "FetchResponse.response_info should be set after a real API call"
+        )
+        assert isinstance(fetch_result.response_info, ResponseInfo)
+        fri = fetch_result.response_info
+        assert fri.request_id is None or isinstance(fri.request_id, str)
+        assert fri.lsn_reconciled is None or isinstance(fri.lsn_reconciled, int)
+        assert fri.lsn_committed is None or isinstance(fri.lsn_committed, int)
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# Note: gRPC transport (test_response_info_populated_on_data_plane_responses_grpc)
+# is N/A — pure gRPC operations (upsert, query, fetch) use the binary gRPC protocol
+# and do not call extract_response_info(), so response_info is None on those responses.
+# Only gRPC operations that delegate to REST (upsert_records, search) set response_info.
