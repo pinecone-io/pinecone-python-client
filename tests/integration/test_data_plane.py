@@ -993,6 +993,66 @@ def test_namespace_crud_lifecycle_rest(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
+# list_namespaces generator — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_list_namespaces_generator_rest(client: Pinecone) -> None:
+    """list_namespaces() generator yields ListNamespacesResponse pages with NamespaceDescription
+    items; generator follows pagination tokens automatically until exhausted.
+
+    Verifies claims:
+    - unified-ns-0007: The namespace list generator yields individual NamespaceDescription
+      objects per page; the paginated method returns one page (not auto-paginating).
+    - unified-ns-0005: Can list all namespaces in an index with optional prefix filtering.
+    """
+    name = unique_name("idx")
+    ns_a = "lnsgen-ns-a"
+    ns_b = "lnsgen-ns-b"
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert one vector into each namespace to create them implicitly
+        index.upsert(vectors=[{"id": "lnsg-v1", "values": [0.1, 0.2]}], namespace=ns_a)
+        index.upsert(vectors=[{"id": "lnsg-v2", "values": [0.3, 0.4]}], namespace=ns_b)
+
+        # Poll until both namespaces appear in list_namespaces_paginated
+        poll_until(
+            query_fn=lambda: index.list_namespaces_paginated(prefix="lnsgen-ns-", limit=100),
+            check_fn=lambda r: len(r.namespaces) >= 2,
+            timeout=120,
+            description="both lnsgen-ns-* namespaces appear via list_namespaces_paginated",
+        )
+
+        # --- Exercise the generator ---
+        pages = list(index.list_namespaces(prefix="lnsgen-ns-"))
+        assert len(pages) >= 1, "list_namespaces() generator must yield at least one page"
+
+        # Collect all namespace names across all yielded pages
+        all_ns_names = [ns.name for page in pages for ns in page.namespaces]
+        assert ns_a in all_ns_names, f"Expected {ns_a!r} in generator output; got {all_ns_names}"
+        assert ns_b in all_ns_names, f"Expected {ns_b!r} in generator output; got {all_ns_names}"
+
+        # Verify shape of every yielded page and its namespace descriptions
+        for page in pages:
+            assert isinstance(page, ListNamespacesResponse)
+            assert len(page.namespaces) >= 1, "Each yielded page must contain at least one namespace"
+            for ns in page.namespaces:
+                assert isinstance(ns, NamespaceDescription)
+                assert isinstance(ns.name, str) and ns.name.startswith("lnsgen-ns-")
+                assert isinstance(ns.record_count, int) and ns.record_count >= 0
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
 # list_paginated multi-page — REST sync
 # ---------------------------------------------------------------------------
 
