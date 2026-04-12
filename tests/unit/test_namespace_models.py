@@ -155,3 +155,24 @@ class TestVectorsAdapterNamespaces:
         response = VectorsAdapter.to_list_namespaces_response(data)
         assert response.pagination is None
         assert len(response.namespaces) == 1
+
+    def test_adapter_decode_namespace_description_string_record_count(self) -> None:
+        """API returns record_count as a string-encoded integer; adapter must coerce it."""
+        data = b'{"name": "ns1", "record_count": "0"}'
+        ns = VectorsAdapter.to_namespace_description(data)
+        assert ns.name == "ns1"
+        assert ns.record_count == 0
+        assert isinstance(ns.record_count, int)
+
+    def test_adapter_decode_list_namespaces_string_record_count(self) -> None:
+        """API returns record_count as a string in list responses; adapter must coerce it."""
+        data = (
+            b'{"namespaces": [{"name": "ns1", "record_count": "42"},'
+            b' {"name": "ns2", "record_count": "0"}],'
+            b' "total_count": 2}'
+        )
+        response = VectorsAdapter.to_list_namespaces_response(data)
+        assert response.namespaces[0].record_count == 42
+        assert isinstance(response.namespaces[0].record_count, int)
+        assert response.namespaces[1].record_count == 0
+        assert isinstance(response.namespaces[1].record_count, int)

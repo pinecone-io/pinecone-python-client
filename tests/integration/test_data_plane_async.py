@@ -660,7 +660,6 @@ async def test_describe_index_stats_filter_unsupported_on_serverless_rest_async(
 # namespace CRUD — REST async
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skip(reason="SDK bug: NamespaceDescription.record_count typed as int but API returns string — see IT-0010")
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_namespace_crud_lifecycle_rest_async(async_client: AsyncPinecone) -> None:

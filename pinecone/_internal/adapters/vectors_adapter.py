@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import httpx
 
-from pinecone._internal.adapters._decode import decode_response
+from pinecone._internal.adapters._decode import decode_response, decode_response_lax
 from pinecone.models.namespaces.models import (
     ListNamespacesResponse,
     NamespaceDescription,
@@ -139,18 +139,22 @@ class VectorsAdapter:
         """Decode raw JSON bytes into a NamespaceDescription.
 
         Transformations:
-            - Direct decode; namespace API uses snake_case natively.
+            - Uses lax decoding (strict=False) because the namespace API returns
+              ``record_count`` as a string-encoded integer (e.g. ``"0"``), not an
+              int; strict decoding raises ValidationError (claim IT-0010).
         """
-        return decode_response(data, NamespaceDescription)
+        return decode_response_lax(data, NamespaceDescription)
 
     @staticmethod
     def to_list_namespaces_response(data: bytes) -> ListNamespacesResponse:
         """Decode raw JSON bytes into a ListNamespacesResponse.
 
         Transformations:
-            - Direct decode; namespace API uses snake_case natively.
+            - Uses lax decoding (strict=False) because the namespace API returns
+              ``record_count`` as a string-encoded integer (e.g. ``"0"``), not an
+              int; strict decoding raises ValidationError (claim IT-0010).
         """
-        return decode_response(data, ListNamespacesResponse)
+        return decode_response_lax(data, ListNamespacesResponse)
 
     @staticmethod
     def to_delete_response(data: bytes) -> None:

@@ -928,7 +928,6 @@ def test_describe_index_stats_filter_unsupported_on_serverless_grpc(client: Pine
 # namespace CRUD — REST sync
 # ---------------------------------------------------------------------------
 
-@pytest.mark.skip(reason="SDK bug: NamespaceDescription.record_count typed as int but API returns string — see IT-0010")
 @pytest.mark.integration
 def test_namespace_crud_lifecycle_rest(client: Pinecone) -> None:
     """create_namespace / describe_namespace / list_namespaces_paginated / delete_namespace round-trip.
