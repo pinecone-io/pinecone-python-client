@@ -12,9 +12,10 @@ from __future__ import annotations
 import pytest
 
 from pinecone import AsyncPinecone
+from pinecone.errors.exceptions import ApiError
 from pinecone.models.collections.list import CollectionList
 from pinecone.models.collections.model import CollectionModel
-from pinecone.models.indexes.specs import PodSpec
+from pinecone.models.indexes.specs import PodSpec, ServerlessSpec
 from tests.integration.conftest import async_cleanup_resource, async_poll_until, unique_name
 
 # ---------------------------------------------------------------------------
@@ -112,6 +113,57 @@ async def test_collection_lifecycle_async(async_client: AsyncPinecone) -> None:
             col_name,
             "collection",
         )
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(index_name),
+            index_name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# collection-from-serverless — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_collection_from_serverless_raises_error_async(async_client: AsyncPinecone) -> None:
+    """Creating a collection from a serverless index raises ApiError(400) — async REST.
+
+    Collections are a pod-index-only feature (unified-col-0008). The Pinecone
+    API returns HTTP 400 when the caller attempts to snapshot a serverless
+    index. This test verifies the async client surfaces that error as ApiError
+    with status_code=400.
+
+    Area tag: collection-lifecycle
+    Transport: rest-async
+    Claim: unified-col-0008
+    """
+    index_name = unique_name("idx")
+    col_name = unique_name("col")
+
+    try:
+        # Create a serverless index (quick to provision)
+        await async_client.indexes.create(
+            name=index_name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=120,
+        )
+
+        # Attempt to create a collection from the serverless index.
+        # The API must reject this with HTTP 400.
+        with pytest.raises(ApiError) as exc_info:
+            await async_client.collections.create(name=col_name, source=index_name)
+
+        err = exc_info.value
+        assert err.status_code == 400, (
+            f"Expected HTTP 400 for serverless collection source, got {err.status_code}"
+        )
+
+    finally:
+        # The collection was never created (error was raised), so only clean
+        # up the source index.
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(index_name),
             index_name,
