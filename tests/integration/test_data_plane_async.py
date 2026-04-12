@@ -535,3 +535,79 @@ async def test_namespaces_rest_async(async_client: AsyncPinecone) -> None:
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# list_paginated — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_list_paginated_returns_single_page_rest_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """list_paginated() via AsyncIndex returns one page; limit is respected; no token on last page."""
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        # Upsert 4 vectors with a shared prefix
+        await idx.upsert(
+            vectors=[
+                {"id": "pg-v1", "values": [0.1, 0.2]},
+                {"id": "pg-v2", "values": [0.3, 0.4]},
+                {"id": "pg-v3", "values": [0.5, 0.6]},
+                {"id": "pg-v4", "values": [0.7, 0.8]},
+            ]
+        )
+
+        # Wait until all 4 vectors appear in list results
+        await async_poll_until(
+            query_fn=lambda: idx.list_paginated(prefix="pg-", limit=100),  # type: ignore[union-attr]
+            check_fn=lambda r: len(r.vectors) >= 4,
+            timeout=120,
+            description="all 4 vectors listable after upsert",
+        )
+
+        # 1. list_paginated() returns a ListResponse (not an async generator)
+        page = await idx.list_paginated(prefix="pg-", limit=100)
+        assert isinstance(page, ListResponse)
+
+        # 2. Vector list contains ListItem objects with string IDs
+        assert isinstance(page.vectors, list)
+        assert len(page.vectors) >= 4
+        for item in page.vectors:
+            assert isinstance(item, ListItem)
+            assert isinstance(item.id, str)
+
+        # 3. All 4 IDs are present
+        ids = {item.id for item in page.vectors}
+        assert {"pg-v1", "pg-v2", "pg-v3", "pg-v4"} <= ids
+
+        # 4. Namespace field is a string
+        assert isinstance(page.namespace, str)
+
+        # 5. No pagination token on the final page (unified-vec-0056)
+        assert page.pagination is None or page.pagination.next is None
+
+        # 6. limit=2 returns at most 2 items
+        limited_page = await idx.list_paginated(prefix="pg-", limit=2)
+        assert isinstance(limited_page, ListResponse)
+        assert len(limited_page.vectors) <= 2
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )

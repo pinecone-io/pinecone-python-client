@@ -747,3 +747,118 @@ def test_namespaces_grpc(client: Pinecone) -> None:
         assert "ns-v1" in ids or "ns-v2" in ids
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# list_paginated — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_list_paginated_returns_single_page_rest(client: Pinecone) -> None:
+    """list_paginated() returns one page with correct structure; no token on last page."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert 4 vectors with a shared prefix so we can filter and verify limit
+        index.upsert(
+            vectors=[
+                {"id": "pg-v1", "values": [0.1, 0.2]},
+                {"id": "pg-v2", "values": [0.3, 0.4]},
+                {"id": "pg-v3", "values": [0.5, 0.6]},
+                {"id": "pg-v4", "values": [0.7, 0.8]},
+            ]
+        )
+
+        # Wait until all 4 vectors appear in list results
+        poll_until(
+            query_fn=lambda: index.list_paginated(prefix="pg-", limit=100),
+            check_fn=lambda r: len(r.vectors) >= 4,
+            timeout=120,
+            description="all 4 vectors listable after upsert",
+        )
+
+        # 1. list_paginated() returns a ListResponse (not a generator)
+        page = index.list_paginated(prefix="pg-", limit=100)
+        assert isinstance(page, ListResponse)
+
+        # 2. Vector list contains ListItem objects with string IDs
+        assert isinstance(page.vectors, list)
+        assert len(page.vectors) >= 4
+        for item in page.vectors:
+            assert isinstance(item, ListItem)
+            assert isinstance(item.id, str)
+
+        # 3. All 4 IDs are present
+        ids = {item.id for item in page.vectors}
+        assert {"pg-v1", "pg-v2", "pg-v3", "pg-v4"} <= ids
+
+        # 4. Namespace field is a string
+        assert isinstance(page.namespace, str)
+
+        # 5. No pagination token when the page contains all results (last page)
+        #    The claim unified-vec-0056 says: no token when this is the final page.
+        assert page.pagination is None or page.pagination.next is None
+
+        # 6. list_paginated with limit=2 returns at most 2 items (limit is respected)
+        limited_page = index.list_paginated(prefix="pg-", limit=2)
+        assert isinstance(limited_page, ListResponse)
+        assert len(limited_page.vectors) <= 2
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# list_paginated — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_list_paginated_returns_single_page_grpc(client: Pinecone) -> None:
+    """list_paginated() via GrpcIndex returns one page with correct structure."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        index.upsert(
+            vectors=[
+                {"id": "pg-v1", "values": [0.1, 0.2]},
+                {"id": "pg-v2", "values": [0.3, 0.4]},
+                {"id": "pg-v3", "values": [0.5, 0.6]},
+            ]
+        )
+
+        # Wait until all 3 vectors are listable
+        poll_until(
+            query_fn=lambda: index.list_paginated(prefix="pg-", limit=100),
+            check_fn=lambda r: len(r.vectors) >= 3,
+            timeout=120,
+            description="all 3 vectors listable after upsert",
+        )
+
+        page = index.list_paginated(prefix="pg-", limit=100)
+        assert isinstance(page, ListResponse)
+        assert isinstance(page.vectors, list)
+        assert len(page.vectors) >= 3
+        for item in page.vectors:
+            assert isinstance(item, ListItem)
+            assert isinstance(item.id, str)
+        ids = {item.id for item in page.vectors}
+        assert {"pg-v1", "pg-v2", "pg-v3"} <= ids
+        # No pagination token on the final page
+        assert page.pagination is None or page.pagination.next is None
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
