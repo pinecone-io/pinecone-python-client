@@ -1633,3 +1633,154 @@ def test_unusual_ascii_ids_round_trip_grpc(client: Pinecone) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# metadata-filter boolean values — REST sync
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_metadata_filter_boolean_values_rest(client: Pinecone) -> None:
+    """Boolean filter values ($eq: True / $eq: False) return the correct vectors (REST sync).
+
+    Verifies unified-filter-0006: Filter field values support strings, integers,
+    floats, AND booleans.
+
+    Upserts 3 vectors: two with active=True, one with active=False.
+    Queries with both Field("active").eq(True) and Field("active").eq(False)
+    to verify that boolean equality filters route correctly.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert 3 vectors: 2 active=True, 1 active=False
+        index.upsert(
+            vectors=[
+                {"id": "bool-v1", "values": [0.1, 0.2], "metadata": {"active": True, "label": "a"}},
+                {"id": "bool-v2", "values": [0.3, 0.4], "metadata": {"active": False, "label": "b"}},
+                {"id": "bool-v3", "values": [0.5, 0.6], "metadata": {"active": True, "label": "c"}},
+            ]
+        )
+
+        # Wait until all 3 vectors are queryable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 3,
+            timeout=120,
+            description="all 3 boolean-metadata vectors queryable",
+        )
+
+        # Filter by active=True — should return bool-v1 and bool-v3
+        # Field.__eq__ produces {"active": {"$eq": True}}
+        result_true = index.query(
+            vector=[0.1, 0.2],
+            top_k=10,
+            filter=(Field("active") == True).to_dict(),  # noqa: E712
+            include_metadata=True,
+        )
+        assert isinstance(result_true, QueryResponse)
+        true_ids = {m.id for m in result_true.matches}
+        assert "bool-v1" in true_ids, f"bool-v1 (active=True) missing from result: {true_ids}"
+        assert "bool-v3" in true_ids, f"bool-v3 (active=True) missing from result: {true_ids}"
+        assert "bool-v2" not in true_ids, f"bool-v2 (active=False) leaked into active=True result: {true_ids}"
+        # Verify metadata round-trip preserves boolean type
+        for m in result_true.matches:
+            assert m.metadata is not None
+            assert m.metadata.get("active") is True, (
+                f"Match {m.id!r}: expected active=True, got {m.metadata.get('active')!r}"
+            )
+
+        # Filter by active=False — also verify raw dict form works
+        result_false = index.query(
+            vector=[0.3, 0.4],
+            top_k=10,
+            filter={"active": {"$eq": False}},
+            include_metadata=True,
+        )
+        assert isinstance(result_false, QueryResponse)
+        false_ids = {m.id for m in result_false.matches}
+        assert "bool-v2" in false_ids, f"bool-v2 (active=False) missing from result: {false_ids}"
+        assert "bool-v1" not in false_ids, f"bool-v1 (active=True) leaked into active=False result: {false_ids}"
+        assert "bool-v3" not in false_ids, f"bool-v3 (active=True) leaked into active=False result: {false_ids}"
+        for m in result_false.matches:
+            assert m.metadata is not None
+            assert m.metadata.get("active") is False, (
+                f"Match {m.id!r}: expected active=False, got {m.metadata.get('active')!r}"
+            )
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# metadata-filter boolean values — gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_metadata_filter_boolean_values_grpc(client: Pinecone) -> None:
+    """Boolean filter values ($eq: True / $eq: False) return the correct vectors (gRPC).
+
+    Verifies unified-filter-0006 on the gRPC transport.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        # Upsert 3 vectors: 2 active=True, 1 active=False
+        index.upsert(
+            vectors=[
+                {"id": "bool-g1", "values": [0.1, 0.2], "metadata": {"active": True}},
+                {"id": "bool-g2", "values": [0.3, 0.4], "metadata": {"active": False}},
+                {"id": "bool-g3", "values": [0.5, 0.6], "metadata": {"active": True}},
+            ]
+        )
+
+        # Wait until all 3 vectors are queryable
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.1, 0.2], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 3,
+            timeout=120,
+            description="all 3 boolean-metadata vectors queryable (gRPC)",
+        )
+
+        # Filter by active=True — should return bool-g1 and bool-g3
+        result_true = index.query(
+            vector=[0.1, 0.2],
+            top_k=10,
+            filter={"active": {"$eq": True}},
+            include_metadata=True,
+        )
+        assert isinstance(result_true, QueryResponse)
+        true_ids = {m.id for m in result_true.matches}
+        assert "bool-g1" in true_ids, f"bool-g1 (active=True) missing (gRPC): {true_ids}"
+        assert "bool-g3" in true_ids, f"bool-g3 (active=True) missing (gRPC): {true_ids}"
+        assert "bool-g2" not in true_ids, f"bool-g2 (active=False) leaked (gRPC): {true_ids}"
+
+        # Filter by active=False — using Field builder
+        result_false = index.query(
+            vector=[0.3, 0.4],
+            top_k=10,
+            filter=(Field("active") == False).to_dict(),  # noqa: E712
+            include_metadata=True,
+        )
+        assert isinstance(result_false, QueryResponse)
+        false_ids = {m.id for m in result_false.matches}
+        assert "bool-g2" in false_ids, f"bool-g2 (active=False) missing (gRPC): {false_ids}"
+        assert "bool-g1" not in false_ids, f"bool-g1 leaked into false filter (gRPC): {false_ids}"
+        assert "bool-g3" not in false_ids, f"bool-g3 leaked into false filter (gRPC): {false_ids}"
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

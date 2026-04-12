@@ -1185,3 +1185,92 @@ async def test_unusual_ascii_ids_round_trip_rest_async(async_client: AsyncPineco
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# metadata-filter boolean values — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+async def test_metadata_filter_boolean_values_rest_async(async_client: AsyncPinecone) -> None:
+    """Boolean filter values ($eq: True / $eq: False) return the correct vectors (REST async).
+
+    Verifies unified-filter-0006: Filter field values support strings, integers,
+    floats, AND booleans.
+
+    Mirrors test_metadata_filter_boolean_values_rest for the async transport.
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # Upsert 3 vectors: 2 active=True, 1 active=False
+        await idx.upsert(
+            vectors=[
+                {"id": "bool-a1", "values": [0.1, 0.2], "metadata": {"active": True, "label": "a"}},
+                {"id": "bool-a2", "values": [0.3, 0.4], "metadata": {"active": False, "label": "b"}},
+                {"id": "bool-a3", "values": [0.5, 0.6], "metadata": {"active": True, "label": "c"}},
+            ]
+        )
+
+        # Wait until all 3 vectors are queryable (eventual consistency)
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.1, 0.2], top_k=10),
+            check_fn=lambda r: len(r.matches) >= 3,
+            timeout=120,
+            description="all 3 boolean-metadata vectors queryable (async)",
+        )
+
+        # Filter by active=True — should return bool-a1 and bool-a3
+        # Field.__eq__ produces {"active": {"$eq": True}}
+        result_true = await idx.query(
+            vector=[0.1, 0.2],
+            top_k=10,
+            filter=(Field("active") == True).to_dict(),  # noqa: E712
+            include_metadata=True,
+        )
+        assert isinstance(result_true, QueryResponse)
+        true_ids = {m.id for m in result_true.matches}
+        assert "bool-a1" in true_ids, f"bool-a1 (active=True) missing (async): {true_ids}"
+        assert "bool-a3" in true_ids, f"bool-a3 (active=True) missing (async): {true_ids}"
+        assert "bool-a2" not in true_ids, f"bool-a2 (active=False) leaked (async): {true_ids}"
+        # Verify metadata round-trip preserves boolean type
+        for m in result_true.matches:
+            assert m.metadata is not None
+            assert m.metadata.get("active") is True, (
+                f"Match {m.id!r}: expected active=True, got {m.metadata.get('active')!r}"
+            )
+
+        # Filter by active=False — also verify raw dict form
+        result_false = await idx.query(
+            vector=[0.3, 0.4],
+            top_k=10,
+            filter={"active": {"$eq": False}},
+            include_metadata=True,
+        )
+        assert isinstance(result_false, QueryResponse)
+        false_ids = {m.id for m in result_false.matches}
+        assert "bool-a2" in false_ids, f"bool-a2 (active=False) missing (async): {false_ids}"
+        assert "bool-a1" not in false_ids, f"bool-a1 leaked into false filter (async): {false_ids}"
+        assert "bool-a3" not in false_ids, f"bool-a3 leaked into false filter (async): {false_ids}"
+        for m in result_false.matches:
+            assert m.metadata is not None
+            assert m.metadata.get("active") is False, (
+                f"Match {m.id!r}: expected active=False, got {m.metadata.get('active')!r}"
+            )
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
