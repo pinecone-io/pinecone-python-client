@@ -15,6 +15,7 @@ These tests make real API calls and require PINECONE_API_KEY in the environment.
 from __future__ import annotations
 
 import contextlib
+import io
 import os
 import tempfile
 
@@ -644,4 +645,101 @@ async def test_assistant_create_region_validation_and_chat_stream_json_conflict_
             messages=[{"content": "test query"}],
             stream=True,
             json_response=True,
+        )
+
+
+# ---------------------------------------------------------------------------
+# assistant-files: byte-stream upload with file_name and metadata (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_upload_file_from_byte_stream_with_metadata_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """Upload from a BytesIO stream with file_name and metadata; verify both are preserved (async).
+
+    Verifies (async path):
+    - unified-file-0002: Can upload a file from an in-memory byte stream
+    - unified-file-0003: Can upload a file with optional user-provided metadata
+    - unified-file-0033: Byte stream upload preserves the provided file name and
+      metadata in the file record
+    """
+    name = unique_name("asst")
+    file_id: str | None = None
+    try:
+        # Create assistant
+        assistant = await async_client.assistants.create(
+            name=name, instructions="Test async stream upload."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        # Wait for assistant to be ready
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # Build an in-memory byte stream with a specific file name and metadata
+        content = b"Pinecone is a managed vector database. It supports semantic search."
+        stream = io.BytesIO(content)
+        upload_name = "stream-knowledge-async.txt"
+        upload_metadata: dict[str, object] = {"source": "async-stream-test", "category": "sdk-docs"}
+
+        # Upload via file_stream — exercises the file_stream / file_name / metadata paths
+        file_model = await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_stream=stream,
+            file_name=upload_name,
+            metadata=upload_metadata,
+            timeout=120,
+        )
+        assert isinstance(file_model, AssistantFileModel)
+        assert file_model.id is not None
+        file_id = file_model.id
+
+        # Poll until file processing completes
+        await async_poll_until(
+            lambda: async_client.assistants.describe_file(
+                assistant_name=name, file_id=file_id
+            ),
+            lambda f: f.status in ("Available", "Processed"),
+            timeout=120,
+            interval=5,
+            description=f"file {file_id}",
+        )
+
+        # Verify file_name and metadata are preserved in the described file record
+        described = await async_client.assistants.describe_file(
+            assistant_name=name, file_id=file_id
+        )
+        assert isinstance(described, AssistantFileModel)
+        assert described.id == file_id
+        assert described.name == upload_name, (
+            f"Expected file name '{upload_name}', got '{described.name}'"
+        )
+        assert described.metadata is not None, "Expected metadata to be preserved, got None"
+        assert described.metadata.get("source") == "async-stream-test"
+        assert described.metadata.get("category") == "sdk-docs"
+
+        # Clean up file
+        await async_client.assistants.delete_file(
+            assistant_name=name, file_id=file_id, timeout=60
+        )
+        file_id = None
+
+    finally:
+        if file_id is not None:
+            with contextlib.suppress(Exception):
+                await async_client.assistants.delete_file(
+                    assistant_name=name, file_id=file_id, timeout=60
+                )
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
         )
