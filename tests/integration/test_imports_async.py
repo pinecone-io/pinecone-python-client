@@ -14,6 +14,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import AsyncPinecone
+from pinecone.errors.exceptions import PineconeValueError
 from pinecone.models.imports.list import ImportList
 from pinecone.models.imports.model import ImportModel, StartImportResponse
 from tests.integration.conftest import async_cleanup_resource, unique_name
@@ -118,3 +119,83 @@ async def test_import_lifecycle_async(async_client: AsyncPinecone) -> None:
             index_name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# import-validation — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_import_input_validation_async(async_client: AsyncPinecone) -> None:
+    """Client-side validation for async start_import(), describe_import(), cancel_import()
+    fires synchronously before any await, so a fake host is sufficient.
+
+    Verifies:
+    - unified-imp-0006: error_mode is normalized to lowercase; CONTINUE/Continue/continue
+      and ABORT/Abort/abort are all accepted (they do not raise PineconeValueError).
+    - unified-imp-0009: integer import IDs are silently converted to strings.
+    - unified-imp-0010: an invalid error_mode string raises PineconeValueError.
+    - unified-imp-0011: describe_import() and cancel_import() raise PineconeValueError
+      for empty IDs or IDs exceeding 1000 characters.
+    """
+    index = async_client.index(host="fake-host.svc.pinecone.io")
+
+    # --- unified-imp-0010: invalid error_mode raises PineconeValueError ---
+    with pytest.raises(PineconeValueError):
+        await index.start_import(uri="s3://test/bucket/", error_mode="invalid")
+
+    with pytest.raises(PineconeValueError):
+        await index.start_import(uri="s3://test/bucket/", error_mode="")
+
+    with pytest.raises(PineconeValueError):
+        await index.start_import(uri="s3://test/bucket/", error_mode="skip")
+
+    # --- unified-imp-0006: case-insensitive normalization — must NOT raise PineconeValueError ---
+    for mode in ("CONTINUE", "Continue", "continue", "ABORT", "Abort", "abort"):
+        try:
+            await index.start_import(uri="s3://test/bucket/", error_mode=mode)
+        except PineconeValueError:
+            pytest.fail(
+                f"error_mode={mode!r} should be accepted after case normalization, "
+                f"but PineconeValueError was raised"
+            )
+        except Exception:
+            pass  # Expected: connection/HTTP error after validation passes
+
+    # --- unified-imp-0011: ID length validation in describe_import ---
+    with pytest.raises(PineconeValueError):
+        await index.describe_import("")  # empty ID
+
+    with pytest.raises(PineconeValueError):
+        await index.describe_import("x" * 1001)  # over limit
+
+    try:
+        await index.describe_import("x" * 1000)
+    except PineconeValueError:
+        pytest.fail("1000-character import ID should pass length validation")
+    except Exception:
+        pass
+
+    # --- unified-imp-0011: ID length validation in cancel_import ---
+    with pytest.raises(PineconeValueError):
+        await index.cancel_import("")  # empty ID
+
+    with pytest.raises(PineconeValueError):
+        await index.cancel_import("x" * 1001)  # over limit
+
+    # --- unified-imp-0009: integer IDs are converted to strings silently ---
+    try:
+        await index.describe_import(42)
+    except PineconeValueError:
+        pytest.fail("Integer import ID should be silently converted to string, not rejected")
+    except Exception:
+        pass
+
+    try:
+        await index.cancel_import(42)
+    except PineconeValueError:
+        pytest.fail("Integer import ID should be silently converted to string, not rejected")
+    except Exception:
+        pass
