@@ -1070,3 +1070,93 @@ def test_list_paginated_multi_page_rest(client: Pinecone) -> None:
         assert pages_seen >= 2
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# delete-nonexistent-ids — REST sync + gRPC
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+def test_delete_nonexistent_ids_returns_none_rest(client: Pinecone) -> None:
+    """Delete with IDs that don't exist in the namespace returns None without error.
+
+    Verifies unified-vec-0032: "Deleting vectors does not raise an error when
+    the specified IDs do not exist."
+
+    Two sub-cases:
+    1. IDs never upserted — tested after namespace is established (fresh namespace
+       raises 404; the claim applies within an existing namespace).
+    2. ID that was upserted, deleted, then deleted again (idempotency).
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Establish the default namespace by upserting a sentinel vector
+        index.upsert(vectors=[{"id": "dn-v1", "values": [0.1, 0.9]}])
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["dn-v1"]),
+            check_fn=lambda r: len(r.vectors) == 1,
+            timeout=120,
+            description="dn-v1 fetchable (namespace established)",
+        )
+
+        # Sub-case 1: delete IDs that were never upserted — should return None, not raise
+        result = index.delete(ids=["never-existed-x", "never-existed-y"])
+        assert result is None
+
+        # Sub-case 2: delete dn-v1 (exists), then delete it again (already gone)
+        first = index.delete(ids=["dn-v1"])
+        assert first is None
+
+        # Second delete — vector is gone; must still return None (idempotency)
+        second = index.delete(ids=["dn-v1"])
+        assert second is None
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+@pytest.mark.integration
+def test_delete_nonexistent_ids_returns_none_grpc(client: Pinecone) -> None:
+    """Same as REST variant but over gRPC transport (unified-vec-0032)."""
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        # Establish namespace by upserting a sentinel vector
+        index.upsert(vectors=[{"id": "dn-g1", "values": [0.2, 0.8]}])
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["dn-g1"]),
+            check_fn=lambda r: len(r.vectors) == 1,
+            timeout=120,
+            description="dn-g1 fetchable (namespace established for gRPC test)",
+        )
+
+        # Sub-case 1: delete IDs that were never upserted
+        result = index.delete(ids=["never-existed-grpc-x", "never-existed-grpc-y"])
+        assert result is None
+
+        # Sub-case 2: delete dn-g1 (exists), then delete again (already gone)
+        first = index.delete(ids=["dn-g1"])
+        assert first is None
+
+        second = index.delete(ids=["dn-g1"])
+        assert second is None
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

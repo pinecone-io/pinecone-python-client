@@ -822,3 +822,56 @@ async def test_list_paginated_multi_page_rest_async(async_client: AsyncPinecone)
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# delete-nonexistent-ids — REST async
+# ---------------------------------------------------------------------------
+
+@pytest.mark.integration
+async def test_delete_nonexistent_ids_returns_none_async(async_client: AsyncPinecone) -> None:
+    """Delete with IDs that were never upserted (or already deleted) returns None.
+
+    Verifies unified-vec-0032: "Deleting vectors does not raise an error when
+    the specified IDs do not exist."
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # Establish namespace by upserting a sentinel vector first
+        await idx.upsert(vectors=[{"id": "dn-a1", "values": [0.3, 0.7]}])
+        await async_poll_until(
+            query_fn=lambda: idx.fetch(ids=["dn-a1"]),
+            check_fn=lambda r: len(r.vectors) == 1,
+            timeout=120,
+            description="dn-a1 fetchable (namespace established for async test)",
+        )
+
+        # Sub-case 1: delete IDs that were never upserted (namespace now exists)
+        result = await idx.delete(ids=["never-existed-async-x", "never-existed-async-y"])
+        assert result is None
+
+        # Sub-case 2: delete dn-a1 (exists), then delete again (already gone — idempotency)
+        first = await idx.delete(ids=["dn-a1"])
+        assert first is None
+
+        second = await idx.delete(ids=["dn-a1"])
+        assert second is None
+
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
