@@ -430,3 +430,54 @@ def test_rerank_documents_validation_rest(client: Pinecone) -> None:
             query="test query",
             documents=42,  # type: ignore[arg-type]
         )
+
+
+@pytest.mark.integration
+def test_rerank_dict_documents_with_rank_fields(client: Pinecone) -> None:
+    """rerank() with list-of-dict documents and custom rank_fields passes dicts through.
+
+    Verifies unified-inf-0010 (dict document path): when documents are passed as dicts,
+    they are sent to the API without wrapping, and rank_fields selects which field to rank on.
+    All existing integration tests use string inputs (auto-wrapped). This test exercises
+    the dict code path in normalize_rerank_documents().
+    """
+    query = "machine learning and artificial intelligence"
+    documents = [
+        {"body": "The Eiffel Tower is a famous landmark in Paris, France.", "category": "travel"},
+        {"body": "Machine learning is a branch of AI that learns from data.", "category": "tech"},
+        {"body": "Neural networks are inspired by the human brain.", "category": "tech"},
+        {"body": "The best pizza is from Naples, Italy.", "category": "food"},
+    ]
+
+    result = client.inference.rerank(
+        model="bge-reranker-v2-m3",
+        query=query,
+        documents=documents,
+        rank_fields=["body"],  # non-default field — default is ["text"]
+        return_documents=True,
+    )
+
+    assert result.model == "bge-reranker-v2-m3"
+    assert len(result.data) == len(documents)
+    assert result.usage.rerank_units > 0
+
+    # Scores must be sorted descending
+    scores = [item.score for item in result.data]
+    assert scores == sorted(scores, reverse=True), f"Scores not sorted descending: {scores}"
+
+    # Each ranked result must have an index into the original list and a document
+    for ranked in result.data:
+        assert isinstance(ranked.index, int)
+        assert 0 <= ranked.index < len(documents)
+        assert isinstance(ranked.score, float)
+        assert ranked.document is not None
+
+        # Dict documents are passed through as-is (not wrapped in {"text": ...})
+        # so the original "body" and "category" keys must be present in the returned doc
+        assert "body" in ranked.document, f"'body' key missing from ranked.document: {ranked.document}"
+        assert "category" in ranked.document, f"'category' key missing from ranked.document: {ranked.document}"
+
+    # The most relevant document should be one of the AI/ML ones (indexes 1 or 2)
+    assert result.data[0].index in {1, 2}, (
+        f"Expected AI/ML doc to rank first, got index {result.data[0].index}"
+    )
