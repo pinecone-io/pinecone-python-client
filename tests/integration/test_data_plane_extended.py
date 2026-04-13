@@ -2881,3 +2881,156 @@ def test_delete_and_re_upsert_same_ids_grpc(client: Pinecone) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# sparse_vector as SparseValues object — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_query_with_sparse_values_object_rest(client: Pinecone) -> None:
+    """query() accepts a SparseValues typed object for sparse_vector, not just a dict (REST sync).
+
+    Verifies the priority area "Vector variations: SparseValues as object vs dict".
+    The index/__init__.py:492 branch `if isinstance(sparse_vector, SparseValues)`
+    extracts indices/values from the object before sending; this path has never
+    been exercised in integration tests (all existing tests pass a plain dict).
+
+    Upserts two hybrid (dense+sparse) vectors, then queries with
+    sparse_vector=SparseValues(...) and asserts the response has the expected
+    structure and returns the correct matching vector.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert two hybrid vectors
+        index.upsert(
+            vectors=[
+                {
+                    "id": "svobj-v1",
+                    "values": [0.1, 0.2, 0.3, 0.4],
+                    "sparse_values": {"indices": [0, 5], "values": [0.9, 0.7]},
+                },
+                {
+                    "id": "svobj-v2",
+                    "values": [0.9, 0.8, 0.7, 0.6],
+                    "sparse_values": {"indices": [2, 8], "values": [0.3, 0.4]},
+                },
+            ]
+        )
+
+        # Wait for eventual consistency
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["svobj-v1", "svobj-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="svobj vectors fetchable (REST)",
+        )
+
+        # Query using a SparseValues OBJECT (not a dict) — this exercises the
+        # isinstance(sparse_vector, SparseValues) branch in index/__init__.py
+        sv_obj = SparseValues(indices=[0, 5], values=[0.9, 0.7])
+        query_resp = index.query(
+            vector=[0.1, 0.2, 0.3, 0.4],
+            sparse_vector=sv_obj,
+            top_k=5,
+            include_values=True,
+        )
+
+        assert isinstance(query_resp, QueryResponse)
+        assert isinstance(query_resp.matches, list)
+        assert len(query_resp.matches) >= 1
+        match_ids = {m.id for m in query_resp.matches}
+        # svobj-v1 shares the same dense vector and sparse indices — should appear
+        assert "svobj-v1" in match_ids, (
+            f"Expected 'svobj-v1' in results when querying with matching sparse indices; "
+            f"got: {match_ids}"
+        )
+        # Verify response structure
+        for m in query_resp.matches:
+            assert isinstance(m.id, str)
+            assert isinstance(m.score, float)
+            assert m.values is not None and len(m.values) == 4
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# sparse_vector as SparseValues object — gRPC
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_query_with_sparse_values_object_grpc(client: Pinecone) -> None:
+    """GrpcIndex.query() accepts a SparseValues typed object for sparse_vector (gRPC).
+
+    Verifies the gRPC transport handles SparseValues objects correctly via the
+    isinstance(sparse_vector, SparseValues) branch in grpc/__init__.py:360.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        index.upsert(
+            vectors=[
+                {
+                    "id": "svobjg-v1",
+                    "values": [0.1, 0.2, 0.3, 0.4],
+                    "sparse_values": {"indices": [1, 4], "values": [0.8, 0.6]},
+                },
+                {
+                    "id": "svobjg-v2",
+                    "values": [0.9, 0.8, 0.7, 0.6],
+                    "sparse_values": {"indices": [2, 9], "values": [0.2, 0.5]},
+                },
+            ]
+        )
+
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["svobjg-v1", "svobjg-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="svobjg vectors fetchable (gRPC)",
+        )
+
+        sv_obj = SparseValues(indices=[1, 4], values=[0.8, 0.6])
+        query_resp = index.query(
+            vector=[0.1, 0.2, 0.3, 0.4],
+            sparse_vector=sv_obj,
+            top_k=5,
+            include_values=True,
+        )
+
+        assert isinstance(query_resp, QueryResponse)
+        assert isinstance(query_resp.matches, list)
+        assert len(query_resp.matches) >= 1
+        match_ids = {m.id for m in query_resp.matches}
+        assert "svobjg-v1" in match_ids, (
+            f"Expected 'svobjg-v1' in gRPC results when querying with matching sparse indices; "
+            f"got: {match_ids}"
+        )
+        for m in query_resp.matches:
+            assert isinstance(m.id, str)
+            assert isinstance(m.score, float)
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

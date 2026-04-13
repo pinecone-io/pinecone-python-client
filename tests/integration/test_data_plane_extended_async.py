@@ -1954,3 +1954,88 @@ async def test_delete_and_re_upsert_same_ids_async(async_client: AsyncPinecone) 
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# sparse_vector as SparseValues object — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+@pytest.mark.asyncio
+async def test_query_with_sparse_values_object_async(async_client: AsyncPinecone) -> None:
+    """AsyncIndex.query() accepts a SparseValues typed object for sparse_vector (REST async).
+
+    Verifies the priority area "Vector variations: SparseValues as object vs dict".
+    The async_index.py:395 branch `if isinstance(sparse_vector, SparseValues)`
+    extracts indices/values from the object before sending; this path has never
+    been exercised in integration tests (all existing tests pass a plain dict).
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # Upsert two hybrid vectors
+        await idx.upsert(
+            vectors=[
+                {
+                    "id": "svobja-v1",
+                    "values": [0.1, 0.2, 0.3, 0.4],
+                    "sparse_values": {"indices": [0, 5], "values": [0.9, 0.7]},
+                },
+                {
+                    "id": "svobja-v2",
+                    "values": [0.9, 0.8, 0.7, 0.6],
+                    "sparse_values": {"indices": [2, 8], "values": [0.3, 0.4]},
+                },
+            ]
+        )
+
+        # Wait for eventual consistency
+        await async_poll_until(
+            query_fn=lambda: idx.fetch(ids=["svobja-v1", "svobja-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="svobja vectors fetchable (async)",
+        )
+
+        # Query using a SparseValues OBJECT (not a dict) — exercises the
+        # isinstance(sparse_vector, SparseValues) branch in async_index.py
+        sv_obj = SparseValues(indices=[0, 5], values=[0.9, 0.7])
+        query_resp = await idx.query(
+            vector=[0.1, 0.2, 0.3, 0.4],
+            sparse_vector=sv_obj,
+            top_k=5,
+            include_values=True,
+        )
+
+        assert isinstance(query_resp, QueryResponse)
+        assert isinstance(query_resp.matches, list)
+        assert len(query_resp.matches) >= 1
+        match_ids = {m.id for m in query_resp.matches}
+        assert "svobja-v1" in match_ids, (
+            f"Expected 'svobja-v1' in async results when querying with matching sparse indices; "
+            f"got: {match_ids}"
+        )
+        for m in query_resp.matches:
+            assert isinstance(m.id, str)
+            assert isinstance(m.score, float)
+            assert m.values is not None and len(m.values) == 4
+
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
