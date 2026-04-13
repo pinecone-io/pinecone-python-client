@@ -2074,3 +2074,77 @@ async def test_evaluate_alignment_per_fact_structure_and_usage_tokens_async(
         f"prompt_tokens ({usage.prompt_tokens}) + completion_tokens "
         f"({usage.completion_tokens}) must equal total_tokens ({usage.total_tokens})"
     )
+
+
+# ---------------------------------------------------------------------------
+# chat with explicit model and temperature parameters (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_chat_with_model_and_temperature_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """chat() accepts explicit model and temperature parameters and returns a valid response.
+
+    Verifies:
+    - unified-chat-0005: Can specify a language model for chat requests
+    - unified-chat-0006: Can specify a temperature parameter to control randomness
+
+    Async counterpart of test_chat_with_model_and_temperature_rest.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        assistant = await async_client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-mdl-"
+        ) as f:
+            f.write("Pinecone is a managed vector database supporting dense and sparse vectors.")
+            tmp_path = f.name
+
+        await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        response = await async_client.assistants.chat(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What is Pinecone?"}],
+            model="gpt-4o",
+            temperature=0.7,
+            stream=False,
+        )
+
+        assert isinstance(response, ChatResponse)
+        assert isinstance(response.id, str) and len(response.id) > 0
+        assert isinstance(response.model, str) and len(response.model) > 0
+        assert "gpt-4o" in response.model, (
+            f"Expected response.model to contain 'gpt-4o', got {response.model!r}"
+        )
+        assert response.message.role == "assistant"
+        assert isinstance(response.message.content, str) and len(response.message.content) > 0
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )

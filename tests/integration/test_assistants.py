@@ -1999,3 +1999,74 @@ def test_evaluate_alignment_per_fact_structure_and_usage_tokens_rest(
         f"prompt_tokens ({usage.prompt_tokens}) + completion_tokens "
         f"({usage.completion_tokens}) must equal total_tokens ({usage.total_tokens})"
     )
+
+
+# ---------------------------------------------------------------------------
+# chat with explicit model and temperature parameters
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_chat_with_model_and_temperature_rest(client: Pinecone) -> None:
+    """chat() accepts explicit model and temperature parameters and returns a valid response.
+
+    Verifies:
+    - unified-chat-0005: Can specify a language model for chat requests
+    - unified-chat-0006: Can specify a temperature parameter to control randomness
+
+    Sends a chat request with model="gpt-4o" and temperature=0.7.  Both parameters
+    must be accepted by the API without error.  The response.model field should
+    match the requested model name.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        assistant = client.assistants.create(name=name, instructions="You are a helpful assistant.")
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-mdl-"
+        ) as f:
+            f.write("Pinecone is a managed vector database supporting dense and sparse vectors.")
+            tmp_path = f.name
+
+        client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        response = client.assistants.chat(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What is Pinecone?"}],
+            model="gpt-4o",
+            temperature=0.7,
+            stream=False,
+        )
+
+        assert isinstance(response, ChatResponse)
+        assert isinstance(response.id, str) and len(response.id) > 0
+        # The API echoes back which model was used
+        assert isinstance(response.model, str) and len(response.model) > 0
+        assert "gpt-4o" in response.model, (
+            f"Expected response.model to contain 'gpt-4o', got {response.model!r}"
+        )
+        assert response.message.role == "assistant"
+        assert isinstance(response.message.content, str) and len(response.message.content) > 0
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
