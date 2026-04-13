@@ -2679,3 +2679,205 @@ def test_query_after_delete_reflects_deletion_grpc(client: Pinecone) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# delete-and-re-upsert — REST sync (resurrection sequence)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_delete_and_re_upsert_same_ids_rest(client: Pinecone) -> None:
+    """After confirmed deletion, re-upserting the same IDs with new values stores
+    the new values, not the old ones (REST sync).
+
+    Operation sequence (depth-escalation):
+      1. Upsert vectors with initial values [0.1, 0.2, 0.3, 0.4] / [0.2, 0.3, 0.4, 0.5]
+      2. Wait until both are fetchable (eventual consistency)
+      3. Delete both vectors; wait until fetch confirms they are gone
+      4. Re-upsert the same IDs with completely different values
+         [0.9, 0.8, 0.7, 0.6] / [0.8, 0.7, 0.6, 0.5]
+      5. Wait until the new vectors are fetchable
+      6. Verify the NEW values are in the fetch response, not the old ones
+
+    No single-operation test covers this cycle. ET-065 only verifies deletion;
+    this test also exercises the re-creation path.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=120,
+        )
+        index = client.index(name=name)
+
+        # Step 1: Upsert initial vectors (low-magnitude values)
+        upsert_resp = index.upsert(
+            vectors=[
+                {"id": "reur-v1", "values": [0.1, 0.2, 0.3, 0.4]},
+                {"id": "reur-v2", "values": [0.2, 0.3, 0.4, 0.5]},
+            ]
+        )
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 2
+
+        # Step 2: Wait until both are fetchable
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["reur-v1", "reur-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=60,
+            description="initial vectors fetchable before delete",
+        )
+
+        # Step 3: Delete both; wait until gone
+        delete_resp = index.delete(ids=["reur-v1", "reur-v2"])
+        assert delete_resp is None
+
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["reur-v1", "reur-v2"]),
+            check_fn=lambda r: len(r.vectors) == 0,
+            timeout=90,
+            description="both vectors absent from fetch after delete",
+        )
+
+        # Step 4: Re-upsert the same IDs with high-magnitude values (clearly distinct)
+        re_upsert_resp = index.upsert(
+            vectors=[
+                {"id": "reur-v1", "values": [0.9, 0.8, 0.7, 0.6]},
+                {"id": "reur-v2", "values": [0.8, 0.7, 0.6, 0.5]},
+            ]
+        )
+        assert isinstance(re_upsert_resp, UpsertResponse)
+        assert re_upsert_resp.upserted_count == 2
+
+        # Step 5: Wait until the re-upserted vectors are fetchable
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["reur-v1", "reur-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=60,
+            description="re-upserted vectors fetchable with new values",
+        )
+
+        # Step 6: Fetch and verify NEW values are returned, not old ones
+        fetched = index.fetch(ids=["reur-v1", "reur-v2"])
+        assert isinstance(fetched, FetchResponse)
+        assert "reur-v1" in fetched.vectors
+        assert "reur-v2" in fetched.vectors
+
+        v1 = fetched.vectors["reur-v1"]
+        assert isinstance(v1, Vector)
+        assert len(v1.values) == 4
+        # New value[0] = 0.9; old value[0] = 0.1 — check we got the NEW vector
+        assert v1.values[0] > 0.5, (
+            f"reur-v1.values[0] should be ~0.9 (new), not ~0.1 (old); got {v1.values[0]}"
+        )
+
+        v2 = fetched.vectors["reur-v2"]
+        assert isinstance(v2, Vector)
+        assert len(v2.values) == 4
+        # New value[0] = 0.8; old value[0] = 0.2 — check we got the NEW vector
+        assert v2.values[0] > 0.5, (
+            f"reur-v2.values[0] should be ~0.8 (new), not ~0.2 (old); got {v2.values[0]}"
+        )
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# delete-and-re-upsert — gRPC (resurrection sequence)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_delete_and_re_upsert_same_ids_grpc(client: Pinecone) -> None:
+    """After confirmed deletion, re-upserting the same IDs with new values stores
+    the new values, not the old ones (gRPC transport).
+
+    Mirrors test_delete_and_re_upsert_same_ids_rest for the gRPC transport.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=120,
+        )
+        index = client.index(name=name, grpc=True)
+
+        # Step 1: Upsert initial vectors (low-magnitude values)
+        upsert_resp = index.upsert(
+            vectors=[
+                {"id": "reurg-v1", "values": [0.1, 0.2, 0.3, 0.4]},
+                {"id": "reurg-v2", "values": [0.2, 0.3, 0.4, 0.5]},
+            ]
+        )
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 2
+
+        # Step 2: Wait until both are fetchable
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["reurg-v1", "reurg-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=60,
+            description="initial gRPC vectors fetchable before delete",
+        )
+
+        # Step 3: Delete both; wait until gone
+        delete_resp = index.delete(ids=["reurg-v1", "reurg-v2"])
+        assert delete_resp is None
+
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["reurg-v1", "reurg-v2"]),
+            check_fn=lambda r: len(r.vectors) == 0,
+            timeout=90,
+            description="both gRPC vectors absent from fetch after delete",
+        )
+
+        # Step 4: Re-upsert the same IDs with high-magnitude values (clearly distinct)
+        re_upsert_resp = index.upsert(
+            vectors=[
+                {"id": "reurg-v1", "values": [0.9, 0.8, 0.7, 0.6]},
+                {"id": "reurg-v2", "values": [0.8, 0.7, 0.6, 0.5]},
+            ]
+        )
+        assert isinstance(re_upsert_resp, UpsertResponse)
+        assert re_upsert_resp.upserted_count == 2
+
+        # Step 5: Wait until the re-upserted vectors are fetchable
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["reurg-v1", "reurg-v2"]),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=60,
+            description="re-upserted gRPC vectors fetchable with new values",
+        )
+
+        # Step 6: Fetch and verify NEW values are returned, not old ones
+        fetched = index.fetch(ids=["reurg-v1", "reurg-v2"])
+        assert isinstance(fetched, FetchResponse)
+        assert "reurg-v1" in fetched.vectors
+        assert "reurg-v2" in fetched.vectors
+
+        v1 = fetched.vectors["reurg-v1"]
+        assert isinstance(v1, Vector)
+        assert len(v1.values) == 4
+        # New value[0] = 0.9; old value[0] = 0.1 — check we got the NEW vector
+        assert v1.values[0] > 0.5, (
+            f"reurg-v1.values[0] should be ~0.9 (new), not ~0.1 (old); got {v1.values[0]}"
+        )
+
+        v2 = fetched.vectors["reurg-v2"]
+        assert isinstance(v2, Vector)
+        assert len(v2.values) == 4
+        # New value[0] = 0.8; old value[0] = 0.2 — check we got the NEW vector
+        assert v2.values[0] > 0.5, (
+            f"reurg-v2.values[0] should be ~0.8 (new), not ~0.2 (old); got {v2.values[0]}"
+        )
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

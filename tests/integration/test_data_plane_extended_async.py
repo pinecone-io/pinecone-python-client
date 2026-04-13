@@ -1848,3 +1848,109 @@ async def test_query_after_delete_reflects_deletion_async(
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# delete-and-re-upsert — REST async (resurrection sequence)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+async def test_delete_and_re_upsert_same_ids_async(async_client: AsyncPinecone) -> None:
+    """After confirmed deletion, re-upserting the same IDs with new values stores
+    the new values, not the old ones (REST async).
+
+    Mirrors test_delete_and_re_upsert_same_ids_rest for the async transport.
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=4,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=120,
+        )
+        idx = async_client.index(name=name)
+
+        # Step 1: Upsert initial vectors (low-magnitude values)
+        upsert_resp = await idx.upsert(
+            vectors=[
+                {"id": "reura-v1", "values": [0.1, 0.2, 0.3, 0.4]},
+                {"id": "reura-v2", "values": [0.2, 0.3, 0.4, 0.5]},
+            ]
+        )
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 2
+
+        # Step 2: Wait until both are fetchable
+        async def _fetch_both() -> FetchResponse:
+            return await idx.fetch(ids=["reura-v1", "reura-v2"])  # type: ignore[union-attr]
+
+        await async_poll_until(
+            query_fn=_fetch_both,
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=60,
+            description="initial async vectors fetchable before delete",
+        )
+
+        # Step 3: Delete both; wait until gone
+        delete_resp = await idx.delete(ids=["reura-v1", "reura-v2"])
+        assert delete_resp is None
+
+        await async_poll_until(
+            query_fn=_fetch_both,
+            check_fn=lambda r: len(r.vectors) == 0,
+            timeout=90,
+            description="both async vectors absent from fetch after delete",
+        )
+
+        # Step 4: Re-upsert the same IDs with high-magnitude values (clearly distinct)
+        re_upsert_resp = await idx.upsert(
+            vectors=[
+                {"id": "reura-v1", "values": [0.9, 0.8, 0.7, 0.6]},
+                {"id": "reura-v2", "values": [0.8, 0.7, 0.6, 0.5]},
+            ]
+        )
+        assert isinstance(re_upsert_resp, UpsertResponse)
+        assert re_upsert_resp.upserted_count == 2
+
+        # Step 5: Wait until the re-upserted vectors are fetchable
+        await async_poll_until(
+            query_fn=_fetch_both,
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=60,
+            description="re-upserted async vectors fetchable with new values",
+        )
+
+        # Step 6: Fetch and verify NEW values are returned, not old ones
+        fetched = await idx.fetch(ids=["reura-v1", "reura-v2"])
+        assert isinstance(fetched, FetchResponse)
+        assert "reura-v1" in fetched.vectors
+        assert "reura-v2" in fetched.vectors
+
+        v1 = fetched.vectors["reura-v1"]
+        assert isinstance(v1, Vector)
+        assert len(v1.values) == 4
+        # New value[0] = 0.9; old value[0] = 0.1 — check we got the NEW vector
+        assert v1.values[0] > 0.5, (
+            f"reura-v1.values[0] should be ~0.9 (new), not ~0.1 (old); got {v1.values[0]}"
+        )
+
+        v2 = fetched.vectors["reura-v2"]
+        assert isinstance(v2, Vector)
+        assert len(v2.values) == 4
+        # New value[0] = 0.8; old value[0] = 0.2 — check we got the NEW vector
+        assert v2.values[0] > 0.5, (
+            f"reura-v2.values[0] should be ~0.8 (new), not ~0.2 (old); got {v2.values[0]}"
+        )
+
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
