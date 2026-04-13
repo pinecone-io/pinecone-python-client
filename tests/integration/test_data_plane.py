@@ -1527,3 +1527,92 @@ def test_grpc_async_futures_upsert_query_fetch_grpc(client: Pinecone) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# fetch-nonexistent — REST sync + gRPC
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_fetch_nonexistent_ids_returns_empty_vectors_rest(client: Pinecone) -> None:
+    """Fetching IDs that were never upserted returns an empty vectors map, not an error.
+
+    Verifies unified-vec-0053: "Fetching IDs that do not exist returns an empty
+    vectors map rather than an error."
+
+    Area tag: fetch-nonexistent
+    Transport: rest
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = client.index(name=name)
+
+        # Upsert one real vector to establish the namespace
+        idx.upsert(vectors=[{"id": "real-v1", "values": [0.1, 0.2, 0.3]}])
+        poll_until(
+            query_fn=lambda: idx.fetch(ids=["real-v1"]),
+            check_fn=lambda r: "real-v1" in r.vectors,
+            timeout=120,
+            description="real-v1 fetchable after upsert",
+        )
+
+        # Fetch IDs that were never upserted — should return empty dict, not raise
+        result = idx.fetch(ids=["never-upserted-aaa", "never-upserted-bbb"])
+
+        assert isinstance(result, FetchResponse)
+        assert isinstance(result.vectors, dict)
+        # Non-existent IDs are simply absent — no error raised
+        assert "never-upserted-aaa" not in result.vectors
+        assert "never-upserted-bbb" not in result.vectors
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+@pytest.mark.integration
+def test_fetch_nonexistent_ids_returns_empty_vectors_grpc(client: Pinecone) -> None:
+    """Fetching IDs that were never upserted returns an empty vectors map via gRPC.
+
+    Verifies unified-vec-0053 on the gRPC transport.
+
+    Area tag: fetch-nonexistent
+    Transport: grpc
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = client.index(name=name, grpc=True)
+
+        # Upsert one real vector to establish the namespace
+        idx.upsert(vectors=[{"id": "real-v1", "values": [0.1, 0.2, 0.3]}])
+        poll_until(
+            query_fn=lambda: idx.fetch(ids=["real-v1"]),
+            check_fn=lambda r: "real-v1" in r.vectors,
+            timeout=120,
+            description="real-v1 fetchable after upsert (gRPC)",
+        )
+
+        # Fetch IDs that were never upserted — should return empty dict, not raise
+        result = idx.fetch(ids=["never-upserted-aaa", "never-upserted-bbb"])
+
+        assert isinstance(result, FetchResponse)
+        assert isinstance(result.vectors, dict)
+        assert "never-upserted-aaa" not in result.vectors
+        assert "never-upserted-bbb" not in result.vectors
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

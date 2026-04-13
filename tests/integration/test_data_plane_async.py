@@ -1016,3 +1016,61 @@ async def test_index_context_manager_async(async_client: AsyncPinecone) -> None:
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# fetch-nonexistent — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_fetch_nonexistent_ids_returns_empty_vectors_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """Fetching IDs that were never upserted returns an empty vectors map, not an error.
+
+    Verifies unified-vec-0053: "Fetching IDs that do not exist returns an empty
+    vectors map rather than an error."
+
+    Area tag: fetch-nonexistent
+    Transport: rest-async
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # Upsert one real vector to establish the namespace
+        await idx.upsert(vectors=[{"id": "real-v1", "values": [0.1, 0.2, 0.3]}])
+        await async_poll_until(
+            query_fn=lambda: idx.fetch(ids=["real-v1"]),
+            check_fn=lambda r: "real-v1" in r.vectors,
+            timeout=120,
+            description="real-v1 fetchable after upsert (async)",
+        )
+
+        # Fetch IDs that were never upserted — should return empty dict, not raise
+        result = await idx.fetch(ids=["never-upserted-aaa", "never-upserted-bbb"])
+
+        assert isinstance(result, FetchResponse)
+        assert isinstance(result.vectors, dict)
+        # Non-existent IDs are simply absent — no error raised
+        assert "never-upserted-aaa" not in result.vectors
+        assert "never-upserted-bbb" not in result.vectors
+
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
