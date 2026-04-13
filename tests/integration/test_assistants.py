@@ -22,7 +22,12 @@ import tempfile
 import pytest
 
 from pinecone import Pinecone, PineconeValueError
-from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
+from pinecone.models.assistant.chat import (
+    ChatCompletionResponse,
+    ChatHighlight,
+    ChatReference,
+    ChatResponse,
+)
 from pinecone.models.assistant.context import ContextResponse, TextSnippet
 from pinecone.models.assistant.evaluation import AlignmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
@@ -1564,6 +1569,127 @@ def test_chat_json_response_mode_returns_valid_json_rest(client: Pinecone) -> No
         assert isinstance(parsed, dict), (
             f"Expected a JSON object, got {type(parsed).__name__}: {parsed!r}"
         )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# chat — include_highlights
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_chat_include_highlights_rest(client: Pinecone) -> None:
+    """chat(include_highlights=True) succeeds and returns correctly-typed highlight objects.
+
+    Verifies:
+    - unified-chat-0009: Can request highlight snippets to be included in citations.
+    - unified-chat-0046: Each reference may include a highlight with type and content
+      text when highlights are requested.
+    - unified-chat-0047: The highlight field within a reference is absent (None) when
+      highlights are not requested.
+
+    Strategy:
+    - Upload a knowledge file, then call chat(include_highlights=True).
+    - Verify the API call succeeds and the response is a ChatResponse.
+    - For every citation reference in the response, verify that the highlight field
+      is either None or a ChatHighlight with non-empty type and content strings.
+    - Then call chat without include_highlights (default False) and verify that all
+      citation reference highlights are None.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        assistant = client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-hlights-"
+        ) as f:
+            f.write(
+                "Pinecone is a managed vector database that stores dense and sparse embeddings. "
+                "It supports serverless and pod-based deployment options."
+            )
+            tmp_path = f.name
+
+        client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        # --- Call 1: include_highlights=True ---
+        response_with = client.assistants.chat(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What is Pinecone?"}],
+            stream=False,
+            include_highlights=True,
+        )
+
+        assert isinstance(response_with, ChatResponse), (
+            f"Expected ChatResponse, got {type(response_with)}"
+        )
+        assert isinstance(response_with.citations, list), "citations must be a list"
+
+        # For every reference returned, highlight must be None or a valid ChatHighlight
+        for citation in response_with.citations:
+            for ref in citation.references:
+                assert isinstance(ref, ChatReference), (
+                    f"Expected ChatReference, got {type(ref)}"
+                )
+                if ref.highlight is not None:
+                    assert isinstance(ref.highlight, ChatHighlight), (
+                        f"highlight must be ChatHighlight or None, got {type(ref.highlight)}"
+                    )
+                    assert (
+                        isinstance(ref.highlight.type, str) and len(ref.highlight.type) > 0
+                    ), (
+                        f"ChatHighlight.type must be a non-empty string, "
+                        f"got {ref.highlight.type!r}"
+                    )
+                    assert (
+                        isinstance(ref.highlight.content, str)
+                        and len(ref.highlight.content) > 0
+                    ), (
+                        f"ChatHighlight.content must be a non-empty string, "
+                        f"got {ref.highlight.content!r}"
+                    )
+
+        # --- Call 2: default include_highlights (False) ---
+        response_without = client.assistants.chat(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What deployment options does Pinecone have?"}],
+            stream=False,
+        )
+
+        assert isinstance(response_without, ChatResponse), (
+            f"Expected ChatResponse, got {type(response_without)}"
+        )
+        # When highlights are not requested, all reference highlights must be None
+        for citation in response_without.citations:
+            for ref in citation.references:
+                assert ref.highlight is None, (
+                    f"Expected highlight=None when include_highlights not set, "
+                    f"got {ref.highlight!r}"
+                )
 
     finally:
         if tmp_path is not None:
