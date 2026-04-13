@@ -1564,3 +1564,98 @@ async def test_chat_stream_message_start_and_end_structure_async(
             name,
             "assistant",
         )
+
+
+# ---------------------------------------------------------------------------
+# chat — json_response=True
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(300)
+async def test_chat_json_response_mode_returns_valid_json_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """chat(json_response=True) returns a ChatResponse whose message.content is valid JSON (async).
+
+    Verifies:
+    - unified-chat-0038: JSON response mode returns valid JSON in the message content.
+    """
+    import json
+
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        assistant = await async_client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-jsonresp-async-"
+        ) as f:
+            f.write("Pinecone is a managed vector database service.")
+            tmp_path = f.name
+
+        await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        # Request a JSON-format response with a prompt that strongly guides JSON output
+        response = await async_client.assistants.chat(
+            assistant_name=name,
+            messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        "Reply ONLY with a JSON object. "
+                        "The object must have exactly one key called 'answer' whose value "
+                        "is a string describing what Pinecone is in one sentence."
+                    ),
+                }
+            ],
+            json_response=True,
+        )
+
+        # Verify ChatResponse structure
+        assert isinstance(response, ChatResponse), (
+            f"Expected ChatResponse, got {type(response)}"
+        )
+        assert isinstance(response.message.content, str) and len(response.message.content) > 0, (
+            f"message.content must be a non-empty string, got {response.message.content!r}"
+        )
+
+        # The content must be valid JSON — this is the core claim
+        try:
+            parsed = json.loads(response.message.content)
+        except json.JSONDecodeError as exc:
+            raise AssertionError(
+                f"chat(json_response=True) returned content that is not valid JSON: "
+                f"{response.message.content!r}"
+            ) from exc
+
+        # Must be a JSON object (dict), not a list or primitive
+        assert isinstance(parsed, dict), (
+            f"Expected a JSON object, got {type(parsed).__name__}: {parsed!r}"
+        )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
