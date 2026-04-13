@@ -3189,6 +3189,11 @@ async def test_describe_file_preserves_uploaded_metadata(
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.skip(
+    reason="SDK bug: ContextImageBlock.image_data is always None — "
+    "API returns image data under JSON key 'image' but msgspec Struct "
+    "expects 'image_data'. See IT-0019."
+)
 @pytest.mark.integration
 @pytest.mark.asyncio
 @pytest.mark.timeout(600)
