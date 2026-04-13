@@ -7,7 +7,7 @@ import pytest
 from concurrent.futures import as_completed
 
 from pinecone import GrpcIndex, Index, Pinecone
-from pinecone.errors import ApiError
+from pinecone.errors import ApiError, ConflictError, PineconeValueError
 from pinecone.grpc.future import PineconeFuture
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
@@ -1715,4 +1715,56 @@ def test_grpc_delete_async_future_resolves_to_none(client: Pinecone) -> None:
         )
 
     finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# namespace creation error paths — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_create_namespace_error_paths_rest(client: Pinecone) -> None:
+    """create_namespace() rejects invalid names client-side and raises ConflictError for duplicates.
+
+    Verifies claims:
+    - unified-ns-0010: Namespace creation is rejected when name is empty or whitespace-only.
+    - unified-ns-0012: Creating a namespace that already exists raises a ConflictError (HTTP 409).
+
+    No integration test covered these error paths; only unit tests (test-ns-0009) exercised them.
+    """
+    name = unique_name("idx")
+    ns_name = "cnep-ns-alpha"
+    index = None
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # unified-ns-0010: empty name → client-side PineconeValueError (no API call made)
+        with pytest.raises(PineconeValueError):
+            index.create_namespace(name="")
+
+        # unified-ns-0010: whitespace-only name → client-side PineconeValueError
+        with pytest.raises(PineconeValueError):
+            index.create_namespace(name="   ")
+
+        # Precondition for ns-0012: create the namespace successfully
+        created = index.create_namespace(name=ns_name)
+        assert isinstance(created, NamespaceDescription)
+        assert created.name == ns_name
+
+        # unified-ns-0012: creating the same namespace again raises ConflictError (409)
+        with pytest.raises(ConflictError) as exc_info:
+            index.create_namespace(name=ns_name)
+        assert exc_info.value.status_code == 409
+
+    finally:
+        if index is not None:
+            cleanup_resource(lambda: index.delete_namespace(name=ns_name), ns_name, "namespace")
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")

@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from pinecone import AsyncIndex, AsyncPinecone
-from pinecone.errors import ApiError
+from pinecone.errors import ApiError, ConflictError, PineconeValueError
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
 from pinecone.models.vectors.responses import (
@@ -1068,6 +1068,66 @@ async def test_fetch_nonexistent_ids_returns_empty_vectors_async(
 
     finally:
         if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# namespace creation error paths — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_create_namespace_error_paths_async(async_client: AsyncPinecone) -> None:
+    """create_namespace() rejects invalid names client-side and raises ConflictError for duplicates.
+
+    Verifies claims:
+    - unified-ns-0010: Namespace creation is rejected when name is empty or whitespace-only.
+    - unified-ns-0012: Creating a namespace that already exists raises a ConflictError (HTTP 409).
+
+    Async transport parity for test_create_namespace_error_paths_rest.
+    """
+    name = unique_name("idx")
+    ns_name = "cnep-ns-beta"
+    idx = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # unified-ns-0010: empty name → client-side PineconeValueError (no API call made)
+        with pytest.raises(PineconeValueError):
+            await idx.create_namespace(name="")
+
+        # unified-ns-0010: whitespace-only name → client-side PineconeValueError
+        with pytest.raises(PineconeValueError):
+            await idx.create_namespace(name="   ")
+
+        # Precondition for ns-0012: create the namespace successfully
+        created = await idx.create_namespace(name=ns_name)
+        assert isinstance(created, NamespaceDescription)
+        assert created.name == ns_name
+
+        # unified-ns-0012: creating the same namespace again raises ConflictError (409)
+        with pytest.raises(ConflictError) as exc_info:
+            await idx.create_namespace(name=ns_name)
+        assert exc_info.value.status_code == 409
+
+    finally:
+        if idx is not None:
+            await async_cleanup_resource(
+                lambda: idx.delete_namespace(name=ns_name), ns_name, "namespace"
+            )
             await idx.close()
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name),
