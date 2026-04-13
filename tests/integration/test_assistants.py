@@ -2148,3 +2148,123 @@ def test_assistants_list_page_response_structure_rest(client: Pinecone) -> None:
             name,
             "assistant",
         )
+
+
+# ---------------------------------------------------------------------------
+# upload_file with caller-specified file_id — upsert behavior — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.skip(
+    reason="SDK bug: upload_file(file_id=...) sends file_id as query param to POST /files "
+    "endpoint (API 2025-10) which ignores it; upsert needs PUT /files/{name}/{id} on "
+    "API 2026-04. See IT-0018."
+)
+@pytest.mark.integration
+def test_upload_file_with_caller_specified_file_id_rest(client: Pinecone) -> None:
+    """upload_file(file_id=...) assigns the caller-specified ID; re-uploading with the same
+    file_id replaces the file (upsert semantics).
+
+    Verifies:
+    - unified-file-0005: Can upload a file with a caller-specified file identifier for upsert behavior
+    - unified-file-0006: When a file identifier is provided, the upload creates the file if it
+      does not exist or replaces it if it does
+    """
+    name = unique_name("asst")
+    # file_id must be 1-128 chars, alphanumeric/hyphens/underscores
+    custom_file_id = unique_name("fid")
+    file_id: str | None = None
+
+    try:
+        assistant = client.assistants.create(
+            name=name, instructions="File upsert test assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # --- First upload: create with caller-specified file_id ---
+        first_content = b"Initial content for caller-specified file ID test."
+        first_upload = client.assistants.upload_file(
+            assistant_name=name,
+            file_stream=io.BytesIO(first_content),
+            file_name="caller-id-test.txt",
+            file_id=custom_file_id,
+            timeout=120,
+        )
+        assert isinstance(first_upload, AssistantFileModel)
+        # The server must honor the caller-specified file_id
+        assert first_upload.id == custom_file_id, (
+            f"Expected file_id {custom_file_id!r} to be preserved; got {first_upload.id!r}"
+        )
+        file_id = first_upload.id
+
+        # Wait until Available
+        wait_for_ready(
+            lambda: (
+                client.assistants.describe_file(assistant_name=name, file_id=file_id).status
+                in ("Available", "Processed")
+            ),
+            timeout=120,
+            interval=5,
+            description=f"first upload of file {file_id}",
+        )
+
+        described_first = client.assistants.describe_file(assistant_name=name, file_id=file_id)
+        first_size = described_first.size
+
+        # --- Second upload: upsert with same file_id, different (larger) content ---
+        second_content = (
+            b"Replacement content for caller-specified file ID upsert test. " + b"x" * 500
+        )
+        second_upload = client.assistants.upload_file(
+            assistant_name=name,
+            file_stream=io.BytesIO(second_content),
+            file_name="caller-id-test-v2.txt",
+            file_id=custom_file_id,
+            timeout=120,
+        )
+        assert isinstance(second_upload, AssistantFileModel)
+        # After upsert the file_id must remain the same
+        assert second_upload.id == custom_file_id, (
+            f"After upsert, expected file_id {custom_file_id!r}; got {second_upload.id!r}"
+        )
+
+        # Wait until Available again
+        wait_for_ready(
+            lambda: (
+                client.assistants.describe_file(assistant_name=name, file_id=file_id).status
+                in ("Available", "Processed")
+            ),
+            timeout=120,
+            interval=5,
+            description=f"second upload (upsert) of file {file_id}",
+        )
+
+        described_second = client.assistants.describe_file(assistant_name=name, file_id=file_id)
+        second_size = described_second.size
+
+        # The upsert replaced the file — size must differ from the first upload
+        assert second_size != first_size, (
+            f"Expected file size to change after upsert replacement; "
+            f"first={first_size}, second={second_size}"
+        )
+
+        # Clean up the file before assistant deletion
+        client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
+        file_id = None
+
+    finally:
+        if file_id is not None:
+            with contextlib.suppress(Exception):
+                client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
