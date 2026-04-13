@@ -22,9 +22,11 @@ import tempfile
 import pytest
 
 from pinecone import AsyncPinecone, PineconeValueError
+from pinecone.models.assistant.options import ContextOptions
 from pinecone.models.assistant.chat import (
     ChatCompletionResponse,
     ChatHighlight,
+    ChatMessage,
     ChatReference,
     ChatResponse,
 )
@@ -1768,6 +1770,101 @@ async def test_chat_include_highlights_async(async_client: AsyncPinecone) -> Non
                     f"Expected highlight=None when include_highlights not set, "
                     f"got {ref.highlight!r}"
                 )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# chat-context-options
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_chat_context_options_typed_and_dict_async(async_client: AsyncPinecone) -> None:
+    """chat() accepts context_options as both a typed ContextOptions object and a plain dict (async).
+
+    Verifies:
+    - unified-chat-0025: Context options can be provided as either a typed options object
+      or a plain dictionary.
+    - unified-chat-0010: Can control context retrieval parameters via context options.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        assistant = await async_client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        await async_poll_until(
+            query_fn=lambda: async_client.assistants.describe(name=name),
+            check_fn=lambda r: r.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name} Ready",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-ctxoptasync-"
+        ) as f:
+            f.write(
+                "Pinecone is a managed vector database for high-performance similarity search. "
+                "It supports both serverless and pod-based deployment options."
+            )
+            tmp_path = f.name
+
+        await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        # --- Call 1: typed ContextOptions object ---
+        response_typed = await async_client.assistants.chat(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What is Pinecone?"}],
+            stream=False,
+            context_options=ContextOptions(top_k=5),
+        )
+
+        assert isinstance(response_typed, ChatResponse), (
+            f"Expected ChatResponse with typed ContextOptions, got {type(response_typed)}"
+        )
+        assert isinstance(response_typed.message, ChatMessage), (
+            f"ChatResponse.message must be ChatMessage, got {type(response_typed.message)}"
+        )
+        assert isinstance(response_typed.message.content, str), (
+            f"ChatMessage.content must be str, got {type(response_typed.message.content)}"
+        )
+        assert len(response_typed.message.content) > 0, "ChatMessage.content must be non-empty"
+
+        # --- Call 2: plain dict context_options ---
+        response_dict = await async_client.assistants.chat(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What deployment options does Pinecone have?"}],
+            stream=False,
+            context_options={"top_k": 5},
+        )
+
+        assert isinstance(response_dict, ChatResponse), (
+            f"Expected ChatResponse with dict context_options, got {type(response_dict)}"
+        )
+        assert isinstance(response_dict.message, ChatMessage), (
+            f"ChatResponse.message must be ChatMessage, got {type(response_dict.message)}"
+        )
+        assert isinstance(response_dict.message.content, str), (
+            f"ChatMessage.content must be str, got {type(response_dict.message.content)}"
+        )
+        assert len(response_dict.message.content) > 0, "ChatMessage.content must be non-empty"
 
     finally:
         if tmp_path is not None:
