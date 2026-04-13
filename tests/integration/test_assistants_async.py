@@ -32,6 +32,8 @@ from pinecone.models.assistant.streaming import (
     ChatCompletionStreamChunk,
     ChatStreamChunk,
     StreamContentChunk,
+    StreamMessageEnd,
+    StreamMessageStart,
 )
 from tests.integration.conftest import async_cleanup_resource, async_poll_until, unique_name
 
@@ -1456,6 +1458,107 @@ async def test_list_files_page_with_page_size_and_pagination_token_async(
                 await async_client.assistants.delete_file(
                     assistant_name=name, file_id=fid, timeout=30
                 )
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# chat-stream-structure
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_chat_stream_message_start_and_end_structure_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """Async streaming chat: first chunk is StreamMessageStart; last is StreamMessageEnd with usage.
+
+    Verifies:
+    - unified-stream-0016: First chunk in a chat stream is a message-start chunk
+      containing the model and role.
+    - unified-stream-0018: Final chunk in a chat stream is a message-end chunk
+      containing token usage statistics (prompt_tokens, completion_tokens, total_tokens).
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        # Create assistant
+        assistant = await async_client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        # Wait for Ready
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # Upload a small file so the assistant can respond
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-struct-"
+        ) as f:
+            f.write("Pinecone is a vector database for machine learning applications.")
+            tmp_path = f.name
+
+        await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        # Streaming chat — await chat() to get AsyncIterator[ChatStreamChunk]
+        stream = await async_client.assistants.chat(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What is Pinecone?"}],
+            stream=True,
+        )
+
+        # Consume the entire async stream
+        chunks: list[ChatStreamChunk] = [chunk async for chunk in stream]
+
+        assert len(chunks) >= 2, (
+            f"Expected at least 2 chunks (message_start + message_end), got {len(chunks)}"
+        )
+
+        # First chunk must be StreamMessageStart with non-empty model and role
+        first = chunks[0]
+        assert isinstance(first, StreamMessageStart), (
+            f"Expected first chunk to be StreamMessageStart, got {type(first).__name__}"
+        )
+        assert isinstance(first.model, str) and len(first.model) > 0, (
+            f"StreamMessageStart.model must be a non-empty string, got {first.model!r}"
+        )
+        assert isinstance(first.role, str) and len(first.role) > 0, (
+            f"StreamMessageStart.role must be a non-empty string, got {first.role!r}"
+        )
+
+        # Last chunk must be StreamMessageEnd with token usage statistics
+        last = chunks[-1]
+        assert isinstance(last, StreamMessageEnd), (
+            f"Expected last chunk to be StreamMessageEnd, got {type(last).__name__}"
+        )
+        assert isinstance(last.usage.prompt_tokens, int) and last.usage.prompt_tokens >= 0, (
+            f"prompt_tokens must be a non-negative int, got {last.usage.prompt_tokens!r}"
+        )
+        assert isinstance(last.usage.completion_tokens, int) and last.usage.completion_tokens >= 0, (
+            f"completion_tokens must be a non-negative int, got {last.usage.completion_tokens!r}"
+        )
+        assert isinstance(last.usage.total_tokens, int) and last.usage.total_tokens > 0, (
+            f"total_tokens must be a positive int, got {last.usage.total_tokens!r}"
+        )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
         await async_cleanup_resource(
             lambda: async_client.assistants.delete(name=name, timeout=60),
             name,

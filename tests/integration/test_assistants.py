@@ -28,7 +28,12 @@ from pinecone.models.assistant.evaluation import AlignmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
-from pinecone.models.assistant.streaming import ChatCompletionStreamChunk, StreamContentChunk
+from pinecone.models.assistant.streaming import (
+    ChatCompletionStreamChunk,
+    StreamContentChunk,
+    StreamMessageEnd,
+    StreamMessageStart,
+)
 from tests.integration.conftest import cleanup_resource, unique_name, wait_for_ready
 
 # ---------------------------------------------------------------------------
@@ -1376,6 +1381,103 @@ def test_list_files_page_with_page_size_and_pagination_token_rest(client: Pineco
                 client.assistants.delete_file(
                     assistant_name=name, file_id=fid, timeout=30
                 )
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# chat-stream-structure
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_chat_stream_message_start_and_end_structure_rest(client: Pinecone) -> None:
+    """Streaming chat first chunk is StreamMessageStart; last chunk is StreamMessageEnd with usage.
+
+    Verifies:
+    - unified-stream-0016: First chunk in a chat stream is a message-start chunk
+      containing the model and role.
+    - unified-stream-0018: Final chunk in a chat stream is a message-end chunk
+      containing token usage statistics (prompt_tokens, completion_tokens, total_tokens).
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        # Create assistant
+        assistant = client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        # Wait for Ready
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # Upload a small file so the assistant can respond
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-struct-"
+        ) as f:
+            f.write("Pinecone is a vector database for machine learning applications.")
+            tmp_path = f.name
+
+        client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        # Streaming chat — returns Iterator[ChatStreamChunk]
+        stream = client.assistants.chat(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What is Pinecone?"}],
+            stream=True,
+        )
+
+        # Consume the entire stream
+        chunks = list(stream)
+
+        assert len(chunks) >= 2, (
+            f"Expected at least 2 chunks (message_start + message_end), got {len(chunks)}"
+        )
+
+        # First chunk must be StreamMessageStart with non-empty model and role
+        first = chunks[0]
+        assert isinstance(first, StreamMessageStart), (
+            f"Expected first chunk to be StreamMessageStart, got {type(first).__name__}"
+        )
+        assert isinstance(first.model, str) and len(first.model) > 0, (
+            f"StreamMessageStart.model must be a non-empty string, got {first.model!r}"
+        )
+        assert isinstance(first.role, str) and len(first.role) > 0, (
+            f"StreamMessageStart.role must be a non-empty string, got {first.role!r}"
+        )
+
+        # Last chunk must be StreamMessageEnd with token usage statistics
+        last = chunks[-1]
+        assert isinstance(last, StreamMessageEnd), (
+            f"Expected last chunk to be StreamMessageEnd, got {type(last).__name__}"
+        )
+        assert isinstance(last.usage.prompt_tokens, int) and last.usage.prompt_tokens >= 0, (
+            f"prompt_tokens must be a non-negative int, got {last.usage.prompt_tokens!r}"
+        )
+        assert isinstance(last.usage.completion_tokens, int) and last.usage.completion_tokens >= 0, (
+            f"completion_tokens must be a non-negative int, got {last.usage.completion_tokens!r}"
+        )
+        assert isinstance(last.usage.total_tokens, int) and last.usage.total_tokens > 0, (
+            f"total_tokens must be a positive int, got {last.usage.total_tokens!r}"
+        )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
         cleanup_resource(
             lambda: client.assistants.delete(name=name, timeout=60),
             name,
