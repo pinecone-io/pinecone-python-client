@@ -22,7 +22,6 @@ import tempfile
 import pytest
 
 from pinecone import AsyncPinecone, PineconeValueError
-from pinecone.models.assistant.options import ContextOptions
 from pinecone.models.assistant.chat import (
     ChatCompletionChoice,
     ChatCompletionResponse,
@@ -37,6 +36,7 @@ from pinecone.models.assistant.evaluation import AlignmentResult, EntailmentResu
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
+from pinecone.models.assistant.options import ContextOptions
 from pinecone.models.assistant.streaming import (
     ChatCompletionStreamChunk,
     ChatStreamChunk,
@@ -1950,7 +1950,7 @@ async def test_chat_completions_full_response_structure_async(
             f"response.model must be a non-empty str, got {response.model!r}"
         )
         assert isinstance(response.choices, list) and len(response.choices) > 0, (
-            f"response.choices must be a non-empty list"
+            "response.choices must be a non-empty list"
         )
         assert isinstance(response.usage, ChatUsage), (
             f"response.usage must be ChatUsage, got {type(response.usage)}"
@@ -1971,7 +1971,7 @@ async def test_chat_completions_full_response_structure_async(
                 "choice.message.content must be a non-empty str"
             )
             assert isinstance(choice.finish_reason, str) and len(choice.finish_reason) > 0, (
-                f"choice.finish_reason must be a non-empty str"
+                "choice.finish_reason must be a non-empty str"
             )
 
         # --- unified-chat-0050: usage has prompt_tokens, completion_tokens, total_tokens ---
@@ -2235,11 +2235,6 @@ async def test_assistants_list_page_response_structure_async(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(
-    reason="SDK bug: async upload_file(file_id=...) sends file_id as query param to POST /files "
-    "endpoint (API 2025-10) which ignores it; upsert needs PUT /files/{name}/{id} on "
-    "API 2026-04. See IT-0018."
-)
 @pytest.mark.integration
 @pytest.mark.asyncio
 async def test_upload_file_with_caller_specified_file_id_async(

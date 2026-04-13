@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from pinecone import GrpcIndex, Index, Pinecone, PineconeTypeError, PineconeValueError
+from pinecone import GrpcIndex, Index, Pinecone, PineconeValueError
 from pinecone.errors import ApiError, ConflictError, NotFoundError, PineconeError, UnauthorizedError
 from pinecone.models.indexes.specs import ServerlessSpec
 from tests.integration.conftest import cleanup_resource, unique_name

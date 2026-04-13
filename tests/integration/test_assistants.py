@@ -22,7 +22,6 @@ import tempfile
 import pytest
 
 from pinecone import Pinecone, PineconeValueError
-from pinecone.models.assistant.options import ContextOptions
 from pinecone.models.assistant.chat import (
     ChatCompletionChoice,
     ChatCompletionResponse,
@@ -37,6 +36,7 @@ from pinecone.models.assistant.evaluation import AlignmentResult, EntailmentResu
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
+from pinecone.models.assistant.options import ContextOptions
 from pinecone.models.assistant.streaming import (
     ChatCompletionStreamChunk,
     StreamContentChunk,
@@ -2155,11 +2155,6 @@ def test_assistants_list_page_response_structure_rest(client: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(
-    reason="SDK bug: upload_file(file_id=...) sends file_id as query param to POST /files "
-    "endpoint (API 2025-10) which ignores it; upsert needs PUT /files/{name}/{id} on "
-    "API 2026-04. See IT-0018."
-)
 @pytest.mark.integration
 def test_upload_file_with_caller_specified_file_id_rest(client: Pinecone) -> None:
     """upload_file(file_id=...) assigns the caller-specified ID; re-uploading with the same

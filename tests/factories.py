@@ -347,6 +347,18 @@ def make_assistant_file_response(**overrides: Any) -> dict[str, Any]:
     return base
 
 
+def make_operation_response(**overrides: Any) -> dict[str, Any]:
+    """Return an OperationModel dict (assistant_data ``PUT /files/{name}/{id}`` 2026-04)."""
+    base: dict[str, Any] = {
+        "operation_id": "op-abc123",
+        "status": "Succeeded",
+        "created_at": "2025-01-15T12:00:00Z",
+        "error": None,
+    }
+    base.update(overrides)
+    return base
+
+
 def make_context_response(**overrides: Any) -> dict[str, Any]:
     """Return a ContextModel dict (assistant_data ``POST /chat/{name}/context``)."""
     base: dict[str, Any] = {

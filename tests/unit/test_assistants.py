@@ -38,6 +38,7 @@ from tests.factories import (
     make_assistant_file_response,
     make_assistant_response,
     make_context_response,
+    make_operation_response,
 )
 
 BASE_URL = "https://api.test.pinecone.io"
@@ -1246,30 +1247,46 @@ def test_upload_file_from_stream(mock_sleep: object, assistants: Assistants) -> 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_upload_file_with_metadata_and_file_id(mock_sleep: object, assistants: Assistants) -> None:
-    """upload_file sends metadata as JSON string and file_id as query params."""
+    """upload_file(file_id=...) uses PUT on the 2026-04 upsert endpoint and polls the operation."""
+    # _upsert_http calls describe() to get the data-plane host
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
-    upload_route = respx.post(f"{DATA_PLANE_URL}/files/test-assistant").mock(
-        return_value=httpx.Response(200, json=make_assistant_file_response(status="Available")),
+    # Upsert: PUT /files/{assistant_name}/{file_id} (2026-04 API)
+    upsert_route = respx.put(f"{DATA_PLANE_URL}/files/test-assistant/custom-file-id").mock(
+        return_value=httpx.Response(202, json=make_operation_response(status="Succeeded")),
     )
-    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/file-abc123").mock(
-        return_value=httpx.Response(200, json=make_assistant_file_response(status="Available")),
+    # Poll: GET /operations/{assistant_name}/{operation_id} — already succeeded
+    respx.get(f"{DATA_PLANE_URL}/operations/test-assistant/op-abc123").mock(
+        return_value=httpx.Response(200, json=make_operation_response(status="Succeeded")),
+    )
+    # describe_file after upsert: _data_plane_http calls describe() first time (not cached yet)
+    respx.get(f"{DATA_PLANE_URL}/files/test-assistant/custom-file-id").mock(
+        return_value=httpx.Response(
+            200, json=make_assistant_file_response(id="custom-file-id", status="Available")
+        ),
     )
 
     stream = io.BytesIO(b"content")
-    assistants.upload_file(
+    result = assistants.upload_file(
         assistant_name="test-assistant",
         file_stream=stream,
         metadata={"genre": "comedy"},
         file_id="custom-file-id",
     )
 
-    request = upload_route.calls.last.request
+    # Must use PUT, not POST
+    assert upsert_route.call_count == 1
+    request = upsert_route.calls.last.request
     url_str = str(request.url)
-    assert "file_id=custom-file-id" in url_str
-    # Metadata is JSON-encoded
+    # file_id is in the path, not a query param
+    assert "/files/test-assistant/custom-file-id" in url_str
+    assert "file_id=" not in url_str
+    # Metadata is still sent as a query param
     assert "metadata=" in url_str
+    # Returned model has the caller-specified file id
+    assert isinstance(result, AssistantFileModel)
+    assert result.id == "custom-file-id"
 
 
 # ---------------------------------------------------------------------------

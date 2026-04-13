@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import pytest
-
 from concurrent.futures import as_completed
+
+import pytest
 
 from pinecone import GrpcIndex, Index, Pinecone
 from pinecone.errors import ApiError, ConflictError, PineconeValueError

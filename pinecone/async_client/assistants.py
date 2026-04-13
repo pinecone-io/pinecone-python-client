@@ -19,6 +19,7 @@ import orjson
 from pinecone._internal.adapters.assistants_adapter import AssistantsAdapter
 from pinecone._internal.constants import (
     ASSISTANT_API_VERSION,
+    ASSISTANT_API_VERSION_2026_04,
     ASSISTANT_EVALUATION_BASE_URL,
     DEFAULT_BASE_URL,
 )
@@ -585,6 +586,58 @@ class AsyncAssistants:
                     )
             await asyncio.sleep(_UPLOAD_POLL_INTERVAL_SECONDS)
 
+    async def _upsert_http(self, assistant_name: str) -> AsyncHTTPClient:
+        """Return an AsyncHTTPClient for the assistant's data-plane host using API 2026-04."""
+        from pinecone._internal.config import PineconeConfig as _PineconeConfig
+        from pinecone._internal.http_client import AsyncHTTPClient as _AsyncHTTPClient
+
+        assistant = await self.describe(name=assistant_name)
+        if not assistant.host:
+            raise PineconeValueError(f"Assistant '{assistant_name}' has no data-plane host")
+        data_config = _PineconeConfig(
+            api_key=self._config.api_key,
+            host=f"{assistant.host.rstrip('/')}/assistant",
+            timeout=self._config.timeout,
+            additional_headers=self._config.additional_headers,
+            source_tag=self._config.source_tag or "",
+            proxy_url=self._config.proxy_url or "",
+            proxy_headers=self._config.proxy_headers,
+            ssl_ca_certs=self._config.ssl_ca_certs,
+            ssl_verify=self._config.ssl_verify,
+            connection_pool_maxsize=self._config.connection_pool_maxsize,
+            retry_config=self._config.retry_config,
+        )
+        return _AsyncHTTPClient(data_config, ASSISTANT_API_VERSION_2026_04)
+
+    async def _poll_operation_until_done(
+        self,
+        upsert_http: AsyncHTTPClient,
+        assistant_name: str,
+        operation_id: str,
+        timeout: float | None,
+    ) -> None:
+        """Poll ``GET /operations/{assistant_name}/{operation_id}`` until done."""
+        start = time.monotonic()
+        while True:
+            response = await upsert_http.get(f"/operations/{assistant_name}/{operation_id}")
+            op_model = self._adapter.to_operation(response.content)
+
+            if op_model.status != "Processing":
+                if op_model.status == "Failed":
+                    error_msg = op_model.error or "Unknown operation error"
+                    raise PineconeError(
+                        f"Upsert operation failed for operation '{operation_id}': {error_msg}"
+                    )
+                return
+
+            if timeout is not None:
+                elapsed = time.monotonic() - start
+                if elapsed >= timeout:
+                    raise PineconeTimeoutError(
+                        f"Upsert operation timed out after {timeout}s (operation_id={operation_id})"
+                    )
+            await asyncio.sleep(_UPLOAD_POLL_INTERVAL_SECONDS)
+
     async def upload_file(
         self,
         *,
@@ -673,8 +726,29 @@ class AsyncAssistants:
             params["metadata"] = _json.dumps(metadata)
         if multimodal is not None:
             params["multimodal"] = str(multimodal).lower()
+
         if file_id is not None:
-            params["file_id"] = file_id
+            # Use the 2026-04 upsert endpoint: PUT /files/{assistant_name}/{file_id}
+            upsert_http = await self._upsert_http(assistant_name)
+            logger.info(
+                "Upserting file %r (id=%s) to assistant %r",
+                upload_name,
+                file_id,
+                assistant_name,
+            )
+            upsert_response = await upsert_http.put(
+                f"/files/{assistant_name}/{file_id}",
+                files={"file": (upload_name, handle)},
+                params=params,
+            )
+            op_model = self._adapter.to_operation(upsert_response.content)
+            operation_id = op_model.operation_id
+            if timeout == -1:
+                return await self.describe_file(assistant_name=assistant_name, file_id=file_id)
+            await self._poll_operation_until_done(
+                upsert_http, assistant_name, operation_id, timeout
+            )
+            return await self.describe_file(assistant_name=assistant_name, file_id=file_id)
 
         logger.info("Uploading file %r to assistant %r", upload_name, assistant_name)
         response = await data_http.post(
