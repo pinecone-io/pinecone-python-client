@@ -1194,3 +1194,89 @@ async def test_create_namespace_with_schema_async(async_client: AsyncPinecone) -
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# describe_namespace record_count after upsert — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_describe_namespace_record_count_updates_after_upsert_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """describe_namespace().record_count reflects the vector count after upsert (REST async).
+
+    Verifies claim unified-ns-0003: "Can describe a namespace by name, returning its
+    record count and schema." The record_count must accurately track the number of
+    vectors in the namespace — not just be 0 at creation time.
+
+    Operation sequence tested:
+    1. Create namespace → verify record_count == 0
+    2. Upsert 4 vectors into the namespace
+    3. Poll describe_namespace() until record_count > 0 (eventual consistency)
+    4. Verify record_count == 4
+
+    Async transport parity for test_describe_namespace_record_count_updates_after_upsert_rest.
+    """
+    name = unique_name("idx")
+    ns_name = "rcnt-ns-beta"
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # 1. Create namespace explicitly — record_count starts at 0
+        created = await idx.create_namespace(name=ns_name)
+        assert isinstance(created, NamespaceDescription)
+        assert created.name == ns_name
+        assert created.record_count == 0, (
+            f"Freshly created namespace should have record_count == 0, got {created.record_count}"
+        )
+
+        # 2. Upsert 4 vectors into the namespace
+        upsert_resp = await idx.upsert(
+            vectors=[
+                {"id": "rcnt-v1", "values": [0.1, 0.2]},
+                {"id": "rcnt-v2", "values": [0.3, 0.4]},
+                {"id": "rcnt-v3", "values": [0.5, 0.6]},
+                {"id": "rcnt-v4", "values": [0.7, 0.8]},
+            ],
+            namespace=ns_name,
+        )
+        assert isinstance(upsert_resp, UpsertResponse)
+        assert upsert_resp.upserted_count == 4
+
+        # 3. Poll until describe_namespace reports at least 4 vectors (eventual consistency)
+        final = await async_poll_until(
+            query_fn=lambda: idx.describe_namespace(name=ns_name),
+            check_fn=lambda r: r.record_count >= 4,
+            timeout=120,
+            description="describe_namespace record_count reaches 4 after upsert (async)",
+        )
+        assert isinstance(final, NamespaceDescription)
+
+        # 4. Verify the record_count equals the number of vectors upserted
+        assert final.record_count == 4, (
+            f"Expected record_count == 4 after upserting 4 vectors, got {final.record_count}"
+        )
+        assert final.name == ns_name
+
+    finally:
+        if idx is not None:
+            await async_cleanup_resource(
+                lambda: idx.delete_namespace(name=ns_name), ns_name, "namespace"
+            )
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
