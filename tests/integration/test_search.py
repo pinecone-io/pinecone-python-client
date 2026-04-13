@@ -999,3 +999,132 @@ def test_search_with_rerank_grpc(client: Pinecone, api_key: str) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# search all-fields-default — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_search_all_fields_default_and_restricted_rest(client: Pinecone, api_key: str) -> None:
+    """search() without fields= returns ALL record fields in hit.fields;
+    with fields=["category"] returns ONLY that field.
+
+    Verifies:
+    - unified-vec-0027: Record search returns all available fields by default
+      when no field list is specified.
+
+    Complementary assertion: specifying fields=["category"] restricts hit.fields
+    to only the named field — text and year are absent.
+    """
+    name = unique_name("idx")
+    namespace = "af-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "text"},
+                ),
+            ),
+        )
+
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        index = client.index(name=name)
+
+        index.upsert_records(
+            namespace=namespace,
+            records=[
+                {
+                    "_id": "af-doc-1",
+                    "text": "Machine learning transforms raw data into predictions.",
+                    "category": "tech",
+                    "year": 2023,
+                },
+                {
+                    "_id": "af-doc-2",
+                    "text": "Neural networks simulate biological brain structures.",
+                    "category": "tech",
+                    "year": 2022,
+                },
+            ],
+        )
+
+        # Wait for records to be searchable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=2,
+                inputs={"text": "machine learning"},
+            ),
+            check_fn=lambda r: len(r.result.hits) >= 1,
+            timeout=120,
+            description="records searchable after upsert",
+        )
+
+        # --- unified-vec-0027: all fields returned when fields not specified ---
+        response_all = index.search(
+            namespace=namespace,
+            top_k=2,
+            inputs={"text": "machine learning"},
+        )
+
+        assert isinstance(response_all, SearchRecordsResponse)
+        assert len(response_all.result.hits) >= 1
+
+        for hit in response_all.result.hits:
+            assert isinstance(hit, Hit)
+            assert hit.fields, (
+                f"hit.fields should be non-empty when fields not specified; "
+                f"got {hit.fields!r} for {hit.id!r}"
+            )
+            # All three record fields must be present by default
+            assert "text" in hit.fields, (
+                f"text field missing from hit.fields (no fields restriction): {hit.fields}"
+            )
+            assert "category" in hit.fields, (
+                f"category field missing from hit.fields (no fields restriction): {hit.fields}"
+            )
+            assert "year" in hit.fields, (
+                f"year field missing from hit.fields (no fields restriction): {hit.fields}"
+            )
+            assert isinstance(hit.fields["text"], str)
+            assert isinstance(hit.fields["category"], str)
+            assert isinstance(hit.fields["year"], (int, float))
+
+        # --- Complementary: only specified fields returned when fields=["category"] ---
+        response_restricted = index.search(
+            namespace=namespace,
+            top_k=2,
+            inputs={"text": "machine learning"},
+            fields=["category"],
+        )
+
+        assert isinstance(response_restricted, SearchRecordsResponse)
+        assert len(response_restricted.result.hits) >= 1
+
+        for hit in response_restricted.result.hits:
+            assert isinstance(hit, Hit)
+            if hit.fields:
+                # Only category should be present; text and year must be absent
+                assert "category" in hit.fields, (
+                    f"category field missing from hit.fields with fields=['category']: {hit.fields}"
+                )
+                assert "text" not in hit.fields, (
+                    f"text field should be absent with fields=['category']: {hit.fields}"
+                )
+                assert "year" not in hit.fields, (
+                    f"year field should be absent with fields=['category']: {hit.fields}"
+                )
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

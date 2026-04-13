@@ -708,3 +708,124 @@ async def test_search_with_match_terms_async(
 
     finally:
         await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# search all-fields-default — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_search_all_fields_default_and_restricted_async(
+    async_client: AsyncPinecone, client: Pinecone, api_key: str
+) -> None:
+    """search() without fields= returns ALL record fields in hit.fields (async);
+    with fields=["category"] returns ONLY that field.
+
+    Verifies:
+    - unified-vec-0027: Record search returns all available fields by default
+      when no field list is specified.
+    """
+    name = unique_name("idx")
+    namespace = "af-ns"
+    try:
+        # Create integrated index via direct HTTP call (SDK uses wrong endpoint — IT-0003)
+        _create_integrated_index(api_key, name)
+
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        # Populate the async client's host cache before calling index()
+        desc = await async_client.indexes.describe(name)
+        index = async_client.index(host=desc.host)
+
+        await index.upsert_records(
+            namespace=namespace,
+            records=[
+                {
+                    "_id": "af-doc-1",
+                    "text": "Machine learning transforms raw data into predictions.",
+                    "category": "tech",
+                    "year": 2023,
+                },
+                {
+                    "_id": "af-doc-2",
+                    "text": "Neural networks simulate biological brain structures.",
+                    "category": "tech",
+                    "year": 2022,
+                },
+            ],
+        )
+
+        # Wait for records to be searchable (eventual consistency)
+        await async_poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=2,
+                inputs={"text": "machine learning"},
+            ),
+            check_fn=lambda r: len(r.result.hits) >= 1,
+            timeout=120,
+            description="records searchable after upsert (async)",
+        )
+
+        # --- unified-vec-0027: all fields returned when fields not specified ---
+        response_all = await index.search(
+            namespace=namespace,
+            top_k=2,
+            inputs={"text": "machine learning"},
+        )
+
+        assert isinstance(response_all, SearchRecordsResponse)
+        assert len(response_all.result.hits) >= 1
+
+        for hit in response_all.result.hits:
+            assert isinstance(hit, Hit)
+            assert hit.fields, (
+                f"hit.fields should be non-empty when fields not specified (async); "
+                f"got {hit.fields!r} for {hit.id!r}"
+            )
+            # All three record fields must be present by default
+            assert "text" in hit.fields, (
+                f"text field missing from hit.fields (no fields restriction, async): {hit.fields}"
+            )
+            assert "category" in hit.fields, (
+                f"category field missing from hit.fields (no fields restriction, async): {hit.fields}"
+            )
+            assert "year" in hit.fields, (
+                f"year field missing from hit.fields (no fields restriction, async): {hit.fields}"
+            )
+            assert isinstance(hit.fields["text"], str)
+            assert isinstance(hit.fields["category"], str)
+            assert isinstance(hit.fields["year"], (int, float))
+
+        # --- Complementary: only specified fields returned when fields=["category"] ---
+        response_restricted = await index.search(
+            namespace=namespace,
+            top_k=2,
+            inputs={"text": "machine learning"},
+            fields=["category"],
+        )
+
+        assert isinstance(response_restricted, SearchRecordsResponse)
+        assert len(response_restricted.result.hits) >= 1
+
+        for hit in response_restricted.result.hits:
+            assert isinstance(hit, Hit)
+            if hit.fields:
+                assert "category" in hit.fields, (
+                    f"category field missing from hit.fields with fields=['category'] (async): {hit.fields}"
+                )
+                assert "text" not in hit.fields, (
+                    f"text field should be absent with fields=['category'] (async): {hit.fields}"
+                )
+                assert "year" not in hit.fields, (
+                    f"year field should be absent with fields=['category'] (async): {hit.fields}"
+                )
+
+    finally:
+        await async_cleanup_resource(lambda: async_client.indexes.delete(name), name, "index")
