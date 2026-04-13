@@ -527,3 +527,74 @@ def test_delete_index_clears_host_cache_rest(client: Pinecone) -> None:
     finally:
         if not deleted:
             cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# schema parameter — flat vs nested format normalization — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.skip(
+    reason=(
+        "IT-0017: _normalize_schema() strips the 'fields' wrapper, sending flat format to the "
+        "API. But the 2025-10 API version requires nested format {'fields': {...}}. Both flat and "
+        "nested caller inputs are converted to flat by the SDK and then rejected with 422."
+    )
+)
+def test_create_index_with_schema_normalization_rest(client: Pinecone) -> None:
+    """create() accepts schema in both flat and nested formats, proving _normalize_schema() works.
+
+    DISABLED: IT-0017 — _normalize_schema() incorrectly strips the 'fields' wrapper before
+    sending to the API. The 2025-10 API requires nested {"fields": {...}} format inside
+    spec.serverless.schema; the flat format is rejected with 422 Unprocessable Entity.
+
+    Verifies claims:
+    - unified-schema-0001: A schema specified as a flat map of field names to properties
+      and a schema specified as a nested structure with a 'fields' wrapper key are parsed
+      identically. The normalization is client-side: if nested format is accepted by the API,
+      _normalize_schema() successfully unwrapped {"fields": {...}} before sending.
+    - unified-schema-0002: Schemas can be included in index creation requests for serverless specs.
+
+    Strategy: create two indexes — one with nested schema ({"fields": {...}}) and one with
+    flat schema ({"field": {...}}). Both must be accepted by the API without error. The
+    nested format requires normalization; the flat format is a passthrough.
+    """
+    name_nested = unique_name("idx")
+    name_flat = unique_name("idx")
+    try:
+        # --- Step 1: nested schema format {"fields": {...}} ---
+        # _normalize_schema() unwraps this to {"genre": {"filterable": True}} before the API call.
+        result_nested = client.indexes.create(
+            name=name_nested,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            schema={"fields": {"genre": {"filterable": True}}},
+            timeout=300,
+        )
+        assert isinstance(result_nested, IndexModel), (
+            "create() with nested schema must return an IndexModel"
+        )
+        assert result_nested.name == name_nested
+        assert result_nested.status.ready is True
+
+        # --- Step 2: flat schema format {"field": {...}} ---
+        # _normalize_schema() passes this through unchanged.
+        result_flat = client.indexes.create(
+            name=name_flat,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            schema={"genre": {"filterable": True}},
+            timeout=300,
+        )
+        assert isinstance(result_flat, IndexModel), (
+            "create() with flat schema must return an IndexModel"
+        )
+        assert result_flat.name == name_flat
+        assert result_flat.status.ready is True
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name_nested), name_nested, "index")
+        cleanup_resource(lambda: client.indexes.delete(name_flat), name_flat, "index")

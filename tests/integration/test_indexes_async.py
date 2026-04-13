@@ -541,3 +541,70 @@ async def test_async_index_factory_requires_prior_describe_rest_async(
                 name,
                 "index",
             )
+
+
+# ---------------------------------------------------------------------------
+# schema parameter — flat vs nested format normalization — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.skip(
+    reason=(
+        "IT-0017: same root cause as sync variant — _normalize_schema() strips 'fields' wrapper, "
+        "sending flat format which the 2025-10 API rejects with 422."
+    )
+)
+async def test_create_index_with_schema_normalization_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """Async create() accepts schema in both flat and nested formats.
+
+    DISABLED: IT-0017 — same root cause as sync variant.
+
+    Async variant of test_create_index_with_schema_normalization_rest. Verifies:
+    - unified-schema-0001: nested schema {"fields": {...}} is normalized to flat format
+      identically to flat schema {"field": {...}} before the API call.
+    - unified-schema-0002: schemas can be included in serverless index creation requests.
+    """
+    name_nested = unique_name("idx")
+    name_flat = unique_name("idx")
+    try:
+        # --- Step 1: nested schema format ---
+        result_nested = await async_client.indexes.create(
+            name=name_nested,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            schema={"fields": {"genre": {"filterable": True}}},
+            timeout=300,
+        )
+        assert isinstance(result_nested, IndexModel), (
+            "async create() with nested schema must return an IndexModel"
+        )
+        assert result_nested.name == name_nested
+        assert result_nested.status.ready is True
+
+        # --- Step 2: flat schema format ---
+        result_flat = await async_client.indexes.create(
+            name=name_flat,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            schema={"genre": {"filterable": True}},
+            timeout=300,
+        )
+        assert isinstance(result_flat, IndexModel), (
+            "async create() with flat schema must return an IndexModel"
+        )
+        assert result_flat.name == name_flat
+        assert result_flat.status.ready is True
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name_nested), name_nested, "index"
+        )
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name_flat), name_flat, "index"
+        )
