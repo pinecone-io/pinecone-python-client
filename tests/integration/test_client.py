@@ -10,6 +10,54 @@ from pinecone import Pinecone
 
 
 @pytest.mark.integration
+def test_validation_error_import_triggers_deprecation_warning() -> None:
+    """Accessing pinecone.ValidationError triggers DeprecationWarning and returns PineconeValueError.
+
+    Verifies unified-depr-0004 backward-compatibility contract: the ValidationError
+    alias from v6 SDK remains accessible via the top-level module, BUT raises a
+    DeprecationWarning directing callers to PineconeValueError.
+
+    The shim in pinecone/__init__.__getattr__ fires warnings.warn(...,
+    DeprecationWarning) on first access and then caches the result.  This test
+    clears the cached entry before the assertion so the warning fires fresh even
+    if a prior test or import already accessed pinecone.ValidationError.
+
+    Assertions:
+    - DeprecationWarning is raised with the expected message
+    - The returned class is identical to PineconeValueError (same object)
+    - ValidationError is a subclass of ValueError (for backward-compat catch blocks)
+    - A PineconeValueError instance can be caught using the deprecated alias
+    """
+    import pinecone as pinecone_module
+    from pinecone.errors.exceptions import PineconeValueError
+
+    # Clear the cached entry so __getattr__ fires again and re-emits the warning.
+    # (After the first access globals()["ValidationError"] is set, bypassing __getattr__.)
+    pinecone_module.__dict__.pop("ValidationError", None)
+
+    with pytest.warns(DeprecationWarning, match="ValidationError is deprecated"):
+        deprecated_cls = pinecone_module.ValidationError
+
+    # The alias must resolve to the same class object as PineconeValueError
+    assert deprecated_cls is PineconeValueError, (
+        "pinecone.ValidationError must be the same object as PineconeValueError"
+    )
+
+    # Must remain a proper ValueError subclass for old except-ValidationError blocks
+    assert issubclass(deprecated_cls, ValueError), (
+        "ValidationError must be a subclass of ValueError for backward-compatibility"
+    )
+
+    # Old code that catches ValidationError must catch PineconeValueError instances
+    try:
+        raise PineconeValueError("backward-compatibility catch test")
+    except deprecated_cls:
+        pass  # Expected — the alias catches PineconeValueError
+    else:
+        pytest.fail("ValidationError alias failed to catch a PineconeValueError instance")
+
+
+@pytest.mark.integration
 def test_client_init_with_api_key() -> None:
     """Pinecone(api_key=...) creates a client with accessible control-plane namespaces."""
     api_key = os.getenv("PINECONE_API_KEY")
