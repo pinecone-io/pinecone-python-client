@@ -280,6 +280,32 @@ async def test_rerank_return_documents_false_async(async_client: AsyncPinecone) 
         assert ranked.document is None
 
 
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_rerank_string_inputs_auto_wrapped_async(async_client: AsyncPinecone) -> None:
+    """async rerank() with plain string documents auto-wraps them as {text: ...}.
+
+    Verifies claim unified-inf-0013: both sync and async rerank() accept plain strings
+    and the SDK transparently wraps them as {"text": <string>} before sending to the API.
+    """
+    documents = [
+        "Machine learning enables computers to learn from experience.",
+        "Cooking pasta requires boiling water.",
+    ]
+    result = await async_client.inference.rerank(
+        model="bge-reranker-v2-m3",
+        query="How does machine learning work?",
+        documents=documents,
+        return_documents=True,
+    )
+
+    assert len(result.data) == len(documents)
+    for ranked in result.data:
+        # SDK wraps strings as {"text": ...} before sending
+        assert ranked.document is not None
+        assert "text" in ranked.document
+
+
 # ---------------------------------------------------------------------------
 # list_models / get_model (async)
 # ---------------------------------------------------------------------------
