@@ -2362,3 +2362,106 @@ async def test_upload_file_with_caller_specified_file_id_async(
             name,
             "assistant",
         )
+
+
+# ---------------------------------------------------------------------------
+# AssistantModel dict-like mixin operations — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(300)
+async def test_assistant_model_dict_mixin_operations_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """AssistantModel StructDictMixin methods work correctly on real API-deserialized objects (async).
+
+    Async mirror of test_assistant_model_dict_mixin_operations_rest.
+
+    Verifies:
+    - unified-model-0003: len(model) returns the number of declared fields
+    - unified-model-0004: model.keys(), model.values(), model.items() expose all fields
+    - unified-model-0005: model.get(key, default) returns value or default
+    - unified-model-0006: model.to_dict() recursively converts to a plain dict
+
+    AssistantModel declares 7 fields: name, status, metadata, instructions,
+    host, created_at, updated_at.
+    """
+    name = unique_name("asst")
+    try:
+        assistant = await async_client.assistants.create(
+            name=name,
+            instructions="Test mixin ops async.",
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        # Wait for Ready so describe() returns a stable model
+        await async_poll_until(
+            query_fn=lambda: async_client.assistants.describe(name=name),
+            check_fn=lambda m: m.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name!r} ready",
+        )
+
+        model = await async_client.assistants.describe(name=name)
+        assert isinstance(model, AssistantModel)
+
+        # --- unified-model-0003: len(model) returns field count ---
+        assert len(model) == 7, (
+            f"AssistantModel has 7 declared fields; got len()={len(model)}"
+        )
+
+        # --- unified-model-0004: keys(), values(), items() ---
+        keys = model.keys()
+        assert isinstance(keys, tuple), f"keys() should return tuple, got {type(keys).__name__}"
+        assert "name" in keys, "keys() must include 'name'"
+        assert "status" in keys, "keys() must include 'status'"
+        assert "metadata" in keys, "keys() must include 'metadata'"
+        assert "instructions" in keys, "keys() must include 'instructions'"
+        assert len(keys) == 7, f"keys() length should be 7, got {len(keys)}"
+
+        values = model.values()
+        assert isinstance(values, list), f"values() should return list, got {type(values).__name__}"
+        assert len(values) == 7, f"values() length should be 7, got {len(values)}"
+        assert values[0] == model.name, "values()[0] (name) should match model.name"
+        assert values[1] == model.status, "values()[1] (status) should match model.status"
+
+        items = model.items()
+        assert isinstance(items, list), f"items() should return list, got {type(items).__name__}"
+        assert len(items) == 7, f"items() length should be 7, got {len(items)}"
+        items_dict = dict(items)
+        assert items_dict["name"] == model.name, "items() 'name' should match model.name"
+        assert items_dict["status"] == model.status, "items() 'status' should match model.status"
+
+        # --- unified-model-0005: get() with and without default ---
+        assert model.get("name") == model.name, "get('name') should return model.name"
+        assert model.get("status") == model.status, "get('status') should return model.status"
+        assert model.get("totally_nonexistent_field") is None, (
+            "get() for unknown field should default to None"
+        )
+        assert model.get("totally_nonexistent_field", "sentinel") == "sentinel", (
+            "get() for unknown field should return the specified default"
+        )
+
+        # --- unified-model-0006: to_dict() returns a plain dict ---
+        d = model.to_dict()
+        assert isinstance(d, dict), f"to_dict() should return dict, got {type(d).__name__}"
+        assert "name" in d and d["name"] == model.name, (
+            f"to_dict()['name'] should equal model.name={model.name!r}"
+        )
+        assert "status" in d and d["status"] == model.status, (
+            f"to_dict()['status'] should equal model.status={model.status!r}"
+        )
+        assert d["metadata"] is None or isinstance(d["metadata"], dict), (
+            f"to_dict()['metadata'] should be None or plain dict, "
+            f"got {type(d['metadata']).__name__}"
+        )
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
