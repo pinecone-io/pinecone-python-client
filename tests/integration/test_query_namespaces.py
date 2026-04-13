@@ -370,3 +370,112 @@ def test_query_namespaces_default_top_k_rest(client: Pinecone) -> None:
             assert isinstance(match.score, float)
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-euclidean — ascending score ordering — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_query_namespaces_euclidean_scores_ascending_rest(client: Pinecone) -> None:
+    """query_namespaces() with euclidean metric returns matches sorted ascending by score (REST sync).
+
+    For euclidean, lower scores indicate smaller distance (closer vectors) and should
+    rank first — the opposite of cosine/dotproduct where higher scores rank first.
+
+    Verifies claim unified-vec-0036: "Multi-namespace query results are aggregated using
+    a heap-based algorithm; for cosine/dotproduct, higher scores rank first; for
+    euclidean, lower scores rank first."
+
+    Strategy:
+    - Create an index with euclidean metric.
+    - Upsert three vectors at known distances from the query vector [0.0, 0.0]:
+        ns1: "euc-close"  at [0.1, 0.0]  (euclidean dist ≈ 0.1 — closest)
+        ns1: "euc-far"    at [0.9, 0.0]  (euclidean dist ≈ 0.9 — farthest)
+        ns2: "euc-mid"    at [0.4, 0.0]  (euclidean dist ≈ 0.4 — middle)
+    - Query with vector [0.0, 0.0] and metric="euclidean".
+    - Assert scores are non-decreasing (ascending order), confirming that lower
+      (closer) scores rank first.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="euclidean",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        index.upsert(
+            vectors=[
+                {"id": "euc-close", "values": [0.1, 0.0]},
+                {"id": "euc-far", "values": [0.9, 0.0]},
+            ],
+            namespace="euc-ns1",
+        )
+        index.upsert(
+            vectors=[
+                {"id": "euc-mid", "values": [0.4, 0.0]},
+            ],
+            namespace="euc-ns2",
+        )
+
+        # Wait for all 3 vectors to be queryable across both namespaces
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.0, 0.0], top_k=10, namespace="euc-ns1"),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="euc-ns1 vectors queryable before euclidean sort test",
+        )
+        poll_until(
+            query_fn=lambda: index.query(vector=[0.0, 0.0], top_k=10, namespace="euc-ns2"),
+            check_fn=lambda r: len(r.matches) >= 1,
+            timeout=120,
+            description="euc-ns2 vector queryable before euclidean sort test",
+        )
+
+        results = index.query_namespaces(
+            vector=[0.0, 0.0],
+            namespaces=["euc-ns1", "euc-ns2"],
+            metric="euclidean",
+            top_k=5,
+        )
+
+        assert isinstance(results, QueryNamespacesResults)
+        assert isinstance(results.matches, list)
+        assert len(results.matches) == 3, (
+            f"Expected 3 matches (all vectors), got {len(results.matches)}"
+        )
+
+        # unified-vec-0036: for euclidean, scores must be sorted ascending
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores), (
+            f"For euclidean metric, scores must be ascending (lower = closer); got: {scores}"
+        )
+
+        # All scores must be non-negative (euclidean distance is always >= 0)
+        for score in scores:
+            assert score >= 0.0, f"Euclidean distance score must be non-negative, got {score}"
+
+        # The closest vector (euc-close at [0.1, 0.0]) must rank first
+        assert results.matches[0].id == "euc-close", (
+            f"Expected 'euc-close' (closest to [0,0]) to rank first; "
+            f"got {results.matches[0].id} (score={results.matches[0].score:.4f})"
+        )
+
+        # The farthest vector (euc-far at [0.9, 0.0]) must rank last
+        assert results.matches[-1].id == "euc-far", (
+            f"Expected 'euc-far' (farthest from [0,0]) to rank last; "
+            f"got {results.matches[-1].id} (score={results.matches[-1].score:.4f})"
+        )
+
+        # Verify ScoredVector structure for all matches
+        for match in results.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
