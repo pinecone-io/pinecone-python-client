@@ -24,11 +24,13 @@ import pytest
 from pinecone import AsyncPinecone, PineconeValueError
 from pinecone.models.assistant.options import ContextOptions
 from pinecone.models.assistant.chat import (
+    ChatCompletionChoice,
     ChatCompletionResponse,
     ChatHighlight,
     ChatMessage,
     ChatReference,
     ChatResponse,
+    ChatUsage,
 )
 from pinecone.models.assistant.context import ContextResponse, TextSnippet
 from pinecone.models.assistant.evaluation import AlignmentResult
@@ -1865,6 +1867,128 @@ async def test_chat_context_options_typed_and_dict_async(async_client: AsyncPine
             f"ChatMessage.content must be str, got {type(response_dict.message.content)}"
         )
         assert len(response_dict.message.content) > 0, "ChatMessage.content must be non-empty"
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# chat-completions-full-structure — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_chat_completions_full_response_structure_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """Verify the complete ChatCompletionResponse structure from async chat_completions().
+
+    Verifies:
+    - unified-chat-0042: non-streaming chat_completions response has NO citations field
+    - unified-chat-0048: response contains id (str), choices list, model (str), usage
+    - unified-chat-0049: each choice contains an index (int), message, and finish_reason
+    - unified-chat-0050: usage includes prompt_tokens, completion_tokens, total_tokens
+
+    Area tag: assistant-chat-completions
+    Transport: rest-async
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        assistant = await async_client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-cc-full-async-"
+        ) as f:
+            f.write("Pinecone is a managed vector database service for AI applications.")
+            tmp_path = f.name
+
+        await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        response = await async_client.assistants.chat_completions(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What is Pinecone used for?"}],
+            stream=False,
+        )
+
+        # --- unified-chat-0042: NO citations field on ChatCompletionResponse ---
+        assert isinstance(response, ChatCompletionResponse), (
+            f"Expected ChatCompletionResponse, got {type(response)}"
+        )
+        assert not hasattr(response, "citations"), (
+            "ChatCompletionResponse must NOT have a citations field (OpenAI-compatible format)"
+        )
+
+        # --- unified-chat-0048: response has id, choices, model, usage ---
+        assert isinstance(response.id, str) and len(response.id) > 0, (
+            f"response.id must be a non-empty str, got {response.id!r}"
+        )
+        assert isinstance(response.model, str) and len(response.model) > 0, (
+            f"response.model must be a non-empty str, got {response.model!r}"
+        )
+        assert isinstance(response.choices, list) and len(response.choices) > 0, (
+            f"response.choices must be a non-empty list"
+        )
+        assert isinstance(response.usage, ChatUsage), (
+            f"response.usage must be ChatUsage, got {type(response.usage)}"
+        )
+
+        # --- unified-chat-0049: each choice has index, message, finish_reason ---
+        for choice in response.choices:
+            assert isinstance(choice, ChatCompletionChoice), (
+                f"Each choice must be ChatCompletionChoice, got {type(choice)}"
+            )
+            assert isinstance(choice.index, int), (
+                f"choice.index must be int, got {type(choice.index)}"
+            )
+            assert isinstance(choice.message, ChatMessage), (
+                f"choice.message must be ChatMessage, got {type(choice.message)}"
+            )
+            assert isinstance(choice.message.content, str) and len(choice.message.content) > 0, (
+                "choice.message.content must be a non-empty str"
+            )
+            assert isinstance(choice.finish_reason, str) and len(choice.finish_reason) > 0, (
+                f"choice.finish_reason must be a non-empty str"
+            )
+
+        # --- unified-chat-0050: usage has prompt_tokens, completion_tokens, total_tokens ---
+        usage = response.usage
+        assert isinstance(usage.prompt_tokens, int) and usage.prompt_tokens >= 0, (
+            f"usage.prompt_tokens must be non-negative int, got {usage.prompt_tokens!r}"
+        )
+        assert isinstance(usage.completion_tokens, int) and usage.completion_tokens >= 0, (
+            f"usage.completion_tokens must be non-negative int, got {usage.completion_tokens!r}"
+        )
+        assert isinstance(usage.total_tokens, int) and usage.total_tokens > 0, (
+            f"usage.total_tokens must be a positive int, got {usage.total_tokens!r}"
+        )
+        assert usage.prompt_tokens + usage.completion_tokens == usage.total_tokens, (
+            f"prompt_tokens ({usage.prompt_tokens}) + completion_tokens "
+            f"({usage.completion_tokens}) should equal total_tokens ({usage.total_tokens})"
+        )
 
     finally:
         if tmp_path is not None:
