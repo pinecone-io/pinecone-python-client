@@ -190,6 +190,71 @@ async def test_invalid_index_host_raises_value_error_async() -> None:
 
 
 # ---------------------------------------------------------------------------
+# error-invalid-index-name  (unified-index-0045)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_create_index_invalid_name_async(async_client: AsyncPinecone) -> None:
+    """async indexes.create() rejects invalid index names before any API call.
+
+    Verifies unified-index-0045 for the async transport: validate_create_inputs()
+    raises PineconeValueError synchronously before the first await, so no real
+    HTTP request is made and no index resource needs cleanup.
+
+    Cases checked:
+    - name with 46 characters (one over the 45-character limit)
+    - name with uppercase letters
+    - name with an underscore
+    - name with a dot
+    - name with a space
+    """
+    spec = ServerlessSpec(cloud="aws", region="us-east-1")
+
+    # 46-character name — one character over the 45-character limit
+    long_name = "a" * 46
+    with pytest.raises(PineconeValueError):
+        await async_client.indexes.create(
+            name=long_name,
+            dimension=2,
+            spec=spec,
+        )
+
+    # uppercase letters are not allowed
+    with pytest.raises(PineconeValueError):
+        await async_client.indexes.create(
+            name="MyIndex",
+            dimension=2,
+            spec=spec,
+        )
+
+    # underscore is not allowed (only hyphens)
+    with pytest.raises(PineconeValueError):
+        await async_client.indexes.create(
+            name="my_index",
+            dimension=2,
+            spec=spec,
+        )
+
+    # dot is not allowed
+    with pytest.raises(PineconeValueError):
+        await async_client.indexes.create(
+            name="my.index",
+            dimension=2,
+            spec=spec,
+        )
+
+    # space is not allowed
+    with pytest.raises(PineconeValueError):
+        await async_client.indexes.create(
+            name="my index",
+            dimension=2,
+            spec=spec,
+        )
+
+
+# ---------------------------------------------------------------------------
 # error-invalid-spec-dict-key  (unified-index-0044)
 # ---------------------------------------------------------------------------
 

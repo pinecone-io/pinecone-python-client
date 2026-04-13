@@ -212,6 +212,71 @@ def test_invalid_index_host_raises_value_error() -> None:
 
 
 # ---------------------------------------------------------------------------
+# error-invalid-index-name  (unified-index-0045)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_create_index_invalid_name_rest(client: Pinecone) -> None:
+    """indexes.create() rejects invalid index names before any API call (REST sync).
+
+    Verifies unified-index-0045: the SDK raises PineconeValueError for names
+    that are too long (>45 characters) or contain disallowed characters (anything
+    other than lowercase letters, digits, and hyphens).  Validation fires
+    synchronously in validate_create_inputs() before any HTTP request is made,
+    so no index resource is created and no cleanup is required.
+
+    Cases checked:
+    - name with 46 characters (one over the limit)
+    - name with uppercase letters
+    - name with an underscore
+    - name with a dot
+    - name with a space
+    """
+    spec = ServerlessSpec(cloud="aws", region="us-east-1")
+
+    # 46-character name — one character over the 45-character limit
+    long_name = "a" * 46
+    with pytest.raises(PineconeValueError):
+        client.indexes.create(
+            name=long_name,
+            dimension=2,
+            spec=spec,
+        )
+
+    # uppercase letters are not allowed
+    with pytest.raises(PineconeValueError):
+        client.indexes.create(
+            name="MyIndex",
+            dimension=2,
+            spec=spec,
+        )
+
+    # underscore is not allowed (only hyphens)
+    with pytest.raises(PineconeValueError):
+        client.indexes.create(
+            name="my_index",
+            dimension=2,
+            spec=spec,
+        )
+
+    # dot is not allowed
+    with pytest.raises(PineconeValueError):
+        client.indexes.create(
+            name="my.index",
+            dimension=2,
+            spec=spec,
+        )
+
+    # space is not allowed
+    with pytest.raises(PineconeValueError):
+        client.indexes.create(
+            name="my index",
+            dimension=2,
+            spec=spec,
+        )
+
+
 # error-invalid-spec-dict-key  (unified-index-0044)
 # ---------------------------------------------------------------------------
 
