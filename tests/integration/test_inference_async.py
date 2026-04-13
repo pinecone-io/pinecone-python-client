@@ -588,3 +588,52 @@ async def test_model_dict_keyerror_and_readonly_async(async_client: AsyncPinecon
     assert len(model_info["model"]) > 0
     assert "model" in model_info
     assert "totally_absent_key_xyz" not in model_info
+
+
+# ---------------------------------------------------------------------------
+# embed query vs passage (async) — input_type parameter parity
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_embed_query_vs_passage_async(async_client: AsyncPinecone) -> None:
+    """async embed() with input_type='query' vs 'passage' produces different embeddings.
+
+    Async counterpart of test_embed_query_vs_passage (sync). Verifies:
+    - unified-inf-0013: Both sync and async variants of all inference operations
+      are available with identical parameters.
+
+    Passes the same text twice using different input_type values and asserts
+    the resulting embedding vectors are not equal — confirming that the
+    parameters dict is correctly forwarded to the API in the async path.
+    No index resources are created.
+    """
+    text = ["vector databases enable semantic search"]
+
+    query_result = await async_client.inference.embed(
+        model="multilingual-e5-large",
+        inputs=text,
+        parameters={"input_type": "query"},
+    )
+    passage_result = await async_client.inference.embed(
+        model="multilingual-e5-large",
+        inputs=text,
+        parameters={"input_type": "passage"},
+    )
+
+    assert query_result.model == "multilingual-e5-large"
+    assert passage_result.model == "multilingual-e5-large"
+
+    query_vec = query_result.data[0].values
+    passage_vec = passage_result.data[0].values
+
+    # Same dimension — both inputs are the same text / same model
+    assert len(query_vec) == len(passage_vec)
+    assert len(query_vec) > 0
+
+    # Different values — input_type semantically changes the embedding
+    assert query_vec != passage_vec, (
+        "Expected input_type='query' and input_type='passage' to produce different "
+        "embedding vectors for the same text, but they were identical."
+    )
