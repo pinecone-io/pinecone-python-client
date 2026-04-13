@@ -22,6 +22,7 @@ import tempfile
 import pytest
 
 from pinecone import AsyncPinecone, PineconeValueError
+from pinecone.models.assistant.list import ListFilesResponse
 from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
 from pinecone.models.assistant.context import ContextResponse, TextSnippet
 from pinecone.models.assistant.evaluation import AlignmentResult
@@ -1358,6 +1359,130 @@ async def test_chat_completions_streaming_async(
         if tmp_path is not None:
             with contextlib.suppress(Exception):
                 os.unlink(tmp_path)
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# list_files_page — explicit single-page pagination (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.skip(
+    reason="SDK bug: list_files_page(page_size=...) sends pageSize query param which the API silently ignores; all files returned in one page with next=None — see IT-0016"
+)
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(300)
+async def test_list_files_page_with_page_size_and_pagination_token_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """list_files_page() with page_size=1 returns one file and a next token;
+    following that token returns the remaining file with no next token.
+
+    Verifies:
+      - unified-file-0011: Can list one page of files with explicit pagination control
+      - unified-file-0013: Can specify a maximum number of files per page when listing
+      - unified-file-0014: Can provide a pagination token to fetch the next page of files
+    """
+    name = unique_name("asst")
+    file_id_a: str | None = None
+    file_id_b: str | None = None
+    try:
+        assistant = await async_client.assistants.create(
+            name=name, instructions="Async pagination test assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # Upload file A
+        file_a = await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_stream=io.BytesIO(b"File A content for async pagination test."),
+            file_name="file_a.txt",
+            timeout=120,
+        )
+        assert isinstance(file_a, AssistantFileModel)
+        file_id_a = file_a.id
+
+        # Upload file B
+        file_b = await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_stream=io.BytesIO(b"File B content for async pagination test."),
+            file_name="file_b.txt",
+            timeout=120,
+        )
+        assert isinstance(file_b, AssistantFileModel)
+        file_id_b = file_b.id
+
+        # Wait until both files are available
+        for fid in (file_id_a, file_id_b):
+            await async_poll_until(
+                lambda fid=fid: async_client.assistants.describe_file(
+                    assistant_name=name, file_id=fid
+                ),
+                lambda f: f.status in ("Available", "Processed"),
+                timeout=120,
+                interval=5,
+                description=f"file {fid}",
+            )
+
+        # --- page 1: page_size=1 ---
+        page1 = await async_client.assistants.list_files_page(
+            assistant_name=name,
+            page_size=1,
+        )
+        assert isinstance(page1, ListFilesResponse), (
+            f"Expected ListFilesResponse, got {type(page1)}"
+        )
+        assert isinstance(page1.files, list), "page1.files must be a list"
+        assert len(page1.files) == 1, (
+            f"page_size=1 should return exactly 1 file, got {len(page1.files)}"
+        )
+        assert isinstance(page1.files[0], AssistantFileModel), (
+            "Each file in list must be an AssistantFileModel"
+        )
+        assert isinstance(page1.next, str) and page1.next != "", (
+            "page1.next must be a non-empty string when more files exist"
+        )
+
+        # --- page 2: follow the pagination token ---
+        page2 = await async_client.assistants.list_files_page(
+            assistant_name=name,
+            pagination_token=page1.next,
+        )
+        assert isinstance(page2, ListFilesResponse), (
+            f"Expected ListFilesResponse, got {type(page2)}"
+        )
+        assert isinstance(page2.files, list), "page2.files must be a list"
+        assert len(page2.files) == 1, (
+            f"Second page should return exactly 1 remaining file, got {len(page2.files)}"
+        )
+        assert page2.next is None, (
+            f"page2.next must be None on the last page, got {page2.next!r}"
+        )
+
+        # All uploaded file IDs must appear across both pages
+        all_seen_ids = {page1.files[0].id, page2.files[0].id}
+        assert file_id_a in all_seen_ids, f"File A ({file_id_a}) missing from paginated listing"
+        assert file_id_b in all_seen_ids, f"File B ({file_id_b}) missing from paginated listing"
+
+    finally:
+        for fid in filter(None, [file_id_a, file_id_b]):
+            with contextlib.suppress(Exception):
+                await async_client.assistants.delete_file(
+                    assistant_name=name, file_id=fid, timeout=30
+                )
         await async_cleanup_resource(
             lambda: async_client.assistants.delete(name=name, timeout=60),
             name,
