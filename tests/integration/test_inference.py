@@ -597,6 +597,89 @@ def test_list_models_filter_by_vector_type_and_invalid_values(client: Pinecone) 
 
 
 # ---------------------------------------------------------------------------
+# get_model full structure — description, supported_parameters, modality, etc.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_get_model_full_structure_rest(client: Pinecone) -> None:
+    """get_model() populates ALL ModelInfo fields including description, supported_parameters,
+    modality, max_sequence_length, max_batch_size, provider_name, and supported_metrics.
+
+    Verifies unified-rs-0016: a ModelInfo object contains name, description, type,
+    supported_parameters (list of ModelInfoSupportedParameter), optional vector type,
+    optional default dimension, modality, optional max sequence length, optional max
+    batch size, provider name, optional supported dimensions, and supported metrics.
+
+    Area tag: model-info-full-structure
+    Transport: rest
+    """
+    from pinecone.models.inference.models import ModelInfoSupportedParameter
+
+    model_info = client.inference.get_model(model="multilingual-e5-large")
+
+    # --- description / short_description alias ---
+    assert isinstance(model_info.short_description, str)
+    assert len(model_info.short_description) > 0
+    # description property is an alias for short_description
+    assert model_info.description == model_info.short_description
+    # bracket access via alias
+    assert model_info["description"] == model_info.short_description
+
+    # --- supported_parameters: non-empty list of ModelInfoSupportedParameter ---
+    assert isinstance(model_info.supported_parameters, list)
+    assert len(model_info.supported_parameters) > 0, (
+        "multilingual-e5-large should expose at least one supported parameter"
+    )
+    for param in model_info.supported_parameters:
+        assert isinstance(param, ModelInfoSupportedParameter)
+        assert isinstance(param.parameter, str) and len(param.parameter) > 0
+        assert isinstance(param.type, str) and len(param.type) > 0
+        assert isinstance(param.value_type, str) and len(param.value_type) > 0
+        assert isinstance(param.required, bool)
+        # Optional fields: None or correct type
+        assert param.allowed_values is None or isinstance(param.allowed_values, list)
+        assert param.min is None or isinstance(param.min, (int, float))
+        assert param.max is None or isinstance(param.max, (int, float))
+        # Bracket access works on supported parameters
+        assert param["parameter"] == param.parameter
+
+    # --- modality: non-None string (text model) ---
+    assert model_info.modality is not None
+    assert isinstance(model_info.modality, str)
+    assert len(model_info.modality) > 0
+
+    # --- max_sequence_length: positive int or None ---
+    if model_info.max_sequence_length is not None:
+        assert isinstance(model_info.max_sequence_length, int)
+        assert model_info.max_sequence_length > 0
+
+    # --- max_batch_size: positive int or None ---
+    if model_info.max_batch_size is not None:
+        assert isinstance(model_info.max_batch_size, int)
+        assert model_info.max_batch_size > 0
+
+    # --- provider_name: non-None string ---
+    assert model_info.provider_name is not None
+    assert isinstance(model_info.provider_name, str)
+    assert len(model_info.provider_name) > 0
+
+    # --- supported_metrics: non-empty list of strings for an embed model ---
+    assert model_info.supported_metrics is not None
+    assert isinstance(model_info.supported_metrics, list)
+    assert len(model_info.supported_metrics) > 0
+    for metric in model_info.supported_metrics:
+        assert isinstance(metric, str) and len(metric) > 0
+
+    # --- supported_dimensions: list of positive ints or None ---
+    if model_info.supported_dimensions is not None:
+        assert isinstance(model_info.supported_dimensions, list)
+        assert len(model_info.supported_dimensions) > 0
+        for dim in model_info.supported_dimensions:
+            assert isinstance(dim, int) and dim > 0
+
+
+# ---------------------------------------------------------------------------
 # model dict-like access error behaviors on real API responses
 # ---------------------------------------------------------------------------
 
