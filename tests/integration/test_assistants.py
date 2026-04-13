@@ -2070,3 +2070,81 @@ def test_chat_with_model_and_temperature_rest(client: Pinecone) -> None:
             name,
             "assistant",
         )
+
+
+# ---------------------------------------------------------------------------
+# assistants.list_page() — explicit single-page pagination
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_assistants_list_page_response_structure_rest(client: Pinecone) -> None:
+    """assistants.list_page() returns a ListAssistantsResponse with correct structure.
+
+    Verifies:
+    - unified-assistant-0007: Can list one page of assistants with explicit pagination control.
+    - Response type is ListAssistantsResponse with an ``assistants`` list and
+      an optional ``next`` field.
+    - Each assistant in the list is an AssistantModel with expected fields.
+    - The newly created assistant appears in the response.
+    """
+    from pinecone.models.assistant.list import ListAssistantsResponse
+
+    name = unique_name("asst")
+    try:
+        # Create an assistant to ensure at least one exists
+        assistant = client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # Call list_page() — single page, no explicit page_size
+        page = client.assistants.list_page()
+
+        # Response type
+        assert isinstance(page, ListAssistantsResponse), (
+            f"Expected ListAssistantsResponse, got {type(page)}"
+        )
+
+        # assistants is a list
+        assert isinstance(page.assistants, list), (
+            f"Expected page.assistants to be a list, got {type(page.assistants)}"
+        )
+
+        # next is None or a string
+        assert page.next is None or isinstance(page.next, str), (
+            f"Expected page.next to be None or str, got {type(page.next)}"
+        )
+
+        # Each item in the list is an AssistantModel with expected fields
+        for a in page.assistants:
+            assert isinstance(a, AssistantModel), (
+                f"Expected AssistantModel, got {type(a)}"
+            )
+            assert isinstance(a.name, str) and len(a.name) > 0, (
+                f"AssistantModel.name must be a non-empty string, got {a.name!r}"
+            )
+            assert isinstance(a.status, str), (
+                f"AssistantModel.status must be a string, got {type(a.status)}"
+            )
+
+        # The created assistant must appear in the result
+        names_in_page = [a.name for a in page.assistants]
+        assert name in names_in_page, (
+            f"Expected newly created assistant {name!r} in list_page() result; got: {names_in_page}"
+        )
+
+    finally:
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
