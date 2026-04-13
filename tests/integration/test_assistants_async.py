@@ -33,7 +33,7 @@ from pinecone.models.assistant.chat import (
     ChatUsage,
 )
 from pinecone.models.assistant.context import ContextResponse, TextSnippet
-from pinecone.models.assistant.evaluation import AlignmentResult
+from pinecone.models.assistant.evaluation import AlignmentResult, EntailmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
@@ -1999,3 +1999,78 @@ async def test_chat_completions_full_response_structure_async(
             name,
             "assistant",
         )
+
+
+# ---------------------------------------------------------------------------
+# assistant-evaluate per-fact structure and usage token counts
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_evaluate_alignment_per_fact_structure_and_usage_tokens_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """evaluate_alignment() returns EntailmentResult facts with proper field types
+    and ChatUsage with non-negative integer token counts (async variant).
+
+    Verifies:
+    - unified-eval-0003: Each fact in AlignmentResult.facts is an EntailmentResult
+      with a non-empty 'fact' string, an 'entailment' value in
+      {"entailed", "contradicted", "neutral"}, and a 'reasoning' string.
+    - unified-eval-0004: AlignmentResult.usage is a ChatUsage with non-negative
+      integer prompt_tokens, completion_tokens, and total_tokens, where
+      prompt_tokens + completion_tokens == total_tokens.
+
+    evaluate_alignment is stateless — no assistant or file is needed.
+    """
+    # Use a statement about a well-known fact so at least one "entailed" fact
+    # is produced, giving the test something concrete to check.
+    result = await async_client.assistants.evaluate_alignment(
+        question="What is the boiling point of water at sea level?",
+        answer="Water boils at 100 degrees Celsius (212 degrees Fahrenheit) at sea level.",
+        ground_truth_answer="The boiling point of water at standard atmospheric pressure is 100°C.",
+    )
+
+    assert isinstance(result, AlignmentResult)
+
+    # --- unified-eval-0003: per-fact EntailmentResult structure ---
+    assert isinstance(result.facts, list), "facts must be a list"
+    assert len(result.facts) >= 1, (
+        "At least one EntailmentResult fact expected for a well-defined question/answer pair"
+    )
+    valid_entailments = {"entailed", "contradicted", "neutral"}
+    for fact_item in result.facts:
+        assert isinstance(fact_item, EntailmentResult), (
+            f"Each fact must be an EntailmentResult, got {type(fact_item)}"
+        )
+        assert isinstance(fact_item.fact, str) and len(fact_item.fact) > 0, (
+            f"EntailmentResult.fact must be a non-empty string, got {fact_item.fact!r}"
+        )
+        assert fact_item.entailment in valid_entailments, (
+            f"EntailmentResult.entailment must be one of {valid_entailments!r}, "
+            f"got {fact_item.entailment!r}"
+        )
+        assert isinstance(fact_item.reasoning, str), (
+            f"EntailmentResult.reasoning must be a string, got {type(fact_item.reasoning)}"
+        )
+
+    # --- unified-eval-0004: ChatUsage token counts ---
+    assert result.usage is not None, "AlignmentResult.usage must not be None"
+    usage = result.usage
+    assert isinstance(usage, ChatUsage), (
+        f"AlignmentResult.usage must be a ChatUsage, got {type(usage)}"
+    )
+    assert isinstance(usage.prompt_tokens, int) and usage.prompt_tokens >= 0, (
+        f"usage.prompt_tokens must be a non-negative int, got {usage.prompt_tokens!r}"
+    )
+    assert isinstance(usage.completion_tokens, int) and usage.completion_tokens >= 0, (
+        f"usage.completion_tokens must be a non-negative int, got {usage.completion_tokens!r}"
+    )
+    assert isinstance(usage.total_tokens, int) and usage.total_tokens > 0, (
+        f"usage.total_tokens must be a positive int, got {usage.total_tokens!r}"
+    )
+    assert usage.prompt_tokens + usage.completion_tokens == usage.total_tokens, (
+        f"prompt_tokens ({usage.prompt_tokens}) + completion_tokens "
+        f"({usage.completion_tokens}) must equal total_tokens ({usage.total_tokens})"
+    )
