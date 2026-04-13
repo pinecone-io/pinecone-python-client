@@ -1,0 +1,536 @@
+Page 1
+
+Table of Contents
+
+☑
+
+UNITED STATES
+
+SECURITIES AND EXCHANGE COMMISSION
+
+Washington, D.C. 20549
+
+FORM 10-K
+
+ANNUAL REPORT PURSUANT TO SECTION 13 OR 15(d) OF THE SECURITIES
+EXCHANGE ACT OF 1934
+
+For the fiscal year ended August 29, 2021
+
+or
+
+TRANSITION REPORT PURSUANT TO SECTION 13 OR 15(d) OF THE SECURITIES
+EXCHANGE ACT OF 1934
+
+Washington
+
+(State or other jurisdiction of
+
+incorporation or organization)
+
+Title of each class
+
+Commission file number 0-20355
+
+Costco Wholesale Corporation
+
+(Exact name of registrant as specified in its charter)
+
+999 Lake Drive, Issaquah, WA 98027
+
+91-1223280
+
+(I.R.S. Employer Identification No.)
+
+(Address of principal executive offices) (Zip Code)
+Registrant's telephone number, including area code: (425) 313-8100
+Securities registered pursuant to Section 12(b) of the Act:
+
+Common Stock, $.01 Par Value
+
+Trading Symbol
+
+COST
+
+Name of each exchange on
+which registered
+
+The NASDAQ Global Select Market
+
+Securities registered pursuant to Section 12(g) of the Act: None
+Indicate by check mark if the registrant is a well-known seasoned issuer, as defined in Rule 405 of the Securities Act. Yes ☑ No ☐
+Indicate by check mark if the registrant is not required to file reports pursuant to Section 13 or Section 15(d) of the Act. Yes ☐ No ☑
+Indicate by check mark whether the registrant (1) has filed all reports required to be filed by Section 13 or 15(d) of the Securities Exchange Act of 1934 during
+the preceding 12 months (or for such shorter period that the registrant was required to file such reports), and (2) has been subject to such filing requirements for
+the past 90 days. Yes ☑ No □
+
+Indicate by check mark whether the registrant has submitted electronically every Interactive Data File required to be submitted pursuant to Rule 405 of
+Regulation S-T (§ 232.405 of this chapter) during the preceding 12 months (or for such shorter period that the registrant was required to submit such files). Yes
+☑ No ☐
+
+Indicate by check mark whether the registrant is a large accelerated filer, an accelerated filer, a non-accelerated filer, a smaller reporting company, or an
+emerging growth company. See the definitions of “large accelerated filer,” “accelerated filer", "smaller reporting company", and "emerging growth company" in
+Rule 12b-2 of the Exchange Act.
+
+Large accelerated filer
+
+Non-accelerated filer
+
+☑
+
+Accelerated filer
+
+☐
+
+Smaller reporting company
+Emerging growth company
+
+☐ ☐ ☐
+
+If an emerging growth company, indicate by check mark if the registrant has elected not to use the extended transition period for complying with any new or
+revised financial accounting standards provided pursuant to Section 13(a) of the Exchange Act. ☐
+
+Indicate by check mark whether the registrant has filed a report on and attestation to its management's assessment of the effectiveness of its internal control
+over financial reporting under Section 404(b) of the Sarbanes-Oxley Act (15 U.S.C. 7262(b)) by the registered public accounting firm that prepared or issued its
+audit report. ☑
+
+Indicate by check mark whether the registrant is a shell company (as defined in Rule 12b-2 of the Act). Yes ☐ No ☑
+
+The aggregate market value of the voting stock held by non-affiliates of the registrant as of February 14, 2021 was $155,810,963,274.
+
+The number of shares outstanding of the registrant's common stock as of September 28, 2021, was 441,823,811.
+
+DOCUMENTS INCORPORATED BY REFERENCE
+
+Portions of the Company's Proxy Statement for the Annual Meeting of Shareholders to be held on January 20, 2022, are incorporated by reference into Part III of
+this Form 10-K.
+
+---
+Page 2
+
+Table of Contents
+
+PART I
+
+COSTCO WHOLESALE CORPORATION
+
+ANNUAL REPORT ON FORM 10-K FOR THE FISCAL YEAR ENDED AUGUST 29, 2021
+TABLE OF CONTENTS
+
+Page
+
+Item 1.
+
+Business
+
+Item 1A.
+
+Risk Factors
+
+Item 1B.
+
+Item 2.
+
+Unresolved Staff Comments
+
+Properties
+
+Item 3.
+
+Legal Proceedings
+
+Item 4.
+
+Mine Safety Disclosures
+
+19
+
+19
+
+19
+
+19
+
+39의의의의
+
+PART II
+Item 5.
+
+Market for Registrant's Common Equity, Related Stockholder Matters and Issuer Purchases of Equity.
+Securities
+
+Item 6.
+Item 7.
+
+Item 7A.
+
+Item 8.
+
+Reserved
+
+Financial Statements and Supplementary Data
+
+Changes in and Disagreements with Accountants on Accounting and Financial Disclosure
+Controls and Procedures
+
+Other Information
+
+Management's Discussion and Analysis of Financial Condition and Results of Operations
+Quantitative and Qualitative Disclosures About Market Risk
+
+222328
+
+20
+
+21
+
+31
+
+33
+
+65
+
+65
+
+66
+
+Item 9.
+
+Item 9A.
+
+Item 9B.
+
+PART III
+
+Item 10.
+
+Item 11.
+
+Item 12.
+
+Item 13.
+
+Item 14.
+
+PART IV
+
+Item 15.
+
+Item 16.
+
+Directors, Executive Officers and Corporate Governance
+
+Executive Compensation
+
+Security Ownership of Certain Beneficial Owners and Management and Related Stockholder Matters
+Certain Relationships and Related Transactions, and Director Independence
+Principal Accounting Fees and Services
+
+Exhibits, Financial Statement Schedules
+
+Form 10-K Summary
+
+Signatures
+
+2
+
+66
+
+66
+
+66
+
+66
+
+66
+
+88888
+
+66
+
+882
+
+69
+
+70
+
+---
+Page 3
+
+Table of Contents
+
+INFORMATION RELATING TO FORWARD LOOKING STATEMENTS
+
+Certain statements contained in this Report constitute forward-looking statements within the meaning of the Private Securities Litigation Reform
+Act of 1995, Section 27A of the Securities Act of 1933 and Section 21E of the Securities Exchange Act of 1934. They include statements that
+address activities, events, conditions or developments that we expect or anticipate may occur in the future and may relate to such matters as
+sales growth, changes in comparable sales, cannibalization of existing locations by new openings, price or fee changes, earnings performance,
+earnings per share, stock-based compensation expense, warehouse openings and closures, capital spending, the effect of adopting certain
+accounting standards, future financial reporting, financing, margins, return on invested capital, strategic direction, expense controls, membership
+renewal rates, shopping frequency, litigation, and the demand for our products and services. Forward-looking statements may also be identified
+by the words "anticipate,” “believe,” “continue,” “could,” “estimate,” “expect,” “intend,” “likely,” “may,” “might,” “plan,” “potential,” “predict,” “project,”
+"seek,” “should,” “target,” “will,” “would," or similar expressions and the negatives of those terms. Such forward-looking statements involve risks
+and uncertainties that may cause actual events, results, or performance to differ materially from those indicated by such statements, including,
+without limitation, the factors set forth in the section titled “Item 1A-Risk Factors", and other factors noted in the section titled "Item 7-
+Management's Discussion and Analysis of Financial Condition and Results of Operations" and in the consolidated financial statements and
+related notes in Item 8 of this Report. Forward-looking statements speak only as of the date they are made, and we do not undertake to update
+these statements, except as required by law.
+
+PART I
+
+Item 1-Business
+
+Costco Wholesale Corporation and its subsidiaries (Costco or the Company) began operations in 1983, in Seattle, Washington. We are
+principally engaged in the operation of membership warehouses in the United States (U.S.) and Puerto Rico, Canada, United Kingdom (U.K.),
+Mexico, Japan, Korea, Australia, Spain, France, Iceland, China, and through a majority-owned subsidiary in Taiwan. Costco operated 815, 795,
+and 782 warehouses worldwide at August 29, 2021, August 30, 2020, and September 1, 2019, respectively. The Company operates e-
+commerce websites in the U.S., Canada, Mexico, U.K., Korea, Taiwan, Japan, and Australia. Our common stock trades on the NASDAQ Global
+Select Market, under the symbol "COST."
+
+We report on a 52/53-week fiscal year, consisting of thirteen four-week periods and ending on the Sunday nearest the end of August. The first
+three quarters consist of three periods each, and the fourth quarter consists of four periods (five weeks in the thirteenth period in a 53-week
+year). The material seasonal impact in our operations is increased net sales and earnings during the winter holiday season. References to 2021,
+2020, and 2019 relate to the 52-week fiscal years ended August 29, 2021, August 30, 2020, and September 1, 2019, respectively.
+
+General
+
+We operate membership warehouses and e-commerce websites based on the concept that offering our members low prices on a limited
+selection of nationally-branded and private-label products in a wide range of categories will produce high sales volumes and rapid inventory
+turnover. When combined with the operating efficiencies achieved by volume purchasing, efficient distribution and reduced handling of
+merchandise in no-frills, self-service warehouse facilities, these volumes and turnover enable us to operate profitably at significantly lower gross
+margins (net sales less merchandise costs) than most other retailers. We generally sell inventory before we are required to pay for it, even while
+taking advantage of early payment discounts.
+
+We buy most of our merchandise directly from manufacturers and route it to cross-docking consolidation points (depots) or directly to our
+warehouses. Our depots receive large shipments from manufacturers and quickly ship these goods to warehouses. This process creates freight
+volume and handling efficiencies, lowering costs associated with traditional multiple-step distribution channels. For our e-
+
+3
+
+---
+Page 4
+
+Table of Contents
+
+commerce operations we ship merchandise through our depots, our logistics operations for big and bulky items, as well as through drop-ship
+and other delivery arrangements with our suppliers.
+
+Our average warehouse space is approximately 146,000 square feet, with newer units being slightly larger. Floor plans are designed for
+economy and efficiency in the use of selling space, the handling of merchandise, and the control of inventory. Because shoppers are attracted
+principally by the quality of merchandise and low prices, our warehouses are not elaborate. By strictly controlling the entrances and exits and
+using a membership format, we believe our inventory losses (shrinkage) are well below those of typical retail operations.
+
+Our warehouses on average operate on a seven-day, 70-hour week. Gasoline operations generally have extended hours. Because the hours of
+operation are shorter than other retailers, and due to other efficiencies inherent in a warehouse-type operation, labor costs are lower relative to
+the volume of sales. Merchandise is generally stored on racks above the sales floor and displayed on pallets containing large quantities,
+reducing labor required. In general, with variations by country, our warehouses accept certain credit cards, including Costco co-branded cards,
+debit cards, cash and checks, co-brand cardholder rebates, Executive member 2% reward certificates and our proprietary stored-value card
+(shop card).
+
+Our strategy is to provide our members with a broad range of high-quality merchandise at prices we believe are consistently lower than
+elsewhere. We seek to limit most items to fast-selling models, sizes, and colors. We carry less than 4,000 active stock keeping units (SKUs) per
+warehouse in our core warehouse business, significantly less than other broadline retailers. We average anywhere from 9,000 to 11,000 SKUs
+online, some of which are also available in our warehouses. Many consumable products are offered for sale in case, carton, or multiple-pack
+quantities only.
+
+In keeping with our policy of member satisfaction, we generally accept returns of merchandise. On certain electronic items, we typically have a
+90-day return policy and provide, free of charge, technical support services, as well as an extended warranty. Additional third-party warranty
+coverage is sold on certain electronic items.
+
+We offer merchandise and services in the following categories:
+
+Core Merchandise Categories (or core business):
+
+•
+
+.
+
+Foods and Sundries (including sundries, dry grocery, candy, cooler, freezer, deli, liquor, and tobacco)
+
+Non-Foods (previously Hardlines and Softlines; including major appliances, electronics, health and beauty aids, hardware, garden and
+patio, sporting goods, tires, toys and seasonal, office supplies, automotive care, postage, tickets, apparel, small appliances, furniture,
+domestics, housewares, special order kiosk, and jewelry)
+
+Fresh Foods (including meat, produce, service deli, and bakery)
+
+Warehouse Ancillary (includes gasoline, pharmacy, optical, food court, hearing aids, and tire installation) and Other Businesses (includes e-
+commerce, business centers, travel, and other)
+
+Warehouse ancillary businesses operate primarily within or next to our warehouses, encouraging members to shop more frequently. The number
+of warehouses with gas stations varies significantly by country, and we have no gasoline business in Korea or China. We operated 636 gas
+stations at the end of 2021. Net sales for our gasoline business represented approximately 9% of total net sales in 2021.
+
+Our other businesses sell products and services that complement our warehouse operations (core and warehouse ancillary businesses). Our e-
+commerce operations give members convenience and a broader selection of goods and services. Net sales for e-commerce represented
+approximately 7% of total net sales in 2021. This figure does not consider other services we offer online in certain countries such as business
+delivery, travel, same-day grocery, and various other services. Our business centers carry items tailored specifically for food services,
+convenience stores and offices, and offer walk-in shopping and deliveries. Business centers are included in our total warehouse count. Costco
+Travel offers vacation
+
+4
+
+---
+Page 5
+
+Table of Contents
+
+packages, hotels, cruises, and other travel products exclusively for Costco members (offered in the U.S., Canada, and the U.K.).
+
+We have direct buying relationships with many producers of brand-name merchandise. We do not obtain a significant portion of merchandise
+from any one supplier. The COVID-19 pandemic created unprecedented supply constraints, including disruptions and delays that have impacted
+and could continue to impact the flow and availability of certain products. When sources of supply become unavailable, we seek alternative
+sources. We also purchase and manufacture private-label merchandise, as long as quality and member demand are high and the value to our
+members is significant.
+
+Certain financial information for our segments and geographic areas is included in Note 12 to the consolidated financial statements included in
+Item 8 of this Report.
+
+Membership
+
+Our members may utilize their memberships at all of our warehouses and websites. Gold Star memberships are available to individuals;
+Business memberships are limited to businesses, including individuals with a business license, retail sales license or comparable document.
+Business members may add additional cardholders (affiliates), to which the same annual fee applies. Affiliates are not available for Gold Star
+members. Our annual fee for these memberships is $60 in our U.S. and Canadian operations and varies in other countries. All paid
+memberships include a free household card.
+
+Our member renewal rate was 91% in the U.S. and Canada and 89% worldwide at the end of 2021. The majority of members renew within six
+months following their renewal date. Our renewal rate is a trailing calculation that captures renewals during the period seven to eighteen months
+prior to the reporting date. Our membership counts include active memberships as well as memberships that have not renewed within the 12
+months prior to the reporting date. At the end of 2020, we standardized our membership count methodology globally to be consistent with the
+U.S. and Canada, which resulted in the addition to the count of approximately 2.0 million total cardholders for 2020, of which 1.3 million were
+paid members. The change did not impact 2019. Membership fee income and the renewal rate calculations were not affected. Our membership
+was made up of the following (in thousands):
+
+Gold Star
+
+Business, including affiliates
+
+Total paid members
+
+Household cards
+
+Total cardholders
+
+2021
+
+2020
+
+2019
+
+50,200
+
+46,800
+
+42,900
+
+11,500
+
+11,300
+
+11,000
+
+61,700
+
+58,100
+
+53,900
+
+49,900
+
+47,400
+
+44,600
+
+111,600
+
+105,500
+
+98,500
+
+Paid cardholders (except affiliates) are eligible to upgrade to an Executive membership in the U.S. and Canada, for an additional annual fee of
+$60. Executive memberships are also available in Mexico, the U.K., Japan, Korea, and Taiwan, for which the additional annual fee varies.
+Executive members earn a 2% reward on qualified purchases (generally up to a maximum reward of $1,000 per year), which can be redeemed
+only at Costco warehouses. This program also offers (except in Mexico and Korea), access to additional savings and benefits on various
+business and consumer services, such as auto and home insurance, the Costco auto purchase program, and check printing. These services are
+generally provided by third parties and vary by state and country. Executive members totaled 25.6 million and represented 55% of paid members
+(excluding affiliates) in the U.S. and Canada and 17% of paid members (excluding affiliates) in our Other International operations at the end of
+2021. They generally shop more frequently and spend more than other members.
+
+5
+
+---
+Page 6
+
+Table of Contents
+
+Human Capital
+
+Our Code of Ethics requires that we "Take Care of Our Employees," which is fundamental to the obligation to "Take Care of Our Members." We
+must also carefully control our selling, general and administrative (SG&A) expenses, so that we can sell high quality goods and services at low
+prices. Compensation and benefits for employees is our largest expense after the cost of merchandise and is carefully monitored.
+
+At the end of 2021, we employed 288,000 employees worldwide. The large majority (approximately 95%) is employed in our membership
+warehouses and distribution channels and approximately 17,000 employees are represented by unions. We also utilize seasonal employees
+during peak periods. The total number of employees by segment is:
+
+United States
+
+Canada
+
+Other International
+
+Total employees
+
+2021
+
+Number of Employees
+2020
+
+2019
+
+192,000
+
+181,000
+
+167,000
+
+47,000
+
+49,000
+
+46,000
+46,000
+
+42,000
+
+45,000
+
+288,000
+
+273,000
+
+254,000
+
+We believe that our warehouses are among the most productive in the retail industry, owing in substantial part to the commitment and efficiency
+of our employees. We seek to provide them not merely with employment but careers. Many attributes of our business contribute to the objective;
+the more significant include: competitive compensation and benefits for those working in our membership warehouses and distributions
+channels; a commitment to promoting from within; and maintaining a ratio of at least 50% of our employee base being full-time employees.
+These attributes contribute to what we consider, especially for the industry, a high retention rate. In 2021, in the U.S. that rate was above 90% for
+employees who have been with us for at least one year.
+
+The commitment to "Take Care of Our Employees" is also the foundation of our approach to diversity, equity and inclusion and creating an
+inclusive and respectful workplace. In 2021, we added training and communication for managers on topics of race, bias and equity, and greater
+visibility of our employee demographics. Embracing differences is important to the growth of our Company. It leads to more opportunities,
+innovation, and employee satisfaction and connects us to the communities where we do business.
+
+Costco is firmly committed to helping protect the health and safety of our members and employees and to serving our communities. In response
+to the COVID-19 pandemic and its associated challenges, we began providing premium pay to the majority of our hourly employees in March
+2020 and continued for a full year through February 2021, at which time a portion of the premium was built permanently into our hourly wage
+scales in the U.S. In fall 2020, we also began offering employees additional paid time off to attend to child care and schooling needs through the
+2021 school year. As the global effect of coronavirus (COVID-19) continues to evolve, we are closely monitoring the changing situation and
+complying with public health guidance.
+
+For more detailed information regarding our programs and initiatives, see “Employees" within our Sustainability Commitment (located on our
+website). This report and other information on our website are not incorporated by reference into and do not form any part of this Annual Report.
+
+6

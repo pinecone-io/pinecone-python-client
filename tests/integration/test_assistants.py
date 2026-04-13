@@ -21,7 +21,7 @@ import tempfile
 
 import pytest
 
-from pinecone import Pinecone, PineconeValueError
+from pinecone import ApiError, Pinecone, PineconeError, PineconeValueError
 from pinecone.models.assistant.chat import (
     ChatCompletionChoice,
     ChatCompletionResponse,
@@ -31,7 +31,13 @@ from pinecone.models.assistant.chat import (
     ChatResponse,
     ChatUsage,
 )
-from pinecone.models.assistant.context import ContextResponse, TextSnippet
+from pinecone.models.assistant.context import (
+    ContextImageBlock,
+    ContextResponse,
+    ContextTextBlock,
+    MultimodalSnippet,
+    TextSnippet,
+)
 from pinecone.models.assistant.evaluation import AlignmentResult, EntailmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListFilesResponse
@@ -2455,6 +2461,807 @@ def test_chat_completions_streaming_finish_reason_rest(client: Pinecone) -> None
                 os.unlink(tmp_path)
         cleanup_resource(
             lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# assistant-name-length — boundary validation
+# ---------------------------------------------------------------------------
+
+
+# Path to test fixture files (same directory as this test file).
+_FIXTURES_DIR = os.path.dirname(os.path.realpath(__file__))
+
+# All assistant chat models supported by the API as of 2025-10.
+_SUPPORTED_CHAT_MODELS = (
+    "gpt-4o",
+    "gpt-4.1",
+    "o4-mini",
+    "claude-3-5-sonnet",
+    "claude-3-7-sonnet",
+    "gemini-2.5-pro",
+)
+
+
+def _padded_name(length: int) -> str:
+    """Return a uniquely-prefixed name padded to exactly ``length`` chars using
+    valid characters (lowercase alphanumerics and hyphens)."""
+    base = unique_name("a")
+    suffix = "0123456789abcdef" * ((length // 16) + 2)
+    name = (base + suffix)[:length]
+    assert len(name) == length, f"wanted {length}-char name, got {len(name)}"
+    return name
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(180)
+def test_assistant_create_accepts_max_length_name(client: Pinecone) -> None:
+    """create() accepts a name at the documented max length of 63 characters.
+
+    Verifies the boundary: names of exactly 63 characters are accepted and an
+    AssistantModel is returned. Uses timeout=-1 to avoid waiting for Ready so
+    the test stays fast — we only care that create succeeds.
+    """
+    name = _padded_name(63)
+    try:
+        assistant = client.assistants.create(name=name, timeout=-1)
+        assert isinstance(assistant, AssistantModel)
+        assert assistant.name == name
+        assert assistant.status in ("Initializing", "Ready")
+    finally:
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(60)
+def test_assistant_create_rejects_name_over_max_length(client: Pinecone) -> None:
+    """create() rejects names longer than the documented max of 63 characters.
+
+    Sends a 65-char name and expects either client-side PineconeValueError
+    (if the SDK validates name length) or server-side ApiError 400.
+    """
+    name = _padded_name(65)
+    created = False
+    try:
+        with pytest.raises((ApiError, PineconeValueError)):
+            client.assistants.create(name=name, timeout=-1)
+    except Exception:
+        # If create() did NOT raise, we need to clean up.
+        created = True
+        raise
+    finally:
+        if created:
+            cleanup_resource(
+                lambda: client.assistants.delete(name=name, timeout=60),
+                name,
+                "assistant",
+            )
+
+
+# ---------------------------------------------------------------------------
+# chat-context-options boundary validation (snippet_size / top_k)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_chat_context_options_boundary_validation(client: Pinecone) -> None:
+    """chat() rejects context_options with out-of-range snippet_size and top_k.
+
+    Verifies the two documented boundaries:
+    - snippet_size below the server minimum (e.g. 3) is rejected.
+    - top_k above the server maximum (e.g. 100) is rejected.
+
+    Both validations are server-side for python-sdk2 (no client pre-check),
+    so either an ApiError or a PineconeError is acceptable.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        client.assistants.create(name=name, instructions="You are a helpful assistant.")
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-ctxbound-"
+        ) as f:
+            f.write("Pinecone is a managed vector database for semantic search.")
+            tmp_path = f.name
+        client.assistants.upload_file(assistant_name=name, file_path=tmp_path, timeout=120)
+
+        msgs = [{"role": "user", "content": "What is Pinecone?"}]
+
+        # snippet_size too small → rejected
+        with pytest.raises((ApiError, PineconeError, PineconeValueError)):
+            client.assistants.chat(
+                assistant_name=name,
+                messages=msgs,
+                context_options=ContextOptions(top_k=2, snippet_size=3),
+                stream=False,
+            )
+
+        # top_k too large → rejected
+        with pytest.raises((ApiError, PineconeError, PineconeValueError)):
+            client.assistants.chat(
+                assistant_name=name,
+                messages=msgs,
+                context_options=ContextOptions(top_k=100, snippet_size=512),
+                stream=False,
+            )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# upload_file — malformed PDF error
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_upload_file_rejects_malformed_pdf(client: Pinecone) -> None:
+    """upload_file() surfaces a processing-failed error when the PDF is malformed.
+
+    Uses the ``malformed.pdf`` fixture (a text file renamed to .pdf). The
+    upload is expected to complete but server-side processing should fail,
+    which in python-sdk2 causes ``_poll_file_until_processed`` to raise
+    PineconeError.
+    """
+    name = unique_name("asst")
+    pdf_path = os.path.join(_FIXTURES_DIR, "malformed.pdf")
+    assert os.path.isfile(pdf_path), f"fixture missing: {pdf_path}"
+
+    try:
+        client.assistants.create(name=name, instructions="Malformed PDF test.")
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # Processing must fail — either PineconeError from the poller, or ApiError
+        with pytest.raises((PineconeError, ApiError)):
+            client.assistants.upload_file(
+                assistant_name=name,
+                file_path=pdf_path,
+                timeout=180,
+            )
+
+    finally:
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# chat — multi-model matrix and invalid-model rejection
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(600)
+def test_chat_across_all_supported_models_and_rejects_invalid(
+    client: Pinecone,
+) -> None:
+    """chat() succeeds for every documented model and rejects an invalid model name.
+
+    Iterates over all 6 supported chat models and verifies each returns a valid
+    ChatResponse. Also confirms that an unknown model name produces an error
+    (ApiError/PineconeError) rather than silently succeeding.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        client.assistants.create(name=name, instructions="You are a helpful assistant.")
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-models-"
+        ) as f:
+            f.write(
+                "Pinecone is a managed vector database for AI apps. "
+                "It supports dense, sparse, and hybrid similarity search."
+            )
+            tmp_path = f.name
+        client.assistants.upload_file(assistant_name=name, file_path=tmp_path, timeout=120)
+
+        msgs = [{"role": "user", "content": "What is Pinecone?"}]
+
+        # Every supported model must return a valid ChatResponse
+        for model_name in _SUPPORTED_CHAT_MODELS:
+            response = client.assistants.chat(
+                assistant_name=name,
+                messages=msgs,
+                model=model_name,
+                stream=False,
+            )
+            assert isinstance(response, ChatResponse), (
+                f"model={model_name!r} did not return ChatResponse"
+            )
+            assert isinstance(response.message.content, str), (
+                f"model={model_name!r} returned non-string content"
+            )
+            assert len(response.message.content) > 0, (
+                f"model={model_name!r} returned empty content"
+            )
+
+        # Unknown model must raise
+        with pytest.raises((ApiError, PineconeError, PineconeValueError)):
+            client.assistants.chat(
+                assistant_name=name,
+                messages=msgs,
+                model="definitely-not-a-real-model",
+                stream=False,
+            )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# chat — out-of-range temperature
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_chat_rejects_out_of_range_temperature(client: Pinecone) -> None:
+    """chat() rejects temperature values outside the supported range (e.g. 3.0).
+
+    The supported range is roughly [0.0, 2.0]; temperature=3.0 should be
+    rejected by either the SDK or the API.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        client.assistants.create(name=name, instructions="You are a helpful assistant.")
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-temp-"
+        ) as f:
+            f.write("Pinecone is a managed vector database.")
+            tmp_path = f.name
+        client.assistants.upload_file(assistant_name=name, file_path=tmp_path, timeout=120)
+
+        msgs = [{"role": "user", "content": "What is Pinecone?"}]
+
+        with pytest.raises((ApiError, PineconeError, PineconeValueError)):
+            client.assistants.chat(
+                assistant_name=name,
+                messages=msgs,
+                temperature=3.0,
+                stream=False,
+            )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# context — filter parameter
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_context_filter_metadata_excludes_matching_files(client: Pinecone) -> None:
+    """context(filter=...) restricts snippets to files whose metadata matches the filter.
+
+    Uploads two files with distinct metadata, then calls context() with a
+    filter that matches one file but not the other. The returned snippets
+    must all reference the matching file.
+    """
+    name = unique_name("asst")
+    tmp_keep: str | None = None
+    tmp_skip: str | None = None
+    try:
+        client.assistants.create(name=name, instructions="Filter test assistant.")
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # File A — metadata {"company": "anthropic"}
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-flt-a-"
+        ) as f:
+            f.write("Pinecone is a managed vector database for AI applications.")
+            tmp_keep = f.name
+
+        # File B — metadata {"company": "openai"}
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-flt-b-"
+        ) as f:
+            f.write("Pinecone supports dense and sparse vectors for semantic search.")
+            tmp_skip = f.name
+
+        file_a = client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_keep,
+            metadata={"company": "anthropic"},
+            timeout=120,
+        )
+        file_b = client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_skip,
+            metadata={"company": "openai"},
+            timeout=120,
+        )
+
+        # Filter excludes any file where company == "anthropic": only file_b should match
+        response = client.assistants.context(
+            assistant_name=name,
+            query="What is Pinecone?",
+            filter={"company": {"$ne": "anthropic"}},
+        )
+        assert isinstance(response, ContextResponse)
+        # Every returned snippet must reference the file that MATCHES the filter (file_b)
+        for snippet in response.snippets:
+            assert snippet.reference.file.id == file_b.id, (
+                f"Expected snippets only from file_b ({file_b.id}); got {snippet.reference.file.id}"
+            )
+            assert snippet.reference.file.id != file_a.id
+
+        # Sanity check: the opposite filter returns snippets from file_a only
+        response_flip = client.assistants.context(
+            assistant_name=name,
+            query="What is Pinecone?",
+            filter={"company": {"$ne": "openai"}},
+        )
+        for snippet in response_flip.snippets:
+            assert snippet.reference.file.id == file_a.id
+
+    finally:
+        for p in (tmp_keep, tmp_skip):
+            if p is not None:
+                with contextlib.suppress(Exception):
+                    os.unlink(p)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# assistant-lifecycle — explicit status transitions
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_assistant_lifecycle_status_transitions_explicit(client: Pinecone) -> None:
+    """Verify assistant explicitly moves through Initializing → Ready → Terminating.
+
+    Uses timeout=-1 on create to observe the ``Initializing`` state before the
+    SDK auto-polls to Ready, then explicitly polls to Ready, then issues a
+    non-blocking delete and confirms the ``Terminating`` state can be observed
+    immediately afterward.
+    """
+    name = unique_name("asst")
+    deleted = False
+    try:
+        # --- Initializing ---
+        assistant = client.assistants.create(name=name, timeout=-1)
+        assert isinstance(assistant, AssistantModel)
+        assert assistant.status == "Initializing", (
+            f"Immediately after create (timeout=-1), expected status='Initializing'; "
+            f"got {assistant.status!r}"
+        )
+
+        # --- Ready ---
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=180,
+            interval=3,
+            description=f"assistant {name} to become Ready",
+        )
+        ready = client.assistants.describe(name=name)
+        assert ready.status == "Ready"
+        assert ready.host is not None
+
+        # --- Terminating ---
+        # Issue a non-blocking delete (timeout=-1) so control returns before
+        # server-side teardown completes.
+        client.assistants.delete(name=name, timeout=-1)
+        deleted = True
+
+        # Describe immediately — should either 404 (already gone) or return
+        # a model with status="Terminating".
+        try:
+            terminating = client.assistants.describe(name=name)
+            assert terminating.status == "Terminating", (
+                f"After non-blocking delete, expected status='Terminating'; "
+                f"got {terminating.status!r}"
+            )
+        except ApiError as exc:
+            # 404 is acceptable — deletion finished quickly
+            assert exc.status_code in (404, 410), (
+                f"Expected 404/410 after delete; got {exc.status_code}"
+            )
+
+    finally:
+        if not deleted:
+            cleanup_resource(
+                lambda: client.assistants.delete(name=name, timeout=60),
+                name,
+                "assistant",
+            )
+
+
+# ---------------------------------------------------------------------------
+# assistant-update — combined instructions + metadata change
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(180)
+def test_assistant_update_instructions_and_metadata_together(client: Pinecone) -> None:
+    """update() applies instructions and metadata changes from a single call.
+
+    The existing test_assistant_update_metadata_replaces_not_merges only
+    updates metadata; test_assistant_lifecycle_create_describe_list_update_delete
+    only updates instructions. This test confirms both parameters take effect
+    when passed together in one update() call.
+    """
+    name = unique_name("asst")
+    try:
+        client.assistants.create(
+            name=name,
+            instructions="Initial instructions.",
+            metadata={"original_key": "original_value"},
+        )
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # Single update that changes both instructions and metadata
+        updated = client.assistants.update(
+            name=name,
+            instructions="Updated instructions after combined update.",
+            metadata={"new_key": "new_value"},
+        )
+        assert isinstance(updated, AssistantModel)
+        assert updated.instructions == "Updated instructions after combined update."
+        assert updated.metadata == {"new_key": "new_value"}
+
+        # Verify persistence via a fresh describe
+        re_described = client.assistants.describe(name=name)
+        assert re_described.instructions == "Updated instructions after combined update."
+        assert re_described.metadata is not None
+        assert re_described.metadata.get("new_key") == "new_value"
+        assert "original_key" not in re_described.metadata
+
+    finally:
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# describe_file — DOCX signed URL
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_describe_file_docx_with_signed_url(client: Pinecone) -> None:
+    """describe_file(include_url=True) returns a usable signed_url for a DOCX file.
+
+    The existing test_describe_file_signed_url_rest uses a .txt file. This
+    test exercises the same code path with a .docx fixture to confirm the
+    signed-url flow is file-type agnostic.
+    """
+    name = unique_name("asst")
+    docx_path = os.path.join(_FIXTURES_DIR, "test_doc.docx")
+    assert os.path.isfile(docx_path), f"fixture missing: {docx_path}"
+    file_id: str | None = None
+
+    try:
+        client.assistants.create(name=name, instructions="DOCX signed-URL test.")
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        file_model = client.assistants.upload_file(
+            assistant_name=name,
+            file_path=docx_path,
+            timeout=180,
+        )
+        assert isinstance(file_model, AssistantFileModel)
+        file_id = file_model.id
+
+        with_url = client.assistants.describe_file(
+            assistant_name=name, file_id=file_id, include_url=True
+        )
+        assert isinstance(with_url, AssistantFileModel)
+        assert with_url.name == "test_doc.docx"
+        assert with_url.signed_url is not None, "expected signed_url for DOCX"
+        assert isinstance(with_url.signed_url, str) and len(with_url.signed_url) > 0
+
+        without_url = client.assistants.describe_file(assistant_name=name, file_id=file_id)
+        assert without_url.signed_url is None
+
+    finally:
+        if file_id is not None:
+            with contextlib.suppress(Exception):
+                client.assistants.delete_file(
+                    assistant_name=name, file_id=file_id, timeout=60
+                )
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# describe_file — metadata persistence
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_describe_file_preserves_uploaded_metadata(client: Pinecone) -> None:
+    """describe_file returns the exact metadata dict that was supplied at upload.
+
+    This is distinct from test_upload_file_from_byte_stream_with_metadata,
+    which checks the AssistantFileModel returned directly from upload_file.
+    Here we issue a separate describe_file call to confirm the metadata is
+    persisted server-side and round-trips through the describe endpoint.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    file_id: str | None = None
+    try:
+        client.assistants.create(name=name, instructions="Metadata persistence test.")
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-meta-"
+        ) as f:
+            f.write("Pinecone content used to verify metadata persistence.")
+            tmp_path = f.name
+
+        metadata: dict[str, object] = {
+            "source": "integration-test",
+            "category": "sdk-docs",
+            "priority": "high",
+        }
+        upload = client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            metadata=metadata,
+            timeout=180,
+        )
+        assert isinstance(upload, AssistantFileModel)
+        file_id = upload.id
+
+        # Fresh describe_file call — metadata must round-trip through the API
+        described = client.assistants.describe_file(assistant_name=name, file_id=file_id)
+        assert isinstance(described, AssistantFileModel)
+        assert described.metadata is not None, "expected metadata on describe_file"
+        assert described.metadata.get("source") == "integration-test"
+        assert described.metadata.get("category") == "sdk-docs"
+        assert described.metadata.get("priority") == "high"
+
+    finally:
+        if file_id is not None:
+            with contextlib.suppress(Exception):
+                client.assistants.delete_file(
+                    assistant_name=name, file_id=file_id, timeout=60
+                )
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# multimodal PDF — image blocks, binary-content toggle, text fallback, errors
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(600)
+def test_multimodal_pdf_context_image_text_and_errors(client: Pinecone) -> None:
+    """multimodal PDF upload and context() retrieval verifies image + text modes.
+
+    Exercises the full multimodal surface against the collin_foods_p8-9.pdf
+    fixture (a PDF with images):
+
+    1. Upload with ``multimodal=True`` and verify the returned AssistantFileModel
+       has ``multimodal=True``.
+    2. context() default (multimodal enabled, include_binary_content default):
+       returns MultimodalSnippet whose content contains at least one
+       ContextImageBlock with non-None ``image_data``.
+    3. context(include_binary_content=False): MultimodalSnippet image blocks
+       have ``image_data=None``.
+    4. context(multimodal=False) on the same file falls back to TextSnippet.
+    5. chat() with multimodal context_options returns a non-empty response.
+    6. Upload with ``multimodal=True`` on a non-PDF file is rejected.
+    7. context(multimodal=False, include_binary_content=True) is rejected.
+
+    All seven checks run against a single assistant to bound test runtime.
+    """
+    name = unique_name("asst")
+    pdf_path = os.path.join(_FIXTURES_DIR, "collin_foods_p8-9.pdf")
+    docx_path = os.path.join(_FIXTURES_DIR, "test_doc.docx")
+    assert os.path.isfile(pdf_path), f"fixture missing: {pdf_path}"
+    assert os.path.isfile(docx_path), f"fixture missing: {docx_path}"
+
+    try:
+        client.assistants.create(name=name, instructions="Multimodal test assistant.")
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # --- 1. Upload multimodal PDF ---
+        file_model = client.assistants.upload_file(
+            assistant_name=name,
+            file_path=pdf_path,
+            multimodal=True,
+            timeout=240,
+        )
+        assert isinstance(file_model, AssistantFileModel)
+        assert file_model.multimodal is True, (
+            f"expected file_model.multimodal=True, got {file_model.multimodal!r}"
+        )
+
+        query = "If someone at Taco Bell gets a promotion, how old is he/she probably?"
+
+        # --- 2. Default multimodal context → MultimodalSnippet with image data ---
+        res = client.assistants.context(
+            assistant_name=name, query=query, top_k=1, snippet_size=4000
+        )
+        assert isinstance(res, ContextResponse)
+        assert len(res.snippets) == 1, f"expected 1 snippet, got {len(res.snippets)}"
+        snippet = res.snippets[0]
+        assert isinstance(snippet, MultimodalSnippet), (
+            f"expected MultimodalSnippet, got {type(snippet).__name__}"
+        )
+        image_blocks_with_data = [
+            b for b in snippet.content
+            if isinstance(b, ContextImageBlock) and b.image_data is not None
+        ]
+        assert len(image_blocks_with_data) > 0, (
+            "expected at least one ContextImageBlock with image_data populated"
+        )
+
+        # --- 3. include_binary_content=False → image blocks have image_data=None ---
+        res_no_binary = client.assistants.context(
+            assistant_name=name,
+            query=query,
+            top_k=1,
+            snippet_size=4000,
+            include_binary_content=False,
+        )
+        assert len(res_no_binary.snippets) == 1
+        snippet_no_binary = res_no_binary.snippets[0]
+        assert isinstance(snippet_no_binary, MultimodalSnippet)
+        image_blocks = [b for b in snippet_no_binary.content if isinstance(b, ContextImageBlock)]
+        assert len(image_blocks) > 0, "expected at least one image block"
+        for block in image_blocks:
+            assert block.image_data is None, (
+                f"expected image_data=None when include_binary_content=False; got {block.image_data!r}"
+            )
+
+        # --- 4. multimodal=False → TextSnippet fallback ---
+        res_text = client.assistants.context(
+            assistant_name=name,
+            query=query,
+            top_k=1,
+            snippet_size=4000,
+            multimodal=False,
+        )
+        assert len(res_text.snippets) == 1
+        text_snippet = res_text.snippets[0]
+        assert isinstance(text_snippet, TextSnippet), (
+            f"expected TextSnippet when multimodal=False, got {type(text_snippet).__name__}"
+        )
+        assert len(text_snippet.content) > 0
+
+        # --- 5. chat() with multimodal context_options returns non-empty response ---
+        response = client.assistants.chat(
+            assistant_name=name,
+            messages=[{"role": "user", "content": query}],
+            context_options={"top_k": 1, "snippet_size": 4000},
+            stream=False,
+        )
+        assert isinstance(response, ChatResponse)
+        assert isinstance(response.message.content, str) and len(response.message.content) > 0
+
+        # --- 6. Upload multimodal=True on a non-PDF → rejected ---
+        with pytest.raises((ApiError, PineconeError, PineconeValueError)):
+            client.assistants.upload_file(
+                assistant_name=name,
+                file_path=docx_path,
+                multimodal=True,
+                timeout=120,
+            )
+
+        # --- 7. context(multimodal=False, include_binary_content=True) → rejected ---
+        with pytest.raises((ApiError, PineconeError, PineconeValueError)):
+            client.assistants.context(
+                assistant_name=name,
+                query=query,
+                top_k=1,
+                snippet_size=4000,
+                multimodal=False,
+                include_binary_content=True,
+            )
+
+    finally:
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=120),
             name,
             "assistant",
         )

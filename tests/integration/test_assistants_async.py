@@ -21,7 +21,7 @@ import tempfile
 
 import pytest
 
-from pinecone import AsyncPinecone, PineconeValueError
+from pinecone import ApiError, AsyncPinecone, PineconeError, PineconeValueError
 from pinecone.models.assistant.chat import (
     ChatCompletionChoice,
     ChatCompletionResponse,
@@ -31,7 +31,13 @@ from pinecone.models.assistant.chat import (
     ChatResponse,
     ChatUsage,
 )
-from pinecone.models.assistant.context import ContextResponse, TextSnippet
+from pinecone.models.assistant.context import (
+    ContextImageBlock,
+    ContextResponse,
+    ContextTextBlock,
+    MultimodalSnippet,
+    TextSnippet,
+)
 from pinecone.models.assistant.evaluation import AlignmentResult, EntailmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListFilesResponse
@@ -2553,6 +2559,749 @@ async def test_chat_completions_streaming_finish_reason_async(
                 os.unlink(tmp_path)
         await async_cleanup_resource(
             lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# assistant-name-length — boundary validation (async)
+# ---------------------------------------------------------------------------
+
+
+# Path to test fixture files (same directory as this test file).
+_FIXTURES_DIR = os.path.dirname(os.path.realpath(__file__))
+
+# All assistant chat models supported by the API as of 2025-10.
+_SUPPORTED_CHAT_MODELS = (
+    "gpt-4o",
+    "gpt-4.1",
+    "o4-mini",
+    "claude-3-5-sonnet",
+    "claude-3-7-sonnet",
+    "gemini-2.5-pro",
+)
+
+
+def _padded_name(length: int) -> str:
+    """Return a uniquely-prefixed name padded to exactly ``length`` chars using
+    valid characters (lowercase alphanumerics and hyphens)."""
+    base = unique_name("a")
+    suffix = "0123456789abcdef" * ((length // 16) + 2)
+    name = (base + suffix)[:length]
+    assert len(name) == length, f"wanted {length}-char name, got {len(name)}"
+    return name
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(180)
+async def test_assistant_create_accepts_max_length_name(async_client: AsyncPinecone) -> None:
+    """create() accepts a name at the documented max length of 63 characters (async)."""
+    name = _padded_name(63)
+    try:
+        assistant = await async_client.assistants.create(name=name, timeout=-1)
+        assert isinstance(assistant, AssistantModel)
+        assert assistant.name == name
+        assert assistant.status in ("Initializing", "Ready")
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(60)
+async def test_assistant_create_rejects_name_over_max_length(
+    async_client: AsyncPinecone,
+) -> None:
+    """create() rejects names longer than the documented max of 63 characters (async)."""
+    name = _padded_name(65)
+    created = False
+    try:
+        with pytest.raises((ApiError, PineconeValueError)):
+            await async_client.assistants.create(name=name, timeout=-1)
+    except Exception:
+        created = True
+        raise
+    finally:
+        if created:
+            await async_cleanup_resource(
+                lambda: async_client.assistants.delete(name=name, timeout=60),
+                name,
+                "assistant",
+            )
+
+
+# ---------------------------------------------------------------------------
+# chat-context-options boundary validation (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(300)
+async def test_chat_context_options_boundary_validation(
+    async_client: AsyncPinecone,
+) -> None:
+    """chat() rejects context_options with out-of-range snippet_size and top_k (async)."""
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        await async_client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-ctxbound-a-"
+        ) as f:
+            f.write("Pinecone is a managed vector database for semantic search.")
+            tmp_path = f.name
+        await async_client.assistants.upload_file(
+            assistant_name=name, file_path=tmp_path, timeout=120
+        )
+
+        msgs = [{"role": "user", "content": "What is Pinecone?"}]
+
+        with pytest.raises((ApiError, PineconeError, PineconeValueError)):
+            await async_client.assistants.chat(
+                assistant_name=name,
+                messages=msgs,
+                context_options=ContextOptions(top_k=2, snippet_size=3),
+                stream=False,
+            )
+
+        with pytest.raises((ApiError, PineconeError, PineconeValueError)):
+            await async_client.assistants.chat(
+                assistant_name=name,
+                messages=msgs,
+                context_options=ContextOptions(top_k=100, snippet_size=512),
+                stream=False,
+            )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# upload_file — malformed PDF error (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(300)
+async def test_upload_file_rejects_malformed_pdf(async_client: AsyncPinecone) -> None:
+    """upload_file() surfaces a processing-failed error when the PDF is malformed (async)."""
+    name = unique_name("asst")
+    pdf_path = os.path.join(_FIXTURES_DIR, "malformed.pdf")
+    assert os.path.isfile(pdf_path), f"fixture missing: {pdf_path}"
+
+    try:
+        await async_client.assistants.create(name=name, instructions="Malformed PDF test.")
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with pytest.raises((PineconeError, ApiError)):
+            await async_client.assistants.upload_file(
+                assistant_name=name,
+                file_path=pdf_path,
+                timeout=180,
+            )
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# chat — multi-model matrix and invalid-model rejection (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(600)
+async def test_chat_across_all_supported_models_and_rejects_invalid(
+    async_client: AsyncPinecone,
+) -> None:
+    """chat() succeeds for every documented model and rejects an invalid model name (async)."""
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        await async_client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-models-a-"
+        ) as f:
+            f.write(
+                "Pinecone is a managed vector database for AI apps. "
+                "It supports dense, sparse, and hybrid similarity search."
+            )
+            tmp_path = f.name
+        await async_client.assistants.upload_file(
+            assistant_name=name, file_path=tmp_path, timeout=120
+        )
+
+        msgs = [{"role": "user", "content": "What is Pinecone?"}]
+
+        for model_name in _SUPPORTED_CHAT_MODELS:
+            response = await async_client.assistants.chat(
+                assistant_name=name,
+                messages=msgs,
+                model=model_name,
+                stream=False,
+            )
+            assert isinstance(response, ChatResponse), (
+                f"model={model_name!r} did not return ChatResponse"
+            )
+            assert isinstance(response.message.content, str)
+            assert len(response.message.content) > 0, (
+                f"model={model_name!r} returned empty content"
+            )
+
+        with pytest.raises((ApiError, PineconeError, PineconeValueError)):
+            await async_client.assistants.chat(
+                assistant_name=name,
+                messages=msgs,
+                model="definitely-not-a-real-model",
+                stream=False,
+            )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# chat — out-of-range temperature (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(300)
+async def test_chat_rejects_out_of_range_temperature(
+    async_client: AsyncPinecone,
+) -> None:
+    """chat() rejects temperature values outside the supported range (async)."""
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        await async_client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-temp-a-"
+        ) as f:
+            f.write("Pinecone is a managed vector database.")
+            tmp_path = f.name
+        await async_client.assistants.upload_file(
+            assistant_name=name, file_path=tmp_path, timeout=120
+        )
+
+        msgs = [{"role": "user", "content": "What is Pinecone?"}]
+
+        with pytest.raises((ApiError, PineconeError, PineconeValueError)):
+            await async_client.assistants.chat(
+                assistant_name=name,
+                messages=msgs,
+                temperature=3.0,
+                stream=False,
+            )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# context — filter parameter (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(300)
+async def test_context_filter_metadata_excludes_matching_files(
+    async_client: AsyncPinecone,
+) -> None:
+    """context(filter=...) restricts snippets to files whose metadata matches the filter (async)."""
+    name = unique_name("asst")
+    tmp_keep: str | None = None
+    tmp_skip: str | None = None
+    try:
+        await async_client.assistants.create(name=name, instructions="Filter test assistant.")
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-flt-a-"
+        ) as f:
+            f.write("Pinecone is a managed vector database for AI applications.")
+            tmp_keep = f.name
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-flt-b-"
+        ) as f:
+            f.write("Pinecone supports dense and sparse vectors for semantic search.")
+            tmp_skip = f.name
+
+        file_a = await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_keep,
+            metadata={"company": "anthropic"},
+            timeout=120,
+        )
+        file_b = await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_skip,
+            metadata={"company": "openai"},
+            timeout=120,
+        )
+
+        response = await async_client.assistants.context(
+            assistant_name=name,
+            query="What is Pinecone?",
+            filter={"company": {"$ne": "anthropic"}},
+        )
+        assert isinstance(response, ContextResponse)
+        for snippet in response.snippets:
+            assert snippet.reference.file.id == file_b.id, (
+                f"Expected only file_b ({file_b.id}); got {snippet.reference.file.id}"
+            )
+
+        response_flip = await async_client.assistants.context(
+            assistant_name=name,
+            query="What is Pinecone?",
+            filter={"company": {"$ne": "openai"}},
+        )
+        for snippet in response_flip.snippets:
+            assert snippet.reference.file.id == file_a.id
+
+    finally:
+        for p in (tmp_keep, tmp_skip):
+            if p is not None:
+                with contextlib.suppress(Exception):
+                    os.unlink(p)
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# assistant-lifecycle — explicit status transitions (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(300)
+async def test_assistant_lifecycle_status_transitions_explicit(
+    async_client: AsyncPinecone,
+) -> None:
+    """Verify async assistant explicitly moves through Initializing → Ready → Terminating."""
+    name = unique_name("asst")
+    deleted = False
+    try:
+        assistant = await async_client.assistants.create(name=name, timeout=-1)
+        assert isinstance(assistant, AssistantModel)
+        assert assistant.status == "Initializing", (
+            f"After create (timeout=-1), expected 'Initializing'; got {assistant.status!r}"
+        )
+
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=180,
+            interval=3,
+            description=f"assistant {name} to become Ready",
+        )
+        ready = await async_client.assistants.describe(name=name)
+        assert ready.status == "Ready"
+        assert ready.host is not None
+
+        await async_client.assistants.delete(name=name, timeout=-1)
+        deleted = True
+
+        try:
+            terminating = await async_client.assistants.describe(name=name)
+            assert terminating.status == "Terminating", (
+                f"After non-blocking delete, expected 'Terminating'; got {terminating.status!r}"
+            )
+        except ApiError as exc:
+            assert exc.status_code in (404, 410), (
+                f"Expected 404/410 after delete; got {exc.status_code}"
+            )
+
+    finally:
+        if not deleted:
+            await async_cleanup_resource(
+                lambda: async_client.assistants.delete(name=name, timeout=60),
+                name,
+                "assistant",
+            )
+
+
+# ---------------------------------------------------------------------------
+# assistant-update — combined instructions + metadata change (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(180)
+async def test_assistant_update_instructions_and_metadata_together(
+    async_client: AsyncPinecone,
+) -> None:
+    """update() applies instructions and metadata changes from a single call (async)."""
+    name = unique_name("asst")
+    try:
+        await async_client.assistants.create(
+            name=name,
+            instructions="Initial instructions.",
+            metadata={"original_key": "original_value"},
+        )
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        updated = await async_client.assistants.update(
+            name=name,
+            instructions="Updated instructions after combined update.",
+            metadata={"new_key": "new_value"},
+        )
+        assert isinstance(updated, AssistantModel)
+        assert updated.instructions == "Updated instructions after combined update."
+        assert updated.metadata == {"new_key": "new_value"}
+
+        re_described = await async_client.assistants.describe(name=name)
+        assert re_described.instructions == "Updated instructions after combined update."
+        assert re_described.metadata is not None
+        assert re_described.metadata.get("new_key") == "new_value"
+        assert "original_key" not in re_described.metadata
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# describe_file — DOCX signed URL (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(300)
+async def test_describe_file_docx_with_signed_url(async_client: AsyncPinecone) -> None:
+    """describe_file(include_url=True) returns a usable signed_url for a DOCX file (async)."""
+    name = unique_name("asst")
+    docx_path = os.path.join(_FIXTURES_DIR, "test_doc.docx")
+    assert os.path.isfile(docx_path), f"fixture missing: {docx_path}"
+    file_id: str | None = None
+
+    try:
+        await async_client.assistants.create(name=name, instructions="DOCX signed-URL test.")
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        file_model = await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_path=docx_path,
+            timeout=180,
+        )
+        assert isinstance(file_model, AssistantFileModel)
+        file_id = file_model.id
+
+        with_url = await async_client.assistants.describe_file(
+            assistant_name=name, file_id=file_id, include_url=True
+        )
+        assert isinstance(with_url, AssistantFileModel)
+        assert with_url.name == "test_doc.docx"
+        assert with_url.signed_url is not None, "expected signed_url for DOCX"
+        assert isinstance(with_url.signed_url, str) and len(with_url.signed_url) > 0
+
+        without_url = await async_client.assistants.describe_file(
+            assistant_name=name, file_id=file_id
+        )
+        assert without_url.signed_url is None
+
+    finally:
+        if file_id is not None:
+            with contextlib.suppress(Exception):
+                await async_client.assistants.delete_file(
+                    assistant_name=name, file_id=file_id, timeout=60
+                )
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# describe_file — metadata persistence (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(300)
+async def test_describe_file_preserves_uploaded_metadata(
+    async_client: AsyncPinecone,
+) -> None:
+    """describe_file returns the exact metadata dict that was supplied at upload (async)."""
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    file_id: str | None = None
+    try:
+        await async_client.assistants.create(
+            name=name, instructions="Metadata persistence test."
+        )
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-meta-a-"
+        ) as f:
+            f.write("Pinecone content used to verify metadata persistence.")
+            tmp_path = f.name
+
+        metadata: dict[str, object] = {
+            "source": "integration-test",
+            "category": "sdk-docs",
+            "priority": "high",
+        }
+        upload = await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            metadata=metadata,
+            timeout=180,
+        )
+        assert isinstance(upload, AssistantFileModel)
+        file_id = upload.id
+
+        described = await async_client.assistants.describe_file(
+            assistant_name=name, file_id=file_id
+        )
+        assert isinstance(described, AssistantFileModel)
+        assert described.metadata is not None, "expected metadata on describe_file"
+        assert described.metadata.get("source") == "integration-test"
+        assert described.metadata.get("category") == "sdk-docs"
+        assert described.metadata.get("priority") == "high"
+
+    finally:
+        if file_id is not None:
+            with contextlib.suppress(Exception):
+                await async_client.assistants.delete_file(
+                    assistant_name=name, file_id=file_id, timeout=60
+                )
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# multimodal PDF — image blocks, binary toggle, text fallback, errors (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(600)
+async def test_multimodal_pdf_context_image_text_and_errors(
+    async_client: AsyncPinecone,
+) -> None:
+    """Full multimodal surface for the async client against collin_foods_p8-9.pdf."""
+    name = unique_name("asst")
+    pdf_path = os.path.join(_FIXTURES_DIR, "collin_foods_p8-9.pdf")
+    docx_path = os.path.join(_FIXTURES_DIR, "test_doc.docx")
+    assert os.path.isfile(pdf_path), f"fixture missing: {pdf_path}"
+    assert os.path.isfile(docx_path), f"fixture missing: {docx_path}"
+
+    try:
+        await async_client.assistants.create(
+            name=name, instructions="Multimodal test assistant."
+        )
+        await async_poll_until(
+            lambda: async_client.assistants.describe(name=name),
+            lambda a: a.status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # 1. Upload multimodal PDF
+        file_model = await async_client.assistants.upload_file(
+            assistant_name=name,
+            file_path=pdf_path,
+            multimodal=True,
+            timeout=240,
+        )
+        assert isinstance(file_model, AssistantFileModel)
+        assert file_model.multimodal is True
+
+        query = "If someone at Taco Bell gets a promotion, how old is he/she probably?"
+
+        # 2. Default multimodal context
+        res = await async_client.assistants.context(
+            assistant_name=name, query=query, top_k=1, snippet_size=4000
+        )
+        assert isinstance(res, ContextResponse)
+        assert len(res.snippets) == 1
+        snippet = res.snippets[0]
+        assert isinstance(snippet, MultimodalSnippet)
+        image_blocks_with_data = [
+            b for b in snippet.content
+            if isinstance(b, ContextImageBlock) and b.image_data is not None
+        ]
+        assert len(image_blocks_with_data) > 0, (
+            "expected at least one ContextImageBlock with image_data populated"
+        )
+
+        # 3. include_binary_content=False → image_data stripped
+        res_no_binary = await async_client.assistants.context(
+            assistant_name=name,
+            query=query,
+            top_k=1,
+            snippet_size=4000,
+            include_binary_content=False,
+        )
+        snippet_no_binary = res_no_binary.snippets[0]
+        assert isinstance(snippet_no_binary, MultimodalSnippet)
+        image_blocks = [b for b in snippet_no_binary.content if isinstance(b, ContextImageBlock)]
+        assert len(image_blocks) > 0
+        for block in image_blocks:
+            assert block.image_data is None
+
+        # 4. multimodal=False → TextSnippet fallback
+        res_text = await async_client.assistants.context(
+            assistant_name=name,
+            query=query,
+            top_k=1,
+            snippet_size=4000,
+            multimodal=False,
+        )
+        text_snippet = res_text.snippets[0]
+        assert isinstance(text_snippet, TextSnippet)
+        assert len(text_snippet.content) > 0
+
+        # 5. chat() with multimodal context_options
+        response = await async_client.assistants.chat(
+            assistant_name=name,
+            messages=[{"role": "user", "content": query}],
+            context_options={"top_k": 1, "snippet_size": 4000},
+            stream=False,
+        )
+        assert isinstance(response, ChatResponse)
+        assert len(response.message.content) > 0
+
+        # 6. multimodal=True on non-PDF → rejected
+        with pytest.raises((ApiError, PineconeError, PineconeValueError)):
+            await async_client.assistants.upload_file(
+                assistant_name=name,
+                file_path=docx_path,
+                multimodal=True,
+                timeout=120,
+            )
+
+        # 7. context(multimodal=False, include_binary_content=True) → rejected
+        with pytest.raises((ApiError, PineconeError, PineconeValueError)):
+            await async_client.assistants.context(
+                assistant_name=name,
+                query=query,
+                top_k=1,
+                snippet_size=4000,
+                multimodal=False,
+                include_binary_content=True,
+            )
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=120),
             name,
             "assistant",
         )
