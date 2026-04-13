@@ -901,3 +901,101 @@ def test_search_with_match_terms_rest(client: Pinecone, api_key: str) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# search-with-rerank — gRPC transport
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_search_with_rerank_grpc(client: Pinecone, api_key: str) -> None:
+    """GrpcIndex.search() with inline rerank applies reranking and populates usage.rerank_units.
+
+    Verifies that the gRPC transport code path correctly forwards the rerank
+    parameter to the integrated search endpoint and returns reranked hits with
+    usage populated.
+
+    Verifies:
+    - unified-vec-0018: Record search supports optional reranking of results
+      using a specified model (gRPC transport).
+    """
+    name = unique_name("idx")
+    namespace = "rr-grpc-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="multilingual-e5-large",
+                    field_map={"text": "text"},
+                ),
+            ),
+        )
+
+        wait_for_ready(
+            lambda: client.indexes.describe(name).status.ready,
+            timeout=300,
+            description=f"integrated index {name!r}",
+        )
+
+        index = client.index(name=name, grpc=True)
+
+        # Upsert records with varied text content
+        index.upsert_records(
+            namespace=namespace,
+            records=[
+                {"_id": "rg-1", "text": "Vector databases enable fast similarity search at scale."},
+                {"_id": "rg-2", "text": "RAG combines retrieval with language model generation."},
+                {"_id": "rg-3", "text": "Embeddings are dense vector representations of text data."},
+                {"_id": "rg-4", "text": "Python is a popular programming language for AI projects."},
+                {"_id": "rg-5", "text": "Pinecone provides serverless vector database infrastructure."},
+            ],
+        )
+
+        # Wait for records to be searchable (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=5,
+                inputs={"text": "vector database similarity search"},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=120,
+            description="records searchable before grpc rerank test",
+        )
+
+        # Search with inline reranking via gRPC transport — top_n=3 limits results
+        response = index.search(
+            namespace=namespace,
+            top_k=5,
+            inputs={"text": "vector database similarity search"},
+            rerank={
+                "model": "bge-reranker-v2-m3",
+                "rank_fields": ["text"],
+                "top_n": 3,
+            },
+        )
+
+        assert isinstance(response, SearchRecordsResponse)
+        assert isinstance(response.result, SearchResult)
+
+        # top_n=3 caps the number of hits after reranking
+        assert len(response.result.hits) > 0
+        assert len(response.result.hits) <= 3
+
+        # Each hit has id and score
+        for hit in response.result.hits:
+            assert isinstance(hit, Hit)
+            assert isinstance(hit.id, str)
+            assert isinstance(hit.score, float)
+
+        # Rerank usage should be populated
+        assert isinstance(response.usage, SearchUsage)
+        assert response.usage.rerank_units is not None
+        assert response.usage.rerank_units > 0
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
