@@ -1616,3 +1616,103 @@ def test_fetch_nonexistent_ids_returns_empty_vectors_grpc(client: Pinecone) -> N
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# grpc-delete-async — gRPC only
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_grpc_delete_async_future_resolves_to_none(client: Pinecone) -> None:
+    """GrpcIndex.delete_async() returns a PineconeFuture[None] that resolves to None.
+
+    Verifies unified-grpc-0003: "Can execute gRPC operations asynchronously
+    using futures." — specifically the delete_async() variant not covered by
+    ET-078 (which covered upsert_async, query_async, fetch_async).
+
+    Test sequence:
+    1. Upsert 3 vectors via sync gRPC upsert().
+    2. Poll until all 3 vectors are fetchable.
+    3. delete_async(ids=[...]) for 2 of the 3 → future.result() must be None.
+    4. Poll until the 2 deleted vectors are absent from fetch().
+    5. Verify the 3rd vector is still present (partial delete correctness).
+    6. delete_async(delete_all=True) → future.result() must be None.
+    7. Poll until namespace is empty.
+
+    Area tag: grpc-delete-async
+    Transport: grpc
+    Claim: unified-grpc-0003
+    """
+    name = unique_name("idx")
+    namespace = "da-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        grpc_idx = client.index(name=name, grpc=True)
+
+        # --- 1. Upsert 3 vectors via sync gRPC upsert() ---
+        vectors = [
+            {"id": "da-v1", "values": [0.1, 0.2, 0.3]},
+            {"id": "da-v2", "values": [0.4, 0.5, 0.6]},
+            {"id": "da-v3", "values": [0.7, 0.8, 0.9]},
+        ]
+        grpc_idx.upsert(vectors=vectors, namespace=namespace)
+
+        # --- 2. Poll until all 3 vectors are fetchable ---
+        poll_until(
+            query_fn=lambda: grpc_idx.fetch(ids=["da-v1", "da-v2", "da-v3"], namespace=namespace),
+            check_fn=lambda r: len(r.vectors) == 3,
+            timeout=120,
+            description="all 3 vectors fetchable after upsert (gRPC delete_async test)",
+        )
+
+        # --- 3. delete_async(ids=[...]) for 2 of the 3 vectors ---
+        del_future: PineconeFuture[None] = grpc_idx.delete_async(
+            ids=["da-v1", "da-v2"],
+            namespace=namespace,
+        )
+        # future.result() must resolve to None (delete returns no content)
+        del_result = del_future.result(timeout=30.0)
+        assert del_result is None, (
+            f"delete_async().result() must be None, got {del_result!r}"
+        )
+
+        # --- 4. Poll until the 2 deleted vectors are absent ---
+        poll_until(
+            query_fn=lambda: grpc_idx.fetch(ids=["da-v1", "da-v2"], namespace=namespace),
+            check_fn=lambda r: len(r.vectors) == 0,
+            timeout=120,
+            description="da-v1 and da-v2 absent after delete_async()",
+        )
+
+        # --- 5. Verify da-v3 is still present (partial delete) ---
+        remaining = grpc_idx.fetch(ids=["da-v3"], namespace=namespace)
+        assert isinstance(remaining, FetchResponse)
+        assert "da-v3" in remaining.vectors, "da-v3 should survive partial delete_async()"
+
+        # --- 6. delete_async(delete_all=True) clears the namespace ---
+        all_del_future: PineconeFuture[None] = grpc_idx.delete_async(
+            delete_all=True,
+            namespace=namespace,
+        )
+        all_del_result = all_del_future.result(timeout=30.0)
+        assert all_del_result is None, (
+            f"delete_async(delete_all=True).result() must be None, got {all_del_result!r}"
+        )
+
+        # --- 7. Poll until namespace is empty ---
+        poll_until(
+            query_fn=lambda: grpc_idx.fetch(ids=["da-v3"], namespace=namespace),
+            check_fn=lambda r: len(r.vectors) == 0,
+            timeout=120,
+            description="namespace empty after delete_async(delete_all=True)",
+        )
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
