@@ -598,3 +598,83 @@ def test_create_index_with_schema_normalization_rest(client: Pinecone) -> None:
     finally:
         cleanup_resource(lambda: client.indexes.delete(name_nested), name_nested, "index")
         cleanup_resource(lambda: client.indexes.delete(name_flat), name_flat, "index")
+
+
+# ---------------------------------------------------------------------------
+# IndexModel bracket access — unified-index-0026
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_index_model_bracket_access_on_real_describe(client: Pinecone) -> None:
+    """IndexModel supports bracket access and containment check on a real describe() response.
+
+    unified-index-0026: "The describe-index response supports both attribute and
+    bracket access."
+
+    All existing tests use only attribute access (model.name, model.metric …).
+    This test verifies that the string-key bracket syntax (model['name']) and the
+    'in' operator work correctly on a real API-deserialized IndexModel, and that
+    accessing a non-existent key raises KeyError.
+
+    Index creation uses timeout=-1 so the test does not wait for the index to be
+    ready — describe() returns a valid IndexModel even in Initializing state.
+
+    Area tag: index-model-bracket-access
+    Transport: rest
+    """
+    index_name = unique_name("idx")
+    try:
+        # Create quickly — don't wait for ready; describe() works on any state
+        client.indexes.create(
+            name=index_name,
+            dimension=2,
+            metric="cosine",
+            spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
+            timeout=-1,
+        )
+
+        model = client.indexes.describe(index_name)
+        assert isinstance(model, IndexModel)
+
+        # --- Bracket access equals attribute access ---
+        assert model["name"] == model.name, "model['name'] must equal model.name"
+        assert model["metric"] == model.metric, "model['metric'] must equal model.metric"
+        assert model["host"] == model.host, "model['host'] must equal model.host"
+        assert model["vector_type"] == model.vector_type, (
+            "model['vector_type'] must equal model.vector_type"
+        )
+        assert model["deletion_protection"] == model.deletion_protection, (
+            "model['deletion_protection'] must equal model.deletion_protection"
+        )
+        # dimension can be None for integrated indexes; assert equality regardless
+        assert model["dimension"] == model.dimension, (
+            "model['dimension'] must equal model.dimension"
+        )
+
+        # --- Specific field values ---
+        assert model["name"] == index_name, "Bracket 'name' must match the created index name"
+        assert model["metric"] == "cosine", "Bracket 'metric' must be 'cosine'"
+        assert model["vector_type"] == "dense", "Bracket 'vector_type' must be 'dense'"
+        assert model["deletion_protection"] == "disabled", (
+            "Bracket 'deletion_protection' must be 'disabled'"
+        )
+
+        # --- Containment check ---
+        for field in ("name", "metric", "host", "dimension", "deletion_protection", "vector_type"):
+            assert field in model, f"'{field}' must be in IndexModel"
+        assert "nonexistent_field_xyz" not in model, (
+            "Non-existent key must NOT be in IndexModel"
+        )
+
+        # --- KeyError on missing key ---
+        with pytest.raises(KeyError):
+            _ = model["nonexistent_field_xyz"]
+
+    finally:
+        cleanup_resource(
+            lambda: client.indexes.delete(index_name),
+            index_name,
+            "index",
+        )

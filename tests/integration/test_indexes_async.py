@@ -608,3 +608,75 @@ async def test_create_index_with_schema_normalization_async(
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name_flat), name_flat, "index"
         )
+
+
+# ---------------------------------------------------------------------------
+# IndexModel bracket access — unified-index-0026
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(300)
+async def test_index_model_bracket_access_on_real_describe_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """Async variant: IndexModel supports bracket access on a real describe() response.
+
+    Verifies unified-index-0026 (bracket access) on the async transport path.
+
+    Area tag: index-model-bracket-access
+    Transport: rest-async
+    """
+    index_name = unique_name("idx")
+    try:
+        await async_client.indexes.create(
+            name=index_name,
+            dimension=2,
+            metric="cosine",
+            spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
+            timeout=-1,
+        )
+
+        model = await async_client.indexes.describe(index_name)
+        assert isinstance(model, IndexModel)
+
+        # --- Bracket access equals attribute access ---
+        assert model["name"] == model.name, "model['name'] must equal model.name"
+        assert model["metric"] == model.metric, "model['metric'] must equal model.metric"
+        assert model["host"] == model.host, "model['host'] must equal model.host"
+        assert model["vector_type"] == model.vector_type, (
+            "model['vector_type'] must equal model.vector_type"
+        )
+        assert model["deletion_protection"] == model.deletion_protection, (
+            "model['deletion_protection'] must equal model.deletion_protection"
+        )
+        assert model["dimension"] == model.dimension, (
+            "model['dimension'] must equal model.dimension"
+        )
+
+        # --- Specific field values ---
+        assert model["name"] == index_name, "Bracket 'name' must match the created index name"
+        assert model["metric"] == "cosine", "Bracket 'metric' must be 'cosine'"
+        assert model["vector_type"] == "dense", "Bracket 'vector_type' must be 'dense'"
+        assert model["deletion_protection"] == "disabled", (
+            "Bracket 'deletion_protection' must be 'disabled'"
+        )
+
+        # --- Containment check ---
+        for field in ("name", "metric", "host", "dimension", "deletion_protection", "vector_type"):
+            assert field in model, f"'{field}' must be in IndexModel"
+        assert "nonexistent_field_xyz" not in model, (
+            "Non-existent key must NOT be in IndexModel"
+        )
+
+        # --- KeyError on missing key ---
+        with pytest.raises(KeyError):
+            _ = model["nonexistent_field_xyz"]
+
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(index_name),
+            index_name,
+            "index",
+        )
