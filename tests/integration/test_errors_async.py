@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import pytest
 
-from pinecone import AsyncIndex, AsyncPinecone, PineconeValueError
-from pinecone.errors import ApiError, ConflictError, NotFoundError, UnauthorizedError
+from pinecone import AsyncIndex, AsyncPinecone, PineconeTypeError, PineconeValueError
+from pinecone.errors import ApiError, ConflictError, NotFoundError, PineconeError, UnauthorizedError
 from pinecone.models.indexes.specs import ServerlessSpec
 from tests.integration.conftest import async_cleanup_resource, unique_name
 
@@ -460,3 +460,73 @@ async def test_api_error_exposes_status_reason_headers_body_async(
     assert isinstance(err2.headers, dict)
     assert len(err2.headers) > 0
     assert err2.body is None or isinstance(err2.body, dict)
+
+
+# ---------------------------------------------------------------------------
+# exception-catch-hierarchy — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_exception_catch_hierarchy_async(async_client: AsyncPinecone) -> None:
+    """SDK exceptions are catchable via their base class hierarchy (async REST).
+
+    Async transport parity for test_exception_catch_hierarchy_rest.
+
+    Verifies:
+    - unified-err-0001: All SDK exceptions inherit from PineconeError.
+    - unified-err-0003: PineconeValueError inherits from both PineconeError and
+      ValueError; PineconeTypeError inherits from both PineconeError and TypeError.
+    """
+    index = AsyncIndex(host="fake-index.svc.pinecone.io", api_key="testkey")
+
+    # --- unified-err-0003: PineconeValueError is catchable as ValueError ---
+    caught = False
+    try:
+        await index.query(top_k=0, vector=[0.1, 0.2])  # top_k < 1 raises PineconeValueError
+    except ValueError:
+        caught = True
+    assert caught, "Async PineconeValueError must be catchable as ValueError (unified-err-0003)"
+
+    # --- unified-err-0001: PineconeValueError is catchable as PineconeError ---
+    caught = False
+    try:
+        await index.query(top_k=0, vector=[0.1, 0.2])
+    except PineconeError:
+        caught = True
+    assert caught, "Async PineconeValueError must be catchable as PineconeError (unified-err-0001)"
+
+    # --- unified-err-0003: PineconeTypeError is catchable as TypeError ---
+    caught = False
+    try:
+        await async_client.inference.embed(
+            model="multilingual-e5-large", inputs=42  # type: ignore[arg-type]
+        )
+    except TypeError:
+        caught = True
+    assert caught, "Async PineconeTypeError must be catchable as TypeError (unified-err-0003)"
+
+    # --- unified-err-0001: PineconeTypeError is catchable as PineconeError ---
+    caught = False
+    try:
+        await async_client.inference.embed(
+            model="multilingual-e5-large", inputs=42  # type: ignore[arg-type]
+        )
+    except PineconeError:
+        caught = True
+    assert caught, (
+        "Async PineconeTypeError must be catchable as PineconeError (unified-err-0001)"
+    )
+
+    # --- unified-err-0001: ApiError (HTTP 404) is catchable as PineconeError ---
+    caught = False
+    try:
+        await async_client.indexes.describe("index-that-does-not-exist-hierarchy-xyz")
+    except PineconeError:
+        caught = True
+    assert caught, (
+        "Async NotFoundError (ApiError subclass) must be catchable as PineconeError "
+        "(unified-err-0001)"
+    )
+    await index.close()

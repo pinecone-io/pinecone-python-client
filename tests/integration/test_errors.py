@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import pytest
 
-from pinecone import GrpcIndex, Index, Pinecone, PineconeValueError
-from pinecone.errors import ApiError, ConflictError, NotFoundError, UnauthorizedError
+from pinecone import GrpcIndex, Index, Pinecone, PineconeTypeError, PineconeValueError
+from pinecone.errors import ApiError, ConflictError, NotFoundError, PineconeError, UnauthorizedError
 from pinecone.models.indexes.specs import ServerlessSpec
 from tests.integration.conftest import cleanup_resource, unique_name
 
@@ -530,3 +530,71 @@ def test_api_error_exposes_status_reason_headers_body_rest(client: Pinecone) -> 
     assert isinstance(err2.headers, dict)
     assert len(err2.headers) > 0
     assert err2.body is None or isinstance(err2.body, dict)
+
+
+# ---------------------------------------------------------------------------
+# exception-catch-hierarchy — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_exception_catch_hierarchy_rest(client: Pinecone) -> None:
+    """SDK exceptions are catchable via their base class hierarchy (REST sync).
+
+    Verifies:
+    - unified-err-0001: All SDK exceptions inherit from PineconeError, allowing
+      any SDK-raised exception to be caught with a single `except PineconeError:`
+      handler.
+    - unified-err-0003: PineconeValueError inherits from both PineconeError and
+      ValueError; PineconeTypeError inherits from both PineconeError and TypeError.
+
+    No resources are created or cleaned up. Validation errors fire client-side
+    before any HTTP request. The HTTP error variant exercises a real 404.
+    """
+    index = Index(host="fake-index.svc.pinecone.io", api_key="testkey")
+
+    # --- unified-err-0003: PineconeValueError is catchable as ValueError ---
+    caught = False
+    try:
+        index.query(top_k=0, vector=[0.1, 0.2])  # top_k < 1 raises PineconeValueError
+    except ValueError:
+        caught = True
+    assert caught, "PineconeValueError must be catchable as ValueError (unified-err-0003)"
+
+    # --- unified-err-0001: PineconeValueError is catchable as PineconeError ---
+    caught = False
+    try:
+        index.query(top_k=0, vector=[0.1, 0.2])
+    except PineconeError:
+        caught = True
+    assert caught, "PineconeValueError must be catchable as PineconeError (unified-err-0001)"
+
+    # --- unified-err-0003: PineconeTypeError is catchable as TypeError ---
+    caught = False
+    try:
+        client.inference.embed(
+            model="multilingual-e5-large", inputs=42  # type: ignore[arg-type]
+        )
+    except TypeError:
+        caught = True
+    assert caught, "PineconeTypeError must be catchable as TypeError (unified-err-0003)"
+
+    # --- unified-err-0001: PineconeTypeError is catchable as PineconeError ---
+    caught = False
+    try:
+        client.inference.embed(
+            model="multilingual-e5-large", inputs=42  # type: ignore[arg-type]
+        )
+    except PineconeError:
+        caught = True
+    assert caught, "PineconeTypeError must be catchable as PineconeError (unified-err-0001)"
+
+    # --- unified-err-0001: ApiError (HTTP 404) is catchable as PineconeError ---
+    caught = False
+    try:
+        client.indexes.describe("index-that-does-not-exist-hierarchy-xyz")
+    except PineconeError:
+        caught = True
+    assert caught, (
+        "NotFoundError (ApiError subclass) must be catchable as PineconeError (unified-err-0001)"
+    )
