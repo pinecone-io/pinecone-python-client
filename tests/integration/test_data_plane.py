@@ -1158,6 +1158,95 @@ def test_list_paginated_multi_page_rest(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
+# list-paginated — multi-page (gRPC)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_list_paginated_multi_page_grpc(client: Pinecone) -> None:
+    """list_paginated() via GrpcIndex with limit=2 spans multiple pages; pagination tokens
+    are returned when more pages exist; the final page has no token.
+
+    Verifies claims (gRPC transport parity with REST):
+    - unified-vec-0030: paginated list returns a single page; caller must follow the
+      token explicitly — it does not auto-paginate
+    - unified-vec-0056: list-paginated returns no pagination token when the current
+      page is the last one
+    - unified-pag-0002: vector listing supports cursor-based pagination via a
+      single-page method
+
+    This test is the gRPC counterpart of test_list_paginated_multi_page_rest.
+    The single-page gRPC path is covered by test_list_paginated_returns_single_page_grpc;
+    this test covers the multi-page pagination token flow on gRPC.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        # Upsert 4 vectors with a shared prefix so limit=2 forces ≥ 2 pages
+        index.upsert(
+            vectors=[
+                {"id": "gmp-v1", "values": [0.1, 0.2]},
+                {"id": "gmp-v2", "values": [0.3, 0.4]},
+                {"id": "gmp-v3", "values": [0.5, 0.6]},
+                {"id": "gmp-v4", "values": [0.7, 0.8]},
+            ]
+        )
+
+        # Wait until all 4 vectors appear in list results (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.list_paginated(prefix="gmp-", limit=100),
+            check_fn=lambda r: len(r.vectors) >= 4,
+            timeout=120,
+            description="all 4 gmp- vectors listable after upsert (gRPC)",
+        )
+
+        # Traverse all pages manually using limit=2 — forces at least 2 pages
+        all_ids: list[str] = []
+        token: str | None = None
+        pages_seen = 0
+
+        while True:
+            page = index.list_paginated(prefix="gmp-", limit=2, pagination_token=token)
+            assert isinstance(page, ListResponse)
+            assert isinstance(page.vectors, list)
+            # Limit must be respected on every page
+            assert len(page.vectors) <= 2, (
+                f"Page {pages_seen} returned {len(page.vectors)} vectors (limit=2)"
+            )
+
+            for item in page.vectors:
+                assert isinstance(item, ListItem)
+                assert isinstance(item.id, str)
+            all_ids.extend(item.id for item in page.vectors)
+
+            pages_seen += 1
+
+            if page.pagination is not None and page.pagination.next is not None:
+                # More pages available — token must be a non-empty string
+                assert isinstance(page.pagination.next, str)
+                assert len(page.pagination.next) > 0
+                token = page.pagination.next
+            else:
+                # Final page — pagination token must be absent (unified-vec-0056)
+                break
+
+        # All 4 vectors must be collected across the pages
+        assert {"gmp-v1", "gmp-v2", "gmp-v3", "gmp-v4"} <= set(all_ids)
+        # Must have traversed at least 2 pages (4 vectors ÷ limit=2)
+        assert pages_seen >= 2
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
 # delete-nonexistent-ids — REST sync + gRPC
 # ---------------------------------------------------------------------------
 
