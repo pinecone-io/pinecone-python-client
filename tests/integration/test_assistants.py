@@ -2366,3 +2366,95 @@ def test_assistant_model_dict_mixin_operations_rest(client: Pinecone) -> None:
             name,
             "assistant",
         )
+
+
+# ---------------------------------------------------------------------------
+# chat-completions-streaming-finish-reason
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_chat_completions_streaming_finish_reason_rest(client: Pinecone) -> None:
+    """chat_completions(stream=True) final chunk has finish_reason set; content chunks have None.
+
+    Verifies:
+    - unified-stream-0021: Each chat completion streaming chunk contains a list of choices
+      with index, delta message, and finish reason.
+    - Content chunks (those carrying delta.content) have finish_reason == None.
+    - At least one chunk has a non-None finish_reason (the terminal/final chunk).
+    - The terminal finish_reason is a non-empty string (e.g. "stop").
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        assistant = client.assistants.create(
+            name=name, instructions="You are a helpful assistant."
+        )
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-finish-"
+        ) as f:
+            f.write("Pinecone is a managed vector database.")
+            tmp_path = f.name
+
+        client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        stream = client.assistants.chat_completions(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What is Pinecone in one sentence?"}],
+            stream=True,
+        )
+
+        chunks: list[ChatCompletionStreamChunk] = list(stream)
+        assert len(chunks) > 0, "Expected at least one streaming chunk"
+
+        # Flatten all choices across all chunks for analysis
+        finish_reason_chunks: list[str] = []
+        for chunk in chunks:
+            for choice in chunk.choices:
+                # finish_reason must be None or a string — never another type
+                assert choice.finish_reason is None or isinstance(choice.finish_reason, str), (
+                    f"finish_reason must be str or None, got {type(choice.finish_reason)}"
+                )
+                # Content-bearing choices must NOT carry a finish_reason
+                if choice.delta.content is not None and choice.delta.content != "":
+                    assert choice.finish_reason is None, (
+                        f"Content chunk should have finish_reason=None, "
+                        f"got {choice.finish_reason!r}"
+                    )
+                if choice.finish_reason is not None:
+                    finish_reason_chunks.append(choice.finish_reason)
+
+        # At least one chunk must have a non-None finish_reason (the terminal chunk)
+        assert len(finish_reason_chunks) > 0, (
+            "Expected at least one chunk with a non-None finish_reason (e.g. 'stop'), "
+            f"but all {len(chunks)} chunks had finish_reason=None"
+        )
+        # The terminal finish_reason must be a non-empty string
+        for fr in finish_reason_chunks:
+            assert isinstance(fr, str) and len(fr) > 0, (
+                f"finish_reason must be a non-empty string, got {fr!r}"
+            )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
