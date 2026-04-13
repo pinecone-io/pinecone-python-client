@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import pytest
 
+from concurrent.futures import as_completed
+
 from pinecone import GrpcIndex, Index, Pinecone
 from pinecone.errors import ApiError
+from pinecone.grpc.future import PineconeFuture
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
 from pinecone.models.vectors.responses import (
@@ -1412,6 +1415,115 @@ def test_index_context_manager_grpc(client: Pinecone) -> None:
             assert isinstance(stats, DescribeIndexStatsResponse)
             assert isinstance(stats.total_vector_count, int)
         grpc_idx.close()
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# grpc-async-futures — gRPC
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_grpc_async_futures_upsert_query_fetch_grpc(client: Pinecone) -> None:
+    """GrpcIndex.*_async() methods return PineconeFuture objects that resolve to
+    the correct response types against a live API.
+
+    Verifies unified-grpc-0003: "Can execute gRPC operations asynchronously
+    using futures."
+
+    Test sequence:
+      1. Submit two parallel upsert_async() futures and collect results via
+         as_completed(); each future resolves to a UpsertResponse.
+      2. Poll until vectors are queryable (eventual consistency).
+      3. Submit a query_async() future and resolve it; verify QueryResponse
+         has matches with correct structure.
+      4. Submit a fetch_async() future and resolve it; verify FetchResponse
+         contains the requested IDs.
+
+    Area tag: grpc-async-futures
+    Transport: grpc
+    Claim: unified-grpc-0003
+    """
+    name = unique_name("idx")
+    namespace = "fut-ns"
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        grpc_idx = client.index(name=name, grpc=True)
+
+        # --- 1. upsert_async() — two parallel futures ---
+        batch_a = [
+            {"id": "fut-a1", "values": [0.1, 0.2, 0.3]},
+            {"id": "fut-a2", "values": [0.4, 0.5, 0.6]},
+        ]
+        batch_b = [
+            {"id": "fut-b1", "values": [0.7, 0.8, 0.9]},
+            {"id": "fut-b2", "values": [0.9, 0.8, 0.7]},
+        ]
+        fut_a: PineconeFuture[UpsertResponse] = grpc_idx.upsert_async(
+            vectors=batch_a, namespace=namespace
+        )
+        fut_b: PineconeFuture[UpsertResponse] = grpc_idx.upsert_async(
+            vectors=batch_b, namespace=namespace
+        )
+
+        # Collect results via as_completed; use a generous timeout for live API
+        upsert_futures = [fut_a, fut_b]
+        for fut in as_completed(upsert_futures, timeout=60):
+            result = fut.result(timeout=30.0)
+            assert isinstance(result, UpsertResponse), (
+                f"Expected UpsertResponse, got {type(result)}"
+            )
+            assert isinstance(result.upserted_count, int)
+            assert result.upserted_count >= 0
+
+        # --- 2. Poll until vectors are queryable (eventual consistency) ---
+        poll_until(
+            query_fn=lambda: grpc_idx.describe_index_stats(),
+            check_fn=lambda r: r.total_vector_count >= 4,
+            timeout=120,
+            description="all 4 futures-upserted vectors indexed",
+        )
+
+        # --- 3. query_async() — submit future, resolve, verify QueryResponse ---
+        qfut: PineconeFuture[QueryResponse] = grpc_idx.query_async(
+            vector=[0.1, 0.2, 0.3],
+            top_k=4,
+            namespace=namespace,
+        )
+        q_result = qfut.result(timeout=30.0)
+        assert isinstance(q_result, QueryResponse), (
+            f"Expected QueryResponse from query_async(), got {type(q_result)}"
+        )
+        assert isinstance(q_result.matches, list)
+        assert len(q_result.matches) >= 1, "query_async() must return at least one match"
+        # Verify match structure; scores may vary due to ANN approximation
+        upserted_ids = {"fut-a1", "fut-a2", "fut-b1", "fut-b2"}
+        for m in q_result.matches:
+            assert isinstance(m.id, str)
+            assert isinstance(m.score, float)
+            assert m.id in upserted_ids, f"Unexpected match ID {m.id!r}"
+
+        # --- 4. fetch_async() — submit future, resolve, verify FetchResponse ---
+        ffut: PineconeFuture[FetchResponse] = grpc_idx.fetch_async(
+            ids=["fut-a1", "fut-b1"],
+            namespace=namespace,
+        )
+        f_result = ffut.result(timeout=30.0)
+        assert isinstance(f_result, FetchResponse), (
+            f"Expected FetchResponse from fetch_async(), got {type(f_result)}"
+        )
+        assert isinstance(f_result.vectors, dict)
+        assert "fut-a1" in f_result.vectors, "fut-a1 must be present in fetch_async() result"
+        assert "fut-b1" in f_result.vectors, "fut-b1 must be present in fetch_async() result"
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
