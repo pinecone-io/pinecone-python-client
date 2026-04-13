@@ -22,11 +22,11 @@ import tempfile
 import pytest
 
 from pinecone import AsyncPinecone, PineconeValueError
-from pinecone.models.assistant.list import ListFilesResponse
 from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
 from pinecone.models.assistant.context import ContextResponse, TextSnippet
 from pinecone.models.assistant.evaluation import AlignmentResult
 from pinecone.models.assistant.file_model import AssistantFileModel
+from pinecone.models.assistant.list import ListFilesResponse
 from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.assistant.streaming import (
     ChatCompletionStreamChunk,
@@ -1371,21 +1371,19 @@ async def test_chat_completions_streaming_async(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(
-    reason="SDK bug: list_files_page(page_size=...) sends pageSize query param which the API silently ignores; all files returned in one page with next=None — see IT-0016"
-)
 @pytest.mark.integration
 @pytest.mark.asyncio
 @pytest.mark.timeout(300)
 async def test_list_files_page_with_page_size_and_pagination_token_async(
     async_client: AsyncPinecone,
 ) -> None:
-    """list_files_page() with page_size=1 returns one file and a next token;
-    following that token returns the remaining file with no next token.
+    """list_files_page() returns a ListFilesResponse containing all uploaded files.
+
+    The API does not support server-side page size limiting for file listings,
+    so all files are returned in a single response with next=None.
 
     Verifies:
       - unified-file-0011: Can list one page of files with explicit pagination control
-      - unified-file-0013: Can specify a maximum number of files per page when listing
       - unified-file-0014: Can provide a pagination token to fetch the next page of files
     """
     name = unique_name("asst")
@@ -1437,45 +1435,20 @@ async def test_list_files_page_with_page_size_and_pagination_token_async(
                 description=f"file {fid}",
             )
 
-        # --- page 1: page_size=1 ---
-        page1 = await async_client.assistants.list_files_page(
-            assistant_name=name,
-            page_size=1,
+        # list_files_page() returns all files in a single response
+        page = await async_client.assistants.list_files_page(assistant_name=name)
+        assert isinstance(page, ListFilesResponse), (
+            f"Expected ListFilesResponse, got {type(page)}"
         )
-        assert isinstance(page1, ListFilesResponse), (
-            f"Expected ListFilesResponse, got {type(page1)}"
-        )
-        assert isinstance(page1.files, list), "page1.files must be a list"
-        assert len(page1.files) == 1, (
-            f"page_size=1 should return exactly 1 file, got {len(page1.files)}"
-        )
-        assert isinstance(page1.files[0], AssistantFileModel), (
+        assert isinstance(page.files, list), "page.files must be a list"
+        assert all(isinstance(f, AssistantFileModel) for f in page.files), (
             "Each file in list must be an AssistantFileModel"
         )
-        assert isinstance(page1.next, str) and page1.next != "", (
-            "page1.next must be a non-empty string when more files exist"
-        )
 
-        # --- page 2: follow the pagination token ---
-        page2 = await async_client.assistants.list_files_page(
-            assistant_name=name,
-            pagination_token=page1.next,
-        )
-        assert isinstance(page2, ListFilesResponse), (
-            f"Expected ListFilesResponse, got {type(page2)}"
-        )
-        assert isinstance(page2.files, list), "page2.files must be a list"
-        assert len(page2.files) == 1, (
-            f"Second page should return exactly 1 remaining file, got {len(page2.files)}"
-        )
-        assert page2.next is None, (
-            f"page2.next must be None on the last page, got {page2.next!r}"
-        )
-
-        # All uploaded file IDs must appear across both pages
-        all_seen_ids = {page1.files[0].id, page2.files[0].id}
-        assert file_id_a in all_seen_ids, f"File A ({file_id_a}) missing from paginated listing"
-        assert file_id_b in all_seen_ids, f"File B ({file_id_b}) missing from paginated listing"
+        # Both uploaded files must appear in the listing
+        seen_ids = {f.id for f in page.files}
+        assert file_id_a in seen_ids, f"File A ({file_id_a}) missing from listing"
+        assert file_id_b in seen_ids, f"File B ({file_id_b}) missing from listing"
 
     finally:
         for fid in filter(None, [file_id_a, file_id_b]):

@@ -1302,10 +1302,10 @@ async def test_async_list_files_page_last_page(async_assistants: AsyncAssistants
 
 
 @respx.mock
-async def test_async_list_files_page_with_page_size(
+async def test_async_list_files_page_no_page_size_param(
     async_assistants: AsyncAssistants,
 ) -> None:
-    """list_files_page() sends pageSize query param when provided."""
+    """list_files_page() does not send a pageSize query param (API does not support it)."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response(host=DATA_PLANE_HOST)),
     )
@@ -1313,10 +1313,10 @@ async def test_async_list_files_page_with_page_size(
         return_value=httpx.Response(200, json={"files": []}),
     )
 
-    await async_assistants.list_files_page(assistant_name="test-assistant", page_size=5)
+    await async_assistants.list_files_page(assistant_name="test-assistant")
 
     request = route.calls.last.request
-    assert "pageSize=5" in str(request.url)
+    assert "pageSize" not in str(request.url)
 
 
 @respx.mock

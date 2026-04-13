@@ -461,7 +461,6 @@ class AsyncAssistants:
         self,
         *,
         assistant_name: str,
-        page_size: int | None = None,
         pagination_token: str | None = None,
         filter: dict[str, Any] | None = None,
     ) -> ListFilesResponse:
@@ -469,8 +468,6 @@ class AsyncAssistants:
 
         Args:
             assistant_name: Name of the assistant whose files to list.
-            page_size: Maximum number of files per page. Only sent when
-                explicitly provided.
             pagination_token: Token from a previous response to fetch the
                 next page.
             filter: Optional metadata filter expression. Serialized to a JSON
@@ -487,7 +484,6 @@ class AsyncAssistants:
 
             page = await pc.assistants.list_files_page(
                 assistant_name="my-assistant",
-                page_size=10,
             )
             for f in page.files:
                 print(f.name)
@@ -501,8 +497,6 @@ class AsyncAssistants:
 
         data_http = await self._data_plane_http(assistant_name)
         params: dict[str, str | int] = {}
-        if page_size is not None:
-            params["pageSize"] = page_size
         if pagination_token is not None:
             params["paginationToken"] = pagination_token
         if filter is not None:
