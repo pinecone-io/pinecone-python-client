@@ -24,7 +24,13 @@ class ContextImageData(Struct, kw_only=True):
     data: str
 
 
-class ContextImageBlock(Struct, kw_only=True, tag="image", tag_field="type"):
+class ContextImageBlock(
+    Struct,
+    kw_only=True,
+    tag="image",
+    tag_field="type",
+    rename={"image_data": "image"},
+):
     """An image block within a multimodal context snippet.
 
     Attributes:

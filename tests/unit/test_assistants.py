@@ -2664,6 +2664,89 @@ def test_context_response_decodes_without_id() -> None:
     assert result.usage.total_tokens == 10
 
 
+def test_context_image_block_image_data_populated_from_json_image_key() -> None:
+    """ContextImageBlock.image_data is populated from the API's 'image' JSON key (IT-0019)."""
+    from pinecone.models.assistant.context import ContextResponse
+
+    file_fixture = make_context_response()["snippets"][0]["reference"]["file"]
+    payload = json.dumps(
+        {
+            "snippets": [
+                {
+                    "type": "multimodal",
+                    "content": [
+                        {
+                            "type": "image",
+                            "caption": "A chart showing sales data",
+                            "image": {
+                                "type": "base64",
+                                "mime_type": "image/jpeg",
+                                "data": "abc123==",
+                            },
+                        }
+                    ],
+                    "score": 0.88,
+                    "reference": {"file": file_fixture},
+                }
+            ],
+            "usage": {"prompt_tokens": 5, "completion_tokens": 0, "total_tokens": 5},
+            "id": "ctx-img-test",
+        }
+    ).encode()
+
+    result = msgspec.json.decode(payload, type=ContextResponse)
+
+    from pinecone.models.assistant.context import ContextImageBlock, MultimodalSnippet
+
+    assert len(result.snippets) == 1
+    snippet = result.snippets[0]
+    assert isinstance(snippet, MultimodalSnippet)
+    assert len(snippet.content) == 1
+    block = snippet.content[0]
+    assert isinstance(block, ContextImageBlock)
+    assert block.caption == "A chart showing sales data"
+    assert block.image_data is not None
+    assert block.image_data.type == "base64"
+    assert block.image_data.mime_type == "image/jpeg"
+    assert block.image_data.data == "abc123=="
+
+
+def test_context_image_block_image_data_none_when_image_absent() -> None:
+    """ContextImageBlock.image_data is None when 'image' key is absent (binary content excluded)."""
+    from pinecone.models.assistant.context import ContextResponse
+
+    file_fixture = make_context_response()["snippets"][0]["reference"]["file"]
+    payload = json.dumps(
+        {
+            "snippets": [
+                {
+                    "type": "multimodal",
+                    "content": [
+                        {
+                            "type": "image",
+                            "caption": "A chart without binary content",
+                        }
+                    ],
+                    "score": 0.75,
+                    "reference": {"file": file_fixture},
+                }
+            ],
+            "usage": {"prompt_tokens": 5, "completion_tokens": 0, "total_tokens": 5},
+        }
+    ).encode()
+
+    result = msgspec.json.decode(payload, type=ContextResponse)
+
+    from pinecone.models.assistant.context import ContextImageBlock, MultimodalSnippet
+
+    snippet = result.snippets[0]
+    assert isinstance(snippet, MultimodalSnippet)
+    block = snippet.content[0]
+    assert isinstance(block, ContextImageBlock)
+    assert block.caption == "A chart without binary content"
+    assert block.image_data is None
+
+
 def test_assistant_model_decodes_without_timestamps() -> None:
     """AssistantModel decodes correctly when created_at and updated_at are absent; both are None."""
     payload = json.dumps({"name": "my-assistant", "status": "Ready"}).encode()
