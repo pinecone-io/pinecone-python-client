@@ -534,3 +534,128 @@ async def test_query_namespaces_euclidean_scores_ascending_rest_async(
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces include_values — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_query_namespaces_include_values_rest_async(async_client: AsyncPinecone) -> None:
+    """query_namespaces(include_values=True) returns vector values on each match;
+    omitting include_values leaves match.values as None (REST async).
+
+    Verifies:
+    - unified-vec-0023: Query results do not include vector values unless explicitly
+      requested — tested via the multi-namespace fan-out path.
+    - unified-vec-0016: Can query multiple namespaces and return a merged result set
+      with all optional fields populated when requested.
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # Upsert 2 vectors into each of 2 namespaces with known values
+        await idx.upsert(
+            vectors=[
+                {"id": "iva-ns1-v1", "values": [0.1, 0.2, 0.3]},
+                {"id": "iva-ns1-v2", "values": [0.4, 0.5, 0.6]},
+            ],
+            namespace="iva-ns1",
+        )
+        await idx.upsert(
+            vectors=[
+                {"id": "iva-ns2-v1", "values": [0.7, 0.8, 0.9]},
+                {"id": "iva-ns2-v2", "values": [0.2, 0.3, 0.4]},
+            ],
+            namespace="iva-ns2",
+        )
+
+        # Wait for all vectors to be queryable in both namespaces
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace="iva-ns1"),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="iva-ns1 vectors queryable before include_values test",
+        )
+        await async_poll_until(
+            query_fn=lambda: idx.query(vector=[0.1, 0.2, 0.3], top_k=10, namespace="iva-ns2"),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="iva-ns2 vectors queryable before include_values test",
+        )
+
+        # --- Part 1: include_values=True → values present on every match ---
+        results_with_values = await idx.query_namespaces(
+            vector=[0.1, 0.2, 0.3],
+            namespaces=["iva-ns1", "iva-ns2"],
+            metric="cosine",
+            top_k=4,
+            include_values=True,
+        )
+
+        assert isinstance(results_with_values, QueryNamespacesResults)
+        assert len(results_with_values.matches) >= 1, (
+            "Expected at least one match when include_values=True"
+        )
+
+        for match in results_with_values.matches:
+            assert isinstance(match, ScoredVector)
+            # values must be a non-empty list of floats when include_values=True
+            assert match.values is not None, (
+                f"match.values must not be None when include_values=True (id={match.id!r})"
+            )
+            assert isinstance(match.values, list), (
+                f"match.values must be a list, got {type(match.values)} (id={match.id!r})"
+            )
+            assert len(match.values) == 3, (
+                f"match.values length must equal index dimension 3, "
+                f"got {len(match.values)} (id={match.id!r})"
+            )
+            assert all(isinstance(v, float) for v in match.values), (
+                f"match.values elements must be floats (id={match.id!r}): {match.values}"
+            )
+            # metadata was not requested — must be None
+            assert match.metadata is None, (
+                f"match.metadata must be None when include_metadata not set (id={match.id!r})"
+            )
+
+        # --- Part 2: include_values omitted (default False) → values absent ---
+        results_no_values = await idx.query_namespaces(
+            vector=[0.1, 0.2, 0.3],
+            namespaces=["iva-ns1", "iva-ns2"],
+            metric="cosine",
+            top_k=4,
+        )
+
+        assert isinstance(results_no_values, QueryNamespacesResults)
+        assert len(results_no_values.matches) >= 1, (
+            "Expected at least one match when include_values not set"
+        )
+
+        for match in results_no_values.matches:
+            assert isinstance(match, ScoredVector)
+            # values must be empty list when include_values is not requested
+            # (ScoredVector defaults values to [] — not None — when the API omits the field)
+            assert match.values == [], (
+                f"match.values must be empty [] when include_values not requested (id={match.id!r}), "
+                f"got {match.values!r}"
+            )
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
