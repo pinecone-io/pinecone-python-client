@@ -3150,3 +3150,201 @@ def test_query_with_sparse_values_object_grpc(client: Pinecone) -> None:
 
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# update values preserves metadata — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_update_values_preserves_metadata_rest(client: Pinecone) -> None:
+    """update(id=..., values=...) on a vector with metadata preserves the metadata (REST sync).
+
+    Verifies unified-vec-0011 partial-update semantics: updating only the dense
+    values of a vector does not touch any metadata fields attached to the same vector.
+
+    The existing test_update_vectors_rest test upserts vectors without metadata,
+    so it cannot verify this invariant.  The existing test_update_metadata_rest
+    verifies the inverse (metadata merge semantics) but does not touch values.
+    This test covers the composition: values update + metadata preservation.
+
+    Area tag: update-partial
+    Transport: rest
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert a vector WITH metadata attached
+        index.upsert(
+            vectors=[
+                {
+                    "id": "uvpm-v1",
+                    "values": [0.1, 0.2],
+                    "metadata": {"genre": "comedy", "year": 2020},
+                }
+            ]
+        )
+
+        # Wait until the vector is fetchable and metadata is present
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["uvpm-v1"]),
+            check_fn=lambda r: (
+                "uvpm-v1" in r.vectors
+                and r.vectors["uvpm-v1"].metadata is not None
+                and r.vectors["uvpm-v1"].metadata.get("genre") == "comedy"
+            ),
+            timeout=120,
+            description="uvpm-v1 fetchable with metadata before values update",
+        )
+
+        # Update ONLY the values — no metadata argument supplied
+        update_resp = index.update(id="uvpm-v1", values=[0.9, 0.8])
+        assert isinstance(update_resp, UpdateResponse)
+
+        # Poll until the new values are reflected in fetch
+        def _values_updated() -> object:
+            r = index.fetch(ids=["uvpm-v1"])
+            if "uvpm-v1" not in r.vectors:
+                return None
+            vec = r.vectors["uvpm-v1"]
+            if not vec.values or abs(vec.values[0] - 0.9) > 1e-3:
+                return None
+            return r
+
+        updated = poll_until(
+            query_fn=_values_updated,
+            check_fn=lambda r: r is not None,
+            timeout=120,
+            description="uvpm-v1 values updated to [0.9, 0.8]",
+        )
+
+        vec = updated.vectors["uvpm-v1"]  # type: ignore[union-attr]
+
+        # Values must be updated
+        assert len(vec.values) == 2
+        assert abs(vec.values[0] - 0.9) < 1e-3, (
+            f"Expected values[0] ≈ 0.9 after update, got {vec.values[0]}"
+        )
+        assert abs(vec.values[1] - 0.8) < 1e-3, (
+            f"Expected values[1] ≈ 0.8 after update, got {vec.values[1]}"
+        )
+
+        # Metadata must be PRESERVED — update(values=...) is a partial update
+        assert vec.metadata is not None, (
+            "Metadata must not be None after updating only vector values"
+        )
+        assert vec.metadata.get("genre") == "comedy", (
+            f"Expected genre=='comedy' after values-only update, got {vec.metadata.get('genre')!r}"
+        )
+        assert vec.metadata.get("year") == 2020, (
+            f"Expected year==2020 after values-only update, got {vec.metadata.get('year')!r}"
+        )
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# update values preserves metadata — gRPC
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_update_values_preserves_metadata_grpc(client: Pinecone) -> None:
+    """update(id=..., values=...) on a vector with metadata preserves the metadata (gRPC).
+
+    Same semantics as test_update_values_preserves_metadata_rest — verifying that
+    the gRPC transport also implements partial-update semantics for vector values.
+
+    Area tag: update-partial
+    Transport: grpc
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name, grpc=True)
+
+        # Upsert a vector WITH metadata attached via gRPC
+        index.upsert(
+            vectors=[
+                {
+                    "id": "uvpmg-v1",
+                    "values": [0.1, 0.2],
+                    "metadata": {"genre": "action", "year": 2022},
+                }
+            ]
+        )
+
+        # Wait until the vector is fetchable with metadata
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["uvpmg-v1"]),
+            check_fn=lambda r: (
+                "uvpmg-v1" in r.vectors
+                and r.vectors["uvpmg-v1"].metadata is not None
+                and r.vectors["uvpmg-v1"].metadata.get("genre") == "action"
+            ),
+            timeout=120,
+            description="uvpmg-v1 fetchable with metadata before values update (gRPC)",
+        )
+
+        # Update ONLY the values via gRPC
+        update_resp = index.update(id="uvpmg-v1", values=[0.7, 0.3])
+        assert isinstance(update_resp, UpdateResponse)
+
+        # Poll until new values are reflected
+        def _values_updated_grpc() -> object:
+            r = index.fetch(ids=["uvpmg-v1"])
+            if "uvpmg-v1" not in r.vectors:
+                return None
+            vec = r.vectors["uvpmg-v1"]
+            if not vec.values or abs(vec.values[0] - 0.7) > 1e-3:
+                return None
+            return r
+
+        updated = poll_until(
+            query_fn=_values_updated_grpc,
+            check_fn=lambda r: r is not None,
+            timeout=120,
+            description="uvpmg-v1 values updated to [0.7, 0.3] (gRPC)",
+        )
+
+        vec = updated.vectors["uvpmg-v1"]  # type: ignore[union-attr]
+
+        # Values must be updated
+        assert abs(vec.values[0] - 0.7) < 1e-3, (
+            f"Expected values[0] ≈ 0.7 after gRPC update, got {vec.values[0]}"
+        )
+        assert abs(vec.values[1] - 0.3) < 1e-3, (
+            f"Expected values[1] ≈ 0.3 after gRPC update, got {vec.values[1]}"
+        )
+
+        # Metadata must be PRESERVED
+        assert vec.metadata is not None, (
+            "Metadata must not be None after gRPC values-only update"
+        )
+        assert vec.metadata.get("genre") == "action", (
+            f"Expected genre=='action' after gRPC values-only update, "
+            f"got {vec.metadata.get('genre')!r}"
+        )
+        assert vec.metadata.get("year") == 2022, (
+            f"Expected year==2022 after gRPC values-only update, "
+            f"got {vec.metadata.get('year')!r}"
+        )
+
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

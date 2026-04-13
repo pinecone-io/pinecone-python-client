@@ -2039,3 +2039,114 @@ async def test_query_with_sparse_values_object_async(async_client: AsyncPinecone
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# update values preserves metadata — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_update_values_preserves_metadata_rest_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """update(id=..., values=...) on a vector with metadata preserves the metadata (REST async).
+
+    Async variant of test_update_values_preserves_metadata_rest.  Verifies that
+    the AsyncIndex transport also implements partial-update semantics: updating
+    only the dense values leaves any attached metadata untouched.
+
+    Area tag: update-partial
+    Transport: rest-async
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        desc = await async_client.indexes.describe(name)
+        idx = async_client.index(host=desc.host)
+
+        # Upsert a vector WITH metadata attached
+        await idx.upsert(
+            vectors=[
+                {
+                    "id": "uvpma-v1",
+                    "values": [0.1, 0.2],
+                    "metadata": {"genre": "drama", "year": 2019},
+                }
+            ]
+        )
+
+        # Wait until the vector is fetchable with metadata
+        await async_poll_until(
+            query_fn=lambda: idx.fetch(ids=["uvpma-v1"]),
+            check_fn=lambda r: (
+                "uvpma-v1" in r.vectors
+                and r.vectors["uvpma-v1"].metadata is not None
+                and r.vectors["uvpma-v1"].metadata.get("genre") == "drama"
+            ),
+            timeout=120,
+            description="uvpma-v1 fetchable with metadata before values update (async)",
+        )
+
+        # Update ONLY the values — no metadata argument supplied
+        update_resp = await idx.update(id="uvpma-v1", values=[0.6, 0.4])
+        assert isinstance(update_resp, UpdateResponse)
+
+        # Poll until new values are reflected
+        async def _values_updated_async() -> object:
+            r = await idx.fetch(ids=["uvpma-v1"])  # type: ignore[union-attr]
+            if "uvpma-v1" not in r.vectors:
+                return None
+            vec = r.vectors["uvpma-v1"]
+            if not vec.values or abs(vec.values[0] - 0.6) > 1e-3:
+                return None
+            return r
+
+        updated = await async_poll_until(
+            query_fn=_values_updated_async,
+            check_fn=lambda r: r is not None,
+            timeout=120,
+            description="uvpma-v1 values updated to [0.6, 0.4] (async)",
+        )
+
+        vec = updated.vectors["uvpma-v1"]  # type: ignore[union-attr]
+
+        # Values must be updated
+        assert len(vec.values) == 2
+        assert abs(vec.values[0] - 0.6) < 1e-3, (
+            f"Expected values[0] ≈ 0.6 after async update, got {vec.values[0]}"
+        )
+        assert abs(vec.values[1] - 0.4) < 1e-3, (
+            f"Expected values[1] ≈ 0.4 after async update, got {vec.values[1]}"
+        )
+
+        # Metadata must be PRESERVED
+        assert vec.metadata is not None, (
+            "Metadata must not be None after async values-only update"
+        )
+        assert vec.metadata.get("genre") == "drama", (
+            f"Expected genre=='drama' after async values-only update, "
+            f"got {vec.metadata.get('genre')!r}"
+        )
+        assert vec.metadata.get("year") == 2019, (
+            f"Expected year==2019 after async values-only update, "
+            f"got {vec.metadata.get('year')!r}"
+        )
+
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
