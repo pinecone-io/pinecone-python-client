@@ -1768,3 +1768,57 @@ def test_create_namespace_error_paths_rest(client: Pinecone) -> None:
         if index is not None:
             cleanup_resource(lambda: index.delete_namespace(name=ns_name), ns_name, "namespace")
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# namespace creation with schema — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_create_namespace_with_schema_rest(client: Pinecone) -> None:
+    """create_namespace() accepts an optional schema dict and creates the namespace successfully.
+
+    Verifies:
+    - unified-ns-0001: Can create a named namespace, optionally providing a schema configuration.
+
+    The existing test_namespace_crud_lifecycle_rest only calls create_namespace(name=...) without
+    a schema parameter. This test exercises the schema= code path in the SDK: when schema is not
+    None, the SDK adds body["schema"] = schema to the POST /namespaces request. No integration test
+    previously exercised this path.
+    """
+    name = unique_name("idx")
+    ns_name = "schema-ns-alpha"
+    index = None
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Create a namespace with a schema specifying that "genre" is filterable
+        created = index.create_namespace(
+            name=ns_name,
+            schema={"fields": {"genre": {"filterable": True}}},
+        )
+
+        # Verify response type and structure
+        assert isinstance(created, NamespaceDescription)
+        assert created.name == ns_name
+        assert created.record_count == 0  # new namespace has no vectors
+
+        # describe_namespace returns the namespace as accessible (schema was accepted)
+        described = index.describe_namespace(name=ns_name)
+        assert isinstance(described, NamespaceDescription)
+        assert described.name == ns_name
+        assert isinstance(described.record_count, int)
+        assert described.record_count == 0
+
+    finally:
+        if index is not None:
+            cleanup_resource(lambda: index.delete_namespace(name=ns_name), ns_name, "namespace")
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

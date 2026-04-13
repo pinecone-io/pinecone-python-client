@@ -1134,3 +1134,63 @@ async def test_create_namespace_error_paths_async(async_client: AsyncPinecone) -
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# namespace creation with schema — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_create_namespace_with_schema_async(async_client: AsyncPinecone) -> None:
+    """create_namespace() accepts an optional schema dict and creates the namespace successfully (async).
+
+    Verifies:
+    - unified-ns-0001: Can create a named namespace, optionally providing a schema configuration.
+
+    Async transport parity for test_create_namespace_with_schema_rest.
+    The schema= path in the SDK sends body["schema"] = schema in the POST /namespaces request.
+    """
+    name = unique_name("idx")
+    ns_name = "schema-ns-beta"
+    idx = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        idx = async_client.index(name=name)
+
+        # Create a namespace with a schema specifying that "genre" is filterable
+        created = await idx.create_namespace(
+            name=ns_name,
+            schema={"fields": {"genre": {"filterable": True}}},
+        )
+
+        # Verify response type and structure
+        assert isinstance(created, NamespaceDescription)
+        assert created.name == ns_name
+        assert created.record_count == 0  # new namespace has no vectors
+
+        # describe_namespace returns the namespace as accessible (schema was accepted)
+        described = await idx.describe_namespace(name=ns_name)
+        assert isinstance(described, NamespaceDescription)
+        assert described.name == ns_name
+        assert isinstance(described.record_count, int)
+        assert described.record_count == 0
+
+    finally:
+        if idx is not None:
+            await async_cleanup_resource(
+                lambda: idx.delete_namespace(name=ns_name), ns_name, "namespace"
+            )
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
