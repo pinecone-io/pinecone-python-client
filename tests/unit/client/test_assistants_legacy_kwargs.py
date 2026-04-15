@@ -126,3 +126,28 @@ def test_delete_with_name_still_works(mock_assistants: Assistants) -> None:
     """The canonical name= parameter continues to work as before."""
     mock_assistants.delete(name="my-assistant", timeout=-1)
     mock_assistants._http.delete.assert_called_once_with("/assistants/my-assistant")  # type: ignore[attr-defined]
+
+
+def test_list_page_accepts_legacy_limit(mock_assistants: Assistants) -> None:
+    """limit= is accepted as a legacy alias for page_size= on list_page."""
+    from pinecone.models.assistant.list import ListAssistantsResponse
+
+    mock_assistants._adapter.to_assistant_list.return_value = ListAssistantsResponse(  # type: ignore[attr-defined]
+        assistants=[], next=None
+    )
+    mock_assistants.list_page(limit=5)
+    mock_assistants._http.get.assert_called_once_with(  # type: ignore[attr-defined]
+        "/assistants", params={"pageSize": 5}
+    )
+
+
+def test_list_page_rejects_both_limit_and_page_size(mock_assistants: Assistants) -> None:
+    """Passing both limit= and page_size= raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="both"):
+        mock_assistants.list_page(limit=5, page_size=5)
+
+
+def test_list_page_rejects_unknown(mock_assistants: Assistants) -> None:
+    """Passing an unrecognised kwarg raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="unexpected"):
+        mock_assistants.list_page(page_size=5, bogus=1)

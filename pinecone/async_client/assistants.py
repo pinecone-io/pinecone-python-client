@@ -328,6 +328,7 @@ class AsyncAssistants:
         *,
         page_size: int | None = None,
         pagination_token: str | None = None,
+        **kwargs: Any,
     ) -> ListAssistantsResponse:
         """List one page of assistants with explicit pagination control.
 
@@ -351,6 +352,25 @@ class AsyncAssistants:
             if page.next:
                 next_page = await pc.assistants.list_page(pagination_token=page.next)
         """
+        from pinecone._internal.kwargs_aliases import (
+            reject_unknown_kwargs,
+            remap_legacy_kwargs,
+        )
+
+        remapped = remap_legacy_kwargs(
+            kwargs,
+            aliases={"limit": "page_size"},
+            method_name="list_page",
+        )
+        reject_unknown_kwargs(remapped, allowed={"page_size"}, method_name="list_page")
+        if "page_size" in remapped:
+            if page_size is not None:
+                raise PineconeValueError(
+                    "list_page() received both 'limit' (legacy) and 'page_size'. "
+                    "Pass only one — prefer 'page_size'."
+                )
+            page_size = remapped["page_size"]
+
         params: dict[str, str | int] = {}
         if page_size is not None:
             params["pageSize"] = page_size
@@ -498,8 +518,7 @@ class AsyncAssistants:
             name = remapped["name"]
         if name is None:
             raise PineconeValueError(
-                "delete() missing required argument: 'name' "
-                "(or legacy alias 'assistant_name')."
+                "delete() missing required argument: 'name' (or legacy alias 'assistant_name')."
             )
 
         logger.info("Deleting assistant %r", name)
