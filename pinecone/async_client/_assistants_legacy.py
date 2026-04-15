@@ -84,6 +84,27 @@ class AsyncAssistantsLegacyNamespaceMixin:
             ),
         )
 
+    async def update_assistant(
+        self,
+        assistant_name: str | None = None,
+        instructions: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        *,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> AssistantModel:
+        """Deprecated alias for :meth:`AsyncAssistants.update`."""
+        resolved_name = assistant_name if assistant_name is not None else name
+        return cast(
+            "AssistantModel",
+            await self.update(  # type: ignore[attr-defined]
+                name=resolved_name,
+                instructions=instructions,
+                metadata=metadata,
+                **kwargs,
+            ),
+        )
+
     async def create_assistant(
         self,
         assistant_name: str | None = None,

@@ -191,3 +191,44 @@ def test_describe_assistant_legacy_forwards_to_describe(
 
     mock_assistants.describe_assistant(assistant_name="my-assistant")
     spy.assert_called_once_with(name="my-assistant")
+
+
+# ---------------------------------------------------------------------------
+# update_assistant shim tests
+# ---------------------------------------------------------------------------
+
+
+def test_update_assistant_legacy_method(mock_assistants: Assistants) -> None:
+    """update_assistant(assistant_name=...) delegates to update() and returns a model."""
+    result = mock_assistants.update_assistant(
+        assistant_name="foo",
+        instructions="be precise",
+        metadata={"k": "v"},
+    )
+    # Returns the canned fixture value from mock_assistants
+    assert result.name == "legacy-name"
+
+
+def test_update_assistant_legacy_positional_args(mock_assistants: Assistants) -> None:
+    """Legacy SDK supported positional: update_assistant("foo", "inst", {"k": "v"})."""
+    result = mock_assistants.update_assistant("foo", "be nice", {"k": "v"})
+    assert result.name == "legacy-name"
+
+
+def test_update_assistant_with_name_kwarg(mock_assistants: Assistants) -> None:
+    """update_assistant(name=...) accepts the current-style kwarg too."""
+    result = mock_assistants.update_assistant(name="bar", instructions="new instructions")
+    assert result.name == "legacy-name"
+
+
+def test_update_assistant_forwards_to_update(mock_assistants: Assistants) -> None:
+    """update_assistant() forwards assistant_name as name= to update()."""
+    spy = MagicMock(side_effect=mock_assistants.update)
+    mock_assistants.update = spy  # type: ignore[method-assign]
+
+    mock_assistants.update_assistant(
+        assistant_name="foo",
+        instructions="be precise",
+        metadata={"k": "v"},
+    )
+    spy.assert_called_once_with(name="foo", instructions="be precise", metadata={"k": "v"})
