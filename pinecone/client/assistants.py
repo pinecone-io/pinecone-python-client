@@ -798,9 +798,10 @@ class Assistants:
     def update(
         self,
         *,
-        name: str,
+        name: str | None = None,
         instructions: str | None = None,
         metadata: dict[str, Any] | None = None,
+        **kwargs: Any,
     ) -> AssistantModel:
         """Update an existing Pinecone assistant.
 
@@ -836,6 +837,29 @@ class Assistants:
             ...     metadata={"team": "ml", "version": "2"},
             ... )
         """
+        from pinecone._internal.kwargs_aliases import (
+            reject_unknown_kwargs,
+            remap_legacy_kwargs,
+        )
+
+        remapped = remap_legacy_kwargs(
+            kwargs,
+            aliases={"assistant_name": "name"},
+            method_name="update",
+        )
+        reject_unknown_kwargs(remapped, allowed={"name"}, method_name="update")
+        if "name" in remapped:
+            if name is not None:
+                raise PineconeValueError(
+                    "update() received both 'assistant_name' (legacy) and 'name'. "
+                    "Pass only one — prefer 'name'."
+                )
+            name = remapped["name"]
+        if name is None:
+            raise PineconeValueError(
+                "update() missing required argument: 'name' (or legacy alias 'assistant_name')."
+            )
+
         body: dict[str, Any] = {}
         if instructions is not None:
             body["instructions"] = instructions
