@@ -36,3 +36,33 @@ def test_create_with_name_still_works(mock_assistants: Assistants) -> None:
     """The canonical name= parameter continues to work as before."""
     result = mock_assistants.create(name="my-assistant")
     assert result.name == "legacy-name"  # canned response from fixture
+
+
+def test_describe_accepts_legacy_assistant_name(mock_assistants: Assistants) -> None:
+    """assistant_name= is accepted as a legacy alias for name= on describe."""
+    result = mock_assistants.describe(assistant_name="foo")
+    assert result.name == "legacy-name"  # canned response from fixture
+
+
+def test_describe_rejects_both(mock_assistants: Assistants) -> None:
+    """Passing both name= and assistant_name= raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="both"):
+        mock_assistants.describe(name="a", assistant_name="b")
+
+
+def test_describe_rejects_unknown(mock_assistants: Assistants) -> None:
+    """Passing an unrecognised kwarg raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="unexpected"):
+        mock_assistants.describe(name="foo", random_arg=1)
+
+
+def test_describe_missing_name_raises(mock_assistants: Assistants) -> None:
+    """Calling describe() without name or assistant_name raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="missing required"):
+        mock_assistants.describe()
+
+
+def test_describe_with_name_still_works(mock_assistants: Assistants) -> None:
+    """The canonical name= parameter continues to work as before."""
+    result = mock_assistants.describe(name="my-assistant")
+    assert result.name == "legacy-name"  # canned response from fixture

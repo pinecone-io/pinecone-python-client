@@ -238,7 +238,7 @@ class AsyncAssistants:
 
         return await self._poll_until_ready(name, timeout)
 
-    async def describe(self, *, name: str) -> AssistantModel:
+    async def describe(self, *, name: str | None = None, **kwargs: Any) -> AssistantModel:
         """Get detailed information about a named assistant.
 
         Args:
@@ -257,6 +257,29 @@ class AsyncAssistants:
             assistant = await pc.assistants.describe(name="my-assistant")
             print(assistant.status)
         """
+        from pinecone._internal.kwargs_aliases import (
+            reject_unknown_kwargs,
+            remap_legacy_kwargs,
+        )
+
+        remapped = remap_legacy_kwargs(
+            kwargs,
+            aliases={"assistant_name": "name"},
+            method_name="describe",
+        )
+        reject_unknown_kwargs(remapped, allowed={"name"}, method_name="describe")
+        if "name" in remapped:
+            if name is not None:
+                raise PineconeValueError(
+                    "describe() received both 'assistant_name' (legacy) and 'name'. "
+                    "Pass only one — prefer 'name'."
+                )
+            name = remapped["name"]
+        if name is None:
+            raise PineconeValueError(
+                "describe() missing required argument: 'name' (or legacy alias 'assistant_name')."
+            )
+
         logger.info("Describing assistant %r", name)
         response = await self._http.get(f"/assistants/{name}")
         model = self._adapter.to_assistant(response.content)
