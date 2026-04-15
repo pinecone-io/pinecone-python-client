@@ -133,3 +133,15 @@ class AsyncAssistantsLegacyNamespaceMixin:
                 **kwargs,
             ),
         )
+
+    async def delete_assistant(
+        self,
+        assistant_name: str | None = None,
+        timeout: int | None = None,
+        *,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """Deprecated alias for :meth:`AsyncAssistants.delete`."""
+        resolved_name = assistant_name if assistant_name is not None else name
+        await self.delete(name=resolved_name, timeout=timeout, **kwargs)  # type: ignore[attr-defined]

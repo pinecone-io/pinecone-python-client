@@ -232,3 +232,44 @@ def test_update_assistant_forwards_to_update(mock_assistants: Assistants) -> Non
         metadata={"k": "v"},
     )
     spy.assert_called_once_with(name="foo", instructions="be precise", metadata={"k": "v"})
+
+
+# ---------------------------------------------------------------------------
+# delete_assistant shim tests
+# ---------------------------------------------------------------------------
+
+
+def test_delete_assistant_legacy_method(mock_assistants: Assistants) -> None:
+    """delete_assistant(assistant_name=...) delegates to delete()."""
+    spy = MagicMock()
+    mock_assistants.delete = spy  # type: ignore[method-assign]
+
+    mock_assistants.delete_assistant(assistant_name="foo", timeout=30)
+    spy.assert_called_once_with(name="foo", timeout=30)
+
+
+def test_delete_assistant_legacy_positional(mock_assistants: Assistants) -> None:
+    """delete_assistant("foo", 30) using positional legacy-style call."""
+    spy = MagicMock()
+    mock_assistants.delete = spy  # type: ignore[method-assign]
+
+    mock_assistants.delete_assistant("foo", 30)
+    spy.assert_called_once_with(name="foo", timeout=30)
+
+
+def test_delete_assistant_with_name_kwarg(mock_assistants: Assistants) -> None:
+    """delete_assistant(name=...) accepts the current-style kwarg."""
+    spy = MagicMock()
+    mock_assistants.delete = spy  # type: ignore[method-assign]
+
+    mock_assistants.delete_assistant(name="bar")
+    spy.assert_called_once_with(name="bar", timeout=None)
+
+
+def test_delete_assistant_no_timeout(mock_assistants: Assistants) -> None:
+    """delete_assistant() without timeout passes timeout=None to delete()."""
+    spy = MagicMock()
+    mock_assistants.delete = spy  # type: ignore[method-assign]
+
+    mock_assistants.delete_assistant(assistant_name="baz")
+    spy.assert_called_once_with(name="baz", timeout=None)
