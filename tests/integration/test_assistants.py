@@ -2156,6 +2156,144 @@ def test_assistants_list_page_response_structure_rest(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
+# pagination next token wire-format investigation — next vs next_token
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_pagination_next_token_populated(client: Pinecone) -> None:
+    """Verify which JSON key carries the pagination token in list responses.
+
+    Creates 3 assistants and requests page_size=2 to force a second page.
+    Inspects the raw API response to determine whether the wire format uses
+    ``"next"`` or ``"next_token"`` as the pagination key, and asserts that
+    the SDK's ``next`` field is populated when more pages exist.
+
+    Investigation goal: confirm whether rename={"next": "next_token"} is needed
+    in ListAssistantsResponse or ListFilesResponse.
+
+    Also verifies that the backwards-compatibility ``next_token`` property alias
+    returns the same value as ``next``.
+    """
+    import json as _json
+
+    from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
+
+    names: list[str] = []
+    try:
+        # Create 3 assistants so a page_size=2 request has a second page
+        for i in range(3):
+            n = unique_name(f"pag{i}")
+            client.assistants.create(name=n, instructions="Pagination wire-format test.")
+            names.append(n)
+
+        for n in names:
+            wait_for_ready(
+                lambda n=n: client.assistants.describe(name=n).status == "Ready",
+                timeout=120,
+                interval=5,
+                description=f"assistant {n}",
+            )
+
+        # --- SDK call ---
+        page = client.assistants.list_page(page_size=2)
+        assert isinstance(page, ListAssistantsResponse)
+
+        # --- Raw HTTP inspection to verify wire-format key ---
+        raw_response = client.assistants._http.get("/assistants", params={"pageSize": 2})
+        raw_body = _json.loads(raw_response.content)
+
+        has_flat_next = "next" in raw_body
+        has_flat_next_token = "next_token" in raw_body
+        has_nested_pagination = "pagination" in raw_body and isinstance(
+            raw_body.get("pagination"), dict
+        )
+
+        # Log findings — the raw_body keys reveal the wire-format shape
+        # Expected shapes: {"assistants": [...], "next": "..."}
+        #                  {"assistants": [...], "next_token": "..."}
+        #                  {"assistants": [...], "pagination": {"next": "..."}}
+        _ = (has_flat_next, has_flat_next_token, has_nested_pagination)  # prevent unused-var lint
+
+        # If there are enough assistants for a second page, next must be populated
+        if len(page.assistants) == 2:
+            # A second page likely exists — verify that the SDK reads it correctly
+            if has_flat_next and raw_body.get("next"):
+                assert page.next == raw_body["next"], (
+                    f"SDK next={page.next!r} does not match raw next={raw_body['next']!r}"
+                )
+                assert isinstance(page.next, str)
+                assert len(page.next) > 0, "page.next must be non-empty when more pages exist"
+            elif has_flat_next_token and raw_body.get("next_token"):
+                # Wire format uses next_token — the rename mapping is needed
+                raise AssertionError(
+                    f"Wire format uses 'next_token' (value={raw_body['next_token']!r}), "
+                    "but the SDK model reads 'next'. Add rename={{\"next\": \"next_token\"}} "
+                    "to ListAssistantsResponse to fix pagination."
+                )
+            elif has_nested_pagination and raw_body["pagination"].get("next"):
+                raise AssertionError(
+                    "Wire format uses nested 'pagination.next' "
+                    f"(value={raw_body['pagination']['next']!r}), "
+                    "but the SDK model has a flat 'next' field. "
+                    "Update ListAssistantsResponse to decode the nested structure."
+                )
+
+        # backwards-compat alias must mirror next regardless of pagination state
+        assert page.next_token == page.next, (
+            f"next_token alias mismatch: next_token={page.next_token!r}, next={page.next!r}"
+        )
+
+        # --- List files: verify next_token alias on ListFilesResponse ---
+        # Create an assistant with two files to check files pagination
+        asst_name = unique_name("pagfiles")
+        file_ids: list[str] = []
+        try:
+            client.assistants.create(name=asst_name, instructions="Files pagination test.")
+            wait_for_ready(
+                lambda: client.assistants.describe(name=asst_name).status == "Ready",
+                timeout=120,
+                interval=5,
+                description=f"assistant {asst_name}",
+            )
+            for idx in range(2):
+                f = client.assistants.upload_file(
+                    assistant_name=asst_name,
+                    file_stream=io.BytesIO(f"Wire format test file {idx}".encode()),
+                    file_name=f"test_{idx}.txt",
+                    timeout=120,
+                )
+                file_ids.append(f.id)
+
+            files_page = client.assistants.list_files_page(assistant_name=asst_name)
+            assert isinstance(files_page, ListFilesResponse)
+            assert files_page.next_token == files_page.next, (
+                f"ListFilesResponse.next_token alias mismatch: "
+                f"next_token={files_page.next_token!r}, next={files_page.next!r}"
+            )
+        finally:
+            for fid in file_ids:
+                with contextlib.suppress(Exception):
+                    client.assistants.delete_file(
+                        assistant_name=asst_name, file_id=fid, timeout=30
+                    )
+            cleanup_resource(
+                lambda: client.assistants.delete(name=asst_name, timeout=60),
+                asst_name,
+                "assistant",
+            )
+
+    finally:
+        for n in names:
+            cleanup_resource(
+                lambda n=n: client.assistants.delete(name=n, timeout=60),
+                n,
+                "assistant",
+            )
+
+
+# ---------------------------------------------------------------------------
 # upload_file with caller-specified file_id — upsert behavior — REST sync
 # ---------------------------------------------------------------------------
 

@@ -20,6 +20,11 @@ class ListAssistantsResponse(Struct, kw_only=True):
     assistants: list[AssistantModel]
     next: str | None = None
 
+    @property
+    def next_token(self) -> str | None:
+        """Backwards-compatibility alias for :attr:`next`."""
+        return self.next
+
 
 class ListFilesResponse(Struct, kw_only=True):
     """Paginated response for listing assistant files.
@@ -32,3 +37,8 @@ class ListFilesResponse(Struct, kw_only=True):
 
     files: list[AssistantFileModel]
     next: str | None = None
+
+    @property
+    def next_token(self) -> str | None:
+        """Backwards-compatibility alias for :attr:`next`."""
+        return self.next
