@@ -143,10 +143,14 @@ class IndexInitFailedError(PineconeError):
         self.index_name = index_name
 
 
-class PineconeTimeoutError(PineconeError):
-    """Raised when an operation exceeds its timeout."""
+class PineconeTimeoutError(PineconeError, TimeoutError):
+    """Raised when an operation exceeds its timeout.
 
-    pass
+    Multiply inherits from Python's built-in :class:`TimeoutError` so that
+    ``except TimeoutError`` blocks in caller code catch SDK timeouts without
+    having to import a Pinecone-specific class. This is the same pattern used
+    by :class:`PineconeValueError` (extends :class:`ValueError`).
+    """
 
 
 class PineconeConnectionError(PineconeError):
