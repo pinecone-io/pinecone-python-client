@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from pinecone._internal.kwargs_aliases import (

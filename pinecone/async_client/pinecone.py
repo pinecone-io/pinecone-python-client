@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from pinecone.async_client.indexes import AsyncIndexes
     from pinecone.async_client.inference import AsyncInference
     from pinecone.async_client.restore_jobs import AsyncRestoreJobs
-    from pinecone.models.assistant.model import AssistantModel
+    from pinecone.client._assistant_namespace_proxy import _AsyncAssistantNamespaceProxy
     from pinecone.models.enums import DeletionProtection
     from pinecone.models.indexes.index import IndexModel
 
@@ -205,26 +205,20 @@ class AsyncPinecone:
             self._assistants = _AsyncAssistants(config=self._config)
         return self._assistants
 
-    async def assistant(self, name: str) -> AssistantModel:
-        """Convenience method to describe a single assistant by name.
+    @property
+    def assistant(self) -> _AsyncAssistantNamespaceProxy:
+        """Deprecated alias for :attr:`AsyncPinecone.assistants`.
 
-        This is a shorthand for ``await pc.assistants.describe(name=name)``.
+        Returns a proxy that supports both namespace-style access
+        (``pc.assistant.create_assistant(...)``) and the convenience call form
+        (``await pc.assistant("my-name")`` — shortcut for
+        ``await pc.assistants.describe(name="my-name")``).
 
-        Args:
-            name (str): The name of the assistant to describe.
-
-        Returns:
-            :class:`AssistantModel` describing the assistant.
-
-        Raises:
-            :exc:`ApiError`: If the API returns an error response (e.g. 404
-                when the assistant does not exist).
-
-        Examples:
-
-            assistant = await pc.assistant("my-assistant")
+        Prefer :attr:`AsyncPinecone.assistants` in new code.
         """
-        return await self.assistants.describe(name=name)
+        from pinecone.client._assistant_namespace_proxy import _AsyncAssistantNamespaceProxy
+
+        return _AsyncAssistantNamespaceProxy(self.assistants)
 
     @property
     def backups(self) -> AsyncBackups:

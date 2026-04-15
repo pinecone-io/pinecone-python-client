@@ -12,6 +12,7 @@ from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import ValidationError
 
 if TYPE_CHECKING:
+    from pinecone.client._assistant_namespace_proxy import _AssistantNamespaceProxy
     from pinecone.client.assistants import Assistants
     from pinecone.client.backups import Backups
     from pinecone.client.collections import Collections
@@ -20,7 +21,6 @@ if TYPE_CHECKING:
     from pinecone.client.restore_jobs import RestoreJobs
     from pinecone.grpc import GrpcIndex
     from pinecone.index import Index
-    from pinecone.models.assistant.model import AssistantModel
     from pinecone.models.enums import DeletionProtection
     from pinecone.models.indexes.index import IndexModel
 
@@ -246,29 +246,20 @@ class Pinecone:
             self._assistants = _Assistants(config=self._config)
         return self._assistants
 
-    def assistant(self, name: str) -> AssistantModel:
-        """Convenience method to retrieve an existing assistant by name.
+    @property
+    def assistant(self) -> _AssistantNamespaceProxy:
+        """Deprecated alias for :attr:`Pinecone.assistants`.
 
-        This is a shorthand for ``pc.assistants.describe(name=name)``.
+        Returns a proxy that supports both namespace-style access
+        (``pc.assistant.create_assistant(...)``) and the convenience call form
+        (``pc.assistant("my-name")`` — shortcut for
+        ``pc.assistants.describe(name="my-name")``).
 
-        Args:
-            name (str): The name of the assistant to retrieve.
-
-        Returns:
-            :class:`AssistantModel` describing the assistant.
-
-        Raises:
-            :exc:`ApiError`: If the API returns an error response (e.g. 404
-                when the assistant does not exist).
-
-        Examples:
-
-            >>> from pinecone import Pinecone
-            >>> pc = Pinecone(api_key="your-api-key")
-            >>> assistant = pc.assistant("research-assistant")
-            >>> print(assistant.status)
+        Prefer :attr:`Pinecone.assistants` in new code.
         """
-        return self.assistants.describe(name=name)
+        from pinecone.client._assistant_namespace_proxy import _AssistantNamespaceProxy
+
+        return _AssistantNamespaceProxy(self.assistants)
 
     def index(
         self,

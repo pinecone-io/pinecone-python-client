@@ -56,8 +56,7 @@ def remap_legacy_kwargs(
                 )
             if canonical in seen_canonical:
                 raise PineconeValueError(
-                    f"{method_name}() received multiple legacy aliases that "
-                    f"map to {canonical!r}."
+                    f"{method_name}() received multiple legacy aliases that map to {canonical!r}."
                 )
             result[canonical] = value
             seen_canonical.add(canonical)

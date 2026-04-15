@@ -148,7 +148,9 @@ class TestUpsertRecords:
         idx = _make_index()
         result = idx.upsert_records(
             namespace="test-ns",
-            records=[{"_id": "underscore-id-wins", "id": "plain-id-loses", "text": "both keys test"}],
+            records=[
+                {"_id": "underscore-id-wins", "id": "plain-id-loses", "text": "both keys test"}
+            ],
         )
 
         assert result.record_count == 1

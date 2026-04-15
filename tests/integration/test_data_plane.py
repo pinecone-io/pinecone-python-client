@@ -1898,3 +1898,87 @@ def test_describe_namespace_record_count_updates_after_upsert_rest(client: Pinec
         if index is not None:
             cleanup_resource(lambda: index.delete_namespace(name=ns_name), ns_name, "namespace")
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# list_namespaces multi-page pagination — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_list_namespaces_multi_page_pagination_rest(client: Pinecone) -> None:
+    """list_namespaces_paginated() with limit=1 forces multi-page results; intermediate
+    pages carry a non-None pagination token; the final page has no token.
+
+    Verifies claims:
+    - unified-ns-0008: Namespace list response omits the pagination token on the final page.
+    - unified-ns-0005: Can list all namespaces with optional prefix filtering and pagination.
+    """
+    name = unique_name("idx")
+    prefix = "mpns-"
+    ns_names = ["mpns-a", "mpns-b", "mpns-c"]
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert one vector per namespace to create them implicitly
+        for i, ns in enumerate(ns_names):
+            index.upsert(
+                vectors=[{"id": f"mpns-v{i}", "values": [0.1 * (i + 1), 0.2 * (i + 1)]}],
+                namespace=ns,
+            )
+
+        # Wait until all 3 namespaces appear (eventual consistency)
+        poll_until(
+            query_fn=lambda: index.list_namespaces_paginated(prefix=prefix, limit=100),
+            check_fn=lambda r: len(r.namespaces) >= 3,
+            timeout=120,
+            description="all 3 mpns-* namespaces visible via list_namespaces_paginated",
+        )
+
+        # Traverse pages manually with limit=1 (forces ≥3 pages for 3 namespaces)
+        collected_names: list[str] = []
+        token: str | None = None
+        pages_seen = 0
+
+        while True:
+            page = index.list_namespaces_paginated(
+                prefix=prefix, limit=1, pagination_token=token
+            )
+            assert isinstance(page, ListNamespacesResponse)
+            assert len(page.namespaces) <= 1  # limit is respected per page
+
+            for ns in page.namespaces:
+                assert isinstance(ns, NamespaceDescription)
+                assert isinstance(ns.name, str)
+                assert isinstance(ns.record_count, int)
+                collected_names.append(ns.name)
+
+            pages_seen += 1
+
+            if page.pagination is not None and page.pagination.next is not None:
+                # Intermediate page — token must be a non-empty string
+                assert isinstance(page.pagination.next, str)
+                assert len(page.pagination.next) > 0
+                token = page.pagination.next
+            else:
+                # Final page — no token (unified-ns-0008)
+                break
+
+        # All 3 namespaces found across pages
+        for ns in ns_names:
+            assert ns in collected_names, (
+                f"Expected {ns!r} in paginated results; got {collected_names}"
+            )
+        # At least 3 pages (one per namespace with limit=1)
+        assert pages_seen >= 3, (
+            f"Expected >=3 pages with limit=1 and 3 namespaces; saw {pages_seen}"
+        )
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

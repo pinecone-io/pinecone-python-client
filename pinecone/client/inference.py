@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from functools import cached_property
 from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.inference_adapter import (
@@ -22,6 +23,37 @@ if TYPE_CHECKING:
     from pinecone.models.inference.rerank import RerankResult
 
 logger = logging.getLogger(__name__)
+
+_DEFAULT_RANK_FIELDS: list[str] = ["text"]
+
+
+class ModelResource:
+    """Lazily-initialized resource for listing and getting inference model info.
+
+    Accessed via ``pc.inference.model``.
+    """
+
+    def __init__(self, inference: Inference) -> None:
+        self._inference = inference
+
+    def list(
+        self,
+        *,
+        type: str | None = None,
+        vector_type: str | None = None,
+    ) -> ModelInfoList:
+        """List available inference models.
+
+        Delegates to :meth:`~Inference.list_models`.
+        """
+        return self._inference.list_models(type=type, vector_type=vector_type)
+
+    def get(self, model_name: str) -> ModelInfo:
+        """Get detailed information about a specific model.
+
+        Delegates to :meth:`~Inference.get_model`.
+        """
+        return self._inference.get_model(model_name=model_name)
 
 
 class Inference:
@@ -61,6 +93,11 @@ class Inference:
     def __repr__(self) -> str:
         """Return developer-friendly representation."""
         return "Inference()"
+
+    @cached_property
+    def model(self) -> ModelResource:
+        """Lazily-initialized resource for listing and getting model info."""
+        return ModelResource(self)
 
     def embed(
         self,
@@ -136,7 +173,7 @@ class Inference:
         model: _enums.RerankModel | str,
         query: str,
         documents: list[str] | list[dict[str, Any]],
-        rank_fields: list[str] | None = None,
+        rank_fields: list[str] = _DEFAULT_RANK_FIELDS,
         return_documents: bool = True,
         top_n: int | None = None,
         parameters: dict[str, Any] | None = None,
@@ -148,7 +185,7 @@ class Inference:
             query (str): Query text to rank against.
             documents (list[str] | list[dict[str, Any]]): Documents to rank.
                 Strings are auto-wrapped as ``{"text": ...}``.
-            rank_fields (list[str] | None): Document fields to rank on.
+            rank_fields (list[str]): Document fields to rank on.
                 Defaults to ``["text"]``.
             return_documents (bool): Include document text in response.
                 Defaults to ``True``.
@@ -158,7 +195,7 @@ class Inference:
                 To discover valid parameters for a model, call
                 :meth:`get_model`::
 
-                    pc.inference.get_model(model="bge-reranker-v2-m3").supported_parameters
+                    pc.inference.get_model(model_name="bge-reranker-v2-m3").supported_parameters
 
         Returns:
             A :class:`RerankResult` with ``.data`` and ``.usage``.
@@ -186,7 +223,6 @@ class Inference:
         require_non_empty("model", str(model))
         require_non_empty("query", query)
         normalized_docs = normalize_rerank_documents(documents)
-        rank_fields = rank_fields if rank_fields is not None else ["text"]
 
         body: dict[str, Any] = {
             "model": str(model),
@@ -262,18 +298,18 @@ class Inference:
     def get_model(
         self,
         *,
-        model: str,
+        model_name: str,
     ) -> ModelInfo:
         """Get detailed information about a specific model.
 
         Args:
-            model (str): The model identifier to look up.
+            model_name (str): The model identifier to look up.
 
         Returns:
             A :class:`ModelInfo` with full model details.
 
         Raises:
-            :exc:`PineconeValueError`: If *model* is empty.
+            :exc:`PineconeValueError`: If *model_name* is empty.
             :exc:`NotFoundError`: If the model does not exist.
             :exc:`ApiError`: If the API returns another error response.
             :exc:`PineconeConnectionError`: If a network-level connection
@@ -283,13 +319,13 @@ class Inference:
         Examples:
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
-            >>> model = pc.inference.get_model(model="multilingual-e5-large")
+            >>> model = pc.inference.get_model(model_name="multilingual-e5-large")
             >>> model.type
             'embed'
         """
-        require_non_empty("model", model)
-        logger.info("Describing model %r", model)
-        response = self._http.get(f"/models/{model}")
+        require_non_empty("model_name", model_name)
+        logger.info("Describing model %r", model_name)
+        response = self._http.get(f"/models/{model_name}")
         result = self._adapter.to_model_info(response.content)
-        logger.debug("Described model %r", model)
+        logger.debug("Described model %r", model_name)
         return result

@@ -8,6 +8,7 @@ imports working. New code should use
 
 :meta private:
 """
+
 from __future__ import annotations
 
 from pinecone.admin.projects import Projects as ProjectResource

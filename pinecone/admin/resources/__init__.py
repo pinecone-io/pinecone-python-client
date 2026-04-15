@@ -6,6 +6,7 @@ import from the canonical modules directly.
 
 :meta private:
 """
+
 from __future__ import annotations
 
 from pinecone.admin.resources.api_key import ApiKeyResource
