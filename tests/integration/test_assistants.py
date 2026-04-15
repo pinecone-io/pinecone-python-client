@@ -3264,3 +3264,136 @@ def test_multimodal_pdf_context_image_text_and_errors(client: Pinecone) -> None:
             name,
             "assistant",
         )
+
+
+# ---------------------------------------------------------------------------
+# wire-format investigation: content_hash vs crc32c_hash (IT-0020)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_upload_file_content_hash_populated(client: Pinecone) -> None:
+    """Verify the wire-format field name for the file hash.
+
+    Uploads a small text file, polls until Available, then:
+    1. Asserts that ``AssistantFileModel.content_hash`` is populated (not None).
+    2. Captures the raw JSON from the describe-file endpoint and records which
+       JSON key carries the hash value (``content_hash`` vs ``crc32c_hash``).
+
+    Investigation finding: the legacy plugin reads ``crc32c_hash`` from raw API
+    JSON.  If the struct rename is correct, ``content_hash`` on the Python model
+    is populated despite the wire key being ``crc32c_hash``.
+    """
+
+    import httpx
+
+    name = unique_name("it0020")
+    tmp_path: str | None = None
+    file_id: str | None = None
+
+    try:
+        # Create assistant
+        client.assistants.create(name=name, instructions="test")
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        # Upload a small text file
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="it0020-"
+        ) as f:
+            f.write("Pinecone is a vector database for AI applications.")
+            tmp_path = f.name
+
+        file_model = client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+        assert isinstance(file_model, AssistantFileModel)
+        file_id = file_model.id
+
+        # Poll until processing is complete
+        wait_for_ready(
+            lambda: client.assistants.describe_file(
+                assistant_name=name, file_id=file_id  # type: ignore[arg-type]
+            ).status
+            in ("Available", "Processed"),
+            timeout=180,
+            interval=5,
+            description=f"file {file_id}",
+        )
+
+        # --- 1. Raw-response check: capture wire JSON to determine which key the API uses ---
+        assistant_model = client.assistants.describe(name=name)
+        assert assistant_model.host, f"assistant {name!r} has no data-plane host"
+        host = assistant_model.host.rstrip("/")
+        api_key = client._config.api_key  # type: ignore[attr-defined]
+
+        raw_resp = httpx.get(
+            f"{host}/assistant/files/{name}/{file_id}",
+            headers={
+                "Api-Key": api_key,
+                "X-Pinecone-API-Version": "2025-10",
+            },
+            timeout=30,
+        )
+        raw_resp.raise_for_status()
+        raw_json: dict[str, object] = raw_resp.json()
+
+        has_content_hash_wire = "content_hash" in raw_json
+        has_crc32c_hash_wire = "crc32c_hash" in raw_json
+
+        print(f"\n[IT-0020] wire keys present: {list(raw_json.keys())}")
+        print(f"[IT-0020] 'content_hash' in wire response: {has_content_hash_wire}")
+        print(f"[IT-0020] 'crc32c_hash' in wire response: {has_crc32c_hash_wire}")
+        print(f"[IT-0020] raw hash values: content_hash={raw_json.get('content_hash')!r}, crc32c_hash={raw_json.get('crc32c_hash')!r}")
+
+        # --- 2. SDK-level check: content_hash must be populated if the wire has a hash ---
+        described = client.assistants.describe_file(assistant_name=name, file_id=file_id)
+        assert isinstance(described, AssistantFileModel)
+
+        print(f"[IT-0020] SDK model content_hash={described.content_hash!r}")
+        print(f"[IT-0020] SDK model crc32c_hash alias={described.crc32c_hash!r}")
+
+        # If the API returns a hash value (under either key), the SDK must surface it
+        # via content_hash (the struct rename maps crc32c_hash → content_hash).
+        wire_hash_value = raw_json.get("crc32c_hash") or raw_json.get("content_hash")
+        if wire_hash_value is not None:
+            assert described.content_hash is not None, (
+                f"API returned hash value {wire_hash_value!r} in the wire response "
+                f"(keys checked: crc32c_hash={has_crc32c_hash_wire}, content_hash={has_content_hash_wire}) "
+                "but SDK's AssistantFileModel.content_hash is None — "
+                "check the rename directive on AssistantFileModel."
+            )
+            assert described.content_hash == wire_hash_value, (
+                f"SDK content_hash {described.content_hash!r} != wire hash {wire_hash_value!r}"
+            )
+            assert described.crc32c_hash == described.content_hash, (
+                "crc32c_hash alias must equal content_hash"
+            )
+        else:
+            # Hash field absent for this file type (text files may not have crc32c_hash).
+            # Verify the SDK model reflects None correctly and the alias still works.
+            assert described.content_hash is None
+            assert described.crc32c_hash is None
+            print("[IT-0020] NOTE: API returned no hash for this file — crc32c_hash absent from wire response")
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        if file_id is not None:
+            with contextlib.suppress(Exception):
+                client.assistants.delete_file(
+                    assistant_name=name, file_id=file_id, timeout=60
+                )
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )

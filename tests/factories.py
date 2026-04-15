@@ -328,7 +328,12 @@ def make_assistant_response(**overrides: Any) -> dict[str, Any]:
 
 
 def make_assistant_file_response(**overrides: Any) -> dict[str, Any]:
-    """Return a single AssistantFileModel dict (assistant_data ``POST /files/{name}``)."""
+    """Return a single AssistantFileModel dict (assistant_data ``POST /files/{name}``).
+
+    The wire key for the file hash is ``crc32c_hash`` (not ``content_hash``).
+    The SDK struct maps this to the Python attribute ``content_hash`` via a
+    ``rename={"content_hash": "crc32c_hash"}`` directive on ``AssistantFileModel``.
+    """
     base: dict[str, Any] = {
         "name": "test-file.pdf",
         "id": "file-abc123",
@@ -339,7 +344,7 @@ def make_assistant_file_response(**overrides: Any) -> dict[str, Any]:
         "size": 1024,
         "multimodal": False,
         "signed_url": None,
-        "content_hash": None,
+        "crc32c_hash": None,
         "percent_done": None,
         "error_message": None,
     }
