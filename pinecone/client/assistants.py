@@ -566,11 +566,12 @@ class Assistants:
     def create(
         self,
         *,
-        name: str,
+        name: str | None = None,
         instructions: str | None = None,
         metadata: dict[str, Any] | None = None,
         region: str = "us",
         timeout: float | None = None,
+        **kwargs: Any,
     ) -> AssistantModel:
         """Create a new Pinecone assistant.
 
@@ -619,6 +620,29 @@ class Assistants:
             ...     region="eu",
             ... )
         """
+        from pinecone._internal.kwargs_aliases import (
+            reject_unknown_kwargs,
+            remap_legacy_kwargs,
+        )
+
+        remapped = remap_legacy_kwargs(
+            kwargs,
+            aliases={"assistant_name": "name"},
+            method_name="create",
+        )
+        reject_unknown_kwargs(remapped, allowed={"name"}, method_name="create")
+        if "name" in remapped:
+            if name is not None:
+                raise PineconeValueError(
+                    "create() received both 'assistant_name' (legacy) and 'name'. "
+                    "Pass only one — prefer 'name'."
+                )
+            name = remapped["name"]
+        if name is None:
+            raise PineconeValueError(
+                "create() missing required argument: 'name' (or legacy alias 'assistant_name')."
+            )
+
         if region not in _VALID_REGIONS:
             raise PineconeValueError(f"region must be one of {_VALID_REGIONS!r}, got {region!r}")
 
