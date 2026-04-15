@@ -24,6 +24,31 @@ class AssistantsLegacyNamespaceMixin:
     ``create_assistant`` and parameter names like ``assistant_name``.
     """
 
+    def describe_assistant(
+        self,
+        assistant_name: str | None = None,
+        *,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> AssistantModel:
+        """Deprecated alias for :meth:`Assistants.describe`.
+
+        Accepts ``assistant_name`` (legacy) or ``name`` (current), but not both.
+        """
+        if assistant_name is not None and name is not None:
+            raise TypeError(
+                "describe_assistant() received both 'assistant_name' (legacy) and 'name'. "
+                "Pass only one — prefer 'name'."
+            )
+        resolved_name = assistant_name if assistant_name is not None else name
+        return cast(
+            "AssistantModel",
+            self.describe(  # type: ignore[attr-defined]
+                name=resolved_name,
+                **kwargs,
+            ),
+        )
+
     def create_assistant(
         self,
         assistant_name: str | None = None,

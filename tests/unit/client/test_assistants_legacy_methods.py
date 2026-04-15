@@ -1,4 +1,4 @@
-"""Unit tests for AssistantsLegacyNamespaceMixin.create_assistant."""
+"""Unit tests for AssistantsLegacyNamespaceMixin shim methods."""
 
 from __future__ import annotations
 
@@ -58,3 +58,38 @@ def test_create_assistant_no_name_propagates_error(
 
     with pytest.raises(PineconeValueError, match="missing required"):
         mock_assistants.create_assistant()
+
+
+# ---------------------------------------------------------------------------
+# describe_assistant shim tests
+# ---------------------------------------------------------------------------
+
+
+def test_describe_assistant_legacy_method(mock_assistants: Assistants) -> None:
+    """describe_assistant(assistant_name=...) delegates to describe() and returns a model."""
+    result = mock_assistants.describe_assistant(assistant_name="foo")
+    # Returns the canned fixture value from mock_assistants
+    assert result.name == "legacy-name"
+
+
+def test_describe_assistant_legacy_with_name_kwarg(mock_assistants: Assistants) -> None:
+    """describe_assistant(name=...) accepts the current-style kwarg."""
+    result = mock_assistants.describe_assistant(name="foo")
+    assert result.name == "legacy-name"
+
+
+def test_describe_assistant_rejects_both_names(mock_assistants: Assistants) -> None:
+    """describe_assistant() raises TypeError when both assistant_name and name are given."""
+    with pytest.raises(TypeError, match="Pass only one"):
+        mock_assistants.describe_assistant("a", name="b")
+
+
+def test_describe_assistant_legacy_forwards_to_describe(
+    mock_assistants: Assistants,
+) -> None:
+    """describe_assistant() forwards assistant_name as name= to describe()."""
+    spy = MagicMock(side_effect=mock_assistants.describe)
+    mock_assistants.describe = spy  # type: ignore[method-assign]
+
+    mock_assistants.describe_assistant(assistant_name="my-assistant")
+    spy.assert_called_once_with(name="my-assistant")
