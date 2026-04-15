@@ -7,6 +7,4 @@ New code should import from the canonical module.
 :meta private:
 """
 
-from __future__ import annotations
-
 __all__: list[str] = []

@@ -7,23 +7,41 @@ New code should import from the canonical module.
 :meta private:
 """
 
-from __future__ import annotations
-
 from pinecone.models.assistant.chat import (
     ChatCitation as Citation,
+)
+from pinecone.models.assistant.chat import (
     ChatHighlight as Highlight,
+)
+from pinecone.models.assistant.chat import (
     ChatMessage as Message,
+)
+from pinecone.models.assistant.chat import (
     ChatReference as Reference,
+)
+from pinecone.models.assistant.chat import (
     ChatResponse,
+)
+from pinecone.models.assistant.chat import (
     ChatUsage as TokenCounts,
+)
+from pinecone.models.assistant.chat import (
     ChatUsage as Usage,
 )
 from pinecone.models.assistant.options import ContextOptions
 from pinecone.models.assistant.streaming import (
     StreamCitationChunk as StreamChatResponseCitation,
+)
+from pinecone.models.assistant.streaming import (
     StreamContentChunk as StreamChatResponseContentDelta,
+)
+from pinecone.models.assistant.streaming import (
     StreamContentDelta as MessageDelta,
+)
+from pinecone.models.assistant.streaming import (
     StreamMessageEnd as StreamChatResponseMessageEnd,
+)
+from pinecone.models.assistant.streaming import (
     StreamMessageStart as StreamChatResponseMessageStart,
 )
 
@@ -32,7 +50,9 @@ from pinecone.models.assistant.streaming import (
 # Expose StructDictMixin as a stand-in so legacy isinstance/issubclass checks
 # that test for the presence of the symbol do not fail with NameError.
 try:
-    from pinecone.models.assistant.chat import BaseStreamChunk as BaseStreamChatResponseChunk  # type: ignore[attr-defined]
+    from pinecone.models.assistant.chat import (
+        BaseStreamChunk as BaseStreamChatResponseChunk,  # type: ignore[attr-defined]
+    )
 except ImportError:
     from pinecone.models.assistant._mixin import StructDictMixin as BaseStreamChatResponseChunk
 

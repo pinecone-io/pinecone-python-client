@@ -7,5 +7,3 @@ callers continue to resolve imports like
 
 :meta private:
 """
-
-from __future__ import annotations
