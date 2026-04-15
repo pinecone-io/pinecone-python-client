@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
+    from pinecone.models.assistant.list import ListAssistantsResponse
     from pinecone.models.assistant.model import AssistantModel
 
 
@@ -23,6 +24,40 @@ class AsyncAssistantsLegacyNamespaceMixin:
     ``pinecone_plugins.assistant`` can keep using names like
     ``create_assistant`` and parameter names like ``assistant_name``.
     """
+
+    async def list_assistants(self) -> list[AssistantModel]:
+        """Deprecated alias for iterating :meth:`AsyncAssistants.list`.
+
+        Returns a materialized list (auto-paginated) for compatibility with
+        legacy callers that expected ``list_assistants() -> List[AssistantModel]``.
+        Prefer :meth:`AsyncAssistants.list` which returns a lazy async paginator.
+        """
+        return [assistant async for assistant in self.list()]  # type: ignore[attr-defined]
+
+    async def list_assistants_paginated(
+        self,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        *,
+        page_size: int | None = None,
+        **kwargs: Any,
+    ) -> ListAssistantsResponse:
+        """Deprecated alias for :meth:`AsyncAssistants.list_page`.
+
+        Returns a :class:`ListAssistantsResponse`-shaped object built from
+        the new SDK's ``list_page`` result. Accepts ``limit`` (legacy) or
+        ``page_size`` (current).
+        """
+
+        resolved = limit if limit is not None else page_size
+        return cast(
+            "ListAssistantsResponse",
+            await self.list_page(  # type: ignore[attr-defined]
+                page_size=resolved,
+                pagination_token=pagination_token,
+                **kwargs,
+            ),
+        )
 
     async def describe_assistant(
         self,

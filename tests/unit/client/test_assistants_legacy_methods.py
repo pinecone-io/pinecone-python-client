@@ -7,6 +7,104 @@ from unittest.mock import MagicMock
 import pytest
 
 from pinecone.client.assistants import Assistants
+from pinecone.models.assistant.list import ListAssistantsResponse
+from pinecone.models.assistant.model import AssistantModel
+
+_CANNED_ASSISTANT = AssistantModel(
+    name="legacy-name",
+    status="Ready",
+    created_at="2025-01-15T12:00:00Z",
+    updated_at="2025-01-15T12:00:00Z",
+    metadata={},
+    instructions=None,
+    host="test-assistant-abc123.svc.pinecone.io",
+)
+
+# ---------------------------------------------------------------------------
+# list_assistants shim tests
+# ---------------------------------------------------------------------------
+
+
+def test_list_assistants_returns_list(mock_assistants: Assistants) -> None:
+    """list_assistants() materializes the paginator and returns a plain list."""
+    mock_assistants._adapter.to_assistant_list.return_value = ListAssistantsResponse(  # type: ignore[attr-defined]
+        assistants=[_CANNED_ASSISTANT], next=None
+    )
+    result = mock_assistants.list_assistants()
+    assert isinstance(result, list)
+    assert all(isinstance(a, AssistantModel) for a in result)
+
+
+def test_list_assistants_returns_all_pages(mock_assistants: Assistants) -> None:
+    """list_assistants() follows pagination and returns items from all pages."""
+    page1 = ListAssistantsResponse(assistants=[_CANNED_ASSISTANT], next="token-1")
+    page2 = ListAssistantsResponse(assistants=[_CANNED_ASSISTANT], next=None)
+    mock_assistants._adapter.to_assistant_list.side_effect = [page1, page2]  # type: ignore[attr-defined]
+    result = mock_assistants.list_assistants()
+    assert len(result) == 2
+
+
+# ---------------------------------------------------------------------------
+# list_assistants_paginated shim tests
+# ---------------------------------------------------------------------------
+
+
+def test_list_assistants_paginated_returns_response_shape(
+    mock_assistants: Assistants,
+) -> None:
+    """list_assistants_paginated() returns a ListAssistantsResponse."""
+    mock_assistants._adapter.to_assistant_list.return_value = ListAssistantsResponse(  # type: ignore[attr-defined]
+        assistants=[_CANNED_ASSISTANT], next=None
+    )
+    resp = mock_assistants.list_assistants_paginated(limit=2)
+    assert isinstance(resp, ListAssistantsResponse)
+    assert hasattr(resp, "assistants")
+    assert hasattr(resp, "next")
+
+
+def test_list_assistants_paginated_legacy_limit_alias(
+    mock_assistants: Assistants,
+) -> None:
+    """list_assistants_paginated(limit=...) passes page_size= to list_page."""
+    canned_response = ListAssistantsResponse(assistants=[], next=None)
+    original_list_page = mock_assistants.list_page
+    spy_list_page = MagicMock(side_effect=original_list_page)
+    mock_assistants.list_page = spy_list_page  # type: ignore[method-assign]
+    mock_assistants._adapter.to_assistant_list.return_value = canned_response  # type: ignore[attr-defined]
+
+    mock_assistants.list_assistants_paginated(limit=5)
+
+    spy_list_page.assert_called_once_with(page_size=5, pagination_token=None)
+
+
+def test_list_assistants_paginated_page_size_kwarg(
+    mock_assistants: Assistants,
+) -> None:
+    """list_assistants_paginated(page_size=...) also passes page_size= to list_page."""
+    canned_response = ListAssistantsResponse(assistants=[], next=None)
+    original_list_page = mock_assistants.list_page
+    spy_list_page = MagicMock(side_effect=original_list_page)
+    mock_assistants.list_page = spy_list_page  # type: ignore[method-assign]
+    mock_assistants._adapter.to_assistant_list.return_value = canned_response  # type: ignore[attr-defined]
+
+    mock_assistants.list_assistants_paginated(page_size=10)
+
+    spy_list_page.assert_called_once_with(page_size=10, pagination_token=None)
+
+
+def test_list_assistants_paginated_with_pagination_token(
+    mock_assistants: Assistants,
+) -> None:
+    """list_assistants_paginated() forwards pagination_token to list_page."""
+    canned_response = ListAssistantsResponse(assistants=[], next=None)
+    original_list_page = mock_assistants.list_page
+    spy_list_page = MagicMock(side_effect=original_list_page)
+    mock_assistants.list_page = spy_list_page  # type: ignore[method-assign]
+    mock_assistants._adapter.to_assistant_list.return_value = canned_response  # type: ignore[attr-defined]
+
+    mock_assistants.list_assistants_paginated(pagination_token="some-token")
+
+    spy_list_page.assert_called_once_with(page_size=None, pagination_token="some-token")
 
 
 def test_create_assistant_legacy_method(mock_assistants: Assistants) -> None:
