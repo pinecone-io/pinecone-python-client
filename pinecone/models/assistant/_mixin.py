@@ -83,3 +83,7 @@ class StructDictMixin:
     def __repr__(self) -> str:
         """Return repr in dictionary form."""
         return repr(self.to_dict())
+
+
+# Backwards-compatibility alias — the class was renamed from DictMixin to StructDictMixin.
+DictMixin = StructDictMixin
