@@ -444,7 +444,13 @@ class AsyncAssistants:
         logger.debug("Updated assistant %r", name)
         return model
 
-    async def delete(self, *, name: str, timeout: float | None = None) -> None:
+    async def delete(
+        self,
+        *,
+        name: str | None = None,
+        timeout: float | None = None,
+        **kwargs: Any,
+    ) -> None:
         """Delete a Pinecone assistant by name.
 
         Sends a DELETE request, then polls every 5 seconds until the
@@ -472,6 +478,30 @@ class AsyncAssistants:
             # Return immediately without waiting for deletion
             await pc.assistants.delete(name="my-assistant", timeout=-1)
         """
+        from pinecone._internal.kwargs_aliases import (
+            reject_unknown_kwargs,
+            remap_legacy_kwargs,
+        )
+
+        remapped = remap_legacy_kwargs(
+            kwargs,
+            aliases={"assistant_name": "name"},
+            method_name="delete",
+        )
+        reject_unknown_kwargs(remapped, allowed={"name"}, method_name="delete")
+        if "name" in remapped:
+            if name is not None:
+                raise PineconeValueError(
+                    "delete() received both 'assistant_name' (legacy) and 'name'. "
+                    "Pass only one — prefer 'name'."
+                )
+            name = remapped["name"]
+        if name is None:
+            raise PineconeValueError(
+                "delete() missing required argument: 'name' "
+                "(or legacy alias 'assistant_name')."
+            )
+
         logger.info("Deleting assistant %r", name)
         await self._http.delete(f"/assistants/{name}")
         logger.debug("Deleted assistant %r", name)
