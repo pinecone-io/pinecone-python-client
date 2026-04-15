@@ -23,6 +23,7 @@ from pinecone._internal.constants import (
     ASSISTANT_EVALUATION_BASE_URL,
     DEFAULT_BASE_URL,
 )
+from pinecone.async_client._assistants_legacy import AsyncAssistantsLegacyNamespaceMixin
 from pinecone.errors.exceptions import (
     NotFoundError,
     PineconeError,
@@ -55,7 +56,7 @@ _DELETE_POLL_INTERVAL_SECONDS = 5
 _UPLOAD_POLL_INTERVAL_SECONDS = 5
 
 
-class AsyncAssistants:
+class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
     """Async control-plane operations for Pinecone assistants.
 
     Args:

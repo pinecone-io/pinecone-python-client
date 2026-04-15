@@ -45,3 +45,16 @@ def mock_assistants() -> Assistants:
     obj._poll_until_ready = MagicMock(return_value=_CANNED_ASSISTANT)  # type: ignore[method-assign]
 
     return obj
+
+
+@pytest.fixture
+def spy_create(mock_assistants: Assistants) -> MagicMock:
+    """Spy on Assistants.create to capture call arguments.
+
+    Wraps the real create() with a MagicMock so tests can assert how
+    create_assistant() (and other legacy shims) forward their parameters.
+    """
+    original_create = mock_assistants.create
+    spy = MagicMock(side_effect=original_create)
+    mock_assistants.create = spy  # type: ignore[method-assign]
+    return spy

@@ -20,6 +20,7 @@ from pinecone._internal.constants import (
     ASSISTANT_EVALUATION_BASE_URL,
     DEFAULT_BASE_URL,
 )
+from pinecone.client._assistants_legacy import AssistantsLegacyNamespaceMixin
 from pinecone.errors.exceptions import (
     NotFoundError,
     PineconeError,
@@ -52,7 +53,7 @@ _DELETE_POLL_INTERVAL_SECONDS = 5
 _UPLOAD_POLL_INTERVAL_SECONDS = 5
 
 
-class Assistants:
+class Assistants(AssistantsLegacyNamespaceMixin):
     """Control-plane operations for Pinecone assistants.
 
     Args:
