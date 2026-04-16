@@ -7,6 +7,12 @@ docs/conventions/preview-channel.md § Type isolation.
 
 from __future__ import annotations
 
+from pinecone.preview.models.deployment import (
+    PreviewByocDeployment,
+    PreviewDeployment,
+    PreviewManagedDeployment,
+    PreviewPodDeployment,
+)
 from pinecone.preview.models.schema import (
     PreviewDenseVectorField,
     PreviewIntegerField,
@@ -16,11 +22,17 @@ from pinecone.preview.models.schema import (
     PreviewSparseVectorField,
     PreviewStringField,
 )
+from pinecone.preview.models.status import PreviewIndexStatus
 from pinecone.preview.schema_builder import SchemaBuilder
 
 __all__ = [
+    "PreviewByocDeployment",
+    "PreviewDeployment",
     "PreviewDenseVectorField",
+    "PreviewIndexStatus",
     "PreviewIntegerField",
+    "PreviewManagedDeployment",
+    "PreviewPodDeployment",
     "PreviewSchema",
     "PreviewSchemaField",
     "PreviewSemanticTextField",
