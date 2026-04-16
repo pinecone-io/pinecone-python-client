@@ -174,6 +174,9 @@ class PreviewDocumentSearchResponse:
     """
 
     __slots__ = ("matches", "namespace", "usage")
+    matches: list[PreviewDocument]
+    namespace: str
+    usage: PreviewUsage | None
 
     def __init__(
         self,
@@ -187,21 +190,18 @@ class PreviewDocumentSearchResponse:
 
     def __repr__(self) -> str:
         return (
-            f"SearchResponse(matches={len(self.matches)}, "  # type: ignore[attr-defined]
-            f"namespace={self.namespace!r}, "  # type: ignore[attr-defined]
-            f"usage={self.usage!r})"  # type: ignore[attr-defined]
+            f"SearchResponse(matches={len(self.matches)}, "
+            f"namespace={self.namespace!r}, "
+            f"usage={self.usage!r})"
         )
 
     def _repr_html_(self) -> str:
-        matches: list[PreviewDocument] = object.__getattribute__(self, "matches")
-        namespace: str = object.__getattribute__(self, "namespace")
-        usage: PreviewUsage | None = object.__getattribute__(self, "usage")
         rows: list[tuple[str, str | int | float]] = [
-            ("Matches:", len(matches)),
-            ("Namespace:", namespace),
+            ("Matches:", len(self.matches)),
+            ("Namespace:", self.namespace),
         ]
-        if usage is not None:
-            rows.append(("Read Units:", usage.read_units))
+        if self.usage is not None:
+            rows.append(("Read Units:", self.usage.read_units))
         return render_table("SearchResponse", rows)
 
 
@@ -223,6 +223,9 @@ class PreviewDocumentFetchResponse:
     """
 
     __slots__ = ("documents", "namespace", "usage")
+    documents: dict[str, PreviewDocument]
+    namespace: str
+    usage: PreviewUsage | None
 
     def __init__(
         self,
@@ -235,11 +238,6 @@ class PreviewDocumentFetchResponse:
         object.__setattr__(self, "usage", usage)
 
     def __repr__(self) -> str:
-        documents: dict[str, PreviewDocument] = object.__getattribute__(self, "documents")
-        namespace: str = object.__getattribute__(self, "namespace")
-        usage: PreviewUsage | None = object.__getattribute__(self, "usage")
         return (
-            f"FetchResponse(documents={len(documents)}, "
-            f"namespace={namespace!r}, "
-            f"usage={usage!r})"
+            f"FetchResponse(documents={len(self.documents)}, namespace={self.namespace!r}, usage={self.usage!r})"
         )

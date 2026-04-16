@@ -84,16 +84,12 @@ def test_list_sends_api_version_header(indexes: PreviewIndexes) -> None:
 @respx.mock
 def test_list_empty_response(indexes: PreviewIndexes) -> None:
     """list() on an empty index set yields zero items; to_list() returns []."""
-    respx.get(f"{BASE_URL}/indexes").mock(
-        return_value=httpx.Response(200, json={"indexes": []})
-    )
+    respx.get(f"{BASE_URL}/indexes").mock(return_value=httpx.Response(200, json={"indexes": []}))
 
     items = list(indexes.list())
     assert items == []
 
-    respx.get(f"{BASE_URL}/indexes").mock(
-        return_value=httpx.Response(200, json={"indexes": []})
-    )
+    respx.get(f"{BASE_URL}/indexes").mock(return_value=httpx.Response(200, json={"indexes": []}))
     assert indexes.list().to_list() == []
 
 
@@ -127,9 +123,7 @@ def test_list_respects_limit(indexes: PreviewIndexes) -> None:
 @respx.mock
 def test_list_empty_response_pages_terminates(indexes: PreviewIndexes) -> None:
     """list().pages() yields exactly one Page with empty items and then terminates."""
-    respx.get(f"{BASE_URL}/indexes").mock(
-        return_value=httpx.Response(200, json={"indexes": []})
-    )
+    respx.get(f"{BASE_URL}/indexes").mock(return_value=httpx.Response(200, json={"indexes": []}))
 
     pages = list(indexes.list().pages())
     assert len(pages) == 1

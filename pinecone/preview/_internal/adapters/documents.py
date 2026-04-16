@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-import orjson
+from typing import Any
+
 import msgspec
+import orjson
 
 from pinecone.preview.models.documents import (
     PreviewDocument,
@@ -17,7 +19,7 @@ __all__ = ["decode_fetch_response", "decode_search_response"]
 
 def decode_search_response(raw: bytes) -> PreviewDocumentSearchResponse:
     """Decode raw JSON bytes from the search endpoint into a typed response."""
-    data: dict = orjson.loads(raw)  # type: ignore[type-arg]
+    data: dict[str, Any] = orjson.loads(raw)
     matches = [PreviewDocument(m) for m in data.get("matches", [])]
     namespace: str = data.get("namespace", "")
     usage_data = data.get("usage")
@@ -27,8 +29,8 @@ def decode_search_response(raw: bytes) -> PreviewDocumentSearchResponse:
 
 def decode_fetch_response(raw: bytes) -> PreviewDocumentFetchResponse:
     """Decode raw JSON bytes from the fetch endpoint into a typed response."""
-    data: dict = orjson.loads(raw)  # type: ignore[type-arg]
-    raw_docs: dict = data.get("documents", {})  # type: ignore[type-arg]
+    data: dict[str, Any] = orjson.loads(raw)
+    raw_docs: dict[str, dict[str, Any]] = data.get("documents", {})
     documents = {doc_id: PreviewDocument(doc) for doc_id, doc in raw_docs.items()}
     namespace: str = data.get("namespace", "")
     usage_data = data.get("usage")

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-
 import orjson
 
 from pinecone.preview._internal.adapters.documents import (
@@ -12,7 +10,6 @@ from pinecone.preview._internal.adapters.documents import (
 )
 from pinecone.preview.models.documents import (
     PreviewDocument,
-    PreviewDocumentFetchResponse,
     PreviewDocumentSearchResponse,
     PreviewDocumentUpsertResponse,
     PreviewUsage,

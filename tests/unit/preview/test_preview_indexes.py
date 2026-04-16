@@ -109,9 +109,7 @@ def test_create_sends_correct_body_shape(indexes: PreviewIndexes) -> None:
 @respx.mock
 def test_create_returns_preview_index_model(indexes: PreviewIndexes) -> None:
     """create() deserializes the response into a PreviewIndexModel."""
-    respx.post(f"{BASE_URL}/indexes").mock(
-        return_value=httpx.Response(201, json=_INDEX_RESPONSE)
-    )
+    respx.post(f"{BASE_URL}/indexes").mock(return_value=httpx.Response(201, json=_INDEX_RESPONSE))
 
     result = indexes.create(schema=_MINIMAL_SCHEMA)
 
@@ -223,9 +221,7 @@ def test_list_paginator_yields_models_across_multiple_pages(indexes: PreviewInde
 @respx.mock
 def test_list_returns_paginator_type(indexes: PreviewIndexes) -> None:
     """list() returns a Paginator over PreviewIndexModel."""
-    respx.get(f"{BASE_URL}/indexes").mock(
-        return_value=httpx.Response(200, json={"indexes": []})
-    )
+    respx.get(f"{BASE_URL}/indexes").mock(return_value=httpx.Response(200, json={"indexes": []}))
 
     result = indexes.list()
     assert isinstance(result, Paginator)

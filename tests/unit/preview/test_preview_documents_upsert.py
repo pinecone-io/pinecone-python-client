@@ -52,9 +52,7 @@ def async_docs(config: PineconeConfig) -> AsyncPreviewDocuments:
 def test_upsert_sends_expected_body_and_header(
     docs: PreviewDocuments,
 ) -> None:
-    route = respx.post(UPSERT_URL).mock(
-        return_value=httpx.Response(200, json=_UPSERT_RESPONSE)
-    )
+    route = respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json=_UPSERT_RESPONSE))
 
     result = docs.upsert(
         namespace="my-ns",
@@ -74,9 +72,7 @@ def test_upsert_sends_expected_body_and_header(
 def test_upsert_body_wraps_documents_array(docs: PreviewDocuments) -> None:
     import orjson
 
-    route = respx.post(UPSERT_URL).mock(
-        return_value=httpx.Response(200, json=_UPSERT_RESPONSE)
-    )
+    route = respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json=_UPSERT_RESPONSE))
     docs.upsert(namespace="my-ns", documents=[{"_id": "x", "title": "hi"}])
     body = orjson.loads(route.calls.last.request.content)
     assert "documents" in body
@@ -117,9 +113,7 @@ def test_upsert_101_documents_raises(docs: PreviewDocuments) -> None:
 def test_upsert_100_documents_accepted(docs: PreviewDocuments) -> None:
     hundred = [{"_id": str(i)} for i in range(100)]
     with respx.mock:
-        respx.post(UPSERT_URL).mock(
-            return_value=httpx.Response(200, json={"upserted_count": 100})
-        )
+        respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json={"upserted_count": 100}))
         result = docs.upsert(namespace="my-ns", documents=hundred)
     assert result.upserted_count == 100
 
@@ -162,9 +156,7 @@ def test_upsert_duplicate_id_raises_with_offending_id(docs: PreviewDocuments) ->
 async def test_async_upsert_sends_expected_body_and_header(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
-    route = respx.post(UPSERT_URL).mock(
-        return_value=httpx.Response(200, json=_UPSERT_RESPONSE)
-    )
+    route = respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json=_UPSERT_RESPONSE))
 
     result = await async_docs.upsert(
         namespace="my-ns",
@@ -187,9 +179,7 @@ async def test_async_upsert_body_wraps_documents_array(
 ) -> None:
     import orjson
 
-    route = respx.post(UPSERT_URL).mock(
-        return_value=httpx.Response(200, json=_UPSERT_RESPONSE)
-    )
+    route = respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json=_UPSERT_RESPONSE))
     await async_docs.upsert(namespace="my-ns", documents=[{"_id": "x", "val": 1}])
     body = orjson.loads(route.calls.last.request.content)
     assert body["documents"] == [{"_id": "x", "val": 1}]

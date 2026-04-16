@@ -75,9 +75,7 @@ def test_list_backups_includes_created_backup(
         ready_preview_index,
         name="integration-list-test",
     )
-    backup_ids = [
-        b.backup_id for b in client.preview.indexes.list_backups(ready_preview_index)
-    ]
+    backup_ids = [b.backup_id for b in client.preview.indexes.list_backups(ready_preview_index)]
     assert backup.backup_id in backup_ids
     for item in client.preview.indexes.list_backups(ready_preview_index):
         assert isinstance(item, PreviewBackupModel)

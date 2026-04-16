@@ -54,12 +54,15 @@ async def test_async_delete_returns_immediately_when_timeout_is_negative_one(
     """delete("x", timeout=-1) returns without polling after the DELETE."""
     respx.delete(f"{BASE_URL}/indexes/x").mock(return_value=httpx.Response(204))
 
-    with patch(
-        "pinecone.preview.async_indexes.asyncio.sleep",
-        side_effect=AssertionError("asyncio.sleep must not be called"),
-    ), patch(
-        "time.monotonic",
-        side_effect=AssertionError("monotonic must not be called"),
+    with (
+        patch(
+            "pinecone.preview.async_indexes.asyncio.sleep",
+            side_effect=AssertionError("asyncio.sleep must not be called"),
+        ),
+        patch(
+            "time.monotonic",
+            side_effect=AssertionError("monotonic must not be called"),
+        ),
     ):
         await indexes.delete("x", timeout=-1)
 
@@ -145,8 +148,9 @@ async def test_async_delete_uses_asyncio_sleep_not_time_sleep(
     ]
 
     async_sleep_mock = AsyncMock()
-    with patch("pinecone.preview.async_indexes.asyncio.sleep", async_sleep_mock), patch(
-        "time.sleep", side_effect=AssertionError("time.sleep must not be called")
+    with (
+        patch("pinecone.preview.async_indexes.asyncio.sleep", async_sleep_mock),
+        patch("time.sleep", side_effect=AssertionError("time.sleep must not be called")),
     ):
         await indexes.delete("x")
 

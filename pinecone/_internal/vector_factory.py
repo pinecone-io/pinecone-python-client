@@ -205,9 +205,7 @@ class VectorFactory:
                             and (not s_indices or s_indices[0].__class__ is int)
                         ):
                             converted = (
-                                raw_values
-                                if raw_values.__class__ is list
-                                else list(raw_values)
+                                raw_values if raw_values.__class__ is list else list(raw_values)
                             )
                             if not s_values or s_values[0].__class__ is float:
                                 return Vector(

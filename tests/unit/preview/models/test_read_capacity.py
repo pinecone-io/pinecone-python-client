@@ -53,7 +53,9 @@ def test_read_capacity_union_decode_dispatches_on_mode() -> None:
 
 
 def test_status_decode_with_scaling_states() -> None:
-    initializing_raw = b'{"state": "Initializing", "current_shards": null, "current_replicas": null}'
+    initializing_raw = (
+        b'{"state": "Initializing", "current_shards": null, "current_replicas": null}'
+    )
     status = msgspec.json.decode(initializing_raw, type=PreviewReadCapacityStatus)
     assert status.state == "Initializing"
     assert status.current_shards is None

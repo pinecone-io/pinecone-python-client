@@ -45,9 +45,7 @@ def test_create_request_with_schema_only() -> None:
 
 def test_create_request_full() -> None:
     deployment = PreviewManagedDeployment(environment="aped-1", cloud="aws", region="us-east-1")
-    rc = PreviewReadCapacityOnDemandResponse(
-        status=PreviewReadCapacityStatus(state="Ready")
-    )
+    rc = PreviewReadCapacityOnDemandResponse(status=PreviewReadCapacityStatus(state="Ready"))
     req = PreviewCreateIndexRequest(
         schema=_make_schema(),  # type: ignore[arg-type]
         name="my-index",
@@ -101,8 +99,11 @@ def test_configure_request_schema_update() -> None:
 
 def test_create_request_encodes_pod_deployment() -> None:
     deployment = PreviewPodDeployment(
-        environment="us-east1-gcp", pod_type="p1.x1",
-        pods=2, replicas=1, shards=1,
+        environment="us-east1-gcp",
+        pod_type="p1.x1",
+        pods=2,
+        replicas=1,
+        shards=1,
     )
     req = PreviewCreateIndexRequest(schema=_make_schema(), deployment=deployment)  # type: ignore[arg-type]
     result = msgspec.to_builtins(req)
@@ -127,7 +128,9 @@ def test_create_request_encodes_byoc_deployment_minimal() -> None:
 
 def test_create_request_encodes_byoc_deployment_full() -> None:
     deployment = PreviewByocDeployment(
-        environment="e1", cloud="gcp", region="us-east1",
+        environment="e1",
+        cloud="gcp",
+        region="us-east1",
     )
     req = PreviewCreateIndexRequest(schema=_make_schema(), deployment=deployment)  # type: ignore[arg-type]
     result = msgspec.to_builtins(req)
@@ -139,7 +142,8 @@ def test_create_request_encodes_byoc_deployment_full() -> None:
 def test_create_request_encodes_dedicated_read_capacity() -> None:
     rc = PreviewReadCapacityDedicatedResponse(
         dedicated=PreviewReadCapacityDedicatedInner(
-            node_type="b1", scaling="Manual",
+            node_type="b1",
+            scaling="Manual",
             manual=PreviewReadCapacityManualScaling(shards=2, replicas=1),
         ),
         status=PreviewReadCapacityStatus(state="Ready"),
@@ -157,7 +161,9 @@ def test_create_request_encodes_dedicated_read_capacity() -> None:
 def test_configure_request_encodes_pod_deployment_partial_update() -> None:
     req = PreviewConfigureIndexRequest(
         deployment=PreviewPodDeployment(  # type: ignore[arg-type]
-            environment="us-east1-gcp", pod_type="p2.x1", replicas=3,
+            environment="us-east1-gcp",
+            pod_type="p2.x1",
+            replicas=3,
         ),
     )
     result = msgspec.to_builtins(req)

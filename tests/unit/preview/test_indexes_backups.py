@@ -51,6 +51,7 @@ def indexes() -> PreviewIndexes:
 
 # ── create_backup tests ────────────────────────────────────────────────────────
 
+
 @respx.mock
 def test_create_backup_sends_post_with_empty_body_when_no_kwargs(
     indexes: PreviewIndexes,
@@ -110,6 +111,7 @@ def test_create_backup_empty_index_name_raises(indexes: PreviewIndexes) -> None:
 
 
 # ── list_backups tests ─────────────────────────────────────────────────────────
+
 
 @respx.mock
 def test_list_backups_yields_backups(indexes: PreviewIndexes) -> None:

@@ -250,7 +250,9 @@ def test_list_adapter_parses_multiple() -> None:
 
 def test_create_adapter_preserves_zero_integer_value() -> None:
     req = PreviewCreateIndexRequest(
-        schema={"fields": {"t": {"type": "string", "full_text_searchable": True, "max_term_len": 0}}}
+        schema={
+            "fields": {"t": {"type": "string", "full_text_searchable": True, "max_term_len": 0}}
+        }
     )
     raw = create_adapter.to_request(req)
     data = orjson.loads(raw)
