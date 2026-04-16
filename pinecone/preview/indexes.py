@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import TYPE_CHECKING, Any
 
 import msgspec
@@ -10,7 +11,7 @@ import orjson
 
 from pinecone._internal.constants import DEFAULT_BASE_URL
 from pinecone._internal.validation import require_non_empty, require_positive
-from pinecone.errors.exceptions import NotFoundError, PineconeValueError
+from pinecone.errors.exceptions import NotFoundError, PineconeTimeoutError, PineconeValueError
 from pinecone.models.pagination import Page, Paginator
 from pinecone.preview._internal.adapters.indexes import create_adapter, describe_adapter, list_adapter
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
@@ -23,6 +24,8 @@ if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
 
 logger = logging.getLogger(__name__)
+
+_POLL_INTERVAL_SECONDS = 5
 
 __all__ = ["PreviewIndexes"]
 
@@ -297,3 +300,72 @@ class PreviewIndexes:
             return True
         except NotFoundError:
             return False
+
+    def delete(self, name: str, *, timeout: int | None = None) -> None:
+        """Delete a named preview index.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Sends a DELETE request and, depending on *timeout*, polls until the
+        index disappears.
+
+        Args:
+            name: Name of the preview index to delete.
+            timeout: Controls post-delete polling behaviour.
+
+                - ``None`` (default): poll :meth:`describe` every 5 seconds
+                  with no upper bound until the index is gone.
+                - ``-1``: return immediately after the DELETE response without
+                  polling.
+                - Positive integer: poll until the index is gone or *timeout*
+                  seconds have elapsed. Raises :exc:`PineconeTimeoutError` if
+                  the deadline is reached before the index disappears.
+
+        Returns:
+            ``None``
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name* is empty.
+            :exc:`~pinecone.errors.exceptions.NotFoundError`: If the index does not exist.
+            :exc:`~pinecone.errors.exceptions.ForbiddenError`: If deletion protection is enabled on
+                the index.
+            :exc:`~pinecone.errors.exceptions.PineconeTimeoutError`: If *timeout* seconds elapse
+                before the index disappears.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns another error response.
+
+        Examples:
+
+            pc.preview.indexes.delete("my-preview-index")
+
+            # Delete and wait up to 60 seconds
+            pc.preview.indexes.delete("my-preview-index", timeout=60)
+
+            # Delete without polling
+            pc.preview.indexes.delete("my-preview-index", timeout=-1)
+        """
+        require_non_empty("name", name)
+        logger.info("Deleting preview index name=%r", name)
+        self._http.delete(f"/indexes/{name}")
+
+        if timeout == -1:
+            return
+
+        start = time.monotonic()
+        while True:
+            try:
+                self.describe(name)
+            except NotFoundError:
+                return
+            if timeout is not None:
+                elapsed = time.monotonic() - start
+                if elapsed >= timeout:
+                    raise PineconeTimeoutError(
+                        f"Index {name!r} still exists after {timeout}s"
+                    )
+            time.sleep(_POLL_INTERVAL_SECONDS)
