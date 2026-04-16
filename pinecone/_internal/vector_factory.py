@@ -157,7 +157,7 @@ class VectorFactory:
     @staticmethod
     def build(item: Any) -> Vector:
         """Convert a user-provided vector input to a ``Vector`` object."""
-        item_type = type(item)
+        item_type = item.__class__
         if item_type is Vector:
             if not item.values and item.sparse_values is None:
                 raise PineconeValueError(
