@@ -59,7 +59,10 @@ def test_integer_field_wire_type_is_float() -> None:
 
 def test_schema_field_union_decode() -> None:
     cases: list[tuple[bytes, type]] = [
-        (b'{"type": "dense_vector", "dimension": 768, "metric": "cosine"}', PreviewDenseVectorField),
+        (
+            b'{"type": "dense_vector", "dimension": 768, "metric": "cosine"}',
+            PreviewDenseVectorField,
+        ),
         (b'{"type": "sparse_vector", "metric": "dotproduct"}', PreviewSparseVectorField),
         (b'{"type": "semantic_text", "model": "multilingual-e5-large"}', PreviewSemanticTextField),
         (b'{"type": "string", "filterable": true}', PreviewStringField),
@@ -126,7 +129,9 @@ def test_integer_field_defaults() -> None:
 
 
 def test_schema_field_union_decode_dense_vector_with_all_fields() -> None:
-    raw = b'{"type": "dense_vector", "dimension": 512, "metric": "euclidean", "description": "test"}'
+    raw = (
+        b'{"type": "dense_vector", "dimension": 512, "metric": "euclidean", "description": "test"}'
+    )
     field = msgspec.json.decode(raw, type=PreviewSchemaField)
     assert isinstance(field, PreviewDenseVectorField)
     assert field.dimension == 512

@@ -1,5 +1,7 @@
 """Tests for the internal display utility module."""
 
+from __future__ import annotations
+
 from pinecone.models._display import render_table
 
 

@@ -1,7 +1,8 @@
 """Internal utilities for Jupyter notebook display formatting."""
 
-import html
+from __future__ import annotations
 
+import html
 from collections.abc import Sequence
 
 

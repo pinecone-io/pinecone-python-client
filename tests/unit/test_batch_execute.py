@@ -129,9 +129,7 @@ async def test_async_batch_execute_empty_items() -> None:
     async def noop(batch: list[dict]) -> None:  # type: ignore[type-arg]
         pass
 
-    result = await async_batch_execute(
-        items=[], operation=noop, batch_size=10, show_progress=False
-    )
+    result = await async_batch_execute(items=[], operation=noop, batch_size=10, show_progress=False)
 
     assert isinstance(result, BatchResult)
     assert result.total_item_count == 0

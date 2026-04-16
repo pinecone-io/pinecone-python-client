@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from pinecone.models.batch import BatchError, BatchResult  # noqa: F401
     from pinecone.models.admin.api_key import (  # noqa: F401
         APIKeyList,
         APIKeyModel,
@@ -69,6 +68,7 @@ if TYPE_CHECKING:
         CreateIndexFromBackupResponse,
         RestoreJobModel,
     )
+    from pinecone.models.batch import BatchError, BatchResult  # noqa: F401
     from pinecone.models.collections.list import CollectionList  # noqa: F401
     from pinecone.models.collections.model import CollectionModel  # noqa: F401
     from pinecone.models.enums import (  # noqa: F401

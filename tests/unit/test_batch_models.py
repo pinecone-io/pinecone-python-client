@@ -239,10 +239,7 @@ class TestBatchResultToDict:
 
 class TestBatchResultErrorSummary:
     def test_batch_result_error_summary_dedup(self) -> None:
-        errors = [
-            make_batch_error(batch_index=i, error_message="timeout")
-            for i in range(3)
-        ] + [
+        errors = [make_batch_error(batch_index=i, error_message="timeout") for i in range(3)] + [
             make_batch_error(batch_index=3, error_message="rate limit"),
         ]
         result = make_batch_result(errors=errors)
@@ -256,10 +253,7 @@ class TestBatchResultErrorSummary:
         assert result._error_summary() == []
 
     def test_batch_result_repr_plural_batch_word(self) -> None:
-        errors = [
-            make_batch_error(batch_index=i, error_message="conn refused")
-            for i in range(2)
-        ]
+        errors = [make_batch_error(batch_index=i, error_message="conn refused") for i in range(2)]
         result = make_batch_result(errors=errors)
         r = repr(result)
         assert "batches" in r

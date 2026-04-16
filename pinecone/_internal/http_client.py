@@ -34,7 +34,6 @@ from pinecone.errors.exceptions import (
 logger = logging.getLogger(__name__)
 
 
-
 def _build_socket_options() -> list[tuple[int, int, int]]:
     """Build platform-specific TCP socket options.
 
@@ -150,10 +149,10 @@ class _RetryTransport(httpx.BaseTransport):
     def _compute_backoff(self, attempt: int) -> float:
         """Floored full jitter: uniform in [10%, 100%] of exponential base."""
         base_delay = min(
-            self._config.backoff_factor ** attempt,
+            self._config.backoff_factor**attempt,
             self._config.max_wait,
         )
-        return random.uniform(0.1 * base_delay, base_delay)  # noqa: S311
+        return random.uniform(0.1 * base_delay, base_delay)
 
     def close(self) -> None:
         self._transport.close()
@@ -192,10 +191,10 @@ class _AsyncRetryTransport(httpx.AsyncBaseTransport):
     def _compute_backoff(self, attempt: int) -> float:
         """Floored full jitter: uniform in [10%, 100%] of exponential base."""
         base_delay = min(
-            self._config.backoff_factor ** attempt,
+            self._config.backoff_factor**attempt,
             self._config.max_wait,
         )
-        return random.uniform(0.1 * base_delay, base_delay)  # noqa: S311
+        return random.uniform(0.1 * base_delay, base_delay)
 
     async def aclose(self) -> None:
         await self._transport.aclose()

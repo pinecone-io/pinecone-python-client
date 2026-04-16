@@ -466,9 +466,7 @@ class TestSyncRetryTransport:
 
     @patch("pinecone._internal.http_client.random.uniform", side_effect=lambda a, b: b)
     @patch("pinecone._internal.http_client.time.sleep")
-    def test_floored_full_jitter_backoff_range(
-        self, mock_sleep: Any, mock_uniform: Any
-    ) -> None:
+    def test_floored_full_jitter_backoff_range(self, mock_sleep: Any, mock_uniform: Any) -> None:
         """Floored full jitter: random.uniform(0.1*base, base) for each attempt."""
         fake = _FakeTransport(
             [
@@ -492,9 +490,7 @@ class TestSyncRetryTransport:
     @patch("pinecone._internal.http_client.time.sleep")
     def test_backoff_capped_at_max_wait(self, mock_sleep: Any, mock_uniform: Any) -> None:
         """Backoff is capped at max_wait even when exponential base would exceed it."""
-        fake = _FakeTransport(
-            [httpx.Response(500, json={"message": "error"})] * 5
-        )
+        fake = _FakeTransport([httpx.Response(500, json={"message": "error"})] * 5)
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
             retry_config=RetryConfig(max_retries=5, backoff_factor=10.0, max_wait=30.0),
