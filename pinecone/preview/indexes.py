@@ -14,13 +14,14 @@ from pinecone._internal.validation import require_non_empty, require_positive
 from pinecone.errors.exceptions import NotFoundError, PineconeTimeoutError, PineconeValueError
 from pinecone.models.pagination import Page, Paginator
 from pinecone.preview._internal.adapters.indexes import (
+    configure_adapter,
     create_adapter,
     describe_adapter,
     list_adapter,
 )
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
 from pinecone.preview.models.indexes import PreviewIndexModel
-from pinecone.preview.models.requests import PreviewCreateIndexRequest
+from pinecone.preview.models.requests import PreviewConfigureIndexRequest, PreviewCreateIndexRequest
 from pinecone.preview.models.schema import PreviewSchema
 
 if TYPE_CHECKING:
@@ -142,9 +143,7 @@ class PreviewIndexes:
         if tags is not None:
             for key, value in tags.items():
                 if len(key) > 80:
-                    raise PineconeValueError(
-                        f"Tag key {key!r} exceeds the 80-character limit."
-                    )
+                    raise PineconeValueError(f"Tag key {key!r} exceeds the 80-character limit.")
                 if len(value) > 120:
                     raise PineconeValueError(
                         f"Tag value for key {key!r} exceeds the 120-character limit."
@@ -168,6 +167,149 @@ class PreviewIndexes:
             headers={"Content-Type": "application/json"},
         )
         return create_adapter.from_response(orjson.loads(response.content))
+
+    def configure(
+        self,
+        name: str,
+        *,
+        schema: dict[str, Any] | None = None,
+        deletion_protection: str | None = None,
+        tags: dict[str, str] | None = None,
+        read_capacity: dict[str, Any] | None = None,
+    ) -> PreviewIndexModel:
+        """Update configuration of an existing preview index.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Only the fields you provide are updated; omitted parameters are left
+        unchanged on the server.
+
+        Args:
+            name: Name of the preview index to configure.
+            schema: Updated schema definition.  Pass a dict with a
+                ``"fields"`` key mapping field names to typed field
+                definitions.  The server only allows additive changes — it
+                rejects requests that remove or modify existing fields.
+                Example::
+
+                    pc.preview.indexes.configure(
+                        "my-index",
+                        schema={"fields": {
+                            "summary": {"type": "string", "full_text_searchable": True},
+                        }},
+                    )
+
+            deletion_protection: ``"enabled"`` to prevent accidental deletion;
+                ``"disabled"`` to allow it.
+            tags: Replacement set of key-value tags for the index.  Keys must
+                be at most 80 characters; values at most 120 characters.
+            read_capacity: Updated read capacity configuration dict.  Must
+                include a ``"mode"`` key (``"OnDemand"`` or ``"Dedicated"``).
+
+        Returns:
+            :class:`PreviewIndexModel` reflecting the updated index state.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name*
+                is empty; if all kwargs are ``None``; if *schema*, *tags*, or
+                *read_capacity* is an empty dict; or if a tag key/value
+                exceeds the length limit.
+            :exc:`msgspec.ValidationError`: If *schema* cannot be converted
+                to the expected typed model.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns
+                an error response.
+
+        Examples:
+
+            Add a field to an existing schema::
+
+                pc.preview.indexes.configure(
+                    "my-index",
+                    schema={"fields": {"summary": {"type": "string"}}},
+                )
+
+            Update read capacity to dedicated::
+
+                pc.preview.indexes.configure(
+                    "my-index",
+                    read_capacity={"mode": "Dedicated", "node_type": "b1",
+                                   "scaling": "Manual",
+                                   "manual": {"shards": 2, "replicas": 1}},
+                )
+
+            Update tags::
+
+                pc.preview.indexes.configure(
+                    "my-index",
+                    tags={"env": "prod", "team": "search"},
+                )
+
+            Enable deletion protection::
+
+                pc.preview.indexes.configure("my-index", deletion_protection="enabled")
+        """
+        require_non_empty("name", name)
+
+        if schema is not None and not schema:
+            raise PineconeValueError("schema cannot be an empty dict")
+        if tags is not None and not tags:
+            raise PineconeValueError("tags cannot be an empty dict")
+        if read_capacity is not None and not read_capacity:
+            raise PineconeValueError("read_capacity cannot be an empty dict")
+
+        if (
+            schema is None
+            and deletion_protection is None
+            and tags is None
+            and read_capacity is None
+        ):
+            raise PineconeValueError(
+                "at least one configuration parameter must be provided: "
+                "schema, deletion_protection, tags, or read_capacity"
+            )
+
+        if tags is not None:
+            for key, value in tags.items():
+                if len(key) > 80:
+                    raise PineconeValueError(f"Tag key {key!r} exceeds the 80-character limit.")
+                if len(value) > 120:
+                    raise PineconeValueError(
+                        f"Tag value for key {key!r} exceeds the 120-character limit."
+                    )
+
+        typed_schema = msgspec.convert(schema, PreviewSchema) if schema is not None else None
+
+        req = PreviewConfigureIndexRequest(
+            schema=typed_schema,
+            read_capacity=read_capacity,
+            deletion_protection=deletion_protection,
+            tags=tags,
+        )
+
+        provided = [
+            k
+            for k, v in {
+                "schema": schema,
+                "deletion_protection": deletion_protection,
+                "tags": tags,
+                "read_capacity": read_capacity,
+            }.items()
+            if v is not None
+        ]
+        logger.info("Configuring preview index name=%r params=%r", name, provided)
+
+        response = self._http.patch(
+            f"/indexes/{name}",
+            content=configure_adapter.to_request(req),
+            headers={"Content-Type": "application/json"},
+        )
+        return configure_adapter.from_response(orjson.loads(response.content))
 
     def describe(self, name: str) -> PreviewIndexModel:
         """Get detailed information about a named preview index.
@@ -363,7 +505,5 @@ class PreviewIndexes:
             if timeout is not None:
                 elapsed = time.monotonic() - start
                 if elapsed >= timeout:
-                    raise PineconeTimeoutError(
-                        f"Index {name!r} still exists after {timeout}s"
-                    )
+                    raise PineconeTimeoutError(f"Index {name!r} still exists after {timeout}s")
             time.sleep(_POLL_INTERVAL_SECONDS)
