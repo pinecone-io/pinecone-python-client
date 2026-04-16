@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
     from pinecone.client.assistants import Assistants
+    from pinecone.models.assistant.file_model import AssistantFileModel
 
 
 class AssistantModelLegacyMethodsMixin:
@@ -49,3 +50,27 @@ class AssistantModelLegacyMethodsMixin:
                 "directly, or obtain the model via pc.assistants.describe(name=...)."
             )
         return ref
+
+    def upload_file(
+        self,
+        file_path: str,
+        metadata: dict[str, Any] | None = None,
+        multimodal: bool | None = None,
+        timeout: int | None = None,
+        file_id: str | None = None,
+        **kwargs: Any,
+    ) -> AssistantFileModel:
+        """Deprecated alias — upload a file to this assistant.
+
+        Equivalent to ``pc.assistants.upload_file(assistant_name=self.name, ...)``.
+        """
+        ns = self._resolve_assistants()
+        return ns.upload_file(
+            assistant_name=self.name,  # type: ignore[attr-defined]
+            file_path=file_path,
+            metadata=metadata,
+            multimodal=multimodal,
+            timeout=timeout,
+            file_id=file_id,
+            **kwargs,
+        )
