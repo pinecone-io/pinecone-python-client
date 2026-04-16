@@ -4,32 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pinecone.preview.documents import PreviewDocuments as PreviewDocuments
+
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
     from pinecone._internal.http_client import HTTPClient
 
-__all__ = ["PreviewIndex"]
-
-
-class PreviewDocuments:
-    """Documents sub-namespace for a preview index.
-
-    .. admonition:: Preview
-       :class: warning
-
-       Uses Pinecone API version ``2026-01.alpha``.
-       Preview surface is not covered by SemVer — signatures and behavior
-       may change in any minor SDK release. Pin your SDK version when
-       relying on preview features.
-
-    Placeholder — full implementation lands in PS-0012.
-    """
-
-    def __getattr__(self, name: str) -> object:
-        raise NotImplementedError(
-            f"PreviewDocuments.{name} is not yet implemented. "
-            "Document operations will be available in a future release."
-        )
+__all__ = ["PreviewDocuments", "PreviewIndex"]
 
 
 class PreviewIndex:
@@ -55,7 +36,7 @@ class PreviewIndex:
         self._host = host
         self._http = http
         self._config = config
-        self.documents = PreviewDocuments()
+        self.documents = PreviewDocuments(http=http, config=config, host=host)
 
     @property
     def host(self) -> str:

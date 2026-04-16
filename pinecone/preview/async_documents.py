@@ -1,0 +1,106 @@
+"""Async preview documents data-plane sub-namespace (2026-01.alpha)."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+import msgspec
+
+from pinecone._internal.validation import require_non_empty
+from pinecone.preview._internal.constants import INDEXES_API_VERSION
+from pinecone.preview.documents import _validate_documents
+from pinecone.preview.models.documents import PreviewDocumentUpsertResponse
+
+if TYPE_CHECKING:
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.http_client import AsyncHTTPClient
+
+__all__ = ["AsyncPreviewDocuments"]
+
+_UPSERT_DECODER: msgspec.json.Decoder[PreviewDocumentUpsertResponse] = msgspec.json.Decoder(
+    PreviewDocumentUpsertResponse
+)
+
+
+class AsyncPreviewDocuments:
+    """Async documents sub-namespace for a preview index.
+
+    .. admonition:: Preview
+       :class: warning
+
+       Uses Pinecone API version ``2026-01.alpha``.
+       Preview surface is not covered by SemVer — signatures and behavior
+       may change in any minor SDK release. Pin your SDK version when
+       relying on preview features.
+
+    Access via ``index.documents`` on an
+    :class:`~pinecone.preview.async_index.AsyncPreviewIndex`.
+
+    Args:
+        http: Async HTTP client from the parent
+            :class:`~pinecone.preview.async_index.AsyncPreviewIndex`.
+        config: SDK configuration from the parent client.
+        host: Data-plane host URL for this index.
+    """
+
+    def __init__(self, *, http: AsyncHTTPClient, config: PineconeConfig, host: str) -> None:
+        from pinecone._internal.config import PineconeConfig as _PineconeConfig
+        from pinecone._internal.http_client import AsyncHTTPClient as _AsyncHTTPClient
+
+        dp_config = _PineconeConfig(
+            api_key=config.api_key,
+            host=host,
+            timeout=config.timeout,
+            additional_headers=config.additional_headers,
+            source_tag=config.source_tag or "",
+            proxy_url=config.proxy_url or "",
+            proxy_headers=config.proxy_headers,
+            ssl_ca_certs=config.ssl_ca_certs,
+            ssl_verify=config.ssl_verify,
+            connection_pool_maxsize=config.connection_pool_maxsize,
+            retry_config=config.retry_config,
+        )
+        self._http = _AsyncHTTPClient(dp_config, INDEXES_API_VERSION)
+
+    async def upsert(
+        self,
+        *,
+        namespace: str,
+        documents: list[dict[str, Any]],
+    ) -> PreviewDocumentUpsertResponse:
+        """Upsert documents into a namespace.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Args:
+            namespace: Target namespace. Must be a non-empty string.
+            documents: 1–100 documents to upsert. Each must contain a non-empty,
+                unique ``_id`` string field.
+
+        Returns:
+            :class:`~pinecone.preview.models.documents.PreviewDocumentUpsertResponse`
+            with ``upserted_count``.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.ValidationError`: If namespace is empty,
+                documents is empty, more than 100 documents, any document is missing
+                ``_id``, ``_id`` is not a string, ``_id`` is empty, or ``_id``
+                values are not unique within the batch.
+        """
+        require_non_empty("namespace", namespace)
+        _validate_documents(documents)
+
+        response = await self._http.post(
+            f"/namespaces/{namespace}/documents/upsert",
+            json={"documents": documents},
+        )
+        return _UPSERT_DECODER.decode(response.content)
+
+    def __repr__(self) -> str:
+        return "AsyncPreviewDocuments()"

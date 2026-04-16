@@ -85,12 +85,39 @@ class PreviewDocument:
         return float(raw)
 
     def get(self, key: str, default: Any = None) -> Any:
+        """Return the value for *key* from the document, or *default*.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+        """
         return self._data.get(key, default)
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the document as a plain dictionary.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+        """
         return dict(self._data)
 
     def to_json(self) -> str:
+        """Return the document as a JSON string.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+        """
         return orjson.dumps(self._data).decode()
 
     def __getattr__(self, name: str) -> Any:
@@ -114,6 +141,14 @@ class PreviewDocument:
 class PreviewDocumentUpsertResponse(Struct, kw_only=True):
     """Response from a document upsert operation.
 
+    .. admonition:: Preview
+       :class: warning
+
+       Uses Pinecone API version ``2026-01.alpha``.
+       Preview surface is not covered by SemVer — signatures and behavior
+       may change in any minor SDK release. Pin your SDK version when
+       relying on preview features.
+
     Attributes:
         upserted_count: Number of documents successfully upserted.
     """
@@ -123,6 +158,14 @@ class PreviewDocumentUpsertResponse(Struct, kw_only=True):
 
 class PreviewDocumentSearchResponse:
     """Response from a document search operation.
+
+    .. admonition:: Preview
+       :class: warning
+
+       Uses Pinecone API version ``2026-01.alpha``.
+       Preview surface is not covered by SemVer — signatures and behavior
+       may change in any minor SDK release. Pin your SDK version when
+       relying on preview features.
 
     Attributes:
         matches: Ordered list of matching documents.
@@ -164,6 +207,14 @@ class PreviewDocumentSearchResponse:
 
 class PreviewDocumentFetchResponse:
     """Response from a document fetch operation.
+
+    .. admonition:: Preview
+       :class: warning
+
+       Uses Pinecone API version ``2026-01.alpha``.
+       Preview surface is not covered by SemVer — signatures and behavior
+       may change in any minor SDK release. Pin your SDK version when
+       relying on preview features.
 
     Attributes:
         documents: Map of document ID to document.
