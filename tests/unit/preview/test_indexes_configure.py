@@ -118,6 +118,12 @@ def test_configure_rejects_long_tag_key(indexes: PreviewIndexes) -> None:
         indexes.configure("my", tags={"x" * 81: "v"})
 
 
+def test_configure_rejects_long_tag_value(indexes: PreviewIndexes) -> None:
+    """Tag values longer than 120 characters raise PineconeValueError mentioning '120'."""
+    with pytest.raises(PineconeValueError, match="120"):
+        indexes.configure("my", tags={"k": "v" * 121})
+
+
 @respx.mock
 def test_configure_returns_updated_index_model(indexes: PreviewIndexes) -> None:
     """Response JSON is deserialized into a PreviewIndexModel."""
