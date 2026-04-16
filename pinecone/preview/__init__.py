@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING
 from pinecone.errors.exceptions import PineconeValueError
 from pinecone.preview.schema_builder import PreviewSchemaBuilder as PreviewSchemaBuilder
 
+SchemaBuilder = PreviewSchemaBuilder
+
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
     from pinecone._internal.http_client import AsyncHTTPClient, HTTPClient
@@ -19,7 +21,7 @@ if TYPE_CHECKING:
     from pinecone.preview.index import PreviewIndex
     from pinecone.preview.indexes import PreviewIndexes
 
-__all__ = ["AsyncPreview", "Preview", "PreviewSchemaBuilder"]
+__all__ = ["AsyncPreview", "Preview", "PreviewSchemaBuilder", "SchemaBuilder"]
 
 
 class Preview:
