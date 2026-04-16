@@ -46,6 +46,14 @@ class Preview:
         Lazily instantiated on first access. Reuses the parent client's
         configuration and credentials.
 
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
         Returns:
             :class:`~pinecone.preview.indexes.PreviewIndexes` instance.
         """
@@ -85,6 +93,14 @@ class AsyncPreview:
 
         Lazily instantiated on first access. Reuses the parent client's
         configuration and credentials.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
 
         Returns:
             :class:`~pinecone.preview.async_indexes.AsyncPreviewIndexes` instance.
