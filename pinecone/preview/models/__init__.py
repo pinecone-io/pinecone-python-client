@@ -43,6 +43,7 @@ from pinecone.preview.models.score_by import (
     TextQuery,
 )
 from pinecone.preview.models.backups import PreviewBackupModel, PreviewCreateBackupRequest
+from pinecone.preview.models.documents import PreviewDocument, Usage
 from pinecone.preview.models.status import PreviewIndexStatus
 from pinecone.preview.schema_builder import SchemaBuilder
 
@@ -55,6 +56,7 @@ __all__ = [
     "PreviewCreateIndexRequest",
     "PreviewDenseVectorField",
     "PreviewDeployment",
+    "PreviewDocument",
     "PreviewIndexModel",
     "PreviewIndexStatus",
     "PreviewIntegerField",
@@ -76,4 +78,5 @@ __all__ = [
     "ScoreByQuery",
     "SparseVectorQuery",
     "TextQuery",
+    "Usage",
 ]
