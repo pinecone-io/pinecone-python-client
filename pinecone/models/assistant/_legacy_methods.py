@@ -43,19 +43,33 @@ class AssistantModelLegacyMethodsMixin:
     _assistants_ref: ClassVar[Any | None] = None
 
     def _resolve_assistants(self) -> Assistants:
-        """Return the owning :class:`Assistants` namespace.
+        """Return the owning sync :class:`Assistants` namespace.
 
         Raises:
-            RuntimeError: If the model was constructed without a back-reference
-                (e.g. decoded directly from JSON in user code), making legacy
-                delegation impossible.
+            RuntimeError: If the model has no client reference at all.
+            TypeError: If the back-reference is an :class:`AsyncAssistants`
+                instance — legacy shims are sync-only; async callers must use
+                the namespace method directly (e.g. ``await pc.assistants.chat(
+                assistant_name=model.name, ...)``).
         """
+
+        # AsyncAssistants is imported lazily to avoid a circular import at module level.
         ref: Assistants | None = getattr(self, "_assistants", None)
         if ref is None:
             raise RuntimeError(
                 "This AssistantModel has no client reference, so legacy "
                 "methods cannot delegate. Use pc.assistants.<method>(...) "
-                "directly, or obtain the model via pc.assistants.describe(name=...)."
+                "directly, or obtain the model via "
+                "pc.assistants.describe(name=...)."
+            )
+        from pinecone.async_client.assistants import AsyncAssistants
+
+        if isinstance(ref, AsyncAssistants):
+            raise TypeError(
+                "Legacy assistant methods on AssistantModel are sync-only "
+                "and cannot be used on a model retrieved from AsyncAssistants. "
+                "Use the async namespace directly: "
+                "await pc.assistants.<method>(assistant_name=model.name, ...)."
             )
         return ref
 

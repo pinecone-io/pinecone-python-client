@@ -147,6 +147,20 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             )
         return self._data_plane_clients[assistant_name]
 
+    def _attach_ref(self, model: AssistantModel) -> AssistantModel:
+        """Attach a back-reference to *self* on *model* for legacy method detection.
+
+        Called after every API response that constructs an :class:`AssistantModel`
+        so that ``_resolve_assistants`` can detect that the model came from an
+        async namespace and raise a clear :exc:`TypeError` directing callers to
+        the async namespace method.
+
+        Uses the same ``__dict__`` write technique as sync :class:`Assistants`
+        to bypass msgspec's field-restricted ``__setattr__``.
+        """
+        model.__dict__["_assistants"] = self
+        return model
+
     def __repr__(self) -> str:
         """Return developer-friendly representation."""
         return "AsyncAssistants()"
@@ -231,7 +245,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         logger.info("Creating assistant %r", name)
         response = await self._http.post("/assistants", json=body)
-        model = self._adapter.to_assistant(response.content)
+        model = self._attach_ref(self._adapter.to_assistant(response.content))
         logger.debug("Created assistant %r (status=%s)", name, model.status)
 
         if timeout == -1:
@@ -283,7 +297,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         logger.info("Describing assistant %r", name)
         response = await self._http.get(f"/assistants/{name}")
-        model = self._adapter.to_assistant(response.content)
+        model = self._attach_ref(self._adapter.to_assistant(response.content))
         logger.debug("Described assistant %r (status=%s)", name, model.status)
         return model
 
@@ -381,6 +395,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         logger.info("Listing assistants page")
         response = await self._http.get("/assistants", params=params)
         result = self._adapter.to_assistant_list(response.content)
+        for item in result.assistants:
+            self._attach_ref(item)
         logger.debug(
             "Listed %d assistants (has_next=%s)",
             len(result.assistants),
@@ -461,7 +477,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         logger.info("Updating assistant %r", name)
         response = await self._http.patch(f"/assistants/{name}", json=body)
-        model = self._adapter.to_assistant(response.content)
+        model = self._attach_ref(self._adapter.to_assistant(response.content))
         logger.debug("Updated assistant %r", name)
         return model
 
@@ -1381,7 +1397,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         start = time.monotonic()
         while True:
             response = await self._http.get(f"/assistants/{name}")
-            model = self._adapter.to_assistant(response.content)
+            model = self._attach_ref(self._adapter.to_assistant(response.content))
             if model.status == "Ready":
                 return model
             if model.status in ("Failed", "InitializationFailed"):
