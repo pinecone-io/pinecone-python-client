@@ -8,14 +8,6 @@ from __future__ import annotations
 
 from typing import Any
 
-_ADMONITION = """\
-.. admonition:: Preview
-   :class: warning
-
-   Preview surface is not covered by SemVer — signatures and behavior
-   may change in any minor SDK release. Pin your SDK version when
-   relying on preview features."""
-
 
 class PreviewSchemaBuilder:
     """Fluent builder for preview index schema dicts.
@@ -64,6 +56,7 @@ class PreviewSchemaBuilder:
         .. admonition:: Preview
            :class: warning
 
+           Uses Pinecone API version ``2026-01.alpha``.
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
@@ -104,6 +97,7 @@ class PreviewSchemaBuilder:
         .. admonition:: Preview
            :class: warning
 
+           Uses Pinecone API version ``2026-01.alpha``.
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
@@ -147,6 +141,7 @@ class PreviewSchemaBuilder:
         .. admonition:: Preview
            :class: warning
 
+           Uses Pinecone API version ``2026-01.alpha``.
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
@@ -210,6 +205,7 @@ class PreviewSchemaBuilder:
         .. admonition:: Preview
            :class: warning
 
+           Uses Pinecone API version ``2026-01.alpha``.
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
@@ -259,6 +255,7 @@ class PreviewSchemaBuilder:
         .. admonition:: Preview
            :class: warning
 
+           Uses Pinecone API version ``2026-01.alpha``.
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
@@ -296,6 +293,7 @@ class PreviewSchemaBuilder:
         .. admonition:: Preview
            :class: warning
 
+           Uses Pinecone API version ``2026-01.alpha``.
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
@@ -319,6 +317,7 @@ class PreviewSchemaBuilder:
         .. admonition:: Preview
            :class: warning
 
+           Uses Pinecone API version ``2026-01.alpha``.
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
