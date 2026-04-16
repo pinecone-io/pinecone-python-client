@@ -158,3 +158,18 @@ class AssistantModelLegacyMethodsMixin:
             file_id=file_id,
             **kwargs,
         )
+
+    def delete_file(
+        self,
+        file_id: str,
+        timeout: int | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """Deprecated alias for :meth:`Assistants.delete_file`."""
+        ns = self._resolve_assistants()
+        ns.delete_file(
+            assistant_name=self.name,  # type: ignore[attr-defined]
+            file_id=file_id,
+            timeout=timeout,
+            **kwargs,
+        )
