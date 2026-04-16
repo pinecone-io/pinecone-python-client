@@ -373,7 +373,7 @@ async def test_list_models_filter_by_type_rerank_async(async_client: AsyncPineco
 @pytest.mark.asyncio
 async def test_get_model_returns_model_info_async(async_client: AsyncPinecone) -> None:
     """async get_model() returns a ModelInfo with name, vector_type, and default_dimension."""
-    model_info = await async_client.inference.get_model(model="multilingual-e5-large")
+    model_info = await async_client.inference.get_model(model_name="multilingual-e5-large")
 
     # Required fields
     assert model_info.model == "multilingual-e5-large"
@@ -399,7 +399,7 @@ async def test_get_model_returns_model_info_async(async_client: AsyncPinecone) -
 @pytest.mark.asyncio
 async def test_get_model_rerank_model_async(async_client: AsyncPinecone) -> None:
     """async get_model() works for rerank models; vector_type and default_dimension are None."""
-    model_info = await async_client.inference.get_model(model="bge-reranker-v2-m3")
+    model_info = await async_client.inference.get_model(model_name="bge-reranker-v2-m3")
 
     assert model_info.model == "bge-reranker-v2-m3"
     assert model_info.type == "rerank"
@@ -598,7 +598,7 @@ async def test_get_model_full_structure_async(async_client: AsyncPinecone) -> No
     """
     from pinecone.models.inference.models import ModelInfoSupportedParameter
 
-    model_info = await async_client.inference.get_model(model="multilingual-e5-large")
+    model_info = await async_client.inference.get_model(model_name="multilingual-e5-large")
 
     # --- description / short_description alias ---
     assert isinstance(model_info.short_description, str)

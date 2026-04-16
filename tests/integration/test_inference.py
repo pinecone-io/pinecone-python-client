@@ -401,7 +401,7 @@ def test_list_models_filter_by_type_rerank(client: Pinecone) -> None:
 @pytest.mark.integration
 def test_get_model_returns_model_info(client: Pinecone) -> None:
     """get_model() returns a ModelInfo with name, vector_type, and default_dimension."""
-    model_info = client.inference.get_model(model="multilingual-e5-large")
+    model_info = client.inference.get_model(model_name="multilingual-e5-large")
 
     # Required fields
     assert model_info.model == "multilingual-e5-large"
@@ -426,7 +426,7 @@ def test_get_model_returns_model_info(client: Pinecone) -> None:
 @pytest.mark.integration
 def test_get_model_rerank_model(client: Pinecone) -> None:
     """get_model() works for rerank models; vector_type and default_dimension are None."""
-    model_info = client.inference.get_model(model="bge-reranker-v2-m3")
+    model_info = client.inference.get_model(model_name="bge-reranker-v2-m3")
 
     assert model_info.model == "bge-reranker-v2-m3"
     assert model_info.type == "rerank"
@@ -616,7 +616,7 @@ def test_get_model_full_structure_rest(client: Pinecone) -> None:
     """
     from pinecone.models.inference.models import ModelInfoSupportedParameter
 
-    model_info = client.inference.get_model(model="multilingual-e5-large")
+    model_info = client.inference.get_model(model_name="multilingual-e5-large")
 
     # --- description / short_description alias ---
     assert isinstance(model_info.short_description, str)
