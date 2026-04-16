@@ -14,9 +14,6 @@ from pinecone.models.assistant.chat import (
     ChatHighlight as Highlight,
 )
 from pinecone.models.assistant.chat import (
-    ChatMessage as Message,
-)
-from pinecone.models.assistant.chat import (
     ChatReference as Reference,
 )
 from pinecone.models.assistant.chat import (
@@ -44,6 +41,7 @@ from pinecone.models.assistant.streaming import (
 from pinecone.models.assistant.streaming import (
     StreamMessageStart as StreamChatResponseMessageStart,
 )
+from pinecone_plugins.assistant.models.shared import Message
 
 # BaseStreamChatResponseChunk — no direct canonical equivalent in the rewrite.
 # The new SDK uses msgspec.Struct tag dispatch instead of a common base class.

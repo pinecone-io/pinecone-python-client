@@ -13,6 +13,8 @@ dependencies = [
     "httpx[http2]",
     "msgspec",
     "orjson",
+    "pinecone-plugin-interface>=0.0.7",
+    "requests>=2.33.1",
 ]
 
 [project.optional-dependencies]
