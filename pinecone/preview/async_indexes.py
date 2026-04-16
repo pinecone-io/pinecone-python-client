@@ -545,7 +545,7 @@ class AsyncPreviewIndexes:
         )
         return describe_backup_adapter.from_response(orjson.loads(response.content))
 
-    async def list_backups(
+    def list_backups(
         self,
         index_name: str,
         *,
@@ -583,12 +583,12 @@ class AsyncPreviewIndexes:
         Examples:
             Iterate over all backups for an index::
 
-                async for backup in await pc.preview.indexes.list_backups("my-index"):
+                async for backup in pc.preview.indexes.list_backups("my-index"):
                     print(backup.backup_id, backup.status)
 
             Access page-level metadata::
 
-                paginator = await pc.preview.indexes.list_backups("my-index")
+                paginator = pc.preview.indexes.list_backups("my-index")
                 async for page in paginator.pages():
                     print(f"Got {len(page.items)} backups")
                     for backup in page.items:

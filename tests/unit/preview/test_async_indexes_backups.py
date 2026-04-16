@@ -139,7 +139,7 @@ async def test_async_list_backups_returns_async_paginator(
     respx.get(f"{BASE_URL}/indexes/foo/backups").mock(
         return_value=httpx.Response(200, json={"data": [_BACKUP_1], "pagination": {"next": None}})
     )
-    paginator = await indexes.list_backups("foo")
+    paginator = indexes.list_backups("foo")
     assert isinstance(paginator, AsyncPaginator)
 
 
@@ -153,7 +153,7 @@ async def test_async_list_backups_iterates_items(
             json={"data": [_BACKUP_1, _BACKUP_2, _BACKUP_3], "pagination": {"next": None}},
         )
     )
-    paginator = await indexes.list_backups("foo")
+    paginator = indexes.list_backups("foo")
     items = [backup async for backup in paginator]
     assert len(items) == 3
     assert all(isinstance(b, PreviewBackupModel) for b in items)
@@ -166,7 +166,7 @@ async def test_async_list_backups_sends_pagination_token_query_param(
     route = respx.get(f"{BASE_URL}/indexes/foo/backups").mock(
         return_value=httpx.Response(200, json={"data": [_BACKUP_1], "pagination": {"next": None}})
     )
-    paginator = await indexes.list_backups("foo", pagination_token="tok123")
+    paginator = indexes.list_backups("foo", pagination_token="tok123")
     async for _ in paginator:
         pass
     request = route.calls.last.request
@@ -183,7 +183,7 @@ async def test_async_list_backups_terminates_on_null_next(
             json={"data": [_BACKUP_1, _BACKUP_2], "pagination": {"next": None}},
         )
     )
-    paginator = await indexes.list_backups("foo")
+    paginator = indexes.list_backups("foo")
     async for _ in paginator:
         pass
     assert route.call_count == 1
@@ -205,7 +205,7 @@ async def test_async_list_backups_follows_next_token(
             ),
         ]
     )
-    paginator = await indexes.list_backups("foo")
+    paginator = indexes.list_backups("foo")
     items = [backup async for backup in paginator]
     assert len(items) == 2
     assert route.call_count == 2
@@ -218,7 +218,7 @@ async def test_async_list_backups_rejects_empty_index_name(
     indexes: AsyncPreviewIndexes,
 ) -> None:
     with pytest.raises(PineconeValueError):
-        await indexes.list_backups("")
+        indexes.list_backups("")
     assert not respx.calls
 
 
@@ -227,7 +227,7 @@ async def test_async_list_backups_rejects_non_positive_limit(
     indexes: AsyncPreviewIndexes,
 ) -> None:
     with pytest.raises(PineconeValueError):
-        await indexes.list_backups("foo", limit=0)
+        indexes.list_backups("foo", limit=0)
     assert not respx.calls
 
 
@@ -235,5 +235,6 @@ def test_async_create_backup_is_coroutine() -> None:
     assert asyncio.iscoroutinefunction(AsyncPreviewIndexes.create_backup)
 
 
-def test_async_list_backups_is_coroutine() -> None:
-    assert asyncio.iscoroutinefunction(AsyncPreviewIndexes.list_backups)
+def test_async_list_backups_is_not_coroutine(indexes: AsyncPreviewIndexes) -> None:
+    assert not asyncio.iscoroutinefunction(AsyncPreviewIndexes.list_backups)
+    assert isinstance(indexes.list_backups("foo"), AsyncPaginator)

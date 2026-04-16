@@ -109,9 +109,7 @@ def test_create_backup_empty_index_name_raises(indexes: PreviewIndexes) -> None:
 @respx.mock
 def test_list_backups_returns_paginator(indexes: PreviewIndexes) -> None:
     respx.get(f"{BASE_URL}/indexes/my-index/backups").mock(
-        return_value=httpx.Response(
-            200, json={"data": [_BACKUP_1], "pagination": {"next": None}}
-        )
+        return_value=httpx.Response(200, json={"data": [_BACKUP_1], "pagination": {"next": None}})
     )
     assert isinstance(indexes.list_backups("my-index"), Paginator)
 
@@ -194,11 +192,9 @@ async def test_async_list_backups_returns_async_paginator(
     async_indexes: AsyncPreviewIndexes,
 ) -> None:
     respx.get(f"{BASE_URL}/indexes/my-index/backups").mock(
-        return_value=httpx.Response(
-            200, json={"data": [_BACKUP_1], "pagination": {"next": None}}
-        )
+        return_value=httpx.Response(200, json={"data": [_BACKUP_1], "pagination": {"next": None}})
     )
-    assert isinstance(await async_indexes.list_backups("my-index"), AsyncPaginator)
+    assert isinstance(async_indexes.list_backups("my-index"), AsyncPaginator)
 
 
 @respx.mock
@@ -211,7 +207,7 @@ async def test_async_list_backups_iterates_across_pages(
             httpx.Response(200, json={"data": [_BACKUP_2], "pagination": {"next": None}}),
         ]
     )
-    paginator = await async_indexes.list_backups("my-index")
+    paginator = async_indexes.list_backups("my-index")
     items = [b async for b in paginator]
     assert len(items) == 2
     assert all(isinstance(b, PreviewBackupModel) for b in items)
@@ -224,5 +220,5 @@ async def test_async_list_backups_empty_index_name_raises(
     async_indexes: AsyncPreviewIndexes,
 ) -> None:
     with pytest.raises(PineconeValueError):
-        await async_indexes.list_backups("")
+        async_indexes.list_backups("")
     assert not respx.calls
