@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 import msgspec
 
 from pinecone._internal.validation import require_in_range, require_non_empty
+from pinecone.errors.exceptions import ValidationError
 from pinecone.preview._internal.adapters.documents import (
     decode_fetch_response,
     decode_search_response,
@@ -216,6 +217,64 @@ class AsyncPreviewDocuments:
             json=body,
         )
         return decode_fetch_response(response.content)
+
+    async def delete(
+        self,
+        *,
+        namespace: str,
+        ids: list[str] | None = None,
+        delete_all: bool = False,
+        filter: dict[str, Any] | None = None,
+    ) -> None:
+        """Delete documents from a namespace.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Args:
+            namespace: Target namespace. Must be a non-empty string.
+            ids: Optional list of document IDs to delete. Mutually exclusive
+                with ``delete_all`` and ``filter``.
+            delete_all: If ``True``, delete all documents in the namespace.
+            filter: Optional metadata filter — delete all matching documents.
+                Mutually exclusive with ``ids``.
+
+        Returns:
+            ``None`` (server responds with 202 Accepted, empty body).
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.ValidationError`: If namespace is
+                empty, none of ``ids``, ``delete_all=True``, or ``filter`` is
+                provided, ``ids`` and ``delete_all`` are both provided, or
+                ``ids`` and ``filter`` are both provided.
+        """
+        require_non_empty("namespace", namespace)
+        if ids is None and not delete_all and filter is None:
+            raise ValidationError(
+                "at least one of ids, delete_all=True, or filter must be provided"
+            )
+        if ids is not None and delete_all:
+            raise ValidationError("ids and delete_all are mutually exclusive")
+        if ids is not None and filter is not None:
+            raise ValidationError("ids and filter are mutually exclusive")
+
+        body: dict[str, Any] = {}
+        if ids is not None:
+            body["ids"] = ids
+        if delete_all:
+            body["delete_all"] = True
+        if filter is not None:
+            body["filter"] = filter
+
+        await self._http.post(
+            f"/namespaces/{namespace}/documents/delete",
+            json=body,
+        )
 
     def __repr__(self) -> str:
         return "AsyncPreviewDocuments()"
