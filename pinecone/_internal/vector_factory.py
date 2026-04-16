@@ -172,12 +172,12 @@ class VectorFactory:
                     id_ = item["id"]
                 except KeyError:
                     return _from_dict(item)
-                if type(id_) is str and id_.isascii() and "\x00" not in id_:
+                if id_.__class__ is str and id_.isascii() and "\x00" not in id_:
                     try:
                         raw_values = item["values"]
                     except KeyError:
                         return _from_dict(item)
-                    converted = raw_values if type(raw_values) is list else list(raw_values)
+                    converted = raw_values if raw_values.__class__ is list else list(raw_values)
                     if converted:
                         return Vector(id_, converted)
             elif item_len == 3:
@@ -186,26 +186,30 @@ class VectorFactory:
                     id_ = item["id"]
                 except KeyError:
                     return _from_dict(item)
-                if type(id_) is str and id_.isascii() and "\x00" not in id_:
+                if id_.__class__ is str and id_.isascii() and "\x00" not in id_:
                     try:
                         raw_values = item["values"]
                         raw_sparse = item["sparse_values"]
                     except KeyError:
                         return _from_dict(item)
-                    if type(raw_sparse) is dict:
+                    if raw_sparse.__class__ is dict:
                         try:
                             s_indices = raw_sparse["indices"]
                             s_values = raw_sparse["values"]
                         except KeyError:
                             return _from_dict(item)
                         if (
-                            type(s_indices) is list
-                            and type(s_values) is list
+                            s_indices.__class__ is list
+                            and s_values.__class__ is list
                             and len(s_indices) == len(s_values)
-                            and (not s_indices or type(s_indices[0]) is int)
+                            and (not s_indices or s_indices[0].__class__ is int)
                         ):
-                            converted = raw_values if type(raw_values) is list else list(raw_values)
-                            if not s_values or type(s_values[0]) is float:
+                            converted = (
+                                raw_values
+                                if raw_values.__class__ is list
+                                else list(raw_values)
+                            )
+                            if not s_values or s_values[0].__class__ is float:
                                 return Vector(
                                     id_, converted, SparseValues(s_indices, s_values), None
                                 )
@@ -223,8 +227,8 @@ class VectorFactory:
             # Inline 2-element happy path to avoid function call overhead
             if len(item) == 2:
                 id_, values = item
-                if type(id_) is str and id_.isascii() and "\x00" not in id_:
-                    converted = values if type(values) is list else list(values)
+                if id_.__class__ is str and id_.isascii() and "\x00" not in id_:
+                    converted = values if values.__class__ is list else list(values)
                     if converted:
                         return Vector(id_, converted)
             return _from_tuple(item)
