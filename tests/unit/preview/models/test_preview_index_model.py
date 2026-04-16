@@ -249,3 +249,44 @@ def test_preview_index_model_repr_html_omits_read_capacity_when_none() -> None:
     m = _make_model()
     html = m._repr_html_()
     assert "Read capacity:" not in html
+
+
+def test_preview_index_model_repr_pretty_non_cycle_emits_core_fields() -> None:
+    m = _make_model(n_fields=2)
+    p = MagicMock()
+    m._repr_pretty_(p, cycle=False)
+    emitted = "".join(c.args[0] for c in p.text.call_args_list)
+    assert "PreviewIndexModel(" in emitted
+    assert "name='test-index'" in emitted
+    assert "status='Ready'" in emitted
+    assert "host='test-index.svc.pinecone.io'" in emitted
+    assert "deletion_protection='disabled'" in emitted
+    assert "schema=Schema(fields=2 fields)" in emitted
+    assert p.breakable.call_count >= 1
+
+
+def test_preview_index_model_repr_pretty_non_cycle_includes_read_capacity_when_present() -> None:
+    rc = PreviewReadCapacityOnDemandResponse(status=PreviewReadCapacityStatus(state="Ready"))
+    m = _make_model(read_capacity=rc)
+    p = MagicMock()
+    m._repr_pretty_(p, cycle=False)
+    emitted = "".join(c.args[0] for c in p.text.call_args_list)
+    assert "read_capacity=" in emitted
+
+
+def test_preview_index_model_repr_pretty_non_cycle_includes_tags_when_present() -> None:
+    m = _make_model(tags={"env": "prod"})
+    p = MagicMock()
+    m._repr_pretty_(p, cycle=False)
+    emitted = "".join(c.args[0] for c in p.text.call_args_list)
+    assert "tags=" in emitted
+    assert "'env'" in emitted
+
+
+def test_preview_index_model_repr_pretty_non_cycle_omits_optional_fields_when_none() -> None:
+    m = _make_model()
+    p = MagicMock()
+    m._repr_pretty_(p, cycle=False)
+    emitted = "".join(c.args[0] for c in p.text.call_args_list)
+    assert "read_capacity=" not in emitted
+    assert "tags=" not in emitted
