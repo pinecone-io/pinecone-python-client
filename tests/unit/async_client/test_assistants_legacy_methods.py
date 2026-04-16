@@ -166,3 +166,28 @@ async def test_async_update_assistant_legacy_positional(
     result = await mock_async_assistants.update_assistant("foo", "be nice", {"k": "v"})
     # Returns the canned fixture value from mock_async_assistants
     assert result.name == "legacy-name"
+
+
+# ---------------------------------------------------------------------------
+# delete_assistant shim tests (BC-0034)
+# ---------------------------------------------------------------------------
+
+
+async def test_async_delete_assistant_legacy_method(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """delete_assistant(assistant_name=...) delegates to delete()."""
+    spy = AsyncMock()
+    mock_async_assistants.delete = spy  # type: ignore[method-assign]
+    await mock_async_assistants.delete_assistant(assistant_name="foo", timeout=30)
+    spy.assert_called_once_with(name="foo", timeout=30)
+
+
+async def test_async_delete_assistant_legacy_positional(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """delete_assistant("foo", 30) using positional legacy-style call."""
+    spy = AsyncMock()
+    mock_async_assistants.delete = spy  # type: ignore[method-assign]
+    await mock_async_assistants.delete_assistant("foo", 30)
+    spy.assert_called_once_with(name="foo", timeout=30)
