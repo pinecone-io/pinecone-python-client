@@ -50,3 +50,16 @@ def mock_async_assistants() -> AsyncAssistants:
     obj._poll_until_ready = AsyncMock(return_value=_CANNED_ASSISTANT)  # type: ignore[method-assign]
 
     return obj
+
+
+@pytest.fixture
+def spy_async_create(mock_async_assistants: AsyncAssistants) -> AsyncMock:
+    """Spy on AsyncAssistants.create to capture call arguments.
+
+    Wraps the real create() with an AsyncMock so tests can assert how
+    create_assistant() (and other legacy shims) forward their parameters.
+    """
+    original_create = mock_async_assistants.create
+    spy = AsyncMock(side_effect=original_create)
+    mock_async_assistants.create = spy  # type: ignore[method-assign]
+    return spy
