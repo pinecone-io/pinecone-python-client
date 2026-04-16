@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from pinecone.models.batch import BatchError, BatchResult  # noqa: F401
     from pinecone.models.admin.api_key import (  # noqa: F401
         APIKeyList,
         APIKeyModel,
@@ -144,6 +145,9 @@ if TYPE_CHECKING:
     from pinecone.models.vectors.vector import ScoredVector, Vector  # noqa: F401
 
 _LAZY_IMPORTS: dict[str, str] = {
+    # Batch
+    "BatchError": "pinecone.models.batch",
+    "BatchResult": "pinecone.models.batch",
     # Admin
     "APIKeyList": "pinecone.models.admin.api_key",
     "APIKeyModel": "pinecone.models.admin.api_key",
