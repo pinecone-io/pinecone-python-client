@@ -336,3 +336,44 @@ async def test_async_fetch_sends_correct_api_version_header(
     await async_docs.fetch(namespace="my-ns", ids=["doc-1"])
 
     assert route.calls.last.request.headers.get("X-Pinecone-Api-Version") == INDEXES_API_VERSION
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_fetch_include_fields_named_fields_passes_through(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    route = respx.post(FETCH_URL).mock(return_value=httpx.Response(200, json=_FETCH_RESPONSE))
+
+    await async_docs.fetch(namespace="my-ns", ids=["doc-1"], include_fields=["title", "body"])
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["include_fields"] == ["title", "body"]
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_fetch_filter_omitted_when_not_provided(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    route = respx.post(FETCH_URL).mock(return_value=httpx.Response(200, json=_FETCH_RESPONSE))
+
+    await async_docs.fetch(namespace="my-ns", ids=["doc-1"])
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert "filter" not in body
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_fetch_ids_omitted_when_not_provided(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    route = respx.post(FETCH_URL).mock(
+        return_value=httpx.Response(200, json=_FILTER_FETCH_RESPONSE)
+    )
+
+    await async_docs.fetch(namespace="my-ns", filter={"category": "news"})
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert "ids" not in body

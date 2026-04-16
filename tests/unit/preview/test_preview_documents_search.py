@@ -434,3 +434,137 @@ async def test_async_search_response_has_preview_documents_with_dynamic_attribut
     assert first._id == "doc-1"
     assert first.title == "hello"  # type: ignore[attr-defined]
     assert first.score == pytest.approx(0.95)
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_search_typed_dense_vector_query_serializes_to_wire_shape(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+
+    await async_docs.search(
+        namespace="my-ns",
+        top_k=3,
+        score_by=[PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3])],
+    )
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["score_by"] == [
+        {"type": "dense_vector", "field": "embedding", "values": [0.1, 0.2, 0.3]}
+    ]
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_search_mixed_typed_and_typed_score_by(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+
+    await async_docs.search(
+        namespace="my-ns",
+        top_k=5,
+        score_by=[
+            PreviewTextQuery(field="body", query="test"),
+            PreviewDenseVectorQuery(field="vec", values=[0.5, 0.6]),
+        ],
+    )
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert len(body["score_by"]) == 2
+    assert body["score_by"][0]["type"] == "text"
+    assert body["score_by"][1]["type"] == "dense_vector"
+
+
+@pytest.mark.asyncio
+async def test_async_search_top_k_1_accepted(async_docs: AsyncPreviewDocuments) -> None:
+    with respx.mock:
+        respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+        result = await async_docs.search(
+            namespace="my-ns",
+            top_k=1,
+            score_by=[{"type": "text", "field": "f", "query": "q"}],
+        )
+    assert isinstance(result, PreviewDocumentSearchResponse)
+
+
+@pytest.mark.asyncio
+async def test_async_search_top_k_10000_accepted(async_docs: AsyncPreviewDocuments) -> None:
+    with respx.mock:
+        respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+        result = await async_docs.search(
+            namespace="my-ns",
+            top_k=10000,
+            score_by=[{"type": "text", "field": "f", "query": "q"}],
+        )
+    assert isinstance(result, PreviewDocumentSearchResponse)
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_search_include_fields_named_fields_passes_through(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+
+    await async_docs.search(
+        namespace="my-ns",
+        top_k=5,
+        score_by=[{"type": "text", "field": "f", "query": "q"}],
+        include_fields=["title", "body"],
+    )
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["include_fields"] == ["title", "body"]
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_search_sends_correct_api_version_header(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+
+    await async_docs.search(
+        namespace="my-ns",
+        top_k=5,
+        score_by=[{"type": "text", "field": "f", "query": "q"}],
+    )
+
+    assert route.calls.last.request.headers.get("X-Pinecone-Api-Version") == INDEXES_API_VERSION
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_search_filter_included_in_request_when_provided(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+
+    await async_docs.search(
+        namespace="my-ns",
+        top_k=5,
+        score_by=[{"type": "text", "field": "f", "query": "q"}],
+        filter={"category": {"$eq": "news"}},
+    )
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["filter"] == {"category": {"$eq": "news"}}
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_search_filter_omitted_when_not_provided(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+
+    await async_docs.search(
+        namespace="my-ns",
+        top_k=5,
+        score_by=[{"type": "text", "field": "f", "query": "q"}],
+    )
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert "filter" not in body
