@@ -7,10 +7,17 @@ from typing import Any
 from msgspec import Struct
 
 from pinecone._internal.config import normalize_host
+from pinecone.models.assistant._legacy_methods import AssistantModelLegacyMethodsMixin
 from pinecone.models.assistant._mixin import StructDictMixin
 
 
-class AssistantModel(StructDictMixin, Struct, kw_only=True):
+class AssistantModel(
+    AssistantModelLegacyMethodsMixin,
+    StructDictMixin,
+    Struct,
+    dict=True,
+    kw_only=True,
+):
     """Response model for a Pinecone assistant.
 
     Attributes:
