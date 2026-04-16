@@ -3,6 +3,8 @@
 # are fully introduced. The exclude_patterns list is required now to keep
 # backwards-compatibility shim modules out of autodoc output.
 
+from __future__ import annotations
+
 project = "pinecone"
 extensions: list[str] = []
 
