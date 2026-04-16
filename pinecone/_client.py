@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from pinecone.index import Index
     from pinecone.models.enums import DeletionProtection
     from pinecone.models.indexes.index import IndexModel
+    from pinecone.preview import Preview
 
 
 class Pinecone:
@@ -114,6 +115,7 @@ class Pinecone:
         self._inference: Inference | None = None
         self._assistants: Assistants | None = None
         self._host_cache: dict[str, str] = {}
+        self._preview: Preview | None = None
 
     def __repr__(self) -> str:
         masked = f"...{self._config.api_key[-4:]}" if len(self._config.api_key) >= 4 else "***"
@@ -260,6 +262,28 @@ class Pinecone:
         from pinecone.client._assistant_namespace_proxy import _AssistantNamespaceProxy
 
         return _AssistantNamespaceProxy(self.assistants)
+
+    @property
+    def preview(self) -> Preview:
+        """Access the Preview namespace for pre-release API features.
+
+        Lazily imported and instantiated on first access. Preview surface is
+        not covered by SemVer — signatures and behavior may change in any
+        minor SDK release.
+
+        Returns:
+            :class:`~pinecone.preview.Preview` namespace instance.
+
+        Examples:
+
+            pc = Pinecone(api_key="your-api-key")
+            pc.preview.indexes.create(...)  # when a preview area exists
+        """
+        if self._preview is None:
+            from pinecone.preview import Preview as _Preview
+
+            self._preview = _Preview(config=self._config)
+        return self._preview
 
     def index(
         self,
