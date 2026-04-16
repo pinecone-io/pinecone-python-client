@@ -384,6 +384,30 @@ def test_exists_returns_true_when_index_found(indexes: PreviewIndexes) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Forward-compatibility: unknown field types and extra options pass through
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_create_accepts_unknown_field_type(indexes: PreviewIndexes) -> None:
+    """create() does not raise ValidationError for unknown field types (escape hatch)."""
+    import orjson
+
+    from pinecone.preview.schema_builder import SchemaBuilder
+
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_INDEX_RESPONSE)
+    )
+
+    schema = SchemaBuilder().add_custom_field("x", {"type": "new_type"}).build()
+    result = indexes.create(schema=schema, name="i")
+
+    assert isinstance(result, PreviewIndexModel)
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["schema"]["fields"]["x"] == {"type": "new_type"}
+
+
+# ---------------------------------------------------------------------------
 # Preview namespace wiring
 # ---------------------------------------------------------------------------
 

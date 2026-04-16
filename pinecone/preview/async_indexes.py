@@ -7,7 +7,6 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-import msgspec
 import orjson
 
 from pinecone._internal.constants import DEFAULT_BASE_URL
@@ -23,7 +22,6 @@ from pinecone.preview._internal.adapters.indexes import (
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
 from pinecone.preview.models.indexes import PreviewIndexModel
 from pinecone.preview.models.requests import PreviewConfigureIndexRequest, PreviewCreateIndexRequest
-from pinecone.preview.models.schema import PreviewSchema
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
@@ -138,8 +136,6 @@ class AsyncPreviewIndexes:
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If a tag key
                 exceeds 80 characters or a tag value exceeds 120 characters.
-            :exc:`msgspec.ValidationError`: If ``schema`` cannot be converted
-                to the expected typed model.
             :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an
                 error response.
 
@@ -160,10 +156,8 @@ class AsyncPreviewIndexes:
                         f"Tag value for key {key!r} exceeds the 120-character limit."
                     )
 
-        typed_schema = msgspec.convert(schema, PreviewSchema)
-
         req = PreviewCreateIndexRequest(
-            schema=typed_schema,
+            schema=schema,
             name=name,
             deployment=deployment,
             read_capacity=read_capacity,
@@ -218,8 +212,6 @@ class AsyncPreviewIndexes:
                 is empty; if all kwargs are ``None``; if *schema*, *tags*, or
                 *read_capacity* is an empty dict; or if a tag key/value
                 exceeds the length limit.
-            :exc:`msgspec.ValidationError`: If *schema* cannot be converted
-                to the expected typed model.
             :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns
                 an error response.
         """
@@ -252,10 +244,8 @@ class AsyncPreviewIndexes:
                         f"Tag value for key {key!r} exceeds the 120-character limit."
                     )
 
-        typed_schema = msgspec.convert(schema, PreviewSchema) if schema is not None else None
-
         req = PreviewConfigureIndexRequest(
-            schema=typed_schema,
+            schema=schema,
             read_capacity=read_capacity,
             deletion_protection=deletion_protection,
             tags=tags,

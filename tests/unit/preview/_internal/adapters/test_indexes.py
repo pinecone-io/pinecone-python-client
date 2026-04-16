@@ -10,18 +10,8 @@ from pinecone.preview._internal.adapters.indexes import (
     describe_adapter,
     list_adapter,
 )
-from pinecone.preview.models.deployment import PreviewManagedDeployment
 from pinecone.preview.models.indexes import PreviewIndexModel
-from pinecone.preview.models.read_capacity import (
-    PreviewReadCapacityOnDemandResponse,
-    PreviewReadCapacityStatus,
-)
 from pinecone.preview.models.requests import PreviewConfigureIndexRequest, PreviewCreateIndexRequest
-from pinecone.preview.models.schema import (
-    PreviewDenseVectorField,
-    PreviewSchema,
-    PreviewStringField,
-)
 
 
 def _minimal_index_dict(name: str = "test-idx") -> dict:  # type: ignore[type-arg]
@@ -47,7 +37,7 @@ def _minimal_index_dict(name: str = "test-idx") -> dict:  # type: ignore[type-ar
 
 def test_create_adapter_serializes_minimal() -> None:
     req = PreviewCreateIndexRequest(
-        schema=PreviewSchema(fields={"e": PreviewDenseVectorField(dimension=4)})
+        schema={"fields": {"e": {"type": "dense_vector", "dimension": 4}}}
     )
     raw = create_adapter.to_request(req)
     data = orjson.loads(raw)
@@ -57,11 +47,11 @@ def test_create_adapter_serializes_minimal() -> None:
 
 def test_create_adapter_preserves_explicit_false_overrides() -> None:
     req = PreviewCreateIndexRequest(
-        schema=PreviewSchema(
-            fields={
-                "title": PreviewStringField(filterable=False, full_text_searchable=True)
+        schema={
+            "fields": {
+                "title": {"type": "string", "filterable": False, "full_text_searchable": True}
             }
-        )
+        }
     )
     raw = create_adapter.to_request(req)
     data = orjson.loads(raw)
@@ -72,11 +62,11 @@ def test_create_adapter_preserves_explicit_false_overrides() -> None:
 
 def test_create_adapter_preserves_user_explicit_lowercase_false() -> None:
     req = PreviewCreateIndexRequest(
-        schema=PreviewSchema(
-            fields={
-                "title": PreviewStringField(full_text_searchable=True, lowercase=False)
+        schema={
+            "fields": {
+                "title": {"type": "string", "full_text_searchable": True, "lowercase": False}
             }
-        )
+        }
     )
     raw = create_adapter.to_request(req)
     data = orjson.loads(raw)
@@ -87,11 +77,16 @@ def test_create_adapter_preserves_user_explicit_lowercase_false() -> None:
 
 def test_create_adapter_preserves_stemming_false_and_stop_words_false() -> None:
     req = PreviewCreateIndexRequest(
-        schema=PreviewSchema(
-            fields={
-                "title": PreviewStringField(full_text_searchable=True, stemming=False, stop_words=False)
+        schema={
+            "fields": {
+                "title": {
+                    "type": "string",
+                    "full_text_searchable": True,
+                    "stemming": False,
+                    "stop_words": False,
+                }
             }
-        )
+        }
     )
     raw = create_adapter.to_request(req)
     data = orjson.loads(raw)
@@ -103,14 +98,15 @@ def test_create_adapter_preserves_stemming_false_and_stop_words_false() -> None:
 
 def test_create_adapter_serializes_full_request() -> None:
     req = PreviewCreateIndexRequest(
-        schema=PreviewSchema(fields={"e": PreviewDenseVectorField(dimension=4)}),
+        schema={"fields": {"e": {"type": "dense_vector", "dimension": 4}}},
         name="my-idx",
-        deployment=PreviewManagedDeployment(
-            environment="us-east-1-aws", cloud="aws", region="us-east-1"
-        ),
-        read_capacity=PreviewReadCapacityOnDemandResponse(
-            status=PreviewReadCapacityStatus(state="Ready")
-        ),
+        deployment={
+            "deployment_type": "managed",
+            "environment": "us-east-1-aws",
+            "cloud": "aws",
+            "region": "us-east-1",
+        },
+        read_capacity={"mode": "OnDemand"},
         tags={"env": "prod"},
     )
     raw = create_adapter.to_request(req)
@@ -118,6 +114,36 @@ def test_create_adapter_serializes_full_request() -> None:
     assert data["name"] == "my-idx"
     assert data["tags"] == {"env": "prod"}
     assert data["deployment"]["deployment_type"] == "managed"
+
+
+def test_create_adapter_preserves_unknown_additional_options() -> None:
+    req = PreviewCreateIndexRequest(
+        schema={
+            "fields": {
+                "embedding": {
+                    "type": "dense_vector",
+                    "dimension": 768,
+                    "metric": "cosine",
+                    "new_future_param": "value",
+                }
+            }
+        }
+    )
+    raw = create_adapter.to_request(req)
+    data = orjson.loads(raw)
+    field = data["schema"]["fields"]["embedding"]
+    assert field["new_future_param"] == "value"
+    assert field["type"] == "dense_vector"
+    assert field["dimension"] == 768
+
+
+def test_create_adapter_preserves_add_custom_field_unknown_type() -> None:
+    req = PreviewCreateIndexRequest(
+        schema={"fields": {"experimental": {"type": "new_type", "foo": 42}}}
+    )
+    raw = create_adapter.to_request(req)
+    data = orjson.loads(raw)
+    assert data["schema"]["fields"]["experimental"] == {"type": "new_type", "foo": 42}
 
 
 # ---------------------------------------------------------------------------

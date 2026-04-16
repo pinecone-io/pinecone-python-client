@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import httpx
-import msgspec
 import orjson
 import pytest
 import respx
@@ -121,10 +120,15 @@ def test_create_rejects_long_tag_value(indexes: PreviewIndexes) -> None:
         indexes.create(schema=_MINIMAL_SCHEMA, tags={"k": "v" * 121})
 
 
-def test_create_invalid_schema_raises_validation_error(indexes: PreviewIndexes) -> None:
-    """An unrecognised field type raises msgspec.ValidationError."""
-    with pytest.raises(msgspec.ValidationError):
-        indexes.create(schema={"fields": {"x": {"type": "unknown_type"}}})
+@respx.mock
+def test_create_unknown_field_type_passes_through(indexes: PreviewIndexes) -> None:
+    """An unrecognised field type is passed through to the API without raising."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_PREVIEW_INDEX_RESPONSE)
+    )
+    indexes.create(schema={"fields": {"x": {"type": "unknown_type"}}})
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["schema"]["fields"]["x"] == {"type": "unknown_type"}
 
 
 @respx.mock

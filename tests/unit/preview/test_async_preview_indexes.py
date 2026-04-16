@@ -10,7 +10,6 @@ import respx
 
 from pinecone._internal.config import PineconeConfig
 from pinecone.errors.exceptions import ForbiddenError, NotFoundError, PineconeTimeoutError
-
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
 from pinecone.preview.async_indexes import AsyncPreviewIndexes
 from pinecone.preview.models.indexes import PreviewIndexModel
@@ -306,6 +305,30 @@ async def test_exists_returns_true_when_index_found(indexes: AsyncPreviewIndexes
     )
 
     assert await indexes.exists("test-index") is True
+
+
+# ---------------------------------------------------------------------------
+# Forward-compatibility: unknown field types and extra options pass through
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+async def test_async_create_accepts_unknown_field_type(indexes: AsyncPreviewIndexes) -> None:
+    """create() does not raise ValidationError for unknown field types (escape hatch)."""
+    import orjson
+
+    from pinecone.preview.schema_builder import SchemaBuilder
+
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_INDEX_RESPONSE)
+    )
+
+    schema = SchemaBuilder().add_custom_field("x", {"type": "new_type"}).build()
+    result = await indexes.create(schema=schema, name="i")
+
+    assert isinstance(result, PreviewIndexModel)
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["schema"]["fields"]["x"] == {"type": "new_type"}
 
 
 # ---------------------------------------------------------------------------

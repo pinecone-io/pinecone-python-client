@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 
 import httpx
-import msgspec
 import orjson
 import pytest
 import respx
@@ -124,12 +123,17 @@ async def test_async_create_rejects_long_tag_value(indexes: AsyncPreviewIndexes)
         await indexes.create(schema=_MINIMAL_SCHEMA, tags={"k": "v" * 121})
 
 
-async def test_async_create_invalid_schema_raises_validation_error(
+@respx.mock
+async def test_async_create_unknown_field_type_passes_through(
     indexes: AsyncPreviewIndexes,
 ) -> None:
-    """An unrecognised field type raises msgspec.ValidationError."""
-    with pytest.raises(msgspec.ValidationError):
-        await indexes.create(schema={"fields": {"x": {"type": "unknown_type"}}})
+    """An unrecognised field type is passed through to the API without raising."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_PREVIEW_INDEX_RESPONSE)
+    )
+    await indexes.create(schema={"fields": {"x": {"type": "unknown_type"}}})
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["schema"]["fields"]["x"] == {"type": "unknown_type"}
 
 
 def test_async_create_is_coroutine() -> None:
