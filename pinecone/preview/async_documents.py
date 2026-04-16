@@ -6,14 +6,19 @@ from typing import TYPE_CHECKING, Any
 
 import msgspec
 
-from pinecone._internal.validation import require_non_empty
+from pinecone._internal.validation import require_in_range, require_non_empty
+from pinecone.preview._internal.adapters.documents import decode_search_response
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
 from pinecone.preview.documents import _validate_documents
-from pinecone.preview.models.documents import PreviewDocumentUpsertResponse
+from pinecone.preview.models.documents import (
+    PreviewDocumentSearchResponse,
+    PreviewDocumentUpsertResponse,
+)
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
     from pinecone._internal.http_client import AsyncHTTPClient
+    from pinecone.preview.models.score_by import PreviewScoreByQuery
 
 __all__ = ["AsyncPreviewDocuments"]
 
@@ -101,6 +106,63 @@ class AsyncPreviewDocuments:
             json={"documents": documents},
         )
         return _UPSERT_DECODER.decode(response.content)
+
+    async def search(
+        self,
+        *,
+        namespace: str,
+        top_k: int,
+        score_by: list[dict[str, Any] | PreviewScoreByQuery],
+        include_fields: list[str] | None = None,
+        filter: dict[str, Any] | None = None,
+    ) -> PreviewDocumentSearchResponse:
+        """Search documents in a namespace.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Args:
+            namespace: Target namespace. Must be a non-empty string.
+            top_k: Number of results to return. Must be between 1 and 10000.
+            score_by: Non-empty list of scoring queries. Items may be typed
+                :class:`~pinecone.preview.models.score_by.PreviewScoreByQuery`
+                structs or plain dicts.
+            include_fields: Fields to include in each result. ``None`` returns
+                only ``_id`` and ``score``; ``["*"]`` returns all stored fields.
+            filter: Optional metadata filter expression.
+
+        Returns:
+            :class:`~pinecone.preview.models.documents.PreviewDocumentSearchResponse`
+            with ``matches``, ``namespace``, and ``usage``.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.ValidationError`: If namespace is
+                empty, ``top_k`` is outside [1, 10000], or ``score_by`` is empty.
+        """
+        require_non_empty("namespace", namespace)
+        require_in_range("top_k", top_k, 1, 10000)
+        require_non_empty("score_by", score_by)
+
+        normalized: list[dict[str, Any]] = [
+            msgspec.to_builtins(item) if isinstance(item, msgspec.Struct) else item
+            for item in score_by
+        ]
+        body: dict[str, Any] = {"top_k": top_k, "score_by": normalized}
+        if include_fields is not None:
+            body["include_fields"] = include_fields
+        if filter is not None:
+            body["filter"] = filter
+
+        response = await self._http.post(
+            f"/namespaces/{namespace}/documents/search",
+            json=body,
+        )
+        return decode_search_response(response.content)
 
     def __repr__(self) -> str:
         return "AsyncPreviewDocuments()"
