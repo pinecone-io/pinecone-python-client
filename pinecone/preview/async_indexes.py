@@ -214,6 +214,39 @@ class AsyncPreviewIndexes:
                 exceeds the length limit.
             :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns
                 an error response.
+
+        Examples:
+
+            Add a field to an existing schema::
+
+                async def main():
+                    await pc.preview.indexes.configure(
+                        "my-index",
+                        schema={"fields": {"summary": {"type": "string"}}},
+                    )
+
+            Update read capacity to dedicated::
+
+                async def main():
+                    await pc.preview.indexes.configure(
+                        "my-index",
+                        read_capacity={"mode": "Dedicated", "node_type": "b1",
+                                       "scaling": "Manual",
+                                       "manual": {"shards": 2, "replicas": 1}},
+                    )
+
+            Update tags::
+
+                async def main():
+                    await pc.preview.indexes.configure(
+                        "my-index",
+                        tags={"env": "prod", "team": "search"},
+                    )
+
+            Enable deletion protection::
+
+                async def main():
+                    await pc.preview.indexes.configure("my-index", deletion_protection="enabled")
         """
         require_non_empty("name", name)
 
