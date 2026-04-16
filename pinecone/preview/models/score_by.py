@@ -7,29 +7,21 @@ from msgspec import Struct
 from pinecone.preview.models.sparse import PreviewSparseValues
 
 __all__ = [
-    "DenseVectorQuery",
-    "QueryStringQuery",
-    "ScoreByQuery",
-    "SparseVectorQuery",
-    "TextQuery",
+    "PreviewDenseVectorQuery",
+    "PreviewQueryStringQuery",
+    "PreviewScoreByQuery",
+    "PreviewSparseVectorQuery",
+    "PreviewTextQuery",
 ]
 
-_ADMONITION = """
-    .. admonition:: Preview
-       :class: warning
 
-       Preview surface is not covered by SemVer — signatures and behavior
-       may change in any minor SDK release. Pin your SDK version when
-       relying on preview features.
-"""
-
-
-class TextQuery(Struct, tag="text", tag_field="type", kw_only=True):
+class PreviewTextQuery(Struct, tag="text", tag_field="type", kw_only=True):
     """Full-text search query for scoring documents.
 
     .. admonition:: Preview
        :class: warning
 
+       Uses Pinecone API version ``2026-01.alpha``.
        Preview surface is not covered by SemVer — signatures and behavior
        may change in any minor SDK release. Pin your SDK version when
        relying on preview features.
@@ -43,12 +35,13 @@ class TextQuery(Struct, tag="text", tag_field="type", kw_only=True):
     query: str
 
 
-class QueryStringQuery(Struct, tag="query_string", tag_field="type", kw_only=True):
+class PreviewQueryStringQuery(Struct, tag="query_string", tag_field="type", kw_only=True):
     """Query string syntax search with boolean operators (AND, OR, NOT).
 
     .. admonition:: Preview
        :class: warning
 
+       Uses Pinecone API version ``2026-01.alpha``.
        Preview surface is not covered by SemVer — signatures and behavior
        may change in any minor SDK release. Pin your SDK version when
        relying on preview features.
@@ -60,12 +53,13 @@ class QueryStringQuery(Struct, tag="query_string", tag_field="type", kw_only=Tru
     query: str
 
 
-class DenseVectorQuery(Struct, tag="dense_vector", tag_field="type", kw_only=True):
+class PreviewDenseVectorQuery(Struct, tag="dense_vector", tag_field="type", kw_only=True):
     """Dense vector similarity query for scoring documents.
 
     .. admonition:: Preview
        :class: warning
 
+       Uses Pinecone API version ``2026-01.alpha``.
        Preview surface is not covered by SemVer — signatures and behavior
        may change in any minor SDK release. Pin your SDK version when
        relying on preview features.
@@ -79,12 +73,13 @@ class DenseVectorQuery(Struct, tag="dense_vector", tag_field="type", kw_only=Tru
     values: list[float]
 
 
-class SparseVectorQuery(Struct, tag="sparse_vector", tag_field="type", kw_only=True):
+class PreviewSparseVectorQuery(Struct, tag="sparse_vector", tag_field="type", kw_only=True):
     """Sparse vector similarity query for scoring documents.
 
     .. admonition:: Preview
        :class: warning
 
+       Uses Pinecone API version ``2026-01.alpha``.
        Preview surface is not covered by SemVer — signatures and behavior
        may change in any minor SDK release. Pin your SDK version when
        relying on preview features.
@@ -98,4 +93,6 @@ class SparseVectorQuery(Struct, tag="sparse_vector", tag_field="type", kw_only=T
     sparse_values: PreviewSparseValues
 
 
-ScoreByQuery = TextQuery | QueryStringQuery | DenseVectorQuery | SparseVectorQuery
+PreviewScoreByQuery = (
+    PreviewTextQuery | PreviewQueryStringQuery | PreviewDenseVectorQuery | PreviewSparseVectorQuery
+)
