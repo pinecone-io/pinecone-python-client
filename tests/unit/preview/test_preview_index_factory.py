@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from unittest.mock import MagicMock
 
 import httpx
@@ -130,45 +131,60 @@ def test_index_with_both_raises(preview: Preview) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Async — factory is not a coroutine
+# ---------------------------------------------------------------------------
+
+
+def test_async_index_is_not_coroutine(async_preview: AsyncPreview) -> None:
+    assert not asyncio.iscoroutinefunction(AsyncPreview.index)
+    idx = async_preview.index(host="my-index-abc.svc.pinecone.io")
+    assert isinstance(idx, AsyncPreviewIndex)
+
+
+# ---------------------------------------------------------------------------
 # Async — direct host path
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
-async def test_async_index_with_host_returns_async_preview_index(
+def test_async_index_with_host_returns_async_preview_index(
     async_preview: AsyncPreview,
 ) -> None:
-    idx = await async_preview.index(host="my-index-abc.svc.pinecone.io")
+    idx = async_preview.index(host="my-index-abc.svc.pinecone.io")
 
     assert isinstance(idx, AsyncPreviewIndex)
     assert idx.host == "my-index-abc.svc.pinecone.io"
 
 
-@pytest.mark.asyncio
 @respx.mock
-async def test_async_index_with_host_makes_no_http_calls(
+def test_async_index_with_host_makes_no_http_calls(
     async_preview: AsyncPreview,
 ) -> None:
     # @respx.mock intercepts all traffic; any unexpected request raises an error.
-    await async_preview.index(host="my-index-abc.svc.pinecone.io")
+    async_preview.index(host="my-index-abc.svc.pinecone.io")
 
 
 # ---------------------------------------------------------------------------
-# Async — name-resolution path
+# Async — name-resolution path (deferred to first data-plane call)
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
 @respx.mock
 async def test_async_index_with_name_resolves_host(async_preview: AsyncPreview) -> None:
-    respx.get(f"{BASE_URL}/indexes/my-index").mock(
+    route = respx.get(f"{BASE_URL}/indexes/my-index").mock(
         return_value=httpx.Response(200, json=_INDEX_RESPONSE)
     )
 
-    idx = await async_preview.index(name="my-index")
-
+    # Factory call makes zero HTTP requests.
+    idx = async_preview.index(name="my-index")
     assert isinstance(idx, AsyncPreviewIndex)
+    assert route.call_count == 0
+
+    # Host is resolved on first _resolve_host() call.
+    host = await idx._resolve_host()
+    assert host == "my-index-abc.svc.pinecone.io"
     assert idx.host == "my-index-abc.svc.pinecone.io"
+    assert route.call_count == 1
 
 
 @pytest.mark.asyncio
@@ -178,8 +194,13 @@ async def test_async_index_with_name_caches_host(async_preview: AsyncPreview) ->
         return_value=httpx.Response(200, json=_INDEX_RESPONSE)
     )
 
-    await async_preview.index(name="my-index")
-    await async_preview.index(name="my-index")
+    idx1 = async_preview.index(name="my-index")
+    idx2 = async_preview.index(name="my-index")
+
+    # The AsyncPreview._host_cache is shared via the closure, so the second
+    # _resolve_host() call skips the describe round-trip.
+    await idx1._resolve_host()
+    await idx2._resolve_host()
 
     assert route.call_count == 1
 
@@ -191,25 +212,26 @@ async def test_async_index_with_name_serves_cached_host(async_preview: AsyncPrev
         return_value=httpx.Response(200, json=_INDEX_RESPONSE)
     )
 
-    idx1 = await async_preview.index(name="my-index")
-    idx2 = await async_preview.index(name="my-index")
+    idx1 = async_preview.index(name="my-index")
+    idx2 = async_preview.index(name="my-index")
+
+    await idx1._resolve_host()
+    await idx2._resolve_host()
 
     assert route.call_count == 1
     assert idx1.host == idx2.host
 
 
 # ---------------------------------------------------------------------------
-# Async — validation errors
+# Async — validation errors (synchronous, no await)
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
-async def test_async_index_with_neither_raises(async_preview: AsyncPreview) -> None:
+def test_async_index_with_neither_raises(async_preview: AsyncPreview) -> None:
     with pytest.raises(PineconeValueError, match="Exactly one"):
-        await async_preview.index()
+        async_preview.index()
 
 
-@pytest.mark.asyncio
-async def test_async_index_with_both_raises(async_preview: AsyncPreview) -> None:
+def test_async_index_with_both_raises(async_preview: AsyncPreview) -> None:
     with pytest.raises(PineconeValueError, match="Exactly one"):
-        await async_preview.index(name="my-index", host="my-index-abc.svc.pinecone.io")
+        async_preview.index(name="my-index", host="my-index-abc.svc.pinecone.io")

@@ -175,7 +175,7 @@ class AsyncPreview:
             self._indexes = AsyncPreviewIndexes(config=self._config)
         return self._indexes
 
-    async def index(
+    def index(
         self,
         *,
         name: str | None = None,
@@ -192,15 +192,20 @@ class AsyncPreview:
            relying on preview features.
 
         Exactly one of ``name`` or ``host`` must be provided.  When ``name``
-        is given, the host is resolved via
+        is given, the host is resolved lazily on the first data-plane call via
         :meth:`~pinecone.preview.async_indexes.AsyncPreviewIndexes.describe`
         and the result is cached on this :class:`AsyncPreview` instance so
-        subsequent calls with the same name avoid an extra control-plane
-        round-trip.
+        subsequent data-plane calls with the same name avoid an extra
+        control-plane round-trip.
+
+        This method is synchronous (no ``await`` required). Host resolution
+        only happens when the returned
+        :class:`~pinecone.preview.async_index.AsyncPreviewIndex` performs its
+        first I/O operation.
 
         Args:
-            name: Index name. The host is resolved and cached via
-                ``await preview.indexes.describe(name).host``.
+            name: Index name. The host is resolved and cached lazily via
+                ``await preview.indexes.describe(name)`` on first data-plane use.
             host: Data-plane host URL. Passed through directly without a
                 control-plane call.
 
@@ -212,29 +217,36 @@ class AsyncPreview:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If neither
                 or both of ``name`` and ``host`` are provided.
             :exc:`~pinecone.errors.exceptions.NotFoundError`: If ``name`` is
-                given but the index does not exist.
+                given but the index does not exist (raised on first data-plane call).
             :exc:`~pinecone.errors.exceptions.ApiError`: If the describe call
-                returns an error response.
+                returns an error response (raised on first data-plane call).
         """
         if name is None and host is None:
             raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
         if name is not None and host is not None:
             raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
 
-        resolved_host: str
-        if host is not None:
-            resolved_host = host
-        elif name is not None:
-            if name not in self._host_cache:
-                desc = await self.indexes.describe(name)
-                self._host_cache[name] = desc.host
-            resolved_host = self._host_cache[name]
-        else:
-            raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
-
         from pinecone.preview.async_index import AsyncPreviewIndex
 
-        return AsyncPreviewIndex(host=resolved_host, http=self._http, config=self._config)
+        if host is not None:
+            return AsyncPreviewIndex(host=host, http=self._http, config=self._config)
+
+        # name path: defer describe() to the first data-plane call.
+        # The two validation checks above guarantee name is str here; this
+        # guard is for mypy --strict type narrowing only.
+        if name is None:
+            raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
+
+        host_cache = self._host_cache
+        indexes = self.indexes
+
+        async def _resolve() -> str:
+            if name not in host_cache:
+                desc = await indexes.describe(name)
+                host_cache[name] = desc.host
+            return host_cache[name]
+
+        return AsyncPreviewIndex(http=self._http, config=self._config, _host_provider=_resolve)
 
     def __repr__(self) -> str:
         return "AsyncPreview()"
