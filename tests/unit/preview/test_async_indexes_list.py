@@ -136,6 +136,21 @@ async def test_async_list_rejects_non_positive_limit(
 
 
 @respx.mock
+async def test_async_list_respects_limit(indexes: AsyncPreviewIndexes) -> None:
+    """list(limit=2) yields at most 2 items even when the server returns more."""
+    respx.get(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(
+            200,
+            json={"indexes": [_INDEX_1, _INDEX_2, _INDEX_3, _INDEX_1, _INDEX_2]},
+        )
+    )
+    items: list[PreviewIndexModel] = []
+    async for idx in indexes.list(limit=2):
+        items.append(idx)
+    assert len(items) == 2
+
+
+@respx.mock
 async def test_async_list_terminates_after_one_page(indexes: AsyncPreviewIndexes) -> None:
     """Iterating fully issues exactly one GET /indexes request."""
     route = respx.get(f"{BASE_URL}/indexes").mock(
