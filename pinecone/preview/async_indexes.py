@@ -308,7 +308,7 @@ class AsyncPreviewIndexes:
         response = await self._http.get(f"/indexes/{name}")
         return describe_adapter.from_response(orjson.loads(response.content))
 
-    def list(
+    async def list(
         self,
         *,
         limit: int | None = None,
