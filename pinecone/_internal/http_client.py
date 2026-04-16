@@ -181,6 +181,21 @@ class _AsyncRetryTransport(httpx.AsyncBaseTransport):
         await self._transport.aclose()
 
 
+def _release_response_refs(response: httpx.Response) -> None:
+    """Break internal httpx reference cycles so responses can be collected by refcount.
+
+    httpx wraps every response stream in BoundSyncStream which holds
+    ``._response`` pointing back to the Response, creating the cycle
+    ``Response.stream → BoundSyncStream._response → Response``.  After the
+    body has been read the stream is no longer needed, so we null the
+    back-reference to allow immediate collection without waiting for the
+    cyclic GC.
+    """
+    stream = getattr(response, "stream", None)
+    if stream is not None and hasattr(stream, "_response"):
+        object.__setattr__(stream, "_response", None)
+
+
 def _raise_for_status(response: httpx.Response) -> None:
     if response.is_success:
         return
@@ -272,6 +287,7 @@ class HTTPClient:
         except httpx.TransportError as exc:
             raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
+        _release_response_refs(response)
         return response
 
     def post(self, path: str, **kwargs: Any) -> httpx.Response:
@@ -285,6 +301,7 @@ class HTTPClient:
         except httpx.TransportError as exc:
             raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
+        _release_response_refs(response)
         return response
 
     def put(self, path: str, **kwargs: Any) -> httpx.Response:
@@ -298,6 +315,7 @@ class HTTPClient:
         except httpx.TransportError as exc:
             raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
+        _release_response_refs(response)
         return response
 
     def patch(self, path: str, **kwargs: Any) -> httpx.Response:
@@ -311,6 +329,7 @@ class HTTPClient:
         except httpx.TransportError as exc:
             raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
+        _release_response_refs(response)
         return response
 
     def delete(self, path: str, **kwargs: Any) -> httpx.Response:
@@ -322,6 +341,7 @@ class HTTPClient:
         except httpx.TransportError as exc:
             raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
+        _release_response_refs(response)
         return response
 
     @contextlib.contextmanager
@@ -424,6 +444,7 @@ class AsyncHTTPClient:
         except httpx.TransportError as exc:
             raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
+        _release_response_refs(response)
         return response
 
     async def post(self, path: str, **kwargs: Any) -> httpx.Response:
@@ -434,6 +455,7 @@ class AsyncHTTPClient:
         except httpx.TransportError as exc:
             raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
+        _release_response_refs(response)
         return response
 
     async def put(self, path: str, **kwargs: Any) -> httpx.Response:
@@ -444,6 +466,7 @@ class AsyncHTTPClient:
         except httpx.TransportError as exc:
             raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
+        _release_response_refs(response)
         return response
 
     async def patch(self, path: str, **kwargs: Any) -> httpx.Response:
@@ -454,6 +477,7 @@ class AsyncHTTPClient:
         except httpx.TransportError as exc:
             raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
+        _release_response_refs(response)
         return response
 
     async def delete(self, path: str, **kwargs: Any) -> httpx.Response:
@@ -464,6 +488,7 @@ class AsyncHTTPClient:
         except httpx.TransportError as exc:
             raise PineconeConnectionError(str(exc)) from exc
         _raise_for_status(response)
+        _release_response_refs(response)
         return response
 
     @contextlib.asynccontextmanager
