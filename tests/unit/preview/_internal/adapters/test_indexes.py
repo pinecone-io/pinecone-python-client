@@ -10,6 +10,7 @@ from pinecone.preview._internal.adapters.indexes import (
     describe_adapter,
     list_adapter,
 )
+from pinecone.preview.models.deployment import PreviewManagedDeployment
 from pinecone.preview.models.indexes import PreviewIndexModel
 from pinecone.preview.models.requests import PreviewConfigureIndexRequest, PreviewCreateIndexRequest
 
@@ -147,6 +148,27 @@ def test_create_adapter_preserves_add_custom_field_unknown_type() -> None:
 
 
 # ---------------------------------------------------------------------------
+# create_adapter.from_response
+# ---------------------------------------------------------------------------
+
+
+def test_create_adapter_parses_response() -> None:
+    data = _minimal_index_dict("new-idx")
+    model = create_adapter.from_response(data)
+    assert isinstance(model, PreviewIndexModel)
+    assert model.name == "new-idx"
+    assert model.host == "new-idx-host.pinecone.io"
+    assert model.status.ready is True
+    assert isinstance(model.deployment, PreviewManagedDeployment)
+
+
+def test_create_adapter_parses_response_with_tags() -> None:
+    data = {**_minimal_index_dict(), "tags": {"env": "prod"}}
+    model = create_adapter.from_response(data)
+    assert model.tags == {"env": "prod"}
+
+
+# ---------------------------------------------------------------------------
 # configure_adapter.to_request
 # ---------------------------------------------------------------------------
 
@@ -162,6 +184,21 @@ def test_configure_adapter_serializes_tags_only() -> None:
     raw = configure_adapter.to_request(req)
     data = orjson.loads(raw)
     assert data == {"tags": {"team": "infra"}}
+
+
+# ---------------------------------------------------------------------------
+# configure_adapter.from_response
+# ---------------------------------------------------------------------------
+
+
+def test_configure_adapter_parses_response() -> None:
+    data = _minimal_index_dict("cfg-idx")
+    model = configure_adapter.from_response(data)
+    assert isinstance(model, PreviewIndexModel)
+    assert model.name == "cfg-idx"
+    assert model.host == "cfg-idx-host.pinecone.io"
+    assert model.status.ready is True
+    assert isinstance(model.deployment, PreviewManagedDeployment)
 
 
 # ---------------------------------------------------------------------------
