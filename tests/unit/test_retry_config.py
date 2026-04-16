@@ -159,6 +159,24 @@ class TestCustomRetryConfigSync:
         assert fake.call_count == 2
 
     @patch("pinecone._internal.http_client.time.sleep")
+    def test_put_method_is_retried(self, mock_sleep: Any) -> None:
+        """PUT requests are retried on retryable status codes."""
+        fake = _FakeTransport(
+            [
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
+        transport = _RetryTransport(
+            transport=fake,  # type: ignore[arg-type]
+            retry_config=RetryConfig(max_wait=0.01),
+        )
+        request = httpx.Request("PUT", "https://api.pinecone.io/test")
+        response = transport.handle_request(request)
+        assert response.status_code == 200
+        assert fake.call_count == 2
+
+    @patch("pinecone._internal.http_client.time.sleep")
     def test_default_config_used_when_none(self, mock_sleep: Any) -> None:
         """When retry_config=None, default RetryConfig is used."""
         fake = _FakeTransport(
@@ -237,6 +255,25 @@ class TestCustomRetryConfigAsync:
             retry_config=RetryConfig(max_wait=0.01),
         )
         request = httpx.Request("POST", "https://api.pinecone.io/test")
+        response = await transport.handle_async_request(request)
+        assert response.status_code == 200
+        assert fake.call_count == 2
+
+    @patch("pinecone._internal.http_client.asyncio.sleep")
+    @pytest.mark.asyncio
+    async def test_put_method_is_retried(self, mock_sleep: Any) -> None:
+        """PUT requests are retried on retryable status codes."""
+        fake = _FakeAsyncTransport(
+            [
+                httpx.Response(500, json={"message": "error"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
+        transport = _AsyncRetryTransport(
+            transport=fake,  # type: ignore[arg-type]
+            retry_config=RetryConfig(max_wait=0.01),
+        )
+        request = httpx.Request("PUT", "https://api.pinecone.io/test")
         response = await transport.handle_async_request(request)
         assert response.status_code == 200
         assert fake.call_count == 2
