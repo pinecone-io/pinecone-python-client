@@ -57,12 +57,11 @@ async def test_async_delete_returns_immediately_when_timeout_is_negative_one(
     with patch(
         "pinecone.preview.async_indexes.asyncio.sleep",
         side_effect=AssertionError("asyncio.sleep must not be called"),
+    ), patch(
+        "time.monotonic",
+        side_effect=AssertionError("monotonic must not be called"),
     ):
-        with patch(
-            "time.monotonic",
-            side_effect=AssertionError("monotonic must not be called"),
-        ):
-            await indexes.delete("x", timeout=-1)
+        await indexes.delete("x", timeout=-1)
 
 
 @respx.mock
@@ -146,11 +145,10 @@ async def test_async_delete_uses_asyncio_sleep_not_time_sleep(
     ]
 
     async_sleep_mock = AsyncMock()
-    with patch("pinecone.preview.async_indexes.asyncio.sleep", async_sleep_mock):
-        with patch(
-            "time.sleep", side_effect=AssertionError("time.sleep must not be called")
-        ):
-            await indexes.delete("x")
+    with patch("pinecone.preview.async_indexes.asyncio.sleep", async_sleep_mock), patch(
+        "time.sleep", side_effect=AssertionError("time.sleep must not be called")
+    ):
+        await indexes.delete("x")
 
     async_sleep_mock.assert_awaited()
 

@@ -13,7 +13,10 @@ from pinecone._internal.constants import DEFAULT_BASE_URL
 from pinecone._internal.validation import require_non_empty, require_positive
 from pinecone.errors.exceptions import NotFoundError, PineconeTimeoutError, PineconeValueError
 from pinecone.models.pagination import Page, Paginator
-from pinecone.preview._internal.adapters.backups import describe_backup_adapter, list_backups_adapter
+from pinecone.preview._internal.adapters.backups import (
+    describe_backup_adapter,
+    list_backups_adapter,
+)
 from pinecone.preview._internal.adapters.indexes import (
     configure_adapter,
     create_adapter,

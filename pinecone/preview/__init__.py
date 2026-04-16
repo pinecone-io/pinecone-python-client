@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pinecone.preview.schema_builder import SchemaBuilder as SchemaBuilder
+from pinecone.preview.schema_builder import PreviewSchemaBuilder as PreviewSchemaBuilder
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from pinecone.preview.async_indexes import AsyncPreviewIndexes
     from pinecone.preview.indexes import PreviewIndexes
 
-__all__ = ["AsyncPreview", "Preview"]
+__all__ = ["AsyncPreview", "Preview", "PreviewSchemaBuilder"]
 
 
 class Preview:

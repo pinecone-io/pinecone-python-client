@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pinecone.preview.schema_builder
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.http_client import AsyncHTTPClient, HTTPClient
-from pinecone.preview import AsyncPreview, Preview, SchemaBuilder
+from pinecone.preview import AsyncPreview, Preview, PreviewSchemaBuilder
 
 
 def _cfg() -> PineconeConfig:
@@ -50,4 +50,4 @@ def test_preview_and_async_preview_are_distinct_types() -> None:
 
 
 def test_schema_builder_reexported_from_preview_module() -> None:
-    assert SchemaBuilder is pinecone.preview.schema_builder.SchemaBuilder
+    assert PreviewSchemaBuilder is pinecone.preview.schema_builder.PreviewSchemaBuilder

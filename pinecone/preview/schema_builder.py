@@ -1,4 +1,4 @@
-"""SchemaBuilder for constructing preview index schemas.
+"""PreviewSchemaBuilder for constructing preview index schemas.
 
 Returns a plain ``{"fields": {...}}`` dict (not a model) so forward-compatible
 fields the SDK does not yet model can pass through unmodified.
@@ -17,7 +17,7 @@ _ADMONITION = """\
    relying on preview features."""
 
 
-class SchemaBuilder:
+class PreviewSchemaBuilder:
     """Fluent builder for preview index schema dicts.
 
     .. admonition:: Preview
@@ -36,9 +36,9 @@ class SchemaBuilder:
     definition (last writer wins).
 
     Examples:
-        >>> from pinecone.preview import SchemaBuilder
+        >>> from pinecone.preview import PreviewSchemaBuilder
         >>> schema = (
-        ...     SchemaBuilder()
+        ...     PreviewSchemaBuilder()
         ...     .add_dense_vector_field("embedding", dimension=768, metric="cosine")
         ...     .add_string_field("title", full_text_searchable=True, language="en")
         ...     .add_string_field("category", filterable=True)
@@ -58,7 +58,7 @@ class SchemaBuilder:
         metric: str,
         description: str | None = None,
         **additional_options: Any,
-    ) -> SchemaBuilder:
+    ) -> PreviewSchemaBuilder:
         """Add a dense vector field for similarity search.
 
         .. admonition:: Preview
@@ -98,7 +98,7 @@ class SchemaBuilder:
         metric: str = "dotproduct",
         description: str | None = None,
         **additional_options: Any,
-    ) -> SchemaBuilder:
+    ) -> PreviewSchemaBuilder:
         """Add a sparse vector field for keyword-weighted or learned-sparse search.
 
         .. admonition:: Preview
@@ -141,7 +141,7 @@ class SchemaBuilder:
         filterable: bool = False,
         description: str | None = None,
         **additional_options: Any,
-    ) -> SchemaBuilder:
+    ) -> PreviewSchemaBuilder:
         """Add a string field for full-text search, metadata filtering, or both.
 
         .. admonition:: Preview
@@ -204,7 +204,7 @@ class SchemaBuilder:
         write_parameters: dict[str, Any] | None = None,
         description: str | None = None,
         **additional_options: Any,
-    ) -> SchemaBuilder:
+    ) -> PreviewSchemaBuilder:
         """Add a field with server-side embedding (integrated model).
 
         .. admonition:: Preview
@@ -253,7 +253,7 @@ class SchemaBuilder:
         filterable: bool = True,
         description: str | None = None,
         **additional_options: Any,
-    ) -> SchemaBuilder:
+    ) -> PreviewSchemaBuilder:
         """Add a numeric field for metadata filtering.
 
         .. admonition:: Preview
@@ -290,7 +290,7 @@ class SchemaBuilder:
         self,
         name: str,
         field_definition: dict[str, Any],
-    ) -> SchemaBuilder:
+    ) -> PreviewSchemaBuilder:
         """Escape hatch — store a raw field dict verbatim.
 
         .. admonition:: Preview
@@ -333,4 +333,4 @@ class SchemaBuilder:
         return {"fields": dict(self._fields)}
 
 
-__all__ = ["SchemaBuilder"]
+__all__ = ["PreviewSchemaBuilder"]

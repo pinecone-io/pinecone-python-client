@@ -1,4 +1,4 @@
-"""Unit tests for SchemaBuilder."""
+"""Unit tests for PreviewSchemaBuilder."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from pinecone.preview import SchemaBuilder
+from pinecone.preview import PreviewSchemaBuilder as SchemaBuilder
 
 # ---------------------------------------------------------------------------
 # add_dense_vector_field
@@ -336,6 +336,6 @@ def test_build_empty_schema_returns_empty_fields() -> None:
 
 
 def test_schema_builder_importable_from_preview() -> None:
-    from pinecone.preview import SchemaBuilder as PreviewSchemaBuilder
+    from pinecone.preview import PreviewSchemaBuilder
 
     assert PreviewSchemaBuilder is SchemaBuilder

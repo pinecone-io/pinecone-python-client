@@ -46,7 +46,7 @@ from pinecone.preview.models.score_by import (
 )
 from pinecone.preview.models.sparse import PreviewSparseValues
 from pinecone.preview.models.status import PreviewIndexStatus
-from pinecone.preview.schema_builder import SchemaBuilder
+from pinecone.preview.schema_builder import PreviewSchemaBuilder
 
 __all__ = [
     "PreviewBackupModel",
@@ -71,6 +71,7 @@ __all__ = [
     "PreviewReadCapacityOnDemandResponse",
     "PreviewReadCapacityStatus",
     "PreviewSchema",
+    "PreviewSchemaBuilder",
     "PreviewSchemaField",
     "PreviewScoreByQuery",
     "PreviewSemanticTextField",
@@ -80,5 +81,4 @@ __all__ = [
     "PreviewStringField",
     "PreviewTextQuery",
     "PreviewUsage",
-    "SchemaBuilder",
 ]
