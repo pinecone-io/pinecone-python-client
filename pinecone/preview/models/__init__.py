@@ -22,6 +22,10 @@ from pinecone.preview.models.read_capacity import (
     PreviewReadCapacityOnDemandResponse,
     PreviewReadCapacityStatus,
 )
+from pinecone.preview.models.requests import (
+    PreviewConfigureIndexRequest,
+    PreviewCreateIndexRequest,
+)
 from pinecone.preview.models.schema import (
     PreviewDenseVectorField,
     PreviewIntegerField,
@@ -36,6 +40,8 @@ from pinecone.preview.schema_builder import SchemaBuilder
 
 __all__ = [
     "PreviewByocDeployment",
+    "PreviewConfigureIndexRequest",
+    "PreviewCreateIndexRequest",
     "PreviewDenseVectorField",
     "PreviewDeployment",
     "PreviewIndexModel",
