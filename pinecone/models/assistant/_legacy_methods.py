@@ -51,6 +51,21 @@ class AssistantModelLegacyMethodsMixin:
             )
         return ref
 
+    def describe_file(
+        self,
+        file_id: str,
+        include_url: bool = False,
+        **kwargs: Any,
+    ) -> "AssistantFileModel":
+        """Deprecated alias for :meth:`Assistants.describe_file`."""
+        ns = self._resolve_assistants()
+        return ns.describe_file(
+            assistant_name=self.name,  # type: ignore[attr-defined]
+            file_id=file_id,
+            include_url=include_url,
+            **kwargs,
+        )
+
     def upload_bytes_stream(
         self,
         stream: IO[bytes],
