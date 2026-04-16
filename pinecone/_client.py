@@ -23,6 +23,8 @@ if TYPE_CHECKING:
     from pinecone.grpc import GrpcIndex
     from pinecone.index import Index
     from pinecone.inference.models.index_embed import IndexEmbed
+    from pinecone.models.backups.list import BackupList
+    from pinecone.models.backups.model import BackupModel
     from pinecone.models.collections.list import CollectionList
     from pinecone.models.collections.model import CollectionModel
     from pinecone.models.enums import (
@@ -692,6 +694,74 @@ class Pinecone:
             stacklevel=2,
         )
         self.collections.delete(name)
+
+    def create_backup(
+        self,
+        *,
+        index_name: str,
+        backup_name: str | None = None,
+        description: str = "",
+    ) -> BackupModel:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.backups.create`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.create_backup() is deprecated; use pc.backups.create() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.backups.create(
+            index_name=index_name,
+            name=backup_name,
+            description=description,
+        )
+
+    def list_backups(
+        self,
+        *,
+        index_name: str | None = None,
+        limit: int | None = 10,
+        pagination_token: str | None = None,
+    ) -> BackupList:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.backups.list`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.list_backups() is deprecated; use pc.backups.list() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.backups.list(
+            index_name=index_name,
+            limit=limit,
+            pagination_token=pagination_token,
+        )
+
+    def describe_backup(self, *, backup_id: str) -> BackupModel:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.backups.describe`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.describe_backup() is deprecated; use pc.backups.describe() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.backups.describe(backup_id=backup_id)
+
+    def delete_backup(self, *, backup_id: str) -> None:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.backups.delete`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.delete_backup() is deprecated; use pc.backups.delete() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.backups.delete(backup_id=backup_id)
 
     def Index(self, name: str = "", host: str = "", **kwargs: Any) -> Index:  # noqa: N802
         """Backwards-compatibility factory. See :meth:`Pinecone.index`.
