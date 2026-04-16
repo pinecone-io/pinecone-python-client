@@ -22,6 +22,14 @@ from pinecone.preview.models.schema import (
     PreviewSparseVectorField,
     PreviewStringField,
 )
+from pinecone.preview.models.read_capacity import (
+    PreviewReadCapacity,
+    PreviewReadCapacityDedicatedInner,
+    PreviewReadCapacityDedicatedResponse,
+    PreviewReadCapacityManualScaling,
+    PreviewReadCapacityOnDemandResponse,
+    PreviewReadCapacityStatus,
+)
 from pinecone.preview.models.status import PreviewIndexStatus
 from pinecone.preview.schema_builder import SchemaBuilder
 
@@ -33,6 +41,12 @@ __all__ = [
     "PreviewIntegerField",
     "PreviewManagedDeployment",
     "PreviewPodDeployment",
+    "PreviewReadCapacity",
+    "PreviewReadCapacityDedicatedInner",
+    "PreviewReadCapacityDedicatedResponse",
+    "PreviewReadCapacityManualScaling",
+    "PreviewReadCapacityOnDemandResponse",
+    "PreviewReadCapacityStatus",
     "PreviewSchema",
     "PreviewSchemaField",
     "PreviewSemanticTextField",
