@@ -7,9 +7,10 @@ validates against these models and serialises with msgspec/orjson.
 
 from __future__ import annotations
 
+from typing import Any
+
 from msgspec import Struct
 
-from pinecone.preview.models.deployment import PreviewDeployment
 from pinecone.preview.models.read_capacity import PreviewReadCapacity
 from pinecone.preview.models.schema import PreviewSchema
 
@@ -38,7 +39,7 @@ class PreviewCreateIndexRequest(Struct, kw_only=True, omit_defaults=True):
 
     schema: PreviewSchema
     name: str | None = None
-    deployment: PreviewDeployment | None = None
+    deployment: dict[str, Any] | None = None
     read_capacity: PreviewReadCapacity | None = None
     deletion_protection: str | None = None
     tags: dict[str, str] | None = None
@@ -66,7 +67,7 @@ class PreviewConfigureIndexRequest(Struct, kw_only=True, omit_defaults=True):
     """
 
     schema: PreviewSchema | None = None
-    deployment: PreviewDeployment | None = None
+    deployment: dict[str, Any] | None = None
     read_capacity: PreviewReadCapacity | None = None
     deletion_protection: str | None = None
     tags: dict[str, str] | None = None

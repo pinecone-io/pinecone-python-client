@@ -13,7 +13,6 @@ from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import NotFoundError, PineconeValueError
 from pinecone.preview._internal.adapters.indexes import create_adapter, describe_adapter
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
-from pinecone.preview.models.deployment import PreviewDeployment
 from pinecone.preview.models.indexes import PreviewIndexModel
 from pinecone.preview.models.read_capacity import PreviewReadCapacity
 from pinecone.preview.models.requests import PreviewCreateIndexRequest
@@ -121,8 +120,8 @@ class PreviewIndexes:
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If a tag key
                 exceeds 80 characters or a tag value exceeds 120 characters.
-            :exc:`msgspec.ValidationError`: If ``schema``, ``deployment``, or
-                ``read_capacity`` cannot be converted to the expected typed model.
+            :exc:`msgspec.ValidationError`: If ``schema`` or ``read_capacity``
+                cannot be converted to the expected typed model.
             :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an
                 error response.
 
@@ -145,9 +144,6 @@ class PreviewIndexes:
                     )
 
         typed_schema = msgspec.convert(schema, PreviewSchema)
-        typed_deployment = (
-            msgspec.convert(deployment, PreviewDeployment) if deployment is not None else None
-        )
         typed_read_capacity = (
             msgspec.convert(read_capacity, PreviewReadCapacity)
             if read_capacity is not None
@@ -157,7 +153,7 @@ class PreviewIndexes:
         req = PreviewCreateIndexRequest(
             schema=typed_schema,
             name=name,
-            deployment=typed_deployment,
+            deployment=deployment,
             read_capacity=typed_read_capacity,
             deletion_protection=deletion_protection,
             tags=tags,

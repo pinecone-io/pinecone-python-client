@@ -77,12 +77,7 @@ def test_create_full_body(indexes: PreviewIndexes) -> None:
     indexes.create(
         schema=_MINIMAL_SCHEMA,
         name="my-index",
-        deployment={
-            "deployment_type": "managed",
-            "environment": "us-east-1-aws",
-            "cloud": "aws",
-            "region": "us-east-1",
-        },
+        deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
         read_capacity={"mode": "OnDemand", "status": {"state": "Ready"}},
         deletion_protection="enabled",
         tags={"env": "test"},
@@ -130,3 +125,59 @@ def test_create_invalid_schema_raises_validation_error(indexes: PreviewIndexes) 
     """An unrecognised field type raises msgspec.ValidationError."""
     with pytest.raises(msgspec.ValidationError):
         indexes.create(schema={"fields": {"x": {"type": "unknown_type"}}})
+
+
+@respx.mock
+def test_create_accepts_spec_managed_deployment_without_environment(
+    indexes: PreviewIndexes,
+) -> None:
+    """Spec-format managed deployment dict (no environment) is forwarded as-is."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_PREVIEW_INDEX_RESPONSE)
+    )
+    deployment = {"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"}
+
+    indexes.create(schema=_MINIMAL_SCHEMA, deployment=deployment)
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["deployment"] == deployment
+    assert "environment" not in body["deployment"]
+
+
+@respx.mock
+def test_create_accepts_spec_pod_deployment(indexes: PreviewIndexes) -> None:
+    """Spec-format pod deployment dict is forwarded as-is."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_PREVIEW_INDEX_RESPONSE)
+    )
+    deployment = {
+        "deployment_type": "pod",
+        "environment": "us-east-1-aws",
+        "pod_type": "p1.x1",
+        "replicas": 1,
+        "shards": 1,
+    }
+
+    indexes.create(schema=_MINIMAL_SCHEMA, deployment=deployment)
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["deployment"] == deployment
+
+
+@respx.mock
+def test_create_accepts_spec_byoc_deployment(indexes: PreviewIndexes) -> None:
+    """Spec-format byoc deployment dict is forwarded as-is."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_PREVIEW_INDEX_RESPONSE)
+    )
+    deployment = {
+        "deployment_type": "byoc",
+        "environment": "my-env",
+        "cloud": "aws",
+        "region": "us-east-1",
+    }
+
+    indexes.create(schema=_MINIMAL_SCHEMA, deployment=deployment)
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["deployment"] == deployment
