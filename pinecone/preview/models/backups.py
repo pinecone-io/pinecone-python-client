@@ -57,16 +57,11 @@ class PreviewBackupModel(Struct, kw_only=True, omit_defaults=True):
     size_bytes: int | None = None
 
     def __repr__(self) -> str:
-        status_str = f"status={self.status!r}"
-        size_str = (
-            f"size={self.size_bytes} bytes" if self.size_bytes is not None else "size=unknown"
-        )
-        records_str = (
-            f"records={self.record_count}" if self.record_count is not None else "records=unknown"
-        )
         return (
             f"PreviewBackupModel(backup_id={self.backup_id!r}, "
-            f"source={self.source_index_name!r}, {status_str}, {size_str}, {records_str})"
+            f"status={self.status!r}, "
+            f"source_index_name={self.source_index_name!r}, "
+            f"created_at={self.created_at!r})"
         )
 
     def __dir__(self) -> list[str]:
