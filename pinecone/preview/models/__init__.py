@@ -35,10 +35,18 @@ from pinecone.preview.models.schema import (
     PreviewSparseVectorField,
     PreviewStringField,
 )
+from pinecone.preview.models.score_by import (
+    DenseVectorQuery,
+    QueryStringQuery,
+    ScoreByQuery,
+    SparseVectorQuery,
+    TextQuery,
+)
 from pinecone.preview.models.status import PreviewIndexStatus
 from pinecone.preview.schema_builder import SchemaBuilder
 
 __all__ = [
+    "DenseVectorQuery",
     "PreviewByocDeployment",
     "PreviewConfigureIndexRequest",
     "PreviewCreateIndexRequest",
@@ -60,5 +68,9 @@ __all__ = [
     "PreviewSemanticTextField",
     "PreviewSparseVectorField",
     "PreviewStringField",
+    "QueryStringQuery",
     "SchemaBuilder",
+    "ScoreByQuery",
+    "SparseVectorQuery",
+    "TextQuery",
 ]
