@@ -1,19 +1,18 @@
-"""Unit tests for PreviewDocument and Usage models."""
+"""Unit tests for PreviewDocument and PreviewUsage models."""
 
 from __future__ import annotations
 
 import pytest
 
-from pinecone.preview.models.documents import PreviewDocument, Usage
-
+from pinecone.preview.models.documents import PreviewDocument, PreviewUsage
 
 # ---------------------------------------------------------------------------
-# Usage
+# PreviewUsage
 # ---------------------------------------------------------------------------
 
 
 def test_usage_read_units() -> None:
-    u = Usage(read_units=42)
+    u = PreviewUsage(read_units=42)
     assert u.read_units == 42
 
 

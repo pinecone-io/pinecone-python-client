@@ -7,11 +7,19 @@ from typing import Any
 import orjson
 from msgspec import Struct
 
-__all__ = ["PreviewDocument", "Usage"]
+__all__ = ["PreviewDocument", "PreviewUsage"]
 
 
-class Usage(Struct, kw_only=True):
+class PreviewUsage(Struct, kw_only=True):
     """API usage statistics for a preview search request.
+
+    .. admonition:: Preview
+       :class: warning
+
+       Uses Pinecone API version ``2026-01.alpha``.
+       Preview surface is not covered by SemVer — signatures and behavior
+       may change in any minor SDK release. Pin your SDK version when
+       relying on preview features.
 
     Attributes:
         read_units: Number of read units consumed by the request.
@@ -29,6 +37,14 @@ class PreviewDocument:
     The ``id``, ``_id``, and ``score`` typed properties always take precedence
     over document fields with the same names — a document field named ``"score"``
     is only reachable via ``.get("score")`` or ``.to_dict()["score"]``.
+
+    .. admonition:: Preview
+       :class: warning
+
+       Uses Pinecone API version ``2026-01.alpha``.
+       Preview surface is not covered by SemVer — signatures and behavior
+       may change in any minor SDK release. Pin your SDK version when
+       relying on preview features.
 
     Attributes:
         id: The document's unique identifier.
