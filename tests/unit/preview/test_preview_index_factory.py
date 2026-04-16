@@ -12,12 +12,12 @@ import respx
 from pinecone._internal.config import PineconeConfig
 from pinecone.errors.exceptions import PineconeValueError
 from pinecone.preview import AsyncPreview, Preview
-from pinecone.preview.async_index import AsyncPreviewIndex
+from pinecone.preview.async_index import AsyncPreviewDocuments, AsyncPreviewIndex
 from pinecone.preview.index import PreviewDocuments, PreviewIndex
 
 BASE_URL = "https://api.test.pinecone.io"
 
-_INDEX_RESPONSE: dict = {
+_INDEX_RESPONSE: dict[str, object] = {
     "name": "my-index",
     "host": "my-index-abc.svc.pinecone.io",
     "status": {"ready": True, "state": "Ready"},
@@ -103,6 +103,32 @@ def test_index_with_name_caches_host(preview: Preview) -> None:
 
 
 @respx.mock
+def test_index_with_two_different_names_triggers_two_describes(preview: Preview) -> None:
+    route_a = respx.get(f"{BASE_URL}/indexes/index-a").mock(
+        return_value=httpx.Response(
+            200, json={**_INDEX_RESPONSE, "name": "index-a", "host": "a.svc.pinecone.io"}
+        )
+    )
+    route_b = respx.get(f"{BASE_URL}/indexes/index-b").mock(
+        return_value=httpx.Response(
+            200, json={**_INDEX_RESPONSE, "name": "index-b", "host": "b.svc.pinecone.io"}
+        )
+    )
+
+    idx_a = preview.index(name="index-a")
+    idx_b = preview.index(name="index-b")
+
+    assert route_a.call_count == 1
+    assert route_b.call_count == 1
+    assert idx_a.host == "a.svc.pinecone.io"
+    assert idx_b.host == "b.svc.pinecone.io"
+
+    idx_a_again = preview.index(name="index-a")
+    assert route_a.call_count == 1
+    assert idx_a_again.host == "a.svc.pinecone.io"
+
+
+@respx.mock
 def test_index_with_name_calls_describe_once_then_serves_cache(preview: Preview) -> None:
     route = respx.get(f"{BASE_URL}/indexes/my-index").mock(
         return_value=httpx.Response(200, json=_INDEX_RESPONSE)
@@ -163,6 +189,14 @@ def test_async_index_with_host_makes_no_http_calls(
     async_preview.index(host="my-index-abc.svc.pinecone.io")
 
 
+@pytest.mark.asyncio
+async def test_async_index_with_host_has_documents_attribute(
+    async_preview: AsyncPreview,
+) -> None:
+    idx = async_preview.index(host="my-index-abc.svc.pinecone.io")
+    assert isinstance(idx.documents, AsyncPreviewDocuments)
+
+
 # ---------------------------------------------------------------------------
 # Async — name-resolution path (deferred to first data-plane call)
 # ---------------------------------------------------------------------------
@@ -203,6 +237,40 @@ async def test_async_index_with_name_caches_host(async_preview: AsyncPreview) ->
     await idx2._resolve_host()
 
     assert route.call_count == 1
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_index_with_two_different_names_triggers_two_describes(
+    async_preview: AsyncPreview,
+) -> None:
+    route_a = respx.get(f"{BASE_URL}/indexes/index-a").mock(
+        return_value=httpx.Response(
+            200, json={**_INDEX_RESPONSE, "name": "index-a", "host": "a.svc.pinecone.io"}
+        )
+    )
+    route_b = respx.get(f"{BASE_URL}/indexes/index-b").mock(
+        return_value=httpx.Response(
+            200, json={**_INDEX_RESPONSE, "name": "index-b", "host": "b.svc.pinecone.io"}
+        )
+    )
+
+    idx_a = async_preview.index(name="index-a")
+    idx_b = async_preview.index(name="index-b")
+
+    assert route_a.call_count == 0
+    assert route_b.call_count == 0
+
+    await idx_a._resolve_host()
+    await idx_b._resolve_host()
+
+    assert route_a.call_count == 1
+    assert route_b.call_count == 1
+    assert idx_a.host == "a.svc.pinecone.io"
+    assert idx_b.host == "b.svc.pinecone.io"
+
+    await idx_a._resolve_host()
+    assert route_a.call_count == 1
 
 
 @pytest.mark.asyncio
