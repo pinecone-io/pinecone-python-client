@@ -9,8 +9,9 @@ import msgspec
 import orjson
 
 from pinecone._internal.constants import DEFAULT_BASE_URL
-from pinecone.errors.exceptions import PineconeValueError
-from pinecone.preview._internal.adapters.indexes import create_adapter
+from pinecone._internal.validation import require_non_empty
+from pinecone.errors.exceptions import NotFoundError, PineconeValueError
+from pinecone.preview._internal.adapters.indexes import create_adapter, describe_adapter
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
 from pinecone.preview.models.deployment import PreviewDeployment
 from pinecone.preview.models.indexes import PreviewIndexModel
@@ -169,3 +170,72 @@ class PreviewIndexes:
             headers={"Content-Type": "application/json"},
         )
         return create_adapter.from_response(orjson.loads(response.content))
+
+    def describe(self, name: str) -> PreviewIndexModel:
+        """Get detailed information about a named preview index.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Args:
+            name: Name of the preview index to describe.
+
+        Returns:
+            :class:`PreviewIndexModel` with name, host, schema, deployment,
+            read_capacity, status, deletion_protection, and tags.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name* is empty.
+            :exc:`~pinecone.errors.exceptions.NotFoundError`: If the index does not exist.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns another error response.
+
+        Examples:
+
+            desc = pc.preview.indexes.describe("my-preview-index")
+            print(desc.host)
+        """
+        require_non_empty("name", name)
+        logger.info("Describing preview index name=%r", name)
+        response = self._http.get(f"/indexes/{name}")
+        return describe_adapter.from_response(orjson.loads(response.content))
+
+    def exists(self, name: str) -> bool:
+        """Check whether a named preview index exists.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Uses :meth:`describe` internally; catches :exc:`NotFoundError` and
+        returns ``False``.
+
+        Args:
+            name: Name of the preview index to check.
+
+        Returns:
+            ``True`` if the index exists, ``False`` if it does not.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name* is empty.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an error other than 404.
+
+        Examples:
+
+            if pc.preview.indexes.exists("my-preview-index"):
+                print("Index found")
+        """
+        require_non_empty("name", name)
+        try:
+            self.describe(name)
+            return True
+        except NotFoundError:
+            return False
