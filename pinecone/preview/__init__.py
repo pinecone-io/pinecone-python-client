@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pinecone.preview.schema_builder import SchemaBuilder as SchemaBuilder
+
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
 
