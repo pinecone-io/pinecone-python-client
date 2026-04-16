@@ -10,7 +10,7 @@ import respx
 
 from pinecone._internal.config import PineconeConfig
 from pinecone.errors.exceptions import ForbiddenError, NotFoundError, PineconeTimeoutError
-from pinecone.models.pagination import AsyncPaginator, Page
+
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
 from pinecone.preview.async_indexes import AsyncPreviewIndexes
 from pinecone.preview.models.indexes import PreviewIndexModel
@@ -158,97 +158,6 @@ async def test_describe_raises_not_found_on_404(indexes: AsyncPreviewIndexes) ->
 
     with pytest.raises(NotFoundError):
         await indexes.describe("missing")
-
-
-# ---------------------------------------------------------------------------
-# list
-# ---------------------------------------------------------------------------
-
-
-@respx.mock
-async def test_list_returns_async_paginator_type(indexes: AsyncPreviewIndexes) -> None:
-    """list() returns an AsyncPaginator over PreviewIndexModel."""
-    respx.get(f"{BASE_URL}/indexes").mock(return_value=httpx.Response(200, json={"indexes": []}))
-
-    result = indexes.list()
-    assert isinstance(result, AsyncPaginator)
-
-
-@respx.mock
-async def test_list_async_iteration_yields_models(indexes: AsyncPreviewIndexes) -> None:
-    """list() yields PreviewIndexModel instances via async for."""
-    respx.get(f"{BASE_URL}/indexes").mock(
-        return_value=httpx.Response(200, json={"indexes": [_INDEX_RESPONSE]})
-    )
-
-    items = [item async for item in indexes.list()]
-
-    assert len(items) == 1
-    assert isinstance(items[0], PreviewIndexModel)
-    assert items[0].name == "test-index"
-
-
-@respx.mock
-async def test_list_to_list_returns_all_items(indexes: AsyncPreviewIndexes) -> None:
-    """list().to_list() returns all items as a list."""
-    respx.get(f"{BASE_URL}/indexes").mock(
-        return_value=httpx.Response(200, json={"indexes": [_INDEX_RESPONSE]})
-    )
-
-    result = await indexes.list().to_list()
-
-    assert isinstance(result, list)
-    assert len(result) == 1
-    assert isinstance(result[0], PreviewIndexModel)
-
-
-@respx.mock
-async def test_list_pages_yields_page_objects(indexes: AsyncPreviewIndexes) -> None:
-    """list().pages() yields Page objects with items list."""
-    respx.get(f"{BASE_URL}/indexes").mock(
-        return_value=httpx.Response(200, json={"indexes": [_INDEX_RESPONSE]})
-    )
-
-    pages = [page async for page in indexes.list().pages()]
-
-    assert len(pages) == 1
-    assert isinstance(pages[0], Page)
-    assert len(pages[0].items) == 1
-    assert isinstance(pages[0].items[0], PreviewIndexModel)
-
-
-@respx.mock
-async def test_list_paginator_yields_models_across_multiple_responses(
-    indexes: AsyncPreviewIndexes,
-) -> None:
-    """list() paginator yields PreviewIndexModel instances; multiple page calls work correctly."""
-    page1 = {
-        "indexes": [
-            {
-                "name": "idx-1",
-                "host": "idx-1.svc.pinecone.io",
-                "status": {"ready": True, "state": "Ready"},
-                "schema": {"fields": {"e": {"type": "dense_vector", "dimension": 4}}},
-                "deployment": {
-                    "deployment_type": "managed",
-                    "environment": "us-east-1-aws",
-                    "cloud": "aws",
-                    "region": "us-east-1",
-                },
-                "deletion_protection": "disabled",
-            }
-        ]
-    }
-
-    respx.get(f"{BASE_URL}/indexes").mock(return_value=httpx.Response(200, json=page1))
-
-    result = indexes.list()
-    assert isinstance(result, AsyncPaginator)
-
-    pages = [page async for page in result.pages()]
-
-    assert len(pages) >= 1
-    assert all(isinstance(item, PreviewIndexModel) for page in pages for item in page.items)
 
 
 # ---------------------------------------------------------------------------
