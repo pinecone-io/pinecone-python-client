@@ -42,12 +42,15 @@ from pinecone.preview.models.score_by import (
     SparseVectorQuery,
     TextQuery,
 )
+from pinecone.preview.models.backups import PreviewBackupModel, PreviewCreateBackupRequest
 from pinecone.preview.models.status import PreviewIndexStatus
 from pinecone.preview.schema_builder import SchemaBuilder
 
 __all__ = [
     "DenseVectorQuery",
+    "PreviewBackupModel",
     "PreviewByocDeployment",
+    "PreviewCreateBackupRequest",
     "PreviewConfigureIndexRequest",
     "PreviewCreateIndexRequest",
     "PreviewDenseVectorField",
