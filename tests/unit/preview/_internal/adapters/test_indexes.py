@@ -5,6 +5,7 @@ from __future__ import annotations
 import orjson
 
 from pinecone.preview._internal.adapters.indexes import (
+    _filter_none,
     configure_adapter,
     create_adapter,
     describe_adapter,
@@ -240,3 +241,32 @@ def test_list_adapter_parses_multiple() -> None:
     assert all(isinstance(m, PreviewIndexModel) for m in result)
     names = {m.name for m in result}
     assert names == {"a", "b"}
+
+
+# ---------------------------------------------------------------------------
+# _filter_none edge cases
+# ---------------------------------------------------------------------------
+
+
+def test_create_adapter_preserves_zero_integer_value() -> None:
+    req = PreviewCreateIndexRequest(
+        schema={"fields": {"t": {"type": "string", "full_text_searchable": True, "max_term_len": 0}}}
+    )
+    raw = create_adapter.to_request(req)
+    data = orjson.loads(raw)
+    assert data["schema"]["fields"]["t"]["max_term_len"] == 0
+
+
+def test_filter_none_preserves_empty_dict_and_empty_list() -> None:
+    result = _filter_none({"tags": {}, "ids": [], "name": None, "n": 0, "s": ""})
+    assert result == {"tags": {}, "ids": [], "n": 0, "s": ""}
+
+
+def test_filter_none_recurses_into_lists() -> None:
+    result = _filter_none({"outer": [{"a": None, "b": 1}, {"a": None, "c": "x"}]})
+    assert result == {"outer": [{"b": 1}, {"c": "x"}]}
+
+
+def test_filter_none_preserves_false_in_nested_list() -> None:
+    result = _filter_none({"items": [{"flag": False, "val": None}]})
+    assert result == {"items": [{"flag": False}]}
