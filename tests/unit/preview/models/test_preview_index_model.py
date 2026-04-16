@@ -5,15 +5,22 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import msgspec
+import pytest
 
-from pinecone.preview.models.deployment import PreviewManagedDeployment, PreviewPodDeployment
+from pinecone.preview.models.deployment import (
+    PreviewByocDeployment,
+    PreviewManagedDeployment,
+    PreviewPodDeployment,
+)
 from pinecone.preview.models.indexes import PreviewIndexModel
 from pinecone.preview.models.read_capacity import (
     PreviewReadCapacityOnDemandResponse,
+    PreviewReadCapacityStatus,
 )
 from pinecone.preview.models.schema import (
     PreviewDenseVectorField,
     PreviewSchema,
+    PreviewSchemaField,
     PreviewStringField,
 )
 from pinecone.preview.models.status import PreviewIndexStatus
@@ -70,7 +77,7 @@ def _make_model(
     read_capacity: PreviewReadCapacityOnDemandResponse | None = None,
     tags: dict[str, str] | None = None,
 ) -> PreviewIndexModel:
-    fields: dict[str, PreviewStringField | PreviewDenseVectorField] = {}
+    fields: dict[str, PreviewSchemaField] = {}
     for i in range(n_fields):
         fields[f"field_{i}"] = PreviewStringField(full_text_searchable=True)
 
@@ -187,3 +194,58 @@ def test_preview_index_model_repr_html_includes_tags_when_present() -> None:
     m = _make_model(tags={"env": "prod"})
     html = m._repr_html_()
     assert "env=prod" in html
+
+
+def test_preview_index_model_repr_html_pod_deployment_detail() -> None:
+    m = _make_model(deployment_type="pod")
+    html = m._repr_html_()
+    assert "Pod" in html
+    assert "(us-east1-gcp)" in html
+    assert "Deployment:" in html
+
+
+def test_preview_index_model_repr_html_byoc_deployment_detail() -> None:
+    m = PreviewIndexModel(
+        name="byoc-index",
+        host="byoc-index.svc.pinecone.io",
+        status=PreviewIndexStatus(ready=True, state="Ready"),
+        schema=PreviewSchema(fields={}),
+        deployment=PreviewByocDeployment(environment="e1", cloud="gcp", region="us-east1"),
+        deletion_protection="disabled",
+    )
+    html = m._repr_html_()
+    assert "Byoc" in html
+    assert "(gcp/us-east1)" in html
+
+
+@pytest.mark.xfail(
+    reason="_repr_html_ uses hasattr which is True for None-valued struct fields, emitting '(None/None)'; see PreviewIndexModel._repr_html_"
+)
+def test_preview_index_model_repr_html_byoc_deployment_minimal() -> None:
+    m = PreviewIndexModel(
+        name="byoc-minimal",
+        host="byoc-minimal.svc.pinecone.io",
+        status=PreviewIndexStatus(ready=True, state="Ready"),
+        schema=PreviewSchema(fields={}),
+        deployment=PreviewByocDeployment(environment="e1"),
+        deletion_protection="disabled",
+    )
+    html = m._repr_html_()
+    assert "Byoc" in html
+    assert "(None/None)" not in html
+
+
+def test_preview_index_model_repr_html_includes_read_capacity_row() -> None:
+    rc = PreviewReadCapacityOnDemandResponse(
+        status=PreviewReadCapacityStatus(state="Ready"),
+    )
+    m = _make_model(read_capacity=rc)
+    html = m._repr_html_()
+    assert "Read capacity:" in html
+    assert "OnDemand" in html
+
+
+def test_preview_index_model_repr_html_omits_read_capacity_when_none() -> None:
+    m = _make_model()
+    html = m._repr_html_()
+    assert "Read capacity:" not in html
