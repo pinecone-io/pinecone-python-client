@@ -13,6 +13,15 @@ from pinecone.preview.models.deployment import (
     PreviewManagedDeployment,
     PreviewPodDeployment,
 )
+from pinecone.preview.models.indexes import PreviewIndexModel
+from pinecone.preview.models.read_capacity import (
+    PreviewReadCapacity,
+    PreviewReadCapacityDedicatedInner,
+    PreviewReadCapacityDedicatedResponse,
+    PreviewReadCapacityManualScaling,
+    PreviewReadCapacityOnDemandResponse,
+    PreviewReadCapacityStatus,
+)
 from pinecone.preview.models.schema import (
     PreviewDenseVectorField,
     PreviewIntegerField,
@@ -22,21 +31,14 @@ from pinecone.preview.models.schema import (
     PreviewSparseVectorField,
     PreviewStringField,
 )
-from pinecone.preview.models.read_capacity import (
-    PreviewReadCapacity,
-    PreviewReadCapacityDedicatedInner,
-    PreviewReadCapacityDedicatedResponse,
-    PreviewReadCapacityManualScaling,
-    PreviewReadCapacityOnDemandResponse,
-    PreviewReadCapacityStatus,
-)
 from pinecone.preview.models.status import PreviewIndexStatus
 from pinecone.preview.schema_builder import SchemaBuilder
 
 __all__ = [
     "PreviewByocDeployment",
-    "PreviewDeployment",
     "PreviewDenseVectorField",
+    "PreviewDeployment",
+    "PreviewIndexModel",
     "PreviewIndexStatus",
     "PreviewIntegerField",
     "PreviewManagedDeployment",
