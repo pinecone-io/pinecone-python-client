@@ -212,6 +212,7 @@ class Indexes:
         pod_type: str | None = None,
         deletion_protection: DeletionProtection | str | None = None,
         tags: dict[str, str] | None = None,
+        embed: dict[str, Any] | None = None,
         read_capacity: dict[str, Any] | None = None,
     ) -> None:
         """Configure an existing index.
@@ -278,6 +279,10 @@ class Indexes:
             current = self.describe(name)
             merged = {**(current.tags or {}), **tags}
             body["tags"] = merged
+
+        # Integrated embed config update
+        if embed is not None:
+            body["embed"] = embed
 
         self._http.patch(f"/indexes/{name}", json=body)
         logger.debug("Configured index %r", name)

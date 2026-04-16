@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
@@ -21,8 +22,25 @@ if TYPE_CHECKING:
     from pinecone.client.restore_jobs import RestoreJobs
     from pinecone.grpc import GrpcIndex
     from pinecone.index import Index
-    from pinecone.models.enums import DeletionProtection
+    from pinecone.inference.models.index_embed import IndexEmbed
+    from pinecone.models.enums import (
+        AwsRegion,
+        AzureRegion,
+        CloudProvider,
+        DeletionProtection,
+        GcpRegion,
+        Metric,
+        VectorType,
+    )
     from pinecone.models.indexes.index import IndexModel
+    from pinecone.models.indexes.list import IndexList
+    from pinecone.models.indexes.specs import (
+        ByocSpec,
+        EmbedConfig,
+        IntegratedSpec,
+        PodSpec,
+        ServerlessSpec,
+    )
     from pinecone.preview import Preview
 
 
@@ -461,6 +479,169 @@ class Pinecone:
     def config(self) -> PineconeConfig:
         """The resolved configuration for this client."""
         return self._config
+
+    # ---- Backcompat flat-method delegates (:meta private:) ----
+
+    def create_index(
+        self,
+        name: str,
+        spec: ServerlessSpec | PodSpec | ByocSpec | IntegratedSpec | dict[str, Any],
+        dimension: int | None = None,
+        metric: Metric | str | None = "cosine",
+        timeout: int | None = None,
+        deletion_protection: DeletionProtection | str | None = "disabled",
+        vector_type: VectorType | str = "dense",
+        tags: dict[str, str] | None = None,
+    ) -> IndexModel:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.indexes.create`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.create_index() is deprecated; use pc.indexes.create() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        resolved_dp = deletion_protection if deletion_protection is not None else "disabled"
+        return self.indexes.create(
+            name=name,
+            spec=spec,
+            dimension=dimension,
+            metric=metric if metric is not None else "cosine",
+            vector_type=vector_type,
+            deletion_protection=resolved_dp,
+            tags=tags,
+            timeout=timeout,
+        )
+
+    def create_index_for_model(
+        self,
+        name: str,
+        cloud: CloudProvider | str,
+        region: AwsRegion | GcpRegion | AzureRegion | str,
+        embed: IndexEmbed | EmbedConfig | dict[str, Any],
+        tags: dict[str, str] | None = None,
+        deletion_protection: DeletionProtection | str | None = "disabled",
+        read_capacity: dict[str, Any] | None = None,
+        schema: dict[str, Any] | None = None,
+        timeout: int | None = None,
+    ) -> IndexModel:
+        """Backwards-compatibility delegate for creating an integrated (model-backed) index.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.create_index_for_model() is deprecated;"
+            " use pc.indexes.create() with IntegratedSpec instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        from pinecone.inference.models.index_embed import IndexEmbed as _IndexEmbed
+        from pinecone.models.indexes.specs import EmbedConfig as _EmbedConfig
+        from pinecone.models.indexes.specs import IntegratedSpec as _IntegratedSpec
+
+        if isinstance(embed, _IndexEmbed):
+            embed_config: EmbedConfig = _EmbedConfig(
+                model=embed.model,
+                field_map={k: str(v) for k, v in embed.field_map.items()},
+                metric=embed.metric,
+                read_parameters=embed.read_parameters or None,
+                write_parameters=embed.write_parameters or None,
+            )
+        elif isinstance(embed, _EmbedConfig):
+            embed_config = embed
+        else:
+            embed_config = _EmbedConfig(**embed)
+
+        cloud_str = cloud.value if hasattr(cloud, "value") else str(cloud)
+        region_str = region.value if hasattr(region, "value") else str(region)
+        spec = _IntegratedSpec(cloud=cloud_str, region=region_str, embed=embed_config)
+        resolved_dp = deletion_protection if deletion_protection is not None else "disabled"
+        return self.indexes.create(
+            name=name,
+            spec=spec,
+            tags=tags,
+            deletion_protection=resolved_dp,
+            schema=schema,
+            timeout=timeout,
+        )
+
+    def describe_index(self, name: str) -> IndexModel:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.indexes.describe`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.describe_index() is deprecated; use pc.indexes.describe() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.indexes.describe(name)
+
+    def list_indexes(self) -> IndexList:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.indexes.list`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.list_indexes() is deprecated; use pc.indexes.list() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.indexes.list()
+
+    def has_index(self, name: str) -> bool:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.indexes.exists`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.has_index() is deprecated; use pc.indexes.exists() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.indexes.exists(name)
+
+    def configure_index(
+        self,
+        name: str,
+        replicas: int | None = None,
+        pod_type: str | None = None,
+        deletion_protection: DeletionProtection | str | None = None,
+        tags: dict[str, str] | None = None,
+        embed: dict[str, Any] | None = None,
+        read_capacity: dict[str, Any] | None = None,
+    ) -> None:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.indexes.configure`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.configure_index() is deprecated; use pc.indexes.configure() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.indexes.configure(
+            name=name,
+            replicas=replicas,
+            pod_type=pod_type,
+            deletion_protection=deletion_protection,
+            tags=tags,
+            embed=embed,
+            read_capacity=read_capacity,
+        )
+
+    def delete_index(self, name: str, timeout: int | None = None) -> None:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.indexes.delete`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.delete_index() is deprecated; use pc.indexes.delete() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.indexes.delete(name, timeout=timeout)
 
     def close(self) -> None:
         """Close the underlying HTTP client."""
