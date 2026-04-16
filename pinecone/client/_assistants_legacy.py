@@ -13,8 +13,42 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
+    from pinecone.models.assistant.evaluation import AlignmentResult
     from pinecone.models.assistant.list import ListAssistantsResponse
     from pinecone.models.assistant.model import AssistantModel
+
+
+class _AlignmentMetricsProxy:
+    """Legacy nested proxy: ``assistants.evaluation.metrics``."""
+
+    def __init__(self, assistants: AssistantsLegacyNamespaceMixin) -> None:
+        self._assistants = assistants
+
+    def alignment(
+        self,
+        question: str,
+        answer: str,
+        ground_truth_answer: str,
+        **kwargs: Any,
+    ) -> AlignmentResult:
+        """Deprecated alias for :meth:`Assistants.evaluate_alignment`."""
+        return cast(
+            "AlignmentResult",
+            self._assistants.evaluate_alignment(  # type: ignore[attr-defined]
+                question=question,
+                answer=answer,
+                ground_truth_answer=ground_truth_answer,
+                **kwargs,
+            ),
+        )
+
+
+class _AlignmentEvaluationProxy:
+    """Legacy nested proxy: ``assistants.evaluation``."""
+
+    def __init__(self, assistants: AssistantsLegacyNamespaceMixin) -> None:
+        self._assistants = assistants
+        self.metrics = _AlignmentMetricsProxy(assistants)
 
 
 class AssistantsLegacyNamespaceMixin:
@@ -145,3 +179,17 @@ class AssistantsLegacyNamespaceMixin:
         """Deprecated alias for :meth:`Assistants.delete`."""
         resolved_name = assistant_name if assistant_name is not None else name
         self.delete(name=resolved_name, timeout=timeout, **kwargs)  # type: ignore[attr-defined]
+
+    @property
+    def evaluation(self) -> _AlignmentEvaluationProxy:
+        """Deprecated nested proxy for alignment evaluation.
+
+        Equivalent to ``pc.assistants.evaluate_alignment(...)``. Prefer the
+        flat method in new code.
+        """
+        cached = getattr(self, "_legacy_evaluation", None)
+        if cached is None:
+            cached = _AlignmentEvaluationProxy(self)
+            # Cache on the instance.
+            object.__setattr__(self, "_legacy_evaluation", cached)
+        return cached

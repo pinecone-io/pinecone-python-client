@@ -13,8 +13,42 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
+    from pinecone.models.assistant.evaluation import AlignmentResult
     from pinecone.models.assistant.list import ListAssistantsResponse
     from pinecone.models.assistant.model import AssistantModel
+
+
+class _AsyncAlignmentMetricsProxy:
+    """Legacy nested proxy: ``assistants.evaluation.metrics`` (async)."""
+
+    def __init__(self, assistants: AsyncAssistantsLegacyNamespaceMixin) -> None:
+        self._assistants = assistants
+
+    async def alignment(
+        self,
+        question: str,
+        answer: str,
+        ground_truth_answer: str,
+        **kwargs: Any,
+    ) -> AlignmentResult:
+        """Deprecated alias for :meth:`AsyncAssistants.evaluate_alignment`."""
+        return cast(
+            "AlignmentResult",
+            await self._assistants.evaluate_alignment(  # type: ignore[attr-defined]
+                question=question,
+                answer=answer,
+                ground_truth_answer=ground_truth_answer,
+                **kwargs,
+            ),
+        )
+
+
+class _AsyncAlignmentEvaluationProxy:
+    """Legacy nested proxy: ``assistants.evaluation`` (async)."""
+
+    def __init__(self, assistants: AsyncAssistantsLegacyNamespaceMixin) -> None:
+        self._assistants = assistants
+        self.metrics = _AsyncAlignmentMetricsProxy(assistants)
 
 
 class AsyncAssistantsLegacyNamespaceMixin:
@@ -145,3 +179,17 @@ class AsyncAssistantsLegacyNamespaceMixin:
         """Deprecated alias for :meth:`AsyncAssistants.delete`."""
         resolved_name = assistant_name if assistant_name is not None else name
         await self.delete(name=resolved_name, timeout=timeout, **kwargs)  # type: ignore[attr-defined]
+
+    @property
+    def evaluation(self) -> _AsyncAlignmentEvaluationProxy:
+        """Deprecated nested proxy for alignment evaluation.
+
+        Equivalent to ``await pc.assistants.evaluate_alignment(...)``. Prefer
+        the flat method in new code.
+        """
+        cached = getattr(self, "_legacy_evaluation", None)
+        if cached is None:
+            cached = _AsyncAlignmentEvaluationProxy(self)
+            # Cache on the instance.
+            object.__setattr__(self, "_legacy_evaluation", cached)
+        return cached
