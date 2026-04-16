@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import orjson
-import pytest
 
 from pinecone.preview._internal.adapters.indexes import (
     configure_adapter,
@@ -13,10 +12,16 @@ from pinecone.preview._internal.adapters.indexes import (
 )
 from pinecone.preview.models.deployment import PreviewManagedDeployment
 from pinecone.preview.models.indexes import PreviewIndexModel
-from pinecone.preview.models.read_capacity import PreviewReadCapacityOnDemandResponse, PreviewReadCapacityStatus
+from pinecone.preview.models.read_capacity import (
+    PreviewReadCapacityOnDemandResponse,
+    PreviewReadCapacityStatus,
+)
 from pinecone.preview.models.requests import PreviewConfigureIndexRequest, PreviewCreateIndexRequest
-from pinecone.preview.models.schema import PreviewDenseVectorField, PreviewSchema, PreviewStringField
-from pinecone.preview.models.status import PreviewIndexStatus
+from pinecone.preview.models.schema import (
+    PreviewDenseVectorField,
+    PreviewSchema,
+    PreviewStringField,
+)
 
 
 def _minimal_index_dict(name: str = "test-idx") -> dict:  # type: ignore[type-arg]
@@ -50,7 +55,7 @@ def test_create_adapter_serializes_minimal() -> None:
     assert data["schema"]["fields"]["e"]["type"] == "dense_vector"
 
 
-def test_create_adapter_drops_false_defaults() -> None:
+def test_create_adapter_preserves_explicit_false_overrides() -> None:
     req = PreviewCreateIndexRequest(
         schema=PreviewSchema(
             fields={
@@ -61,7 +66,38 @@ def test_create_adapter_drops_false_defaults() -> None:
     raw = create_adapter.to_request(req)
     data = orjson.loads(raw)
     field = data["schema"]["fields"]["title"]
-    assert "filterable" not in field
+    assert field.get("filterable") is False
+    assert field.get("full_text_searchable") is True
+
+
+def test_create_adapter_preserves_user_explicit_lowercase_false() -> None:
+    req = PreviewCreateIndexRequest(
+        schema=PreviewSchema(
+            fields={
+                "title": PreviewStringField(full_text_searchable=True, lowercase=False)
+            }
+        )
+    )
+    raw = create_adapter.to_request(req)
+    data = orjson.loads(raw)
+    field = data["schema"]["fields"]["title"]
+    assert field.get("lowercase") is False
+    assert field.get("full_text_searchable") is True
+
+
+def test_create_adapter_preserves_stemming_false_and_stop_words_false() -> None:
+    req = PreviewCreateIndexRequest(
+        schema=PreviewSchema(
+            fields={
+                "title": PreviewStringField(full_text_searchable=True, stemming=False, stop_words=False)
+            }
+        )
+    )
+    raw = create_adapter.to_request(req)
+    data = orjson.loads(raw)
+    field = data["schema"]["fields"]["title"]
+    assert field.get("stemming") is False
+    assert field.get("stop_words") is False
     assert field.get("full_text_searchable") is True
 
 

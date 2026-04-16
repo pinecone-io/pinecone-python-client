@@ -22,16 +22,12 @@ __all__ = [
 ]
 
 
-def _filter_none_and_false(obj: Any) -> Any:
-    """Recursively drop None and False values from dicts (API wants absent, not null/false)."""
+def _filter_none(obj: Any) -> Any:
+    """Recursively drop None values from dicts. Optional parameters are omitted when None."""
     if isinstance(obj, dict):
-        return {
-            k: _filter_none_and_false(v)
-            for k, v in obj.items()
-            if v is not None and v is not False
-        }
+        return {k: _filter_none(v) for k, v in obj.items() if v is not None}
     if isinstance(obj, list):
-        return [_filter_none_and_false(item) for item in obj]
+        return [_filter_none(item) for item in obj]
     return obj
 
 
@@ -39,7 +35,7 @@ class PreviewCreateIndexAdapter:
     """Adapter for create_index operation (2026-01.alpha)."""
 
     def to_request(self, request: PreviewCreateIndexRequest) -> bytes:
-        return orjson.dumps(_filter_none_and_false(msgspec.to_builtins(request)))
+        return orjson.dumps(_filter_none(msgspec.to_builtins(request)))
 
     def from_response(self, data: dict[str, Any]) -> PreviewIndexModel:
         return msgspec.convert(data, PreviewIndexModel)
@@ -49,7 +45,7 @@ class PreviewConfigureIndexAdapter:
     """Adapter for configure_index operation (2026-01.alpha)."""
 
     def to_request(self, request: PreviewConfigureIndexRequest) -> bytes:
-        return orjson.dumps(_filter_none_and_false(msgspec.to_builtins(request)))
+        return orjson.dumps(_filter_none(msgspec.to_builtins(request)))
 
     def from_response(self, data: dict[str, Any]) -> PreviewIndexModel:
         return msgspec.convert(data, PreviewIndexModel)
