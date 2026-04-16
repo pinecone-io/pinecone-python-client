@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import warnings
 from dataclasses import replace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from pinecone._internal.config import PineconeConfig, RetryConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
@@ -642,6 +642,45 @@ class Pinecone:
             stacklevel=2,
         )
         self.indexes.delete(name, timeout=timeout)
+
+    def Index(self, name: str = "", host: str = "", **kwargs: Any) -> Index:  # noqa: N802
+        """Backwards-compatibility factory. See :meth:`Pinecone.index`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.Index() is deprecated; use pc.index() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        from pinecone.index import Index as _Index
+
+        return cast(_Index, self.index(name=name, host=host))
+
+    def IndexAsyncio(self, host: str, **kwargs: Any) -> Any:  # noqa: N802
+        """Backwards-compatibility async index factory. See ``AsyncIndex``.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.IndexAsyncio() is deprecated; use AsyncIndex directly instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
+
+        return _AsyncIndex(
+            host=host,
+            api_key=self._config.api_key,
+            additional_headers=dict(self._config.additional_headers),
+            timeout=self._config.timeout,
+            proxy_url=self._config.proxy_url,
+            proxy_headers=dict(self._config.proxy_headers),
+            ssl_ca_certs=self._config.ssl_ca_certs,
+            ssl_verify=self._config.ssl_verify,
+            source_tag=self._config.source_tag,
+            connection_pool_maxsize=self._config.connection_pool_maxsize,
+        )
 
     def close(self) -> None:
         """Close the underlying HTTP client."""
