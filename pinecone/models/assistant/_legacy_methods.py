@@ -17,7 +17,7 @@ Back-reference storage:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import IO, TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
     from pinecone.client.assistants import Assistants
@@ -50,6 +50,33 @@ class AssistantModelLegacyMethodsMixin:
                 "directly, or obtain the model via pc.assistants.describe(name=...)."
             )
         return ref
+
+    def upload_bytes_stream(
+        self,
+        stream: IO[bytes],
+        file_name: str,
+        metadata: dict[str, Any] | None = None,
+        multimodal: bool | None = None,
+        timeout: int | None = None,
+        file_id: str | None = None,
+        **kwargs: Any,
+    ) -> AssistantFileModel:
+        """Deprecated alias — upload a byte stream as a file.
+
+        In the new SDK, byte streams are uploaded via the unified
+        :meth:`Assistants.upload_file` using ``file_stream=`` and ``file_name=``.
+        """
+        ns = self._resolve_assistants()
+        return ns.upload_file(
+            assistant_name=self.name,  # type: ignore[attr-defined]
+            file_stream=stream,
+            file_name=file_name,
+            metadata=metadata,
+            multimodal=multimodal,
+            timeout=timeout,
+            file_id=file_id,
+            **kwargs,
+        )
 
     def upload_file(
         self,
