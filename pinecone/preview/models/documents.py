@@ -7,7 +7,15 @@ from typing import Any
 import orjson
 from msgspec import Struct
 
-__all__ = ["PreviewDocument", "PreviewUsage"]
+from pinecone.models._display import render_table
+
+__all__ = [
+    "PreviewDocument",
+    "PreviewDocumentFetchResponse",
+    "PreviewDocumentSearchResponse",
+    "PreviewDocumentUpsertResponse",
+    "PreviewUsage",
+]
 
 
 class PreviewUsage(Struct, kw_only=True):
@@ -101,3 +109,86 @@ class PreviewDocument:
         if extras:
             return f"PreviewDocument(_id={_id!r}, score={score!r}, ...)"
         return f"PreviewDocument(_id={_id!r}, score={score!r})"
+
+
+class PreviewDocumentUpsertResponse(Struct, kw_only=True):
+    """Response from a document upsert operation.
+
+    Attributes:
+        upserted_count: Number of documents successfully upserted.
+    """
+
+    upserted_count: int
+
+
+class PreviewDocumentSearchResponse:
+    """Response from a document search operation.
+
+    Attributes:
+        matches: Ordered list of matching documents.
+        namespace: The namespace that was searched.
+        usage: API usage statistics, or ``None`` when not returned.
+    """
+
+    __slots__ = ("matches", "namespace", "usage")
+
+    def __init__(
+        self,
+        matches: list[PreviewDocument],
+        namespace: str,
+        usage: PreviewUsage | None = None,
+    ) -> None:
+        object.__setattr__(self, "matches", matches)
+        object.__setattr__(self, "namespace", namespace)
+        object.__setattr__(self, "usage", usage)
+
+    def __repr__(self) -> str:
+        return (
+            f"SearchResponse(matches={len(self.matches)}, "  # type: ignore[attr-defined]
+            f"namespace={self.namespace!r}, "  # type: ignore[attr-defined]
+            f"usage={self.usage!r})"  # type: ignore[attr-defined]
+        )
+
+    def _repr_html_(self) -> str:
+        matches: list[PreviewDocument] = object.__getattribute__(self, "matches")
+        namespace: str = object.__getattribute__(self, "namespace")
+        usage: PreviewUsage | None = object.__getattribute__(self, "usage")
+        rows: list[tuple[str, str | int | float]] = [
+            ("Matches:", len(matches)),
+            ("Namespace:", namespace),
+        ]
+        if usage is not None:
+            rows.append(("Read Units:", usage.read_units))
+        return render_table("SearchResponse", rows)
+
+
+class PreviewDocumentFetchResponse:
+    """Response from a document fetch operation.
+
+    Attributes:
+        documents: Map of document ID to document.
+        namespace: The namespace that was fetched from.
+        usage: API usage statistics, or ``None`` when not returned.
+    """
+
+    __slots__ = ("documents", "namespace", "usage")
+
+    def __init__(
+        self,
+        documents: dict[str, PreviewDocument],
+        namespace: str,
+        usage: PreviewUsage | None = None,
+    ) -> None:
+        object.__setattr__(self, "documents", documents)
+        object.__setattr__(self, "namespace", namespace)
+        object.__setattr__(self, "usage", usage)
+
+    def __repr__(self) -> str:
+        documents: dict[str, PreviewDocument] = object.__getattribute__(self, "documents")
+        namespace: str = object.__getattribute__(self, "namespace")
+        usage: PreviewUsage | None = object.__getattribute__(self, "usage")
+        return (
+            f"FetchResponse(documents={len(documents)}, "
+            f"namespace={namespace!r}, "
+            f"usage={usage!r})"
+        )

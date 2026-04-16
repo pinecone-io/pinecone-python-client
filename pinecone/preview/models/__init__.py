@@ -14,7 +14,13 @@ from pinecone.preview.models.deployment import (
     PreviewManagedDeployment,
     PreviewPodDeployment,
 )
-from pinecone.preview.models.documents import PreviewDocument, PreviewUsage
+from pinecone.preview.models.documents import (
+    PreviewDocument,
+    PreviewDocumentFetchResponse,
+    PreviewDocumentSearchResponse,
+    PreviewDocumentUpsertResponse,
+    PreviewUsage,
+)
 from pinecone.preview.models.indexes import PreviewIndexModel
 from pinecone.preview.models.read_capacity import (
     PreviewReadCapacity,
@@ -58,6 +64,9 @@ __all__ = [
     "PreviewDenseVectorQuery",
     "PreviewDeployment",
     "PreviewDocument",
+    "PreviewDocumentFetchResponse",
+    "PreviewDocumentSearchResponse",
+    "PreviewDocumentUpsertResponse",
     "PreviewIndexModel",
     "PreviewIndexStatus",
     "PreviewIntegerField",
