@@ -9,9 +9,10 @@ import msgspec
 import orjson
 
 from pinecone._internal.constants import DEFAULT_BASE_URL
-from pinecone._internal.validation import require_non_empty
+from pinecone._internal.validation import require_non_empty, require_positive
 from pinecone.errors.exceptions import NotFoundError, PineconeValueError
-from pinecone.preview._internal.adapters.indexes import create_adapter, describe_adapter
+from pinecone.models.pagination import Page, Paginator
+from pinecone.preview._internal.adapters.indexes import create_adapter, describe_adapter, list_adapter
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
 from pinecone.preview.models.indexes import PreviewIndexModel
 from pinecone.preview.models.read_capacity import PreviewReadCapacity
@@ -199,6 +200,67 @@ class PreviewIndexes:
         logger.info("Describing preview index name=%r", name)
         response = self._http.get(f"/indexes/{name}")
         return describe_adapter.from_response(orjson.loads(response.content))
+
+    def list(
+        self,
+        *,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> Paginator[PreviewIndexModel]:
+        """List all preview indexes.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        The 2026-01.alpha server returns all indexes in a single page. The
+        returned :class:`~pinecone.models.pagination.Paginator` always yields
+        exactly one page and then terminates, but the paginator interface is
+        used for consistency with other list methods and forward compatibility.
+
+        Args:
+            limit: Maximum number of items to yield across all pages. Must be
+                a positive integer. ``None`` yields all items.
+            pagination_token: Token to resume pagination from a previous call.
+                ``None`` starts from the beginning.
+
+        Returns:
+            :class:`~pinecone.models.pagination.Paginator` over
+            :class:`~pinecone.preview.models.indexes.PreviewIndexModel`
+            instances.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *limit*
+                is zero or negative.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an
+                error response.
+
+        Examples:
+            Iterate over all preview indexes one item at a time::
+
+                for index in pc.preview.indexes.list():
+                    print(index.name)
+
+            Access page-level metadata::
+
+                for page in pc.preview.indexes.list().pages():
+                    print(f"Got {len(page.items)} indexes")
+                    for index in page.items:
+                        print(index.name)
+        """
+        if limit is not None:
+            require_positive("limit", limit)
+
+        def fetch_page(token: str | None) -> Page[PreviewIndexModel]:
+            response = self._http.get("/indexes")
+            items = list_adapter.from_response(orjson.loads(response.content))
+            return Page(items=items, pagination_token=None)
+
+        return Paginator(fetch_page=fetch_page, initial_token=pagination_token, limit=limit)
 
     def exists(self, name: str) -> bool:
         """Check whether a named preview index exists.
