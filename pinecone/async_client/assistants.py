@@ -583,13 +583,16 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         self,
         *,
         assistant_name: str,
+        page_size: int | None = None,
         pagination_token: str | None = None,
         filter: dict[str, Any] | None = None,
+        **kwargs: Any,
     ) -> ListFilesResponse:
         """List one page of files for an assistant with explicit pagination control.
 
         Args:
             assistant_name: Name of the assistant whose files to list.
+            page_size: Maximum number of files per page.
             pagination_token: Token from a previous response to fetch the
                 next page.
             filter: Optional metadata filter expression. Serialized to a JSON
@@ -615,10 +618,31 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                     pagination_token=page.next,
                 )
         """
+        from pinecone._internal.kwargs_aliases import (
+            reject_unknown_kwargs,
+            remap_legacy_kwargs,
+        )
+
+        remapped = remap_legacy_kwargs(
+            kwargs,
+            aliases={"limit": "page_size"},
+            method_name="list_files_page",
+        )
+        reject_unknown_kwargs(remapped, allowed={"page_size"}, method_name="list_files_page")
+        if "page_size" in remapped:
+            if page_size is not None:
+                raise PineconeValueError(
+                    "list_files_page() received both 'limit' (legacy) and 'page_size'. "
+                    "Pass only one — prefer 'page_size'."
+                )
+            page_size = remapped["page_size"]
+
         import json as _json
 
         data_http = await self._data_plane_http(assistant_name)
         params: dict[str, str | int] = {}
+        if page_size is not None:
+            params["pageSize"] = page_size
         if pagination_token is not None:
             params["paginationToken"] = pagination_token
         if filter is not None:

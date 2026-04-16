@@ -149,3 +149,60 @@ async def test_async_delete_rejects_unknown(
     """Passing an unrecognised kwarg raises PineconeValueError."""
     with pytest.raises(PineconeValueError, match="unexpected"):
         await mock_async_assistants.delete(name="foo", bogus=1)
+
+
+@pytest.mark.asyncio
+async def test_async_list_page_accepts_legacy_limit(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """limit= is accepted as a legacy alias for page_size= on async list_page."""
+    from pinecone.models.assistant.list import ListAssistantsResponse
+
+    mock_async_assistants._adapter.to_assistant_list.return_value = (  # type: ignore[attr-defined]
+        ListAssistantsResponse(assistants=[], next=None)
+    )
+    await mock_async_assistants.list_page(limit=5)
+    mock_async_assistants._http.get.assert_called_once_with(  # type: ignore[attr-defined]
+        "/assistants", params={"pageSize": 5}
+    )
+
+
+@pytest.mark.asyncio
+async def test_async_list_page_rejects_both(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """Passing both limit= and page_size= raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="both"):
+        await mock_async_assistants.list_page(limit=5, page_size=5)
+
+
+@pytest.mark.asyncio
+async def test_async_list_page_rejects_unknown(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """Passing an unrecognised kwarg raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="unexpected"):
+        await mock_async_assistants.list_page(page_size=5, bogus=1)
+
+
+@pytest.mark.asyncio
+async def test_async_list_files_page_accepts_legacy_limit(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """limit= is accepted as a legacy alias for page_size= on async list_files_page."""
+    from unittest.mock import AsyncMock, MagicMock
+
+    from pinecone.models.assistant.list import ListFilesResponse
+
+    mock_data_http = AsyncMock()
+    mock_data_response = MagicMock()
+    mock_data_response.content = b"{}"
+    mock_data_http.get.return_value = mock_data_response
+    mock_async_assistants._data_plane_http = AsyncMock(return_value=mock_data_http)  # type: ignore[method-assign]
+    mock_async_assistants._adapter.to_file_list.return_value = ListFilesResponse(  # type: ignore[attr-defined]
+        files=[], next=None
+    )
+
+    await mock_async_assistants.list_files_page(assistant_name="foo", limit=5)
+
+    mock_data_http.get.assert_called_once_with("/files/foo", params={"pageSize": 5})
