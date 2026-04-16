@@ -23,8 +23,8 @@ if TYPE_CHECKING:
     from pinecone.grpc import GrpcIndex
     from pinecone.index import Index
     from pinecone.inference.models.index_embed import IndexEmbed
-    from pinecone.models.backups.list import BackupList
-    from pinecone.models.backups.model import BackupModel
+    from pinecone.models.backups.list import BackupList, RestoreJobList
+    from pinecone.models.backups.model import BackupModel, RestoreJobModel
     from pinecone.models.collections.list import CollectionList
     from pinecone.models.collections.model import CollectionModel
     from pinecone.models.enums import (
@@ -762,6 +762,39 @@ class Pinecone:
             stacklevel=2,
         )
         self.backups.delete(backup_id=backup_id)
+
+    def list_restore_jobs(
+        self,
+        *,
+        limit: int | None = 10,
+        pagination_token: str | None = None,
+    ) -> RestoreJobList:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.restore_jobs.list`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.list_restore_jobs() is deprecated; use pc.restore_jobs.list() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.restore_jobs.list(
+            limit=limit,
+            pagination_token=pagination_token,
+        )
+
+    def describe_restore_job(self, *, job_id: str) -> RestoreJobModel:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.restore_jobs.describe`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.describe_restore_job() is deprecated;"
+            " use pc.restore_jobs.describe() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.restore_jobs.describe(job_id=job_id)
 
     def Index(self, name: str = "", host: str = "", **kwargs: Any) -> Index:  # noqa: N802
         """Backwards-compatibility factory. See :meth:`Pinecone.index`.
