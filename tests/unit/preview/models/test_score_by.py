@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import msgspec
 
-from pinecone.models.vectors.sparse import SparseValues
+from pinecone.preview.models.sparse import PreviewSparseValues
 from pinecone.preview.models.score_by import (
     PreviewDenseVectorQuery,
     PreviewQueryStringQuery,
@@ -96,7 +96,7 @@ def test_dense_vector_query_round_trip() -> None:
 
 
 def test_sparse_vector_query_wire_shape() -> None:
-    sv = SparseValues(indices=[0, 5, 10], values=[0.5, 0.3, 0.8])
+    sv = PreviewSparseValues(indices=[0, 5, 10], values=[0.5, 0.3, 0.8])
     q = PreviewSparseVectorQuery(field="_sparse", sparse_values=sv)
     data = msgspec.json.encode(q)
     decoded = msgspec.json.decode(data)

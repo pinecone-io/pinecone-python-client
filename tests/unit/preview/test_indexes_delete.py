@@ -83,10 +83,9 @@ def test_delete_raises_timeout_error_after_deadline(indexes: PreviewIndexes) -> 
     )
 
     monotonic_values = iter([0.0, 10.0])
-    with patch("time.sleep"):
-        with patch("time.monotonic", side_effect=monotonic_values):
-            with pytest.raises(PineconeTimeoutError, match="5s"):
-                indexes.delete("x", timeout=5)
+    with patch("time.sleep"), patch("time.monotonic", side_effect=monotonic_values):
+        with pytest.raises(PineconeTimeoutError, match="5s"):
+            indexes.delete("x", timeout=5)
 
 
 @respx.mock

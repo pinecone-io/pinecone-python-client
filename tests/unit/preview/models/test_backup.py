@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import msgspec
-import pytest
 
 from pinecone.preview.models.backups import PreviewBackupModel, PreviewCreateBackupRequest
 
