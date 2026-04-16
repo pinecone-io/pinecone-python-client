@@ -96,3 +96,30 @@ async def test_async_describe_with_name_still_works(
     """The canonical name= parameter continues to work as before."""
     result = await mock_async_assistants.describe(name="my-assistant")
     assert result.name == "legacy-name"  # canned response from fixture
+
+
+@pytest.mark.asyncio
+async def test_async_update_accepts_legacy_assistant_name(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """assistant_name= is accepted as a legacy alias for name= on async update."""
+    result = await mock_async_assistants.update(assistant_name="foo", instructions="be precise")
+    assert result.name == "legacy-name"  # canned response from fixture
+
+
+@pytest.mark.asyncio
+async def test_async_update_rejects_both(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """Passing both name= and assistant_name= raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="both"):
+        await mock_async_assistants.update(name="a", assistant_name="b")
+
+
+@pytest.mark.asyncio
+async def test_async_update_rejects_unknown(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """Passing an unrecognised kwarg raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="unexpected"):
+        await mock_async_assistants.update(name="foo", bogus=1)
