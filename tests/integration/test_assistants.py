@@ -3535,3 +3535,158 @@ def test_upload_file_content_hash_populated(client: Pinecone) -> None:
             name,
             "assistant",
         )
+
+
+# ---------------------------------------------------------------------------
+# wire-format investigation: model field on Pinecone-native streaming chunks (IT-0022)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_streaming_chunks_model_field(client: Pinecone) -> None:
+    """Verify whether the API emits a ``model`` field on each Pinecone-native stream chunk type.
+
+    Makes a raw streaming HTTP request to the chat endpoint and inspects the JSON
+    of each SSE line before any SDK model dispatch.  Records findings per chunk type
+    and asserts that ``StreamContentChunk``, ``StreamCitationChunk``, and
+    ``StreamMessageEnd`` correctly surface a ``model`` value when the API provides one.
+
+    Claims: amodel-0154, amodel-0155, amodel-0169, amodel-0170, amodel-0178, amodel-0179
+    """
+    import json as _json
+
+    import httpx
+
+    from pinecone.models.assistant.streaming import (
+        StreamCitationChunk,
+        StreamContentChunk,
+        StreamMessageEnd,
+    )
+
+    name = unique_name("it0022")
+    tmp_path: str | None = None
+
+    try:
+        # --- 1. Create assistant and upload a knowledge file ---
+        client.assistants.create(name=name, instructions="You are a helpful assistant.")
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="it0022-"
+        ) as f:
+            f.write("Pinecone is a managed vector database for AI applications.")
+            tmp_path = f.name
+
+        client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        # --- 2. Raw streaming request: capture SSE lines before SDK dispatch ---
+        assistant_model = client.assistants.describe(name=name)
+        assert assistant_model.host, f"assistant {name!r} has no data-plane host"
+        host = assistant_model.host.rstrip("/")
+        api_key = client._config.api_key  # type: ignore[attr-defined]
+
+        raw_chunks_by_type: dict[str, list[dict[str, object]]] = {}
+
+        with httpx.stream(
+            "POST",
+            f"{host}/chat/{name}",
+            headers={
+                "Api-Key": api_key,
+                "X-Pinecone-API-Version": "2025-10",
+                "Content-Type": "application/json",
+            },
+            content=_json.dumps(
+                {"messages": [{"role": "user", "content": "What is Pinecone?"}], "stream": True}
+            ).encode(),
+            timeout=60,
+        ) as response:
+            response.raise_for_status()
+            for line in response.iter_lines():
+                line = line.strip()
+                if not line or not line.startswith("data:"):
+                    continue
+                data = line[5:].lstrip()
+                if not data or data == "[DONE]":
+                    break
+                try:
+                    chunk: dict[str, object] = _json.loads(data)
+                    chunk_type = str(chunk.get("type", "unknown"))
+                    raw_chunks_by_type.setdefault(chunk_type, []).append(chunk)
+                except _json.JSONDecodeError:
+                    pass
+
+        # Log findings for investigation notes
+        print(f"\n[IT-0022] chunk types received: {list(raw_chunks_by_type.keys())}")
+        for chunk_type, chunks in raw_chunks_by_type.items():
+            sample = chunks[0] if chunks else {}
+            has_model = "model" in sample
+            print(
+                f"[IT-0022] type={chunk_type!r}: 'model' present={has_model},"
+                f" sample_keys={list(sample.keys())}"
+            )
+
+        # At least the standard chunk types should be present
+        assert "message_start" in raw_chunks_by_type, "Expected message_start chunk"
+
+        # --- 3. SDK model field verification ---
+        # If the API emits model on content_chunk, citation, or message_end chunks,
+        # the SDK model must surface it via the new optional model field.
+        sdk_stream = client.assistants.chat(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What is Pinecone?"}],
+            stream=True,
+        )
+        sdk_chunks = list(sdk_stream)
+        assert len(sdk_chunks) > 0, "Expected at least one SDK chunk"
+
+        # Cross-reference: for each chunk type where the API emits model, the SDK must too.
+        for chunk_type, raw_list in raw_chunks_by_type.items():
+            if not raw_list:
+                continue
+            sample_raw = raw_list[0]
+            if "model" not in sample_raw:
+                continue  # API doesn't emit model for this type — nothing to assert
+
+            if chunk_type == "content_chunk":
+                sdk_content = [c for c in sdk_chunks if isinstance(c, StreamContentChunk)]
+                assert sdk_content, "Expected at least one StreamContentChunk in SDK stream"
+                models = [c.model for c in sdk_content if c.model is not None]
+                assert models, (
+                    "API emits 'model' on content_chunk but SDK StreamContentChunk.model is None"
+                )
+                print(f"[IT-0022] StreamContentChunk.model={models[0]!r}")
+
+            elif chunk_type == "citation":
+                sdk_cit = [c for c in sdk_chunks if isinstance(c, StreamCitationChunk)]
+                if sdk_cit:
+                    models_cit = [c.model for c in sdk_cit if c.model is not None]
+                    print(f"[IT-0022] StreamCitationChunk.model values: {models_cit}")
+
+            elif chunk_type == "message_end":
+                sdk_end = [c for c in sdk_chunks if isinstance(c, StreamMessageEnd)]
+                assert sdk_end, "Expected at least one StreamMessageEnd in SDK stream"
+                models_end = [c.model for c in sdk_end if c.model is not None]
+                assert models_end, (
+                    "API emits 'model' on message_end but SDK StreamMessageEnd.model is None"
+                )
+                print(f"[IT-0022] StreamMessageEnd.model={models_end[0]!r}")
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )

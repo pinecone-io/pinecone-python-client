@@ -41,10 +41,12 @@ class StreamContentChunk(Struct, kw_only=True, tag="content_chunk", tag_field="t
     Attributes:
         id: Unique identifier for this chunk.
         delta: The delta object containing the text fragment.
+        model: The model used to generate this response, or ``None`` if not provided.
     """
 
     id: str
     delta: StreamContentDelta
+    model: str | None = None
 
 
 class StreamCitationChunk(Struct, kw_only=True, tag="citation", tag_field="type"):
@@ -53,10 +55,12 @@ class StreamCitationChunk(Struct, kw_only=True, tag="citation", tag_field="type"
     Attributes:
         id: Unique identifier for this chunk.
         citation: The citation data with position and references.
+        model: The model used to generate this response, or ``None`` if not provided.
     """
 
     id: str
     citation: ChatCitation
+    model: str | None = None
 
 
 class StreamMessageEnd(Struct, kw_only=True, tag="message_end", tag_field="type"):
@@ -65,10 +69,12 @@ class StreamMessageEnd(Struct, kw_only=True, tag="message_end", tag_field="type"
     Attributes:
         id: Unique identifier for this chunk.
         usage: Token usage statistics for the request.
+        model: The model used to generate this response, or ``None`` if not provided.
     """
 
     id: str
     usage: ChatUsage
+    model: str | None = None
 
 
 ChatStreamChunk: TypeAlias = (
