@@ -304,7 +304,7 @@ class Pinecone:
         if self._preview is None:
             from pinecone.preview import Preview as _Preview
 
-            self._preview = _Preview(config=self._config)
+            self._preview = _Preview(http=self._http, config=self._config)
         return self._preview
 
     def index(

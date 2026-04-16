@@ -12,6 +12,7 @@ from pinecone.preview.schema_builder import SchemaBuilder as SchemaBuilder
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.http_client import AsyncHTTPClient, HTTPClient
 
 __all__ = ["AsyncPreview", "Preview"]
 
@@ -27,10 +28,12 @@ class Preview:
        relying on preview features.
 
     Args:
-        config: SDK configuration used to construct per-area HTTP clients.
+        http: Shared HTTP client from the parent :class:`~pinecone.Pinecone` instance.
+        config: SDK configuration shared with the parent client.
     """
 
-    def __init__(self, config: PineconeConfig) -> None:
+    def __init__(self, http: HTTPClient, config: PineconeConfig) -> None:
+        self._http = http
         self._config = config
 
     def __repr__(self) -> str:
@@ -48,10 +51,12 @@ class AsyncPreview:
        relying on preview features.
 
     Args:
-        config: SDK configuration used to construct per-area HTTP clients.
+        http: Shared async HTTP client from the parent :class:`~pinecone.AsyncPinecone` instance.
+        config: SDK configuration shared with the parent client.
     """
 
-    def __init__(self, config: PineconeConfig) -> None:
+    def __init__(self, http: AsyncHTTPClient, config: PineconeConfig) -> None:
+        self._http = http
         self._config = config
 
     def __repr__(self) -> str:

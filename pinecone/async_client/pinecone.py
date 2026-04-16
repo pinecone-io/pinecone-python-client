@@ -306,7 +306,7 @@ class AsyncPinecone:
         if self._preview is None:
             from pinecone.preview import AsyncPreview as _AsyncPreview
 
-            self._preview = _AsyncPreview(config=self._config)
+            self._preview = _AsyncPreview(http=self._http, config=self._config)
         return self._preview
 
     async def create_index_from_backup(
