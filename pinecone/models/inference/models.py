@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
+import msgspec
 from msgspec import Struct
 
 
@@ -97,3 +98,14 @@ class ModelInfo(Struct, kw_only=True):
         if isinstance(key, str):
             key = _MODEL_INFO_ALIASES.get(key, key)
         return key in self.__struct_fields__
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a plain dict representation of this object."""
+        return cast(dict[str, Any], msgspec.to_builtins(self))
+
+    def __getattr__(self, name: str) -> Any:
+        """Legacy alias passthrough and AttributeError for unknown attributes."""
+        resolved = _MODEL_INFO_ALIASES.get(name)
+        if resolved is not None:
+            return getattr(self, resolved)
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")

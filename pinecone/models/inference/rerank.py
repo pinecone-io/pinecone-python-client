@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
+import msgspec
 from msgspec import Struct
 
 
@@ -84,6 +85,14 @@ class RerankResult(Struct, kw_only=True):
     def __contains__(self, key: object) -> bool:
         """Support ``in`` operator (e.g. ``'model' in result``)."""
         return key in self.__struct_fields__
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a plain dict representation of this object."""
+        return cast(dict[str, Any], msgspec.to_builtins(self))
+
+    def __getattr__(self, name: str) -> Any:
+        """Raise AttributeError for unknown attributes (backward compat hook)."""
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     def __repr__(self) -> str:
         return f"RerankResult(model={self.model!r}, count={len(self.data)}, usage={self.usage!r})"

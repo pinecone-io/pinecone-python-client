@@ -77,6 +77,10 @@ class ModelInfoList:
     def __iter__(self) -> Iterator[ModelInfo]:
         return iter(self._models)
 
+    def to_dict(self) -> dict[str, Any]:
+        """Return a plain dict representation of this list."""
+        return {"models": [m.to_dict() for m in self._models]}
+
     def __repr__(self) -> str:
         summaries = ", ".join(f"<model={m.model!r}, type={m.type!r}>" for m in self._models)
         return f"ModelInfoList([{summaries}])"

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Any, overload
+from typing import Any, cast, overload
 
+import msgspec
 from msgspec import Struct
 
 
@@ -157,6 +158,14 @@ class EmbeddingsList(Struct, kw_only=True):
 
     def __iter__(self) -> Iterator[DenseEmbedding | SparseEmbedding]:
         return iter(self.data)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a plain dict representation of this object."""
+        return cast(dict[str, Any], msgspec.to_builtins(self))
+
+    def __getattr__(self, name: str) -> Any:
+        """Raise AttributeError for unknown attributes (backward compat hook)."""
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     def __repr__(self) -> str:
         return (
