@@ -25,7 +25,11 @@ __all__ = [
 def _filter_none_and_false(obj: Any) -> Any:
     """Recursively drop None and False values from dicts (API wants absent, not null/false)."""
     if isinstance(obj, dict):
-        return {k: _filter_none_and_false(v) for k, v in obj.items() if v is not None and v is not False}
+        return {
+            k: _filter_none_and_false(v)
+            for k, v in obj.items()
+            if v is not None and v is not False
+        }
     if isinstance(obj, list):
         return [_filter_none_and_false(item) for item in obj]
     return obj

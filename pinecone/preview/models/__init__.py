@@ -7,12 +7,14 @@ docs/conventions/preview-channel.md § Type isolation.
 
 from __future__ import annotations
 
+from pinecone.preview.models.backups import PreviewBackupModel, PreviewCreateBackupRequest
 from pinecone.preview.models.deployment import (
     PreviewByocDeployment,
     PreviewDeployment,
     PreviewManagedDeployment,
     PreviewPodDeployment,
 )
+from pinecone.preview.models.documents import PreviewDocument, Usage
 from pinecone.preview.models.indexes import PreviewIndexModel
 from pinecone.preview.models.read_capacity import (
     PreviewReadCapacity,
@@ -42,8 +44,7 @@ from pinecone.preview.models.score_by import (
     SparseVectorQuery,
     TextQuery,
 )
-from pinecone.preview.models.backups import PreviewBackupModel, PreviewCreateBackupRequest
-from pinecone.preview.models.documents import PreviewDocument, Usage
+from pinecone.preview.models.sparse import PreviewSparseValues
 from pinecone.preview.models.status import PreviewIndexStatus
 from pinecone.preview.schema_builder import SchemaBuilder
 
@@ -51,8 +52,8 @@ __all__ = [
     "DenseVectorQuery",
     "PreviewBackupModel",
     "PreviewByocDeployment",
-    "PreviewCreateBackupRequest",
     "PreviewConfigureIndexRequest",
+    "PreviewCreateBackupRequest",
     "PreviewCreateIndexRequest",
     "PreviewDenseVectorField",
     "PreviewDeployment",
@@ -71,6 +72,7 @@ __all__ = [
     "PreviewSchema",
     "PreviewSchemaField",
     "PreviewSemanticTextField",
+    "PreviewSparseValues",
     "PreviewSparseVectorField",
     "PreviewStringField",
     "QueryStringQuery",

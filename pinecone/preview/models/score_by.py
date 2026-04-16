@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from msgspec import Struct
 
-from pinecone.models.vectors.sparse import SparseValues
+from pinecone.preview.models.sparse import PreviewSparseValues
 
 __all__ = [
     "DenseVectorQuery",
@@ -95,7 +95,7 @@ class SparseVectorQuery(Struct, tag="sparse_vector", tag_field="type", kw_only=T
     """
 
     field: str
-    sparse_values: SparseValues
+    sparse_values: PreviewSparseValues
 
 
 ScoreByQuery = TextQuery | QueryStringQuery | DenseVectorQuery | SparseVectorQuery
