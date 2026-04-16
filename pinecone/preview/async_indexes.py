@@ -7,12 +7,17 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
+import msgspec
 import orjson
 
 from pinecone._internal.constants import DEFAULT_BASE_URL
 from pinecone._internal.validation import require_non_empty, require_positive
 from pinecone.errors.exceptions import NotFoundError, PineconeTimeoutError, PineconeValueError
 from pinecone.models.pagination import AsyncPaginator, Page
+from pinecone.preview._internal.adapters.backups import (
+    describe_backup_adapter,
+    list_backups_adapter,
+)
 from pinecone.preview._internal.adapters.indexes import (
     configure_adapter,
     create_adapter,
@@ -20,6 +25,7 @@ from pinecone.preview._internal.adapters.indexes import (
     list_adapter,
 )
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
+from pinecone.preview.models.backups import PreviewBackupModel, PreviewCreateBackupRequest
 from pinecone.preview.models.indexes import PreviewIndexModel
 from pinecone.preview.models.requests import PreviewConfigureIndexRequest, PreviewCreateIndexRequest
 
@@ -472,3 +478,130 @@ class AsyncPreviewIndexes:
                 if elapsed >= timeout:
                     raise PineconeTimeoutError(f"Index {name!r} still exists after {timeout}s")
             await asyncio.sleep(_POLL_INTERVAL_SECONDS)
+
+    async def create_backup(
+        self,
+        index_name: str,
+        *,
+        name: str | None = None,
+        description: str | None = None,
+    ) -> PreviewBackupModel:
+        """Create a backup of a preview index.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Args:
+            index_name: Name of the index to back up.
+            name: Optional user-defined name for the backup.
+            description: Optional description providing context for the backup.
+
+        Returns:
+            :class:`~pinecone.preview.models.backups.PreviewBackupModel`
+            describing the newly created backup. The ``status`` field will
+            typically be ``"Initializing"`` immediately after creation. Poll
+            ``describe_backup()`` until ``status == "Ready"`` before using the
+            backup::
+
+                backup = await pc.preview.indexes.create_backup("my-index", name="nightly")
+                # Poll until ready
+                import asyncio
+                while backup.status != "Ready":
+                    await asyncio.sleep(5)
+                    backup = await pc.preview.indexes.describe_backup(backup.backup_id)
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If
+                *index_name* is empty.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an
+                error response.
+
+        Examples:
+
+            await pc.preview.indexes.create_backup("my-index")
+
+            await pc.preview.indexes.create_backup(
+                "my-index", name="nightly", description="Daily backup"
+            )
+        """
+        require_non_empty("index_name", index_name)
+
+        if name is not None or description is not None:
+            req = PreviewCreateBackupRequest(name=name, description=description)
+            content = msgspec.json.encode(req)
+        else:
+            content = b"{}"
+
+        logger.info("Creating backup for preview index index_name=%r", index_name)
+        response = await self._http.post(
+            f"/indexes/{index_name}/backups",
+            content=content,
+            headers={"Content-Type": "application/json"},
+        )
+        return describe_backup_adapter.from_response(orjson.loads(response.content))
+
+    async def list_backups(
+        self,
+        index_name: str,
+        *,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> AsyncPaginator[PreviewBackupModel]:
+        """List backups for a preview index.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Args:
+            index_name: Name of the index whose backups to list.
+            limit: Maximum number of backups to yield across all pages. Must be
+                a positive integer. ``None`` yields all backups.
+            pagination_token: Token to resume pagination from a previous call.
+                ``None`` starts from the beginning.
+
+        Returns:
+            :class:`~pinecone.models.pagination.AsyncPaginator` over
+            :class:`~pinecone.preview.models.backups.PreviewBackupModel`
+            instances.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If
+                *index_name* is empty or *limit* is zero or negative.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an
+                error response.
+
+        Examples:
+            Iterate over all backups for an index::
+
+                async for backup in await pc.preview.indexes.list_backups("my-index"):
+                    print(backup.backup_id, backup.status)
+
+            Access page-level metadata::
+
+                paginator = await pc.preview.indexes.list_backups("my-index")
+                async for page in paginator.pages():
+                    print(f"Got {len(page.items)} backups")
+                    for backup in page.items:
+                        print(backup.backup_id)
+        """
+        require_non_empty("index_name", index_name)
+        if limit is not None:
+            require_positive("limit", limit)
+
+        async def fetch_page(token: str | None) -> Page[PreviewBackupModel]:
+            params: dict[str, str] = {"paginationToken": token} if token is not None else {}
+            response = await self._http.get(f"/indexes/{index_name}/backups", params=params)
+            items, next_token = list_backups_adapter.from_response(orjson.loads(response.content))
+            return Page(items=items, pagination_token=next_token)
+
+        return AsyncPaginator(fetch_page=fetch_page, initial_token=pagination_token, limit=limit)
