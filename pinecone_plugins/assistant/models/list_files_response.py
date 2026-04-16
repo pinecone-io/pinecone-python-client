@@ -9,7 +9,7 @@ New code should import from the canonical module.
 """
 
 from dataclasses import dataclass
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from pinecone_plugins.assistant.models.core.dataclass import BaseDataclass
 from pinecone_plugins.assistant.models.file_model import FileModel
@@ -19,7 +19,7 @@ from pinecone_plugins.assistant.models.file_model import FileModel
 class ListFilesResponse(BaseDataclass):
     """Paginated list of assistant files."""
 
-    files: List[FileModel]
+    files: list[FileModel]
     next_token: Optional[str]
 
     @classmethod
