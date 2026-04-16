@@ -285,9 +285,10 @@ class TestSyncRetryTransport:
         assert response.status_code == 200
         assert fake.call_count == 2
 
+    @patch("pinecone._internal.http_client.random.uniform", side_effect=lambda a, b: b)
     @patch("pinecone._internal.http_client.time.sleep")
-    def test_sync_backoff_delays(self, mock_sleep: Any) -> None:
-        """Verify exponential backoff timing: backoff_factor ** attempt."""
+    def test_sync_backoff_delays(self, mock_sleep: Any, mock_uniform: Any) -> None:
+        """Verify floored full jitter backoff: random.uniform(0.1*base, base)."""
         fake = _FakeTransport(
             [
                 httpx.Response(500, json={"message": "error"}),
@@ -301,12 +302,19 @@ class TestSyncRetryTransport:
             retry_config=RetryConfig(max_retries=5, backoff_factor=2.0, max_wait=100.0),
         )
         transport.handle_request(_make_request())
+        # Verify random.uniform called with floored jitter args: (0.1*base, base)
+        # attempt 0: base=2^0=1.0, args=(0.1, 1.0)
+        # attempt 1: base=2^1=2.0, args=(0.2, 2.0)
+        # attempt 2: base=2^2=4.0, args=(0.4, 4.0)
+        uniform_calls = [(c.args[0], c.args[1]) for c in mock_uniform.call_args_list]
+        assert uniform_calls == [(0.1, 1.0), (0.2, 2.0), (0.4, 4.0)]
+        # With mock returning upper bound, delays are [1.0, 2.0, 4.0]
         delays = [call.args[0] for call in mock_sleep.call_args_list]
-        # backoff_factor ** attempt: 2^0=1.0, 2^1=2.0, 2^2=4.0
         assert delays == [1.0, 2.0, 4.0]
 
+    @patch("pinecone._internal.http_client.random.uniform", side_effect=lambda a, b: b)
     @patch("pinecone._internal.http_client.time.sleep")
-    def test_sync_backoff_capped(self, mock_sleep: Any) -> None:
+    def test_sync_backoff_capped(self, mock_sleep: Any, mock_uniform: Any) -> None:
         """Verify sync backoff is capped at max_wait."""
         fake = _FakeTransport(
             [
@@ -489,9 +497,10 @@ class TestAsyncRetryTransport:
         assert response.status_code == 200
         assert fake.call_count == 2
 
+    @patch("pinecone._internal.http_client.random.uniform", side_effect=lambda a, b: b)
     @patch("pinecone._internal.http_client.asyncio.sleep")
     @pytest.mark.asyncio
-    async def test_async_backoff_capped(self, mock_sleep: Any) -> None:
+    async def test_async_backoff_capped(self, mock_sleep: Any, mock_uniform: Any) -> None:
         """Verify async backoff is capped at max_wait."""
         fake = _FakeAsyncTransport(
             [

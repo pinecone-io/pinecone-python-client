@@ -6,6 +6,7 @@ import asyncio
 import contextlib
 import logging
 import os
+import random
 import socket
 import sys
 import time
@@ -134,10 +135,25 @@ class _RetryTransport(httpx.BaseTransport):
             if response.status_code not in self._config.retryable_status_codes:
                 return response
             response.close()
-            delay = min(self._config.backoff_factor ** attempt, self._config.max_wait)
+            retry_after = response.headers.get("retry-after")
+            if retry_after is not None:
+                try:
+                    delay = float(retry_after)
+                except ValueError:
+                    delay = self._compute_backoff(attempt)
+            else:
+                delay = self._compute_backoff(attempt)
             time.sleep(delay)
             response = self._transport.handle_request(request)
         return response
+
+    def _compute_backoff(self, attempt: int) -> float:
+        """Floored full jitter: uniform in [10%, 100%] of exponential base."""
+        base_delay = min(
+            self._config.backoff_factor ** attempt,
+            self._config.max_wait,
+        )
+        return random.uniform(0.1 * base_delay, base_delay)  # noqa: S311
 
     def close(self) -> None:
         self._transport.close()
@@ -161,10 +177,25 @@ class _AsyncRetryTransport(httpx.AsyncBaseTransport):
             if response.status_code not in self._config.retryable_status_codes:
                 return response
             await response.aclose()
-            delay = min(self._config.backoff_factor ** attempt, self._config.max_wait)
+            retry_after = response.headers.get("retry-after")
+            if retry_after is not None:
+                try:
+                    delay = float(retry_after)
+                except ValueError:
+                    delay = self._compute_backoff(attempt)
+            else:
+                delay = self._compute_backoff(attempt)
             await asyncio.sleep(delay)
             response = await self._transport.handle_async_request(request)
         return response
+
+    def _compute_backoff(self, attempt: int) -> float:
+        """Floored full jitter: uniform in [10%, 100%] of exponential base."""
+        base_delay = min(
+            self._config.backoff_factor ** attempt,
+            self._config.max_wait,
+        )
+        return random.uniform(0.1 * base_delay, base_delay)  # noqa: S311
 
     async def aclose(self) -> None:
         await self._transport.aclose()
