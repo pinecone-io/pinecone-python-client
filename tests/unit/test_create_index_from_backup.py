@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import httpx
 import pytest
 import respx
@@ -135,8 +137,9 @@ def test_create_index_from_backup_empty_backup_id_raises(pc: Pinecone) -> None:
 # ---------------------------------------------------------------------------
 
 
+@patch("pinecone._internal.indexes_helpers.time.sleep")
 @respx.mock
-def test_create_index_from_backup_polls_until_ready(pc: Pinecone) -> None:
+def test_create_index_from_backup_polls_until_ready(mock_sleep: object, pc: Pinecone) -> None:
     """Describe is called multiple times until the index becomes ready."""
     respx.post(f"{BASE_URL}/backups/bk-poll/create-index").mock(
         return_value=httpx.Response(

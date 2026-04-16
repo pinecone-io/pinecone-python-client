@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from unittest.mock import AsyncMock, patch
 
 import httpx
 import pytest
@@ -220,8 +221,11 @@ async def test_async_create_index_from_backup_no_poll(pc: AsyncPinecone) -> None
 # ---------------------------------------------------------------------------
 
 
+@patch("pinecone._internal.indexes_helpers.asyncio.sleep", new_callable=AsyncMock)
 @respx.mock
-async def test_async_create_index_from_backup_polls_until_ready(pc: AsyncPinecone) -> None:
+async def test_async_create_index_from_backup_polls_until_ready(
+    mock_sleep: object, pc: AsyncPinecone
+) -> None:
     """Describe is called multiple times until the index becomes ready."""
     respx.post(f"{DEFAULT_BASE_URL}/backups/bk-poll/create-index").mock(
         return_value=httpx.Response(
