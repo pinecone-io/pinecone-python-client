@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import AsyncGenerator
 from typing import Any
 from unittest.mock import AsyncMock, patch
 
@@ -41,9 +42,11 @@ BASE_URL = "https://api.test.pinecone.io"
 
 
 @pytest.fixture
-def async_http_client() -> AsyncHTTPClient:
+async def async_http_client() -> AsyncGenerator[AsyncHTTPClient]:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
-    return AsyncHTTPClient(config, CONTROL_PLANE_API_VERSION)
+    client = AsyncHTTPClient(config, CONTROL_PLANE_API_VERSION)
+    yield client
+    await client.close()
 
 
 @pytest.fixture

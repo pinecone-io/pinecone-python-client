@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import io
 import json
@@ -54,29 +53,20 @@ def async_assistants() -> AsyncAssistants:
 # ---------------------------------------------------------------------------
 
 
-def test_create_assistant_region_validation(async_assistants: AsyncAssistants) -> None:
+async def test_create_assistant_region_validation(async_assistants: AsyncAssistants) -> None:
     """Invalid region raises PineconeValueError before any HTTP call."""
     with pytest.raises(PineconeValueError, match="region") as exc_info:
-        # Run sync since validation happens before any await
-        asyncio.get_event_loop().run_until_complete(
-            async_assistants.create(name="test-assistant", region="ap-southeast-1")
-        )
+        await async_assistants.create(name="test-assistant", region="ap-southeast-1")
     assert "ap-southeast-1" in str(exc_info.value)
 
 
-def test_create_assistant_region_case_sensitive(async_assistants: AsyncAssistants) -> None:
+async def test_create_assistant_region_case_sensitive(async_assistants: AsyncAssistants) -> None:
     """Uppercase 'US' and 'EU' are rejected — validation is case-sensitive."""
-    import asyncio
+    with pytest.raises(PineconeValueError, match="region"):
+        await async_assistants.create(name="test-assistant", region="US")
 
     with pytest.raises(PineconeValueError, match="region"):
-        asyncio.get_event_loop().run_until_complete(
-            async_assistants.create(name="test-assistant", region="US")
-        )
-
-    with pytest.raises(PineconeValueError, match="region"):
-        asyncio.get_event_loop().run_until_complete(
-            async_assistants.create(name="test-assistant", region="EU")
-        )
+        await async_assistants.create(name="test-assistant", region="EU")
 
 
 # ---------------------------------------------------------------------------
@@ -1575,40 +1565,28 @@ async def test_async_list_files_async_for_loop(async_assistants: AsyncAssistants
 # ---------------------------------------------------------------------------
 
 
-def test_async_upload_file_neither_path_nor_stream(async_assistants: AsyncAssistants) -> None:
+async def test_async_upload_file_neither_path_nor_stream(async_assistants: AsyncAssistants) -> None:
     """Providing neither file_path nor file_stream raises PineconeValueError."""
-    import asyncio
-
     with pytest.raises(PineconeValueError, match="Exactly one"):
-        asyncio.get_event_loop().run_until_complete(
-            async_assistants.upload_file(assistant_name="test-assistant")
-        )
+        await async_assistants.upload_file(assistant_name="test-assistant")
 
 
-def test_async_upload_file_both_path_and_stream(async_assistants: AsyncAssistants) -> None:
+async def test_async_upload_file_both_path_and_stream(async_assistants: AsyncAssistants) -> None:
     """Providing both file_path and file_stream raises PineconeValueError."""
-    import asyncio
-
     with pytest.raises(PineconeValueError, match="Exactly one"):
-        asyncio.get_event_loop().run_until_complete(
-            async_assistants.upload_file(
-                assistant_name="test-assistant",
-                file_path="/some/path.pdf",
-                file_stream=io.BytesIO(b"data"),
-            )
+        await async_assistants.upload_file(
+            assistant_name="test-assistant",
+            file_path="/some/path.pdf",
+            file_stream=io.BytesIO(b"data"),
         )
 
 
-def test_async_upload_file_path_not_found(async_assistants: AsyncAssistants) -> None:
+async def test_async_upload_file_path_not_found(async_assistants: AsyncAssistants) -> None:
     """Uploading from a nonexistent local path raises PineconeValueError."""
-    import asyncio
-
     with pytest.raises(PineconeValueError, match="File not found"):
-        asyncio.get_event_loop().run_until_complete(
-            async_assistants.upload_file(
-                assistant_name="test-assistant",
-                file_path="/nonexistent/path/document.pdf",
-            )
+        await async_assistants.upload_file(
+            assistant_name="test-assistant",
+            file_path="/nonexistent/path/document.pdf",
         )
 
 
@@ -2266,18 +2244,14 @@ async def test_async_evaluate_alignment_uses_api_key(async_assistants: AsyncAssi
 # ---------------------------------------------------------------------------
 
 
-def test_async_chat_json_streaming_validation(async_assistants: AsyncAssistants) -> None:
+async def test_async_chat_json_streaming_validation(async_assistants: AsyncAssistants) -> None:
     """Requesting json_response=True with stream=True raises PineconeValueError."""
-    import asyncio
-
     with pytest.raises(PineconeValueError, match="json_response"):
-        asyncio.get_event_loop().run_until_complete(
-            async_assistants.chat(
-                assistant_name="test-assistant",
-                messages=[{"content": "Hello"}],
-                stream=True,
-                json_response=True,
-            )
+        await async_assistants.chat(
+            assistant_name="test-assistant",
+            messages=[{"content": "Hello"}],
+            stream=True,
+            json_response=True,
         )
 
 

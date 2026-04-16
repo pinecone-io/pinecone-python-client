@@ -8,6 +8,7 @@ import pytest
 
 from pinecone._internal.config import PineconeConfig
 from pinecone.client.assistants import Assistants
+from pinecone.models.assistant.list import ListAssistantsResponse
 from pinecone.models.assistant.model import AssistantModel
 
 BASE_URL = "https://api.test.pinecone.io"
@@ -36,9 +37,12 @@ def mock_assistants() -> Assistants:
     # Stub the HTTP client so no real requests go out.
     obj._http = MagicMock()  # type: ignore[attr-defined]
 
-    # Stub the adapter so it returns a canned AssistantModel.
+    # Stub the adapter so it returns canned responses.
     mock_adapter = MagicMock()
     mock_adapter.to_assistant.return_value = _CANNED_ASSISTANT
+    mock_adapter.to_assistant_list.return_value = ListAssistantsResponse(
+        assistants=[_CANNED_ASSISTANT], next=None
+    )
     obj._adapter = mock_adapter  # type: ignore[attr-defined]
 
     # Stub _poll_until_ready so tests don't loop.
