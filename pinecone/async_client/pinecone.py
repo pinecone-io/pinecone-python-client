@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from pinecone.client._assistant_namespace_proxy import _AsyncAssistantNamespaceProxy
     from pinecone.models.enums import DeletionProtection
     from pinecone.models.indexes.index import IndexModel
+    from pinecone.preview import AsyncPreview
 
 
 class AsyncPinecone:
@@ -137,6 +138,7 @@ class AsyncPinecone:
         self._backups: AsyncBackups | None = None
         self._restore_jobs: AsyncRestoreJobs | None = None
         self._inference: AsyncInference | None = None
+        self._preview: AsyncPreview | None = None
         self._host_cache: dict[str, str] = {}
 
     def __repr__(self) -> str:
@@ -284,6 +286,28 @@ class AsyncPinecone:
 
             self._inference = _AsyncInference(config=self._config)
         return self._inference
+
+    @property
+    def preview(self) -> AsyncPreview:
+        """Access the Preview namespace for pre-release API features.
+
+        Lazily imported and instantiated on first access. Preview surface is
+        not covered by SemVer — signatures and behavior may change in any
+        minor SDK release.
+
+        Returns:
+            :class:`~pinecone.preview.AsyncPreview` namespace instance.
+
+        Examples:
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                await pc.preview.indexes.create(...)  # when a preview area exists
+        """
+        if self._preview is None:
+            from pinecone.preview import AsyncPreview as _AsyncPreview
+
+            self._preview = _AsyncPreview(config=self._config)
+        return self._preview
 
     async def create_index_from_backup(
         self,
