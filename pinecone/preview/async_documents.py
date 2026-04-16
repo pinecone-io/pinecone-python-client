@@ -7,10 +7,14 @@ from typing import TYPE_CHECKING, Any
 import msgspec
 
 from pinecone._internal.validation import require_in_range, require_non_empty
-from pinecone.preview._internal.adapters.documents import decode_search_response
+from pinecone.preview._internal.adapters.documents import (
+    decode_fetch_response,
+    decode_search_response,
+)
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
 from pinecone.preview.documents import _validate_documents
 from pinecone.preview.models.documents import (
+    PreviewDocumentFetchResponse,
     PreviewDocumentSearchResponse,
     PreviewDocumentUpsertResponse,
 )
@@ -163,6 +167,55 @@ class AsyncPreviewDocuments:
             json=body,
         )
         return decode_search_response(response.content)
+
+    async def fetch(
+        self,
+        *,
+        namespace: str,
+        ids: list[str] | None = None,
+        include_fields: list[str] | None = None,
+        filter: dict[str, Any] | None = None,
+    ) -> PreviewDocumentFetchResponse:
+        """Fetch documents from a namespace by ID or filter.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Args:
+            namespace: Target namespace. Must be a non-empty string.
+            ids: Optional list of document IDs to fetch.
+            include_fields: Fields to include in each result. ``None`` returns
+                only ``_id``; ``["*"]`` returns all stored fields.
+            filter: Optional metadata filter expression.
+
+        Returns:
+            :class:`~pinecone.preview.models.documents.PreviewDocumentFetchResponse`
+            with ``documents``, ``namespace``, and ``usage``. IDs not present
+            in the namespace are silently omitted from ``documents``.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.ValidationError`: If namespace is empty.
+        """
+        require_non_empty("namespace", namespace)
+
+        body: dict[str, Any] = {}
+        if ids is not None:
+            body["ids"] = ids
+        if include_fields is not None:
+            body["include_fields"] = include_fields
+        if filter is not None:
+            body["filter"] = filter
+
+        response = await self._http.post(
+            f"/namespaces/{namespace}/documents/fetch",
+            json=body,
+        )
+        return decode_fetch_response(response.content)
 
     def __repr__(self) -> str:
         return "AsyncPreviewDocuments()"
