@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 
     from pinecone.client.assistants import Assistants
     from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
+    from pinecone.models.assistant.context import ContextResponse
     from pinecone.models.assistant.file_model import AssistantFileModel
     from pinecone.models.assistant.list import ListFilesResponse
     from pinecone.models.assistant.message import Message
@@ -199,6 +200,50 @@ class AssistantModelLegacyMethodsMixin:
             model=model,  # type: ignore[arg-type]
             temperature=temperature,
             **kwargs,
+        )
+
+    def context(
+        self,
+        query: str,
+        filter: dict[str, Any] | None = None,
+        top_k: int | None = None,
+        snippet_size: int | None = None,
+        context_options: ContextOptions | dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> ContextResponse:
+        """Deprecated alias for :meth:`Assistants.context`.
+
+        Retrieves context snippets from this assistant using the given query.
+        The *context_options* parameter is unpacked into *multimodal* and
+        *include_binary_content* for the new API.
+        """
+        ns = self._resolve_assistants()
+        # Unpack context_options into the new API's individual parameters.
+        multimodal: bool | None = None
+        include_binary_content: bool | None = None
+        if context_options is not None:
+            if isinstance(context_options, dict):
+                multimodal = context_options.get("multimodal")
+                include_binary_content = context_options.get("include_binary_content")
+                if top_k is None:
+                    top_k = context_options.get("top_k")
+                if snippet_size is None:
+                    snippet_size = context_options.get("snippet_size")
+            else:
+                multimodal = context_options.multimodal
+                include_binary_content = context_options.include_binary_content
+                if top_k is None:
+                    top_k = context_options.top_k
+                if snippet_size is None:
+                    snippet_size = context_options.snippet_size
+        return ns.context(
+            assistant_name=self.name,  # type: ignore[attr-defined]
+            query=query,
+            filter=filter,
+            top_k=top_k,
+            snippet_size=snippet_size,
+            multimodal=multimodal,
+            include_binary_content=include_binary_content,
         )
 
     def chat(
