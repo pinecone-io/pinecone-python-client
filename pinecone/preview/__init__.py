@@ -8,12 +8,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pinecone.errors.exceptions import PineconeValueError
 from pinecone.preview.schema_builder import PreviewSchemaBuilder as PreviewSchemaBuilder
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
     from pinecone._internal.http_client import AsyncHTTPClient, HTTPClient
+    from pinecone.preview.async_index import AsyncPreviewIndex
     from pinecone.preview.async_indexes import AsyncPreviewIndexes
+    from pinecone.preview.index import PreviewIndex
     from pinecone.preview.indexes import PreviewIndexes
 
 __all__ = ["AsyncPreview", "Preview", "PreviewSchemaBuilder"]
@@ -38,6 +41,7 @@ class Preview:
         self._http = http
         self._config = config
         self._indexes: PreviewIndexes | None = None
+        self._host_cache: dict[str, str] = {}
 
     @property
     def indexes(self) -> PreviewIndexes:
@@ -63,6 +67,65 @@ class Preview:
             self._indexes = PreviewIndexes(config=self._config)
         return self._indexes
 
+    def index(
+        self,
+        *,
+        name: str | None = None,
+        host: str | None = None,
+    ) -> PreviewIndex:
+        """Get a :class:`~pinecone.preview.index.PreviewIndex` for data-plane operations.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Exactly one of ``name`` or ``host`` must be provided.  When ``name``
+        is given, the host is resolved via
+        :meth:`~pinecone.preview.indexes.PreviewIndexes.describe` and the
+        result is cached on this :class:`Preview` instance so subsequent calls
+        with the same name avoid an extra control-plane round-trip.
+
+        Args:
+            name: Index name. The host is resolved and cached via
+                ``preview.indexes.describe(name).host``.
+            host: Data-plane host URL. Passed through directly without a
+                control-plane call.
+
+        Returns:
+            :class:`~pinecone.preview.index.PreviewIndex` connected to the
+            resolved host.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If neither
+                or both of ``name`` and ``host`` are provided.
+            :exc:`~pinecone.errors.exceptions.NotFoundError`: If ``name`` is
+                given but the index does not exist.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the describe call
+                returns an error response.
+        """
+        if name is None and host is None:
+            raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
+        if name is not None and host is not None:
+            raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
+
+        resolved_host: str
+        if host is not None:
+            resolved_host = host
+        elif name is not None:
+            if name not in self._host_cache:
+                self._host_cache[name] = self.indexes.describe(name).host
+            resolved_host = self._host_cache[name]
+        else:
+            raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
+
+        from pinecone.preview.index import PreviewIndex
+
+        return PreviewIndex(host=resolved_host, http=self._http, config=self._config)
+
     def __repr__(self) -> str:
         return "Preview()"
 
@@ -86,6 +149,7 @@ class AsyncPreview:
         self._http = http
         self._config = config
         self._indexes: AsyncPreviewIndexes | None = None
+        self._host_cache: dict[str, str] = {}
 
     @property
     def indexes(self) -> AsyncPreviewIndexes:
@@ -110,6 +174,67 @@ class AsyncPreview:
 
             self._indexes = AsyncPreviewIndexes(config=self._config)
         return self._indexes
+
+    async def index(
+        self,
+        *,
+        name: str | None = None,
+        host: str | None = None,
+    ) -> AsyncPreviewIndex:
+        """Get an :class:`~pinecone.preview.async_index.AsyncPreviewIndex` for data-plane ops.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Exactly one of ``name`` or ``host`` must be provided.  When ``name``
+        is given, the host is resolved via
+        :meth:`~pinecone.preview.async_indexes.AsyncPreviewIndexes.describe`
+        and the result is cached on this :class:`AsyncPreview` instance so
+        subsequent calls with the same name avoid an extra control-plane
+        round-trip.
+
+        Args:
+            name: Index name. The host is resolved and cached via
+                ``await preview.indexes.describe(name).host``.
+            host: Data-plane host URL. Passed through directly without a
+                control-plane call.
+
+        Returns:
+            :class:`~pinecone.preview.async_index.AsyncPreviewIndex` connected
+            to the resolved host.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If neither
+                or both of ``name`` and ``host`` are provided.
+            :exc:`~pinecone.errors.exceptions.NotFoundError`: If ``name`` is
+                given but the index does not exist.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the describe call
+                returns an error response.
+        """
+        if name is None and host is None:
+            raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
+        if name is not None and host is not None:
+            raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
+
+        resolved_host: str
+        if host is not None:
+            resolved_host = host
+        elif name is not None:
+            if name not in self._host_cache:
+                desc = await self.indexes.describe(name)
+                self._host_cache[name] = desc.host
+            resolved_host = self._host_cache[name]
+        else:
+            raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
+
+        from pinecone.preview.async_index import AsyncPreviewIndex
+
+        return AsyncPreviewIndex(host=resolved_host, http=self._http, config=self._config)
 
     def __repr__(self) -> str:
         return "AsyncPreview()"
