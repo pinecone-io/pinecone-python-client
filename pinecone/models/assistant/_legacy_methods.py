@@ -20,9 +20,15 @@ from __future__ import annotations
 from typing import IO, TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from pinecone.client.assistants import Assistants
+    from pinecone.models.assistant.chat import ChatResponse
     from pinecone.models.assistant.file_model import AssistantFileModel
     from pinecone.models.assistant.list import ListFilesResponse
+    from pinecone.models.assistant.message import Message
+    from pinecone.models.assistant.options import ContextOptions
+    from pinecone.models.assistant.streaming import ChatStreamChunk
 
 
 class AssistantModelLegacyMethodsMixin:
@@ -171,5 +177,32 @@ class AssistantModelLegacyMethodsMixin:
             assistant_name=self.name,  # type: ignore[attr-defined]
             file_id=file_id,
             timeout=timeout,
+            **kwargs,
+        )
+
+    def chat(
+        self,
+        messages: list[Message] | list[dict[str, Any]],
+        filter: dict[str, Any] | None = None,
+        stream: bool = False,
+        model: str | None = None,
+        temperature: float | None = None,
+        json_response: bool = False,
+        include_highlights: bool = False,
+        context_options: ContextOptions | dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> ChatResponse | Iterator[ChatStreamChunk]:
+        """Deprecated alias for :meth:`Assistants.chat`."""
+        ns = self._resolve_assistants()
+        return ns.chat(
+            assistant_name=self.name,  # type: ignore[attr-defined]
+            messages=messages,  # type: ignore[arg-type]
+            filter=filter,
+            stream=stream,
+            model=model,  # type: ignore[arg-type]
+            temperature=temperature,
+            json_response=json_response,
+            include_highlights=include_highlights,
+            context_options=context_options,
             **kwargs,
         )
