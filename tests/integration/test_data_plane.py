@@ -1679,9 +1679,7 @@ def test_grpc_delete_async_future_resolves_to_none(client: Pinecone) -> None:
         )
         # future.result() must resolve to None (delete returns no content)
         del_result = del_future.result(timeout=30.0)
-        assert del_result is None, (
-            f"delete_async().result() must be None, got {del_result!r}"
-        )
+        assert del_result is None, f"delete_async().result() must be None, got {del_result!r}"
 
         # --- 4. Poll until the 2 deleted vectors are absent ---
         poll_until(
@@ -1948,9 +1946,7 @@ def test_list_namespaces_multi_page_pagination_rest(client: Pinecone) -> None:
         pages_seen = 0
 
         while True:
-            page = index.list_namespaces_paginated(
-                prefix=prefix, limit=1, pagination_token=token
-            )
+            page = index.list_namespaces_paginated(prefix=prefix, limit=1, pagination_token=token)
             assert isinstance(page, ListNamespacesResponse)
             assert len(page.namespaces) <= 1  # limit is respected per page
 

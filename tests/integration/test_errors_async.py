@@ -501,7 +501,8 @@ async def test_exception_catch_hierarchy_async(async_client: AsyncPinecone) -> N
     caught = False
     try:
         await async_client.inference.embed(
-            model="multilingual-e5-large", inputs=42  # type: ignore[arg-type]
+            model="multilingual-e5-large",
+            inputs=42,  # type: ignore[arg-type]
         )
     except TypeError:
         caught = True
@@ -511,13 +512,12 @@ async def test_exception_catch_hierarchy_async(async_client: AsyncPinecone) -> N
     caught = False
     try:
         await async_client.inference.embed(
-            model="multilingual-e5-large", inputs=42  # type: ignore[arg-type]
+            model="multilingual-e5-large",
+            inputs=42,  # type: ignore[arg-type]
         )
     except PineconeError:
         caught = True
-    assert caught, (
-        "Async PineconeTypeError must be catchable as PineconeError (unified-err-0001)"
-    )
+    assert caught, "Async PineconeTypeError must be catchable as PineconeError (unified-err-0001)"
 
     # --- unified-err-0001: ApiError (HTTP 404) is catchable as PineconeError ---
     caught = False

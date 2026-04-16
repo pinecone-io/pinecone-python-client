@@ -949,9 +949,18 @@ def test_search_with_rerank_grpc(client: Pinecone, api_key: str) -> None:
             records=[
                 {"_id": "rg-1", "text": "Vector databases enable fast similarity search at scale."},
                 {"_id": "rg-2", "text": "RAG combines retrieval with language model generation."},
-                {"_id": "rg-3", "text": "Embeddings are dense vector representations of text data."},
-                {"_id": "rg-4", "text": "Python is a popular programming language for AI projects."},
-                {"_id": "rg-5", "text": "Pinecone provides serverless vector database infrastructure."},
+                {
+                    "_id": "rg-3",
+                    "text": "Embeddings are dense vector representations of text data.",
+                },
+                {
+                    "_id": "rg-4",
+                    "text": "Python is a popular programming language for AI projects.",
+                },
+                {
+                    "_id": "rg-5",
+                    "text": "Pinecone provides serverless vector database infrastructure.",
+                },
             ],
         )
 

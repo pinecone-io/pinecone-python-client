@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
 
-__all__ = ["Preview", "AsyncPreview"]
+__all__ = ["AsyncPreview", "Preview"]
 
 
 class Preview:

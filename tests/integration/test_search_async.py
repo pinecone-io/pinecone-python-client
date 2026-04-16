@@ -691,8 +691,7 @@ async def test_search_with_match_terms_async(
 
         # All returned hits must be astronaut records
         assert match_ids.issubset({"mt-r1", "mt-r3"}), (
-            f"Only astronaut records should appear with match_terms=['astronaut']; "
-            f"got: {match_ids}"
+            f"Only astronaut records should appear with match_terms=['astronaut']; got: {match_ids}"
         )
 
         # At least one astronaut record must appear

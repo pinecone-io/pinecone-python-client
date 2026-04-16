@@ -85,8 +85,7 @@ def test_assistant_model_chat_legacy_all_params(
     )
 
 
-def test_assistant_model_chat_legacy_no_client_raises(
-) -> None:
+def test_assistant_model_chat_legacy_no_client_raises() -> None:
     """chat raises RuntimeError when no client back-reference is set."""
     detached = AssistantModel(name="detached", status="Ready")
     with pytest.raises(RuntimeError, match="no client reference"):

@@ -666,9 +666,7 @@ async def test_index_model_bracket_access_on_real_describe_async(
         # --- Containment check ---
         for field in ("name", "metric", "host", "dimension", "deletion_protection", "vector_type"):
             assert field in model, f"'{field}' must be in IndexModel"
-        assert "nonexistent_field_xyz" not in model, (
-            "Non-existent key must NOT be in IndexModel"
-        )
+        assert "nonexistent_field_xyz" not in model, "Non-existent key must NOT be in IndexModel"
 
         # --- KeyError on missing key ---
         with pytest.raises(KeyError):

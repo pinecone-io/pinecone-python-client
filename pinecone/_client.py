@@ -23,6 +23,8 @@ if TYPE_CHECKING:
     from pinecone.grpc import GrpcIndex
     from pinecone.index import Index
     from pinecone.inference.models.index_embed import IndexEmbed
+    from pinecone.models.collections.list import CollectionList
+    from pinecone.models.collections.model import CollectionModel
     from pinecone.models.enums import (
         AwsRegion,
         AzureRegion,
@@ -642,6 +644,54 @@ class Pinecone:
             stacklevel=2,
         )
         self.indexes.delete(name, timeout=timeout)
+
+    def create_collection(self, name: str, source: str) -> CollectionModel:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.collections.create`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.create_collection() is deprecated; use pc.collections.create() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.collections.create(name=name, source=source)
+
+    def list_collections(self) -> CollectionList:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.collections.list`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.list_collections() is deprecated; use pc.collections.list() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.collections.list()
+
+    def describe_collection(self, name: str) -> CollectionModel:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.collections.describe`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.describe_collection() is deprecated; use pc.collections.describe() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.collections.describe(name)
+
+    def delete_collection(self, name: str) -> None:
+        """Backwards-compatibility delegate. See :meth:`Pinecone.collections.delete`.
+
+        :meta private:
+        """
+        warnings.warn(
+            "Pinecone.delete_collection() is deprecated; use pc.collections.delete() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.collections.delete(name)
 
     def Index(self, name: str = "", host: str = "", **kwargs: Any) -> Index:  # noqa: N802
         """Backwards-compatibility factory. See :meth:`Pinecone.index`.

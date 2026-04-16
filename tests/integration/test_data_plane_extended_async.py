@@ -2130,16 +2130,13 @@ async def test_update_values_preserves_metadata_rest_async(
         )
 
         # Metadata must be PRESERVED
-        assert vec.metadata is not None, (
-            "Metadata must not be None after async values-only update"
-        )
+        assert vec.metadata is not None, "Metadata must not be None after async values-only update"
         assert vec.metadata.get("genre") == "drama", (
             f"Expected genre=='drama' after async values-only update, "
             f"got {vec.metadata.get('genre')!r}"
         )
         assert vec.metadata.get("year") == 2019, (
-            f"Expected year==2019 after async values-only update, "
-            f"got {vec.metadata.get('year')!r}"
+            f"Expected year==2019 after async values-only update, got {vec.metadata.get('year')!r}"
         )
 
     finally:

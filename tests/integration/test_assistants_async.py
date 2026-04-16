@@ -1358,9 +1358,7 @@ async def test_chat_completions_streaming_async(
             for c in chunk.choices
             if c.delta.content is not None and c.delta.content != ""
         ]
-        assert len(content_choices) > 0, (
-            "Expected at least one chunk with non-empty delta.content"
-        )
+        assert len(content_choices) > 0, "Expected at least one chunk with non-empty delta.content"
 
         # Concatenated response must be meaningful
         full_content = "".join(
@@ -1453,9 +1451,7 @@ async def test_list_files_page_with_page_size_and_pagination_token_async(
 
         # list_files_page() returns all files in a single response
         page = await async_client.assistants.list_files_page(assistant_name=name)
-        assert isinstance(page, ListFilesResponse), (
-            f"Expected ListFilesResponse, got {type(page)}"
-        )
+        assert isinstance(page, ListFilesResponse), f"Expected ListFilesResponse, got {type(page)}"
         assert isinstance(page.files, list), "page.files must be a list"
         assert all(isinstance(f, AssistantFileModel) for f in page.files), (
             "Each file in list must be an AssistantFileModel"
@@ -1562,9 +1558,9 @@ async def test_chat_stream_message_start_and_end_structure_async(
         assert isinstance(last.usage.prompt_tokens, int) and last.usage.prompt_tokens >= 0, (
             f"prompt_tokens must be a non-negative int, got {last.usage.prompt_tokens!r}"
         )
-        assert isinstance(last.usage.completion_tokens, int) and last.usage.completion_tokens >= 0, (
-            f"completion_tokens must be a non-negative int, got {last.usage.completion_tokens!r}"
-        )
+        assert (
+            isinstance(last.usage.completion_tokens, int) and last.usage.completion_tokens >= 0
+        ), f"completion_tokens must be a non-negative int, got {last.usage.completion_tokens!r}"
         assert isinstance(last.usage.total_tokens, int) and last.usage.total_tokens > 0, (
             f"total_tokens must be a positive int, got {last.usage.total_tokens!r}"
         )
@@ -1643,9 +1639,7 @@ async def test_chat_json_response_mode_returns_valid_json_async(
         )
 
         # Verify ChatResponse structure
-        assert isinstance(response, ChatResponse), (
-            f"Expected ChatResponse, got {type(response)}"
-        )
+        assert isinstance(response, ChatResponse), f"Expected ChatResponse, got {type(response)}"
         assert isinstance(response.message.content, str) and len(response.message.content) > 0, (
             f"message.content must be a non-empty string, got {response.message.content!r}"
         )
@@ -1739,22 +1733,16 @@ async def test_chat_include_highlights_async(async_client: AsyncPinecone) -> Non
         # For every reference returned, highlight must be None or a valid ChatHighlight
         for citation in response_with.citations:
             for ref in citation.references:
-                assert isinstance(ref, ChatReference), (
-                    f"Expected ChatReference, got {type(ref)}"
-                )
+                assert isinstance(ref, ChatReference), f"Expected ChatReference, got {type(ref)}"
                 if ref.highlight is not None:
                     assert isinstance(ref.highlight, ChatHighlight), (
                         f"highlight must be ChatHighlight or None, got {type(ref.highlight)}"
                     )
-                    assert (
-                        isinstance(ref.highlight.type, str) and len(ref.highlight.type) > 0
-                    ), (
-                        f"ChatHighlight.type must be a non-empty string, "
-                        f"got {ref.highlight.type!r}"
+                    assert isinstance(ref.highlight.type, str) and len(ref.highlight.type) > 0, (
+                        f"ChatHighlight.type must be a non-empty string, got {ref.highlight.type!r}"
                     )
                     assert (
-                        isinstance(ref.highlight.content, str)
-                        and len(ref.highlight.content) > 0
+                        isinstance(ref.highlight.content, str) and len(ref.highlight.content) > 0
                     ), (
                         f"ChatHighlight.content must be a non-empty string, "
                         f"got {ref.highlight.content!r}"
@@ -2211,9 +2199,7 @@ async def test_assistants_list_page_response_structure_async(
 
         # Each item in the list is an AssistantModel with expected fields
         for a in page.assistants:
-            assert isinstance(a, AssistantModel), (
-                f"Expected AssistantModel, got {type(a)}"
-            )
+            assert isinstance(a, AssistantModel), f"Expected AssistantModel, got {type(a)}"
             assert isinstance(a.name, str) and len(a.name) > 0, (
                 f"AssistantModel.name must be a non-empty string, got {a.name!r}"
             )
@@ -2292,9 +2278,7 @@ async def test_upload_file_with_caller_specified_file_id_async(
 
         # Wait until Available
         await async_poll_until(
-            lambda: async_client.assistants.describe_file(
-                assistant_name=name, file_id=file_id
-            ),
+            lambda: async_client.assistants.describe_file(assistant_name=name, file_id=file_id),
             lambda f: f.status in ("Available", "Processed"),
             timeout=120,
             interval=5,
@@ -2325,9 +2309,7 @@ async def test_upload_file_with_caller_specified_file_id_async(
 
         # Wait until Available again
         await async_poll_until(
-            lambda: async_client.assistants.describe_file(
-                assistant_name=name, file_id=file_id
-            ),
+            lambda: async_client.assistants.describe_file(assistant_name=name, file_id=file_id),
             lambda f: f.status in ("Available", "Processed"),
             timeout=120,
             interval=5,
@@ -2346,9 +2328,7 @@ async def test_upload_file_with_caller_specified_file_id_async(
         )
 
         # Clean up the file before assistant deletion
-        await async_client.assistants.delete_file(
-            assistant_name=name, file_id=file_id, timeout=60
-        )
+        await async_client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
         file_id = None
 
     finally:
@@ -2409,9 +2389,7 @@ async def test_assistant_model_dict_mixin_operations_async(
         assert isinstance(model, AssistantModel)
 
         # --- unified-model-0003: len(model) returns field count ---
-        assert len(model) == 7, (
-            f"AssistantModel has 7 declared fields; got len()={len(model)}"
-        )
+        assert len(model) == 7, f"AssistantModel has 7 declared fields; got len()={len(model)}"
 
         # --- unified-model-0004: keys(), values(), items() ---
         keys = model.keys()
@@ -2650,9 +2628,7 @@ async def test_chat_context_options_boundary_validation(
     name = unique_name("asst")
     tmp_path: str | None = None
     try:
-        await async_client.assistants.create(
-            name=name, instructions="You are a helpful assistant."
-        )
+        await async_client.assistants.create(name=name, instructions="You are a helpful assistant.")
         await async_poll_until(
             lambda: async_client.assistants.describe(name=name),
             lambda a: a.status == "Ready",
@@ -2753,9 +2729,7 @@ async def test_chat_across_all_supported_models_and_rejects_invalid(
     name = unique_name("asst")
     tmp_path: str | None = None
     try:
-        await async_client.assistants.create(
-            name=name, instructions="You are a helpful assistant."
-        )
+        await async_client.assistants.create(name=name, instructions="You are a helpful assistant.")
         await async_poll_until(
             lambda: async_client.assistants.describe(name=name),
             lambda a: a.status == "Ready",
@@ -2789,9 +2763,7 @@ async def test_chat_across_all_supported_models_and_rejects_invalid(
                 f"model={model_name!r} did not return ChatResponse"
             )
             assert isinstance(response.message.content, str)
-            assert len(response.message.content) > 0, (
-                f"model={model_name!r} returned empty content"
-            )
+            assert len(response.message.content) > 0, f"model={model_name!r} returned empty content"
 
         with pytest.raises((ApiError, PineconeError, PineconeValueError)):
             await async_client.assistants.chat(
@@ -2827,9 +2799,7 @@ async def test_chat_rejects_out_of_range_temperature(
     name = unique_name("asst")
     tmp_path: str | None = None
     try:
-        await async_client.assistants.create(
-            name=name, instructions="You are a helpful assistant."
-        )
+        await async_client.assistants.create(name=name, instructions="You are a helpful assistant.")
         await async_poll_until(
             lambda: async_client.assistants.describe(name=name),
             lambda a: a.status == "Ready",
@@ -3127,9 +3097,7 @@ async def test_describe_file_preserves_uploaded_metadata(
     tmp_path: str | None = None
     file_id: str | None = None
     try:
-        await async_client.assistants.create(
-            name=name, instructions="Metadata persistence test."
-        )
+        await async_client.assistants.create(name=name, instructions="Metadata persistence test.")
         await async_poll_until(
             lambda: async_client.assistants.describe(name=name),
             lambda a: a.status == "Ready",
@@ -3202,9 +3170,7 @@ async def test_multimodal_pdf_context_image_text_and_errors(
     assert os.path.isfile(docx_path), f"fixture missing: {docx_path}"
 
     try:
-        await async_client.assistants.create(
-            name=name, instructions="Multimodal test assistant."
-        )
+        await async_client.assistants.create(name=name, instructions="Multimodal test assistant.")
         await async_poll_until(
             lambda: async_client.assistants.describe(name=name),
             lambda a: a.status == "Ready",
@@ -3234,7 +3200,8 @@ async def test_multimodal_pdf_context_image_text_and_errors(
         snippet = res.snippets[0]
         assert isinstance(snippet, MultimodalSnippet)
         image_blocks_with_data = [
-            b for b in snippet.content
+            b
+            for b in snippet.content
             if isinstance(b, ContextImageBlock) and b.image_data is not None
         ]
         assert len(image_blocks_with_data) > 0, (

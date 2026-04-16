@@ -573,7 +573,8 @@ def test_exception_catch_hierarchy_rest(client: Pinecone) -> None:
     caught = False
     try:
         client.inference.embed(
-            model="multilingual-e5-large", inputs=42  # type: ignore[arg-type]
+            model="multilingual-e5-large",
+            inputs=42,  # type: ignore[arg-type]
         )
     except TypeError:
         caught = True
@@ -583,7 +584,8 @@ def test_exception_catch_hierarchy_rest(client: Pinecone) -> None:
     caught = False
     try:
         client.inference.embed(
-            model="multilingual-e5-large", inputs=42  # type: ignore[arg-type]
+            model="multilingual-e5-large",
+            inputs=42,  # type: ignore[arg-type]
         )
     except PineconeError:
         caught = True

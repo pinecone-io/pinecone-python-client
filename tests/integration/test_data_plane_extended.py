@@ -2716,9 +2716,7 @@ def test_query_after_delete_reflects_deletion_rest(client: Pinecone) -> None:
         post_delete = index.query(vector=[1.0, 0.0, 0.0, 0.0], top_k=10)
         assert isinstance(post_delete, QueryResponse)
         post_ids = {m.id for m in post_delete.matches}
-        assert "qad-v1" not in post_ids, (
-            "qad-v1 should not appear in query results after deletion"
-        )
+        assert "qad-v1" not in post_ids, "qad-v1 should not appear in query results after deletion"
         assert "qad-v2" in post_ids, (
             "qad-v2 should still appear in query results after deleting a different vector"
         )
@@ -3334,16 +3332,13 @@ def test_update_values_preserves_metadata_grpc(client: Pinecone) -> None:
         )
 
         # Metadata must be PRESERVED
-        assert vec.metadata is not None, (
-            "Metadata must not be None after gRPC values-only update"
-        )
+        assert vec.metadata is not None, "Metadata must not be None after gRPC values-only update"
         assert vec.metadata.get("genre") == "action", (
             f"Expected genre=='action' after gRPC values-only update, "
             f"got {vec.metadata.get('genre')!r}"
         )
         assert vec.metadata.get("year") == 2022, (
-            f"Expected year==2022 after gRPC values-only update, "
-            f"got {vec.metadata.get('year')!r}"
+            f"Expected year==2022 after gRPC values-only update, got {vec.metadata.get('year')!r}"
         )
 
     finally:
