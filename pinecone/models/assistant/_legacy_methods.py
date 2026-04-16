@@ -22,6 +22,7 @@ from typing import IO, TYPE_CHECKING, Any, ClassVar
 if TYPE_CHECKING:
     from pinecone.client.assistants import Assistants
     from pinecone.models.assistant.file_model import AssistantFileModel
+    from pinecone.models.assistant.list import ListFilesResponse
 
 
 class AssistantModelLegacyMethodsMixin:
@@ -56,7 +57,7 @@ class AssistantModelLegacyMethodsMixin:
         file_id: str,
         include_url: bool = False,
         **kwargs: Any,
-    ) -> "AssistantFileModel":
+    ) -> AssistantFileModel:
         """Deprecated alias for :meth:`Assistants.describe_file`."""
         ns = self._resolve_assistants()
         return ns.describe_file(
@@ -91,6 +92,47 @@ class AssistantModelLegacyMethodsMixin:
             timeout=timeout,
             file_id=file_id,
             **kwargs,
+        )
+
+    def list_files(
+        self,
+        filter: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> list[AssistantFileModel]:
+        """Deprecated alias — return a materialized list of files.
+
+        Legacy callers expected ``list_files()`` to return ``List[FileModel]``.
+        The new SDK's ``list_files`` returns a lazy paginator; this shim
+        materializes it.
+        """
+        ns = self._resolve_assistants()
+        return list(
+            ns.list_files(
+                assistant_name=self.name,  # type: ignore[attr-defined]
+                filter=filter,
+            )
+        )
+
+    def list_files_paginated(
+        self,
+        filter: dict[str, Any] | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        *,
+        page_size: int | None = None,
+        **kwargs: Any,
+    ) -> ListFilesResponse:
+        """Deprecated alias for :meth:`Assistants.list_files_page`.
+
+        Returns a :class:`ListFilesResponse`-shaped object. Accepts ``limit``
+        (legacy) or ``page_size`` (current); neither is forwarded because the
+        underlying ``list_files_page`` endpoint does not support page-size control.
+        """
+        ns = self._resolve_assistants()
+        return ns.list_files_page(
+            assistant_name=self.name,  # type: ignore[attr-defined]
+            filter=filter,
+            pagination_token=pagination_token,
         )
 
     def upload_file(
