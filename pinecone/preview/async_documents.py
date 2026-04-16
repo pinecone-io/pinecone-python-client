@@ -6,8 +6,10 @@ from typing import TYPE_CHECKING, Any
 
 import msgspec
 
+from pinecone._internal.batch import async_batch_execute
 from pinecone._internal.validation import require_in_range, require_non_empty
 from pinecone.errors.exceptions import ValidationError
+from pinecone.models.batch import BatchResult
 from pinecone.preview._internal.adapters.documents import (
     decode_fetch_response,
     decode_search_response,
@@ -111,6 +113,57 @@ class AsyncPreviewDocuments:
             json={"documents": documents},
         )
         return _UPSERT_DECODER.decode(response.content)
+
+    async def batch_upsert(
+        self,
+        *,
+        namespace: str,
+        documents: list[dict[str, Any]],
+        batch_size: int = 100,
+        max_workers: int = 4,
+        show_progress: bool = True,
+    ) -> BatchResult:
+        """Upsert a large list of documents in parallel batches (async).
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Args:
+            namespace: Target namespace. Must be a non-empty string.
+            documents: Documents to upsert. Each must contain a non-empty,
+                unique ``_id`` string field.
+            batch_size: Maximum documents per request (1–100, default 100).
+            max_workers: Asyncio concurrency limit (1–64, default 4).
+            show_progress: Display a tqdm progress bar when installed.
+
+        Returns:
+            :class:`~pinecone.models.batch.BatchResult` with aggregated success
+            and failure counts. Per-batch HTTP failures are captured in
+            ``result.errors`` rather than raised.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.ValidationError`: If namespace is
+                empty, documents is empty, batch_size is outside [1, 100], or
+                max_workers is outside [1, 64].
+        """
+        require_non_empty("namespace", namespace)
+        require_non_empty("documents", documents)
+        require_in_range("batch_size", batch_size, 1, 100)
+        require_in_range("max_workers", max_workers, 1, 64)
+
+        return await async_batch_execute(
+            items=documents,
+            operation=lambda chunk: self.upsert(namespace=namespace, documents=chunk),
+            batch_size=batch_size,
+            max_concurrency=max_workers,
+            show_progress=show_progress,
+            desc="Upserting",
+        )
 
     async def search(
         self,
