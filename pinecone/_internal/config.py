@@ -76,23 +76,19 @@ class RetryConfig:
     """Configuration for HTTP retry behavior.
 
     Args:
-        max_attempts: Maximum number of request attempts (initial + retries). Defaults to 5.
-        initial_backoff: Initial backoff delay in seconds before the first retry. Defaults to 0.1.
-        max_backoff: Maximum backoff delay in seconds. Defaults to 3.0.
-        jitter_max: Maximum random jitter in seconds added to each delay. Defaults to 0.1.
+        max_retries: Total number of request attempts (initial + retries). Defaults to 3.
+        backoff_factor: Exponential backoff base multiplier in seconds. Defaults to 2.0.
+        max_wait: Maximum backoff delay in seconds. Defaults to 60.0.
         retryable_status_codes: HTTP status codes that trigger a retry. Defaults to
-            ``{500, 502, 503, 504}``.
-        retryable_methods: HTTP methods eligible for retry. Defaults to ``{"GET", "HEAD"}``.
+            ``{429, 500, 502, 503, 504}``.
     """
 
-    max_attempts: int = 5
-    initial_backoff: float = 0.1
-    max_backoff: float = 3.0
-    jitter_max: float = 0.1
+    max_retries: int = 3
+    backoff_factor: float = 2.0
+    max_wait: float = 60.0
     retryable_status_codes: frozenset[int] = field(
-        default_factory=lambda: frozenset({500, 502, 503, 504})
+        default_factory=lambda: frozenset({429, 500, 502, 503, 504})
     )
-    retryable_methods: frozenset[str] = field(default_factory=lambda: frozenset({"GET", "HEAD"}))
 
 
 @dataclass(frozen=True)

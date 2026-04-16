@@ -6,7 +6,6 @@ import asyncio
 import contextlib
 import logging
 import os
-import random
 import socket
 import sys
 import time
@@ -33,8 +32,6 @@ from pinecone.errors.exceptions import (
 
 logger = logging.getLogger(__name__)
 
-_RETRYABLE_STATUS_CODES: frozenset[int] = frozenset({500, 502, 503, 504})
-_RETRYABLE_METHODS: frozenset[str] = frozenset({"GET", "HEAD"})
 
 
 def _build_socket_options() -> list[tuple[int, int, int]]:
@@ -133,15 +130,11 @@ class _RetryTransport(httpx.BaseTransport):
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         response = self._transport.handle_request(request)
-        if request.method not in self._config.retryable_methods:
-            return response
-        for attempt in range(self._config.max_attempts - 1):
+        for attempt in range(self._config.max_retries - 1):
             if response.status_code not in self._config.retryable_status_codes:
                 return response
             response.close()
-            delay = min(
-                self._config.initial_backoff * (2**attempt), self._config.max_backoff
-            ) + random.uniform(0, self._config.jitter_max)
+            delay = min(self._config.backoff_factor ** attempt, self._config.max_wait)
             time.sleep(delay)
             response = self._transport.handle_request(request)
         return response
@@ -164,15 +157,11 @@ class _AsyncRetryTransport(httpx.AsyncBaseTransport):
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         response = await self._transport.handle_async_request(request)
-        if request.method not in self._config.retryable_methods:
-            return response
-        for attempt in range(self._config.max_attempts - 1):
+        for attempt in range(self._config.max_retries - 1):
             if response.status_code not in self._config.retryable_status_codes:
                 return response
             await response.aclose()
-            delay = min(
-                self._config.initial_backoff * (2**attempt), self._config.max_backoff
-            ) + random.uniform(0, self._config.jitter_max)
+            delay = min(self._config.backoff_factor ** attempt, self._config.max_wait)
             await asyncio.sleep(delay)
             response = await self._transport.handle_async_request(request)
         return response

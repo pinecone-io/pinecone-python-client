@@ -71,27 +71,29 @@ def _get_request() -> httpx.Request:
 class TestRetryConfigDefaults:
     def test_default_retry_config(self) -> None:
         cfg = RetryConfig()
-        assert cfg.max_attempts == 5
-        assert cfg.initial_backoff == 0.1
-        assert cfg.max_backoff == 3.0
-        assert cfg.jitter_max == 0.1
-        assert cfg.retryable_status_codes == frozenset({500, 502, 503, 504})
-        assert cfg.retryable_methods == frozenset({"GET", "HEAD"})
+        assert cfg.max_retries == 3
+        assert cfg.backoff_factor == 2.0
+        assert cfg.max_wait == 60.0
+        assert cfg.retryable_status_codes == frozenset({429, 500, 502, 503, 504})
+
+    def test_retry_config_has_no_retryable_methods(self) -> None:
+        cfg = RetryConfig()
+        assert not hasattr(cfg, "retryable_methods")
 
     def test_retry_config_is_frozen(self) -> None:
         cfg = RetryConfig()
         with pytest.raises(AttributeError):
-            cfg.max_attempts = 10  # type: ignore[misc]
+            cfg.max_retries = 10  # type: ignore[misc]
 
     def test_pinecone_config_default_retry_config(self) -> None:
         pc_cfg = PineconeConfig(api_key="test-key")
         assert pc_cfg.retry_config == RetryConfig()
 
     def test_pinecone_config_custom_retry_config(self) -> None:
-        custom = RetryConfig(max_attempts=2, initial_backoff=0.5)
+        custom = RetryConfig(max_retries=2, backoff_factor=0.5)
         pc_cfg = PineconeConfig(api_key="test-key", retry_config=custom)
-        assert pc_cfg.retry_config.max_attempts == 2
-        assert pc_cfg.retry_config.initial_backoff == 0.5
+        assert pc_cfg.retry_config.max_retries == 2
+        assert pc_cfg.retry_config.backoff_factor == 0.5
 
 
 # ---------------------------------------------------------------------------
@@ -101,8 +103,8 @@ class TestRetryConfigDefaults:
 
 class TestCustomRetryConfigSync:
     @patch("pinecone._internal.http_client.time.sleep")
-    def test_custom_retry_config_max_attempts(self, mock_sleep: Any) -> None:
-        """Custom RetryConfig with max_attempts=2 only retries once."""
+    def test_custom_retry_config_max_retries(self, mock_sleep: Any) -> None:
+        """Custom RetryConfig with max_retries=2 only retries once."""
         fake = _FakeTransport(
             [
                 httpx.Response(500, json={"message": "error"}),
@@ -112,7 +114,7 @@ class TestCustomRetryConfigSync:
         )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            retry_config=RetryConfig(max_attempts=2, jitter_max=0.0),
+            retry_config=RetryConfig(max_retries=2, max_wait=0.01),
         )
         response = transport.handle_request(_get_request())
         assert response.status_code == 500
@@ -120,7 +122,7 @@ class TestCustomRetryConfigSync:
 
     @patch("pinecone._internal.http_client.time.sleep")
     def test_custom_retry_config_status_codes(self, mock_sleep: Any) -> None:
-        """Custom retryable_status_codes enables retry on non-default codes."""
+        """Custom retryable_status_codes enables retry on specified codes."""
         fake = _FakeTransport(
             [
                 httpx.Response(429, json={"message": "rate limited"}),
@@ -131,7 +133,7 @@ class TestCustomRetryConfigSync:
             transport=fake,  # type: ignore[arg-type]
             retry_config=RetryConfig(
                 retryable_status_codes=frozenset({429, 500}),
-                jitter_max=0.0,
+                max_wait=0.01,
             ),
         )
         response = transport.handle_request(_get_request())
@@ -139,8 +141,8 @@ class TestCustomRetryConfigSync:
         assert fake.call_count == 2
 
     @patch("pinecone._internal.http_client.time.sleep")
-    def test_custom_retry_config_methods(self, mock_sleep: Any) -> None:
-        """Custom retryable_methods allows POST to be retried."""
+    def test_post_method_is_retried(self, mock_sleep: Any) -> None:
+        """POST requests are retried on retryable status codes."""
         fake = _FakeTransport(
             [
                 httpx.Response(500, json={"message": "error"}),
@@ -149,10 +151,7 @@ class TestCustomRetryConfigSync:
         )
         transport = _RetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            retry_config=RetryConfig(
-                retryable_methods=frozenset({"GET", "HEAD", "POST"}),
-                jitter_max=0.0,
-            ),
+            retry_config=RetryConfig(max_wait=0.01),
         )
         request = httpx.Request("POST", "https://api.pinecone.io/test")
         response = transport.handle_request(request)
@@ -185,8 +184,8 @@ class TestCustomRetryConfigSync:
 class TestCustomRetryConfigAsync:
     @patch("pinecone._internal.http_client.asyncio.sleep")
     @pytest.mark.asyncio
-    async def test_custom_retry_config_max_attempts(self, mock_sleep: Any) -> None:
-        """Custom RetryConfig with max_attempts=2 only retries once."""
+    async def test_custom_retry_config_max_retries(self, mock_sleep: Any) -> None:
+        """Custom RetryConfig with max_retries=2 only retries once."""
         fake = _FakeAsyncTransport(
             [
                 httpx.Response(500, json={"message": "error"}),
@@ -196,7 +195,7 @@ class TestCustomRetryConfigAsync:
         )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            retry_config=RetryConfig(max_attempts=2, jitter_max=0.0),
+            retry_config=RetryConfig(max_retries=2, max_wait=0.01),
         )
         response = await transport.handle_async_request(_get_request())
         assert response.status_code == 500
@@ -205,7 +204,7 @@ class TestCustomRetryConfigAsync:
     @patch("pinecone._internal.http_client.asyncio.sleep")
     @pytest.mark.asyncio
     async def test_custom_retry_config_status_codes(self, mock_sleep: Any) -> None:
-        """Custom retryable_status_codes enables retry on non-default codes."""
+        """Custom retryable_status_codes enables retry on specified codes."""
         fake = _FakeAsyncTransport(
             [
                 httpx.Response(429, json={"message": "rate limited"}),
@@ -216,7 +215,7 @@ class TestCustomRetryConfigAsync:
             transport=fake,  # type: ignore[arg-type]
             retry_config=RetryConfig(
                 retryable_status_codes=frozenset({429, 500}),
-                jitter_max=0.0,
+                max_wait=0.01,
             ),
         )
         response = await transport.handle_async_request(_get_request())
@@ -225,8 +224,8 @@ class TestCustomRetryConfigAsync:
 
     @patch("pinecone._internal.http_client.asyncio.sleep")
     @pytest.mark.asyncio
-    async def test_custom_retry_config_methods(self, mock_sleep: Any) -> None:
-        """Custom retryable_methods allows POST to be retried."""
+    async def test_post_method_is_retried(self, mock_sleep: Any) -> None:
+        """POST requests are retried on retryable status codes."""
         fake = _FakeAsyncTransport(
             [
                 httpx.Response(500, json={"message": "error"}),
@@ -235,10 +234,7 @@ class TestCustomRetryConfigAsync:
         )
         transport = _AsyncRetryTransport(
             transport=fake,  # type: ignore[arg-type]
-            retry_config=RetryConfig(
-                retryable_methods=frozenset({"GET", "HEAD", "POST"}),
-                jitter_max=0.0,
-            ),
+            retry_config=RetryConfig(max_wait=0.01),
         )
         request = httpx.Request("POST", "https://api.pinecone.io/test")
         response = await transport.handle_async_request(request)
