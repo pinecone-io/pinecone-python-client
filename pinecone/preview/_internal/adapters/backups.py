@@ -26,12 +26,8 @@ class PreviewDescribeBackupAdapter:
 class PreviewListBackupsAdapter:
     """Adapter for preview list_backups operation."""
 
-    def from_response(
-        self, data: dict[str, Any]
-    ) -> tuple[list[PreviewBackupModel], str | None]:
-        items = [
-            msgspec.convert(item, PreviewBackupModel) for item in data.get("data", [])
-        ]
+    def from_response(self, data: dict[str, Any]) -> tuple[list[PreviewBackupModel], str | None]:
+        items = [msgspec.convert(item, PreviewBackupModel) for item in data.get("data", [])]
         token: str | None = (data.get("pagination") or {}).get("next")
         return (items, token)
 

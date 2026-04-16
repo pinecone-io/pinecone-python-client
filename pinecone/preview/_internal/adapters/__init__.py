@@ -1,4 +1,5 @@
 """Preview adapters (2026-01.alpha API)."""
+
 from __future__ import annotations
 
 from pinecone.preview._internal.adapters.backups import (

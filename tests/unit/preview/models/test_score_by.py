@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import msgspec
 
-from pinecone.preview.models.sparse import PreviewSparseValues
 from pinecone.preview.models.score_by import (
     PreviewDenseVectorQuery,
     PreviewQueryStringQuery,
@@ -12,6 +11,7 @@ from pinecone.preview.models.score_by import (
     PreviewSparseVectorQuery,
     PreviewTextQuery,
 )
+from pinecone.preview.models.sparse import PreviewSparseValues
 
 # ---------------------------------------------------------------------------
 # PreviewTextQuery

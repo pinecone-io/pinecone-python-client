@@ -85,9 +85,7 @@ class PreviewReadCapacityDedicatedInner(Struct, kw_only=True):
     auto: dict[str, Any] | None = None
 
 
-class PreviewReadCapacityOnDemandResponse(
-    Struct, tag="OnDemand", tag_field="mode", kw_only=True
-):
+class PreviewReadCapacityOnDemandResponse(Struct, tag="OnDemand", tag_field="mode", kw_only=True):
     """On-demand read capacity in API responses.
 
     .. admonition:: Preview
@@ -109,9 +107,7 @@ class PreviewReadCapacityOnDemandResponse(
     status: PreviewReadCapacityStatus
 
 
-class PreviewReadCapacityDedicatedResponse(
-    Struct, tag="Dedicated", tag_field="mode", kw_only=True
-):
+class PreviewReadCapacityDedicatedResponse(Struct, tag="Dedicated", tag_field="mode", kw_only=True):
     """Dedicated read capacity in API responses.
 
     .. admonition:: Preview
