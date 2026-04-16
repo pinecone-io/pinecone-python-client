@@ -193,3 +193,35 @@ class ResponseParsingError(PineconeError):
 
 # Backwards-compatible alias — most validation is value validation
 ValidationError = PineconeValueError  # Deprecated: use PineconeValueError instead
+
+# ---------------------------------------------------------------------------
+# Legacy name aliases — :meta private:
+# New code should use the canonical names above.
+# ---------------------------------------------------------------------------
+
+# Backcompat alias, :meta private:
+PineconeException = PineconeError
+# Backcompat alias, :meta private:
+PineconeApiException = ApiError
+# Backcompat alias, :meta private:
+NotFoundException = NotFoundError
+# Backcompat alias, :meta private:
+UnauthorizedException = UnauthorizedError
+# Backcompat alias, :meta private:
+ForbiddenException = ForbiddenError
+# Backcompat alias, :meta private:
+ServiceException = ServiceError
+# Backcompat alias, :meta private:
+PineconeConfigurationError = PineconeValueError
+# Backcompat alias, :meta private:
+PineconeProtocolError = PineconeError
+# Backcompat alias, :meta private:
+PineconeApiTypeError = PineconeTypeError
+# Backcompat alias, :meta private:
+PineconeApiValueError = PineconeValueError
+# Backcompat alias, :meta private:
+PineconeApiAttributeError = PineconeError
+# Backcompat alias, :meta private:
+PineconeApiKeyError = PineconeError
+# Backcompat alias, :meta private:
+ListConversionException = PineconeError

@@ -133,3 +133,7 @@ class Field:
 
     def __repr__(self) -> str:
         return f"Field({self._name!r})"
+
+
+# Backcompat alias, :meta private:
+FilterBuilder = Field

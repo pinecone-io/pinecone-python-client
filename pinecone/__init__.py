@@ -66,24 +66,43 @@ if TYPE_CHECKING:
     from pinecone.admin import Admin
     from pinecone.async_client.async_index import AsyncIndex
     from pinecone.async_client.pinecone import AsyncPinecone
+    from pinecone.async_client.pinecone import AsyncPinecone as PineconeAsyncio
+    from pinecone.db_control.enums.clouds import AwsRegion, AzureRegion, GcpRegion
+    from pinecone.db_control.models.collection_description import CollectionDescription
+    from pinecone.db_data.dataclasses.search_query import SearchQuery
+    from pinecone.db_data.dataclasses.search_rerank import SearchRerank
     from pinecone.errors.exceptions import (
         ApiError,
         ConflictError,
         ForbiddenError,
+        ForbiddenException,
         IndexInitFailedError,
+        ListConversionException,
         NotFoundError,
+        NotFoundException,
+        PineconeApiAttributeError,
+        PineconeApiException,
+        PineconeApiKeyError,
+        PineconeApiTypeError,
+        PineconeApiValueError,
+        PineconeConfigurationError,
         PineconeConnectionError,
         PineconeError,
+        PineconeException,
+        PineconeProtocolError,
         PineconeTimeoutError,
         PineconeTypeError,
         PineconeValueError,
         ResponseParsingError,
         ServiceError,
+        ServiceException,
         UnauthorizedError,
+        UnauthorizedException,
     )
     from pinecone.grpc import GrpcIndex
     from pinecone.grpc.future import PineconeFuture
     from pinecone.index import Index
+    from pinecone.inference.models.index_embed import IndexEmbed
     from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyWithSecret
     from pinecone.models.admin.organization import OrganizationList, OrganizationModel
     from pinecone.models.admin.project import ProjectList, ProjectModel
@@ -120,6 +139,7 @@ if TYPE_CHECKING:
         RerankModel,
         VectorType,
     )
+    from pinecone.models.imports.error_mode import ImportErrorMode
     from pinecone.models.imports.list import ImportList
     from pinecone.models.imports.model import ImportModel, StartImportResponse
     from pinecone.models.indexes.index import (
@@ -171,7 +191,7 @@ if TYPE_CHECKING:
     )
     from pinecone.models.vectors.sparse import SparseValues
     from pinecone.models.vectors.vector import Vector
-    from pinecone.utils.filter_builder import Field
+    from pinecone.utils.filter_builder import Field, FilterBuilder
 
 __version__ = "9.0.0"
 
@@ -192,6 +212,8 @@ __all__ = [
     "AsyncIndex",
     "AsyncPaginator",
     "AsyncPinecone",
+    "AwsRegion",
+    "AzureRegion",
     "BackupList",
     "BackupModel",
     "ByocSpec",
@@ -201,6 +223,7 @@ __all__ = [
     "ChatResponse",
     "ChatStreamChunk",
     "CloudProvider",
+    "CollectionDescription",
     "CollectionList",
     "CollectionModel",
     "ConflictError",
@@ -216,18 +239,24 @@ __all__ = [
     "FetchByMetadataResponse",
     "FetchResponse",
     "Field",
+    "FilterBuilder",
     "ForbiddenError",
+    "ForbiddenException",
+    "GcpRegion",
     "GrpcIndex",
     "Hit",
+    "ImportErrorMode",
     "ImportList",
     "ImportModel",
     "Index",
+    "IndexEmbed",
     "IndexInitFailedError",
     "IndexList",
     "IndexModel",
     "IndexSpec",
     "IntegratedSpec",
     "ListAssistantsResponse",
+    "ListConversionException",
     "ListFilesResponse",
     "ListNamespacesResponse",
     "ListResponse",
@@ -237,15 +266,25 @@ __all__ = [
     "ModelInfoList",
     "NamespaceDescription",
     "NotFoundError",
+    "NotFoundException",
     "OrganizationList",
     "OrganizationModel",
     "Page",
     "Paginator",
     "Pinecone",
+    "PineconeApiAttributeError",
+    "PineconeApiException",
+    "PineconeApiKeyError",
+    "PineconeApiTypeError",
+    "PineconeApiValueError",
+    "PineconeAsyncio",
     "PineconeConfig",
+    "PineconeConfigurationError",
     "PineconeConnectionError",
     "PineconeError",
+    "PineconeException",
     "PineconeFuture",
+    "PineconeProtocolError",
     "PineconeTimeoutError",
     "PineconeTypeError",
     "PineconeValueError",
@@ -267,12 +306,15 @@ __all__ = [
     "RestoreJobModel",
     "RetryConfig",
     "SearchInputs",
+    "SearchQuery",
     "SearchRecordsResponse",
+    "SearchRerank",
     "SearchResult",
     "SearchUsage",
     "ServerlessSpec",
     "ServerlessSpecInfo",
     "ServiceError",
+    "ServiceException",
     "SparseEmbedding",
     "SparseValues",
     "StartImportResponse",
@@ -281,6 +323,7 @@ __all__ = [
     "StreamMessageEnd",
     "StreamMessageStart",
     "UnauthorizedError",
+    "UnauthorizedException",
     "UpdateResponse",
     "UpsertRecordsResponse",
     "UpsertResponse",
@@ -295,16 +338,29 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ApiError": ("pinecone.errors.exceptions", "ApiError"),
     "ConflictError": ("pinecone.errors.exceptions", "ConflictError"),
     "ForbiddenError": ("pinecone.errors.exceptions", "ForbiddenError"),
+    "ForbiddenException": ("pinecone.errors.exceptions", "ForbiddenException"),
     "IndexInitFailedError": ("pinecone.errors.exceptions", "IndexInitFailedError"),
+    "ListConversionException": ("pinecone.errors.exceptions", "ListConversionException"),
     "NotFoundError": ("pinecone.errors.exceptions", "NotFoundError"),
+    "NotFoundException": ("pinecone.errors.exceptions", "NotFoundException"),
+    "PineconeApiAttributeError": ("pinecone.errors.exceptions", "PineconeApiAttributeError"),
+    "PineconeApiException": ("pinecone.errors.exceptions", "PineconeApiException"),
+    "PineconeApiKeyError": ("pinecone.errors.exceptions", "PineconeApiKeyError"),
+    "PineconeApiTypeError": ("pinecone.errors.exceptions", "PineconeApiTypeError"),
+    "PineconeApiValueError": ("pinecone.errors.exceptions", "PineconeApiValueError"),
+    "PineconeConfigurationError": ("pinecone.errors.exceptions", "PineconeConfigurationError"),
     "PineconeConnectionError": ("pinecone.errors.exceptions", "PineconeConnectionError"),
     "PineconeError": ("pinecone.errors.exceptions", "PineconeError"),
+    "PineconeException": ("pinecone.errors.exceptions", "PineconeException"),
+    "PineconeProtocolError": ("pinecone.errors.exceptions", "PineconeProtocolError"),
     "PineconeTimeoutError": ("pinecone.errors.exceptions", "PineconeTimeoutError"),
     "PineconeTypeError": ("pinecone.errors.exceptions", "PineconeTypeError"),
     "PineconeValueError": ("pinecone.errors.exceptions", "PineconeValueError"),
     "ResponseParsingError": ("pinecone.errors.exceptions", "ResponseParsingError"),
     "ServiceError": ("pinecone.errors.exceptions", "ServiceError"),
+    "ServiceException": ("pinecone.errors.exceptions", "ServiceException"),
     "UnauthorizedError": ("pinecone.errors.exceptions", "UnauthorizedError"),
+    "UnauthorizedException": ("pinecone.errors.exceptions", "UnauthorizedException"),
     "Admin": ("pinecone.admin", "Admin"),
     "APIKeyList": ("pinecone.models.admin.api_key", "APIKeyList"),
     "APIKeyModel": ("pinecone.models.admin.api_key", "APIKeyModel"),
@@ -315,6 +371,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "AssistantModel": ("pinecone.models.assistant.model", "AssistantModel"),
     "AsyncIndex": ("pinecone.async_client.async_index", "AsyncIndex"),
     "AsyncPinecone": ("pinecone.async_client.pinecone", "AsyncPinecone"),
+    "PineconeAsyncio": ("pinecone.async_client.pinecone", "AsyncPinecone"),
     "BackupList": ("pinecone.models.backups.list", "BackupList"),
     "BackupModel": ("pinecone.models.backups.model", "BackupModel"),
     "ByocSpec": ("pinecone.models.indexes.specs", "ByocSpec"),
@@ -327,6 +384,12 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     ),
     "ChatResponse": ("pinecone.models.assistant.chat", "ChatResponse"),
     "ChatStreamChunk": ("pinecone.models.assistant.streaming", "ChatStreamChunk"),
+    "AwsRegion": ("pinecone.db_control.enums.clouds", "AwsRegion"),
+    "AzureRegion": ("pinecone.db_control.enums.clouds", "AzureRegion"),
+    "CollectionDescription": (
+        "pinecone.db_control.models.collection_description",
+        "CollectionDescription",
+    ),
     "CollectionList": ("pinecone.models.collections.list", "CollectionList"),
     "CollectionModel": ("pinecone.models.collections.model", "CollectionModel"),
     "ContextOptions": ("pinecone.models.assistant.options", "ContextOptions"),
@@ -350,12 +413,16 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     ),
     "FetchResponse": ("pinecone.models.vectors.responses", "FetchResponse"),
     "Field": ("pinecone.utils.filter_builder", "Field"),
+    "FilterBuilder": ("pinecone.utils.filter_builder", "FilterBuilder"),
+    "GcpRegion": ("pinecone.db_control.enums.clouds", "GcpRegion"),
     "GrpcIndex": ("pinecone.grpc", "GrpcIndex"),
     "Hit": ("pinecone.models.vectors.search", "Hit"),
     "PineconeFuture": ("pinecone.grpc.future", "PineconeFuture"),
+    "ImportErrorMode": ("pinecone.models.imports.error_mode", "ImportErrorMode"),
     "ImportList": ("pinecone.models.imports.list", "ImportList"),
     "ImportModel": ("pinecone.models.imports.model", "ImportModel"),
     "Index": ("pinecone.index", "Index"),
+    "IndexEmbed": ("pinecone.inference.models.index_embed", "IndexEmbed"),
     "IndexList": ("pinecone.models.indexes.list", "IndexList"),
     "IndexModel": ("pinecone.models.indexes.index", "IndexModel"),
     "IndexSpec": ("pinecone.models.indexes.index", "IndexSpec"),
@@ -407,10 +474,12 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "RestoreJobModel": ("pinecone.models.backups.model", "RestoreJobModel"),
     "RetryConfig": ("pinecone._internal.config", "RetryConfig"),
     "SearchInputs": ("pinecone.models.vectors.search", "SearchInputs"),
+    "SearchQuery": ("pinecone.db_data.dataclasses.search_query", "SearchQuery"),
     "SearchRecordsResponse": (
         "pinecone.models.vectors.search",
         "SearchRecordsResponse",
     ),
+    "SearchRerank": ("pinecone.db_data.dataclasses.search_rerank", "SearchRerank"),
     "SearchResult": ("pinecone.models.vectors.search", "SearchResult"),
     "SearchUsage": ("pinecone.models.vectors.search", "SearchUsage"),
     "ServerlessSpec": ("pinecone.models.indexes.specs", "ServerlessSpec"),
