@@ -68,12 +68,12 @@ def indexes() -> AsyncPreviewIndexes:
 
 @respx.mock
 async def test_async_list_returns_async_paginator(indexes: AsyncPreviewIndexes) -> None:
-    """await list() returns an AsyncPaginator instance."""
+    """list() returns an AsyncPaginator instance without awaiting."""
     respx.get(f"{BASE_URL}/indexes").mock(
         return_value=httpx.Response(200, json={"indexes": [_INDEX_1]})
     )
 
-    result = await indexes.list()
+    result = indexes.list()
 
     assert isinstance(result, AsyncPaginator)
 
@@ -86,7 +86,7 @@ async def test_async_list_iterates_items(indexes: AsyncPreviewIndexes) -> None:
     )
 
     items: list[PreviewIndexModel] = []
-    async for idx in await indexes.list():
+    async for idx in indexes.list():
         items.append(idx)
 
     assert len(items) == 3
@@ -103,8 +103,7 @@ async def test_async_list_paginator_to_list(indexes: AsyncPreviewIndexes) -> Non
         return_value=httpx.Response(200, json={"indexes": [_INDEX_1, _INDEX_2]})
     )
 
-    result = await indexes.list()
-    items = await result.to_list()
+    items = await indexes.list().to_list()
 
     assert len(items) == 2
     assert all(isinstance(item, PreviewIndexModel) for item in items)
@@ -117,7 +116,7 @@ async def test_async_list_sends_api_version_header(indexes: AsyncPreviewIndexes)
         return_value=httpx.Response(200, json={"indexes": [_INDEX_1]})
     )
 
-    async for _ in await indexes.list():
+    async for _ in indexes.list():
         break
 
     assert route.called
@@ -131,7 +130,7 @@ async def test_async_list_rejects_non_positive_limit(
 ) -> None:
     """list(limit=0) raises PineconeValueError before any HTTP call."""
     with pytest.raises(PineconeValueError):
-        await indexes.list(limit=0)
+        indexes.list(limit=0)
 
     assert respx_mock.calls.call_count == 0
 
@@ -143,12 +142,15 @@ async def test_async_list_terminates_after_one_page(indexes: AsyncPreviewIndexes
         return_value=httpx.Response(200, json={"indexes": [_INDEX_1, _INDEX_2]})
     )
 
-    async for _ in await indexes.list():
+    async for _ in indexes.list():
         pass
 
     assert route.call_count == 1
 
 
-def test_async_list_is_coroutine() -> None:
-    """AsyncPreviewIndexes.list is a coroutine function."""
-    assert asyncio.iscoroutinefunction(AsyncPreviewIndexes.list)
+def test_async_list_is_not_coroutine() -> None:
+    """AsyncPreviewIndexes.list is a plain function, not a coroutine."""
+    config = PineconeConfig(api_key="test-key", host=BASE_URL)
+    indexes = AsyncPreviewIndexes(config=config)
+    assert not asyncio.iscoroutinefunction(AsyncPreviewIndexes.list)
+    assert isinstance(indexes.list(), AsyncPaginator)
