@@ -78,7 +78,7 @@ def test_create_full_body(indexes: PreviewIndexes) -> None:
         schema=_MINIMAL_SCHEMA,
         name="my-index",
         deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
-        read_capacity={"mode": "OnDemand", "status": {"state": "Ready"}},
+        read_capacity={"mode": "OnDemand"},
         deletion_protection="enabled",
         tags={"env": "test"},
     )
@@ -181,3 +181,35 @@ def test_create_accepts_spec_byoc_deployment(indexes: PreviewIndexes) -> None:
 
     body = orjson.loads(route.calls.last.request.content)
     assert body["deployment"] == deployment
+
+
+@respx.mock
+def test_create_accepts_spec_on_demand_read_capacity(indexes: PreviewIndexes) -> None:
+    """Spec-format OnDemand read_capacity dict is forwarded as-is without requiring status."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_PREVIEW_INDEX_RESPONSE)
+    )
+
+    indexes.create(schema=_MINIMAL_SCHEMA, read_capacity={"mode": "OnDemand"})
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["read_capacity"] == {"mode": "OnDemand"}
+
+
+@respx.mock
+def test_create_accepts_spec_dedicated_read_capacity(indexes: PreviewIndexes) -> None:
+    """Spec-format flat Dedicated read_capacity dict is forwarded verbatim."""
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_PREVIEW_INDEX_RESPONSE)
+    )
+    read_capacity = {
+        "mode": "Dedicated",
+        "node_type": "t1",
+        "scaling": "Manual",
+        "manual": {"shards": 2, "replicas": 1},
+    }
+
+    indexes.create(schema=_MINIMAL_SCHEMA, read_capacity=read_capacity)
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["read_capacity"] == read_capacity

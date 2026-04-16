@@ -11,7 +11,6 @@ from typing import Any
 
 from msgspec import Struct
 
-from pinecone.preview.models.read_capacity import PreviewReadCapacity
 from pinecone.preview.models.schema import PreviewSchema
 
 __all__ = ["PreviewConfigureIndexRequest", "PreviewCreateIndexRequest"]
@@ -40,7 +39,7 @@ class PreviewCreateIndexRequest(Struct, kw_only=True, omit_defaults=True):
     schema: PreviewSchema
     name: str | None = None
     deployment: dict[str, Any] | None = None
-    read_capacity: PreviewReadCapacity | None = None
+    read_capacity: dict[str, Any] | None = None
     deletion_protection: str | None = None
     tags: dict[str, str] | None = None
 
@@ -68,6 +67,6 @@ class PreviewConfigureIndexRequest(Struct, kw_only=True, omit_defaults=True):
 
     schema: PreviewSchema | None = None
     deployment: dict[str, Any] | None = None
-    read_capacity: PreviewReadCapacity | None = None
+    read_capacity: dict[str, Any] | None = None
     deletion_protection: str | None = None
     tags: dict[str, str] | None = None
