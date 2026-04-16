@@ -137,3 +137,9 @@ def test_schema_field_union_decode_dense_vector_with_all_fields() -> None:
     assert field.dimension == 512
     assert field.metric == "euclidean"
     assert field.description == "test"
+
+
+def test_preview_schema_decodes_empty_fields() -> None:
+    schema = msgspec.json.decode(b'{"fields": {}}', type=PreviewSchema)
+    assert schema.fields == {}
+    assert isinstance(schema.fields, dict)

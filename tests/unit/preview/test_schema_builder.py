@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+import pytest
+
 from pinecone.preview import SchemaBuilder
 
 # ---------------------------------------------------------------------------
@@ -140,6 +142,18 @@ def test_string_field_additional_options_merged_last() -> None:
     assert field["full_text_searchable_override"] is True
 
 
+def test_string_field_full_text_and_filterable_together() -> None:
+    schema = (
+        SchemaBuilder()
+        .add_string_field("title", full_text_searchable=True, filterable=True, language="en")
+        .build()
+    )
+    field = schema["fields"]["title"]
+    assert field["full_text_searchable"] is True
+    assert field["filterable"] is True
+    assert field["language"] == "en"
+
+
 # ---------------------------------------------------------------------------
 # add_semantic_text_field
 # ---------------------------------------------------------------------------
@@ -258,6 +272,30 @@ def test_duplicate_field_preserves_last_definition() -> None:
 
 
 # ---------------------------------------------------------------------------
+# add_* methods return self for chaining
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "method_name,args,kwargs",
+    [
+        ("add_dense_vector_field", ("vec",), {"dimension": 128, "metric": "cosine"}),
+        ("add_sparse_vector_field", ("sparse",), {}),
+        ("add_string_field", ("title",), {}),
+        ("add_semantic_text_field", ("text",), {"model": "multilingual-e5-large"}),
+        ("add_integer_field", ("year",), {}),
+        ("add_custom_field", ("custom", {"type": "custom"}), {}),
+    ],
+)
+def test_add_methods_return_self_for_chaining(
+    method_name: str, args: tuple[Any, ...], kwargs: dict[str, Any]
+) -> None:
+    builder = SchemaBuilder()
+    method = getattr(builder, method_name)
+    assert method(*args, **kwargs) is builder
+
+
+# ---------------------------------------------------------------------------
 # build() idempotency
 # ---------------------------------------------------------------------------
 
@@ -284,6 +322,12 @@ def test_build_subsequent_mutations_do_not_affect_prior_result() -> None:
     second = builder.build()
     assert "body" not in first["fields"]
     assert "body" in second["fields"]
+
+
+def test_build_empty_schema_returns_empty_fields() -> None:
+    result = SchemaBuilder().build()
+    assert result == {"fields": {}}
+    assert isinstance(result["fields"], dict)
 
 
 # ---------------------------------------------------------------------------
