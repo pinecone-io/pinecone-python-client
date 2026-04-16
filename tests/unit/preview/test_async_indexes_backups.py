@@ -18,7 +18,7 @@ from pinecone.preview.models.backups import PreviewBackupModel
 
 BASE_URL = "https://api.test.pinecone.io"
 
-_BACKUP_1: dict = {
+_BACKUP_1: dict[str, object] = {
     "backup_id": "bkp-001",
     "source_index_id": "idx-001",
     "source_index_name": "my-index",
@@ -33,7 +33,7 @@ _BACKUP_1: dict = {
     "size_bytes": 512000,
 }
 
-_BACKUP_2: dict = {
+_BACKUP_2: dict[str, object] = {
     "backup_id": "bkp-002",
     "source_index_id": "idx-001",
     "source_index_name": "my-index",
@@ -43,7 +43,7 @@ _BACKUP_2: dict = {
     "created_at": "2026-01-02T00:00:00Z",
 }
 
-_BACKUP_3: dict = {
+_BACKUP_3: dict[str, object] = {
     "backup_id": "bkp-003",
     "source_index_id": "idx-001",
     "source_index_name": "my-index",
@@ -229,6 +229,25 @@ async def test_async_list_backups_rejects_non_positive_limit(
     with pytest.raises(PineconeValueError):
         indexes.list_backups("foo", limit=0)
     assert not respx.calls
+
+
+@respx.mock
+async def test_async_list_backups_respects_limit(
+    indexes: AsyncPreviewIndexes,
+) -> None:
+    """list_backups(limit=2) yields at most 2 items even when the server returns more."""
+    respx.get(f"{BASE_URL}/indexes/foo/backups").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "data": [_BACKUP_1, _BACKUP_2, _BACKUP_3, _BACKUP_1, _BACKUP_2],
+                "pagination": {"next": None},
+            },
+        )
+    )
+    paginator = indexes.list_backups("foo", limit=2)
+    items = [backup async for backup in paginator]
+    assert len(items) == 2
 
 
 def test_async_create_backup_is_coroutine() -> None:
