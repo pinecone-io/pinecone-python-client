@@ -11,6 +11,66 @@ from unittest.mock import AsyncMock
 import pytest
 
 from pinecone.async_client.assistants import AsyncAssistants
+from pinecone.models.assistant.list import ListAssistantsResponse
+from pinecone.models.assistant.model import AssistantModel
+
+_CANNED_ASSISTANT = AssistantModel(
+    name="legacy-name",
+    status="Ready",
+    created_at="2025-01-15T12:00:00Z",
+    updated_at="2025-01-15T12:00:00Z",
+    metadata={},
+    instructions=None,
+    host="test-assistant-abc123.svc.pinecone.io",
+)
+
+
+# ---------------------------------------------------------------------------
+# list_assistants shim tests (BC-0032)
+# ---------------------------------------------------------------------------
+
+
+async def test_async_list_assistants_returns_list(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """list_assistants() materializes the async paginator and returns a plain list."""
+    mock_async_assistants._adapter.to_assistant_list.return_value = ListAssistantsResponse(  # type: ignore[attr-defined]
+        assistants=[_CANNED_ASSISTANT], next=None
+    )
+    result = await mock_async_assistants.list_assistants()
+    assert isinstance(result, list)
+    assert all(isinstance(a, AssistantModel) for a in result)
+
+
+async def test_async_list_assistants_paginated_returns_response_shape(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """list_assistants_paginated() returns a ListAssistantsResponse."""
+    mock_async_assistants._adapter.to_assistant_list.return_value = ListAssistantsResponse(  # type: ignore[attr-defined]
+        assistants=[_CANNED_ASSISTANT], next=None
+    )
+    resp = await mock_async_assistants.list_assistants_paginated(limit=2)
+    assert isinstance(resp, ListAssistantsResponse)
+    assert hasattr(resp, "assistants")
+    assert hasattr(resp, "next")
+
+
+async def test_async_list_assistants_paginated_legacy_limit_alias(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """list_assistants_paginated(limit=...) passes page_size= to list_page."""
+    canned_response = ListAssistantsResponse(assistants=[], next=None)
+    spy_list_page = AsyncMock(return_value=canned_response)
+    mock_async_assistants.list_page = spy_list_page  # type: ignore[method-assign]
+
+    await mock_async_assistants.list_assistants_paginated(limit=5)
+
+    spy_list_page.assert_called_once_with(page_size=5, pagination_token=None)
+
+
+# ---------------------------------------------------------------------------
+# create_assistant shim tests (BC-0030)
+# ---------------------------------------------------------------------------
 
 
 async def test_async_create_assistant_legacy_method(
