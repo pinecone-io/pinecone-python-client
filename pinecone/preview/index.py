@@ -40,7 +40,16 @@ class PreviewIndex:
 
     @property
     def host(self) -> str:
-        """Data-plane host URL for this index."""
+        """Data-plane host URL for this index.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+        """
         return self._host
 
     def __repr__(self) -> str:

@@ -239,5 +239,6 @@ class PreviewDocumentFetchResponse:
 
     def __repr__(self) -> str:
         return (
-            f"FetchResponse(documents={len(self.documents)}, namespace={self.namespace!r}, usage={self.usage!r})"
+            f"FetchResponse(documents={len(self.documents)}, namespace={self.namespace!r},"
+            f" usage={self.usage!r})"
         )
