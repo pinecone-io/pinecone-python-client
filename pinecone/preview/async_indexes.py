@@ -2,24 +2,35 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
 from typing import TYPE_CHECKING, Any
 
 import msgspec
 import orjson
 
 from pinecone._internal.constants import DEFAULT_BASE_URL
-from pinecone.errors.exceptions import PineconeValueError
-from pinecone.preview._internal.adapters.indexes import create_adapter
+from pinecone._internal.validation import require_non_empty, require_positive
+from pinecone.errors.exceptions import NotFoundError, PineconeTimeoutError, PineconeValueError
+from pinecone.models.pagination import AsyncPaginator, Page
+from pinecone.preview._internal.adapters.indexes import (
+    configure_adapter,
+    create_adapter,
+    describe_adapter,
+    list_adapter,
+)
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
 from pinecone.preview.models.indexes import PreviewIndexModel
-from pinecone.preview.models.requests import PreviewCreateIndexRequest
+from pinecone.preview.models.requests import PreviewConfigureIndexRequest, PreviewCreateIndexRequest
 from pinecone.preview.models.schema import PreviewSchema
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
 
 logger = logging.getLogger(__name__)
+
+_POLL_INTERVAL_SECONDS = 5
 
 __all__ = ["AsyncPreviewIndexes"]
 
@@ -167,3 +178,274 @@ class AsyncPreviewIndexes:
             headers={"Content-Type": "application/json"},
         )
         return create_adapter.from_response(orjson.loads(response.content))
+
+    async def configure(
+        self,
+        name: str,
+        *,
+        schema: dict[str, Any] | None = None,
+        deletion_protection: str | None = None,
+        tags: dict[str, str] | None = None,
+        read_capacity: dict[str, Any] | None = None,
+    ) -> PreviewIndexModel:
+        """Update configuration of an existing preview index.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Only the fields you provide are updated; omitted parameters are left
+        unchanged on the server.
+
+        Args:
+            name: Name of the preview index to configure.
+            schema: Updated schema definition.
+            deletion_protection: ``"enabled"`` to prevent accidental deletion;
+                ``"disabled"`` to allow it.
+            tags: Replacement set of key-value tags for the index. Keys must
+                be at most 80 characters; values at most 120 characters.
+            read_capacity: Updated read capacity configuration dict.
+
+        Returns:
+            :class:`PreviewIndexModel` reflecting the updated index state.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name*
+                is empty; if all kwargs are ``None``; if *schema*, *tags*, or
+                *read_capacity* is an empty dict; or if a tag key/value
+                exceeds the length limit.
+            :exc:`msgspec.ValidationError`: If *schema* cannot be converted
+                to the expected typed model.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns
+                an error response.
+        """
+        require_non_empty("name", name)
+
+        if schema is not None and not schema:
+            raise PineconeValueError("schema cannot be an empty dict")
+        if tags is not None and not tags:
+            raise PineconeValueError("tags cannot be an empty dict")
+        if read_capacity is not None and not read_capacity:
+            raise PineconeValueError("read_capacity cannot be an empty dict")
+
+        if (
+            schema is None
+            and deletion_protection is None
+            and tags is None
+            and read_capacity is None
+        ):
+            raise PineconeValueError(
+                "at least one configuration parameter must be provided: "
+                "schema, deletion_protection, tags, or read_capacity"
+            )
+
+        if tags is not None:
+            for key, value in tags.items():
+                if len(key) > 80:
+                    raise PineconeValueError(f"Tag key {key!r} exceeds the 80-character limit.")
+                if len(value) > 120:
+                    raise PineconeValueError(
+                        f"Tag value for key {key!r} exceeds the 120-character limit."
+                    )
+
+        typed_schema = msgspec.convert(schema, PreviewSchema) if schema is not None else None
+
+        req = PreviewConfigureIndexRequest(
+            schema=typed_schema,
+            read_capacity=read_capacity,
+            deletion_protection=deletion_protection,
+            tags=tags,
+        )
+
+        provided = [
+            k
+            for k, v in {
+                "schema": schema,
+                "deletion_protection": deletion_protection,
+                "tags": tags,
+                "read_capacity": read_capacity,
+            }.items()
+            if v is not None
+        ]
+        logger.info("Configuring preview index name=%r params=%r", name, provided)
+
+        response = await self._http.patch(
+            f"/indexes/{name}",
+            content=configure_adapter.to_request(req),
+            headers={"Content-Type": "application/json"},
+        )
+        return configure_adapter.from_response(orjson.loads(response.content))
+
+    async def describe(self, name: str) -> PreviewIndexModel:
+        """Get detailed information about a named preview index.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Args:
+            name: Name of the preview index to describe.
+
+        Returns:
+            :class:`PreviewIndexModel` with name, host, schema, deployment,
+            read_capacity, status, deletion_protection, and tags.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name* is empty.
+            :exc:`~pinecone.errors.exceptions.NotFoundError`: If the index does not exist.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns another error response.
+        """
+        require_non_empty("name", name)
+        logger.info("Describing preview index name=%r", name)
+        response = await self._http.get(f"/indexes/{name}")
+        return describe_adapter.from_response(orjson.loads(response.content))
+
+    def list(
+        self,
+        *,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> AsyncPaginator[PreviewIndexModel]:
+        """List all preview indexes.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        The 2026-01.alpha server returns all indexes in a single page. The
+        returned :class:`~pinecone.models.pagination.AsyncPaginator` always
+        yields exactly one page and then terminates, but the paginator interface
+        is used for consistency and forward compatibility.
+
+        Args:
+            limit: Maximum number of items to yield across all pages. Must be
+                a positive integer. ``None`` yields all items.
+            pagination_token: Token to resume pagination from a previous call.
+                ``None`` starts from the beginning.
+
+        Returns:
+            :class:`~pinecone.models.pagination.AsyncPaginator` over
+            :class:`~pinecone.preview.models.indexes.PreviewIndexModel`
+            instances.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *limit*
+                is zero or negative.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an
+                error response.
+
+        Examples::
+
+            async for index in pc.preview.indexes.list():
+                print(index.name)
+
+            all_indexes = await pc.preview.indexes.list().to_list()
+        """
+        if limit is not None:
+            require_positive("limit", limit)
+
+        async def fetch_page(token: str | None) -> Page[PreviewIndexModel]:
+            response = await self._http.get("/indexes")
+            items = list_adapter.from_response(orjson.loads(response.content))
+            return Page(items=items, pagination_token=None)
+
+        return AsyncPaginator(fetch_page=fetch_page, initial_token=pagination_token, limit=limit)
+
+    async def exists(self, name: str) -> bool:
+        """Check whether a named preview index exists.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Uses :meth:`describe` internally; catches :exc:`NotFoundError` and
+        returns ``False``.
+
+        Args:
+            name: Name of the preview index to check.
+
+        Returns:
+            ``True`` if the index exists, ``False`` if it does not.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name* is empty.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an error other than 404.
+        """
+        require_non_empty("name", name)
+        try:
+            await self.describe(name)
+            return True
+        except NotFoundError:
+            return False
+
+    async def delete(self, name: str, *, timeout: int | None = None) -> None:
+        """Delete a named preview index.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Sends a DELETE request and, depending on *timeout*, polls until the
+        index disappears.
+
+        Args:
+            name: Name of the preview index to delete.
+            timeout: Controls post-delete polling behaviour.
+
+                - ``None`` (default): poll :meth:`describe` every 5 seconds
+                  with no upper bound until the index is gone.
+                - ``-1``: return immediately after the DELETE response without
+                  polling.
+                - Positive integer: poll until the index is gone or *timeout*
+                  seconds have elapsed. Raises :exc:`PineconeTimeoutError` if
+                  the deadline is reached before the index disappears.
+
+        Returns:
+            ``None``
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name* is empty.
+            :exc:`~pinecone.errors.exceptions.NotFoundError`: If the index does not exist.
+            :exc:`~pinecone.errors.exceptions.ForbiddenError`: If deletion protection is enabled.
+            :exc:`~pinecone.errors.exceptions.PineconeTimeoutError`: If *timeout* seconds elapse
+                before the index disappears.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns another error response.
+        """
+        require_non_empty("name", name)
+        logger.info("Deleting preview index name=%r", name)
+        await self._http.delete(f"/indexes/{name}")
+
+        if timeout == -1:
+            return
+
+        start = time.monotonic()
+        while True:
+            try:
+                await self.describe(name)
+            except NotFoundError:
+                return
+            if timeout is not None:
+                elapsed = time.monotonic() - start
+                if elapsed >= timeout:
+                    raise PineconeTimeoutError(f"Index {name!r} still exists after {timeout}s")
+            await asyncio.sleep(_POLL_INTERVAL_SECONDS)

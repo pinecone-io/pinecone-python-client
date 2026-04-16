@@ -13,6 +13,7 @@ from pinecone.preview.schema_builder import SchemaBuilder as SchemaBuilder
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
     from pinecone._internal.http_client import AsyncHTTPClient, HTTPClient
+    from pinecone.preview.async_indexes import AsyncPreviewIndexes
     from pinecone.preview.indexes import PreviewIndexes
 
 __all__ = ["AsyncPreview", "Preview"]
@@ -76,6 +77,23 @@ class AsyncPreview:
     def __init__(self, http: AsyncHTTPClient, config: PineconeConfig) -> None:
         self._http = http
         self._config = config
+        self._indexes: AsyncPreviewIndexes | None = None
+
+    @property
+    def indexes(self) -> AsyncPreviewIndexes:
+        """Access the async preview indexes control-plane namespace.
+
+        Lazily instantiated on first access. Reuses the parent client's
+        configuration and credentials.
+
+        Returns:
+            :class:`~pinecone.preview.async_indexes.AsyncPreviewIndexes` instance.
+        """
+        if self._indexes is None:
+            from pinecone.preview.async_indexes import AsyncPreviewIndexes
+
+            self._indexes = AsyncPreviewIndexes(config=self._config)
+        return self._indexes
 
     def __repr__(self) -> str:
         return "AsyncPreview()"
