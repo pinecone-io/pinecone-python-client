@@ -123,3 +123,29 @@ async def test_async_update_rejects_unknown(
     """Passing an unrecognised kwarg raises PineconeValueError."""
     with pytest.raises(PineconeValueError, match="unexpected"):
         await mock_async_assistants.update(name="foo", bogus=1)
+
+
+@pytest.mark.asyncio
+async def test_async_delete_accepts_legacy_assistant_name(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """assistant_name= is accepted as a legacy alias for name= on async delete."""
+    await mock_async_assistants.delete(assistant_name="foo", timeout=-1)
+
+
+@pytest.mark.asyncio
+async def test_async_delete_rejects_both(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """Passing both name= and assistant_name= raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="both"):
+        await mock_async_assistants.delete(name="a", assistant_name="b")
+
+
+@pytest.mark.asyncio
+async def test_async_delete_rejects_unknown(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """Passing an unrecognised kwarg raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="unexpected"):
+        await mock_async_assistants.delete(name="foo", bogus=1)
