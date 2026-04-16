@@ -9,7 +9,7 @@ New code should import from the canonical module.
 """
 
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any
 
 from pinecone_plugins.assistant.models.core.dataclass import BaseDataclass
 from pinecone_plugins.assistant.models.shared import TokenCounts
@@ -45,7 +45,7 @@ class EvaluatedFact(BaseDataclass):
 class Reasoning(BaseDataclass):
     """Reasoning output containing evaluated facts."""
 
-    evaluated_facts: List[EvaluatedFact]
+    evaluated_facts: list[EvaluatedFact]
 
     @classmethod
     def from_openapi(cls, reasoning: Any) -> "Reasoning":
