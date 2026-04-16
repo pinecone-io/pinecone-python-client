@@ -139,3 +139,30 @@ async def test_async_describe_assistant_forwards_to_describe(
 
     await mock_async_assistants.describe_assistant(assistant_name="my-assistant")
     spy.assert_called_once_with(name="my-assistant")
+
+
+# ---------------------------------------------------------------------------
+# update_assistant shim tests (BC-0033)
+# ---------------------------------------------------------------------------
+
+
+async def test_async_update_assistant_legacy_method(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """update_assistant(assistant_name=...) delegates to update() and returns a model."""
+    result = await mock_async_assistants.update_assistant(
+        assistant_name="foo",
+        instructions="be precise",
+        metadata={"k": "v"},
+    )
+    # Returns the canned fixture value from mock_async_assistants
+    assert result.name == "legacy-name"
+
+
+async def test_async_update_assistant_legacy_positional(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """update_assistant() accepts positional args (legacy call convention)."""
+    result = await mock_async_assistants.update_assistant("foo", "be nice", {"k": "v"})
+    # Returns the canned fixture value from mock_async_assistants
+    assert result.name == "legacy-name"
