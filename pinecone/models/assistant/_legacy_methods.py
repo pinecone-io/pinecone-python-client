@@ -23,12 +23,12 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from pinecone.client.assistants import Assistants
-    from pinecone.models.assistant.chat import ChatResponse
+    from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
     from pinecone.models.assistant.file_model import AssistantFileModel
     from pinecone.models.assistant.list import ListFilesResponse
     from pinecone.models.assistant.message import Message
     from pinecone.models.assistant.options import ContextOptions
-    from pinecone.models.assistant.streaming import ChatStreamChunk
+    from pinecone.models.assistant.streaming import ChatCompletionStreamChunk, ChatStreamChunk
 
 
 class AssistantModelLegacyMethodsMixin:
@@ -177,6 +177,27 @@ class AssistantModelLegacyMethodsMixin:
             assistant_name=self.name,  # type: ignore[attr-defined]
             file_id=file_id,
             timeout=timeout,
+            **kwargs,
+        )
+
+    def chat_completions(
+        self,
+        messages: list[Message] | list[dict[str, Any]],
+        filter: dict[str, Any] | None = None,
+        stream: bool = False,
+        model: str | None = None,
+        temperature: float | None = None,
+        **kwargs: Any,
+    ) -> ChatCompletionResponse | Iterator[ChatCompletionStreamChunk]:
+        """Deprecated alias for :meth:`Assistants.chat_completions`."""
+        ns = self._resolve_assistants()
+        return ns.chat_completions(
+            assistant_name=self.name,  # type: ignore[attr-defined]
+            messages=messages,  # type: ignore[arg-type]
+            filter=filter,
+            stream=stream,
+            model=model,  # type: ignore[arg-type]
+            temperature=temperature,
             **kwargs,
         )
 
