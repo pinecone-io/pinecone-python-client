@@ -116,7 +116,15 @@ class ChatCompletionStreamChunk(Struct, kw_only=True):
     Attributes:
         id: Unique identifier for this chunk.
         choices: List of streaming choices.
+        model: The model used to generate the response, or ``None`` if not provided.
+        object: The object type (typically ``"chat.completion.chunk"``), or ``None``.
+        created: Unix timestamp when the chunk was created, or ``None``.
+        system_fingerprint: Opaque fingerprint identifying the backend, or ``None``.
     """
 
     id: str
     choices: list[ChatCompletionStreamChoice]
+    model: str | None = None
+    object: str | None = None
+    created: int | None = None
+    system_fingerprint: str | None = None

@@ -1225,9 +1225,7 @@ def test_chat_completions_streaming_rest(client: Pinecone) -> None:
     name = unique_name("asst")
     tmp_path: str | None = None
     try:
-        assistant = client.assistants.create(
-            name=name, instructions="You are a helpful assistant."
-        )
+        assistant = client.assistants.create(name=name, instructions="You are a helpful assistant.")
         assert isinstance(assistant, AssistantModel)
 
         wait_for_ready(
@@ -1285,9 +1283,7 @@ def test_chat_completions_streaming_rest(client: Pinecone) -> None:
             for c in chunk.choices
             if c.delta.content is not None and c.delta.content != ""
         ]
-        assert len(content_choices) > 0, (
-            "Expected at least one chunk with non-empty delta.content"
-        )
+        assert len(content_choices) > 0, "Expected at least one chunk with non-empty delta.content"
 
         # Concatenated response must be meaningful
         full_content = "".join(
@@ -1364,9 +1360,7 @@ def test_list_files_page_with_page_size_and_pagination_token_rest(client: Pineco
         for fid in (file_id_a, file_id_b):
             wait_for_ready(
                 lambda fid=fid: (
-                    client.assistants.describe_file(
-                        assistant_name=name, file_id=fid
-                    ).status
+                    client.assistants.describe_file(assistant_name=name, file_id=fid).status
                     in ("Available", "Processed")
                 ),
                 timeout=120,
@@ -1376,9 +1370,7 @@ def test_list_files_page_with_page_size_and_pagination_token_rest(client: Pineco
 
         # list_files_page() returns all files in a single response
         page = client.assistants.list_files_page(assistant_name=name)
-        assert isinstance(page, ListFilesResponse), (
-            f"Expected ListFilesResponse, got {type(page)}"
-        )
+        assert isinstance(page, ListFilesResponse), f"Expected ListFilesResponse, got {type(page)}"
         assert isinstance(page.files, list), "page.files must be a list"
         assert all(isinstance(f, AssistantFileModel) for f in page.files), (
             "Each file in list must be an AssistantFileModel"
@@ -1392,9 +1384,7 @@ def test_list_files_page_with_page_size_and_pagination_token_rest(client: Pineco
     finally:
         for fid in filter(None, [file_id_a, file_id_b]):
             with contextlib.suppress(Exception):
-                client.assistants.delete_file(
-                    assistant_name=name, file_id=fid, timeout=30
-                )
+                client.assistants.delete_file(assistant_name=name, file_id=fid, timeout=30)
         cleanup_resource(
             lambda: client.assistants.delete(name=name, timeout=60),
             name,
@@ -1421,9 +1411,7 @@ def test_chat_stream_message_start_and_end_structure_rest(client: Pinecone) -> N
     tmp_path: str | None = None
     try:
         # Create assistant
-        assistant = client.assistants.create(
-            name=name, instructions="You are a helpful assistant."
-        )
+        assistant = client.assistants.create(name=name, instructions="You are a helpful assistant.")
         assert isinstance(assistant, AssistantModel)
 
         # Wait for Ready
@@ -1481,9 +1469,9 @@ def test_chat_stream_message_start_and_end_structure_rest(client: Pinecone) -> N
         assert isinstance(last.usage.prompt_tokens, int) and last.usage.prompt_tokens >= 0, (
             f"prompt_tokens must be a non-negative int, got {last.usage.prompt_tokens!r}"
         )
-        assert isinstance(last.usage.completion_tokens, int) and last.usage.completion_tokens >= 0, (
-            f"completion_tokens must be a non-negative int, got {last.usage.completion_tokens!r}"
-        )
+        assert (
+            isinstance(last.usage.completion_tokens, int) and last.usage.completion_tokens >= 0
+        ), f"completion_tokens must be a non-negative int, got {last.usage.completion_tokens!r}"
         assert isinstance(last.usage.total_tokens, int) and last.usage.total_tokens > 0, (
             f"total_tokens must be a positive int, got {last.usage.total_tokens!r}"
         )
@@ -1517,9 +1505,7 @@ def test_chat_json_response_mode_returns_valid_json_rest(client: Pinecone) -> No
     name = unique_name("asst")
     tmp_path: str | None = None
     try:
-        assistant = client.assistants.create(
-            name=name, instructions="You are a helpful assistant."
-        )
+        assistant = client.assistants.create(name=name, instructions="You are a helpful assistant.")
         assert isinstance(assistant, AssistantModel)
 
         wait_for_ready(
@@ -1558,9 +1544,7 @@ def test_chat_json_response_mode_returns_valid_json_rest(client: Pinecone) -> No
         )
 
         # Verify ChatResponse structure
-        assert isinstance(response, ChatResponse), (
-            f"Expected ChatResponse, got {type(response)}"
-        )
+        assert isinstance(response, ChatResponse), f"Expected ChatResponse, got {type(response)}"
         assert isinstance(response.message.content, str) and len(response.message.content) > 0, (
             f"message.content must be a non-empty string, got {response.message.content!r}"
         )
@@ -1618,9 +1602,7 @@ def test_chat_include_highlights_rest(client: Pinecone) -> None:
     name = unique_name("asst")
     tmp_path: str | None = None
     try:
-        assistant = client.assistants.create(
-            name=name, instructions="You are a helpful assistant."
-        )
+        assistant = client.assistants.create(name=name, instructions="You are a helpful assistant.")
         assert isinstance(assistant, AssistantModel)
 
         wait_for_ready(
@@ -1661,22 +1643,16 @@ def test_chat_include_highlights_rest(client: Pinecone) -> None:
         # For every reference returned, highlight must be None or a valid ChatHighlight
         for citation in response_with.citations:
             for ref in citation.references:
-                assert isinstance(ref, ChatReference), (
-                    f"Expected ChatReference, got {type(ref)}"
-                )
+                assert isinstance(ref, ChatReference), f"Expected ChatReference, got {type(ref)}"
                 if ref.highlight is not None:
                     assert isinstance(ref.highlight, ChatHighlight), (
                         f"highlight must be ChatHighlight or None, got {type(ref.highlight)}"
                     )
-                    assert (
-                        isinstance(ref.highlight.type, str) and len(ref.highlight.type) > 0
-                    ), (
-                        f"ChatHighlight.type must be a non-empty string, "
-                        f"got {ref.highlight.type!r}"
+                    assert isinstance(ref.highlight.type, str) and len(ref.highlight.type) > 0, (
+                        f"ChatHighlight.type must be a non-empty string, got {ref.highlight.type!r}"
                     )
                     assert (
-                        isinstance(ref.highlight.content, str)
-                        and len(ref.highlight.content) > 0
+                        isinstance(ref.highlight.content, str) and len(ref.highlight.content) > 0
                     ), (
                         f"ChatHighlight.content must be a non-empty string, "
                         f"got {ref.highlight.content!r}"
@@ -1735,9 +1711,7 @@ def test_chat_context_options_typed_and_dict_rest(client: Pinecone) -> None:
     name = unique_name("asst")
     tmp_path: str | None = None
     try:
-        assistant = client.assistants.create(
-            name=name, instructions="You are a helpful assistant."
-        )
+        assistant = client.assistants.create(name=name, instructions="You are a helpful assistant.")
         assert isinstance(assistant, AssistantModel)
 
         wait_for_ready(
@@ -2099,9 +2073,7 @@ def test_assistants_list_page_response_structure_rest(client: Pinecone) -> None:
     name = unique_name("asst")
     try:
         # Create an assistant to ensure at least one exists
-        assistant = client.assistants.create(
-            name=name, instructions="You are a helpful assistant."
-        )
+        assistant = client.assistants.create(name=name, instructions="You are a helpful assistant.")
         assert isinstance(assistant, AssistantModel)
 
         wait_for_ready(
@@ -2131,9 +2103,7 @@ def test_assistants_list_page_response_structure_rest(client: Pinecone) -> None:
 
         # Each item in the list is an AssistantModel with expected fields
         for a in page.assistants:
-            assert isinstance(a, AssistantModel), (
-                f"Expected AssistantModel, got {type(a)}"
-            )
+            assert isinstance(a, AssistantModel), f"Expected AssistantModel, got {type(a)}"
             assert isinstance(a.name, str) and len(a.name) > 0, (
                 f"AssistantModel.name must be a non-empty string, got {a.name!r}"
             )
@@ -2229,7 +2199,7 @@ def test_pagination_next_token_populated(client: Pinecone) -> None:
                 # Wire format uses next_token — the rename mapping is needed
                 raise AssertionError(
                     f"Wire format uses 'next_token' (value={raw_body['next_token']!r}), "
-                    "but the SDK model reads 'next'. Add rename={{\"next\": \"next_token\"}} "
+                    'but the SDK model reads \'next\'. Add rename={{"next": "next_token"}} '
                     "to ListAssistantsResponse to fix pagination."
                 )
             elif has_nested_pagination and raw_body["pagination"].get("next"):
@@ -2275,9 +2245,7 @@ def test_pagination_next_token_populated(client: Pinecone) -> None:
         finally:
             for fid in file_ids:
                 with contextlib.suppress(Exception):
-                    client.assistants.delete_file(
-                        assistant_name=asst_name, file_id=fid, timeout=30
-                    )
+                    client.assistants.delete_file(assistant_name=asst_name, file_id=fid, timeout=30)
             cleanup_resource(
                 lambda: client.assistants.delete(name=asst_name, timeout=60),
                 asst_name,
@@ -2314,9 +2282,7 @@ def test_upload_file_with_caller_specified_file_id_rest(client: Pinecone) -> Non
     file_id: str | None = None
 
     try:
-        assistant = client.assistants.create(
-            name=name, instructions="File upsert test assistant."
-        )
+        assistant = client.assistants.create(name=name, instructions="File upsert test assistant.")
         assert isinstance(assistant, AssistantModel)
 
         wait_for_ready(
@@ -2451,9 +2417,7 @@ def test_assistant_model_dict_mixin_operations_rest(client: Pinecone) -> None:
 
         # --- unified-model-0003: len(model) returns field count ---
         # AssistantModel has 7 declared fields
-        assert len(model) == 7, (
-            f"AssistantModel has 7 declared fields; got len()={len(model)}"
-        )
+        assert len(model) == 7, f"AssistantModel has 7 declared fields; got len()={len(model)}"
 
         # --- unified-model-0004: keys(), values(), items() ---
         keys = model.keys()
@@ -2531,9 +2495,7 @@ def test_chat_completions_streaming_finish_reason_rest(client: Pinecone) -> None
     name = unique_name("asst")
     tmp_path: str | None = None
     try:
-        assistant = client.assistants.create(
-            name=name, instructions="You are a helpful assistant."
-        )
+        assistant = client.assistants.create(name=name, instructions="You are a helpful assistant.")
         assert isinstance(assistant, AssistantModel)
 
         wait_for_ready(
@@ -2844,9 +2806,7 @@ def test_chat_across_all_supported_models_and_rejects_invalid(
             assert isinstance(response.message.content, str), (
                 f"model={model_name!r} returned non-string content"
             )
-            assert len(response.message.content) > 0, (
-                f"model={model_name!r} returned empty content"
-            )
+            assert len(response.message.content) > 0, f"model={model_name!r} returned empty content"
 
         # Unknown model must raise
         with pytest.raises((ApiError, PineconeError, PineconeValueError)):
@@ -3178,9 +3138,7 @@ def test_describe_file_docx_with_signed_url(client: Pinecone) -> None:
     finally:
         if file_id is not None:
             with contextlib.suppress(Exception):
-                client.assistants.delete_file(
-                    assistant_name=name, file_id=file_id, timeout=60
-                )
+                client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
         cleanup_resource(
             lambda: client.assistants.delete(name=name, timeout=60),
             name,
@@ -3246,9 +3204,7 @@ def test_describe_file_preserves_uploaded_metadata(client: Pinecone) -> None:
     finally:
         if file_id is not None:
             with contextlib.suppress(Exception):
-                client.assistants.delete_file(
-                    assistant_name=name, file_id=file_id, timeout=60
-                )
+                client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
         if tmp_path is not None:
             with contextlib.suppress(Exception):
                 os.unlink(tmp_path)
@@ -3326,7 +3282,8 @@ def test_multimodal_pdf_context_image_text_and_errors(client: Pinecone) -> None:
             f"expected MultimodalSnippet, got {type(snippet).__name__}"
         )
         image_blocks_with_data = [
-            b for b in snippet.content
+            b
+            for b in snippet.content
             if isinstance(b, ContextImageBlock) and b.image_data is not None
         ]
         assert len(image_blocks_with_data) > 0, (
@@ -3457,10 +3414,13 @@ def test_upload_file_content_hash_populated(client: Pinecone) -> None:
 
         # Poll until processing is complete
         wait_for_ready(
-            lambda: client.assistants.describe_file(
-                assistant_name=name, file_id=file_id  # type: ignore[arg-type]
-            ).status
-            in ("Available", "Processed"),
+            lambda: (
+                client.assistants.describe_file(
+                    assistant_name=name,
+                    file_id=file_id,  # type: ignore[arg-type]
+                ).status
+                in ("Available", "Processed")
+            ),
             timeout=180,
             interval=5,
             description=f"file {file_id}",
@@ -3489,7 +3449,9 @@ def test_upload_file_content_hash_populated(client: Pinecone) -> None:
         print(f"\n[IT-0020] wire keys present: {list(raw_json.keys())}")
         print(f"[IT-0020] 'content_hash' in wire response: {has_content_hash_wire}")
         print(f"[IT-0020] 'crc32c_hash' in wire response: {has_crc32c_hash_wire}")
-        print(f"[IT-0020] raw hash values: content_hash={raw_json.get('content_hash')!r}, crc32c_hash={raw_json.get('crc32c_hash')!r}")
+        print(
+            f"[IT-0020] raw hash values: content_hash={raw_json.get('content_hash')!r}, crc32c_hash={raw_json.get('crc32c_hash')!r}"
+        )
 
         # --- 2. SDK-level check: content_hash must be populated if the wire has a hash ---
         described = client.assistants.describe_file(assistant_name=name, file_id=file_id)
@@ -3519,7 +3481,9 @@ def test_upload_file_content_hash_populated(client: Pinecone) -> None:
             # Verify the SDK model reflects None correctly and the alias still works.
             assert described.content_hash is None
             assert described.crc32c_hash is None
-            print("[IT-0020] NOTE: API returned no hash for this file — crc32c_hash absent from wire response")
+            print(
+                "[IT-0020] NOTE: API returned no hash for this file — crc32c_hash absent from wire response"
+            )
 
     finally:
         if tmp_path is not None:
@@ -3527,9 +3491,7 @@ def test_upload_file_content_hash_populated(client: Pinecone) -> None:
                 os.unlink(tmp_path)
         if file_id is not None:
             with contextlib.suppress(Exception):
-                client.assistants.delete_file(
-                    assistant_name=name, file_id=file_id, timeout=60
-                )
+                client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
         cleanup_resource(
             lambda: client.assistants.delete(name=name, timeout=60),
             name,
@@ -3680,6 +3642,103 @@ def test_streaming_chunks_model_field(client: Pinecone) -> None:
                     "API emits 'model' on message_end but SDK StreamMessageEnd.model is None"
                 )
                 print(f"[IT-0022] StreamMessageEnd.model={models_end[0]!r}")
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# assistant-chat-completions-stream-extra-fields (IT-0023)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_chat_completions_stream_extra_fields(client: Pinecone) -> None:
+    """Verify ChatCompletionStreamChunk exposes model/object/created/system_fingerprint.
+
+    Calls chat_completions(stream=True), iterates over chunks, and checks that the
+    optional extra fields (model, object, created, system_fingerprint) are accessible
+    on each ChatCompletionStreamChunk without raising AttributeError.  Records which
+    fields are non-None (i.e. actually emitted by the API) for IT-0023 investigation.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        assistant = client.assistants.create(name=name, instructions="You are a helpful assistant.")
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-cc-stream-"
+        ) as f:
+            f.write("Pinecone is a managed vector database for AI applications.")
+            tmp_path = f.name
+
+        client.assistants.upload_file(
+            assistant_name=name,
+            file_path=tmp_path,
+            timeout=120,
+        )
+
+        stream = client.assistants.chat_completions(
+            assistant_name=name,
+            messages=[{"role": "user", "content": "What is Pinecone?"}],
+            stream=True,
+        )
+
+        chunks = list(stream)
+        assert len(chunks) > 0, "Expected at least one streaming chunk"
+
+        # Verify that all extra fields are accessible (no AttributeError)
+        found_model: list[str] = []
+        found_object: list[str] = []
+        found_created: list[int] = []
+        found_fingerprint: list[str] = []
+
+        for chunk in chunks:
+            assert isinstance(chunk, ChatCompletionStreamChunk)
+            # Fields must be accessible — AttributeError here means the struct
+            # doesn't have the field and msgspec dropped it silently.
+            _ = chunk.model
+            _ = chunk.object
+            _ = chunk.created
+            _ = chunk.system_fingerprint
+
+            if chunk.model is not None:
+                found_model.append(chunk.model)
+            if chunk.object is not None:
+                found_object.append(chunk.object)
+            if chunk.created is not None:
+                found_created.append(chunk.created)
+            if chunk.system_fingerprint is not None:
+                found_fingerprint.append(chunk.system_fingerprint)
+
+        # Print findings for IT-0023 investigation notes
+        print(f"[IT-0023] model values seen: {set(found_model)}")
+        print(f"[IT-0023] object values seen: {set(found_object)}")
+        print(f"[IT-0023] created values seen (count): {len(found_created)}")
+        print(f"[IT-0023] system_fingerprint values seen: {set(found_fingerprint)}")
+
+        # The API spec defines 'model' on StreamChatCompletionChunkModel —
+        # at least one chunk should have a non-None model.
+        assert len(found_model) > 0, (
+            "Expected at least one chunk with a non-None 'model' field — "
+            "the API spec defines this field on StreamChatCompletionChunkModel."
+        )
 
     finally:
         if tmp_path is not None:

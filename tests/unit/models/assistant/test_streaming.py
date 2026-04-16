@@ -3,6 +3,10 @@
 Covers IT-0022: verifies that StreamContentChunk, StreamCitationChunk, and
 StreamMessageEnd accept an optional ``model`` field when present in the wire JSON,
 and default to ``None`` when absent.
+
+Covers IT-0023: verifies that ChatCompletionStreamChunk accepts the optional
+``model``, ``object``, ``created``, and ``system_fingerprint`` fields from the
+OpenAI-compatible streaming endpoint.
 """
 
 from __future__ import annotations
@@ -10,6 +14,7 @@ from __future__ import annotations
 import msgspec
 
 from pinecone.models.assistant.streaming import (
+    ChatCompletionStreamChunk,
     ChatStreamChunk,
     StreamCitationChunk,
     StreamContentChunk,
@@ -108,3 +113,56 @@ def test_stream_message_start_has_model() -> None:
     assert isinstance(chunk, StreamMessageStart)
     assert chunk.model == "gpt-4o"
     assert chunk.role == "assistant"
+
+
+# ---------------------------------------------------------------------------
+# ChatCompletionStreamChunk — extra fields (IT-0023)
+# ---------------------------------------------------------------------------
+
+
+def test_chat_completion_stream_chunk_accepts_extra_fields() -> None:
+    """ChatCompletionStreamChunk decodes a realistic JSON fixture with all OpenAI fields."""
+    raw = (
+        b'{"id": "chatcmpl-abc123",'
+        b' "choices": [{"index": 0, "delta": {"role": "assistant", "content": "Hello"}, "finish_reason": null}],'
+        b' "model": "gpt-4o",'
+        b' "object": "chat.completion.chunk",'
+        b' "created": 1714000000,'
+        b' "system_fingerprint": "fp_abc123"}'
+    )
+    chunk = msgspec.json.decode(raw, type=ChatCompletionStreamChunk)
+    assert chunk.id == "chatcmpl-abc123"
+    assert len(chunk.choices) == 1
+    assert chunk.choices[0].index == 0
+    assert chunk.choices[0].delta.content == "Hello"
+    assert chunk.model == "gpt-4o"
+    assert chunk.object == "chat.completion.chunk"
+    assert chunk.created == 1714000000
+    assert chunk.system_fingerprint == "fp_abc123"
+
+
+def test_chat_completion_stream_chunk_extra_fields_default_none() -> None:
+    """ChatCompletionStreamChunk optional fields default to None when absent."""
+    raw = b'{"id": "chatcmpl-xyz", "choices": []}'
+    chunk = msgspec.json.decode(raw, type=ChatCompletionStreamChunk)
+    assert chunk.id == "chatcmpl-xyz"
+    assert chunk.choices == []
+    assert chunk.model is None
+    assert chunk.object is None
+    assert chunk.created is None
+    assert chunk.system_fingerprint is None
+
+
+def test_chat_completion_stream_chunk_model_only() -> None:
+    """ChatCompletionStreamChunk with only model field set (no object/created/fingerprint)."""
+    raw = (
+        b'{"id": "chatcmpl-model-only",'
+        b' "choices": [{"index": 0, "delta": {"content": "Hi"}, "finish_reason": null}],'
+        b' "model": "gpt-4o-mini"}'
+    )
+    chunk = msgspec.json.decode(raw, type=ChatCompletionStreamChunk)
+    assert chunk.id == "chatcmpl-model-only"
+    assert chunk.model == "gpt-4o-mini"
+    assert chunk.object is None
+    assert chunk.created is None
+    assert chunk.system_fingerprint is None
