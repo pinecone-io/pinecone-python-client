@@ -8,21 +8,20 @@ import time
 from typing import TYPE_CHECKING, Any
 
 import msgspec
-import orjson
 
 from pinecone._internal.constants import DEFAULT_BASE_URL
 from pinecone._internal.validation import require_non_empty, require_positive
 from pinecone.errors.exceptions import NotFoundError, PineconeTimeoutError, PineconeValueError
 from pinecone.models.pagination import AsyncPaginator, Page
 from pinecone.preview._internal.adapters.backups import (
-    describe_backup_adapter,
-    list_backups_adapter,
+    PreviewDescribeBackupAdapter,
+    PreviewListBackupsAdapter,
 )
 from pinecone.preview._internal.adapters.indexes import (
-    configure_adapter,
-    create_adapter,
-    describe_adapter,
-    list_adapter,
+    PreviewConfigureIndexAdapter,
+    PreviewCreateIndexAdapter,
+    PreviewDescribeIndexAdapter,
+    PreviewListIndexesAdapter,
 )
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
 from pinecone.preview.models.backups import PreviewBackupModel, PreviewCreateBackupRequest
@@ -187,10 +186,10 @@ class AsyncPreviewIndexes:
         logger.info("Creating preview index name=%r", name)
         response = await self._http.post(
             "/indexes",
-            content=create_adapter.to_request(req),
+            content=PreviewCreateIndexAdapter.to_request(req),
             headers={"Content-Type": "application/json"},
         )
-        return create_adapter.from_response(orjson.loads(response.content))
+        return PreviewCreateIndexAdapter.from_response(response.content)
 
     async def configure(
         self,
@@ -317,10 +316,10 @@ class AsyncPreviewIndexes:
 
         response = await self._http.patch(
             f"/indexes/{name}",
-            content=configure_adapter.to_request(req),
+            content=PreviewConfigureIndexAdapter.to_request(req),
             headers={"Content-Type": "application/json"},
         )
-        return configure_adapter.from_response(orjson.loads(response.content))
+        return PreviewConfigureIndexAdapter.from_response(response.content)
 
     async def describe(self, name: str) -> PreviewIndexModel:
         """Get detailed information about a named preview index.
@@ -348,7 +347,7 @@ class AsyncPreviewIndexes:
         require_non_empty("name", name)
         logger.info("Describing preview index name=%r", name)
         response = await self._http.get(f"/indexes/{name}")
-        return describe_adapter.from_response(orjson.loads(response.content))
+        return PreviewDescribeIndexAdapter.from_response(response.content)
 
     def list(
         self,
@@ -400,7 +399,7 @@ class AsyncPreviewIndexes:
 
         async def fetch_page(token: str | None) -> Page[PreviewIndexModel]:
             response = await self._http.get("/indexes")
-            items = list_adapter.from_response(orjson.loads(response.content))
+            items = PreviewListIndexesAdapter.from_response(response.content)
             return Page(items=items, pagination_token=None)
 
         return AsyncPaginator(fetch_page=fetch_page, initial_token=pagination_token, limit=limit)
@@ -556,7 +555,7 @@ class AsyncPreviewIndexes:
             content=content,
             headers={"Content-Type": "application/json"},
         )
-        return describe_backup_adapter.from_response(orjson.loads(response.content))
+        return PreviewDescribeBackupAdapter.from_response(response.content)
 
     def list_backups(
         self,
@@ -614,7 +613,7 @@ class AsyncPreviewIndexes:
         async def fetch_page(token: str | None) -> Page[PreviewBackupModel]:
             params: dict[str, str] = {"paginationToken": token} if token is not None else {}
             response = await self._http.get(f"/indexes/{index_name}/backups", params=params)
-            items, next_token = list_backups_adapter.from_response(orjson.loads(response.content))
+            items, next_token = PreviewListBackupsAdapter.from_response(response.content)
             return Page(items=items, pagination_token=next_token)
 
         return AsyncPaginator(fetch_page=fetch_page, initial_token=pagination_token, limit=limit)

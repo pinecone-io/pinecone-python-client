@@ -8,10 +8,7 @@ from pinecone.preview._internal.adapters.backups import (
     describe_backup_adapter,
     list_backups_adapter,
 )
-from pinecone.preview._internal.adapters.documents import (
-    decode_fetch_response,
-    decode_search_response,
-)
+from pinecone.preview._internal.adapters.documents import PreviewDocumentsAdapter
 from pinecone.preview._internal.adapters.indexes import (
     PreviewConfigureIndexAdapter,
     PreviewCreateIndexAdapter,
@@ -28,12 +25,11 @@ __all__ = [
     "PreviewCreateIndexAdapter",
     "PreviewDescribeBackupAdapter",
     "PreviewDescribeIndexAdapter",
+    "PreviewDocumentsAdapter",
     "PreviewListBackupsAdapter",
     "PreviewListIndexesAdapter",
     "configure_adapter",
     "create_adapter",
-    "decode_fetch_response",
-    "decode_search_response",
     "describe_adapter",
     "describe_backup_adapter",
     "list_adapter",

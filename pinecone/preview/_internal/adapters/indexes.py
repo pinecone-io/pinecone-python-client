@@ -6,7 +6,9 @@ from typing import Any
 
 import msgspec
 import orjson
+from msgspec import Struct
 
+from pinecone._internal.adapters._decode import decode_response
 from pinecone.preview.models.indexes import PreviewIndexModel
 from pinecone.preview.models.requests import PreviewConfigureIndexRequest, PreviewCreateIndexRequest
 
@@ -31,38 +33,49 @@ def _filter_none(obj: Any) -> Any:
     return obj
 
 
+class _IndexListEnvelope(Struct, kw_only=True):
+    indexes: list[PreviewIndexModel] = []
+
+
 class PreviewCreateIndexAdapter:
     """Adapter for create_index operation (2026-01.alpha)."""
 
-    def to_request(self, request: PreviewCreateIndexRequest) -> bytes:
+    @staticmethod
+    def to_request(request: PreviewCreateIndexRequest) -> bytes:
         return orjson.dumps(_filter_none(msgspec.to_builtins(request)))
 
-    def from_response(self, data: dict[str, Any]) -> PreviewIndexModel:
-        return msgspec.convert(data, PreviewIndexModel)
+    @staticmethod
+    def from_response(data: bytes) -> PreviewIndexModel:
+        return decode_response(data, PreviewIndexModel)
 
 
 class PreviewConfigureIndexAdapter:
     """Adapter for configure_index operation (2026-01.alpha)."""
 
-    def to_request(self, request: PreviewConfigureIndexRequest) -> bytes:
+    @staticmethod
+    def to_request(request: PreviewConfigureIndexRequest) -> bytes:
         return orjson.dumps(_filter_none(msgspec.to_builtins(request)))
 
-    def from_response(self, data: dict[str, Any]) -> PreviewIndexModel:
-        return msgspec.convert(data, PreviewIndexModel)
+    @staticmethod
+    def from_response(data: bytes) -> PreviewIndexModel:
+        return decode_response(data, PreviewIndexModel)
 
 
 class PreviewDescribeIndexAdapter:
     """Adapter for describe_index operation (2026-01.alpha)."""
 
-    def from_response(self, data: dict[str, Any]) -> PreviewIndexModel:
-        return msgspec.convert(data, PreviewIndexModel)
+    @staticmethod
+    def from_response(data: bytes) -> PreviewIndexModel:
+        return decode_response(data, PreviewIndexModel)
 
 
 class PreviewListIndexesAdapter:
     """Adapter for list_indexes operation (2026-01.alpha)."""
 
-    def from_response(self, data: dict[str, Any]) -> list[PreviewIndexModel]:
-        return [msgspec.convert(item, PreviewIndexModel) for item in data["indexes"]]
+    @staticmethod
+    def from_response(data: bytes) -> list[PreviewIndexModel]:
+        envelope = decode_response(data, _IndexListEnvelope)
+        return envelope.indexes
 
 
 create_adapter = PreviewCreateIndexAdapter()

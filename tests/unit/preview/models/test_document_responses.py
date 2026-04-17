@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import orjson
 
-from pinecone.preview._internal.adapters.documents import (
-    decode_fetch_response,
-    decode_search_response,
-)
+from pinecone.preview._internal.adapters.documents import PreviewDocumentsAdapter
 from pinecone.preview.models.documents import (
     PreviewDocument,
     PreviewDocumentSearchResponse,
@@ -32,7 +29,7 @@ def test_decode_search_response_populates_matches_namespace_and_usage() -> None:
             "usage": {"read_units": 5},
         }
     )
-    response = decode_search_response(payload)
+    response = PreviewDocumentsAdapter.to_search_response(payload)
     assert response.namespace == "wiki"
     assert response.usage is not None
     assert response.usage.read_units == 5
@@ -50,7 +47,7 @@ def test_decode_search_response_usage_defaults_to_none_when_absent() -> None:
             "namespace": "ns",
         }
     )
-    response = decode_search_response(payload)
+    response = PreviewDocumentsAdapter.to_search_response(payload)
     assert response.usage is None
 
 
@@ -61,7 +58,7 @@ def test_decode_search_response_dynamic_field_access_on_match() -> None:
             "namespace": "ns",
         }
     )
-    response = decode_search_response(payload)
+    response = PreviewDocumentsAdapter.to_search_response(payload)
     match = response.matches[0]
     assert match.title == "Ancient Rome"  # type: ignore[attr-defined]
     assert match.get("missing") is None
@@ -78,7 +75,7 @@ def test_decode_fetch_response_populates_documents_keyed_by_id() -> None:
             "usage": {"read_units": 2},
         }
     )
-    response = decode_fetch_response(payload)
+    response = PreviewDocumentsAdapter.to_fetch_response(payload)
     assert set(response.documents.keys()) == {"doc-1", "doc-2"}
     assert isinstance(response.documents["doc-1"], PreviewDocument)
     assert response.documents["doc-1"].id == "doc-1"
@@ -95,7 +92,7 @@ def test_decode_fetch_response_omits_missing_ids_from_map() -> None:
             "namespace": "ns",
         }
     )
-    response = decode_fetch_response(payload)
+    response = PreviewDocumentsAdapter.to_fetch_response(payload)
     assert "doc-99999" not in response.documents
     assert "doc-1" in response.documents
 
@@ -107,7 +104,7 @@ def test_decode_fetch_response_usage_defaults_to_none_when_absent() -> None:
             "namespace": "ns",
         }
     )
-    response = decode_fetch_response(payload)
+    response = PreviewDocumentsAdapter.to_fetch_response(payload)
     assert response.usage is None
 
 

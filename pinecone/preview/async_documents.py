@@ -12,10 +12,7 @@ from pinecone.errors.exceptions import PineconeValueError
 from pinecone.models.batch import (
     BatchResult,  # SDK utility result, not wire-shape — see preview-channel.md § Type isolation
 )
-from pinecone.preview._internal.adapters.documents import (
-    decode_fetch_response,
-    decode_search_response,
-)
+from pinecone.preview._internal.adapters.documents import PreviewDocumentsAdapter
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
 from pinecone.preview.documents import _validate_documents
 from pinecone.preview.models.documents import (
@@ -273,7 +270,7 @@ class AsyncPreviewDocuments:
             f"/namespaces/{namespace}/documents/search",
             json=body,
         )
-        return decode_search_response(response.content)
+        return PreviewDocumentsAdapter.to_search_response(response.content)
 
     async def fetch(
         self,
@@ -323,7 +320,7 @@ class AsyncPreviewDocuments:
             f"/namespaces/{namespace}/documents/fetch",
             json=body,
         )
-        return decode_fetch_response(response.content)
+        return PreviewDocumentsAdapter.to_fetch_response(response.content)
 
     async def delete(
         self,

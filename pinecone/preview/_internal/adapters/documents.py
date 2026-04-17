@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-import msgspec
-import orjson
+from msgspec import Struct
 
+from pinecone._internal.adapters._decode import decode_response
 from pinecone.preview.models.documents import (
     PreviewDocument,
     PreviewDocumentFetchResponse,
@@ -14,25 +14,36 @@ from pinecone.preview.models.documents import (
     PreviewUsage,
 )
 
-__all__ = ["decode_fetch_response", "decode_search_response"]
+__all__ = ["PreviewDocumentsAdapter"]
 
 
-def decode_search_response(raw: bytes) -> PreviewDocumentSearchResponse:
-    """Decode raw JSON bytes from the search endpoint into a typed response."""
-    data: dict[str, Any] = orjson.loads(raw)
-    matches = [PreviewDocument(m) for m in data.get("matches", [])]
-    namespace: str = data.get("namespace", "")
-    usage_data = data.get("usage")
-    usage = msgspec.convert(usage_data, PreviewUsage) if usage_data is not None else None
-    return PreviewDocumentSearchResponse(matches=matches, namespace=namespace, usage=usage)
+class _SearchEnvelope(Struct, kw_only=True):
+    matches: list[Any] = []
+    namespace: str = ""
+    usage: PreviewUsage | None = None
 
 
-def decode_fetch_response(raw: bytes) -> PreviewDocumentFetchResponse:
-    """Decode raw JSON bytes from the fetch endpoint into a typed response."""
-    data: dict[str, Any] = orjson.loads(raw)
-    raw_docs: dict[str, dict[str, Any]] = data.get("documents", {})
-    documents = {doc_id: PreviewDocument(doc) for doc_id, doc in raw_docs.items()}
-    namespace: str = data.get("namespace", "")
-    usage_data = data.get("usage")
-    usage = msgspec.convert(usage_data, PreviewUsage) if usage_data is not None else None
-    return PreviewDocumentFetchResponse(documents=documents, namespace=namespace, usage=usage)
+class _FetchEnvelope(Struct, kw_only=True):
+    documents: dict[str, Any] = {}
+    namespace: str = ""
+    usage: PreviewUsage | None = None
+
+
+class PreviewDocumentsAdapter:
+    """Adapter for preview document search and fetch operations."""
+
+    @staticmethod
+    def to_search_response(data: bytes) -> PreviewDocumentSearchResponse:
+        envelope = decode_response(data, _SearchEnvelope)
+        matches = [PreviewDocument(m) for m in envelope.matches]
+        return PreviewDocumentSearchResponse(
+            matches=matches, namespace=envelope.namespace, usage=envelope.usage
+        )
+
+    @staticmethod
+    def to_fetch_response(data: bytes) -> PreviewDocumentFetchResponse:
+        envelope = decode_response(data, _FetchEnvelope)
+        documents = {doc_id: PreviewDocument(doc) for doc_id, doc in envelope.documents.items()}
+        return PreviewDocumentFetchResponse(
+            documents=documents, namespace=envelope.namespace, usage=envelope.usage
+        )

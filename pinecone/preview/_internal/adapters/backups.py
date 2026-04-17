@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any
+from msgspec import Struct
 
-import msgspec
-
+from pinecone._internal.adapters._decode import decode_response
 from pinecone.preview.models.backups import PreviewBackupModel
 
 __all__ = [
@@ -16,20 +15,31 @@ __all__ = [
 ]
 
 
+class _Pagination(Struct, kw_only=True):
+    next: str | None = None
+
+
+class _BackupListEnvelope(Struct, kw_only=True):
+    data: list[PreviewBackupModel] = []
+    pagination: _Pagination | None = None
+
+
 class PreviewDescribeBackupAdapter:
     """Adapter for preview describe_backup / create_backup operations."""
 
-    def from_response(self, data: dict[str, Any]) -> PreviewBackupModel:
-        return msgspec.convert(data, PreviewBackupModel)
+    @staticmethod
+    def from_response(data: bytes) -> PreviewBackupModel:
+        return decode_response(data, PreviewBackupModel)
 
 
 class PreviewListBackupsAdapter:
     """Adapter for preview list_backups operation."""
 
-    def from_response(self, data: dict[str, Any]) -> tuple[list[PreviewBackupModel], str | None]:
-        items = [msgspec.convert(item, PreviewBackupModel) for item in data.get("data", [])]
-        token: str | None = (data.get("pagination") or {}).get("next")
-        return (items, token)
+    @staticmethod
+    def from_response(data: bytes) -> tuple[list[PreviewBackupModel], str | None]:
+        envelope = decode_response(data, _BackupListEnvelope)
+        token = envelope.pagination.next if envelope.pagination is not None else None
+        return (envelope.data, token)
 
 
 describe_backup_adapter = PreviewDescribeBackupAdapter()

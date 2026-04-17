@@ -154,8 +154,7 @@ def test_create_adapter_preserves_add_custom_field_unknown_type() -> None:
 
 
 def test_create_adapter_parses_response() -> None:
-    data = _minimal_index_dict("new-idx")
-    model = create_adapter.from_response(data)
+    model = create_adapter.from_response(orjson.dumps(_minimal_index_dict("new-idx")))
     assert isinstance(model, PreviewIndexModel)
     assert model.name == "new-idx"
     assert model.host == "new-idx-host.pinecone.io"
@@ -164,8 +163,9 @@ def test_create_adapter_parses_response() -> None:
 
 
 def test_create_adapter_parses_response_with_tags() -> None:
-    data = {**_minimal_index_dict(), "tags": {"env": "prod"}}
-    model = create_adapter.from_response(data)
+    model = create_adapter.from_response(
+        orjson.dumps({**_minimal_index_dict(), "tags": {"env": "prod"}})
+    )
     assert model.tags == {"env": "prod"}
 
 
@@ -193,8 +193,7 @@ def test_configure_adapter_serializes_tags_only() -> None:
 
 
 def test_configure_adapter_parses_response() -> None:
-    data = _minimal_index_dict("cfg-idx")
-    model = configure_adapter.from_response(data)
+    model = configure_adapter.from_response(orjson.dumps(_minimal_index_dict("cfg-idx")))
     assert isinstance(model, PreviewIndexModel)
     assert model.name == "cfg-idx"
     assert model.host == "cfg-idx-host.pinecone.io"
@@ -208,8 +207,7 @@ def test_configure_adapter_parses_response() -> None:
 
 
 def test_describe_adapter_parses_response() -> None:
-    data = _minimal_index_dict()
-    model = describe_adapter.from_response(data)
+    model = describe_adapter.from_response(orjson.dumps(_minimal_index_dict()))
     assert isinstance(model, PreviewIndexModel)
     assert model.name == "test-idx"
     assert model.status.ready is True
@@ -217,10 +215,8 @@ def test_describe_adapter_parses_response() -> None:
 
 
 def test_describe_adapter_ignores_unknown_fields() -> None:
-    data = _minimal_index_dict()
-    data["private_host"] = "p"
-    data["source_collection"] = "c"
-    model = describe_adapter.from_response(data)
+    data = {**_minimal_index_dict(), "private_host": "p", "source_collection": "c"}
+    model = describe_adapter.from_response(orjson.dumps(data))
     assert model.name == "test-idx"
 
 
@@ -230,13 +226,13 @@ def test_describe_adapter_ignores_unknown_fields() -> None:
 
 
 def test_list_adapter_parses_empty() -> None:
-    result = list_adapter.from_response({"indexes": []})
+    result = list_adapter.from_response(orjson.dumps({"indexes": []}))
     assert result == []
 
 
 def test_list_adapter_parses_multiple() -> None:
     data = {"indexes": [_minimal_index_dict("a"), _minimal_index_dict("b")]}
-    result = list_adapter.from_response(data)
+    result = list_adapter.from_response(orjson.dumps(data))
     assert len(result) == 2
     assert all(isinstance(m, PreviewIndexModel) for m in result)
     names = {m.name for m in result}
