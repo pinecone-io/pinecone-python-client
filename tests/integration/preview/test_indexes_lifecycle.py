@@ -1010,6 +1010,92 @@ class TestSchemaFieldTypes:
             f"data field: metric must be None or str, got {type(data_field.metric)}"
         )
 
+    def test_describe_fts_string_field_server_applied_defaults(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """describe() returns server-applied defaults for FTS string fields not explicitly set.
+
+        Spec §1 add_string_field edge case: 'The API response for a created index will
+        include defaults (e.g. lowercase: true, stemming: false, max_term_len: 40) even
+        if the user did not set them. The SDK model for the response must accept these
+        server-populated values.'
+
+        Creates an FTS string field with only full_text_searchable=True and no explicit
+        lowercase/stemming/max_term_len, then verifies describe() returns a
+        PreviewStringField with those attributes populated by the server. PVT-022 verified
+        typed field dispatch for a filterable-only string field on an OnDemand index; no
+        test has verified FTS-specific server-populated defaults.
+        """
+        from pinecone.preview.models import PreviewStringField
+
+        # FTS indexes require dedicated read capacity in this environment.
+        read_capacity = {
+            "mode": "Dedicated",
+            "dedicated": {
+                "node_type": "t1",
+                "scaling": "Manual",
+                "manual": {"shards": 1, "replicas": 1},
+            },
+        }
+        cleanup_preview_indexes.append(preview_index_name)
+        client.preview.indexes.create(
+            name=preview_index_name,
+            schema=_simple_fts_schema(),
+            read_capacity=read_capacity,
+        )
+
+        poll_until(
+            lambda: client.preview.indexes.describe(preview_index_name),
+            _is_ready,
+            timeout=300,
+            interval=5,
+            description=f"FTS index {preview_index_name} ready",
+        )
+
+        model = client.preview.indexes.describe(preview_index_name)
+        fields = model.schema.fields
+
+        assert "text" in fields, f"Expected 'text' in schema.fields, got {set(fields.keys())}"
+
+        text_field = fields["text"]
+        assert isinstance(text_field, PreviewStringField), (
+            f"text field: expected PreviewStringField, got {type(text_field)}"
+        )
+        assert text_field.full_text_searchable is True, (
+            f"full_text_searchable must be True, got {text_field.full_text_searchable!r}"
+        )
+        assert text_field.filterable is False, (
+            f"filterable must be False (not set at create time), got {text_field.filterable!r}"
+        )
+
+        # Spec §1 server-applied defaults: the API populates these even when not set by caller.
+        assert text_field.lowercase is not None, (
+            "spec §1: server must populate 'lowercase' default even when not explicitly set; "
+            "got None — SDK model may not be accepting server-populated values"
+        )
+        assert text_field.stemming is not None, (
+            "spec §1: server must populate 'stemming' default even when not explicitly set; "
+            "got None — SDK model may not be accepting server-populated values"
+        )
+        assert text_field.max_term_len is not None, (
+            "spec §1: server must populate 'max_term_len' default even when not explicitly set; "
+            "got None — SDK model may not be accepting server-populated values"
+        )
+        # Verify the documented server default values.
+        assert text_field.lowercase is True, (
+            f"spec §1: server default for 'lowercase' is True, got {text_field.lowercase!r}"
+        )
+        assert text_field.stemming is False, (
+            f"spec §1: server default for 'stemming' is False, got {text_field.stemming!r}"
+        )
+        assert text_field.max_term_len == 40, (
+            f"spec §1: server default for 'max_term_len' is 40, got {text_field.max_term_len!r}"
+        )
+
 
 # ---------------------------------------------------------------------------
 # TestConfigureReadCapacity — §2 configure(read_capacity=...) parameter

@@ -2535,3 +2535,94 @@ async def test_async_describe_returns_sparse_vector_field_typed_instance(
     assert data_field.metric is None or isinstance(data_field.metric, str), (
         f"data field: metric must be None or str, got {type(data_field.metric)}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_describe_fts_string_field_server_applied_defaults — §1
+# ---------------------------------------------------------------------------
+
+
+async def test_async_describe_fts_string_field_server_applied_defaults(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity: describe() returns server-applied defaults for FTS string fields.
+
+    Spec §1 add_string_field edge case: 'The API response for a created index will
+    include defaults (e.g. lowercase: true, stemming: false, max_term_len: 40) even
+    if the user did not set them. The SDK model for the response must accept these
+    server-populated values.'
+
+    Creates an FTS string field with only full_text_searchable=True (no lowercase/
+    stemming/max_term_len), then verifies async describe() returns PreviewStringField
+    with server-populated attribute values.
+    """
+    from pinecone.preview.models import PreviewStringField
+
+    read_capacity = {
+        "mode": "Dedicated",
+        "dedicated": {
+            "node_type": "t1",
+            "scaling": "Manual",
+            "manual": {"shards": 1, "replicas": 1},
+        },
+    }
+    schema = SchemaBuilder().add_string_field("text", full_text_searchable=True).build()
+
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(
+        name=preview_index_name,
+        schema=schema,
+        read_capacity=read_capacity,
+    )
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"FTS index {preview_index_name} ready",
+    )
+
+    model = await async_client.preview.indexes.describe(preview_index_name)
+    fields = model.schema.fields
+
+    assert "text" in fields, f"Expected 'text' in schema.fields, got {set(fields.keys())}"
+
+    text_field = fields["text"]
+    assert isinstance(text_field, PreviewStringField), (
+        f"text field: expected PreviewStringField, got {type(text_field)}"
+    )
+    assert text_field.full_text_searchable is True, (
+        f"full_text_searchable must be True, got {text_field.full_text_searchable!r}"
+    )
+    assert text_field.filterable is False, (
+        f"filterable must be False (not set at create time), got {text_field.filterable!r}"
+    )
+
+    assert text_field.lowercase is not None, (
+        "spec §1: server must populate 'lowercase' default even when not explicitly set; "
+        "got None — SDK model may not be accepting server-populated values"
+    )
+    assert text_field.stemming is not None, (
+        "spec §1: server must populate 'stemming' default even when not explicitly set; "
+        "got None — SDK model may not be accepting server-populated values"
+    )
+    assert text_field.max_term_len is not None, (
+        "spec §1: server must populate 'max_term_len' default even when not explicitly set; "
+        "got None — SDK model may not be accepting server-populated values"
+    )
+    assert text_field.lowercase is True, (
+        f"spec §1: server default for 'lowercase' is True, got {text_field.lowercase!r}"
+    )
+    assert text_field.stemming is False, (
+        f"spec §1: server default for 'stemming' is False, got {text_field.stemming!r}"
+    )
+    assert text_field.max_term_len == 40, (
+        f"spec §1: server default for 'max_term_len' is 40, got {text_field.max_term_len!r}"
+    )
