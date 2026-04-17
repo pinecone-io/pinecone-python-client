@@ -18,7 +18,7 @@ from typing import Any
 import pytest
 
 from pinecone import Pinecone
-from pinecone.errors import NotFoundError
+from pinecone.errors import ForbiddenError, NotFoundError
 from pinecone.preview import PreviewSchemaBuilder
 from pinecone.preview.models import PreviewIndexModel
 from tests.integration.conftest import poll_until
@@ -475,3 +475,52 @@ class TestIndexTags:
         assert model.tags["key1"] == "original", "original tag value must be unchanged"
         assert "key2" in model.tags, "new tag 'key2' must be present after configure(tags=)"
         assert model.tags["key2"] == "added", "new tag value must be correct"
+
+
+# ---------------------------------------------------------------------------
+# TestDeletionProtectionEnforcement — §2 delete() raises ForbiddenError
+# ---------------------------------------------------------------------------
+
+
+class TestDeletionProtectionEnforcement:
+    """delete() raises ForbiddenError when deletion_protection is "enabled"."""
+
+    def test_delete_raises_forbidden_when_deletion_protection_enabled(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """delete() raises ForbiddenError when deletion_protection is "enabled"; index survives.
+
+        Verifies §2 spec claim: delete() raises ForbiddenError if deletion protection
+        is enabled. The toggle test (TestDeletionProtectionToggle) enables/disables the
+        field but never attempts deletion while protection is active — this test does.
+        """
+        cleanup_preview_indexes.append(preview_index_name)
+        client.preview.indexes.create(name=preview_index_name, schema=_simple_dense_schema())
+
+        poll_until(
+            lambda: client.preview.indexes.describe(preview_index_name),
+            _is_ready,
+            timeout=300,
+            interval=5,
+            description=f"index {preview_index_name} ready",
+        )
+
+        client.preview.indexes.configure(preview_index_name, deletion_protection="enabled")
+
+        try:
+            with pytest.raises(ForbiddenError):
+                client.preview.indexes.delete(preview_index_name)
+
+            assert client.preview.indexes.exists(preview_index_name), (
+                "index must still exist after delete() was rejected by deletion_protection"
+            )
+        finally:
+            # Disable protection so the cleanup fixture can delete the index.
+            with contextlib.suppress(Exception):
+                client.preview.indexes.configure(
+                    preview_index_name, deletion_protection="disabled"
+                )

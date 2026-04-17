@@ -780,3 +780,64 @@ async def test_async_search_response_namespace_and_usage(
     assert response.usage.read_units >= 0, (
         f"read_units must be >= 0, got {response.usage.read_units}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_delete_raises_forbidden_when_deletion_protection_enabled — §2
+# ---------------------------------------------------------------------------
+
+
+async def test_async_delete_raises_forbidden_when_deletion_protection_enabled(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity: delete() raises ForbiddenError when deletion_protection is "enabled" (§2).
+
+    Async counterpart for
+    TestDeletionProtectionEnforcement.test_delete_raises_forbidden_when_deletion_protection_enabled.
+    Verifies the spec claim via the async SDK path: a delete() call on a
+    deletion-protected index raises ForbiddenError and leaves the index intact.
+    """
+    from pinecone.errors import ForbiddenError
+    from pinecone.preview.models import PreviewIndexModel
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    await async_client.preview.indexes.configure(
+        preview_index_name, deletion_protection="enabled"
+    )
+
+    try:
+        with pytest.raises(ForbiddenError):
+            await async_client.preview.indexes.delete(preview_index_name)
+
+        assert await async_client.preview.indexes.exists(preview_index_name), (
+            "index must still exist after delete() was rejected by deletion_protection"
+        )
+    finally:
+        # Disable protection so the cleanup fixture can delete the index.
+        try:
+            await async_client.preview.indexes.configure(
+                preview_index_name, deletion_protection="disabled"
+            )
+        except Exception:
+            pass
