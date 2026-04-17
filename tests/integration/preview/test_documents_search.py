@@ -354,7 +354,6 @@ def test_search_include_fields_variants(
     include_fields to be a non-null list, so it returns 422. The test reaches
     this assertion last; the DISABLED result is expected until IPV-0001 is fixed.
     """
-    from pinecone.errors.exceptions import ApiError
     from pinecone.preview.models import PreviewIndexModel
 
     schema = (

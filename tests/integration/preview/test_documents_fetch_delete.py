@@ -483,6 +483,108 @@ def test_batch_upsert_result_fields(
 
 
 # ---------------------------------------------------------------------------
+# test_batch_upsert_result_display_methods — §14 BatchResult display methods
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_batch_upsert_result_display_methods(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """BatchResult display methods match spec §14 format after a real batch_upsert call.
+
+    PVT-004 verified all count fields but never asserted on the display methods.
+    Spec §14 defines the __repr__ format as "BatchResult(SUCCESS: N/N items, N/N batches)".
+    This test verifies:
+    - §14 __repr__: exact string "BatchResult(SUCCESS: 10/10 items, 2/2 batches)"
+    - §5 to_dict(): returns a dict with the correct 7 keys and values
+    - §5 to_json(): returns valid JSON parseable to the same values as to_dict()
+    - §14 _repr_html_(): returns non-empty HTML string containing "BatchResult"
+
+    Uses 10-document upload in 2 batches of 5 (same as PVT-004) so repr output is
+    deterministic. OnDemand dense vector schema avoids FTS dedicated-capacity restriction.
+    """
+    import json
+
+    from pinecone.models.batch import BatchResult
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = client.preview.index(name=preview_index_name)
+    documents = [
+        {"_id": f"doc-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]}
+        for i in range(10)
+    ]
+
+    result = idx.documents.batch_upsert(
+        namespace=preview_namespace,
+        documents=documents,
+        batch_size=5,
+        max_workers=2,
+        show_progress=False,
+    )
+
+    assert isinstance(result, BatchResult)
+
+    # §14: repr format: "BatchResult(SUCCESS: N/N items, N/N batches)"
+    repr_str = repr(result)
+    assert repr_str == "BatchResult(SUCCESS: 10/10 items, 2/2 batches)", (
+        f"repr() expected 'BatchResult(SUCCESS: 10/10 items, 2/2 batches)', got {repr_str!r}"
+    )
+
+    # §5: to_dict() has all 7 expected keys with correct values
+    d = result.to_dict()
+    assert isinstance(d, dict), f"to_dict() expected dict, got {type(d)}"
+    assert d["total_item_count"] == 10
+    assert d["successful_item_count"] == 10
+    assert d["failed_item_count"] == 0
+    assert d["total_batch_count"] == 2
+    assert d["successful_batch_count"] == 2
+    assert d["failed_batch_count"] == 0
+    assert d["errors"] == []
+
+    # §5: to_json() is valid JSON parseable to a dict matching to_dict() values
+    json_str = result.to_json()
+    assert isinstance(json_str, str), f"to_json() expected str, got {type(json_str)}"
+    parsed = json.loads(json_str)
+    assert parsed["total_item_count"] == 10
+    assert parsed["successful_item_count"] == 10
+    assert parsed["failed_item_count"] == 0
+    assert parsed["total_batch_count"] == 2
+    assert parsed["errors"] == []
+
+    # §14: _repr_html_() returns non-empty HTML string containing "BatchResult"
+    html = result._repr_html_()
+    assert isinstance(html, str), f"_repr_html_() expected str, got {type(html)}"
+    assert len(html) > 0, "_repr_html_() must return non-empty HTML"
+    assert "BatchResult" in html, (
+        f"_repr_html_() must contain 'BatchResult', got: {html[:200]!r}"
+    )
+
+
+# ---------------------------------------------------------------------------
 # test_fetch_wildcard_include_fields — §5 fetch() include_fields=["*"]
 # ---------------------------------------------------------------------------
 
@@ -507,7 +609,6 @@ def test_fetch_wildcard_include_fields_returns_all_stored_fields(
     """
     import time
 
-    from pinecone.errors.exceptions import UnauthorizedError
     from pinecone.preview.models import PreviewIndexModel
 
     schema = (

@@ -1873,3 +1873,96 @@ async def test_async_search_score_by_plain_dict_accepted(
     assert isinstance(response.usage.read_units, int), (
         f"usage.read_units expected int, got {type(response.usage.read_units)}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_batch_upsert_result_display_methods — §14 BatchResult display
+# ---------------------------------------------------------------------------
+
+
+async def test_async_batch_upsert_result_display_methods(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    preview_namespace: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity for test_batch_upsert_result_display_methods (PVT-027).
+
+    Verifies BatchResult display methods after async batch_upsert:
+    - §14 __repr__: "BatchResult(SUCCESS: 10/10 items, 2/2 batches)"
+    - §5 to_dict(): dict with 7 keys and correct values
+    - §5 to_json(): valid JSON parseable to same values
+    - §14 _repr_html_(): non-empty HTML containing "BatchResult"
+    """
+    import json
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = async_client.preview.index(name=preview_index_name)
+    documents = [
+        {"_id": f"doc-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]}
+        for i in range(10)
+    ]
+
+    result = await idx.documents.batch_upsert(
+        namespace=preview_namespace,
+        documents=documents,
+        batch_size=5,
+        max_workers=2,
+        show_progress=False,
+    )
+
+    assert isinstance(result, BatchResult)
+
+    # §14: repr format: "BatchResult(SUCCESS: N/N items, N/N batches)"
+    repr_str = repr(result)
+    assert repr_str == "BatchResult(SUCCESS: 10/10 items, 2/2 batches)", (
+        f"repr() expected 'BatchResult(SUCCESS: 10/10 items, 2/2 batches)', got {repr_str!r}"
+    )
+
+    # §5: to_dict() has all 7 expected keys with correct values
+    d = result.to_dict()
+    assert isinstance(d, dict), f"to_dict() expected dict, got {type(d)}"
+    assert d["total_item_count"] == 10
+    assert d["successful_item_count"] == 10
+    assert d["failed_item_count"] == 0
+    assert d["total_batch_count"] == 2
+    assert d["successful_batch_count"] == 2
+    assert d["failed_batch_count"] == 0
+    assert d["errors"] == []
+
+    # §5: to_json() is valid JSON parseable to a dict matching to_dict() values
+    json_str = result.to_json()
+    assert isinstance(json_str, str), f"to_json() expected str, got {type(json_str)}"
+    parsed = json.loads(json_str)
+    assert parsed["total_item_count"] == 10
+    assert parsed["successful_item_count"] == 10
+    assert parsed["failed_item_count"] == 0
+    assert parsed["total_batch_count"] == 2
+    assert parsed["errors"] == []
+
+    # §14: _repr_html_() returns non-empty HTML string containing "BatchResult"
+    html = result._repr_html_()
+    assert isinstance(html, str), f"_repr_html_() expected str, got {type(html)}"
+    assert len(html) > 0, "_repr_html_() must return non-empty HTML"
+    assert "BatchResult" in html, (
+        f"_repr_html_() must contain 'BatchResult', got: {html[:200]!r}"
+    )
