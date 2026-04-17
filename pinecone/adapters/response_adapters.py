@@ -151,6 +151,12 @@ class UpsertResponseTransformer:
         openapi_response = self._future.result(timeout)
         return adapt_upsert_response(openapi_response)
 
+    def result(self, timeout: float | None = None) -> UpsertResponse:
+        """Alias for :meth:`get` to match :class:`concurrent.futures.Future`."""
+        return self.get(timeout)
+
     def __getattr__(self, name: str) -> Any:
-        # Delegate other methods to the underlying Future
+        # Delegate other methods to the underlying Future.
+        # .result is intentionally defined above so it returns the transformed
+        # UpsertResponse rather than the raw OpenAPI response.
         return getattr(self._future, name)
