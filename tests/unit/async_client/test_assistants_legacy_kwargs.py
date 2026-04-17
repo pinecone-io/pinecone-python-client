@@ -99,6 +99,24 @@ async def test_async_describe_with_name_still_works(
 
 
 @pytest.mark.asyncio
+async def test_async_update_missing_name_raises(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """Calling update() without name or assistant_name raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="missing required"):
+        await mock_async_assistants.update()
+
+
+@pytest.mark.asyncio
+async def test_async_update_with_name_still_works(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """The canonical name= parameter continues to work as before."""
+    result = await mock_async_assistants.update(name="my-assistant")
+    assert result.name == "legacy-name"  # canned response from fixture
+
+
+@pytest.mark.asyncio
 async def test_async_update_accepts_legacy_assistant_name(
     mock_async_assistants: AsyncAssistants,
 ) -> None:
@@ -123,6 +141,24 @@ async def test_async_update_rejects_unknown(
     """Passing an unrecognised kwarg raises PineconeValueError."""
     with pytest.raises(PineconeValueError, match="unexpected"):
         await mock_async_assistants.update(name="foo", bogus=1)
+
+
+@pytest.mark.asyncio
+async def test_async_delete_missing_name_raises(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """Calling delete() without name or assistant_name raises PineconeValueError."""
+    with pytest.raises(PineconeValueError, match="missing required"):
+        await mock_async_assistants.delete()
+
+
+@pytest.mark.asyncio
+async def test_async_delete_with_name_still_works(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """The canonical name= parameter continues to work as before."""
+    await mock_async_assistants.delete(name="my-assistant", timeout=-1)
+    mock_async_assistants._http.delete.assert_called_once_with("/assistants/my-assistant")  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
