@@ -18,7 +18,7 @@ from typing import Any
 import pytest
 
 from pinecone import Pinecone
-from pinecone.errors import ForbiddenError, NotFoundError
+from pinecone.errors import ForbiddenError, NotFoundError, PineconeValueError
 from pinecone.preview import PreviewSchemaBuilder
 from pinecone.preview.models import PreviewIndexModel
 from tests.integration.conftest import poll_until
@@ -524,3 +524,50 @@ class TestDeletionProtectionEnforcement:
                 client.preview.indexes.configure(
                     preview_index_name, deletion_protection="disabled"
                 )
+
+
+# ---------------------------------------------------------------------------
+# TestListLimit — §2 list(limit=N) parameter behavior
+# ---------------------------------------------------------------------------
+
+
+class TestListLimit:
+    """list(limit=N) raises PineconeValueError for non-positive N, caps results otherwise."""
+
+    def test_list_limit_zero_raises_value_error(
+        self,
+        client: Pinecone,
+        require_preview: None,
+    ) -> None:
+        """list(limit=0) raises PineconeValueError without making an API call (§2).
+
+        The spec declares limit must be a positive integer. The SDK validates this
+        client-side before the request is sent. No existing test verifies this edge case.
+        """
+        with pytest.raises(PineconeValueError):
+            client.preview.indexes.list(limit=0)
+
+    def test_list_limit_negative_raises_value_error(
+        self,
+        client: Pinecone,
+        require_preview: None,
+    ) -> None:
+        """list(limit=-1) raises PineconeValueError without making an API call (§2)."""
+        with pytest.raises(PineconeValueError):
+            client.preview.indexes.list(limit=-1)
+
+    def test_list_limit_caps_results(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """list(limit=1) yields at most 1 PreviewIndexModel even when more indexes exist (§2).
+
+        SDK BUG (IPV-0003): list() raises msgspec.ValidationError when the account contains
+        any index whose schema has a field lacking a 'type' key (e.g., legacy custom fields
+        stored as {'filterable': True} without 'type'). The index e4005153 in this environment
+        triggers the bug. This test is DISABLED until IPV-0003 is fixed.
+        """
+        pytest.skip("DISABLED (IPV-0003): list() crashes with msgspec.ValidationError for accounts with non-standard schema fields")

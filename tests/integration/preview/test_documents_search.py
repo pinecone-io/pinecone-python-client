@@ -499,3 +499,90 @@ def test_search_response_namespace_and_usage(
     assert response.usage.read_units >= 0, (
         f"read_units must be >= 0, got {response.usage.read_units}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_filter_integer_gte_and_operator_accepted — §8 Metadata filtering
+# ---------------------------------------------------------------------------
+
+
+def test_filter_integer_gte_and_operator_accepted(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Verify §8: filter with integer $gte and $and operator is serialized and accepted (200 OK).
+
+    Spec §8 declares these operators: $eq, $ne, $gt, $gte, $lt, $lte, $in, $nin, $and, $or.
+    No existing test verifies that the SDK serializes $gte on an integer field or
+    that the $and logical operator is accepted by the API.
+
+    Creates a dense vector schema with filterable integer 'year' and filterable
+    string 'category'. Upserts a document. Searches with a filter combining $and
+    with $gte on year and $eq on category. Asserts 200 OK regardless of matches
+    (OnDemand dense vector indexes are eventually consistent; 0 matches is acceptable).
+    """
+    from pinecone.preview.models import PreviewIndexModel
+
+    schema = (
+        PreviewSchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_string_field("category", filterable=True)
+        .add_integer_field("year", filterable=True)
+        .build()
+    )
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = client.preview.index(name=preview_index_name)
+    idx.documents.upsert(
+        namespace=preview_namespace,
+        documents=[
+            {"_id": "doc-1", "embedding": [0.1, 0.2, 0.3, 0.4], "category": "tech", "year": 2022},
+            {"_id": "doc-2", "embedding": [0.5, 0.6, 0.7, 0.8], "category": "science", "year": 2018},
+        ],
+    )
+
+    score_by: list[object] = [PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])]
+
+    # Verify $gte filter on integer field is accepted (200 OK).
+    result_gte = idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=score_by,  # type: ignore[arg-type]
+        filter={"year": {"$gte": 2020}},
+        include_fields=["*"],
+    )
+    assert isinstance(result_gte, PreviewDocumentSearchResponse), (
+        "$gte filter on integer field should return 200 OK"
+    )
+
+    # Verify $and operator combining $gte + $eq is accepted (200 OK).
+    result_and = idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=score_by,  # type: ignore[arg-type]
+        filter={
+            "$and": [
+                {"category": {"$eq": "tech"}},
+                {"year": {"$gte": 2020}},
+            ]
+        },
+        include_fields=["*"],
+    )
+    assert isinstance(result_and, PreviewDocumentSearchResponse), (
+        "$and filter with $gte + $eq should return 200 OK"
+    )

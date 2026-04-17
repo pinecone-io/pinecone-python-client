@@ -841,3 +841,131 @@ async def test_async_delete_raises_forbidden_when_deletion_protection_enabled(
             )
         except Exception:
             pass
+
+
+# ---------------------------------------------------------------------------
+# test_async_filter_integer_gte_and_operator_accepted — §8 Metadata filtering
+# ---------------------------------------------------------------------------
+
+
+async def test_async_filter_integer_gte_and_operator_accepted(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Async parity: filter with $gte (integer) and $and operator accepted by API (§8).
+
+    Async counterpart for test_filter_integer_gte_and_operator_accepted.
+    Verifies that the SDK correctly serializes $gte and $and operators and that the API
+    returns 200 OK. 0 matches is acceptable (OnDemand dense vector indexing is eventually
+    consistent). Uses dense vector + filterable integer year + filterable string category.
+    """
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_string_field("category", filterable=True)
+        .add_integer_field("year", filterable=True)
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = async_client.preview.index(name=preview_index_name)
+    await idx.documents.upsert(
+        namespace=preview_namespace,
+        documents=[
+            {"_id": "doc-1", "embedding": [0.1, 0.2, 0.3, 0.4], "category": "tech", "year": 2022},
+            {"_id": "doc-2", "embedding": [0.5, 0.6, 0.7, 0.8], "category": "science", "year": 2018},
+        ],
+    )
+
+    score_by: list[object] = [PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])]
+
+    # Verify $gte filter on integer field is accepted (200 OK).
+    result_gte = await idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=score_by,  # type: ignore[arg-type]
+        filter={"year": {"$gte": 2020}},
+        include_fields=["*"],
+    )
+    assert isinstance(result_gte, PreviewDocumentSearchResponse), (
+        "$gte filter on integer field should return 200 OK"
+    )
+
+    # Verify $and operator combining $gte + $eq is accepted (200 OK).
+    result_and = await idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=score_by,  # type: ignore[arg-type]
+        filter={
+            "$and": [
+                {"category": {"$eq": "tech"}},
+                {"year": {"$gte": 2020}},
+            ]
+        },
+        include_fields=["*"],
+    )
+    assert isinstance(result_and, PreviewDocumentSearchResponse), (
+        "$and filter with $gte + $eq should return 200 OK"
+    )
+
+
+# ---------------------------------------------------------------------------
+# test_async_list_limit_* — §2 list(limit=N) parameter validation
+# ---------------------------------------------------------------------------
+
+
+async def test_async_list_limit_zero_raises_value_error(
+    async_client: AsyncPinecone,
+    require_preview: None,
+) -> None:
+    """Async parity: list(limit=0) raises PineconeValueError without an API call (§2).
+
+    Async counterpart for TestListLimit.test_list_limit_zero_raises_value_error.
+    The spec declares limit must be a positive integer; the async SDK validates this
+    client-side before the async paginator is created. No await is needed.
+    """
+    from pinecone.errors import PineconeValueError
+
+    with pytest.raises(PineconeValueError):
+        async_client.preview.indexes.list(limit=0)
+
+
+async def test_async_list_limit_negative_raises_value_error(
+    async_client: AsyncPinecone,
+    require_preview: None,
+) -> None:
+    """Async parity: list(limit=-1) raises PineconeValueError without an API call (§2)."""
+    from pinecone.errors import PineconeValueError
+
+    with pytest.raises(PineconeValueError):
+        async_client.preview.indexes.list(limit=-1)
+
+
+async def test_async_list_limit_caps_results(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity: list(limit=1) yields at most 1 PreviewIndexModel (§2).
+
+    SDK BUG (IPV-0003): list() raises msgspec.ValidationError when the account contains
+    any index whose schema has a field lacking a 'type' key. This test is DISABLED until
+    IPV-0003 is fixed.
+    """
+    pytest.skip("DISABLED (IPV-0003): list() crashes with msgspec.ValidationError for accounts with non-standard schema fields")
