@@ -148,7 +148,7 @@ class UpsertResponseTransformer:
         Returns:
             The SDK UpsertResponse dataclass.
         """
-        openapi_response = self._future.get(timeout)
+        openapi_response = self._future.result(timeout)
         return adapt_upsert_response(openapi_response)
 
     def __getattr__(self, name: str) -> Any:
