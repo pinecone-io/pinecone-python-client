@@ -487,3 +487,56 @@ async def test_async_configure_toggle_deletion_protection(
     await async_client.preview.indexes.configure(preview_index_name, deletion_protection="disabled")
     after_disable = await async_client.preview.indexes.describe(preview_index_name)
     assert after_disable.deletion_protection == "disabled"
+
+
+# ---------------------------------------------------------------------------
+# test_async_add_custom_field_appears_in_describe — §1 add_custom_field() async parity
+# ---------------------------------------------------------------------------
+
+
+async def test_async_add_custom_field_appears_in_describe(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity: add_custom_field() raw dict passes through; describe() reflects the field.
+
+    Async parity for test_add_custom_field_appears_in_describe: verifies §1
+    add_custom_field() escape hatch via the async SDK path.
+    """
+    from pinecone.preview.models import PreviewIntegerField
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_custom_field("score", {"type": "float", "filterable": True})
+        .build()
+    )
+
+    # Verify build() output contains the custom dict unchanged.
+    assert schema["fields"]["score"] == {"type": "float", "filterable": True}
+
+    # Create the index via API.
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    # describe() must return the custom field as a typed model.
+    model = await async_client.preview.indexes.describe(preview_index_name)
+    assert "score" in model.schema.fields
+    score_field = model.schema.fields["score"]
+    assert isinstance(score_field, PreviewIntegerField), (
+        f"expected PreviewIntegerField, got {type(score_field)}"
+    )
+    assert score_field.filterable is True

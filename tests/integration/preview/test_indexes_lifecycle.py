@@ -346,3 +346,61 @@ class TestDeletionProtectionToggle:
         client.preview.indexes.configure(preview_index_name, deletion_protection="disabled")
         after_disable = client.preview.indexes.describe(preview_index_name)
         assert after_disable.deletion_protection == "disabled"
+
+
+# ---------------------------------------------------------------------------
+# TestCustomFieldEscapeHatch — §1 SchemaBuilder.add_custom_field()
+# ---------------------------------------------------------------------------
+
+
+class TestCustomFieldEscapeHatch:
+    """add_custom_field() passes raw field dict through to the API unchanged."""
+
+    def test_add_custom_field_appears_in_describe(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """SchemaBuilder.add_custom_field() sends raw dict; describe() reflects the field.
+
+        Verifies §1 add_custom_field() escape hatch. Builds a schema that includes a
+        dense vector field (via the typed helper) alongside a custom integer field
+        (type="float", filterable=True) defined via the raw-dict passthrough. Confirms:
+        (a) build() output contains the exact custom dict under the field name,
+        (b) describe() returns the field as a PreviewIntegerField with filterable=True.
+        No existing test calls add_custom_field().
+        """
+        from pinecone.preview.models import PreviewIntegerField
+
+        schema = (
+            PreviewSchemaBuilder()
+            .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+            .add_custom_field("score", {"type": "float", "filterable": True})
+            .build()
+        )
+
+        # Verify build() output contains the custom dict unchanged.
+        assert schema["fields"]["score"] == {"type": "float", "filterable": True}
+
+        # Create the index via API — verifies custom field definition is accepted.
+        cleanup_preview_indexes.append(preview_index_name)
+        client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+        poll_until(
+            lambda: client.preview.indexes.describe(preview_index_name),
+            _is_ready,
+            timeout=300,
+            interval=5,
+            description=f"index {preview_index_name} ready",
+        )
+
+        # describe() must return the custom field as a typed model.
+        model = client.preview.indexes.describe(preview_index_name)
+        assert "score" in model.schema.fields
+        score_field = model.schema.fields["score"]
+        assert isinstance(score_field, PreviewIntegerField), (
+            f"expected PreviewIntegerField, got {type(score_field)}"
+        )
+        assert score_field.filterable is True
