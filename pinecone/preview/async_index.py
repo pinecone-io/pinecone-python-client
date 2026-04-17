@@ -48,9 +48,14 @@ class AsyncPreviewIndex:
         self._host_provider = _host_provider
         self._http = http
         self._config = config
-        self._documents: AsyncPreviewDocuments | None = (
-            AsyncPreviewDocuments(http=http, config=config, host=host) if host is not None else None
-        )
+        if host is not None:
+            self._documents: AsyncPreviewDocuments = AsyncPreviewDocuments(
+                http=http, config=config, host=host
+            )
+        else:
+            self._documents = AsyncPreviewDocuments(
+                http=http, config=config, _host_provider=_host_provider
+            )
 
     @property
     def host(self) -> str:
@@ -73,10 +78,6 @@ class AsyncPreviewIndex:
     @property
     def documents(self) -> AsyncPreviewDocuments:
         """Documents sub-namespace for data-plane operations on this index."""
-        if self._documents is None:
-            raise RuntimeError(
-                "Host not yet resolved; call _resolve_host() or a data-plane method first."
-            )
         return self._documents
 
     async def _resolve_host(self) -> str:
@@ -85,9 +86,6 @@ class AsyncPreviewIndex:
             if self._host_provider is None:
                 raise RuntimeError("AsyncPreviewIndex: no host or host_provider configured.")
             self._resolved_host = await self._host_provider()
-            self._documents = AsyncPreviewDocuments(
-                http=self._http, config=self._config, host=self._resolved_host
-            )
         return self._resolved_host
 
     def __repr__(self) -> str:

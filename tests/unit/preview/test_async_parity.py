@@ -459,9 +459,41 @@ def test_async_preview_index_documents_type() -> None:
     assert isinstance(idx.documents, AsyncPreviewDocuments)
 
 
-def test_async_preview_index_documents_type_unresolved() -> None:
-    """Accessing .documents before host resolution raises RuntimeError."""
+@pytest.mark.asyncio
+async def test_async_preview_index_documents_lazy_resolves_on_first_call() -> None:
+    """idx.documents returns AsyncPreviewDocuments synchronously; host provider fires once."""
+    import httpx
+    import respx
+
     config = _make_config()
-    idx = AsyncPreviewIndex(http=MagicMock(), config=config)
-    with pytest.raises(RuntimeError):
-        _ = idx.documents
+    http = AsyncHTTPClient(config, "2026-01.alpha")
+    call_count = 0
+
+    async def _provider() -> str:
+        nonlocal call_count
+        call_count += 1
+        return "https://lazy-host.svc.pinecone.io"
+
+    idx = AsyncPreviewIndex(http=http, config=config, _host_provider=_provider)
+
+    # .documents is available synchronously before any await
+    assert isinstance(idx.documents, AsyncPreviewDocuments)
+    assert call_count == 0
+
+    # First data-plane call triggers host resolution exactly once
+    with respx.mock:
+        respx.post("https://lazy-host.svc.pinecone.io/namespaces/ns/documents/upsert").mock(
+            return_value=httpx.Response(200, json={"upserted_count": 1})
+        )
+        await idx.documents.upsert(namespace="ns", documents=[{"_id": "a"}])
+
+    assert call_count == 1
+
+    # Second data-plane call reuses cached host — provider not called again
+    with respx.mock:
+        respx.post("https://lazy-host.svc.pinecone.io/namespaces/ns/documents/upsert").mock(
+            return_value=httpx.Response(200, json={"upserted_count": 1})
+        )
+        await idx.documents.upsert(namespace="ns", documents=[{"_id": "b"}])
+
+    assert call_count == 1

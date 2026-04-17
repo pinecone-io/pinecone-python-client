@@ -23,6 +23,8 @@ from pinecone.preview.models.documents import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
     from pinecone._internal.config import PineconeConfig
     from pinecone._internal.http_client import AsyncHTTPClient
     from pinecone.preview.models.score_by import PreviewScoreByQuery
@@ -52,27 +54,63 @@ class AsyncPreviewDocuments:
         http: Async HTTP client from the parent
             :class:`~pinecone.preview.async_index.AsyncPreviewIndex`.
         config: SDK configuration from the parent client.
-        host: Data-plane host URL for this index.
+        host: Data-plane host URL for this index. Provide either ``host`` or
+            ``_host_provider``.
+        _host_provider: Async callable that resolves the host on first data-plane
+            use. Used internally when the factory is called with ``name=``.
     """
 
-    def __init__(self, *, http: AsyncHTTPClient, config: PineconeConfig, host: str) -> None:
+    def __init__(
+        self,
+        *,
+        http: AsyncHTTPClient,
+        config: PineconeConfig,
+        host: str | None = None,
+        _host_provider: Callable[[], Awaitable[str]] | None = None,
+    ) -> None:
+        self._config = config
+        self._resolved_host: str | None = host
+        self._host_provider = _host_provider
+        self._http: AsyncHTTPClient | None = None
+
+        if host is not None and _host_provider is not None:
+            raise ValueError("Provide exactly one of host or _host_provider, not both.")
+
+        if host is None and _host_provider is None:
+            raise ValueError("Exactly one of host or _host_provider must be provided.")
+
+        # If host is already known, build the HTTP client eagerly.
+        if host is not None:
+            self._http = self._build_http(host)
+
+    def _build_http(self, host: str) -> AsyncHTTPClient:
         from pinecone._internal.config import PineconeConfig as _PineconeConfig
         from pinecone._internal.http_client import AsyncHTTPClient as _AsyncHTTPClient
 
         dp_config = _PineconeConfig(
-            api_key=config.api_key,
+            api_key=self._config.api_key,
             host=host,
-            timeout=config.timeout,
-            additional_headers=config.additional_headers,
-            source_tag=config.source_tag or "",
-            proxy_url=config.proxy_url or "",
-            proxy_headers=config.proxy_headers,
-            ssl_ca_certs=config.ssl_ca_certs,
-            ssl_verify=config.ssl_verify,
-            connection_pool_maxsize=config.connection_pool_maxsize,
-            retry_config=config.retry_config,
+            timeout=self._config.timeout,
+            additional_headers=self._config.additional_headers,
+            source_tag=self._config.source_tag or "",
+            proxy_url=self._config.proxy_url or "",
+            proxy_headers=self._config.proxy_headers,
+            ssl_ca_certs=self._config.ssl_ca_certs,
+            ssl_verify=self._config.ssl_verify,
+            connection_pool_maxsize=self._config.connection_pool_maxsize,
+            retry_config=self._config.retry_config,
         )
-        self._http = _AsyncHTTPClient(dp_config, INDEXES_API_VERSION)
+        return _AsyncHTTPClient(dp_config, INDEXES_API_VERSION)
+
+    async def _ensure_http(self) -> AsyncHTTPClient:
+        """Resolve the host (once) and return a ready HTTP client."""
+        if self._http is None:
+            if self._host_provider is None:
+                raise RuntimeError("AsyncPreviewDocuments: no host or host_provider configured.")
+            if self._resolved_host is None:
+                self._resolved_host = await self._host_provider()
+            self._http = self._build_http(self._resolved_host)
+        return self._http
 
     async def upsert(
         self,
@@ -108,7 +146,8 @@ class AsyncPreviewDocuments:
         require_non_empty("namespace", namespace)
         _validate_documents(documents)
 
-        response = await self._http.post(
+        http = await self._ensure_http()
+        response = await http.post(
             f"/namespaces/{namespace}/documents/upsert",
             json={"documents": documents},
         )
@@ -216,7 +255,8 @@ class AsyncPreviewDocuments:
         if filter is not None:
             body["filter"] = filter
 
-        response = await self._http.post(
+        http = await self._ensure_http()
+        response = await http.post(
             f"/namespaces/{namespace}/documents/search",
             json=body,
         )
@@ -265,7 +305,8 @@ class AsyncPreviewDocuments:
         if filter is not None:
             body["filter"] = filter
 
-        response = await self._http.post(
+        http = await self._ensure_http()
+        response = await http.post(
             f"/namespaces/{namespace}/documents/fetch",
             json=body,
         )
@@ -324,7 +365,8 @@ class AsyncPreviewDocuments:
         if filter is not None:
             body["filter"] = filter
 
-        await self._http.post(
+        http = await self._ensure_http()
+        await http.post(
             f"/namespaces/{namespace}/documents/delete",
             json=body,
         )
