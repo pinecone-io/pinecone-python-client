@@ -592,6 +592,73 @@ async def test_async_create_with_tags_returns_tags_in_describe(
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# test_async_create_and_list_backup — §9 async variants + §2 create_backup/list_backups
+# ---------------------------------------------------------------------------
+
+
+async def test_async_create_and_list_backup(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity for backup operations — create_backup and list_backups work via async path.
+
+    Async counterpart for test_backups.py sync tests. Verifies:
+    - Async create_backup() returns PreviewBackupModel with all required fields.
+    - source_index_name matches the index that was backed up.
+    - Async list_backups() iteration yields the created backup by backup_id.
+    """
+    from pinecone.preview.models import PreviewBackupModel
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    backup = await async_client.preview.indexes.create_backup(
+        preview_index_name,
+        name="async-integration-test",
+        description="Async backup parity test",
+    )
+
+    assert isinstance(backup, PreviewBackupModel)
+    assert isinstance(backup.backup_id, str) and len(backup.backup_id) > 0
+    assert backup.source_index_name == preview_index_name
+    assert isinstance(backup.source_index_id, str) and len(backup.source_index_id) > 0
+    assert isinstance(backup.status, str) and len(backup.status) > 0
+    assert isinstance(backup.cloud, str) and len(backup.cloud) > 0
+    assert isinstance(backup.region, str) and len(backup.region) > 0
+    assert isinstance(backup.created_at, str) and len(backup.created_at) > 0
+
+    backup_ids = [
+        b.backup_id
+        async for b in async_client.preview.indexes.list_backups(preview_index_name)
+    ]
+    assert backup.backup_id in backup_ids
+
+    async for item in async_client.preview.indexes.list_backups(preview_index_name):
+        assert isinstance(item, PreviewBackupModel)
+        assert isinstance(item.backup_id, str) and len(item.backup_id) > 0
+        assert isinstance(item.status, str)
+        assert isinstance(item.created_at, str)
+
+
 async def test_async_configure_tags_merges_with_existing_tags(
     async_client: AsyncPinecone,
     preview_index_name: str,

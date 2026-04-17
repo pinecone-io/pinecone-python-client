@@ -90,3 +90,60 @@ def test_list_backups_empty_for_new_index(
 ) -> None:
     items = list(client.preview.indexes.list_backups(ready_preview_index))
     assert len(items) == 0
+
+
+# ---------------------------------------------------------------------------
+# Dense-vector fixture — avoids FTS dedicated-read-capacity requirement
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def ready_dense_preview_index(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> str:
+    """Create a dense-vector preview index, wait until Ready, return its name."""
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(
+        name=preview_index_name,
+        schema=PreviewSchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build(),
+    )
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"preview index {preview_index_name} ready",
+    )
+    return preview_index_name
+
+
+def test_create_backup_all_required_fields_present(
+    client: Pinecone,
+    ready_dense_preview_index: str,
+) -> None:
+    """create_backup() response contains all required PreviewBackupModel fields.
+
+    Existing tests verify backup_id and status only. This test checks the full
+    set of required fields: source_index_name, source_index_id, cloud, region,
+    created_at, name, and description. Uses a dense-vector index (no FTS).
+    """
+    backup = client.preview.indexes.create_backup(
+        ready_dense_preview_index,
+        name="all-fields-test",
+        description="Verifying all required backup fields",
+    )
+    assert isinstance(backup, PreviewBackupModel)
+    assert isinstance(backup.backup_id, str) and len(backup.backup_id) > 0
+    assert backup.source_index_name == ready_dense_preview_index
+    assert isinstance(backup.source_index_id, str) and len(backup.source_index_id) > 0
+    assert isinstance(backup.status, str) and len(backup.status) > 0
+    assert isinstance(backup.cloud, str) and len(backup.cloud) > 0
+    assert isinstance(backup.region, str) and len(backup.region) > 0
+    assert isinstance(backup.created_at, str) and len(backup.created_at) > 0
+    assert backup.name == "all-fields-test"
+    assert backup.description == "Verifying all required backup fields"
