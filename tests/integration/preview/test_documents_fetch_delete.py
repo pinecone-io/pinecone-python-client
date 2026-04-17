@@ -480,3 +480,79 @@ def test_batch_upsert_result_fields(
     assert result.has_errors is False
     assert result.failed_items == []
     assert result.errors == []
+
+
+# ---------------------------------------------------------------------------
+# test_fetch_wildcard_include_fields — §5 fetch() include_fields=["*"]
+# ---------------------------------------------------------------------------
+
+
+def test_fetch_wildcard_include_fields_returns_all_stored_fields(
+    client: Pinecone,
+    preview_index_name: str,
+    preview_namespace: str,
+    cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """fetch() with include_fields=["*"] returns all stored fields for each document.
+
+    Verifies §5: the wildcard selector returns every field present in the stored
+    document (embedding vector and category string), in contrast to a specific
+    field list which returns only those named fields.
+
+    SERVER BUG (IPV-0002): fetch() returns 401 "Unknown operation" for all
+    preview index types (dense vector and FTS+dedicated). The upsert and search
+    endpoints work correctly on the same host. This test reaches the wildcard
+    fetch assertion but is expected to fail until IPV-0002 is resolved.
+    """
+    import time
+
+    from pinecone.errors.exceptions import UnauthorizedError
+    from pinecone.preview.models import PreviewIndexModel
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_string_field("category", filterable=True)
+        .build()
+    )
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = client.preview.index(name=preview_index_name)
+    docs = [
+        {"_id": "doc-a", "embedding": [0.1, 0.2, 0.3, 0.4], "category": "fruit"},
+        {"_id": "doc-b", "embedding": [0.5, 0.6, 0.7, 0.8], "category": "vegetable"},
+    ]
+    idx.documents.upsert(namespace=preview_namespace, documents=docs)
+    time.sleep(3)
+
+    # Fetch with wildcard — all stored fields must come back.
+    # IPV-0002: this call fails with 401 "Unknown operation" until fixed.
+    response = idx.documents.fetch(
+        namespace=preview_namespace,
+        ids=["doc-a", "doc-b"],
+        include_fields=["*"],
+    )
+
+    assert isinstance(response, PreviewDocumentFetchResponse)
+    assert set(response.documents.keys()) == {"doc-a", "doc-b"}
+
+    for doc_id, doc in response.documents.items():
+        assert isinstance(doc, PreviewDocument)
+        assert doc._id == doc_id
+        assert doc.category is not None, f"doc {doc_id} missing 'category' with include_fields=['*']"
+
+    assert response.documents["doc-a"].category == "fruit"
+    assert response.documents["doc-b"].category == "vegetable"

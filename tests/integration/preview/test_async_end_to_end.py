@@ -361,3 +361,79 @@ async def test_async_batch_upsert_result_fields(
     assert result.has_errors is False
     assert result.failed_items == []
     assert result.errors == []
+
+
+# ---------------------------------------------------------------------------
+# test_async_fetch_wildcard_include_fields — §5 async fetch() include_fields=["*"]
+# ---------------------------------------------------------------------------
+
+
+async def test_async_fetch_wildcard_include_fields_returns_all_stored_fields(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    preview_namespace: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async fetch() with include_fields=["*"] returns all stored fields for each document.
+
+    Async parity for test_fetch_wildcard_include_fields_returns_all_stored_fields:
+    verifies §5 wildcard behavior via the async SDK path.
+
+    SERVER BUG (IPV-0002): fetch() returns 401 "Unknown operation" for all
+    preview index types. This test is expected to fail until IPV-0002 is resolved.
+    """
+    import asyncio
+
+    from pinecone.preview.models import (
+        PreviewDocument,
+        PreviewDocumentFetchResponse,
+        PreviewIndexModel,
+    )
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_string_field("category", filterable=True)
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = async_client.preview.index(name=preview_index_name)
+    docs = [
+        {"_id": "fruit-0", "embedding": [0.1, 0.2, 0.3, 0.4], "category": "fruit"},
+        {"_id": "fruit-1", "embedding": [0.5, 0.6, 0.7, 0.8], "category": "vegetable"},
+    ]
+    await idx.documents.upsert(namespace=preview_namespace, documents=docs)
+    await asyncio.sleep(3)
+
+    # Fetch with wildcard — all stored fields must come back.
+    # IPV-0002: this call fails with 401 "Unknown operation" until fixed.
+    response = await idx.documents.fetch(
+        namespace=preview_namespace,
+        ids=["fruit-0", "fruit-1"],
+        include_fields=["*"],
+    )
+
+    assert isinstance(response, PreviewDocumentFetchResponse)
+    assert set(response.documents.keys()) == {"fruit-0", "fruit-1"}
+
+    for doc_id, doc in response.documents.items():
+        assert isinstance(doc, PreviewDocument)
+        assert doc._id == doc_id
+        assert doc.category is not None, f"doc {doc_id} missing 'category' with include_fields=['*']"
+
+    assert response.documents["fruit-0"].category == "fruit"
+    assert response.documents["fruit-1"].category == "vegetable"
