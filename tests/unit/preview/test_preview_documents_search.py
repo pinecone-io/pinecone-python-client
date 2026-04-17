@@ -8,7 +8,6 @@ import pytest
 import respx
 
 from pinecone._internal.config import PineconeConfig
-from pinecone._internal.http_client import AsyncHTTPClient, HTTPClient
 from pinecone.errors.exceptions import ValidationError
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
 from pinecone.preview.async_documents import AsyncPreviewDocuments
@@ -35,19 +34,13 @@ def config() -> PineconeConfig:
 
 
 @pytest.fixture
-def http(config: PineconeConfig) -> HTTPClient:
-    return HTTPClient(config, "2025-10")
-
-
-@pytest.fixture
-def docs(http: HTTPClient, config: PineconeConfig) -> PreviewDocuments:
-    return PreviewDocuments(http=http, config=config, host=INDEX_HOST)
+def docs(config: PineconeConfig) -> PreviewDocuments:
+    return PreviewDocuments(config=config, host=INDEX_HOST)
 
 
 @pytest.fixture
 def async_docs(config: PineconeConfig) -> AsyncPreviewDocuments:
-    async_http = AsyncHTTPClient(config, "2025-10")
-    return AsyncPreviewDocuments(http=async_http, config=config, host=INDEX_HOST)
+    return AsyncPreviewDocuments(config=config, host=INDEX_HOST)
 
 
 # ---------------------------------------------------------------------------

@@ -13,7 +13,6 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from pinecone._internal.config import PineconeConfig
-from pinecone._internal.http_client import AsyncHTTPClient, HTTPClient
 from pinecone.errors.exceptions import ValidationError
 from pinecone.models.batch import BatchResult
 from pinecone.models.pagination import AsyncPaginator, Paginator
@@ -159,14 +158,12 @@ def _make_config() -> PineconeConfig:
 
 def _make_sync_docs() -> PreviewDocuments:
     config = _make_config()
-    http = HTTPClient(config, "2026-01.alpha")
-    return PreviewDocuments(http=http, config=config, host="https://host.test")
+    return PreviewDocuments(config=config, host="https://host.test")
 
 
 def _make_async_docs() -> AsyncPreviewDocuments:
     config = _make_config()
-    http = AsyncHTTPClient(config, "2026-01.alpha")
-    return AsyncPreviewDocuments(http=http, config=config, host="https://host.test")
+    return AsyncPreviewDocuments(config=config, host="https://host.test")
 
 
 def _sync_error(fn: Any, *args: Any, **kwargs: Any) -> str:
@@ -420,15 +417,13 @@ async def test_batch_upsert_same_fields_both_variants() -> None:
 
 def test_preview_index_documents_type() -> None:
     config = _make_config()
-    http = HTTPClient(config, "2026-01.alpha")
-    idx = PreviewIndex(host="https://host.test", http=http, config=config)
+    idx = PreviewIndex(host="https://host.test", config=config)
     assert isinstance(idx.documents, PreviewDocuments)
 
 
 def test_async_preview_index_documents_type() -> None:
     config = _make_config()
-    http = AsyncHTTPClient(config, "2026-01.alpha")
-    idx = AsyncPreviewIndex(http=http, config=config, host="https://host.test")
+    idx = AsyncPreviewIndex(config=config, host="https://host.test")
     assert isinstance(idx.documents, AsyncPreviewDocuments)
 
 
@@ -439,7 +434,6 @@ async def test_async_preview_index_documents_lazy_resolves_on_first_call() -> No
     import respx
 
     config = _make_config()
-    http = AsyncHTTPClient(config, "2026-01.alpha")
     call_count = 0
 
     async def _provider() -> str:
@@ -447,7 +441,7 @@ async def test_async_preview_index_documents_lazy_resolves_on_first_call() -> No
         call_count += 1
         return "https://lazy-host.svc.pinecone.io"
 
-    idx = AsyncPreviewIndex(http=http, config=config, _host_provider=_provider)
+    idx = AsyncPreviewIndex(config=config, _host_provider=_provider)
 
     # .documents is available synchronously before any await
     assert isinstance(idx.documents, AsyncPreviewDocuments)

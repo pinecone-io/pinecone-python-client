@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pinecone.preview.async_documents import AsyncPreviewDocuments as AsyncPreviewDocuments
 
@@ -10,7 +10,6 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
     from pinecone._internal.config import PineconeConfig
-    from pinecone._internal.http_client import AsyncHTTPClient
 
 __all__ = ["AsyncPreviewDocuments", "AsyncPreviewIndex"]
 
@@ -29,7 +28,6 @@ class AsyncPreviewIndex:
     Obtain via ``pc.preview.index(name=...)`` or ``pc.preview.index(host=...)``.
 
     Args:
-        http: Async HTTP client from the parent :class:`~pinecone.AsyncPinecone` instance.
         config: SDK configuration shared with the parent client.
         host: Normalized data-plane host URL. Provide either ``host`` or ``_host_provider``.
         _host_provider: Async callable that resolves the host on first data-plane use.
@@ -39,22 +37,20 @@ class AsyncPreviewIndex:
 
     def __init__(
         self,
-        http: AsyncHTTPClient,
         config: PineconeConfig,
         host: str | None = None,
         _host_provider: Callable[[], Awaitable[str]] | None = None,
     ) -> None:
         self._resolved_host: str | None = host
         self._host_provider = _host_provider
-        self._http = http
         self._config = config
         if host is not None:
             self._documents: AsyncPreviewDocuments = AsyncPreviewDocuments(
-                http=http, config=config, host=host
+                config=config, host=host
             )
         else:
             self._documents = AsyncPreviewDocuments(
-                http=http, config=config, _host_provider=_host_provider
+                config=config, _host_provider=_host_provider
             )
 
     @property
@@ -96,6 +92,25 @@ class AsyncPreviewIndex:
                 raise RuntimeError("AsyncPreviewIndex: no host or host_provider configured.")
             self._resolved_host = await self._host_provider()
         return self._resolved_host
+
+    async def close(self) -> None:
+        """Close the underlying HTTP client if initialized. Idempotent.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+        """
+        await self._documents.close()
+
+    async def __aenter__(self) -> AsyncPreviewIndex:
+        return self
+
+    async def __aexit__(self, *args: Any) -> None:
+        await self.close()
 
     def __repr__(self) -> str:
         return f"AsyncPreviewIndex(host={self._resolved_host!r})"

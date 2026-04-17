@@ -126,7 +126,7 @@ class Preview:
 
         from pinecone.preview.index import PreviewIndex
 
-        return PreviewIndex(host=resolved_host, http=self._http, config=self._config)
+        return PreviewIndex(host=resolved_host, config=self._config)
 
     def close(self) -> None:
         """Close preview sub-clients. Idempotent.
@@ -244,7 +244,7 @@ class AsyncPreview:
         from pinecone.preview.async_index import AsyncPreviewIndex
 
         if host is not None:
-            return AsyncPreviewIndex(host=host, http=self._http, config=self._config)
+            return AsyncPreviewIndex(host=host, config=self._config)
 
         # name path: defer describe() to the first data-plane call.
         # The two validation checks above guarantee name is str here; this
@@ -261,7 +261,7 @@ class AsyncPreview:
                 host_cache[name] = desc.host
             return host_cache[name]
 
-        return AsyncPreviewIndex(http=self._http, config=self._config, _host_provider=_resolve)
+        return AsyncPreviewIndex(config=self._config, _host_provider=_resolve)
 
     async def close(self) -> None:
         """Close async preview sub-clients. Idempotent.

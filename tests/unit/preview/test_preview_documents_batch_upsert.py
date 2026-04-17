@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from pinecone._internal.config import PineconeConfig
-from pinecone._internal.http_client import AsyncHTTPClient, HTTPClient
 from pinecone.errors.exceptions import ValidationError
 from pinecone.models.batch import BatchResult
 from pinecone.preview.async_documents import AsyncPreviewDocuments
@@ -31,14 +30,12 @@ def config() -> PineconeConfig:
 
 @pytest.fixture
 def docs(config: PineconeConfig) -> PreviewDocuments:
-    http = HTTPClient(config, "2025-10")
-    return PreviewDocuments(http=http, config=config, host=INDEX_HOST)
+    return PreviewDocuments(config=config, host=INDEX_HOST)
 
 
 @pytest.fixture
 def async_docs(config: PineconeConfig) -> AsyncPreviewDocuments:
-    async_http = AsyncHTTPClient(config, "2025-10")
-    return AsyncPreviewDocuments(http=async_http, config=config, host=INDEX_HOST)
+    return AsyncPreviewDocuments(config=config, host=INDEX_HOST)
 
 
 # ---------------------------------------------------------------------------

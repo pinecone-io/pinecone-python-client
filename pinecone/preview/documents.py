@@ -25,7 +25,6 @@ from pinecone.preview.models.documents import (
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
-    from pinecone._internal.http_client import HTTPClient
     from pinecone.preview.models.score_by import PreviewScoreByQuery
 
 __all__ = ["PreviewDocuments"]
@@ -67,12 +66,11 @@ class PreviewDocuments:
     Access via ``index.documents`` on a :class:`~pinecone.preview.index.PreviewIndex`.
 
     Args:
-        http: HTTP client from the parent :class:`~pinecone.preview.index.PreviewIndex`.
         config: SDK configuration from the parent client.
         host: Data-plane host URL for this index.
     """
 
-    def __init__(self, *, http: HTTPClient, config: PineconeConfig, host: str) -> None:
+    def __init__(self, *, config: PineconeConfig, host: str) -> None:
         from pinecone._internal.config import PineconeConfig as _PineconeConfig
         from pinecone._internal.http_client import HTTPClient as _HTTPClient
 

@@ -53,8 +53,6 @@ class AsyncPreviewDocuments:
     :class:`~pinecone.preview.async_index.AsyncPreviewIndex`.
 
     Args:
-        http: Async HTTP client from the parent
-            :class:`~pinecone.preview.async_index.AsyncPreviewIndex`.
         config: SDK configuration from the parent client.
         host: Data-plane host URL for this index. Provide either ``host`` or
             ``_host_provider``.
@@ -65,7 +63,6 @@ class AsyncPreviewDocuments:
     def __init__(
         self,
         *,
-        http: AsyncHTTPClient,
         config: PineconeConfig,
         host: str | None = None,
         _host_provider: Callable[[], Awaitable[str]] | None = None,
