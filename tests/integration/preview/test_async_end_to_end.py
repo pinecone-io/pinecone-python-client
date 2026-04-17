@@ -2033,3 +2033,80 @@ async def test_async_upsert_accepts_extra_and_partial_documents(
     assert response.upserted_count == 2, (
         f"Expected upserted_count=2 for 2 docs (extra + partial), got {response.upserted_count}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_batch_upsert_with_batch_size_one_per_document — §5 batch_size min
+# ---------------------------------------------------------------------------
+
+
+async def test_async_batch_upsert_with_batch_size_one_per_document(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    preview_namespace: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity: batch_upsert(batch_size=1) creates one batch per document (§5).
+
+    Async variant uses asyncio.gather() instead of threads; max_workers controls
+    concurrency limit. batch_size=1 means each document is its own HTTP request,
+    so total_batch_count equals the document count.
+    """
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = async_client.preview.index(name=preview_index_name)
+    documents = [
+        {"_id": f"doc-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]}
+        for i in range(1, 4)  # 3 documents
+    ]
+
+    result = await idx.documents.batch_upsert(
+        namespace=preview_namespace,
+        documents=documents,
+        batch_size=1,       # minimum: each document is its own HTTP request
+        max_workers=2,
+        show_progress=False,
+    )
+
+    assert isinstance(result, BatchResult), (
+        f"Expected BatchResult, got {type(result)}"
+    )
+    assert result.total_item_count == 3, (
+        f"Expected total_item_count=3, got {result.total_item_count}"
+    )
+    assert result.total_batch_count == 3, (
+        f"Expected total_batch_count=3 (one per doc when batch_size=1), got {result.total_batch_count}"
+    )
+    assert result.successful_item_count == 3, (
+        f"Expected successful_item_count=3, got {result.successful_item_count}"
+    )
+    assert result.successful_batch_count == 3, (
+        f"Expected successful_batch_count=3, got {result.successful_batch_count}"
+    )
+    assert result.failed_item_count == 0, (
+        f"Expected failed_item_count=0, got {result.failed_item_count}"
+    )
+    assert result.failed_batch_count == 0, (
+        f"Expected failed_batch_count=0, got {result.failed_batch_count}"
+    )
+    assert result.has_errors is False, (
+        f"Expected has_errors=False, got {result.has_errors}"
+    )
