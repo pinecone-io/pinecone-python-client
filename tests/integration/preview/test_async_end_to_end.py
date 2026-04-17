@@ -1338,3 +1338,51 @@ async def test_async_schema_build_idempotency_and_field_collision_replacement(
     )
     assert "embedding" in model.schema.fields
     assert "count" in model.schema.fields
+
+
+# ---------------------------------------------------------------------------
+# test_async_describe_raises_not_found_and_index_factory_validation — §2 + §4
+# ---------------------------------------------------------------------------
+
+
+async def test_async_describe_raises_not_found_and_index_factory_validation(
+    async_client: AsyncPinecone,
+    require_preview: None,
+) -> None:
+    """Async describe() raises NotFoundError; async preview.index() validates args and defers resolution (§2, §4).
+
+    Verifies four spec claims:
+    1. §2 "Raises: NotFoundError if the index does not exist."
+    2. §4 async preview.index(name=phantom) returns an object immediately — host
+       resolution is deferred to the first data-plane call (unlike the sync path).
+    3. §4 The deferred NotFoundError surfaces on the first data-plane call (search()).
+    4. §4 async preview.index() with neither/both args raises PineconeValueError.
+    """
+    from pinecone.errors import NotFoundError, PineconeValueError
+    from tests.integration.conftest import unique_name
+
+    phantom = unique_name("phantom")
+
+    # Claim 1: await describe() raises NotFoundError for a name that was never created.
+    with pytest.raises(NotFoundError):
+        await async_client.preview.indexes.describe(phantom)
+
+    # Claim 2: async preview.index(name=phantom) returns immediately without error
+    # (host resolution is deferred).
+    idx = async_client.preview.index(name=phantom)
+    assert idx is not None
+
+    # Claim 3: The NotFoundError surfaces on the first data-plane call.
+    with pytest.raises(NotFoundError):
+        await idx.documents.search(
+            namespace="ns",
+            top_k=1,
+            score_by=[PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])],
+        )
+
+    # Claim 4: async preview.index() with neither/both args raises PineconeValueError.
+    with pytest.raises(PineconeValueError):
+        async_client.preview.index()  # type: ignore[call-arg]
+
+    with pytest.raises(PineconeValueError):
+        async_client.preview.index(name=phantom, host="https://dummy-host.pinecone.io")

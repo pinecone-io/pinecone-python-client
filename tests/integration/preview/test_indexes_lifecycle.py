@@ -705,3 +705,46 @@ class TestSchemaBuildBehavior:
         )
         assert "embedding" in model.schema.fields
         assert "count" in model.schema.fields
+
+
+# ---------------------------------------------------------------------------
+# TestDescribeNotFoundAndIndexFactoryValidation — §2 describe() + §4 index()
+# ---------------------------------------------------------------------------
+
+
+class TestDescribeNotFoundAndIndexFactoryValidation:
+    """§2 describe() raises NotFoundError; §4 preview.index() validates its args."""
+
+    def test_describe_raises_not_found_and_index_factory_validation(
+        self,
+        client: Pinecone,
+        require_preview: None,
+    ) -> None:
+        """describe() raises NotFoundError for a nonexistent name; preview.index() validates args (§2, §4).
+
+        Verifies four spec claims:
+        1. §2 "Raises: NotFoundError if the index does not exist."
+        2. §4 sync preview.index(name=<nonexistent>) raises NotFoundError immediately
+           (host resolution happens eagerly: describe() is called inside index()).
+        3. §4 preview.index() with neither name nor host raises PineconeValueError.
+        4. §4 preview.index(name=..., host=...) with both args raises PineconeValueError.
+        """
+        from tests.integration.conftest import unique_name
+
+        phantom = unique_name("phantom")
+
+        # Claim 1: describe() raises NotFoundError for a name that was never created.
+        with pytest.raises(NotFoundError):
+            client.preview.indexes.describe(phantom)
+
+        # Claim 2: sync preview.index(name=phantom) calls describe() eagerly → NotFoundError.
+        with pytest.raises(NotFoundError):
+            client.preview.index(name=phantom)
+
+        # Claim 3: preview.index() with neither arg raises PineconeValueError.
+        with pytest.raises(PineconeValueError):
+            client.preview.index()  # type: ignore[call-arg]
+
+        # Claim 4: preview.index(name=..., host=...) with both args raises PineconeValueError.
+        with pytest.raises(PineconeValueError):
+            client.preview.index(name=phantom, host="https://dummy-host.pinecone.io")
