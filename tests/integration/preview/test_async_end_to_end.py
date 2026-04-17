@@ -1450,3 +1450,63 @@ async def test_async_configure_returns_preview_index_model_with_updated_fields(
     await async_client.preview.indexes.configure(
         preview_index_name, deletion_protection="disabled"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_configure_schema_rejects_field_modification — §2 additive-only
+# ---------------------------------------------------------------------------
+
+
+async def test_async_configure_schema_rejects_field_modification(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity: configure() with a schema that modifies an existing field raises ApiError (§2).
+
+    Spec §2 edge case: "schema updates are additive only… The API rejects schema updates
+    that modify existing field definitions." Verifies that attempting to change the dimension
+    of an existing "embedding" field (4 → 8) raises ApiError with a 4xx status code, and
+    that the index and its original schema remain intact afterward.
+    """
+    from pinecone.errors.exceptions import ApiError
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    # Attempt to modify the existing "embedding" field (dimension 4 → 8).
+    modified_schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=8, metric="cosine")
+        .build()
+    )
+    with pytest.raises(ApiError) as exc_info:
+        await async_client.preview.indexes.configure(preview_index_name, schema=modified_schema)
+
+    assert exc_info.value.status_code >= 400, (
+        f"Expected 4xx error for field modification, got status {exc_info.value.status_code}"
+    )
+
+    # The index must still be accessible after the rejected configure().
+    described = await async_client.preview.indexes.describe(preview_index_name)
+    assert isinstance(described, PreviewIndexModel)
+    assert len(described.schema.fields) == 1, (
+        "Schema must be unchanged after rejected configure()"
+    )
