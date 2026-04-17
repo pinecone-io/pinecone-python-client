@@ -128,6 +128,11 @@ class Preview:
 
         return PreviewIndex(host=resolved_host, http=self._http, config=self._config)
 
+    def close(self) -> None:
+        """Close preview sub-clients. Idempotent."""
+        if self._indexes is not None:
+            self._indexes.close()
+
     def __repr__(self) -> str:
         return "Preview()"
 
@@ -249,6 +254,11 @@ class AsyncPreview:
             return host_cache[name]
 
         return AsyncPreviewIndex(http=self._http, config=self._config, _host_provider=_resolve)
+
+    async def close(self) -> None:
+        """Close async preview sub-clients. Idempotent."""
+        if self._indexes is not None:
+            await self._indexes.close()
 
     def __repr__(self) -> str:
         return "AsyncPreview()"

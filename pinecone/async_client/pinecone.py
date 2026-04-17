@@ -473,6 +473,8 @@ class AsyncPinecone:
             await self._assistants.close()
         if self._inference is not None:
             await self._inference.close()
+        if self._preview is not None:
+            await self._preview.close()
 
     async def __aenter__(self) -> AsyncPinecone:
         return self

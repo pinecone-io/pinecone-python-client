@@ -77,6 +77,10 @@ class PreviewIndexes:
         )
         self._http = _HTTPClient(cp_config, INDEXES_API_VERSION)
 
+    def close(self) -> None:
+        """Close the underlying HTTP client. Idempotent."""
+        self._http.close()
+
     def __repr__(self) -> str:
         return "PreviewIndexes()"
 

@@ -23,6 +23,7 @@ from pinecone.preview.models import (
     PreviewDocument,
     PreviewDocumentFetchResponse,
     PreviewIndexModel,
+    PreviewUsage,
 )
 from tests.integration.conftest import poll_until
 
@@ -160,6 +161,88 @@ def test_fetch_by_filter_returns_matching_docs(
     for doc in response.documents.values():
         assert doc.category == "fruit", f"Expected fruit, got {doc.category!r}"
     assert {"doc-0", "doc-1", "doc-3"} <= set(response.documents.keys())
+
+
+def test_fetch_response_envelope_namespace_and_usage(
+    client: Pinecone,
+    preview_index_name: str,
+    preview_namespace: str,
+    cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Verify fetch() response envelope: namespace echoes the request namespace and usage.read_units is present (§5).
+
+    Spec §5 defines PreviewDocumentFetchResponse as having:
+      - namespace: str  (echoes the requested namespace)
+      - usage: PreviewUsage | None  (with read_units: int >= 0)
+    All existing fetch tests only assert on response.documents — this test
+    verifies the response envelope fields are correctly populated.
+    Uses a dense-vector-only schema (OnDemand compatible; FTS requires Dedicated).
+    """
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = client.preview.index(name=preview_index_name)
+    idx.documents.upsert(
+        namespace=preview_namespace,
+        documents=[{"_id": "doc-0", "embedding": [0.1, 0.2, 0.3, 0.4]}],
+    )
+
+    # Poll until doc-0 is fetchable (eventual consistency)
+    def _has_doc(r: PreviewDocumentFetchResponse) -> bool:
+        return "doc-0" in r.documents
+
+    poll_until(
+        lambda: idx.documents.fetch(
+            namespace=preview_namespace, ids=["doc-0"], include_fields=["embedding"]
+        ),
+        _has_doc,
+        timeout=60,
+        interval=3,
+        description="doc-0 fetchable",
+    )
+
+    response = idx.documents.fetch(
+        namespace=preview_namespace,
+        ids=["doc-0"],
+        include_fields=["embedding"],
+    )
+
+    assert isinstance(response, PreviewDocumentFetchResponse)
+    # namespace must echo the requested namespace
+    assert isinstance(response.namespace, str), (
+        f"Expected str namespace, got {type(response.namespace)}"
+    )
+    assert response.namespace == preview_namespace, (
+        f"Expected namespace {preview_namespace!r}, got {response.namespace!r}"
+    )
+    # usage must be present with a non-negative read_units counter
+    assert response.usage is not None, "response.usage must not be None after a successful fetch"
+    assert isinstance(response.usage, PreviewUsage), (
+        f"Expected PreviewUsage instance, got {type(response.usage)}"
+    )
+    assert isinstance(response.usage.read_units, int), (
+        f"Expected int read_units, got {type(response.usage.read_units)}"
+    )
+    assert response.usage.read_units >= 0, (
+        f"Expected non-negative read_units, got {response.usage.read_units}"
+    )
 
 
 # ---------------------------------------------------------------------------

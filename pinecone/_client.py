@@ -842,6 +842,8 @@ class Pinecone:
             self._inference.close()
         if self._assistants is not None:
             self._assistants.close()
+        if self._preview is not None:
+            self._preview.close()
 
     def __enter__(self) -> Pinecone:
         return self

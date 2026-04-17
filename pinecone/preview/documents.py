@@ -91,6 +91,10 @@ class PreviewDocuments:
         )
         self._http = _HTTPClient(dp_config, INDEXES_API_VERSION)
 
+    def close(self) -> None:
+        """Close the underlying HTTP client. Idempotent."""
+        self._http.close()
+
     def upsert(
         self,
         *,

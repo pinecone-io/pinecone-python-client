@@ -87,6 +87,10 @@ class AsyncPreviewIndexes:
         )
         self._http = _AsyncHTTPClient(cp_config, INDEXES_API_VERSION)
 
+    async def close(self) -> None:
+        """Close the underlying HTTP client. Idempotent."""
+        await self._http.close()
+
     def __repr__(self) -> str:
         return "AsyncPreviewIndexes()"
 

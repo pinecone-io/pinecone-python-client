@@ -45,7 +45,7 @@ def _normalize_paginator(annotation: Any) -> Any:
     and resolved generic aliases.
     """
     if isinstance(annotation, str) and annotation.startswith("AsyncPaginator["):
-        return "Paginator[" + annotation[len("AsyncPaginator["):]
+        return "Paginator[" + annotation[len("AsyncPaginator[") :]
     if get_origin(annotation) is AsyncPaginator:
         inner = get_args(annotation)
         return Paginator[inner[0]] if inner else Paginator  # type: ignore[valid-type]
@@ -77,8 +77,7 @@ def _assert_signature_parity(sync_cls: type, async_cls: type, method_name: str) 
             f"{method_name}.{name}: kind differs (sync={sp.kind}, async={ap.kind})"
         )
         assert sp.default == ap.default, (
-            f"{method_name}.{name}: default differs "
-            f"(sync={sp.default!r}, async={ap.default!r})"
+            f"{method_name}.{name}: default differs (sync={sp.default!r}, async={ap.default!r})"
         )
 
         s_ann = sp.annotation if sp.annotation is not inspect.Parameter.empty else None
@@ -184,6 +183,7 @@ async def _async_error(fn: Any, *args: Any, **kwargs: Any) -> str:
 
 # fetch validation
 
+
 async def test_fetch_empty_namespace_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
@@ -193,6 +193,7 @@ async def test_fetch_empty_namespace_parity() -> None:
 
 
 # search validation
+
 
 async def test_search_empty_namespace_parity() -> None:
     sync = _make_sync_docs()
@@ -219,6 +220,7 @@ async def test_search_empty_score_by_parity() -> None:
 
 
 # delete validation
+
 
 async def test_delete_empty_namespace_parity() -> None:
     sync = _make_sync_docs()
@@ -247,9 +249,7 @@ async def test_delete_ids_and_delete_all_parity() -> None:
 async def test_delete_ids_and_filter_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
-    sync_msg = _sync_error(
-        sync.delete, namespace="ns", ids=["a"], filter={"field": {"$eq": "v"}}
-    )
+    sync_msg = _sync_error(sync.delete, namespace="ns", ids=["a"], filter={"field": {"$eq": "v"}})
     async_msg = await _async_error(
         async_d.delete, namespace="ns", ids=["a"], filter={"field": {"$eq": "v"}}
     )
@@ -257,6 +257,7 @@ async def test_delete_ids_and_filter_parity() -> None:
 
 
 # upsert validation
+
 
 async def test_upsert_empty_namespace_parity() -> None:
     sync = _make_sync_docs()
@@ -287,12 +288,15 @@ async def test_upsert_duplicate_id_parity() -> None:
 
 # batch_upsert validation
 
+
 async def test_batch_upsert_batch_size_range_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     docs = [{"_id": "d1"}]
     sync_msg = _sync_error(sync.batch_upsert, namespace="ns", documents=docs, batch_size=0)
-    async_msg = await _async_error(async_d.batch_upsert, namespace="ns", documents=docs, batch_size=0)
+    async_msg = await _async_error(
+        async_d.batch_upsert, namespace="ns", documents=docs, batch_size=0
+    )
     assert sync_msg == async_msg
 
 
@@ -301,7 +305,9 @@ async def test_batch_upsert_max_workers_range_parity() -> None:
     async_d = _make_async_docs()
     docs = [{"_id": "d1"}]
     sync_msg = _sync_error(sync.batch_upsert, namespace="ns", documents=docs, max_workers=0)
-    async_msg = await _async_error(async_d.batch_upsert, namespace="ns", documents=docs, max_workers=0)
+    async_msg = await _async_error(
+        async_d.batch_upsert, namespace="ns", documents=docs, max_workers=0
+    )
     assert sync_msg == async_msg
 
 

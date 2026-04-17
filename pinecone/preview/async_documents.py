@@ -114,6 +114,11 @@ class AsyncPreviewDocuments:
             self._http = self._build_http(self._resolved_host)
         return self._http
 
+    async def close(self) -> None:
+        """Close the underlying HTTP client if initialized. Idempotent."""
+        if self._http is not None:
+            await self._http.close()
+
     async def upsert(
         self,
         *,

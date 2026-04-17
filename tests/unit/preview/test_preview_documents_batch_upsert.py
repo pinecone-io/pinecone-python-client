@@ -179,9 +179,10 @@ async def test_async_batch_upsert_250_calls_upsert_three_times(
 async def test_async_batch_upsert_show_progress_propagated(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
-    with patch.object(
-        async_docs, "upsert", new_callable=AsyncMock, return_value=_UPSERT_RESPONSE
-    ), patch("pinecone._internal.batch._create_progress_bar") as mock_bar:
+    with (
+        patch.object(async_docs, "upsert", new_callable=AsyncMock, return_value=_UPSERT_RESPONSE),
+        patch("pinecone._internal.batch._create_progress_bar") as mock_bar,
+    ):
         bar = MagicMock()
         mock_bar.return_value = bar
         await async_docs.batch_upsert(
@@ -247,9 +248,7 @@ async def test_async_batch_upsert_batch_size_101_raises(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
     with pytest.raises(ValidationError):
-        await async_docs.batch_upsert(
-            namespace="ns", documents=[{"_id": "a"}], batch_size=101
-        )
+        await async_docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], batch_size=101)
 
 
 @pytest.mark.asyncio
@@ -257,6 +256,4 @@ async def test_async_batch_upsert_max_workers_zero_raises(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
     with pytest.raises(ValidationError):
-        await async_docs.batch_upsert(
-            namespace="ns", documents=[{"_id": "a"}], max_workers=0
-        )
+        await async_docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_workers=0)
