@@ -6,7 +6,7 @@ Subsequent tasks (BC-0031..BC-0034) append tests for additional shim methods.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -191,3 +191,133 @@ async def test_async_delete_assistant_legacy_positional(
     mock_async_assistants.delete = spy  # type: ignore[method-assign]
     await mock_async_assistants.delete_assistant("foo", 30)
     spy.assert_called_once_with(name="foo", timeout=30)
+
+
+async def test_async_delete_assistant_no_timeout(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """delete_assistant() without timeout passes timeout=None to delete()."""
+    spy = AsyncMock()
+    mock_async_assistants.delete = spy  # type: ignore[method-assign]
+    await mock_async_assistants.delete_assistant(assistant_name="baz")
+    spy.assert_called_once_with(name="baz", timeout=None)
+
+
+async def test_async_delete_assistant_with_name_kwarg(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """delete_assistant(name=...) accepts the current-style kwarg."""
+    spy = AsyncMock()
+    mock_async_assistants.delete = spy  # type: ignore[method-assign]
+    await mock_async_assistants.delete_assistant(name="bar")
+    spy.assert_called_once_with(name="bar", timeout=None)
+
+
+# ---------------------------------------------------------------------------
+# Additional create_assistant shim tests (AX-0026)
+# ---------------------------------------------------------------------------
+
+
+async def test_async_create_assistant_with_name_kwarg(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """create_assistant() accepts the current-style name= kwarg too."""
+    result = await mock_async_assistants.create_assistant(name="bar")
+    assert result.name == "legacy-name"
+
+
+async def test_async_create_assistant_name_kwarg_forwards_correctly(
+    mock_async_assistants: AsyncAssistants,
+    spy_async_create: AsyncMock,
+) -> None:
+    """create_assistant(name=...) resolves to create(name=...)."""
+    await mock_async_assistants.create_assistant(name="bar")
+    spy_async_create.assert_called_once_with(
+        name="bar",
+        instructions=None,
+        metadata=None,
+        region="us",
+        timeout=None,
+    )
+
+
+async def test_async_create_assistant_no_name_propagates_error(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """create_assistant() with no name propagates the error from create()."""
+    from pinecone.errors.exceptions import PineconeValueError
+
+    with pytest.raises(PineconeValueError, match="missing required"):
+        await mock_async_assistants.create_assistant()
+
+
+# ---------------------------------------------------------------------------
+# Additional list_assistants shim tests (AX-0026)
+# ---------------------------------------------------------------------------
+
+
+async def test_async_list_assistants_returns_all_pages(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """list_assistants() follows pagination and returns items from all pages."""
+    page1 = ListAssistantsResponse(assistants=[_CANNED_ASSISTANT], next="token-1")
+    page2 = ListAssistantsResponse(assistants=[_CANNED_ASSISTANT], next=None)
+    mock_async_assistants._adapter.to_assistant_list.side_effect = [page1, page2]  # type: ignore[attr-defined]
+    result = await mock_async_assistants.list_assistants()
+    assert len(result) == 2
+
+
+async def test_async_list_assistants_paginated_page_size_kwarg(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """list_assistants_paginated(page_size=...) also passes page_size= to list_page."""
+    canned_response = ListAssistantsResponse(assistants=[], next=None)
+    spy_list_page = AsyncMock(return_value=canned_response)
+    mock_async_assistants.list_page = spy_list_page  # type: ignore[method-assign]
+
+    await mock_async_assistants.list_assistants_paginated(page_size=10)
+
+    spy_list_page.assert_called_once_with(page_size=10, pagination_token=None)
+
+
+async def test_async_list_assistants_paginated_with_pagination_token(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """list_assistants_paginated() forwards pagination_token to list_page."""
+    canned_response = ListAssistantsResponse(assistants=[], next=None)
+    spy_list_page = AsyncMock(return_value=canned_response)
+    mock_async_assistants.list_page = spy_list_page  # type: ignore[method-assign]
+
+    await mock_async_assistants.list_assistants_paginated(pagination_token="some-token")
+
+    spy_list_page.assert_called_once_with(page_size=None, pagination_token="some-token")
+
+
+# ---------------------------------------------------------------------------
+# Additional update_assistant shim tests (AX-0026)
+# ---------------------------------------------------------------------------
+
+
+async def test_async_update_assistant_with_name_kwarg(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """update_assistant(name=...) accepts the current-style kwarg too."""
+    result = await mock_async_assistants.update_assistant(
+        name="bar", instructions="new instructions"
+    )
+    assert result.name == "legacy-name"
+
+
+async def test_async_update_assistant_forwards_to_update(
+    mock_async_assistants: AsyncAssistants,
+) -> None:
+    """update_assistant() forwards assistant_name as name= to update()."""
+    spy = AsyncMock(side_effect=mock_async_assistants.update)
+    mock_async_assistants.update = spy  # type: ignore[method-assign]
+
+    await mock_async_assistants.update_assistant(
+        assistant_name="foo",
+        instructions="be precise",
+        metadata={"k": "v"},
+    )
+    spy.assert_called_once_with(name="foo", instructions="be precise", metadata={"k": "v"})
