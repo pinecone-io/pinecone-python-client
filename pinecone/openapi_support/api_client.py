@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import atexit
 import io
 
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from multiprocessing.pool import ThreadPool
     from concurrent.futures import ThreadPoolExecutor
 
 from .rest_urllib3 import Urllib3RestClient
@@ -33,7 +31,6 @@ class ApiClient(object):
         to the API. More threads means more concurrent API requests.
     """
 
-    _pool: "ThreadPool" | None = None
     _threadpool_executor: "ThreadPoolExecutor" | None = None
 
     def __init__(
@@ -59,24 +56,6 @@ class ApiClient(object):
         if self._threadpool_executor:
             self._threadpool_executor.shutdown()
             self._threadpool_executor = None
-        if self._pool:
-            self._pool.close()
-            self._pool.join()
-            self._pool = None
-            if hasattr(atexit, "unregister"):
-                atexit.unregister(self.close)
-
-    @property
-    def pool(self) -> "ThreadPool":
-        """Create thread pool on first request
-        avoids instantiating unused threadpool for blocking clients.
-        """
-        if self._pool is None:
-            from multiprocessing.pool import ThreadPool
-
-            atexit.register(self.close)
-            self._pool = ThreadPool(self.pool_threads)
-        return self._pool
 
     @property
     def threadpool_executor(self) -> "ThreadPoolExecutor":
@@ -336,27 +315,27 @@ class ApiClient(object):
                 _check_type,
             )
 
-        return self.pool.apply_async(
+        future = self.threadpool_executor.submit(
             self.__call_api,
-            (
-                resource_path,
-                method,
-                path_params,
-                query_params,
-                header_params,
-                body,
-                post_params,
-                files,
-                response_type,
-                auth_settings,
-                _return_http_data_only,
-                collection_formats,
-                _preload_content,
-                _request_timeout,
-                _host,
-                _check_type,
-            ),
+            resource_path,
+            method,
+            path_params,
+            query_params,
+            header_params,
+            body,
+            post_params,
+            files,
+            response_type,
+            auth_settings,
+            _return_http_data_only,
+            collection_formats,
+            _preload_content,
+            _request_timeout,
+            _host,
+            _check_type,
         )
+        future.get = future.result
+        return future
 
     def request(
         self,
