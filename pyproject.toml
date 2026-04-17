@@ -68,3 +68,8 @@ required-imports = ["from __future__ import annotations"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 timeout = 5
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.2.0",
+]
