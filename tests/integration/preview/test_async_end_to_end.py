@@ -1732,3 +1732,77 @@ async def test_async_preview_index_model_read_capacity_on_demand(
     assert isinstance(described.read_capacity.status.state, str), (
         "async describe() read_capacity.status.state should be a string"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_documents_delete_returns_none — §5 async parity for delete() return value
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.skip(reason="IPV-0004: documents/delete endpoint returns 401 Unknown operation")
+async def test_async_documents_delete_returns_none_for_all_targeting_modes(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Async parity for test_documents_delete_returns_none_for_all_targeting_modes (PVT-025).
+
+    Verifies that AsyncPreviewDocuments.delete() returns None for all three
+    targeting modes (ids, filter, delete_all=True), as required by spec §5
+    "Returns: None (empty response body)".
+
+    DISABLED (IPV-0004): Same root cause as sync variant.
+    """
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_string_field("category", filterable=True)
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"async index {preview_index_name} ready",
+    )
+
+    idx = async_client.preview.index(name=preview_index_name)
+    ns = preview_namespace
+
+    await idx.documents.upsert(
+        namespace=ns,
+        documents=[
+            {"_id": "doc-0", "embedding": [0.1, 0.2, 0.3, 0.4], "category": "fruit"},
+            {"_id": "doc-1", "embedding": [0.5, 0.6, 0.7, 0.8], "category": "fruit"},
+            {"_id": "doc-2", "embedding": [0.9, 0.1, 0.2, 0.3], "category": "vegetable"},
+        ],
+    )
+
+    # delete by IDs must return None.
+    result_ids = await idx.documents.delete(namespace=ns, ids=["doc-0"])
+    assert result_ids is None, (
+        f"async delete(ids=...) expected None, got {type(result_ids)}: {result_ids!r}"
+    )
+
+    # delete by filter must return None.
+    result_filter = await idx.documents.delete(
+        namespace=ns, filter={"category": {"$eq": "vegetable"}}
+    )
+    assert result_filter is None, (
+        f"async delete(filter=...) expected None, got {type(result_filter)}: {result_filter!r}"
+    )
+
+    # delete_all=True must return None.
+    result_all = await idx.documents.delete(namespace=ns, delete_all=True)
+    assert result_all is None, (
+        f"async delete(delete_all=True) expected None, got {type(result_all)}: {result_all!r}"
+    )

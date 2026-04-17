@@ -661,3 +661,84 @@ def test_delete_client_side_validation_rejects_invalid_arguments(
     # ids and filter are mutually exclusive.
     with pytest.raises(ValidationError, match="ids"):
         idx.documents.delete(namespace="ns", ids=["doc-0"], filter={"category": {"$eq": "fruit"}})
+
+
+# ---------------------------------------------------------------------------
+# test_documents_delete_returns_none — §5 delete() "Returns: None"
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+@pytest.mark.skip(reason="IPV-0004: documents/delete endpoint returns 401 Unknown operation")
+def test_documents_delete_returns_none_for_all_targeting_modes(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """documents.delete() returns None for ids, filter, and delete_all targeting modes.
+
+    Spec §5 states: "Returns: None (empty response body)" with 202 Accepted.
+    The existing delete tests (test_delete_by_ids, test_delete_by_filter,
+    test_delete_all) are broken because their populated_index fixture depends
+    on FTS (dedicated capacity) and fetch (IPV-0002). This test uses a dense
+    vector OnDemand schema and does not require verification of deletion to
+    verify the return type contract.
+
+    DISABLED (IPV-0004): The /namespaces/{ns}/documents/delete endpoint returns
+    401 Unauthorized with x-pinecone-auth-rejected-reason: Unknown operation,
+    blocking all documents.delete() calls.
+    """
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_string_field("category", filterable=True)
+        .build()
+    )
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = client.preview.index(name=preview_index_name)
+    ns = preview_namespace
+
+    idx.documents.upsert(
+        namespace=ns,
+        documents=[
+            {"_id": "doc-0", "embedding": [0.1, 0.2, 0.3, 0.4], "category": "fruit"},
+            {"_id": "doc-1", "embedding": [0.5, 0.6, 0.7, 0.8], "category": "fruit"},
+            {"_id": "doc-2", "embedding": [0.9, 0.1, 0.2, 0.3], "category": "vegetable"},
+        ],
+    )
+
+    # delete by IDs must return None.
+    result_ids = idx.documents.delete(namespace=ns, ids=["doc-0"])
+    assert result_ids is None, (
+        f"delete(ids=...) expected None, got {type(result_ids)}: {result_ids!r}"
+    )
+
+    # delete by filter must return None.
+    result_filter = idx.documents.delete(
+        namespace=ns, filter={"category": {"$eq": "vegetable"}}
+    )
+    assert result_filter is None, (
+        f"delete(filter=...) expected None, got {type(result_filter)}: {result_filter!r}"
+    )
+
+    # delete_all=True must return None.
+    result_all = idx.documents.delete(namespace=ns, delete_all=True)
+    assert result_all is None, (
+        f"delete(delete_all=True) expected None, got {type(result_all)}: {result_all!r}"
+    )
