@@ -808,3 +808,76 @@ def test_preview_index_model_read_capacity_on_demand(
     assert isinstance(described.read_capacity.status.state, str), (
         "describe() read_capacity.status.state should be a string"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_search_score_by_plain_dict_accepted — §6 "Dict format"
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.timeout(300)
+def test_search_score_by_plain_dict_accepted(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Verify search() accepts plain dicts in score_by in addition to typed models (§6 "Dict format").
+
+    The spec §6 states: "All query types can also be passed as plain dicts matching
+    the wire format. This is useful when the SDK's typed models haven't been updated
+    for new score-by types added by the API."
+
+    All existing search tests use typed objects (PreviewDenseVectorQuery, etc.). This test
+    verifies the alternative path: plain dict entries are passed through to the API unchanged.
+    Uses include_fields=["*"] to avoid the IPV-0001 422 bug. 0 matches are acceptable.
+    """
+    from pinecone.preview.models import PreviewIndexModel
+
+    schema = (
+        PreviewSchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = client.preview.index(name=preview_index_name)
+    idx.documents.upsert(
+        namespace=preview_namespace,
+        documents=[{"_id": "doc-dict", "embedding": [0.1, 0.2, 0.3, 0.4]}],
+    )
+
+    # §6: pass score_by as a plain dict (wire format) rather than a typed model
+    response = idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=[{"type": "dense_vector", "field": "embedding", "values": [0.1, 0.2, 0.3, 0.4]}],
+        include_fields=["*"],
+    )
+
+    assert isinstance(response, PreviewDocumentSearchResponse), (
+        f"search() with plain dict score_by expected PreviewDocumentSearchResponse, got {type(response)}"
+    )
+    assert response.namespace == preview_namespace, (
+        f"response.namespace expected {preview_namespace!r}, got {response.namespace!r}"
+    )
+    assert response.usage is not None, "response.usage should not be None for a 200 OK response"
+    assert isinstance(response.usage, PreviewUsage), (
+        f"response.usage expected PreviewUsage, got {type(response.usage)}"
+    )
+    assert isinstance(response.usage.read_units, int), (
+        f"usage.read_units expected int, got {type(response.usage.read_units)}"
+    )

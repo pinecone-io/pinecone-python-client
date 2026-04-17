@@ -1806,3 +1806,70 @@ async def test_async_documents_delete_returns_none_for_all_targeting_modes(
     assert result_all is None, (
         f"async delete(delete_all=True) expected None, got {type(result_all)}: {result_all!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_search_score_by_plain_dict_accepted — §6 "Dict format" async parity
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.timeout(300)
+async def test_async_search_score_by_plain_dict_accepted(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Async parity for test_search_score_by_plain_dict_accepted (PVT-026).
+
+    Verifies that AsyncPreviewDocuments.search() also accepts plain dicts in score_by
+    per spec §6 "Dict format". Identical logic to sync variant; uses include_fields=["*"]
+    to avoid IPV-0001 422 bug. 0 matches acceptable.
+    """
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = async_client.preview.index(host=(await async_client.preview.indexes.describe(preview_index_name)).host)
+    await idx.documents.upsert(
+        namespace=preview_namespace,
+        documents=[{"_id": "doc-dict-async", "embedding": [0.1, 0.2, 0.3, 0.4]}],
+    )
+
+    # §6: pass score_by as a plain dict (wire format) rather than a typed model
+    response = await idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=[{"type": "dense_vector", "field": "embedding", "values": [0.1, 0.2, 0.3, 0.4]}],
+        include_fields=["*"],
+    )
+
+    assert isinstance(response, PreviewDocumentSearchResponse), (
+        f"async search() with plain dict score_by expected PreviewDocumentSearchResponse, got {type(response)}"
+    )
+    assert response.namespace == preview_namespace, (
+        f"response.namespace expected {preview_namespace!r}, got {response.namespace!r}"
+    )
+    assert response.usage is not None, "response.usage should not be None for a 200 OK response"
+    assert isinstance(response.usage, PreviewUsage), (
+        f"response.usage expected PreviewUsage, got {type(response.usage)}"
+    )
+    assert isinstance(response.usage.read_units, int), (
+        f"usage.read_units expected int, got {type(response.usage.read_units)}"
+    )
