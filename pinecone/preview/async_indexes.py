@@ -55,9 +55,9 @@ class AsyncPreviewIndexes:
         config: SDK configuration used to construct an async HTTP client targeting
             the preview API version.
 
-    Examples::
+    Examples:
+        Create a preview index::
 
-        async def main():
             pc = AsyncPinecone(api_key="...")
             index = await pc.preview.indexes.create(
                 schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536}}},
@@ -157,9 +157,9 @@ class AsyncPreviewIndexes:
             :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an
                 error response.
 
-        Examples::
+        Examples:
+            Create a new preview index::
 
-            async def main():
                 index = await pc.preview.indexes.create(
                     schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536}}},
                     name="my-preview-index",
@@ -405,12 +405,15 @@ class AsyncPreviewIndexes:
             :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an
                 error response.
 
-        Examples::
+        Examples:
+            Iterate over all preview indexes::
 
-            async for index in pc.preview.indexes.list():
-                print(index.name)
+                async for index in pc.preview.indexes.list():
+                    print(index.name)
 
-            all_indexes = await pc.preview.indexes.list().to_list()
+            Collect all into a list::
+
+                all_indexes = await pc.preview.indexes.list().to_list()
         """
         if limit is not None:
             require_positive("limit", limit)
