@@ -556,3 +556,108 @@ def test_fetch_wildcard_include_fields_returns_all_stored_fields(
 
     assert response.documents["doc-a"].category == "fruit"
     assert response.documents["doc-b"].category == "vegetable"
+
+
+# ---------------------------------------------------------------------------
+# test_upsert_client_side_validation — §4 upsert() document validation rules
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_upsert_client_side_validation_rejects_invalid_documents(
+    client: Pinecone,
+    require_preview: None,
+) -> None:
+    """upsert() raises ValidationError for every invalid-document condition before any HTTP call.
+
+    Spec §4 declares client-side validation:
+    - namespace must be a non-empty string
+    - documents must be a non-empty list
+    - documents must contain at most 100 items
+    - every document must have an '_id' key
+    - every '_id' must be a non-empty string (not missing, not non-string, not empty)
+    - all '_id' values within a call must be unique
+
+    Uses a dummy host so no real index is needed and no API call is made.
+    """
+    from pinecone.errors.exceptions import ValidationError
+
+    # Use a dummy host — validation fires synchronously before the HTTP request.
+    idx = client.preview.index(host="https://dummy-host.pinecone.io")
+
+    valid_doc = {"_id": "doc-0", "text": "hello"}
+
+    # Empty namespace must raise ValidationError.
+    with pytest.raises(ValidationError, match="namespace"):
+        idx.documents.upsert(namespace="", documents=[valid_doc])
+
+    # Empty documents list must raise ValidationError.
+    with pytest.raises(ValidationError, match="documents"):
+        idx.documents.upsert(namespace="ns", documents=[])
+
+    # More than 100 documents must raise ValidationError.
+    over_limit = [{"_id": f"doc-{i}"} for i in range(101)]
+    with pytest.raises(ValidationError, match="documents"):
+        idx.documents.upsert(namespace="ns", documents=over_limit)
+
+    # Document missing '_id' key must raise ValidationError.
+    with pytest.raises(ValidationError, match="_id"):
+        idx.documents.upsert(namespace="ns", documents=[{"text": "no id here"}])
+
+    # Document with non-string '_id' must raise ValidationError.
+    with pytest.raises(ValidationError, match="_id"):
+        idx.documents.upsert(namespace="ns", documents=[{"_id": 42}])  # type: ignore[list-item]
+
+    # Document with empty string '_id' must raise ValidationError.
+    with pytest.raises(ValidationError, match="_id"):
+        idx.documents.upsert(namespace="ns", documents=[{"_id": ""}])
+
+    # Duplicate '_id' values within one call must raise ValidationError.
+    with pytest.raises(ValidationError, match="_id"):
+        idx.documents.upsert(
+            namespace="ns",
+            documents=[{"_id": "dup"}, {"_id": "dup"}],
+        )
+
+
+# ---------------------------------------------------------------------------
+# test_delete_client_side_validation — §4 delete() argument validation rules
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_delete_client_side_validation_rejects_invalid_arguments(
+    client: Pinecone,
+    require_preview: None,
+) -> None:
+    """delete() raises ValidationError for missing or conflicting deletion targets.
+
+    Spec §4 declares client-side validation:
+    - namespace must be a non-empty string
+    - at least one of ids, delete_all=True, or filter must be provided
+    - ids and delete_all are mutually exclusive
+    - ids and filter are mutually exclusive
+
+    Uses a dummy host so no real index is needed and no API call is made.
+    """
+    from pinecone.errors.exceptions import ValidationError
+
+    idx = client.preview.index(host="https://dummy-host.pinecone.io")
+
+    # Empty namespace must raise ValidationError.
+    with pytest.raises(ValidationError, match="namespace"):
+        idx.documents.delete(namespace="", ids=["doc-0"])
+
+    # Calling delete() with no targets must raise ValidationError.
+    with pytest.raises(ValidationError, match="ids"):
+        idx.documents.delete(namespace="ns")
+
+    # ids and delete_all=True are mutually exclusive.
+    with pytest.raises(ValidationError, match="ids"):
+        idx.documents.delete(namespace="ns", ids=["doc-0"], delete_all=True)
+
+    # ids and filter are mutually exclusive.
+    with pytest.raises(ValidationError, match="ids"):
+        idx.documents.delete(namespace="ns", ids=["doc-0"], filter={"category": {"$eq": "fruit"}})

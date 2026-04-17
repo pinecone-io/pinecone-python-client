@@ -1015,3 +1015,102 @@ async def test_async_search_client_side_validation_rejects_invalid_parameters(
     # Empty score_by list must raise ValidationError.
     with pytest.raises(ValidationError, match="score_by"):
         await idx.documents.search(namespace="ns", top_k=5, score_by=[])  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# test_async_upsert_client_side_validation — §4 async upsert() validation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+async def test_async_upsert_client_side_validation_rejects_invalid_documents(
+    async_client: AsyncPinecone,
+    require_preview: None,
+) -> None:
+    """Async parity: upsert() raises ValidationError for all invalid-document conditions.
+
+    Async counterpart for test_upsert_client_side_validation_rejects_invalid_documents.
+    Spec §4 client-side validation fires synchronously at the start of the coroutine,
+    before the first await, so ValidationError propagates through the await normally.
+    Uses a dummy host — no network call is made.
+    """
+    from pinecone.errors.exceptions import ValidationError
+
+    idx = async_client.preview.index(host="https://dummy-host.pinecone.io")
+
+    valid_doc = {"_id": "doc-0", "text": "hello"}
+
+    # Empty namespace must raise ValidationError.
+    with pytest.raises(ValidationError, match="namespace"):
+        await idx.documents.upsert(namespace="", documents=[valid_doc])
+
+    # Empty documents list must raise ValidationError.
+    with pytest.raises(ValidationError, match="documents"):
+        await idx.documents.upsert(namespace="ns", documents=[])
+
+    # More than 100 documents must raise ValidationError.
+    over_limit = [{"_id": f"doc-{i}"} for i in range(101)]
+    with pytest.raises(ValidationError, match="documents"):
+        await idx.documents.upsert(namespace="ns", documents=over_limit)
+
+    # Document missing '_id' key must raise ValidationError.
+    with pytest.raises(ValidationError, match="_id"):
+        await idx.documents.upsert(namespace="ns", documents=[{"text": "no id here"}])
+
+    # Document with non-string '_id' must raise ValidationError.
+    with pytest.raises(ValidationError, match="_id"):
+        await idx.documents.upsert(namespace="ns", documents=[{"_id": 42}])  # type: ignore[list-item]
+
+    # Document with empty string '_id' must raise ValidationError.
+    with pytest.raises(ValidationError, match="_id"):
+        await idx.documents.upsert(namespace="ns", documents=[{"_id": ""}])
+
+    # Duplicate '_id' values within one call must raise ValidationError.
+    with pytest.raises(ValidationError, match="_id"):
+        await idx.documents.upsert(
+            namespace="ns",
+            documents=[{"_id": "dup"}, {"_id": "dup"}],
+        )
+
+
+# ---------------------------------------------------------------------------
+# test_async_delete_client_side_validation — §4 async delete() validation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+async def test_async_delete_client_side_validation_rejects_invalid_arguments(
+    async_client: AsyncPinecone,
+    require_preview: None,
+) -> None:
+    """Async parity: delete() raises ValidationError for missing or conflicting deletion targets.
+
+    Async counterpart for test_delete_client_side_validation_rejects_invalid_arguments.
+    Spec §4 validation fires synchronously at the coroutine start — no HTTP call is made.
+    Uses a dummy host.
+    """
+    from pinecone.errors.exceptions import ValidationError
+
+    idx = async_client.preview.index(host="https://dummy-host.pinecone.io")
+
+    # Empty namespace must raise ValidationError.
+    with pytest.raises(ValidationError, match="namespace"):
+        await idx.documents.delete(namespace="", ids=["doc-0"])
+
+    # Calling delete() with no targets must raise ValidationError.
+    with pytest.raises(ValidationError, match="ids"):
+        await idx.documents.delete(namespace="ns")
+
+    # ids and delete_all=True are mutually exclusive.
+    with pytest.raises(ValidationError, match="ids"):
+        await idx.documents.delete(namespace="ns", ids=["doc-0"], delete_all=True)
+
+    # ids and filter are mutually exclusive.
+    with pytest.raises(ValidationError, match="ids"):
+        await idx.documents.delete(
+            namespace="ns", ids=["doc-0"], filter={"category": {"$eq": "fruit"}}
+        )
