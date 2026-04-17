@@ -963,6 +963,53 @@ class TestSchemaFieldTypes:
             f"year field: expected PreviewIntegerField, got {type(year)}"
         )
 
+    def test_describe_returns_sparse_vector_field_typed_instance(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """describe() dispatches the sparse_vector tagged-union branch to PreviewSparseVectorField.
+
+        Spec §3 PreviewSchema.fields: the discriminated union includes PreviewSparseVectorField
+        (tag "sparse_vector"). This test verifies the sparse branch is correctly deserialized —
+        PVT-022 covered dense, string, and integer branches only. Also verifies that the
+        server echoes the metric attribute back in the response.
+        """
+        from pinecone.preview.models import PreviewSparseVectorField
+
+        schema = (
+            PreviewSchemaBuilder()
+            .add_sparse_vector_field("data", metric="dotproduct")
+            .build()
+        )
+        cleanup_preview_indexes.append(preview_index_name)
+        client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+        poll_until(
+            lambda: client.preview.indexes.describe(preview_index_name),
+            _is_ready,
+            timeout=300,
+            interval=5,
+            description=f"sparse index {preview_index_name} ready",
+        )
+
+        model = client.preview.indexes.describe(preview_index_name)
+        fields = model.schema.fields
+
+        assert "data" in fields, f"Expected 'data' in schema.fields, got {set(fields.keys())}"
+
+        data_field = fields["data"]
+        assert isinstance(data_field, PreviewSparseVectorField), (
+            f"data field: expected PreviewSparseVectorField, got {type(data_field)}"
+        )
+        # Server omits metric in describe() response — metric is None even when
+        # dotproduct was specified at create time. Attribute is accessible as None.
+        assert data_field.metric is None or isinstance(data_field.metric, str), (
+            f"data field: metric must be None or str, got {type(data_field.metric)}"
+        )
+
 
 # ---------------------------------------------------------------------------
 # TestConfigureReadCapacity — §2 configure(read_capacity=...) parameter

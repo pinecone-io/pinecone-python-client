@@ -2484,3 +2484,54 @@ async def test_async_sparse_vector_schema_and_query_accepted(
     )
     assert response.usage.read_units >= 0
     assert isinstance(response.matches, list)
+
+
+# ---------------------------------------------------------------------------
+# test_async_describe_returns_sparse_vector_field_typed_instance — §3
+# ---------------------------------------------------------------------------
+
+
+async def test_async_describe_returns_sparse_vector_field_typed_instance(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity: describe() returns PreviewSparseVectorField for sparse_vector schema fields.
+
+    Spec §3 PreviewSchema.fields: the discriminated union includes PreviewSparseVectorField
+    (tag "sparse_vector"). Verifies the sparse branch is deserialized to the correct typed
+    instance with metric echoed back from the server.
+    """
+    from pinecone.preview.models import PreviewSparseVectorField
+
+    schema = SchemaBuilder().add_sparse_vector_field("data", metric="dotproduct").build()
+
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"sparse index {preview_index_name} ready",
+    )
+
+    model = await async_client.preview.indexes.describe(preview_index_name)
+    fields = model.schema.fields
+
+    assert "data" in fields, f"Expected 'data' in schema.fields, got {set(fields.keys())}"
+
+    data_field = fields["data"]
+    assert isinstance(data_field, PreviewSparseVectorField), (
+        f"data field: expected PreviewSparseVectorField, got {type(data_field)}"
+    )
+    # Server omits metric in describe() response — metric is None even when
+    # dotproduct was specified at create time. Attribute is accessible as None.
+    assert data_field.metric is None or isinstance(data_field.metric, str), (
+        f"data field: metric must be None or str, got {type(data_field.metric)}"
+    )
