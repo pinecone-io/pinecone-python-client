@@ -1265,3 +1265,76 @@ async def test_async_delete_timeout_negative_one_returns_immediately(
         interval=5,
         description=f"index {preview_index_name} eventually deleted after timeout=-1",
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_schema_build_idempotency_and_field_collision_replacement — §1
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+async def test_async_schema_build_idempotency_and_field_collision_replacement(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity: build() idempotency, field collision replacement, **additional_options (§1).
+
+    Async counterpart for
+    TestSchemaBuildBehavior.test_schema_build_idempotency_and_field_collision_replacement.
+    Verifies all three §1 SchemaBuilder claims in the async path and confirms the
+    collision-replacement schema is accepted by the API.
+    """
+    # Claim 2: last add_dense_vector_field("embedding") must win.
+    builder = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_dense_vector_field("embedding", dimension=8, metric="euclidean")
+        .add_integer_field("count")
+    )
+
+    schema1 = builder.build()
+    schema2 = builder.build()
+
+    assert schema1["fields"]["embedding"]["dimension"] == 8, (
+        f"Expected dimension=8 (last add wins), got {schema1['fields']['embedding']['dimension']}"
+    )
+    assert schema1["fields"]["embedding"]["metric"] == "euclidean"
+
+    # Claim 1: build() returns equal content but independent copies.
+    assert schema1 == schema2, "build() must return equal dicts on repeated calls"
+    assert schema1 is not schema2, "build() must return independent copies"
+    assert schema1["fields"] is not schema2["fields"]
+
+    # Claim 3: **additional_options merged into field dict (client-side).
+    schema_with_extras = (
+        SchemaBuilder()
+        .add_integer_field("priority", filterable=True, x_custom_param=42)
+        .build()
+    )
+    assert schema_with_extras["fields"]["priority"]["x_custom_param"] == 42
+    assert schema_with_extras["fields"]["priority"]["type"] == "float"
+
+    # Integration: API accepts the collision-replacement schema.
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema1)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    model = await async_client.preview.indexes.describe(preview_index_name)
+    assert len(model.schema.fields) == 2, (
+        f"Expected 2 fields after collision replacement, got {len(model.schema.fields)}"
+    )
+    assert "embedding" in model.schema.fields
+    assert "count" in model.schema.fields

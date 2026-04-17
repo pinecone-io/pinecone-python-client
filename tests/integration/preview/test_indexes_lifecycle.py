@@ -627,3 +627,81 @@ class TestDeleteTimeout:
             interval=5,
             description=f"index {preview_index_name} eventually deleted after timeout=-1",
         )
+
+
+# ---------------------------------------------------------------------------
+# TestSchemaBuildBehavior — §1 SchemaBuilder build() idempotency + field collision
+# ---------------------------------------------------------------------------
+
+
+class TestSchemaBuildBehavior:
+    """SchemaBuilder §1 claims: build() returns equal independent dicts; duplicate field name replaces."""
+
+    def test_schema_build_idempotency_and_field_collision_replacement(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """§1: build() equal on repeated calls; duplicate field name silently replaces; **additional_options merged.
+
+        Verifies three §1 spec claims:
+        1. "Calling build() multiple times returns the same dict" — equal content, independent copy.
+        2. "Adding a field with a name that already exists silently replaces the previous definition."
+        3. **additional_options kwargs are merged into the field dict (forward compatibility).
+
+        The collision-replacement outcome is validated end-to-end: creates a real index and
+        confirms describe() reports the correct schema field count and names.
+        """
+        # Build a schema where "embedding" is added twice — last writer must win.
+        builder = (
+            PreviewSchemaBuilder()
+            .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+            .add_dense_vector_field("embedding", dimension=8, metric="euclidean")
+            .add_integer_field("count")
+        )
+
+        schema1 = builder.build()
+        schema2 = builder.build()
+
+        # Claim 2: last add_dense_vector_field("embedding") wins.
+        assert schema1["fields"]["embedding"]["dimension"] == 8, (
+            f"Expected dimension=8 (last add wins), got {schema1['fields']['embedding']['dimension']}"
+        )
+        assert schema1["fields"]["embedding"]["metric"] == "euclidean"
+
+        # Claim 1: build() twice returns equal content but independent copies.
+        assert schema1 == schema2, "build() must return equal dicts on repeated calls"
+        assert schema1 is not schema2, "build() must return independent copies"
+        assert schema1["fields"] is not schema2["fields"], "build() fields dict must be an independent copy"
+
+        # Claim 3: **additional_options are merged into the field dict (client-side).
+        schema_with_extras = (
+            PreviewSchemaBuilder()
+            .add_integer_field("priority", filterable=True, x_custom_param=42)
+            .build()
+        )
+        assert schema_with_extras["fields"]["priority"]["x_custom_param"] == 42, (
+            "**additional_options must be merged into the field dict"
+        )
+        assert schema_with_extras["fields"]["priority"]["type"] == "float"
+
+        # Integration: API accepts the collision-replacement schema (schema1 has 2 distinct fields).
+        cleanup_preview_indexes.append(preview_index_name)
+        client.preview.indexes.create(name=preview_index_name, schema=schema1)
+
+        poll_until(
+            lambda: client.preview.indexes.describe(preview_index_name),
+            _is_ready,
+            timeout=300,
+            interval=5,
+            description=f"index {preview_index_name} ready",
+        )
+
+        model = client.preview.indexes.describe(preview_index_name)
+        assert len(model.schema.fields) == 2, (
+            f"Expected 2 fields after collision replacement, got {len(model.schema.fields)}"
+        )
+        assert "embedding" in model.schema.fields
+        assert "count" in model.schema.fields
