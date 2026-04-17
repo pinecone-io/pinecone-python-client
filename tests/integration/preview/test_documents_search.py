@@ -1011,3 +1011,94 @@ def test_search_response_and_index_model_display_methods(
         f"PreviewDocumentSearchResponse._repr_html_() must contain 'SearchResponse', "
         f"got: {search_html[:300]!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_sparse_vector_schema_and_query_accepted — §1 add_sparse_vector_field + §6 PreviewSparseVectorQuery
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_sparse_vector_schema_and_query_accepted(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Verify §1 add_sparse_vector_field() + §6 PreviewSparseVectorQuery / PreviewSparseValues.
+
+    The pre-written test_sparse_vector_search mixes sparse + FTS fields (requiring
+    dedicated capacity). This test uses ONLY a sparse vector field (OnDemand) to
+    isolate the sparse-vector code path.
+
+    Verifies:
+    - add_sparse_vector_field("sparse_embedding") builds schema dict with type="sparse_vector"
+    - Index creation with sparse-only schema is accepted by the API
+    - Upsert of 2 documents with sparse_embedding dicts is accepted (upserted_count==2)
+    - search() with PreviewSparseVectorQuery + PreviewSparseValues returns 200 OK
+    - Response is PreviewDocumentSearchResponse with correct namespace and usage
+    - 0 matches is acceptable (OnDemand eventual consistency)
+    """
+    from pinecone.preview.models import PreviewIndexModel
+
+    # §1: add_sparse_vector_field builds correct schema dict
+    schema = PreviewSchemaBuilder().add_sparse_vector_field("sparse_embedding").build()
+    assert schema["fields"]["sparse_embedding"]["type"] == "sparse_vector", (
+        f"add_sparse_vector_field must produce type='sparse_vector', got: {schema['fields']['sparse_embedding']}"
+    )
+
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"sparse index {preview_index_name} ready",
+    )
+
+    idx = client.preview.index(name=preview_index_name)
+    upsert_resp = idx.documents.upsert(
+        namespace=preview_namespace,
+        documents=[
+            {"_id": "doc-1", "sparse_embedding": {"indices": [0, 42], "values": [0.8, 0.3]}},
+            {"_id": "doc-2", "sparse_embedding": {"indices": [1, 99], "values": [0.1, 0.1]}},
+        ],
+    )
+    assert upsert_resp.upserted_count == 2, (
+        f"expected upserted_count=2, got {upsert_resp.upserted_count}"
+    )
+
+    # §6: PreviewSparseVectorQuery with PreviewSparseValues — verify serialized + accepted by API
+    response = idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=[
+            PreviewSparseVectorQuery(
+                field="sparse_embedding",
+                sparse_values=PreviewSparseValues(indices=[0, 42], values=[0.8, 0.3]),
+            )
+        ],
+        include_fields=["*"],
+    )
+
+    assert isinstance(response, PreviewDocumentSearchResponse), (
+        f"Expected PreviewDocumentSearchResponse, got {type(response)}"
+    )
+    assert response.namespace == preview_namespace, (
+        f"response.namespace {response.namespace!r} != {preview_namespace!r}"
+    )
+    assert response.usage is not None, "response.usage must not be None on a successful search"
+    assert isinstance(response.usage.read_units, int), (
+        f"read_units must be int, got {type(response.usage.read_units)}"
+    )
+    assert response.usage.read_units >= 0
+    assert isinstance(response.matches, list), (
+        f"response.matches must be a list, got {type(response.matches)}"
+    )

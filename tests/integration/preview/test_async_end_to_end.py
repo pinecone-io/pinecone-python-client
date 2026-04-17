@@ -2397,3 +2397,90 @@ async def test_async_describe_dedicated_index_read_capacity_response_fields(
     status = rc.status
     assert isinstance(status, PreviewReadCapacityStatus)
     assert isinstance(status.state, str) and status.state
+
+
+# ---------------------------------------------------------------------------
+# test_async_sparse_vector_schema_and_query_accepted — §1 + §6 async parity
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+async def test_async_sparse_vector_schema_and_query_accepted(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Async parity for §1 add_sparse_vector_field() + §6 PreviewSparseVectorQuery / PreviewSparseValues.
+
+    Mirrors test_sparse_vector_schema_and_query_accepted (PVT-034) using AsyncPinecone.
+    Pure sparse vector schema (no FTS) on OnDemand to isolate the sparse-vector code path
+    without requiring dedicated read capacity.
+
+    Verifies:
+    - Async index creation with sparse-only schema is accepted
+    - Async upsert of 2 documents with sparse_embedding dicts (upserted_count==2)
+    - Async search() with PreviewSparseVectorQuery + PreviewSparseValues returns 200 OK
+    - Response is PreviewDocumentSearchResponse with correct namespace and usage
+    """
+    from pinecone.preview.models import (
+        PreviewDocumentSearchResponse,
+        PreviewSparseValues,
+        PreviewSparseVectorQuery,
+    )
+
+    schema = SchemaBuilder().add_sparse_vector_field("sparse_embedding").build()
+    assert schema["fields"]["sparse_embedding"]["type"] == "sparse_vector"
+
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"sparse index {preview_index_name} ready",
+    )
+
+    idx = async_client.preview.index(name=preview_index_name)
+    upsert_resp = await idx.documents.upsert(
+        namespace=preview_namespace,
+        documents=[
+            {"_id": "doc-1", "sparse_embedding": {"indices": [0, 42], "values": [0.8, 0.3]}},
+            {"_id": "doc-2", "sparse_embedding": {"indices": [1, 99], "values": [0.1, 0.1]}},
+        ],
+    )
+    assert upsert_resp.upserted_count == 2, (
+        f"expected upserted_count=2, got {upsert_resp.upserted_count}"
+    )
+
+    response = await idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=[
+            PreviewSparseVectorQuery(
+                field="sparse_embedding",
+                sparse_values=PreviewSparseValues(indices=[0, 42], values=[0.8, 0.3]),
+            )
+        ],
+        include_fields=["*"],
+    )
+
+    assert isinstance(response, PreviewDocumentSearchResponse), (
+        f"Expected PreviewDocumentSearchResponse, got {type(response)}"
+    )
+    assert response.namespace == preview_namespace, (
+        f"response.namespace {response.namespace!r} != {preview_namespace!r}"
+    )
+    assert response.usage is not None, "response.usage must not be None on a successful search"
+    assert isinstance(response.usage.read_units, int), (
+        f"read_units must be int, got {type(response.usage.read_units)}"
+    )
+    assert response.usage.read_units >= 0
+    assert isinstance(response.matches, list)
