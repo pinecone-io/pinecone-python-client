@@ -8,7 +8,7 @@ import msgspec
 
 from pinecone._internal.batch import batch_execute
 from pinecone._internal.validation import require_in_range, require_non_empty
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import PineconeValueError
 from pinecone.models.batch import (
     BatchResult,  # SDK utility result, not wire-shape — see preview-channel.md § Type isolation
 )
@@ -38,18 +38,18 @@ _UPSERT_DECODER: msgspec.json.Decoder[PreviewDocumentUpsertResponse] = msgspec.j
 def _validate_documents(documents: list[dict[str, Any]]) -> None:
     require_non_empty("documents", documents)
     if len(documents) > 100:
-        raise ValidationError("documents must contain at most 100 items")
+        raise PineconeValueError("documents must contain at most 100 items")
     seen_ids: set[str] = set()
     for i, doc in enumerate(documents):
         if "_id" not in doc:
-            raise ValidationError(f"document at index {i} is missing required '_id' field")
+            raise PineconeValueError(f"document at index {i} is missing required '_id' field")
         doc_id = doc["_id"]
         if not isinstance(doc_id, str):
-            raise ValidationError(f"document at index {i} has non-string '_id' value")
+            raise PineconeValueError(f"document at index {i} has non-string '_id' value")
         if not doc_id:
-            raise ValidationError(f"document at index {i} has empty '_id' value")
+            raise PineconeValueError(f"document at index {i} has empty '_id' value")
         if doc_id in seen_ids:
-            raise ValidationError(f"document at index {i} has duplicate '_id': {doc_id!r}")
+            raise PineconeValueError(f"document at index {i} has duplicate '_id': {doc_id!r}")
         seen_ids.add(doc_id)
 
 
@@ -121,7 +121,7 @@ class PreviewDocuments:
             with ``upserted_count``.
 
         Raises:
-            :exc:`~pinecone.errors.exceptions.ValidationError`: If namespace is empty,
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is empty,
                 documents is empty, more than 100 documents, any document is missing
                 ``_id``, ``_id`` is not a string, ``_id`` is empty, or ``_id``
                 values are not unique within the batch.
@@ -168,7 +168,7 @@ class PreviewDocuments:
             ``result.errors`` rather than raised.
 
         Raises:
-            :exc:`~pinecone.errors.exceptions.ValidationError`: If namespace is
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is
                 empty, documents is empty, batch_size is outside [1, 100], or
                 max_workers is outside [1, 64].
         """
@@ -220,7 +220,7 @@ class PreviewDocuments:
             with ``matches``, ``namespace``, and ``usage``.
 
         Raises:
-            :exc:`~pinecone.errors.exceptions.ValidationError`: If namespace is
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is
                 empty, ``top_k`` is outside [1, 10000], or ``score_by`` is empty.
         """
         require_non_empty("namespace", namespace)
@@ -274,7 +274,7 @@ class PreviewDocuments:
             in the namespace are silently omitted from ``documents``.
 
         Raises:
-            :exc:`~pinecone.errors.exceptions.ValidationError`: If namespace is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is empty.
         """
         require_non_empty("namespace", namespace)
 
@@ -322,20 +322,20 @@ class PreviewDocuments:
             ``None`` (server responds with 202 Accepted, empty body).
 
         Raises:
-            :exc:`~pinecone.errors.exceptions.ValidationError`: If namespace is
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is
                 empty, none of ``ids``, ``delete_all=True``, or ``filter`` is
                 provided, ``ids`` and ``delete_all`` are both provided, or
                 ``ids`` and ``filter`` are both provided.
         """
         require_non_empty("namespace", namespace)
         if ids is None and not delete_all and filter is None:
-            raise ValidationError(
+            raise PineconeValueError(
                 "at least one of ids, delete_all=True, or filter must be provided"
             )
         if ids is not None and delete_all:
-            raise ValidationError("ids and delete_all are mutually exclusive")
+            raise PineconeValueError("ids and delete_all are mutually exclusive")
         if ids is not None and filter is not None:
-            raise ValidationError("ids and filter are mutually exclusive")
+            raise PineconeValueError("ids and filter are mutually exclusive")
 
         body: dict[str, Any] = {}
         if ids is not None:
