@@ -969,3 +969,49 @@ async def test_async_list_limit_caps_results(
     IPV-0003 is fixed.
     """
     pytest.skip("DISABLED (IPV-0003): list() crashes with msgspec.ValidationError for accounts with non-standard schema fields")
+
+
+# ---------------------------------------------------------------------------
+# test_async_search_client_side_validation — §7 search() parameter validation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+async def test_async_search_client_side_validation_rejects_invalid_parameters(
+    async_client: AsyncPinecone,
+    require_preview: None,
+) -> None:
+    """Async parity: search() raises ValidationError for invalid parameters without an API call.
+
+    Async counterpart for test_search_client_side_validation_rejects_invalid_parameters.
+    Spec §7 declares client-side validation fires before the HTTP request is sent:
+    - namespace must be non-empty
+    - top_k must be 1–10000
+    - score_by must be non-empty
+
+    Uses a dummy host — no network call is made.
+    """
+    from pinecone.errors.exceptions import ValidationError
+
+    # Use a dummy host — async validation fires synchronously before the coroutine awaits.
+    idx = async_client.preview.index(host="https://dummy-host.pinecone.io")
+
+    valid_score_by: list[object] = [{"type": "dense_vector", "field": "emb", "values": [0.1]}]
+
+    # Empty namespace string must raise ValidationError.
+    with pytest.raises(ValidationError, match="namespace"):
+        await idx.documents.search(namespace="", top_k=5, score_by=valid_score_by)  # type: ignore[arg-type]
+
+    # top_k=0 is below the minimum of 1.
+    with pytest.raises(ValidationError, match="top_k"):
+        await idx.documents.search(namespace="ns", top_k=0, score_by=valid_score_by)  # type: ignore[arg-type]
+
+    # top_k=10001 is above the maximum of 10000.
+    with pytest.raises(ValidationError, match="top_k"):
+        await idx.documents.search(namespace="ns", top_k=10001, score_by=valid_score_by)  # type: ignore[arg-type]
+
+    # Empty score_by list must raise ValidationError.
+    with pytest.raises(ValidationError, match="score_by"):
+        await idx.documents.search(namespace="ns", top_k=5, score_by=[])  # type: ignore[arg-type]
