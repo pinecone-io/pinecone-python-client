@@ -55,6 +55,25 @@ class AsyncPreviewDocuments:
             ``_host_provider``.
         _host_provider: Async callable that resolves the host on first data-plane
             use. Used internally when the factory is called with ``name=``.
+
+    Examples:
+        Get the documents namespace from an async preview index and upsert a document:
+
+        >>> import asyncio
+        >>> from pinecone import AsyncPinecone
+        >>> async def main():
+        ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+        ...         index = pc.preview.index(name="articles-en-preview")
+        ...         docs = index.documents
+        ...         response = await docs.upsert(
+        ...             namespace="articles-en",
+        ...             documents=[
+        ...                 {"_id": "article-101", "title": "Intro to vectors", "category": "tech"},
+        ...             ],
+        ...         )
+        ...         print(response.upserted_count)
+        >>> asyncio.run(main())
+        1
     """
 
     def __init__(
@@ -152,6 +171,50 @@ class AsyncPreviewDocuments:
                 documents is empty, more than 100 documents, any document is missing
                 ``_id``, ``_id`` is not a string, ``_id`` is empty, or ``_id``
                 values are not unique within the batch.
+
+        Examples:
+            Upsert a single document with text fields:
+
+            >>> import asyncio
+            >>> from pinecone import AsyncPinecone
+            >>> async def main():
+            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...         index = pc.preview.index(name="articles-en-preview")
+            ...         response = await index.documents.upsert(
+            ...             namespace="articles-en",
+            ...             documents=[
+            ...                 {"_id": "article-101", "title": "Intro to vectors"},
+            ...             ],
+            ...         )
+            ...         print(response.upserted_count)
+            >>> asyncio.run(main())
+            1
+
+            Upsert multiple documents with embeddings and metadata:
+
+            >>> async def main():
+            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...         index = pc.preview.index(name="articles-en-preview")
+            ...         response = await index.documents.upsert(
+            ...             namespace="articles-en",
+            ...             documents=[
+            ...                 {
+            ...                     "_id": "article-101",
+            ...                     "title": "Introduction to vectors",
+            ...                     "embedding": [0.012, -0.087, 0.153],
+            ...                     "category": "tech",
+            ...                 },
+            ...                 {
+            ...                     "_id": "article-102",
+            ...                     "title": "Advanced retrieval methods",
+            ...                     "embedding": [0.045, 0.021, -0.064],
+            ...                     "category": "research",
+            ...                 },
+            ...             ],
+            ...         )
+            ...         print(response.upserted_count)
+            >>> asyncio.run(main())
+            2
         """
         require_non_empty("namespace", namespace)
         _validate_documents(documents)
@@ -199,6 +262,28 @@ class AsyncPreviewDocuments:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is
                 empty, documents is empty, batch_size is outside [1, 100], or
                 max_workers is outside [1, 64].
+
+        Examples:
+            Batch upsert a large corpus of documents concurrently:
+
+            >>> import asyncio
+            >>> from pinecone import AsyncPinecone
+            >>> async def main():
+            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...         index = pc.preview.index(name="articles-en-preview")
+            ...         documents = [
+            ...             {"_id": f"article-{i}", "embedding": [0.012, -0.087]}
+            ...             for i in range(500)
+            ...         ]
+            ...         result = await index.documents.batch_upsert(
+            ...             namespace="articles-en",
+            ...             documents=documents,
+            ...             batch_size=50,
+            ...             max_workers=8,
+            ...         )
+            ...         print(result.success_count, result.error_count)
+            >>> asyncio.run(main())
+            500 0
         """
         require_non_empty("namespace", namespace)
         require_non_empty("documents", documents)
@@ -250,6 +335,36 @@ class AsyncPreviewDocuments:
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is
                 empty, ``top_k`` is outside [1, 10000], or ``score_by`` is empty.
+
+        Examples:
+            Search with a dense vector query:
+
+            >>> import asyncio
+            >>> from pinecone import AsyncPinecone
+            >>> async def main():
+            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...         index = pc.preview.index(name="articles-en-preview")
+            ...         results = await index.documents.search(
+            ...             namespace="articles-en",
+            ...             top_k=5,
+            ...             score_by=[{"field": "embedding", "query": [0.012, -0.087, 0.153]}],
+            ...         )
+            ...         print(results.matches[0]._id)
+            >>> asyncio.run(main())
+            article-42
+
+            Search with a metadata filter and select specific fields:
+
+            >>> async def main():
+            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...         index = pc.preview.index(name="articles-en-preview")
+            ...         results = await index.documents.search(
+            ...             namespace="articles-en",
+            ...             top_k=10,
+            ...             score_by=[{"field": "embedding", "query": [0.012, -0.087, 0.153]}],
+            ...             include_fields=["_id", "title", "category"],
+            ...             filter={"category": "tech"},
+            ...         )
         """
         require_non_empty("namespace", namespace)
         require_in_range("top_k", top_k, 1, 10000)
@@ -306,6 +421,34 @@ class AsyncPreviewDocuments:
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is empty.
+
+        Examples:
+            Fetch specific documents by ID:
+
+            >>> import asyncio
+            >>> from pinecone import AsyncPinecone
+            >>> async def main():
+            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...         index = pc.preview.index(name="articles-en-preview")
+            ...         response = await index.documents.fetch(
+            ...             namespace="articles-en",
+            ...             ids=["article-101", "article-102"],
+            ...             include_fields=["_id", "title", "category"],
+            ...         )
+            ...         print(len(response.documents))
+            >>> asyncio.run(main())
+            2
+
+            Fetch all documents matching a filter with all fields:
+
+            >>> async def main():
+            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...         index = pc.preview.index(name="articles-en-preview")
+            ...         response = await index.documents.fetch(
+            ...             namespace="articles-en",
+            ...             include_fields=["*"],
+            ...             filter={"category": "tech"},
+            ...         )
         """
         require_non_empty("namespace", namespace)
 
@@ -358,6 +501,39 @@ class AsyncPreviewDocuments:
                 empty, none of ``ids``, ``delete_all=True``, or ``filter`` is
                 provided, ``ids`` and ``delete_all`` are both provided, or
                 ``ids`` and ``filter`` are both provided.
+
+        Examples:
+            Delete specific documents by ID:
+
+            >>> import asyncio
+            >>> from pinecone import AsyncPinecone
+            >>> async def main():
+            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...         index = pc.preview.index(name="articles-en-preview")
+            ...         await index.documents.delete(
+            ...             namespace="articles-en",
+            ...             ids=["article-101", "article-102"],
+            ...         )
+
+            Delete all documents matching a filter:
+
+            >>> async def main():
+            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...         index = pc.preview.index(name="articles-en-preview")
+            ...         await index.documents.delete(
+            ...             namespace="articles-en",
+            ...             filter={"category": "draft"},
+            ...         )
+
+            Delete all documents in the namespace:
+
+            >>> async def main():
+            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...         index = pc.preview.index(name="articles-en-preview")
+            ...         await index.documents.delete(
+            ...             namespace="articles-en",
+            ...             delete_all=True,
+            ...         )
         """
         require_non_empty("namespace", namespace)
         if ids is None and not delete_all and filter is None:
