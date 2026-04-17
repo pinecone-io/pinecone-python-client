@@ -5,7 +5,6 @@ and that validation logic, error messages, and batch_upsert return shapes are id
 
 from __future__ import annotations
 
-import asyncio
 import inspect
 from collections.abc import Coroutine
 from typing import Any, get_args, get_origin
@@ -185,150 +184,124 @@ async def _async_error(fn: Any, *args: Any, **kwargs: Any) -> str:
 
 # fetch validation
 
-def test_fetch_empty_namespace_parity() -> None:
+async def test_fetch_empty_namespace_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     sync_msg = _sync_error(sync.fetch, namespace="")
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(async_d.fetch, namespace="")
-    )
+    async_msg = await _async_error(async_d.fetch, namespace="")
     assert sync_msg == async_msg
 
 
 # search validation
 
-def test_search_empty_namespace_parity() -> None:
+async def test_search_empty_namespace_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     sync_msg = _sync_error(sync.search, namespace="", top_k=10, score_by=[{"bm25": {}}])
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(async_d.search, namespace="", top_k=10, score_by=[{"bm25": {}}])
-    )
+    async_msg = await _async_error(async_d.search, namespace="", top_k=10, score_by=[{"bm25": {}}])
     assert sync_msg == async_msg
 
 
-def test_search_top_k_range_parity() -> None:
+async def test_search_top_k_range_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     sync_msg = _sync_error(sync.search, namespace="ns", top_k=0, score_by=[{"bm25": {}}])
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(async_d.search, namespace="ns", top_k=0, score_by=[{"bm25": {}}])
-    )
+    async_msg = await _async_error(async_d.search, namespace="ns", top_k=0, score_by=[{"bm25": {}}])
     assert sync_msg == async_msg
 
 
-def test_search_empty_score_by_parity() -> None:
+async def test_search_empty_score_by_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     sync_msg = _sync_error(sync.search, namespace="ns", top_k=5, score_by=[])
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(async_d.search, namespace="ns", top_k=5, score_by=[])
-    )
+    async_msg = await _async_error(async_d.search, namespace="ns", top_k=5, score_by=[])
     assert sync_msg == async_msg
 
 
 # delete validation
 
-def test_delete_empty_namespace_parity() -> None:
+async def test_delete_empty_namespace_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     sync_msg = _sync_error(sync.delete, namespace="", ids=["a"])
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(async_d.delete, namespace="", ids=["a"])
-    )
+    async_msg = await _async_error(async_d.delete, namespace="", ids=["a"])
     assert sync_msg == async_msg
 
 
-def test_delete_no_target_parity() -> None:
+async def test_delete_no_target_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     sync_msg = _sync_error(sync.delete, namespace="ns")
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(async_d.delete, namespace="ns")
-    )
+    async_msg = await _async_error(async_d.delete, namespace="ns")
     assert sync_msg == async_msg
 
 
-def test_delete_ids_and_delete_all_parity() -> None:
+async def test_delete_ids_and_delete_all_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     sync_msg = _sync_error(sync.delete, namespace="ns", ids=["a"], delete_all=True)
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(async_d.delete, namespace="ns", ids=["a"], delete_all=True)
-    )
+    async_msg = await _async_error(async_d.delete, namespace="ns", ids=["a"], delete_all=True)
     assert sync_msg == async_msg
 
 
-def test_delete_ids_and_filter_parity() -> None:
+async def test_delete_ids_and_filter_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     sync_msg = _sync_error(
         sync.delete, namespace="ns", ids=["a"], filter={"field": {"$eq": "v"}}
     )
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(
-            async_d.delete, namespace="ns", ids=["a"], filter={"field": {"$eq": "v"}}
-        )
+    async_msg = await _async_error(
+        async_d.delete, namespace="ns", ids=["a"], filter={"field": {"$eq": "v"}}
     )
     assert sync_msg == async_msg
 
 
 # upsert validation
 
-def test_upsert_empty_namespace_parity() -> None:
+async def test_upsert_empty_namespace_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     docs = [{"_id": "doc1", "text": "hello"}]
     sync_msg = _sync_error(sync.upsert, namespace="", documents=docs)
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(async_d.upsert, namespace="", documents=docs)
-    )
+    async_msg = await _async_error(async_d.upsert, namespace="", documents=docs)
     assert sync_msg == async_msg
 
 
-def test_upsert_missing_id_parity() -> None:
+async def test_upsert_missing_id_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     docs = [{"text": "hello"}]
     sync_msg = _sync_error(sync.upsert, namespace="ns", documents=docs)
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(async_d.upsert, namespace="ns", documents=docs)
-    )
+    async_msg = await _async_error(async_d.upsert, namespace="ns", documents=docs)
     assert sync_msg == async_msg
 
 
-def test_upsert_duplicate_id_parity() -> None:
+async def test_upsert_duplicate_id_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     docs = [{"_id": "dup", "text": "a"}, {"_id": "dup", "text": "b"}]
     sync_msg = _sync_error(sync.upsert, namespace="ns", documents=docs)
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(async_d.upsert, namespace="ns", documents=docs)
-    )
+    async_msg = await _async_error(async_d.upsert, namespace="ns", documents=docs)
     assert sync_msg == async_msg
 
 
 # batch_upsert validation
 
-def test_batch_upsert_batch_size_range_parity() -> None:
+async def test_batch_upsert_batch_size_range_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     docs = [{"_id": "d1"}]
     sync_msg = _sync_error(sync.batch_upsert, namespace="ns", documents=docs, batch_size=0)
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(async_d.batch_upsert, namespace="ns", documents=docs, batch_size=0)
-    )
+    async_msg = await _async_error(async_d.batch_upsert, namespace="ns", documents=docs, batch_size=0)
     assert sync_msg == async_msg
 
 
-def test_batch_upsert_max_workers_range_parity() -> None:
+async def test_batch_upsert_max_workers_range_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     docs = [{"_id": "d1"}]
     sync_msg = _sync_error(sync.batch_upsert, namespace="ns", documents=docs, max_workers=0)
-    async_msg = asyncio.get_event_loop().run_until_complete(
-        _async_error(async_d.batch_upsert, namespace="ns", documents=docs, max_workers=0)
-    )
+    async_msg = await _async_error(async_d.batch_upsert, namespace="ns", documents=docs, max_workers=0)
     assert sync_msg == async_msg
 
 
@@ -368,24 +341,21 @@ def test_sync_batch_upsert_returns_batch_result() -> None:
     assert result.errors == []
 
 
-def test_async_batch_upsert_returns_batch_result() -> None:
+async def test_async_batch_upsert_returns_batch_result() -> None:
     mock_response = MagicMock()
     mock_response.content = _UPSERT_RESPONSE
 
-    async def run() -> BatchResult:
-        docs_obj = _make_async_docs()
-        docs_obj._http = AsyncMock()
-        docs_obj._http.post.return_value = mock_response
+    docs_obj = _make_async_docs()
+    docs_obj._http = AsyncMock()
+    docs_obj._http.post.return_value = mock_response
 
-        return await docs_obj.batch_upsert(
-            namespace="ns",
-            documents=_DOCS_FIXTURE,
-            batch_size=10,
-            max_workers=1,
-            show_progress=False,
-        )
-
-    result = asyncio.get_event_loop().run_until_complete(run())
+    result = await docs_obj.batch_upsert(
+        namespace="ns",
+        documents=_DOCS_FIXTURE,
+        batch_size=10,
+        max_workers=1,
+        show_progress=False,
+    )
 
     assert isinstance(result, BatchResult)
     assert result.total_item_count == 3
@@ -397,7 +367,7 @@ def test_async_batch_upsert_returns_batch_result() -> None:
     assert result.errors == []
 
 
-def test_batch_upsert_same_fields_both_variants() -> None:
+async def test_batch_upsert_same_fields_both_variants() -> None:
     """Both sync and async batch_upsert fill the same BatchResult fields."""
     mock_response = MagicMock()
     mock_response.content = _UPSERT_RESPONSE
@@ -413,19 +383,16 @@ def test_batch_upsert_same_fields_both_variants() -> None:
         show_progress=False,
     )
 
-    async def run_async() -> BatchResult:
-        async_docs = _make_async_docs()
-        async_docs._http = AsyncMock()
-        async_docs._http.post.return_value = mock_response
-        return await async_docs.batch_upsert(
-            namespace="ns",
-            documents=_DOCS_FIXTURE,
-            batch_size=10,
-            max_workers=1,
-            show_progress=False,
-        )
-
-    async_result = asyncio.get_event_loop().run_until_complete(run_async())
+    async_docs = _make_async_docs()
+    async_docs._http = AsyncMock()
+    async_docs._http.post.return_value = mock_response
+    async_result = await async_docs.batch_upsert(
+        namespace="ns",
+        documents=_DOCS_FIXTURE,
+        batch_size=10,
+        max_workers=1,
+        show_progress=False,
+    )
 
     for field in [
         "total_item_count",
