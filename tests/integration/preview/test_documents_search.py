@@ -631,3 +631,96 @@ def test_search_client_side_validation_rejects_invalid_parameters(
     # Empty score_by list must raise ValidationError.
     with pytest.raises(ValidationError, match="score_by"):
         idx.documents.search(namespace="ns", top_k=5, score_by=[])  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# test_filter_remaining_operators_accepted — §8 Metadata filtering ($ne, $gt, $lt, $lte, $in, $nin, $or)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_filter_remaining_operators_accepted(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Verify §8: remaining filter operators ($ne, $gt, $lt, $lte, $in, $nin, $or) are each accepted.
+
+    PVT-013 integration-tested $gte and $and. Spec §8 declares 10 operators total;
+    this test covers the 7 not yet verified in integration: $ne, $gt, $lt, $lte,
+    $in, $nin, and $or.
+
+    Creates a dense vector schema with filterable string 'category' and filterable
+    integer 'year'. Upserts two documents. Searches with each operator independently
+    and asserts 200 OK (OnDemand indexing is eventually consistent; 0 matches is
+    acceptable — the goal is to confirm serialization and API acceptance).
+    """
+    from pinecone.preview.models import PreviewIndexModel
+
+    schema = (
+        PreviewSchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_string_field("category", filterable=True)
+        .add_integer_field("year", filterable=True)
+        .build()
+    )
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = client.preview.index(name=preview_index_name)
+    idx.documents.upsert(
+        namespace=preview_namespace,
+        documents=[
+            {"_id": "doc-1", "embedding": [0.1, 0.2, 0.3, 0.4], "category": "tech", "year": 2022},
+            {"_id": "doc-2", "embedding": [0.5, 0.6, 0.7, 0.8], "category": "science", "year": 2018},
+        ],
+    )
+
+    score_by: list[object] = [PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])]
+
+    def _search_with_filter(f: dict) -> None:
+        result = idx.documents.search(
+            namespace=preview_namespace,
+            top_k=5,
+            score_by=score_by,  # type: ignore[arg-type]
+            filter=f,
+            include_fields=["*"],
+        )
+        assert isinstance(result, PreviewDocumentSearchResponse), (
+            f"filter {f} should return a PreviewDocumentSearchResponse (200 OK)"
+        )
+
+    # $ne — not equals on string field
+    _search_with_filter({"category": {"$ne": "finance"}})
+
+    # $gt — greater than on integer field
+    _search_with_filter({"year": {"$gt": 2010}})
+
+    # $lt — less than on integer field
+    _search_with_filter({"year": {"$lt": 2025}})
+
+    # $lte — less or equal on integer field
+    _search_with_filter({"year": {"$lte": 2022}})
+
+    # $in — value in array on string field
+    _search_with_filter({"category": {"$in": ["tech", "medicine"]}})
+
+    # $nin — value not in array on string field
+    _search_with_filter({"category": {"$nin": ["finance", "sports"]}})
+
+    # $or — logical OR combining two conditions
+    _search_with_filter({"$or": [{"category": {"$eq": "tech"}}, {"year": {"$lt": 2020}}]})

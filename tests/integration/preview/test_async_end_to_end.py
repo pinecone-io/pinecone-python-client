@@ -1114,3 +1114,91 @@ async def test_async_delete_client_side_validation_rejects_invalid_arguments(
         await idx.documents.delete(
             namespace="ns", ids=["doc-0"], filter={"category": {"$eq": "fruit"}}
         )
+
+
+# ---------------------------------------------------------------------------
+# test_async_filter_remaining_operators_accepted — §8 Metadata filtering
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+async def test_async_filter_remaining_operators_accepted(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Async parity: remaining filter operators ($ne, $gt, $lt, $lte, $in, $nin, $or) accepted.
+
+    Async counterpart for test_filter_remaining_operators_accepted.
+    Verifies that the SDK serializes each of the 7 operators not covered by PVT-013
+    ($ne, $gt, $lt, $lte, $in, $nin, $or) and that the API returns 200 OK.
+    0 matches is acceptable — OnDemand indexing is eventually consistent.
+    """
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_string_field("category", filterable=True)
+        .add_integer_field("year", filterable=True)
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = async_client.preview.index(name=preview_index_name)
+    await idx.documents.upsert(
+        namespace=preview_namespace,
+        documents=[
+            {"_id": "doc-1", "embedding": [0.1, 0.2, 0.3, 0.4], "category": "tech", "year": 2022},
+            {"_id": "doc-2", "embedding": [0.5, 0.6, 0.7, 0.8], "category": "science", "year": 2018},
+        ],
+    )
+
+    score_by: list[object] = [PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])]
+
+    async def _search_with_filter(f: dict) -> None:
+        result = await idx.documents.search(
+            namespace=preview_namespace,
+            top_k=5,
+            score_by=score_by,  # type: ignore[arg-type]
+            filter=f,
+            include_fields=["*"],
+        )
+        assert isinstance(result, PreviewDocumentSearchResponse), (
+            f"filter {f} should return a PreviewDocumentSearchResponse (200 OK)"
+        )
+
+    # $ne — not equals on string field
+    await _search_with_filter({"category": {"$ne": "finance"}})
+
+    # $gt — greater than on integer field
+    await _search_with_filter({"year": {"$gt": 2010}})
+
+    # $lt — less than on integer field
+    await _search_with_filter({"year": {"$lt": 2025}})
+
+    # $lte — less or equal on integer field
+    await _search_with_filter({"year": {"$lte": 2022}})
+
+    # $in — value in array on string field
+    await _search_with_filter({"category": {"$in": ["tech", "medicine"]}})
+
+    # $nin — value not in array on string field
+    await _search_with_filter({"category": {"$nin": ["finance", "sports"]}})
+
+    # $or — logical OR combining two conditions
+    await _search_with_filter({"$or": [{"category": {"$eq": "tech"}}, {"year": {"$lt": 2020}}]})
