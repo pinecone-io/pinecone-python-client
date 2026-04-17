@@ -876,3 +876,81 @@ class TestConfigureSchemaAdditiveOnly:
         assert len(described.schema.fields) == 1, (
             "Schema must be unchanged after rejected configure()"
         )
+
+
+# ---------------------------------------------------------------------------
+# TestSchemaFieldTypes — §3 PreviewSchema field typed union dispatch
+# ---------------------------------------------------------------------------
+
+
+class TestSchemaFieldTypes:
+    """describe() schema.fields values are typed PreviewSchemaField instances."""
+
+    def test_describe_returns_typed_schema_fields(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """describe() returns schema.fields as typed union instances with correct attributes.
+
+        Spec §3 PreviewSchema: fields is dict[str, PreviewSchemaField] where each value
+        is deserialized as the appropriate tagged-union subtype. The spec also states that
+        field models carry server-populated defaults, e.g. filterable=True comes back
+        in PreviewStringField. This test verifies that msgspec's tagged-union dispatch
+        produces PreviewDenseVectorField, PreviewStringField, and PreviewIntegerField
+        instances — not raw dicts — and that key attributes match what was requested.
+        """
+        from pinecone.preview.models import (
+            PreviewDenseVectorField,
+            PreviewIntegerField,
+            PreviewStringField,
+        )
+
+        schema = (
+            PreviewSchemaBuilder()
+            .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+            .add_string_field("category", filterable=True)
+            .add_integer_field("year")
+            .build()
+        )
+        cleanup_preview_indexes.append(preview_index_name)
+        client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+        poll_until(
+            lambda: client.preview.indexes.describe(preview_index_name),
+            _is_ready,
+            timeout=300,
+            interval=5,
+            description=f"index {preview_index_name} ready",
+        )
+
+        model = client.preview.indexes.describe(preview_index_name)
+        fields = model.schema.fields
+
+        assert isinstance(fields, dict)
+        assert set(fields.keys()) == {"embedding", "category", "year"}, (
+            f"Expected exactly 3 fields, got {set(fields.keys())}"
+        )
+
+        emb = fields["embedding"]
+        assert isinstance(emb, PreviewDenseVectorField), (
+            f"embedding field: expected PreviewDenseVectorField, got {type(emb)}"
+        )
+        assert emb.dimension == 4, f"expected dimension=4, got {emb.dimension}"
+        assert emb.metric == "cosine", f"expected metric='cosine', got {emb.metric}"
+
+        cat = fields["category"]
+        assert isinstance(cat, PreviewStringField), (
+            f"category field: expected PreviewStringField, got {type(cat)}"
+        )
+        assert cat.filterable is True, f"expected filterable=True, got {cat.filterable}"
+        assert cat.full_text_searchable is False, (
+            f"expected full_text_searchable=False, got {cat.full_text_searchable}"
+        )
+
+        year = fields["year"]
+        assert isinstance(year, PreviewIntegerField), (
+            f"year field: expected PreviewIntegerField, got {type(year)}"
+        )

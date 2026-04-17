@@ -1510,3 +1510,81 @@ async def test_async_configure_schema_rejects_field_modification(
     assert len(described.schema.fields) == 1, (
         "Schema must be unchanged after rejected configure()"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_describe_returns_typed_schema_fields — §3 PreviewSchema typed union
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+async def test_async_describe_returns_typed_schema_fields(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """describe() schema.fields values are typed PreviewSchemaField instances (async path).
+
+    Async parity for TestSchemaFieldTypes.test_describe_returns_typed_schema_fields.
+    Verifies §3 PreviewSchema: fields dict values are decoded as PreviewDenseVectorField,
+    PreviewStringField, PreviewIntegerField by msgspec's tagged-union dispatch.
+    """
+    from pinecone.preview import PreviewSchemaBuilder
+    from pinecone.preview.models import (
+        PreviewDenseVectorField,
+        PreviewIndexModel,
+        PreviewIntegerField,
+        PreviewStringField,
+    )
+
+    schema = (
+        PreviewSchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_string_field("category", filterable=True)
+        .add_integer_field("year")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    model = await async_client.preview.indexes.describe(preview_index_name)
+    fields = model.schema.fields
+
+    assert isinstance(fields, dict)
+    assert set(fields.keys()) == {"embedding", "category", "year"}, (
+        f"Expected exactly 3 fields, got {set(fields.keys())}"
+    )
+
+    emb = fields["embedding"]
+    assert isinstance(emb, PreviewDenseVectorField), (
+        f"embedding field: expected PreviewDenseVectorField, got {type(emb)}"
+    )
+    assert emb.dimension == 4, f"expected dimension=4, got {emb.dimension}"
+    assert emb.metric == "cosine", f"expected metric='cosine', got {emb.metric}"
+
+    cat = fields["category"]
+    assert isinstance(cat, PreviewStringField), (
+        f"category field: expected PreviewStringField, got {type(cat)}"
+    )
+    assert cat.filterable is True, f"expected filterable=True, got {cat.filterable}"
+    assert cat.full_text_searchable is False, (
+        f"expected full_text_searchable=False, got {cat.full_text_searchable}"
+    )
+
+    year = fields["year"]
+    assert isinstance(year, PreviewIntegerField), (
+        f"year field: expected PreviewIntegerField, got {type(year)}"
+    )
