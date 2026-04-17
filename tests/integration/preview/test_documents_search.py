@@ -328,3 +328,95 @@ def test_sparse_vector_search(
     assert len(results.matches) >= 1
     # doc-1 shares the exact same indices/values as the query → should rank first
     assert results.matches[0]._id == "doc-1"
+
+
+# ---------------------------------------------------------------------------
+# test_search_include_fields_variants — §5 search include_fields behavior, §7 PreviewDocument
+# ---------------------------------------------------------------------------
+
+
+def test_search_include_fields_variants(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Verify include_fields request construction: explicit list and ["*"] accepted; None causes 422.
+
+    This test validates the SDK's request-level behavior for include_fields.
+    It does NOT assert on returned document fields because search indexing is
+    eventually consistent and the test avoids polling to keep it fast.
+
+    SDK BUG (IPV-0001): search() omits include_fields from the request body
+    when the caller passes include_fields=None (the default). The API requires
+    include_fields to be a non-null list, so it returns 422. The test reaches
+    this assertion last; the DISABLED result is expected until IPV-0001 is fixed.
+    """
+    from pinecone.errors.exceptions import ApiError
+    from pinecone.preview.models import PreviewIndexModel
+
+    schema = (
+        PreviewSchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_string_field("title", filterable=True)
+        .add_string_field("category", filterable=True)
+        .build()
+    )
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = client.preview.index(name=preview_index_name)
+    idx.documents.upsert(
+        namespace=preview_namespace,
+        documents=[
+            {
+                "_id": "doc-1",
+                "embedding": [0.1, 0.2, 0.3, 0.4],
+                "title": "ancient Rome",
+                "category": "history",
+            }
+        ],
+    )
+
+    query_vec = [0.1, 0.2, 0.3, 0.4]
+    score_by: list[object] = [PreviewDenseVectorQuery(field="embedding", values=query_vec)]
+
+    # Case 1: include_fields=["*"] — SDK sends field; API accepts (200 OK).
+    results_star = idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=score_by,  # type: ignore[arg-type]
+        include_fields=["*"],
+    )
+    assert isinstance(results_star, PreviewDocumentSearchResponse)
+
+    # Case 2: include_fields=["title"] — SDK sends field; API accepts (200 OK).
+    results_named = idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=score_by,  # type: ignore[arg-type]
+        include_fields=["title"],
+    )
+    assert isinstance(results_named, PreviewDocumentSearchResponse)
+
+    # Case 3: include_fields=None (default) — SDK omits include_fields from body → 422.
+    # Per spec, None should return only _id and score (a valid operation).
+    # SDK BUG (IPV-0001): SDK omits include_fields entirely; API requires it as a list.
+    results_default = idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=score_by,  # type: ignore[arg-type]
+    )
+    assert isinstance(results_default, PreviewDocumentSearchResponse)
