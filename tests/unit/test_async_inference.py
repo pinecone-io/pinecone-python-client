@@ -396,3 +396,58 @@ def test_async_inference_class_attributes() -> None:
     """AsyncInference exposes EmbedModel and RerankModel as class attributes."""
     assert AsyncInference.EmbedModel is EmbedModel
     assert AsyncInference.RerankModel is RerankModel
+
+
+# ---------------------------------------------------------------------------
+# model cached_property / AsyncModelResource
+# ---------------------------------------------------------------------------
+
+
+def test_async_inference_model_cached_property(config: PineconeConfig) -> None:
+    """Accessing .model twice returns the same AsyncModelResource instance."""
+    inference = AsyncInference(config=config)
+    first = inference.model
+    second = inference.model
+    assert first is second
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_inference_model_list(inference: AsyncInference) -> None:
+    route = respx.get(f"{BASE_URL}/models").mock(
+        return_value=httpx.Response(200, json=make_model_list_response()),
+    )
+
+    result = await inference.model.list()
+
+    assert isinstance(result, ModelInfoList)
+    assert len(result) == 2
+    assert route.called
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_inference_model_list_with_filters(inference: AsyncInference) -> None:
+    route = respx.get(f"{BASE_URL}/models").mock(
+        return_value=httpx.Response(200, json=make_model_list_response()),
+    )
+
+    await inference.model.list(type="embed", vector_type="dense")
+
+    request = route.calls[0].request
+    assert request.url.params["type"] == "embed"
+    assert request.url.params["vector_type"] == "dense"
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_inference_model_get(inference: AsyncInference) -> None:
+    route = respx.get(f"{BASE_URL}/models/multilingual-e5-large").mock(
+        return_value=httpx.Response(200, json=make_model_info()),
+    )
+
+    result = await inference.model.get("multilingual-e5-large")
+
+    assert isinstance(result, ModelInfo)
+    assert result.model == "multilingual-e5-large"
+    assert route.called

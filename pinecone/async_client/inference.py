@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from functools import cached_property
 from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.inference_adapter import (
@@ -22,6 +23,35 @@ if TYPE_CHECKING:
     from pinecone.models.inference.rerank import RerankResult
 
 logger = logging.getLogger(__name__)
+
+
+class AsyncModelResource:
+    """Lazily-initialized resource for listing and getting inference model info.
+
+    Accessed via ``pc.inference.model``.
+    """
+
+    def __init__(self, inference: AsyncInference) -> None:
+        self._inference = inference
+
+    async def list(
+        self,
+        *,
+        type: str | None = None,
+        vector_type: str | None = None,
+    ) -> ModelInfoList:
+        """List available inference models.
+
+        Delegates to :meth:`~AsyncInference.list_models`.
+        """
+        return await self._inference.list_models(type=type, vector_type=vector_type)
+
+    async def get(self, model_name: str) -> ModelInfo:
+        """Get detailed information about a specific model.
+
+        Delegates to :meth:`~AsyncInference.get_model`.
+        """
+        return await self._inference.get_model(model_name=model_name)
 
 
 class AsyncInference:
@@ -61,6 +91,11 @@ class AsyncInference:
     def __repr__(self) -> str:
         """Return developer-friendly representation."""
         return "AsyncInference()"
+
+    @cached_property
+    def model(self) -> AsyncModelResource:
+        """Lazily-initialized resource for listing and getting model info."""
+        return AsyncModelResource(self)
 
     async def embed(
         self,
