@@ -1069,3 +1069,110 @@ def test_batch_upsert_partial_failure_collects_failed_items(
         f"Expected failed_items[0]['_id'] == 'bad-dim', got {result.failed_items[0]['_id']!r}"
     )
     assert len(result.errors) == 1, f"Expected 1 BatchError entry, got {len(result.errors)}"
+
+
+# ---------------------------------------------------------------------------
+# test_describe_dedicated_index_read_capacity_response — §3 PreviewReadCapacityDedicatedResponse
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_describe_dedicated_index_read_capacity_response_fields(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """describe() on a dedicated-capacity index returns PreviewReadCapacityDedicatedResponse.
+
+    Spec §3 `PreviewIndexModel.read_capacity` is a discriminated union:
+    - OnDemand mode  → `PreviewReadCapacityOnDemandResponse` (covered by PVT-024/032)
+    - Dedicated mode → `PreviewReadCapacityDedicatedResponse` with nested `dedicated`
+                       (PreviewReadCapacityDedicatedInner) and `status`
+                       (PreviewReadCapacityStatus)
+
+    This test verifies the Dedicated branch is deserialized correctly from the API
+    response. FTS indexes require dedicated read capacity as of 2026-04-17, so this
+    test creates an FTS schema index with read_capacity={mode: Dedicated} and checks
+    the full nested structure of the response model.
+    """
+    from pinecone.preview.models import (
+        PreviewReadCapacityDedicatedInner,
+        PreviewReadCapacityDedicatedResponse,
+        PreviewReadCapacityStatus,
+    )
+
+    schema = (
+        SchemaBuilder()
+        .add_string_field("text", full_text_searchable=True)
+        .build()
+    )
+    read_capacity = {
+        "mode": "Dedicated",
+        "dedicated": {
+            "node_type": "t1",
+            "scaling": "Manual",
+            "manual": {"shards": 1, "replicas": 1},
+        },
+    }
+    cleanup_preview_indexes.append(preview_index_name)
+    model = client.preview.indexes.create(
+        name=preview_index_name,
+        schema=schema,
+        read_capacity=read_capacity,
+    )
+
+    assert isinstance(model, PreviewIndexModel)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    described = poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+    assert isinstance(described, PreviewIndexModel)
+
+    # read_capacity must be present and must be the Dedicated variant.
+    rc = described.read_capacity
+    assert rc is not None, "describe() on a dedicated-capacity index must have read_capacity != None"
+    assert isinstance(rc, PreviewReadCapacityDedicatedResponse), (
+        f"read_capacity must be PreviewReadCapacityDedicatedResponse for a Dedicated index, "
+        f"got {type(rc)}"
+    )
+
+    # Nested dedicated configuration.
+    dedicated = rc.dedicated
+    assert isinstance(dedicated, PreviewReadCapacityDedicatedInner), (
+        f"rc.dedicated must be PreviewReadCapacityDedicatedInner, got {type(dedicated)}"
+    )
+    assert isinstance(dedicated.node_type, str) and dedicated.node_type, (
+        f"dedicated.node_type must be a non-empty string, got {dedicated.node_type!r}"
+    )
+    assert dedicated.scaling in ("Manual", "Auto"), (
+        f"dedicated.scaling must be 'Manual' or 'Auto', got {dedicated.scaling!r}"
+    )
+    # Manual scaling → manual config must be present.
+    if dedicated.scaling == "Manual":
+        assert dedicated.manual is not None, (
+            "dedicated.manual must not be None when scaling='Manual'"
+        )
+        assert isinstance(dedicated.manual.shards, int) and dedicated.manual.shards >= 1, (
+            f"dedicated.manual.shards must be a positive int, got {dedicated.manual.shards!r}"
+        )
+        assert isinstance(dedicated.manual.replicas, int) and dedicated.manual.replicas >= 1, (
+            f"dedicated.manual.replicas must be a positive int, got {dedicated.manual.replicas!r}"
+        )
+
+    # Provisioning status.
+    status = rc.status
+    assert isinstance(status, PreviewReadCapacityStatus), (
+        f"rc.status must be PreviewReadCapacityStatus, got {type(status)}"
+    )
+    assert isinstance(status.state, str) and status.state, (
+        f"status.state must be a non-empty string, got {status.state!r}"
+    )

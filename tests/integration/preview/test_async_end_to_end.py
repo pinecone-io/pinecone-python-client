@@ -2317,3 +2317,83 @@ async def test_async_configure_read_capacity_validation_and_api_acceptance(
         f"returned model.read_capacity must be PreviewReadCapacityOnDemandResponse, "
         f"got {type(returned.read_capacity)}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_preview_document_field_scoping — §7 PreviewDocument "fields not included"
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+async def test_async_describe_dedicated_index_read_capacity_response_fields(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity: describe() on a dedicated-capacity index returns PreviewReadCapacityDedicatedResponse.
+
+    Async parity for test_describe_dedicated_index_read_capacity_response_fields.
+    Verifies §3 PreviewIndexModel.read_capacity Dedicated branch via async SDK path.
+    """
+    from pinecone.preview.models import (
+        PreviewIndexModel,
+        PreviewReadCapacityDedicatedInner,
+        PreviewReadCapacityDedicatedResponse,
+        PreviewReadCapacityStatus,
+    )
+
+    schema = (
+        SchemaBuilder()
+        .add_string_field("text", full_text_searchable=True)
+        .build()
+    )
+    read_capacity = {
+        "mode": "Dedicated",
+        "dedicated": {
+            "node_type": "t1",
+            "scaling": "Manual",
+            "manual": {"shards": 1, "replicas": 1},
+        },
+    }
+    async_cleanup_preview_indexes.append(preview_index_name)
+    model = await async_client.preview.indexes.create(
+        name=preview_index_name,
+        schema=schema,
+        read_capacity=read_capacity,
+    )
+    assert isinstance(model, PreviewIndexModel)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    described = await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+    assert isinstance(described, PreviewIndexModel)
+
+    rc = described.read_capacity
+    assert rc is not None, "describe() on a dedicated-capacity index must have read_capacity != None"
+    assert isinstance(rc, PreviewReadCapacityDedicatedResponse), (
+        f"read_capacity must be PreviewReadCapacityDedicatedResponse for a Dedicated index, "
+        f"got {type(rc)}"
+    )
+
+    dedicated = rc.dedicated
+    assert isinstance(dedicated, PreviewReadCapacityDedicatedInner)
+    assert isinstance(dedicated.node_type, str) and dedicated.node_type
+    assert dedicated.scaling in ("Manual", "Auto")
+    if dedicated.scaling == "Manual":
+        assert dedicated.manual is not None
+        assert isinstance(dedicated.manual.shards, int) and dedicated.manual.shards >= 1
+        assert isinstance(dedicated.manual.replicas, int) and dedicated.manual.replicas >= 1
+
+    status = rc.status
+    assert isinstance(status, PreviewReadCapacityStatus)
+    assert isinstance(status.state, str) and status.state
