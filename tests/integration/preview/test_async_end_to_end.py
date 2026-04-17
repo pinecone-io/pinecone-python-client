@@ -44,16 +44,12 @@ async def test_async_end_to_end_flow(
 ) -> None:
     """FTS schema: async create → batch_upsert 50 docs → poll → search → cleanup via fixture."""
     schema = (
-        SchemaBuilder()
-        .add_string_field("text", full_text_searchable=True, language="en")
-        .build()
+        SchemaBuilder().add_string_field("text", full_text_searchable=True, language="en").build()
     )
     # Register for cleanup BEFORE create so teardown runs even if create raises.
     async_cleanup_preview_indexes.append(preview_index_name)
 
-    model = await async_client.preview.indexes.create(
-        name=preview_index_name, schema=schema
-    )
+    model = await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
     assert isinstance(model, PreviewIndexModel)
     assert model.name == preview_index_name
 
@@ -124,9 +120,7 @@ async def test_async_describe_after_create_matches_sync(
 ) -> None:
     """Async describe path returns correct name and host after create."""
     schema = (
-        SchemaBuilder()
-        .add_string_field("text", full_text_searchable=True, language="en")
-        .build()
+        SchemaBuilder().add_string_field("text", full_text_searchable=True, language="en").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -234,9 +228,7 @@ async def test_async_exists_returns_true_and_false(
     from tests.integration.conftest import unique_name
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -269,9 +261,7 @@ async def test_async_upsert_returns_upserted_count(
     from pinecone.preview.models import PreviewDocumentUpsertResponse, PreviewIndexModel
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -321,9 +311,7 @@ async def test_async_batch_upsert_result_fields(
     from pinecone.preview.models import PreviewIndexModel
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -341,8 +329,7 @@ async def test_async_batch_upsert_result_fields(
 
     idx = async_client.preview.index(name=preview_index_name)
     documents = [
-        {"_id": f"doc-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]}
-        for i in range(10)
+        {"_id": f"doc-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]} for i in range(10)
     ]
 
     result = await idx.documents.batch_upsert(
@@ -435,7 +422,9 @@ async def test_async_fetch_wildcard_include_fields_returns_all_stored_fields(
     for doc_id, doc in response.documents.items():
         assert isinstance(doc, PreviewDocument)
         assert doc._id == doc_id
-        assert doc.category is not None, f"doc {doc_id} missing 'category' with include_fields=['*']"
+        assert doc.category is not None, (
+            f"doc {doc_id} missing 'category' with include_fields=['*']"
+        )
 
     assert response.documents["fruit-0"].category == "fruit"
     assert response.documents["fruit-1"].category == "vegetable"
@@ -459,9 +448,7 @@ async def test_async_configure_toggle_deletion_protection(
     via the async SDK path.
     """
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -562,9 +549,7 @@ async def test_async_create_with_tags_returns_tags_in_describe(
     """
     tags = {"env": "integration-test", "pvt": "PVT-008"}
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(
@@ -615,9 +600,7 @@ async def test_async_create_and_list_backup(
     from pinecone.preview.models import PreviewBackupModel
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -649,8 +632,7 @@ async def test_async_create_and_list_backup(
     assert isinstance(backup.created_at, str) and len(backup.created_at) > 0
 
     backup_ids = [
-        b.backup_id
-        async for b in async_client.preview.indexes.list_backups(preview_index_name)
+        b.backup_id async for b in async_client.preview.indexes.list_backups(preview_index_name)
     ]
     assert backup.backup_id in backup_ids
 
@@ -674,9 +656,7 @@ async def test_async_configure_tags_merges_with_existing_tags(
     """
     initial_tags = {"env": "integration-test", "key1": "original"}
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(
@@ -730,9 +710,7 @@ async def test_async_search_response_namespace_and_usage(
     acceptable — the envelope fields must always be present on a 200 OK response.
     """
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -804,9 +782,7 @@ async def test_async_delete_raises_forbidden_when_deletion_protection_enabled(
     from pinecone.preview.models import PreviewIndexModel
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -822,9 +798,7 @@ async def test_async_delete_raises_forbidden_when_deletion_protection_enabled(
         description=f"index {preview_index_name} ready",
     )
 
-    await async_client.preview.indexes.configure(
-        preview_index_name, deletion_protection="enabled"
-    )
+    await async_client.preview.indexes.configure(preview_index_name, deletion_protection="enabled")
 
     try:
         with pytest.raises(ForbiddenError):
@@ -888,11 +862,18 @@ async def test_async_filter_integer_gte_and_operator_accepted(
         namespace=preview_namespace,
         documents=[
             {"_id": "doc-1", "embedding": [0.1, 0.2, 0.3, 0.4], "category": "tech", "year": 2022},
-            {"_id": "doc-2", "embedding": [0.5, 0.6, 0.7, 0.8], "category": "science", "year": 2018},
+            {
+                "_id": "doc-2",
+                "embedding": [0.5, 0.6, 0.7, 0.8],
+                "category": "science",
+                "year": 2018,
+            },
         ],
     )
 
-    score_by: list[object] = [PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])]
+    score_by: list[object] = [
+        PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])
+    ]
 
     # Verify $gte filter on integer field is accepted (200 OK).
     result_gte = await idx.documents.search(
@@ -968,7 +949,9 @@ async def test_async_list_limit_caps_results(
     any index whose schema has a field lacking a 'type' key. This test is DISABLED until
     IPV-0003 is fixed.
     """
-    pytest.skip("DISABLED (IPV-0003): list() crashes with msgspec.ValidationError for accounts with non-standard schema fields")
+    pytest.skip(
+        "DISABLED (IPV-0003): list() crashes with msgspec.ValidationError for accounts with non-standard schema fields"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1164,11 +1147,18 @@ async def test_async_filter_remaining_operators_accepted(
         namespace=preview_namespace,
         documents=[
             {"_id": "doc-1", "embedding": [0.1, 0.2, 0.3, 0.4], "category": "tech", "year": 2022},
-            {"_id": "doc-2", "embedding": [0.5, 0.6, 0.7, 0.8], "category": "science", "year": 2018},
+            {
+                "_id": "doc-2",
+                "embedding": [0.5, 0.6, 0.7, 0.8],
+                "category": "science",
+                "year": 2018,
+            },
         ],
     )
 
-    score_by: list[object] = [PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])]
+    score_by: list[object] = [
+        PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])
+    ]
 
     async def _search_with_filter(f: dict) -> None:
         result = await idx.documents.search(
@@ -1228,9 +1218,7 @@ async def test_async_delete_timeout_negative_one_returns_immediately(
     from pinecone.preview.models import PreviewIndexModel
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -1310,9 +1298,7 @@ async def test_async_schema_build_idempotency_and_field_collision_replacement(
 
     # Claim 3: **additional_options merged into field dict (client-side).
     schema_with_extras = (
-        SchemaBuilder()
-        .add_integer_field("priority", filterable=True, x_custom_param=42)
-        .build()
+        SchemaBuilder().add_integer_field("priority", filterable=True, x_custom_param=42).build()
     )
     assert schema_with_extras["fields"]["priority"]["x_custom_param"] == 42
     assert schema_with_extras["fields"]["priority"]["type"] == "float"
@@ -1409,9 +1395,7 @@ async def test_async_configure_returns_preview_index_model_with_updated_fields(
     from pinecone.preview.models import PreviewManagedDeployment
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     create_model = await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -1421,7 +1405,9 @@ async def test_async_configure_returns_preview_index_model_with_updated_fields(
         f"Expected PreviewManagedDeployment, got {type(create_model.deployment)}"
     )
     assert isinstance(create_model.deployment.cloud, str) and len(create_model.deployment.cloud) > 0
-    assert isinstance(create_model.deployment.region, str) and len(create_model.deployment.region) > 0
+    assert (
+        isinstance(create_model.deployment.region, str) and len(create_model.deployment.region) > 0
+    )
 
     def _is_ready(m: object) -> bool:
         return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
@@ -1447,9 +1433,7 @@ async def test_async_configure_returns_preview_index_model_with_updated_fields(
     )
 
     # Restore so cleanup fixture can delete the index.
-    await async_client.preview.indexes.configure(
-        preview_index_name, deletion_protection="disabled"
-    )
+    await async_client.preview.indexes.configure(preview_index_name, deletion_protection="disabled")
 
 
 # ---------------------------------------------------------------------------
@@ -1473,9 +1457,7 @@ async def test_async_configure_schema_rejects_field_modification(
     from pinecone.errors.exceptions import ApiError
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -1493,9 +1475,7 @@ async def test_async_configure_schema_rejects_field_modification(
 
     # Attempt to modify the existing "embedding" field (dimension 4 → 8).
     modified_schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=8, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=8, metric="cosine").build()
     )
     with pytest.raises(ApiError) as exc_info:
         await async_client.preview.indexes.configure(preview_index_name, schema=modified_schema)
@@ -1507,9 +1487,7 @@ async def test_async_configure_schema_rejects_field_modification(
     # The index must still be accessible after the rejected configure().
     described = await async_client.preview.indexes.describe(preview_index_name)
     assert isinstance(described, PreviewIndexModel)
-    assert len(described.schema.fields) == 1, (
-        "Schema must be unchanged after rejected configure()"
-    )
+    assert len(described.schema.fields) == 1, "Schema must be unchanged after rejected configure()"
 
 
 # ---------------------------------------------------------------------------
@@ -1611,9 +1589,7 @@ async def test_async_backup_optional_fields_are_correctly_typed(
     from pinecone.preview.models import PreviewBackupModel
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -1689,9 +1665,7 @@ async def test_async_preview_index_model_read_capacity_on_demand(
     )
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     created = await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -1828,9 +1802,7 @@ async def test_async_search_score_by_plain_dict_accepted(
     to avoid IPV-0001 422 bug. 0 matches acceptable.
     """
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -1846,7 +1818,9 @@ async def test_async_search_score_by_plain_dict_accepted(
         description=f"index {preview_index_name} ready",
     )
 
-    idx = async_client.preview.index(host=(await async_client.preview.indexes.describe(preview_index_name)).host)
+    idx = async_client.preview.index(
+        host=(await async_client.preview.indexes.describe(preview_index_name)).host
+    )
     await idx.documents.upsert(
         namespace=preview_namespace,
         documents=[{"_id": "doc-dict-async", "embedding": [0.1, 0.2, 0.3, 0.4]}],
@@ -1898,9 +1872,7 @@ async def test_async_batch_upsert_result_display_methods(
     import json
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -1918,8 +1890,7 @@ async def test_async_batch_upsert_result_display_methods(
 
     idx = async_client.preview.index(name=preview_index_name)
     documents = [
-        {"_id": f"doc-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]}
-        for i in range(10)
+        {"_id": f"doc-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]} for i in range(10)
     ]
 
     result = await idx.documents.batch_upsert(
@@ -1963,9 +1934,7 @@ async def test_async_batch_upsert_result_display_methods(
     html = result._repr_html_()
     assert isinstance(html, str), f"_repr_html_() expected str, got {type(html)}"
     assert len(html) > 0, "_repr_html_() must return non-empty HTML"
-    assert "BatchResult" in html, (
-        f"_repr_html_() must contain 'BatchResult', got: {html[:200]!r}"
-    )
+    assert "BatchResult" in html, f"_repr_html_() must contain 'BatchResult', got: {html[:200]!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -2054,9 +2023,7 @@ async def test_async_batch_upsert_with_batch_size_one_per_document(
     so total_batch_count equals the document count.
     """
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -2081,14 +2048,12 @@ async def test_async_batch_upsert_with_batch_size_one_per_document(
     result = await idx.documents.batch_upsert(
         namespace=preview_namespace,
         documents=documents,
-        batch_size=1,       # minimum: each document is its own HTTP request
+        batch_size=1,  # minimum: each document is its own HTTP request
         max_workers=2,
         show_progress=False,
     )
 
-    assert isinstance(result, BatchResult), (
-        f"Expected BatchResult, got {type(result)}"
-    )
+    assert isinstance(result, BatchResult), f"Expected BatchResult, got {type(result)}"
     assert result.total_item_count == 3, (
         f"Expected total_item_count=3, got {result.total_item_count}"
     )
@@ -2107,6 +2072,101 @@ async def test_async_batch_upsert_with_batch_size_one_per_document(
     assert result.failed_batch_count == 0, (
         f"Expected failed_batch_count=0, got {result.failed_batch_count}"
     )
-    assert result.has_errors is False, (
-        f"Expected has_errors=False, got {result.has_errors}"
+    assert result.has_errors is False, f"Expected has_errors=False, got {result.has_errors}"
+
+
+# ---------------------------------------------------------------------------
+# test_async_search_response_and_index_model_display_methods — §14 Notebook and REPL rendering
+# ---------------------------------------------------------------------------
+
+
+async def test_async_search_response_and_index_model_display_methods(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Async parity: verify __repr__ and _repr_html_ for PreviewDocumentSearchResponse and PreviewIndexModel (§14).
+
+    Mirrors test_search_response_and_index_model_display_methods for the async path.
+    Spec §14 lists PreviewIndexModel and PreviewDocumentSearchResponse as requiring
+    __repr__ and _repr_html_ implementations. Both display methods are called on real
+    objects from async API responses.
+    """
+    schema = (
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    # §14: PreviewIndexModel.__repr__ and _repr_html_
+    described = await async_client.preview.indexes.describe(preview_index_name)
+
+    index_repr = repr(described)
+    assert index_repr.startswith("PreviewIndexModel("), (
+        f"PreviewIndexModel.__repr__ must start with 'PreviewIndexModel(', got: {index_repr!r}"
+    )
+    assert f"name={preview_index_name!r}" in index_repr, (
+        f"PreviewIndexModel.__repr__ must include name=, got: {index_repr!r}"
+    )
+    assert "status=" in index_repr, (
+        f"PreviewIndexModel.__repr__ must include status=, got: {index_repr!r}"
+    )
+    assert "host=" in index_repr, (
+        f"PreviewIndexModel.__repr__ must include host=, got: {index_repr!r}"
+    )
+    assert "deletion_protection=" in index_repr, (
+        f"PreviewIndexModel.__repr__ must include deletion_protection=, got: {index_repr!r}"
+    )
+
+    index_html = described._repr_html_()
+    assert isinstance(index_html, str) and len(index_html) > 0, (
+        "PreviewIndexModel._repr_html_() must return a non-empty string"
+    )
+    assert "PreviewIndexModel" in index_html, (
+        f"PreviewIndexModel._repr_html_() must contain 'PreviewIndexModel', got: {index_html[:300]!r}"
+    )
+
+    # §14: PreviewDocumentSearchResponse.__repr__ and _repr_html_
+    idx = async_client.preview.index(name=preview_index_name)
+    response = await idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=[PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])],
+        include_fields=["*"],
+    )
+
+    search_repr = repr(response)
+    assert search_repr.startswith("SearchResponse("), (
+        f"PreviewDocumentSearchResponse.__repr__ must start with 'SearchResponse(', got: {search_repr!r}"
+    )
+    assert "matches=" in search_repr, (
+        f"PreviewDocumentSearchResponse.__repr__ must include matches=, got: {search_repr!r}"
+    )
+    assert "namespace=" in search_repr, (
+        f"PreviewDocumentSearchResponse.__repr__ must include namespace=, got: {search_repr!r}"
+    )
+    assert "usage=" in search_repr, (
+        f"PreviewDocumentSearchResponse.__repr__ must include usage=, got: {search_repr!r}"
+    )
+
+    search_html = response._repr_html_()
+    assert isinstance(search_html, str) and len(search_html) > 0, (
+        "PreviewDocumentSearchResponse._repr_html_() must return a non-empty string"
+    )
+    assert "SearchResponse" in search_html, (
+        f"PreviewDocumentSearchResponse._repr_html_() must contain 'SearchResponse', "
+        f"got: {search_html[:300]!r}"
     )

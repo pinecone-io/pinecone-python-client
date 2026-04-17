@@ -229,9 +229,7 @@ def test_boolean_query_string_with_filter(
         ],
     )
 
-    score_by: list[object] = [
-        PreviewQueryStringQuery(query="chunk:(+football NOT american)")
-    ]
+    score_by: list[object] = [PreviewQueryStringQuery(query="chunk:(+football NOT american)")]
 
     # Poll until at least one sports doc is found (filter applied server-side)
     def _query_with_filter() -> PreviewDocumentSearchResponse:
@@ -551,11 +549,18 @@ def test_filter_integer_gte_and_operator_accepted(
         namespace=preview_namespace,
         documents=[
             {"_id": "doc-1", "embedding": [0.1, 0.2, 0.3, 0.4], "category": "tech", "year": 2022},
-            {"_id": "doc-2", "embedding": [0.5, 0.6, 0.7, 0.8], "category": "science", "year": 2018},
+            {
+                "_id": "doc-2",
+                "embedding": [0.5, 0.6, 0.7, 0.8],
+                "category": "science",
+                "year": 2018,
+            },
         ],
     )
 
-    score_by: list[object] = [PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])]
+    score_by: list[object] = [
+        PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])
+    ]
 
     # Verify $gte filter on integer field is accepted (200 OK).
     result_gte = idx.documents.search(
@@ -685,11 +690,18 @@ def test_filter_remaining_operators_accepted(
         namespace=preview_namespace,
         documents=[
             {"_id": "doc-1", "embedding": [0.1, 0.2, 0.3, 0.4], "category": "tech", "year": 2022},
-            {"_id": "doc-2", "embedding": [0.5, 0.6, 0.7, 0.8], "category": "science", "year": 2018},
+            {
+                "_id": "doc-2",
+                "embedding": [0.5, 0.6, 0.7, 0.8],
+                "category": "science",
+                "year": 2018,
+            },
         ],
     )
 
-    score_by: list[object] = [PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])]
+    score_by: list[object] = [
+        PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])
+    ]
 
     def _search_with_filter(f: dict) -> None:
         result = idx.documents.search(
@@ -765,7 +777,11 @@ def test_preview_index_model_read_capacity_on_demand(
     assert isinstance(created, PreviewIndexModel)
 
     # §3: read_capacity is a PreviewReadCapacity (OnDemand or Dedicated union) or None
-    assert created.read_capacity is None or isinstance(created.read_capacity, (PreviewReadCapacityOnDemandResponse,) + (PreviewReadCapacity.__args__ if hasattr(PreviewReadCapacity, "__args__") else ())), (  # type: ignore[attr-defined]
+    assert created.read_capacity is None or isinstance(
+        created.read_capacity,
+        (PreviewReadCapacityOnDemandResponse,)
+        + (PreviewReadCapacity.__args__ if hasattr(PreviewReadCapacity, "__args__") else ()),
+    ), (  # type: ignore[attr-defined]
         f"create() read_capacity expected PreviewReadCapacity or None, got {type(created.read_capacity)}"
     )
 
@@ -881,3 +897,117 @@ def test_search_score_by_plain_dict_accepted(
         f"usage.read_units expected int, got {type(response.usage.read_units)}"
     )
 
+
+# ---------------------------------------------------------------------------
+# test_search_response_and_index_model_display_methods — §14 Notebook and REPL rendering
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.timeout(300)
+def test_search_response_and_index_model_display_methods(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Verify __repr__ and _repr_html_ for PreviewDocumentSearchResponse and PreviewIndexModel (§14).
+
+    Spec §14 "Models that need display methods" lists PreviewIndexModel and
+    PreviewDocumentSearchResponse as requiring __repr__ and _repr_html_ implementations.
+    PVT-027 verified BatchResult display methods; this test covers the two remaining
+    preview-specific response models.
+
+    PreviewIndexModel.__repr__ must start with 'PreviewIndexModel(' and include
+    name, status, host, and deletion_protection fields. _repr_html_() must return a
+    non-empty HTML string containing 'PreviewIndexModel'.
+
+    PreviewDocumentSearchResponse.__repr__ must start with 'SearchResponse(' and
+    include matches count, namespace, and usage fields. _repr_html_() must return a
+    non-empty HTML string containing 'SearchResponse'.
+
+    Uses an OnDemand dense vector index — 0 matches are acceptable since display
+    methods operate on the envelope (namespace, usage, match count) not results.
+    Uses include_fields=["*"] to avoid the IPV-0001 422 bug.
+    """
+    from pinecone.preview.models import PreviewIndexModel
+
+    schema = (
+        PreviewSchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    # §14: PreviewIndexModel.__repr__ and _repr_html_
+    described = client.preview.indexes.describe(preview_index_name)
+
+    index_repr = repr(described)
+    assert index_repr.startswith("PreviewIndexModel("), (
+        f"PreviewIndexModel.__repr__ must start with 'PreviewIndexModel(', got: {index_repr!r}"
+    )
+    assert f"name={preview_index_name!r}" in index_repr, (
+        f"PreviewIndexModel.__repr__ must include name=, got: {index_repr!r}"
+    )
+    assert "status=" in index_repr, (
+        f"PreviewIndexModel.__repr__ must include status=, got: {index_repr!r}"
+    )
+    assert "host=" in index_repr, (
+        f"PreviewIndexModel.__repr__ must include host=, got: {index_repr!r}"
+    )
+    assert "deletion_protection=" in index_repr, (
+        f"PreviewIndexModel.__repr__ must include deletion_protection=, got: {index_repr!r}"
+    )
+
+    index_html = described._repr_html_()
+    assert isinstance(index_html, str) and len(index_html) > 0, (
+        "PreviewIndexModel._repr_html_() must return a non-empty string"
+    )
+    assert "PreviewIndexModel" in index_html, (
+        f"PreviewIndexModel._repr_html_() must contain 'PreviewIndexModel', got: {index_html[:300]!r}"
+    )
+
+    # §14: PreviewDocumentSearchResponse.__repr__ and _repr_html_
+    idx = client.preview.index(name=preview_index_name)
+    response = idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=[PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])],
+        include_fields=["*"],
+    )
+
+    # Format: SearchResponse(matches=N, namespace='...', usage=...)
+    search_repr = repr(response)
+    assert search_repr.startswith("SearchResponse("), (
+        f"PreviewDocumentSearchResponse.__repr__ must start with 'SearchResponse(', got: {search_repr!r}"
+    )
+    assert "matches=" in search_repr, (
+        f"PreviewDocumentSearchResponse.__repr__ must include matches=, got: {search_repr!r}"
+    )
+    assert "namespace=" in search_repr, (
+        f"PreviewDocumentSearchResponse.__repr__ must include namespace=, got: {search_repr!r}"
+    )
+    assert "usage=" in search_repr, (
+        f"PreviewDocumentSearchResponse.__repr__ must include usage=, got: {search_repr!r}"
+    )
+
+    search_html = response._repr_html_()
+    assert isinstance(search_html, str) and len(search_html) > 0, (
+        "PreviewDocumentSearchResponse._repr_html_() must return a non-empty string"
+    )
+    assert "SearchResponse" in search_html, (
+        f"PreviewDocumentSearchResponse._repr_html_() must contain 'SearchResponse', "
+        f"got: {search_html[:300]!r}"
+    )
