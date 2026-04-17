@@ -149,3 +149,40 @@ def test_list_rejects_non_positive_limit(indexes: PreviewIndexes) -> None:
 
     with pytest.raises(PineconeValueError):
         indexes.list(limit=-1)
+
+
+@respx.mock
+def test_list_skips_malformed_index_with_missing_type(indexes: PreviewIndexes) -> None:
+    """list() skips indexes whose schema fields are missing the type discriminator.
+
+    A single malformed index (e.g. a legacy test artifact with fields lacking
+    the 'type' key) must not prevent the rest of the list from being returned.
+    """
+    malformed = {
+        "name": "legacy-test-index",
+        "host": "legacy-test-index.svc.pinecone.io",
+        "status": {"ready": True, "state": "Ready"},
+        "schema": {
+            "fields": {
+                "foo": {"filterable": True},  # missing 'type' discriminator
+                "bar": {"filterable": True},  # missing 'type' discriminator
+            }
+        },
+        "deployment": {
+            "deployment_type": "managed",
+            "environment": "us-east-1-aws",
+            "cloud": "aws",
+            "region": "us-east-1",
+        },
+        "deletion_protection": "disabled",
+    }
+    respx.get(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(200, json={"indexes": [_INDEX_1, malformed, _INDEX_2]})
+    )
+
+    items = list(indexes.list())
+
+    # Only the two well-formed indexes are returned; the malformed one is skipped.
+    assert len(items) == 2
+    names = {item.name for item in items}
+    assert names == {"index-one", "index-two"}

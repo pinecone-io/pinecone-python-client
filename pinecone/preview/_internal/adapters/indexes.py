@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 import msgspec
@@ -9,6 +10,7 @@ import orjson
 from msgspec import Struct
 
 from pinecone._internal.adapters._decode import decode_response
+from pinecone.errors.exceptions import ResponseParsingError
 from pinecone.preview.models.indexes import PreviewIndexModel
 from pinecone.preview.models.requests import PreviewConfigureIndexRequest, PreviewCreateIndexRequest
 
@@ -23,6 +25,8 @@ __all__ = [
     "list_adapter",
 ]
 
+_logger = logging.getLogger(__name__)
+
 
 def _filter_none(obj: Any) -> Any:
     """Recursively drop None values from dicts. Optional parameters are omitted when None."""
@@ -35,6 +39,12 @@ def _filter_none(obj: Any) -> Any:
 
 class _IndexListEnvelope(Struct, kw_only=True):
     indexes: list[PreviewIndexModel] = []
+
+
+class _RawIndexEnvelope(Struct, kw_only=True):
+    # Captures each index as raw JSON bytes so the outer parse always succeeds
+    # even when individual items have schema fields with unknown/missing types.
+    indexes: list[msgspec.Raw] = []
 
 
 class PreviewCreateIndexAdapter:
@@ -74,8 +84,36 @@ class PreviewListIndexesAdapter:
 
     @staticmethod
     def from_response(data: bytes) -> list[PreviewIndexModel]:
-        envelope = decode_response(data, _IndexListEnvelope)
-        return envelope.indexes
+        # Fast path: strict parse (handles well-formed responses in one step).
+        try:
+            envelope = decode_response(data, _IndexListEnvelope)
+            return envelope.indexes
+        except ResponseParsingError:
+            pass
+
+        # Resilient path: parse each index independently so a single malformed
+        # schema (e.g. a field missing the 'type' discriminator) does not fail
+        # the entire list call.  Malformed indexes are skipped with a warning.
+        raw_envelope = decode_response(data, _RawIndexEnvelope)
+        result: list[PreviewIndexModel] = []
+        for raw in raw_envelope.indexes:
+            raw_bytes = bytes(raw)
+            try:
+                result.append(msgspec.json.decode(raw_bytes, type=PreviewIndexModel))
+            except (msgspec.ValidationError, msgspec.DecodeError) as exc:
+                try:
+                    name: str = msgspec.json.decode(raw_bytes, type=dict).get("name", "<unknown>")
+                except Exception:
+                    name = "<unknown>"
+                _logger.warning(
+                    "Skipping index %r: cannot parse schema (%s). "
+                    "This usually means the index was created with an older or "
+                    "experimental API that uses a field type not recognised by "
+                    "this SDK version.",
+                    name,
+                    exc,
+                )
+        return result
 
 
 create_adapter = PreviewCreateIndexAdapter()
