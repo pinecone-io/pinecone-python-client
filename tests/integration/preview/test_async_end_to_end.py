@@ -1386,3 +1386,67 @@ async def test_async_describe_raises_not_found_and_index_factory_validation(
 
     with pytest.raises(PineconeValueError):
         async_client.preview.index(name=phantom, host="https://dummy-host.pinecone.io")
+
+
+# ---------------------------------------------------------------------------
+# test_async_configure_returns_preview_index_model — §2 + §3
+# ---------------------------------------------------------------------------
+
+
+async def test_async_configure_returns_preview_index_model_with_updated_fields(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async configure() return value is a PreviewIndexModel with the updated deletion_protection (§2, §3).
+
+    Verifies:
+    1. §2 "Returns: PreviewIndexModel" — async configure() return is not None and is the right type.
+    2. The returned model's deletion_protection reflects the new value immediately.
+    3. §3 PreviewIndexModel.deployment is a PreviewManagedDeployment with non-empty cloud/region.
+    """
+    from pinecone.preview.models import PreviewManagedDeployment
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    create_model = await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    # Claim 3: deployment field from create() is a PreviewManagedDeployment.
+    assert isinstance(create_model.deployment, PreviewManagedDeployment), (
+        f"Expected PreviewManagedDeployment, got {type(create_model.deployment)}"
+    )
+    assert isinstance(create_model.deployment.cloud, str) and len(create_model.deployment.cloud) > 0
+    assert isinstance(create_model.deployment.region, str) and len(create_model.deployment.region) > 0
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    # Claims 1 + 2: configure() returns a PreviewIndexModel with the updated field.
+    returned = await async_client.preview.indexes.configure(
+        preview_index_name, deletion_protection="enabled"
+    )
+    assert isinstance(returned, PreviewIndexModel), (
+        f"async configure() must return PreviewIndexModel, got {type(returned)}"
+    )
+    assert returned.deletion_protection == "enabled", (
+        f"configure() return value must reflect the new deletion_protection, "
+        f"got {returned.deletion_protection!r}"
+    )
+
+    # Restore so cleanup fixture can delete the index.
+    await async_client.preview.indexes.configure(
+        preview_index_name, deletion_protection="disabled"
+    )

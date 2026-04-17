@@ -20,7 +20,7 @@ import pytest
 from pinecone import Pinecone
 from pinecone.errors import ForbiddenError, NotFoundError, PineconeValueError
 from pinecone.preview import PreviewSchemaBuilder
-from pinecone.preview.models import PreviewIndexModel
+from pinecone.preview.models import PreviewIndexModel, PreviewManagedDeployment
 from tests.integration.conftest import poll_until
 
 pytestmark = [pytest.mark.integration, pytest.mark.preview_integration]
@@ -748,3 +748,67 @@ class TestDescribeNotFoundAndIndexFactoryValidation:
         # Claim 4: preview.index(name=..., host=...) with both args raises PineconeValueError.
         with pytest.raises(PineconeValueError):
             client.preview.index(name=phantom, host="https://dummy-host.pinecone.io")
+
+
+# ---------------------------------------------------------------------------
+# TestConfigureReturnValue — §2 configure() Returns: PreviewIndexModel + §3 deployment
+# ---------------------------------------------------------------------------
+
+
+class TestConfigureReturnValue:
+    """configure() returns a PreviewIndexModel; deployment field is a discriminated union type."""
+
+    def test_configure_returns_preview_index_model_with_updated_fields(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """configure() return value is a PreviewIndexModel reflecting the changed field (§2, §3).
+
+        No existing test asserts on configure()'s return value — all prior tests call
+        describe() separately to observe effects. This test verifies:
+        1. §2 "Returns: PreviewIndexModel" — configure() return is not None and is the right type.
+        2. The returned model's deletion_protection reflects the new value immediately,
+           without a round-trip describe() call.
+        3. §3 PreviewIndexModel.deployment is a PreviewManagedDeployment (discriminated union)
+           with non-empty cloud and region strings when no deployment arg is passed to create().
+        """
+        schema = (
+            PreviewSchemaBuilder()
+            .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+            .build()
+        )
+        cleanup_preview_indexes.append(preview_index_name)
+        create_model = client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+        # Claim 3: deployment field from create() is a PreviewManagedDeployment.
+        assert isinstance(create_model.deployment, PreviewManagedDeployment), (
+            f"Expected PreviewManagedDeployment, got {type(create_model.deployment)}"
+        )
+        assert isinstance(create_model.deployment.cloud, str) and len(create_model.deployment.cloud) > 0
+        assert isinstance(create_model.deployment.region, str) and len(create_model.deployment.region) > 0
+
+        poll_until(
+            lambda: client.preview.indexes.describe(preview_index_name),
+            lambda m: isinstance(m, PreviewIndexModel) and m.status.state == "Ready",
+            timeout=300,
+            interval=5,
+            description=f"index {preview_index_name} ready",
+        )
+
+        # Claim 1 + 2: configure() returns a PreviewIndexModel with the updated field.
+        returned = client.preview.indexes.configure(
+            preview_index_name, deletion_protection="enabled"
+        )
+        assert isinstance(returned, PreviewIndexModel), (
+            f"configure() must return PreviewIndexModel, got {type(returned)}"
+        )
+        assert returned.deletion_protection == "enabled", (
+            f"configure() return value must reflect the new deletion_protection, "
+            f"got {returned.deletion_protection!r}"
+        )
+
+        # Restore so cleanup fixture can delete the index.
+        client.preview.indexes.configure(preview_index_name, deletion_protection="disabled")
