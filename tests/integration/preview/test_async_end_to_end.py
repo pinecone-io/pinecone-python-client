@@ -1202,3 +1202,66 @@ async def test_async_filter_remaining_operators_accepted(
 
     # $or — logical OR combining two conditions
     await _search_with_filter({"$or": [{"category": {"$eq": "tech"}}, {"year": {"$lt": 2020}}]})
+
+
+# ---------------------------------------------------------------------------
+# test_async_delete_timeout_negative_one_returns_immediately — §2 delete(timeout=-1)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+async def test_async_delete_timeout_negative_one_returns_immediately(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity: delete(timeout=-1) returns None immediately; index eventually disappears (§2).
+
+    Async counterpart for
+    TestDeleteTimeout.test_delete_timeout_negative_one_returns_immediately.
+    Verifies that the async delete() with timeout=-1 returns None without waiting
+    for the index to disappear, and the index is eventually confirmed gone.
+    """
+    from pinecone.errors import NotFoundError
+    from pinecone.preview.models import PreviewIndexModel
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready before delete",
+    )
+
+    result = await async_client.preview.indexes.delete(preview_index_name, timeout=-1)
+    assert result is None, "delete(timeout=-1) must return None"
+
+    # Verify the index eventually disappears (server finishes deletion async).
+    _DELETED_SENTINEL = object()
+
+    async def _describe_or_sentinel() -> object:
+        try:
+            return await async_client.preview.indexes.describe(preview_index_name)
+        except NotFoundError:
+            return _DELETED_SENTINEL
+
+    await async_poll_until(
+        _describe_or_sentinel,
+        lambda r: r is _DELETED_SENTINEL,
+        timeout=120,
+        interval=5,
+        description=f"index {preview_index_name} eventually deleted after timeout=-1",
+    )

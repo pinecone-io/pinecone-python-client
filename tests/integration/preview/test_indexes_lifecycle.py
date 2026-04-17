@@ -571,3 +571,59 @@ class TestListLimit:
         triggers the bug. This test is DISABLED until IPV-0003 is fixed.
         """
         pytest.skip("DISABLED (IPV-0003): list() crashes with msgspec.ValidationError for accounts with non-standard schema fields")
+
+
+# ---------------------------------------------------------------------------
+# TestDeleteTimeout — §2 delete(timeout=-1) fire-and-forget mode
+# ---------------------------------------------------------------------------
+
+
+class TestDeleteTimeout:
+    """delete(timeout=-1) initiates deletion and returns None immediately without polling."""
+
+    def test_delete_timeout_negative_one_returns_immediately(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """delete(timeout=-1) returns None immediately; index eventually disappears (§2).
+
+        The spec defines three timeout modes for delete():
+          None  (default): poll until gone (tested in TestLifecycleBasics)
+          -1   : return immediately after DELETE response (this test)
+          N > 0: poll up to N seconds, raise PineconeTimeoutError if deadline passes
+
+        Verifies the -1 fire-and-forget mode: the SDK sends the DELETE request,
+        receives the response, and returns None without waiting for the index to
+        disappear. The index is eventually confirmed gone via a separate poll loop.
+        """
+        cleanup_preview_indexes.append(preview_index_name)
+        client.preview.indexes.create(name=preview_index_name, schema=_simple_dense_schema())
+
+        poll_until(
+            lambda: client.preview.indexes.describe(preview_index_name),
+            _is_ready,
+            timeout=300,
+            interval=5,
+            description=f"index {preview_index_name} ready before delete",
+        )
+
+        result = client.preview.indexes.delete(preview_index_name, timeout=-1)
+        assert result is None, "delete(timeout=-1) must return None"
+
+        # Verify the index eventually disappears (the server finishes deletion async).
+        def _check_deleted() -> object:
+            try:
+                return client.preview.indexes.describe(preview_index_name)
+            except NotFoundError:
+                return _DELETED
+
+        poll_until(
+            _check_deleted,
+            lambda r: r is _DELETED,
+            timeout=120,
+            interval=5,
+            description=f"index {preview_index_name} eventually deleted after timeout=-1",
+        )
