@@ -78,7 +78,16 @@ class PreviewIndexes:
         self._http = _HTTPClient(cp_config, INDEXES_API_VERSION)
 
     def close(self) -> None:
-        """Close the underlying HTTP client. Idempotent."""
+        """Close the underlying HTTP client. Idempotent.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+        """
         self._http.close()
 
     def __repr__(self) -> str:

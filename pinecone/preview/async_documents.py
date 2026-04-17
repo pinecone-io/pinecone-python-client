@@ -115,7 +115,16 @@ class AsyncPreviewDocuments:
         return self._http
 
     async def close(self) -> None:
-        """Close the underlying HTTP client if initialized. Idempotent."""
+        """Close the underlying HTTP client if initialized. Idempotent.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+        """
         if self._http is not None:
             await self._http.close()
 

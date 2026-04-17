@@ -129,7 +129,15 @@ class Preview:
         return PreviewIndex(host=resolved_host, http=self._http, config=self._config)
 
     def close(self) -> None:
-        """Close preview sub-clients. Idempotent."""
+        """Close preview sub-clients. Idempotent.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+        """
         if self._indexes is not None:
             self._indexes.close()
 
@@ -256,7 +264,15 @@ class AsyncPreview:
         return AsyncPreviewIndex(http=self._http, config=self._config, _host_provider=_resolve)
 
     async def close(self) -> None:
-        """Close async preview sub-clients. Idempotent."""
+        """Close async preview sub-clients. Idempotent.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+        """
         if self._indexes is not None:
             await self._indexes.close()
 
