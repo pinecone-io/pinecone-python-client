@@ -235,9 +235,11 @@ class PreviewDocuments:
             msgspec.to_builtins(item) if isinstance(item, msgspec.Struct) else item
             for item in score_by
         ]
-        body: dict[str, Any] = {"top_k": top_k, "score_by": normalized}
-        if include_fields is not None:
-            body["include_fields"] = include_fields
+        body: dict[str, Any] = {
+            "top_k": top_k,
+            "score_by": normalized,
+            "include_fields": include_fields if include_fields is not None else [],
+        }
         if filter is not None:
             body["filter"] = filter
 

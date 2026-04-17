@@ -341,16 +341,11 @@ def test_search_include_fields_variants(
     preview_namespace: str,
     require_preview: None,
 ) -> None:
-    """Verify include_fields request construction: explicit list and ["*"] accepted; None causes 422.
+    """Verify include_fields request construction: explicit list, ["*"], and None (→ []) accepted.
 
     This test validates the SDK's request-level behavior for include_fields.
     It does NOT assert on returned document fields because search indexing is
     eventually consistent and the test avoids polling to keep it fast.
-
-    SDK BUG (IPV-0001): search() omits include_fields from the request body
-    when the caller passes include_fields=None (the default). The API requires
-    include_fields to be a non-null list, so it returns 422. The test reaches
-    this assertion last; the DISABLED result is expected until IPV-0001 is fixed.
     """
     from pinecone.preview.models import PreviewIndexModel
 
@@ -409,9 +404,8 @@ def test_search_include_fields_variants(
     )
     assert isinstance(results_named, PreviewDocumentSearchResponse)
 
-    # Case 3: include_fields=None (default) — SDK omits include_fields from body → 422.
-    # Per spec, None should return only _id and score (a valid operation).
-    # SDK BUG (IPV-0001): SDK omits include_fields entirely; API requires it as a list.
+    # Case 3: include_fields=None (default) — SDK sends include_fields=[] → 200 OK.
+    # Per spec, None returns only _id and score (empty list is the wire equivalent).
     results_default = idx.documents.search(
         namespace=preview_namespace,
         top_k=5,
@@ -440,7 +434,7 @@ def test_search_response_namespace_and_usage(
 
     No existing test checks these envelope fields; all existing tests inspect
     only response.matches items. This test targets the response envelope directly.
-    Uses include_fields=["*"] to avoid the IPV-0001 422 bug.
+    Uses include_fields=["*"] to return all stored fields.
     0 matches are acceptable — the namespace and usage fields are always present.
     """
     from pinecone.preview.models import PreviewIndexModel
@@ -846,7 +840,7 @@ def test_search_score_by_plain_dict_accepted(
 
     All existing search tests use typed objects (PreviewDenseVectorQuery, etc.). This test
     verifies the alternative path: plain dict entries are passed through to the API unchanged.
-    Uses include_fields=["*"] to avoid the IPV-0001 422 bug. 0 matches are acceptable.
+    Uses include_fields=["*"] to return all stored fields. 0 matches are acceptable.
     """
     from pinecone.preview.models import PreviewIndexModel
 
@@ -928,7 +922,7 @@ def test_search_response_and_index_model_display_methods(
 
     Uses an OnDemand dense vector index — 0 matches are acceptable since display
     methods operate on the envelope (namespace, usage, match count) not results.
-    Uses include_fields=["*"] to avoid the IPV-0001 422 bug.
+    Uses include_fields=["*"] to return all stored fields.
     """
     from pinecone.preview.models import PreviewIndexModel
 
@@ -1102,3 +1096,101 @@ def test_sparse_vector_schema_and_query_accepted(
     assert isinstance(response.matches, list), (
         f"response.matches must be a list, got {type(response.matches)}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_preview_document_model_attributes_after_fts_search — §7 PreviewDocument
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_preview_document_model_attributes_after_fts_search(
+    client: Pinecone,
+    fts_index_state: "tuple[str, str] | None",
+    require_preview: None,
+) -> None:
+    """Verify PreviewDocument attribute access after a real FTS search with actual matches.
+
+    Spec §7 defines PreviewDocument with: .id property, ._id alias, .score float,
+    __getattr__ dynamic field access, .get(key), .get(key, default) for missing keys,
+    .to_dict() returning a dict with _id/score/fields, and .to_json() as valid JSON.
+
+    The pre-existing test_full_text_search_only_flow only checks _id, score, isinstance.
+    PVT-024 documented this gap — OnDemand searches return 0 results. Uses the
+    session-scoped fts_index_state fixture which creates and warms up one FTS+dedicated
+    index once per session, avoiding per-test cold-start latency.
+    """
+    import json
+
+    if fts_index_state is None:
+        pytest.skip("FTS index unavailable — preview endpoint unreachable or cold-start timeout")
+
+    host, namespace = fts_index_state
+    idx = client.preview.index(host=host)
+
+    response = idx.documents.search(
+        namespace=namespace,
+        top_k=5,
+        score_by=[PreviewTextQuery(field="text", query="ancient Rome")],
+        include_fields=["text", "year"],
+    )
+
+    assert len(response.matches) > 0, (
+        "Expected at least one FTS match for 'ancient Rome' (session fixture confirmed searchable)"
+    )
+    doc = response.matches[0]
+
+    # §7: id and _id alias must both return the same non-empty string
+    assert isinstance(doc.id, str), f"doc.id must be str, got {type(doc.id)}"
+    assert doc._id == doc.id, f"doc._id must alias doc.id: {doc._id!r} != {doc.id!r}"
+    assert len(doc.id) > 0, "doc.id must be non-empty"
+
+    # §7: score is a positive float for a real FTS match
+    assert doc.score is not None, "doc.score must not be None for an FTS match"
+    assert isinstance(doc.score, float), f"doc.score must be float, got {type(doc.score)}"
+    assert doc.score > 0, f"doc.score must be positive for a real match, got {doc.score}"
+
+    # §7: __getattr__ dynamic field access
+    text_val = doc.text
+    assert isinstance(text_val, str), f"doc.text via __getattr__ must be str, got {type(text_val)}"
+    year_val = doc.year
+    # Integer filterable fields arrive as JSON numbers; msgspec dict[str, Any] may
+    # deserialize them as int or float depending on the server's wire representation.
+    assert isinstance(year_val, (int, float)), (
+        f"doc.year via __getattr__ must be a number, got {type(year_val)}"
+    )
+
+    # §7: .get(key) returns same value as attribute access
+    assert doc.get("text") == text_val, (
+        f"doc.get('text') must equal doc.text: {doc.get('text')!r} != {text_val!r}"
+    )
+    assert doc.get("year") == year_val, (
+        f"doc.get('year') must equal doc.year: {doc.get('year')!r} != {year_val!r}"
+    )
+
+    # §7: .get(missing_key, default) returns the default
+    sentinel = object()
+    assert doc.get("nonexistent_field", sentinel) is sentinel, (
+        "doc.get('nonexistent_field', sentinel) must return default for missing field"
+    )
+
+    # §7: to_dict() returns a plain dict with the raw API data.
+    # The spec example uses "_id" as the key, but the API actually sends "id" —
+    # to_dict() passes through whatever the server returns unchanged.
+    d = doc.to_dict()
+    assert isinstance(d, dict), f"doc.to_dict() must return dict, got {type(d)}"
+    id_key = "_id" if "_id" in d else "id"
+    assert id_key in d, f"to_dict() must include an id key ('_id' or 'id'), keys: {set(d.keys())}"
+    assert "score" in d, f"to_dict() must include 'score', keys: {set(d.keys())}"
+    assert "text" in d, f"to_dict() must include 'text' (from include_fields), keys: {set(d.keys())}"
+    assert d[id_key] == doc.id, f"to_dict()[{id_key!r}] must equal doc.id: {d[id_key]!r}"
+    assert d["score"] == doc.score, "to_dict()['score'] must equal doc.score"
+
+    # §7: to_json() returns valid JSON round-trippable to same content as to_dict()
+    j = doc.to_json()
+    assert isinstance(j, str), f"doc.to_json() must return str, got {type(j)}"
+    parsed = json.loads(j)
+    assert isinstance(parsed, dict), "doc.to_json() must parse to a dict"
+    assert parsed[id_key] == doc.id, f"to_json() parsed {id_key!r} must equal doc.id"
+    assert parsed["score"] == doc.score, "to_json() parsed score must equal doc.score"

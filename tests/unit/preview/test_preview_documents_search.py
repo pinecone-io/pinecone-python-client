@@ -178,7 +178,7 @@ def test_search_empty_score_by_raises(docs: PreviewDocuments) -> None:
 
 
 @respx.mock
-def test_search_include_fields_none_omits_field_from_request(docs: PreviewDocuments) -> None:
+def test_search_include_fields_none_sends_empty_list(docs: PreviewDocuments) -> None:
     route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
 
     docs.search(
@@ -189,7 +189,7 @@ def test_search_include_fields_none_omits_field_from_request(docs: PreviewDocume
     )
 
     body = orjson.loads(route.calls.last.request.content)
-    assert "include_fields" not in body
+    assert body["include_fields"] == []
 
 
 @respx.mock
@@ -372,7 +372,7 @@ async def test_async_search_empty_score_by_raises(async_docs: AsyncPreviewDocume
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_async_search_include_fields_none_omits_field(
+async def test_async_search_include_fields_none_sends_empty_list(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
     route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
@@ -385,7 +385,7 @@ async def test_async_search_include_fields_none_omits_field(
     )
 
     body = orjson.loads(route.calls.last.request.content)
-    assert "include_fields" not in body
+    assert body["include_fields"] == []
 
 
 @pytest.mark.asyncio
