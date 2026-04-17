@@ -27,6 +27,7 @@ from pinecone.preview.models import (
     PreviewSparseValues,
     PreviewSparseVectorQuery,
     PreviewTextQuery,
+    PreviewUsage,
 )
 from tests.integration.conftest import poll_until
 
@@ -420,3 +421,81 @@ def test_search_include_fields_variants(
         score_by=score_by,  # type: ignore[arg-type]
     )
     assert isinstance(results_default, PreviewDocumentSearchResponse)
+
+
+# ---------------------------------------------------------------------------
+# test_search_response_namespace_and_usage — §7 PreviewDocumentSearchResponse envelope
+# ---------------------------------------------------------------------------
+
+
+def test_search_response_namespace_and_usage(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """Verify PreviewDocumentSearchResponse.namespace and .usage fields (§7).
+
+    The spec declares that search() returns a PreviewDocumentSearchResponse with:
+    - namespace: str  — echoed back from the request parameter
+    - usage: PreviewUsage | None — with read_units: int >= 0
+
+    No existing test checks these envelope fields; all existing tests inspect
+    only response.matches items. This test targets the response envelope directly.
+    Uses include_fields=["*"] to avoid the IPV-0001 422 bug.
+    0 matches are acceptable — the namespace and usage fields are always present.
+    """
+    from pinecone.preview.models import PreviewIndexModel
+
+    schema = (
+        PreviewSchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = client.preview.index(name=preview_index_name)
+    idx.documents.upsert(
+        namespace=preview_namespace,
+        documents=[{"_id": "doc-env", "embedding": [0.1, 0.2, 0.3, 0.4]}],
+    )
+
+    score_by: list[object] = [
+        PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])
+    ]
+    response = idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=score_by,  # type: ignore[arg-type]
+        include_fields=["*"],
+    )
+
+    assert isinstance(response, PreviewDocumentSearchResponse)
+    # §7: namespace must be echoed back from the request.
+    assert response.namespace == preview_namespace, (
+        f"response.namespace {response.namespace!r} != request namespace {preview_namespace!r}"
+    )
+    # §7: usage must be present with a non-negative read_units counter.
+    assert response.usage is not None, "response.usage must not be None after a successful search"
+    assert isinstance(response.usage, PreviewUsage), (
+        f"expected PreviewUsage, got {type(response.usage)}"
+    )
+    assert isinstance(response.usage.read_units, int), (
+        f"read_units must be int, got {type(response.usage.read_units)}"
+    )
+    assert response.usage.read_units >= 0, (
+        f"read_units must be >= 0, got {response.usage.read_units}"
+    )

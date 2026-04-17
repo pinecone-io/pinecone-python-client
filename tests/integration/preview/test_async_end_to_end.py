@@ -18,10 +18,12 @@ from pinecone import AsyncPinecone
 from pinecone.models.batch import BatchResult
 from pinecone.preview import SchemaBuilder
 from pinecone.preview.models import (
+    PreviewDenseVectorQuery,
     PreviewDocument,
     PreviewDocumentSearchResponse,
     PreviewIndexModel,
     PreviewTextQuery,
+    PreviewUsage,
 )
 from tests.integration.conftest import async_poll_until
 
@@ -703,3 +705,78 @@ async def test_async_configure_tags_merges_with_existing_tags(
     assert model.tags["key1"] == "original", "original tag value must be unchanged"
     assert "key2" in model.tags, "new tag 'key2' must be present after configure(tags=)"
     assert model.tags["key2"] == "added", "new tag value must be correct"
+
+
+# ---------------------------------------------------------------------------
+# test_async_search_response_namespace_and_usage — §7 async parity
+# ---------------------------------------------------------------------------
+
+
+async def test_async_search_response_namespace_and_usage(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    preview_namespace: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity: PreviewDocumentSearchResponse.namespace echoed and usage present (§7).
+
+    Async counterpart for test_search_response_namespace_and_usage. Verifies that
+    an async search() call returns a response envelope where:
+    - namespace == the namespace argument passed to search()
+    - usage is a PreviewUsage instance with read_units: int >= 0
+
+    Uses include_fields=["*"] to avoid the IPV-0001 422 bug. 0 matches are
+    acceptable — the envelope fields must always be present on a 200 OK response.
+    """
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = async_client.preview.index(name=preview_index_name)
+    await idx.documents.upsert(
+        namespace=preview_namespace,
+        documents=[{"_id": "doc-env", "embedding": [0.1, 0.2, 0.3, 0.4]}],
+    )
+
+    score_by: list[object] = [
+        PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])
+    ]
+    response = await idx.documents.search(
+        namespace=preview_namespace,
+        top_k=5,
+        score_by=score_by,  # type: ignore[arg-type]
+        include_fields=["*"],
+    )
+
+    assert isinstance(response, PreviewDocumentSearchResponse)
+    # §7: namespace must be echoed back from the request.
+    assert response.namespace == preview_namespace, (
+        f"response.namespace {response.namespace!r} != request namespace {preview_namespace!r}"
+    )
+    # §7: usage must be present with a non-negative read_units counter.
+    assert response.usage is not None, "response.usage must not be None after a successful search"
+    assert isinstance(response.usage, PreviewUsage), (
+        f"expected PreviewUsage, got {type(response.usage)}"
+    )
+    assert isinstance(response.usage.read_units, int), (
+        f"read_units must be int, got {type(response.usage.read_units)}"
+    )
+    assert response.usage.read_units >= 0, (
+        f"read_units must be >= 0, got {response.usage.read_units}"
+    )
