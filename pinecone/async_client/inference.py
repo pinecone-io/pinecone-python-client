@@ -29,6 +29,26 @@ class AsyncModelResource:
     """Lazily-initialized resource for listing and getting inference model info.
 
     Accessed via ``pc.inference.model``.
+
+    Args:
+        inference (AsyncInference): The parent async inference namespace that
+            handles HTTP requests on behalf of this resource.
+
+    Examples:
+        List all available models:
+
+        >>> from pinecone import AsyncPinecone
+        >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+        ...     models = await pc.inference.model.list()
+        ...     models.names()
+        ['multilingual-e5-large', 'pinecone-sparse-english-v0']
+
+        Get details about a specific model:
+
+        >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+        ...     info = await pc.inference.model.get("multilingual-e5-large")
+        ...     info.type
+        'embed'
     """
 
     def __init__(self, inference: AsyncInference) -> None:
@@ -43,6 +63,23 @@ class AsyncModelResource:
         """List available inference models.
 
         Delegates to :meth:`~AsyncInference.list_models`.
+
+        Args:
+            type (str | None): Filter by model type (``"embed"`` or ``"rerank"``).
+            vector_type (str | None): Filter by vector type
+                (``"dense"`` or ``"sparse"``). Only relevant when ``type="embed"``.
+
+        Returns:
+            A :class:`ModelInfoList` supporting iteration, len(), and ``.names()``.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+            >>> from pinecone import AsyncPinecone
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     models = await pc.inference.model.list()
+            ...     embed_models = await pc.inference.model.list(type="embed")
         """
         return await self._inference.list_models(type=type, vector_type=vector_type)
 
@@ -50,6 +87,23 @@ class AsyncModelResource:
         """Get detailed information about a specific model.
 
         Delegates to :meth:`~AsyncInference.get_model`.
+
+        Args:
+            model_name (str): The model identifier to look up.
+
+        Returns:
+            A :class:`ModelInfo` with full model details.
+
+        Raises:
+            :exc:`NotFoundError`: If the model does not exist.
+            :exc:`ApiError`: If the API returns another error response.
+
+        Examples:
+            >>> from pinecone import AsyncPinecone
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     info = await pc.inference.model.get("multilingual-e5-large")
+            ...     info.type
+            'embed'
         """
         return await self._inference.get_model(model_name=model_name)
 
@@ -94,7 +148,17 @@ class AsyncInference:
 
     @cached_property
     def model(self) -> AsyncModelResource:
-        """Lazily-initialized resource for listing and getting model info."""
+        """Lazily-initialized resource for listing and getting model info.
+
+        Returns:
+            A :class:`AsyncModelResource` that exposes ``.list()`` and ``.get()`` methods.
+
+        Examples:
+            >>> from pinecone import AsyncPinecone
+            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...     models = await pc.inference.model.list()
+            ...     info = await pc.inference.model.get("multilingual-e5-large")
+        """
         return AsyncModelResource(self)
 
     async def embed(

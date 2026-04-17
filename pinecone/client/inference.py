@@ -31,6 +31,25 @@ class ModelResource:
     """Lazily-initialized resource for listing and getting inference model info.
 
     Accessed via ``pc.inference.model``.
+
+    Args:
+        inference (Inference): The parent inference namespace that handles
+            HTTP requests on behalf of this resource.
+
+    Examples:
+        List all available models:
+
+        >>> from pinecone import Pinecone
+        >>> pc = Pinecone(api_key="your-api-key")
+        >>> models = pc.inference.model.list()
+        >>> models.names()
+        ['multilingual-e5-large', 'pinecone-sparse-english-v0']
+
+        Get details about a specific model:
+
+        >>> info = pc.inference.model.get("multilingual-e5-large")
+        >>> info.type
+        'embed'
     """
 
     def __init__(self, inference: Inference) -> None:
@@ -45,6 +64,23 @@ class ModelResource:
         """List available inference models.
 
         Delegates to :meth:`~Inference.list_models`.
+
+        Args:
+            type (str | None): Filter by model type (``"embed"`` or ``"rerank"``).
+            vector_type (str | None): Filter by vector type
+                (``"dense"`` or ``"sparse"``). Only relevant when ``type="embed"``.
+
+        Returns:
+            A :class:`ModelInfoList` supporting iteration, len(), and ``.names()``.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> models = pc.inference.model.list()
+            >>> embed_models = pc.inference.model.list(type="embed")
         """
         return self._inference.list_models(type=type, vector_type=vector_type)
 
@@ -52,6 +88,23 @@ class ModelResource:
         """Get detailed information about a specific model.
 
         Delegates to :meth:`~Inference.get_model`.
+
+        Args:
+            model_name (str): The model identifier to look up.
+
+        Returns:
+            A :class:`ModelInfo` with full model details.
+
+        Raises:
+            :exc:`NotFoundError`: If the model does not exist.
+            :exc:`ApiError`: If the API returns another error response.
+
+        Examples:
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> info = pc.inference.model.get("multilingual-e5-large")
+            >>> info.type
+            'embed'
         """
         return self._inference.get_model(model_name=model_name)
 
@@ -96,7 +149,17 @@ class Inference:
 
     @cached_property
     def model(self) -> ModelResource:
-        """Lazily-initialized resource for listing and getting model info."""
+        """Lazily-initialized resource for listing and getting model info.
+
+        Returns:
+            A :class:`ModelResource` that exposes ``.list()`` and ``.get()`` methods.
+
+        Examples:
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> models = pc.inference.model.list()
+            >>> info = pc.inference.model.get("multilingual-e5-large")
+        """
         return ModelResource(self)
 
     def embed(
