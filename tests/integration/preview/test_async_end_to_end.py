@@ -2170,3 +2170,83 @@ async def test_async_search_response_and_index_model_display_methods(
         f"PreviewDocumentSearchResponse._repr_html_() must contain 'SearchResponse', "
         f"got: {search_html[:300]!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_batch_upsert_partial_failure — §5 partial failure (async path)
+# ---------------------------------------------------------------------------
+
+
+async def test_async_batch_upsert_partial_failure_collects_failed_items(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    preview_namespace: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async batch_upsert() continues after per-batch failures and records them.
+
+    Async parity for test_batch_upsert_partial_failure_collects_failed_items:
+    verifies §5 "Edge case — partial failure" via the async SDK path.
+
+    One document has a 5-dim vector on a 4-dim index (API rejects it); the other
+    3 docs succeed. Verifies has_errors=True, failed_batch_count==1,
+    failed_item_count==1, failed_items contains the rejected doc, errors has
+    one BatchError entry.
+    """
+    async_cleanup_preview_indexes.append(preview_index_name)
+
+    schema = (
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
+    )
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = async_client.preview.index(name=preview_index_name)
+    bad_doc = {"_id": "bad-dim", "embedding": [0.1, 0.2, 0.3, 0.4, 0.5]}
+    good_docs = [
+        {"_id": f"good-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]} for i in range(3)
+    ]
+    all_docs = good_docs + [bad_doc]
+
+    result = await idx.documents.batch_upsert(
+        namespace=preview_namespace,
+        documents=all_docs,
+        batch_size=1,
+        max_workers=2,
+        show_progress=False,
+    )
+
+    assert isinstance(result, BatchResult)
+    assert result.total_item_count == 4
+    assert result.total_batch_count == 4
+    assert result.has_errors is True, f"Expected has_errors=True, got {result.has_errors}"
+    assert result.failed_batch_count == 1, (
+        f"Expected 1 failed batch, got {result.failed_batch_count}"
+    )
+    assert result.failed_item_count == 1, (
+        f"Expected 1 failed item, got {result.failed_item_count}"
+    )
+    assert result.successful_batch_count == 3, (
+        f"Expected 3 successful batches, got {result.successful_batch_count}"
+    )
+    assert result.successful_item_count == 3, (
+        f"Expected 3 successful items, got {result.successful_item_count}"
+    )
+    assert len(result.failed_items) == 1, (
+        f"Expected 1 item in failed_items, got {len(result.failed_items)}"
+    )
+    assert result.failed_items[0]["_id"] == "bad-dim", (
+        f"Expected failed_items[0]['_id'] == 'bad-dim', got {result.failed_items[0]['_id']!r}"
+    )
+    assert len(result.errors) == 1, f"Expected 1 BatchError, got {len(result.errors)}"

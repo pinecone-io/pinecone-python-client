@@ -460,9 +460,7 @@ def test_upsert_returns_upserted_count(
     from pinecone.preview.models import PreviewDocumentUpsertResponse, PreviewIndexModel
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     cleanup_preview_indexes.append(preview_index_name)
     client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -513,9 +511,7 @@ def test_batch_upsert_result_fields(
     from pinecone.preview.models import PreviewIndexModel
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     cleanup_preview_indexes.append(preview_index_name)
     client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -533,8 +529,7 @@ def test_batch_upsert_result_fields(
 
     idx = client.preview.index(name=preview_index_name)
     documents = [
-        {"_id": f"doc-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]}
-        for i in range(10)
+        {"_id": f"doc-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]} for i in range(10)
     ]
 
     result = idx.documents.batch_upsert(
@@ -589,9 +584,7 @@ def test_batch_upsert_result_display_methods(
     from pinecone.models.batch import BatchResult
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     cleanup_preview_indexes.append(preview_index_name)
     client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -609,8 +602,7 @@ def test_batch_upsert_result_display_methods(
 
     idx = client.preview.index(name=preview_index_name)
     documents = [
-        {"_id": f"doc-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]}
-        for i in range(10)
+        {"_id": f"doc-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]} for i in range(10)
     ]
 
     result = idx.documents.batch_upsert(
@@ -654,9 +646,7 @@ def test_batch_upsert_result_display_methods(
     html = result._repr_html_()
     assert isinstance(html, str), f"_repr_html_() expected str, got {type(html)}"
     assert len(html) > 0, "_repr_html_() must return non-empty HTML"
-    assert "BatchResult" in html, (
-        f"_repr_html_() must contain 'BatchResult', got: {html[:200]!r}"
-    )
+    assert "BatchResult" in html, f"_repr_html_() must contain 'BatchResult', got: {html[:200]!r}"
 
 
 # ---------------------------------------------------------------------------
@@ -728,7 +718,9 @@ def test_fetch_wildcard_include_fields_returns_all_stored_fields(
     for doc_id, doc in response.documents.items():
         assert isinstance(doc, PreviewDocument)
         assert doc._id == doc_id
-        assert doc.category is not None, f"doc {doc_id} missing 'category' with include_fields=['*']"
+        assert doc.category is not None, (
+            f"doc {doc_id} missing 'category' with include_fields=['*']"
+        )
 
     assert response.documents["doc-a"].category == "fruit"
     assert response.documents["doc-b"].category == "vegetable"
@@ -906,9 +898,7 @@ def test_documents_delete_returns_none_for_all_targeting_modes(
     )
 
     # delete by filter must return None.
-    result_filter = idx.documents.delete(
-        namespace=ns, filter={"category": {"$eq": "vegetable"}}
-    )
+    result_filter = idx.documents.delete(namespace=ns, filter={"category": {"$eq": "vegetable"}})
     assert result_filter is None, (
         f"delete(filter=...) expected None, got {type(result_filter)}: {result_filter!r}"
     )
@@ -942,9 +932,7 @@ def test_batch_upsert_with_batch_size_one_per_document(
     from pinecone.models.batch import BatchResult
 
     schema = (
-        SchemaBuilder()
-        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .build()
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
     cleanup_preview_indexes.append(preview_index_name)
     client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -969,14 +957,12 @@ def test_batch_upsert_with_batch_size_one_per_document(
     result = idx.documents.batch_upsert(
         namespace=preview_namespace,
         documents=documents,
-        batch_size=1,       # minimum: each document is its own HTTP request
+        batch_size=1,  # minimum: each document is its own HTTP request
         max_workers=2,
         show_progress=False,
     )
 
-    assert isinstance(result, BatchResult), (
-        f"Expected BatchResult, got {type(result)}"
-    )
+    assert isinstance(result, BatchResult), f"Expected BatchResult, got {type(result)}"
     assert result.total_item_count == 3, (
         f"Expected total_item_count=3, got {result.total_item_count}"
     )
@@ -995,6 +981,91 @@ def test_batch_upsert_with_batch_size_one_per_document(
     assert result.failed_batch_count == 0, (
         f"Expected failed_batch_count=0, got {result.failed_batch_count}"
     )
-    assert result.has_errors is False, (
-        f"Expected has_errors=False, got {result.has_errors}"
+    assert result.has_errors is False, f"Expected has_errors=False, got {result.has_errors}"
+
+
+# ---------------------------------------------------------------------------
+# test_batch_upsert_partial_failure_collects_failed_items — §5 partial failure
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.timeout(300)
+def test_batch_upsert_partial_failure_collects_failed_items(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """batch_upsert() continues after per-batch failures and records them in BatchResult.
+
+    Spec §5 "Edge case — partial failure": if some batches fail the operation
+    continues; failed items are collected in result.failed_items for retry.
+
+    Strategy: 4-dim cosine index + batch_size=1 (one doc per batch) + one document
+    with a 5-dim vector that triggers a server-side 4xx rejection. The other 3
+    documents have valid 4-dim vectors and succeed.
+
+    Verifies: has_errors=True, failed_batch_count==1, failed_item_count==1,
+    successful_batch_count==3, successful_item_count==3, failed_items contains
+    the rejected document, and errors has one BatchError entry.
+    """
+    from pinecone.models.batch import BatchResult
+    from pinecone.preview.models import PreviewIndexModel
+
+    schema = (
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
     )
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = client.preview.index(name=preview_index_name)
+    # 5-dim vector on a 4-dim index → API rejects the batch with a 4xx error
+    bad_doc = {"_id": "bad-dim", "embedding": [0.1, 0.2, 0.3, 0.4, 0.5]}
+    good_docs = [
+        {"_id": f"good-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]} for i in range(3)
+    ]
+    all_docs = good_docs + [bad_doc]  # 4 total
+
+    result = idx.documents.batch_upsert(
+        namespace=preview_namespace,
+        documents=all_docs,
+        batch_size=1,  # one doc per batch so the single bad doc fails in isolation
+        max_workers=2,
+        show_progress=False,
+    )
+
+    assert isinstance(result, BatchResult)
+    assert result.total_item_count == 4
+    assert result.total_batch_count == 4
+    assert result.has_errors is True, f"Expected has_errors=True, got {result.has_errors}"
+    assert result.failed_batch_count == 1, (
+        f"Expected 1 failed batch (bad-dim doc), got {result.failed_batch_count}"
+    )
+    assert result.failed_item_count == 1, (
+        f"Expected 1 failed item, got {result.failed_item_count}"
+    )
+    assert result.successful_batch_count == 3, (
+        f"Expected 3 successful batches, got {result.successful_batch_count}"
+    )
+    assert result.successful_item_count == 3, (
+        f"Expected 3 successful items, got {result.successful_item_count}"
+    )
+    assert len(result.failed_items) == 1, (
+        f"Expected 1 item in failed_items, got {len(result.failed_items)}"
+    )
+    assert result.failed_items[0]["_id"] == "bad-dim", (
+        f"Expected failed_items[0]['_id'] == 'bad-dim', got {result.failed_items[0]['_id']!r}"
+    )
+    assert len(result.errors) == 1, f"Expected 1 BatchError entry, got {len(result.errors)}"

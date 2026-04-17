@@ -521,9 +521,7 @@ class TestDeletionProtectionEnforcement:
         finally:
             # Disable protection so the cleanup fixture can delete the index.
             with contextlib.suppress(Exception):
-                client.preview.indexes.configure(
-                    preview_index_name, deletion_protection="disabled"
-                )
+                client.preview.indexes.configure(preview_index_name, deletion_protection="disabled")
 
 
 # ---------------------------------------------------------------------------
@@ -570,7 +568,9 @@ class TestListLimit:
         stored as {'filterable': True} without 'type'). The index e4005153 in this environment
         triggers the bug. This test is DISABLED until IPV-0003 is fixed.
         """
-        pytest.skip("DISABLED (IPV-0003): list() crashes with msgspec.ValidationError for accounts with non-standard schema fields")
+        pytest.skip(
+            "DISABLED (IPV-0003): list() crashes with msgspec.ValidationError for accounts with non-standard schema fields"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -674,7 +674,9 @@ class TestSchemaBuildBehavior:
         # Claim 1: build() twice returns equal content but independent copies.
         assert schema1 == schema2, "build() must return equal dicts on repeated calls"
         assert schema1 is not schema2, "build() must return independent copies"
-        assert schema1["fields"] is not schema2["fields"], "build() fields dict must be an independent copy"
+        assert schema1["fields"] is not schema2["fields"], (
+            "build() fields dict must be an independent copy"
+        )
 
         # Claim 3: **additional_options are merged into the field dict (client-side).
         schema_with_extras = (
@@ -787,8 +789,14 @@ class TestConfigureReturnValue:
         assert isinstance(create_model.deployment, PreviewManagedDeployment), (
             f"Expected PreviewManagedDeployment, got {type(create_model.deployment)}"
         )
-        assert isinstance(create_model.deployment.cloud, str) and len(create_model.deployment.cloud) > 0
-        assert isinstance(create_model.deployment.region, str) and len(create_model.deployment.region) > 0
+        assert (
+            isinstance(create_model.deployment.cloud, str)
+            and len(create_model.deployment.cloud) > 0
+        )
+        assert (
+            isinstance(create_model.deployment.region, str)
+            and len(create_model.deployment.region) > 0
+        )
 
         poll_until(
             lambda: client.preview.indexes.describe(preview_index_name),
