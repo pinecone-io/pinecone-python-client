@@ -20,8 +20,8 @@ def test_preview_root_exports_namespace_classes() -> None:
 
 
 def test_preview_root_exports_schema_builder() -> None:
-    from pinecone.preview import SchemaBuilder
     import pinecone.preview.schema_builder as _sb
+    from pinecone.preview import SchemaBuilder
 
     assert inspect.isclass(SchemaBuilder)
     assert SchemaBuilder is _sb.PreviewSchemaBuilder
@@ -34,13 +34,13 @@ def test_preview_root_all_lists_schema_builder() -> None:
 
 
 def test_preview_models_exports_score_by_queries() -> None:
+    import pinecone.preview.models.score_by as _sb
     from pinecone.preview.models import (
         PreviewDenseVectorQuery,
         PreviewQueryStringQuery,
         PreviewSparseVectorQuery,
         PreviewTextQuery,
     )
-    import pinecone.preview.models.score_by as _sb
 
     assert inspect.isclass(PreviewTextQuery)
     assert inspect.isclass(PreviewQueryStringQuery)

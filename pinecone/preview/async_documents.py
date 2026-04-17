@@ -9,7 +9,9 @@ import msgspec
 from pinecone._internal.batch import async_batch_execute
 from pinecone._internal.validation import require_in_range, require_non_empty
 from pinecone.errors.exceptions import ValidationError
-from pinecone.models.batch import BatchResult
+from pinecone.models.batch import (
+    BatchResult,  # SDK utility result, not wire-shape — see preview-channel.md § Type isolation
+)
 from pinecone.preview._internal.adapters.documents import (
     decode_fetch_response,
     decode_search_response,
