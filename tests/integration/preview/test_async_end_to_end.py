@@ -295,3 +295,69 @@ async def test_async_upsert_returns_upserted_count(
 
     assert isinstance(response, PreviewDocumentUpsertResponse)
     assert response.upserted_count == len(documents)
+
+
+# ---------------------------------------------------------------------------
+# test_async_batch_upsert_result_fields — §5 async batch_upsert() BatchResult
+# ---------------------------------------------------------------------------
+
+
+async def test_async_batch_upsert_result_fields(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    preview_namespace: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async batch_upsert() returns BatchResult with correct counts for 10 docs in 2 batches.
+
+    Async parity for test_batch_upsert_result_fields: verifies §5 BatchResult
+    fields (total_item_count, failed_item_count, total_batch_count,
+    failed_batch_count, has_errors, failed_items, errors) via the async path.
+    """
+    from pinecone.models.batch import BatchResult
+    from pinecone.preview.models import PreviewIndexModel
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = async_client.preview.index(name=preview_index_name)
+    documents = [
+        {"_id": f"doc-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]}
+        for i in range(10)
+    ]
+
+    result = await idx.documents.batch_upsert(
+        namespace=preview_namespace,
+        documents=documents,
+        batch_size=5,
+        max_workers=2,
+        show_progress=False,
+    )
+
+    assert isinstance(result, BatchResult)
+    assert result.total_item_count == 10
+    assert result.successful_item_count == 10
+    assert result.failed_item_count == 0
+    assert result.total_batch_count == 2
+    assert result.successful_batch_count == 2
+    assert result.failed_batch_count == 0
+    assert result.has_errors is False
+    assert result.failed_items == []
+    assert result.errors == []
