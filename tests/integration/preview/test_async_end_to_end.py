@@ -133,3 +133,33 @@ async def test_async_describe_after_create_matches_sync(
     assert isinstance(described, PreviewIndexModel)
     assert described.name == preview_index_name
     assert isinstance(described.host, str) and len(described.host) > 0
+
+
+# ---------------------------------------------------------------------------
+# test_async_exists_returns_true_and_false — §2 exists(name) async parity
+# ---------------------------------------------------------------------------
+
+
+async def test_async_exists_returns_true_and_false(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async exists() returns True for a created index and False for an unknown name."""
+    from tests.integration.conftest import unique_name
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    result_true = await async_client.preview.indexes.exists(preview_index_name)
+    assert result_true is True
+
+    phantom_name = unique_name("phantom")
+    result_false = await async_client.preview.indexes.exists(phantom_name)
+    assert result_false is False
