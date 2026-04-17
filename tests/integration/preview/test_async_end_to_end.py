@@ -245,3 +245,53 @@ async def test_async_exists_returns_true_and_false(
     phantom_name = unique_name("phantom")
     result_false = await async_client.preview.indexes.exists(phantom_name)
     assert result_false is False
+
+
+# ---------------------------------------------------------------------------
+# test_async_upsert_returns_upserted_count — §5 async parity
+# ---------------------------------------------------------------------------
+
+
+async def test_async_upsert_returns_upserted_count(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    preview_namespace: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async upsert() returns PreviewDocumentUpsertResponse with upserted_count == len(documents).
+
+    Async parity for test_upsert_returns_upserted_count: verifies §5 response
+    shape via the async SDK path.
+    """
+    from pinecone.preview.models import PreviewDocumentUpsertResponse, PreviewIndexModel
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = async_client.preview.index(name=preview_index_name)
+    documents = [
+        {"_id": "doc-0", "embedding": [0.1, 0.2, 0.3, 0.4]},
+        {"_id": "doc-1", "embedding": [0.5, 0.6, 0.7, 0.8]},
+        {"_id": "doc-2", "embedding": [0.9, 0.1, 0.2, 0.3]},
+    ]
+    response = await idx.documents.upsert(namespace=preview_namespace, documents=documents)
+
+    assert isinstance(response, PreviewDocumentUpsertResponse)
+    assert response.upserted_count == len(documents)

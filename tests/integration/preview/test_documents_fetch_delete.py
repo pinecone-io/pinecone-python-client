@@ -362,3 +362,54 @@ def test_preview_control_plane_to_stable_data_plane_interop(
 
     assert isinstance(results, QueryResponse)
     assert results.matches[0].id == "doc-1"
+
+
+# ---------------------------------------------------------------------------
+# test_upsert_returns_upserted_count — §5 upsert() response shape
+# ---------------------------------------------------------------------------
+
+
+def test_upsert_returns_upserted_count(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    preview_namespace: str,
+    require_preview: None,
+) -> None:
+    """upsert() returns PreviewDocumentUpsertResponse with upserted_count == len(documents).
+
+    Verifies §5: the response object carries upserted_count equal to the number
+    of documents sent in the request. This is distinct from existing tests that
+    call upsert() as setup but never assert the return value.
+    """
+    from pinecone.preview.models import PreviewDocumentUpsertResponse, PreviewIndexModel
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    cleanup_preview_indexes.append(preview_index_name)
+    client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    idx = client.preview.index(name=preview_index_name)
+    documents = [
+        {"_id": "doc-0", "embedding": [0.1, 0.2, 0.3, 0.4]},
+        {"_id": "doc-1", "embedding": [0.5, 0.6, 0.7, 0.8]},
+        {"_id": "doc-2", "embedding": [0.9, 0.1, 0.2, 0.3]},
+    ]
+    response = idx.documents.upsert(namespace=preview_namespace, documents=documents)
+
+    assert isinstance(response, PreviewDocumentUpsertResponse)
+    assert response.upserted_count == len(documents)
