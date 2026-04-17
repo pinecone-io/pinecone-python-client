@@ -585,3 +585,54 @@ async def test_async_create_with_tags_returns_tags_in_describe(
     model = await async_client.preview.indexes.describe(preview_index_name)
     assert model.tags is not None, "tags should not be None after create() with tags"
     assert model.tags == tags
+
+
+# ---------------------------------------------------------------------------
+# test_async_configure_tags_merges_with_existing_tags — §2 configure(tags=) merge
+# ---------------------------------------------------------------------------
+
+
+async def test_async_configure_tags_merges_with_existing_tags(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async configure(tags=) merges new tags with existing tags — does not replace them.
+
+    Async parity for TestIndexTags.test_configure_tags_merges_with_existing_tags:
+    verifies §2 configure(tags=) merge behavior via the async SDK path.
+    """
+    initial_tags = {"env": "integration-test", "key1": "original"}
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(
+        name=preview_index_name,
+        schema=schema,
+        tags=initial_tags,
+    )
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    await async_client.preview.indexes.configure(preview_index_name, tags={"key2": "added"})
+
+    model = await async_client.preview.indexes.describe(preview_index_name)
+    assert model.tags is not None, "tags should not be None after configure(tags=)"
+    assert "env" in model.tags, "original tag 'env' must survive configure(tags=)"
+    assert "key1" in model.tags, "original tag 'key1' must survive configure(tags=)"
+    assert model.tags["key1"] == "original", "original tag value must be unchanged"
+    assert "key2" in model.tags, "new tag 'key2' must be present after configure(tags=)"
+    assert model.tags["key2"] == "added", "new tag value must be correct"

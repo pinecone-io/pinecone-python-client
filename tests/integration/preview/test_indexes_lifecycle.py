@@ -441,3 +441,37 @@ class TestIndexTags:
         model = client.preview.indexes.describe(preview_index_name)
         assert model.tags is not None, "tags should not be None after create() with tags"
         assert model.tags == tags
+
+    def test_configure_tags_merges_with_existing_tags(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """configure(tags=) merges new tags with existing tags — does not replace them."""
+        initial_tags = {"env": "integration-test", "key1": "original"}
+        cleanup_preview_indexes.append(preview_index_name)
+        client.preview.indexes.create(
+            name=preview_index_name,
+            schema=_simple_dense_schema(),
+            tags=initial_tags,
+        )
+
+        poll_until(
+            lambda: client.preview.indexes.describe(preview_index_name),
+            _is_ready,
+            timeout=300,
+            interval=5,
+            description=f"index {preview_index_name} ready",
+        )
+
+        client.preview.indexes.configure(preview_index_name, tags={"key2": "added"})
+
+        model = client.preview.indexes.describe(preview_index_name)
+        assert model.tags is not None, "tags should not be None after configure(tags=)"
+        assert "env" in model.tags, "original tag 'env' must survive configure(tags=)"
+        assert "key1" in model.tags, "original tag 'key1' must survive configure(tags=)"
+        assert model.tags["key1"] == "original", "original tag value must be unchanged"
+        assert "key2" in model.tags, "new tag 'key2' must be present after configure(tags=)"
+        assert model.tags["key2"] == "added", "new tag value must be correct"
