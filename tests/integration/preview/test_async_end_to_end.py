@@ -1588,3 +1588,80 @@ async def test_async_describe_returns_typed_schema_fields(
     assert isinstance(year, PreviewIntegerField), (
         f"year field: expected PreviewIntegerField, got {type(year)}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_backup_optional_fields_are_correctly_typed — §2 PreviewBackupModel async parity
+# ---------------------------------------------------------------------------
+
+
+async def test_async_backup_optional_fields_are_correctly_typed(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity for test_create_backup_optional_fields_are_correctly_typed (PVT-023).
+
+    Creates a 4-dim dense vector preview index, takes a backup, and verifies that
+    all optional PreviewBackupModel fields (dimension, schema, tags, record_count,
+    namespace_count, size_bytes) are either the expected Python type or None.
+    No existing async test verifies these optional fields.
+    """
+    from pinecone.preview.models import PreviewBackupModel
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    backup = await async_client.preview.indexes.create_backup(
+        preview_index_name,
+        name="async-optional-fields-test",
+    )
+
+    assert isinstance(backup, PreviewBackupModel)
+
+    # dimension — int or None; for a 4-dim index must be 4 when populated
+    assert backup.dimension is None or isinstance(backup.dimension, int), (
+        f"backup.dimension must be int or None, got {type(backup.dimension)}"
+    )
+    if backup.dimension is not None:
+        assert backup.dimension == 4, (
+            f"expected dimension=4 for dense index, got {backup.dimension}"
+        )
+
+    # schema — dict or None; contents are server-defined, only type is verified
+    assert backup.schema is None or isinstance(backup.schema, dict), (
+        f"backup.schema must be dict or None, got {type(backup.schema)}"
+    )
+
+    # tags — dict[str, str] or None; API returns {} when no tags are passed
+    assert backup.tags is None or isinstance(backup.tags, dict), (
+        f"backup.tags must be dict or None, got {type(backup.tags)}"
+    )
+
+    # record_count, namespace_count, size_bytes — int or None
+    assert backup.record_count is None or isinstance(backup.record_count, int), (
+        f"backup.record_count must be int or None, got {type(backup.record_count)}"
+    )
+    assert backup.namespace_count is None or isinstance(backup.namespace_count, int), (
+        f"backup.namespace_count must be int or None, got {type(backup.namespace_count)}"
+    )
+    assert backup.size_bytes is None or isinstance(backup.size_bytes, int), (
+        f"backup.size_bytes must be int or None, got {type(backup.size_bytes)}"
+    )

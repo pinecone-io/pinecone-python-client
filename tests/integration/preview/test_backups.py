@@ -147,3 +147,71 @@ def test_create_backup_all_required_fields_present(
     assert isinstance(backup.created_at, str) and len(backup.created_at) > 0
     assert backup.name == "all-fields-test"
     assert backup.description == "Verifying all required backup fields"
+
+
+# ---------------------------------------------------------------------------
+# test_create_backup_optional_fields_are_correctly_typed — §2 PreviewBackupModel optional fields
+# ---------------------------------------------------------------------------
+
+
+def test_create_backup_optional_fields_are_correctly_typed(
+    client: Pinecone,
+    ready_dense_preview_index: str,
+) -> None:
+    """Optional PreviewBackupModel fields have correct Python types (int, dict, or None).
+
+    PVT-010 (test_create_backup_all_required_fields_present) verified required fields:
+    backup_id, source_index_name, source_index_id, status, cloud, region, created_at,
+    name, description.
+
+    This test covers the optional fields declared in §2 PreviewBackupModel:
+    - dimension: int | None  — should be 4 for a 4-dim dense vector index if populated
+    - schema: dict | None    — raw schema dict or None
+    - tags: dict | None      — None when no tags passed to create_backup()
+    - record_count: int | None
+    - namespace_count: int | None
+    - size_bytes: int | None
+
+    Verifies the SDK's msgspec deserialization does not raise for any of these fields,
+    and that the values are the expected Python types (not strings, lists, etc.).
+    """
+    backup = client.preview.indexes.create_backup(
+        ready_dense_preview_index,
+        name="optional-fields-test",
+    )
+
+    assert isinstance(backup, PreviewBackupModel)
+
+    # dimension — int or None; for a 4-dim index must be 4 when populated
+    assert backup.dimension is None or isinstance(backup.dimension, int), (
+        f"backup.dimension must be int or None, got {type(backup.dimension)}"
+    )
+    if backup.dimension is not None:
+        assert backup.dimension == 4, (
+            f"expected dimension=4 for dense index, got {backup.dimension}"
+        )
+
+    # schema — dict or None; contents are server-defined, only type is verified
+    assert backup.schema is None or isinstance(backup.schema, dict), (
+        f"backup.schema must be dict or None, got {type(backup.schema)}"
+    )
+
+    # tags — dict[str, str] or None; API returns {} when no tags are passed
+    assert backup.tags is None or isinstance(backup.tags, dict), (
+        f"backup.tags must be dict or None, got {type(backup.tags)}"
+    )
+
+    # record_count — int or None; fresh backup may be 0 or None before Ready
+    assert backup.record_count is None or isinstance(backup.record_count, int), (
+        f"backup.record_count must be int or None, got {type(backup.record_count)}"
+    )
+
+    # namespace_count — int or None
+    assert backup.namespace_count is None or isinstance(backup.namespace_count, int), (
+        f"backup.namespace_count must be int or None, got {type(backup.namespace_count)}"
+    )
+
+    # size_bytes — int or None; may be 0 or None while backup is still Initializing
+    assert backup.size_bytes is None or isinstance(backup.size_bytes, int), (
+        f"backup.size_bytes must be int or None, got {type(backup.size_bytes)}"
+    )
