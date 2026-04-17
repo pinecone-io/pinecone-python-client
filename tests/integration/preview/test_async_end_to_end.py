@@ -540,3 +540,48 @@ async def test_async_add_custom_field_appears_in_describe(
         f"expected PreviewIntegerField, got {type(score_field)}"
     )
     assert score_field.filterable is True
+
+
+# ---------------------------------------------------------------------------
+# test_async_create_with_tags_returns_tags_in_describe — §2/§3 tags async parity
+# ---------------------------------------------------------------------------
+
+
+async def test_async_create_with_tags_returns_tags_in_describe(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async create() with tags returns those tags verbatim in describe() PreviewIndexModel.tags.
+
+    Async parity for TestIndexTags.test_create_with_tags_returns_tags_in_describe:
+    verifies §2 create(tags=) and §3 PreviewIndexModel.tags via the async SDK path.
+    """
+    tags = {"env": "integration-test", "pvt": "PVT-008"}
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(
+        name=preview_index_name,
+        schema=schema,
+        tags=tags,
+    )
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    model = await async_client.preview.indexes.describe(preview_index_name)
+    assert model.tags is not None, "tags should not be None after create() with tags"
+    assert model.tags == tags

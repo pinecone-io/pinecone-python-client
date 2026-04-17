@@ -404,3 +404,40 @@ class TestCustomFieldEscapeHatch:
             f"expected PreviewIntegerField, got {type(score_field)}"
         )
         assert score_field.filterable is True
+
+
+# ---------------------------------------------------------------------------
+# TestIndexTags — §2 create(tags=) + §3 PreviewIndexModel.tags
+# ---------------------------------------------------------------------------
+
+
+class TestIndexTags:
+    """Tags passed at create() time appear verbatim in describe() response."""
+
+    def test_create_with_tags_returns_tags_in_describe(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """Tags set at create() are returned unchanged in PreviewIndexModel.tags."""
+        tags = {"env": "integration-test", "pvt": "PVT-008"}
+        cleanup_preview_indexes.append(preview_index_name)
+        client.preview.indexes.create(
+            name=preview_index_name,
+            schema=_simple_dense_schema(),
+            tags=tags,
+        )
+
+        poll_until(
+            lambda: client.preview.indexes.describe(preview_index_name),
+            _is_ready,
+            timeout=300,
+            interval=5,
+            description=f"index {preview_index_name} ready",
+        )
+
+        model = client.preview.indexes.describe(preview_index_name)
+        assert model.tags is not None, "tags should not be None after create() with tags"
+        assert model.tags == tags
