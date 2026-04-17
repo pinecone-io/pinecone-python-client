@@ -304,3 +304,45 @@ class TestExistsCheck:
         phantom_name = unique_name("phantom")
         result = client.preview.indexes.exists(phantom_name)
         assert result is False
+
+
+# ---------------------------------------------------------------------------
+# TestDeletionProtectionToggle — §2 configure(deletion_protection=) + §3 PreviewIndexModel
+# ---------------------------------------------------------------------------
+
+
+class TestDeletionProtectionToggle:
+    """configure(deletion_protection) mutates the field visible in PreviewIndexModel."""
+
+    def test_configure_toggle_deletion_protection(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """Enable then disable deletion_protection; describe() reflects each change."""
+        schema = _simple_dense_schema()
+        cleanup_preview_indexes.append(preview_index_name)
+        client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+        poll_until(
+            lambda: client.preview.indexes.describe(preview_index_name),
+            _is_ready,
+            timeout=300,
+            interval=5,
+            description=f"index {preview_index_name} ready before configure",
+        )
+
+        initial = client.preview.indexes.describe(preview_index_name)
+        assert initial.deletion_protection == "disabled"
+
+        # Enable deletion_protection
+        client.preview.indexes.configure(preview_index_name, deletion_protection="enabled")
+        after_enable = client.preview.indexes.describe(preview_index_name)
+        assert after_enable.deletion_protection == "enabled"
+
+        # Disable so the cleanup fixture can delete the index
+        client.preview.indexes.configure(preview_index_name, deletion_protection="disabled")
+        after_disable = client.preview.indexes.describe(preview_index_name)
+        assert after_disable.deletion_protection == "disabled"

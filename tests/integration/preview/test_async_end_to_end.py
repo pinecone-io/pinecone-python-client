@@ -437,3 +437,53 @@ async def test_async_fetch_wildcard_include_fields_returns_all_stored_fields(
 
     assert response.documents["fruit-0"].category == "fruit"
     assert response.documents["fruit-1"].category == "vegetable"
+
+
+# ---------------------------------------------------------------------------
+# test_async_configure_toggle_deletion_protection — §2 configure() async parity
+# ---------------------------------------------------------------------------
+
+
+async def test_async_configure_toggle_deletion_protection(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async configure() toggles deletion_protection; describe() reflects each change.
+
+    Async parity for TestDeletionProtectionToggle.test_configure_toggle_deletion_protection:
+    verifies §2 configure(deletion_protection=) and §3 PreviewIndexModel.deletion_protection
+    via the async SDK path.
+    """
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready before configure",
+    )
+
+    initial = await async_client.preview.indexes.describe(preview_index_name)
+    assert initial.deletion_protection == "disabled"
+
+    # Enable deletion_protection
+    await async_client.preview.indexes.configure(preview_index_name, deletion_protection="enabled")
+    after_enable = await async_client.preview.indexes.describe(preview_index_name)
+    assert after_enable.deletion_protection == "enabled"
+
+    # Disable so the cleanup fixture can delete the index
+    await async_client.preview.indexes.configure(preview_index_name, deletion_protection="disabled")
+    after_disable = await async_client.preview.indexes.describe(preview_index_name)
+    assert after_disable.deletion_protection == "disabled"
