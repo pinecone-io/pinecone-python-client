@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from pinecone.errors.exceptions import PineconeValueError
 from pinecone.preview.schema_builder import PreviewSchemaBuilder as PreviewSchemaBuilder
 
-SchemaBuilder = PreviewSchemaBuilder
+SchemaBuilder = PreviewSchemaBuilder  # spec/preview.md §12 — entry-point alias
 
 if TYPE_CHECKING:
     from pinecone._internal.config import PineconeConfig
