@@ -2250,3 +2250,70 @@ async def test_async_batch_upsert_partial_failure_collects_failed_items(
         f"Expected failed_items[0]['_id'] == 'bad-dim', got {result.failed_items[0]['_id']!r}"
     )
     assert len(result.errors) == 1, f"Expected 1 BatchError, got {len(result.errors)}"
+
+
+# ---------------------------------------------------------------------------
+# test_async_configure_read_capacity_validation_and_api_acceptance — §2
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+async def test_async_configure_read_capacity_validation_and_api_acceptance(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity: configure(read_capacity=...) validation and API acceptance (§2).
+
+    Verifies three §2 claims:
+    1. configure(name, read_capacity={}) raises PineconeValueError (client-side, on await).
+    2. configure(name) with no kwargs raises PineconeValueError (client-side, on await).
+    3. configure(name, read_capacity={"mode": "OnDemand"}) is accepted by the API and
+       returns a PreviewIndexModel whose read_capacity is PreviewReadCapacityOnDemandResponse.
+
+    Async parity for TestConfigureReadCapacity.test_configure_read_capacity_validation_and_api_acceptance.
+    """
+    from pinecone.errors import PineconeValueError
+    from pinecone.preview.models import PreviewReadCapacityOnDemandResponse
+
+    # Claims 1 + 2: validation fires on await before any HTTP call.
+    with pytest.raises(PineconeValueError, match="read_capacity"):
+        await async_client.preview.indexes.configure("any-name", read_capacity={})
+
+    with pytest.raises(PineconeValueError, match="at least one"):
+        await async_client.preview.indexes.configure("any-name")
+
+    # Claim 3: API-level — OnDemand mode accepted on a live dense vector index.
+    schema = (
+        SchemaBuilder().add_dense_vector_field("embedding", dimension=4, metric="cosine").build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    returned = await async_client.preview.indexes.configure(
+        preview_index_name, read_capacity={"mode": "OnDemand"}
+    )
+    assert isinstance(returned, PreviewIndexModel), (
+        f"async configure(read_capacity=...) must return PreviewIndexModel, got {type(returned)}"
+    )
+    assert returned.read_capacity is not None, (
+        "returned model.read_capacity must not be None for a live OnDemand index"
+    )
+    assert isinstance(returned.read_capacity, PreviewReadCapacityOnDemandResponse), (
+        f"returned model.read_capacity must be PreviewReadCapacityOnDemandResponse, "
+        f"got {type(returned.read_capacity)}"
+    )

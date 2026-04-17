@@ -962,3 +962,67 @@ class TestSchemaFieldTypes:
         assert isinstance(year, PreviewIntegerField), (
             f"year field: expected PreviewIntegerField, got {type(year)}"
         )
+
+
+# ---------------------------------------------------------------------------
+# TestConfigureReadCapacity — §2 configure(read_capacity=...) parameter
+# ---------------------------------------------------------------------------
+
+
+class TestConfigureReadCapacity:
+    """configure(read_capacity=...) client-side validation and API acceptance (§2)."""
+
+    def test_configure_read_capacity_validation_and_api_acceptance(
+        self,
+        client: Pinecone,
+        preview_index_name: str,
+        cleanup_preview_indexes: list[str],
+        require_preview: None,
+    ) -> None:
+        """configure() validates read_capacity and accepts {"mode": "OnDemand"} on a live index.
+
+        Verifies three §2 claims about configure(read_capacity=...):
+        1. read_capacity={} raises PineconeValueError before any API call.
+        2. configure() with no kwargs raises PineconeValueError before any API call.
+        3. configure(name, read_capacity={"mode": "OnDemand"}) is accepted by the API
+           and the returned PreviewIndexModel carries a PreviewReadCapacityOnDemandResponse.
+
+        PVT-015 covered upsert/delete client-side validation; PVT-020–022 tested configure()
+        with deletion_protection, schema, and tags — never with read_capacity. This test
+        completes the configure() parameter surface documented in §2.
+        """
+        from pinecone.preview.models import PreviewReadCapacityOnDemandResponse
+
+        # Claim 1: empty dict is rejected immediately (no API call needed).
+        with pytest.raises(PineconeValueError, match="read_capacity"):
+            client.preview.indexes.configure("any-name", read_capacity={})
+
+        # Claim 2: no parameters is rejected immediately.
+        with pytest.raises(PineconeValueError, match="at least one"):
+            client.preview.indexes.configure("any-name")
+
+        # Claim 3: API-level — OnDemand mode accepted on a live dense vector index.
+        cleanup_preview_indexes.append(preview_index_name)
+        client.preview.indexes.create(name=preview_index_name, schema=_simple_dense_schema())
+
+        poll_until(
+            lambda: client.preview.indexes.describe(preview_index_name),
+            _is_ready,
+            timeout=300,
+            interval=5,
+            description=f"index {preview_index_name} ready",
+        )
+
+        returned = client.preview.indexes.configure(
+            preview_index_name, read_capacity={"mode": "OnDemand"}
+        )
+        assert isinstance(returned, PreviewIndexModel), (
+            f"configure(read_capacity=...) must return PreviewIndexModel, got {type(returned)}"
+        )
+        assert returned.read_capacity is not None, (
+            "returned model.read_capacity must not be None for a live OnDemand index"
+        )
+        assert isinstance(returned.read_capacity, PreviewReadCapacityOnDemandResponse), (
+            f"returned model.read_capacity must be PreviewReadCapacityOnDemandResponse, "
+            f"got {type(returned.read_capacity)}"
+        )
