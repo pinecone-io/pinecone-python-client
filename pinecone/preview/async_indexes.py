@@ -215,12 +215,25 @@ class AsyncPreviewIndexes:
 
         Args:
             name: Name of the preview index to configure.
-            schema: Updated schema definition.
+            schema: Updated schema definition.  Pass a dict with a
+                ``"fields"`` key mapping field names to typed field
+                definitions.  The server only allows additive changes — it
+                rejects requests that remove or modify existing fields.
+                Example::
+
+                    await pc.preview.indexes.configure(
+                        "my-index",
+                        schema={"fields": {
+                            "summary": {"type": "string", "full_text_searchable": True},
+                        }},
+                    )
+
             deletion_protection: ``"enabled"`` to prevent accidental deletion;
                 ``"disabled"`` to allow it.
-            tags: Replacement set of key-value tags for the index. Keys must
+            tags: Replacement set of key-value tags for the index.  Keys must
                 be at most 80 characters; values at most 120 characters.
-            read_capacity: Updated read capacity configuration dict.
+            read_capacity: Updated read capacity configuration dict.  Must
+                include a ``"mode"`` key (``"OnDemand"`` or ``"Dedicated"``).
 
         Returns:
             :class:`PreviewIndexModel` reflecting the updated index state.
@@ -343,6 +356,11 @@ class AsyncPreviewIndexes:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name* is empty.
             :exc:`~pinecone.errors.exceptions.NotFoundError`: If the index does not exist.
             :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns another error response.
+
+        Examples:
+
+            desc = await pc.preview.indexes.describe("product-search-preview")
+            print(desc.host)
         """
         require_non_empty("name", name)
         logger.info("Describing preview index name=%r", name)
@@ -427,6 +445,11 @@ class AsyncPreviewIndexes:
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name* is empty.
             :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an error other than 404.
+
+        Examples:
+
+            if await pc.preview.indexes.exists("product-search-preview"):
+                print("Index found")
         """
         require_non_empty("name", name)
         try:
@@ -471,6 +494,16 @@ class AsyncPreviewIndexes:
             :exc:`~pinecone.errors.exceptions.PineconeTimeoutError`: If *timeout* seconds elapse
                 before the index disappears.
             :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns another error response.
+
+        Examples:
+
+            await pc.preview.indexes.delete("product-search-preview")
+
+            # Delete and wait up to 60 seconds
+            await pc.preview.indexes.delete("product-search-preview", timeout=60)
+
+            # Delete without polling
+            await pc.preview.indexes.delete("product-search-preview", timeout=-1)
         """
         require_non_empty("name", name)
         logger.info("Deleting preview index name=%r", name)
