@@ -1665,3 +1665,70 @@ async def test_async_backup_optional_fields_are_correctly_typed(
     assert backup.size_bytes is None or isinstance(backup.size_bytes, int), (
         f"backup.size_bytes must be int or None, got {type(backup.size_bytes)}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_preview_index_model_read_capacity_on_demand — §3 async parity
+# ---------------------------------------------------------------------------
+
+
+async def test_async_preview_index_model_read_capacity_on_demand(
+    async_client: AsyncPinecone,
+    preview_index_name: str,
+    async_cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Async parity for test_preview_index_model_read_capacity_on_demand (PVT-024).
+
+    Verifies that AsyncPinecone create() and describe() also return
+    PreviewReadCapacityOnDemandResponse for a default-capacity index (§3).
+    """
+    from pinecone.preview.models import (
+        PreviewReadCapacityOnDemandResponse,
+        PreviewReadCapacityStatus,
+    )
+
+    schema = (
+        SchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    async_cleanup_preview_indexes.append(preview_index_name)
+    created = await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    assert isinstance(created, PreviewIndexModel)
+    assert created.read_capacity is not None, (
+        "async create() read_capacity should not be None for a default OnDemand index"
+    )
+    assert isinstance(created.read_capacity, PreviewReadCapacityOnDemandResponse), (
+        f"async create() read_capacity: expected PreviewReadCapacityOnDemandResponse, got {type(created.read_capacity)}"
+    )
+    assert isinstance(created.read_capacity.status, PreviewReadCapacityStatus), (
+        f"read_capacity.status expected PreviewReadCapacityStatus, got {type(created.read_capacity.status)}"
+    )
+    assert isinstance(created.read_capacity.status.state, str), (
+        "read_capacity.status.state should be a string"
+    )
+
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    await async_poll_until(
+        lambda: async_client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    described = await async_client.preview.indexes.describe(preview_index_name)
+    assert isinstance(described, PreviewIndexModel)
+    assert described.read_capacity is not None, (
+        "async describe() read_capacity should not be None for an OnDemand index"
+    )
+    assert isinstance(described.read_capacity, PreviewReadCapacityOnDemandResponse), (
+        f"async describe() read_capacity: expected PreviewReadCapacityOnDemandResponse, got {type(described.read_capacity)}"
+    )
+    assert isinstance(described.read_capacity.status.state, str), (
+        "async describe() read_capacity.status.state should be a string"
+    )

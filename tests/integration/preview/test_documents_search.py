@@ -724,3 +724,87 @@ def test_filter_remaining_operators_accepted(
 
     # $or — logical OR combining two conditions
     _search_with_filter({"$or": [{"category": {"$eq": "tech"}}, {"year": {"$lt": 2020}}]})
+
+
+# ---------------------------------------------------------------------------
+# test_preview_index_model_read_capacity_on_demand — §3 PreviewIndexModel.read_capacity
+# ---------------------------------------------------------------------------
+
+
+def test_preview_index_model_read_capacity_on_demand(
+    client: Pinecone,
+    preview_index_name: str,
+    cleanup_preview_indexes: list[str],
+    require_preview: None,
+) -> None:
+    """Verify PreviewIndexModel.read_capacity is deserialized to PreviewReadCapacityOnDemandResponse (§3).
+
+    §3 defines read_capacity as a discriminated union keyed on the "mode" field:
+      - mode="OnDemand"  → PreviewReadCapacityOnDemandResponse (has .status)
+      - mode="Dedicated" → PreviewReadCapacityDedicatedResponse (has .dedicated and .status)
+
+    This test creates a default-capacity index (no read_capacity argument → OnDemand),
+    verifies create() returns a PreviewReadCapacityOnDemandResponse, then verifies
+    describe() returns the same type with a string status.state. No existing test
+    checks the read_capacity field or the OnDemand discriminated union dispatch.
+    """
+    from pinecone.preview.models import (
+        PreviewIndexModel,
+        PreviewReadCapacity,
+        PreviewReadCapacityOnDemandResponse,
+        PreviewReadCapacityStatus,
+    )
+
+    schema = (
+        PreviewSchemaBuilder()
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    cleanup_preview_indexes.append(preview_index_name)
+    created = client.preview.indexes.create(name=preview_index_name, schema=schema)
+
+    assert isinstance(created, PreviewIndexModel)
+
+    # §3: read_capacity is a PreviewReadCapacity (OnDemand or Dedicated union) or None
+    assert created.read_capacity is None or isinstance(created.read_capacity, (PreviewReadCapacityOnDemandResponse,) + (PreviewReadCapacity.__args__ if hasattr(PreviewReadCapacity, "__args__") else ())), (  # type: ignore[attr-defined]
+        f"create() read_capacity expected PreviewReadCapacity or None, got {type(created.read_capacity)}"
+    )
+
+    # Verify it is the OnDemand variant (default capacity mode)
+    rc = created.read_capacity
+    assert rc is not None, "read_capacity should not be None for a default OnDemand index"
+    assert isinstance(rc, PreviewReadCapacityOnDemandResponse), (
+        f"Expected PreviewReadCapacityOnDemandResponse (mode=OnDemand), got {type(rc)}"
+    )
+
+    # §3: OnDemand variant has a .status of type PreviewReadCapacityStatus
+    assert isinstance(rc.status, PreviewReadCapacityStatus), (
+        f"read_capacity.status expected PreviewReadCapacityStatus, got {type(rc.status)}"
+    )
+    assert isinstance(rc.status.state, str) and len(rc.status.state) > 0, (
+        f"read_capacity.status.state should be a non-empty string, got {rc.status.state!r}"
+    )
+
+    # Verify describe() also returns the same read_capacity type
+    def _is_ready(m: object) -> bool:
+        return isinstance(m, PreviewIndexModel) and m.status.state == "Ready"
+
+    poll_until(
+        lambda: client.preview.indexes.describe(preview_index_name),
+        _is_ready,
+        timeout=300,
+        interval=5,
+        description=f"index {preview_index_name} ready",
+    )
+
+    described = client.preview.indexes.describe(preview_index_name)
+    assert isinstance(described, PreviewIndexModel)
+    assert described.read_capacity is not None, (
+        "describe() read_capacity should not be None for an OnDemand index"
+    )
+    assert isinstance(described.read_capacity, PreviewReadCapacityOnDemandResponse), (
+        f"describe() read_capacity: expected PreviewReadCapacityOnDemandResponse, got {type(described.read_capacity)}"
+    )
+    assert isinstance(described.read_capacity.status.state, str), (
+        "describe() read_capacity.status.state should be a string"
+    )
