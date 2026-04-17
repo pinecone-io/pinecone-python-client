@@ -880,3 +880,4 @@ def test_search_score_by_plain_dict_accepted(
     assert isinstance(response.usage.read_units, int), (
         f"usage.read_units expected int, got {type(response.usage.read_units)}"
     )
+

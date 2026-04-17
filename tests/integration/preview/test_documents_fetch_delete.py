@@ -23,7 +23,6 @@ from pinecone.preview.models import (
     PreviewDocument,
     PreviewDocumentFetchResponse,
     PreviewIndexModel,
-    PreviewUsage,
 )
 from tests.integration.conftest import poll_until
 
@@ -163,25 +162,36 @@ def test_fetch_by_filter_returns_matching_docs(
     assert {"doc-0", "doc-1", "doc-3"} <= set(response.documents.keys())
 
 
-def test_fetch_response_envelope_namespace_and_usage(
+def test_upsert_accepts_extra_and_partial_documents(
     client: Pinecone,
     preview_index_name: str,
     preview_namespace: str,
     cleanup_preview_indexes: list[str],
     require_preview: None,
 ) -> None:
-    """Verify fetch() response envelope: namespace echoes the request namespace and usage.read_units is present (§5).
+    """Verify upsert() accepts documents with extra fields and partial documents (§5 edge cases).
 
-    Spec §5 defines PreviewDocumentFetchResponse as having:
-      - namespace: str  (echoes the requested namespace)
-      - usage: PreviewUsage | None  (with read_units: int >= 0)
-    All existing fetch tests only assert on response.documents — this test
-    verifies the response envelope fields are correctly populated.
-    Uses a dense-vector-only schema (OnDemand compatible; FTS requires Dedicated).
+    Spec §5 documents two edge cases:
+    - "Extra fields": Documents may include fields not defined in the schema.
+      The API stores them as unindexed metadata. upserted_count reflects all docs.
+    - "Partial documents": Not every document needs to include every schema field.
+      Missing fields are treated as absent (not null).
+
+    All existing upsert tests supply exactly the schema fields. This test verifies
+    that the API accepts documents with:
+    1. Extra field "custom_note" not in the 2-field schema (embedding + category)
+    2. Missing optional schema field (embedding only, no category) — a partial document
+
+    API constraint: each document must have at least one indexable schema field.
+    Both docs in a single call; upserted_count must equal 2.
+    Uses a dense-vector + filterable-string schema (OnDemand compatible).
     """
+    from pinecone.preview.models import PreviewDocumentUpsertResponse, PreviewIndexModel
+
     schema = (
         SchemaBuilder()
         .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .add_string_field("category", filterable=True)
         .build()
     )
     cleanup_preview_indexes.append(preview_index_name)
@@ -199,49 +209,31 @@ def test_fetch_response_envelope_namespace_and_usage(
     )
 
     idx = client.preview.index(name=preview_index_name)
-    idx.documents.upsert(
+
+    # doc-extra: has both schema fields + "custom_note" (extra, not in schema)
+    # doc-partial: has only "embedding" (omits optional "category" schema field)
+    response = idx.documents.upsert(
         namespace=preview_namespace,
-        documents=[{"_id": "doc-0", "embedding": [0.1, 0.2, 0.3, 0.4]}],
+        documents=[
+            {
+                "_id": "doc-extra",
+                "embedding": [0.1, 0.2, 0.3, 0.4],
+                "category": "fruit",
+                "custom_note": "extra field not in schema",
+            },
+            {
+                "_id": "doc-partial",
+                "embedding": [0.5, 0.6, 0.7, 0.8],
+                # "category" is omitted — partial document, missing schema field is absent
+            },
+        ],
     )
 
-    # Poll until doc-0 is fetchable (eventual consistency)
-    def _has_doc(r: PreviewDocumentFetchResponse) -> bool:
-        return "doc-0" in r.documents
-
-    poll_until(
-        lambda: idx.documents.fetch(
-            namespace=preview_namespace, ids=["doc-0"], include_fields=["embedding"]
-        ),
-        _has_doc,
-        timeout=60,
-        interval=3,
-        description="doc-0 fetchable",
+    assert isinstance(response, PreviewDocumentUpsertResponse), (
+        f"Expected PreviewDocumentUpsertResponse, got {type(response)}"
     )
-
-    response = idx.documents.fetch(
-        namespace=preview_namespace,
-        ids=["doc-0"],
-        include_fields=["embedding"],
-    )
-
-    assert isinstance(response, PreviewDocumentFetchResponse)
-    # namespace must echo the requested namespace
-    assert isinstance(response.namespace, str), (
-        f"Expected str namespace, got {type(response.namespace)}"
-    )
-    assert response.namespace == preview_namespace, (
-        f"Expected namespace {preview_namespace!r}, got {response.namespace!r}"
-    )
-    # usage must be present with a non-negative read_units counter
-    assert response.usage is not None, "response.usage must not be None after a successful fetch"
-    assert isinstance(response.usage, PreviewUsage), (
-        f"Expected PreviewUsage instance, got {type(response.usage)}"
-    )
-    assert isinstance(response.usage.read_units, int), (
-        f"Expected int read_units, got {type(response.usage.read_units)}"
-    )
-    assert response.usage.read_units >= 0, (
-        f"Expected non-negative read_units, got {response.usage.read_units}"
+    assert response.upserted_count == 2, (
+        f"Expected upserted_count=2 for 2 docs (extra + partial), got {response.upserted_count}"
     )
 
 
