@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import json
 from collections.abc import AsyncGenerator
 from typing import Any
@@ -294,6 +295,10 @@ async def test_delete_timeout_exceeded(async_indexes: AsyncIndexes) -> None:
 
     with (
         patch("pinecone.async_client.indexes.asyncio.sleep"),
+        patch(
+            "pinecone.async_client.indexes.time.monotonic",
+            side_effect=itertools.count(start=0.0, step=0.5).__next__,
+        ),
         pytest.raises(PineconeTimeoutError, match=r"still exists after 1s"),
     ):
         await async_indexes.delete("test-index", timeout=1)

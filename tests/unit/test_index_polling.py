@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 from unittest.mock import patch
 
 import httpx
@@ -144,6 +145,10 @@ def test_create_timeout_raises(indexes: Indexes) -> None:
 
     with (
         patch("pinecone.client.indexes.time.sleep"),
+        patch(
+            "pinecone.client.indexes.time.monotonic",
+            side_effect=itertools.count(start=0.0, step=0.5).__next__,
+        ),
         pytest.raises(PineconeTimeoutError, match="not ready after"),
     ):
         indexes.create(
@@ -280,6 +285,10 @@ def test_delete_timeout_raises(indexes: Indexes) -> None:
 
     with (
         patch("pinecone.client.indexes.time.sleep"),
+        patch(
+            "pinecone.client.indexes.time.monotonic",
+            side_effect=itertools.count(start=0.0, step=0.5).__next__,
+        ),
         pytest.raises(PineconeTimeoutError, match="still exists after"),
     ):
         indexes.delete("test-index", timeout=1)

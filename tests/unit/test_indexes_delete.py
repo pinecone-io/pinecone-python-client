@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import httpx
 import pytest
 import respx
@@ -32,9 +33,11 @@ def indexes(http_client: HTTPClient) -> Indexes:
 
 
 @pytest.fixture
-def no_sleep(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Prevent actual sleeps in polling loops."""
+def fast_poll(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Skip real sleeps and fast-forward monotonic time in polling loops."""
+    clock = itertools.count(start=0.0, step=0.5)
     monkeypatch.setattr("time.sleep", lambda _: None)
+    monkeypatch.setattr("pinecone.client.indexes.time.monotonic", lambda: next(clock))
 
 
 # ---------------------------------------------------------------------------
@@ -43,7 +46,7 @@ def no_sleep(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @respx.mock
-def test_delete_index_default_polls(indexes: Indexes, no_sleep: None) -> None:
+def test_delete_index_default_polls(indexes: Indexes, fast_poll: None) -> None:
     """DELETE /indexes/test-index -> 202, then polls until gone (default)."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202),
@@ -58,7 +61,7 @@ def test_delete_index_default_polls(indexes: Indexes, no_sleep: None) -> None:
 
 
 @respx.mock
-def test_delete_removes_host_cache(indexes: Indexes, no_sleep: None) -> None:
+def test_delete_removes_host_cache(indexes: Indexes, fast_poll: None) -> None:
     """Deleting an index removes its cached host URL."""
     indexes._host_cache["my-index"] = "my-index-abc.svc.pinecone.io"
 
@@ -75,7 +78,7 @@ def test_delete_removes_host_cache(indexes: Indexes, no_sleep: None) -> None:
 
 
 @respx.mock
-def test_delete_clears_stale_host_cache_after_polling(indexes: Indexes, no_sleep: None) -> None:
+def test_delete_clears_stale_host_cache_after_polling(indexes: Indexes, fast_poll: None) -> None:
     """Stale host cache entry added by describe() polling is cleared when delete completes.
 
     Regression test for the bug where describe() re-adds the host to _host_cache during
@@ -102,7 +105,7 @@ def test_delete_clears_stale_host_cache_after_polling(indexes: Indexes, no_sleep
 
 
 @respx.mock
-def test_delete_polls_until_gone(indexes: Indexes, no_sleep: None) -> None:
+def test_delete_polls_until_gone(indexes: Indexes, fast_poll: None) -> None:
     """With explicit timeout, poll describe until index disappears."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202),
@@ -125,7 +128,7 @@ def test_delete_polls_until_gone(indexes: Indexes, no_sleep: None) -> None:
 
 
 @respx.mock
-def test_delete_timeout_none_polls_indefinitely(indexes: Indexes, no_sleep: None) -> None:
+def test_delete_timeout_none_polls_indefinitely(indexes: Indexes, fast_poll: None) -> None:
     """With timeout=None (default), polls until index disappears."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202),
@@ -158,7 +161,7 @@ def test_delete_timeout_negative_one_skips_polling(indexes: Indexes) -> None:
 
 
 @respx.mock
-def test_delete_timeout_exceeded(indexes: Indexes, no_sleep: None) -> None:
+def test_delete_timeout_exceeded(indexes: Indexes, fast_poll: None) -> None:
     """If index still exists after timeout, raise PineconeError."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202),
@@ -172,7 +175,7 @@ def test_delete_timeout_exceeded(indexes: Indexes, no_sleep: None) -> None:
 
 
 @respx.mock
-def test_delete_with_timeout_returns_when_gone(indexes: Indexes, no_sleep: None) -> None:
+def test_delete_with_timeout_returns_when_gone(indexes: Indexes, fast_poll: None) -> None:
     """With explicit timeout, returns successfully once index is gone."""
     respx.delete(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202),
