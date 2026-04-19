@@ -19,6 +19,19 @@ from pinecone.grpc import GrpcIndex
 
 INDEX_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
 INDEX_HOST_HTTPS = f"https://{INDEX_HOST}"
+_DEFAULT_TIMEOUT = 30.0  # matches PineconeConfig.timeout default
+
+
+def _request_timeout(route: respx.Route) -> float | None:
+    """Return the read-timeout (seconds) recorded on the last httpx request for a route.
+
+    httpx stores timeout as a dict in request.extensions["timeout"] with keys
+    connect/read/write/pool. We check 'read' as the most meaningful for data-plane calls.
+    """
+    ext: dict[str, float] | None = route.calls.last.request.extensions.get("timeout")
+    if ext is None:
+        return None
+    return ext.get("read")
 
 _DATA_PLANE_METHODS = [
     "upsert",
@@ -82,8 +95,7 @@ class TestIndexQueryAcceptsPerCallTimeout:
         idx.query(top_k=1, vector=[0.1, 0.2, 0.3], timeout=5.0)
 
         assert route.called
-        request = route.calls.last.request
-        assert request is not None
+        assert _request_timeout(route) == 5.0
 
     @respx.mock
     def test_index_query_default_timeout_when_none(self) -> None:
@@ -93,42 +105,51 @@ class TestIndexQueryAcceptsPerCallTimeout:
         idx = _make_index()
         idx.query(top_k=1, vector=[0.1, 0.2, 0.3])  # no timeout arg — uses default
         assert route.called
+        assert _request_timeout(route) == _DEFAULT_TIMEOUT
 
     @respx.mock
     def test_index_upsert_accepts_per_call_timeout(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/vectors/upsert").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/vectors/upsert").mock(
             return_value=httpx.Response(200, json={"upsertedCount": 1})
         )
         idx = _make_index()
         idx.upsert(vectors=[("v1", [0.1, 0.2])], timeout=10.0)
+        assert route.called
+        assert _request_timeout(route) == 10.0
 
     @respx.mock
     def test_index_fetch_accepts_per_call_timeout(self) -> None:
-        respx.get(f"{INDEX_HOST_HTTPS}/vectors/fetch").mock(
+        route = respx.get(f"{INDEX_HOST_HTTPS}/vectors/fetch").mock(
             return_value=httpx.Response(200, json={"vectors": {}, "namespace": ""})
         )
         idx = _make_index()
         idx.fetch(ids=["v1"], timeout=3.0)
+        assert route.called
+        assert _request_timeout(route) == 3.0
 
     @respx.mock
     def test_index_delete_accepts_per_call_timeout(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/vectors/delete").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/vectors/delete").mock(
             return_value=httpx.Response(200, json={})
         )
         idx = _make_index()
         idx.delete(ids=["v1"], timeout=2.0)
+        assert route.called
+        assert _request_timeout(route) == 2.0
 
     @respx.mock
     def test_index_update_accepts_per_call_timeout(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/vectors/update").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/vectors/update").mock(
             return_value=httpx.Response(200, json={})
         )
         idx = _make_index()
         idx.update(id="v1", values=[0.1, 0.2], timeout=4.0)
+        assert route.called
+        assert _request_timeout(route) == 4.0
 
     @respx.mock
     def test_index_describe_index_stats_accepts_per_call_timeout(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/describe_index_stats").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/describe_index_stats").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -141,20 +162,24 @@ class TestIndexQueryAcceptsPerCallTimeout:
         )
         idx = _make_index()
         idx.describe_index_stats(timeout=6.0)
+        assert route.called
+        assert _request_timeout(route) == 6.0
 
     @respx.mock
     def test_index_list_paginated_accepts_per_call_timeout(self) -> None:
-        respx.get(f"{INDEX_HOST_HTTPS}/vectors/list").mock(
+        route = respx.get(f"{INDEX_HOST_HTTPS}/vectors/list").mock(
             return_value=httpx.Response(
                 200, json={"vectors": [], "namespace": "", "usage": {"readUnits": 1}}
             )
         )
         idx = _make_index()
         idx.list_paginated(timeout=7.0)
+        assert route.called
+        assert _request_timeout(route) == 7.0
 
     @respx.mock
     def test_index_query_namespaces_accepts_per_call_timeout(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/query").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/query").mock(
             return_value=httpx.Response(200, json=_QUERY_RESPONSE)
         )
         idx = _make_index()
@@ -164,28 +189,34 @@ class TestIndexQueryAcceptsPerCallTimeout:
             metric="cosine",
             timeout=5.0,
         )
+        assert route.called
+        assert _request_timeout(route) == 5.0
 
     @respx.mock
     def test_index_fetch_by_metadata_accepts_per_call_timeout(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/vectors/fetch_by_metadata").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/vectors/fetch_by_metadata").mock(
             return_value=httpx.Response(
                 200, json={"vectors": {}, "namespace": "", "usage": {"readUnits": 1}}
             )
         )
         idx = _make_index()
         idx.fetch_by_metadata(filter={"genre": {"$eq": "comedy"}}, timeout=3.0)
+        assert route.called
+        assert _request_timeout(route) == 3.0
 
     @respx.mock
     def test_index_delete_namespace_accepts_per_call_timeout(self) -> None:
-        respx.delete(f"{INDEX_HOST_HTTPS}/namespaces/old-ns").mock(
+        route = respx.delete(f"{INDEX_HOST_HTTPS}/namespaces/old-ns").mock(
             return_value=httpx.Response(200, json={})
         )
         idx = _make_index()
         idx.delete_namespace(name="old-ns", timeout=2.0)
+        assert route.called
+        assert _request_timeout(route) == 2.0
 
     @respx.mock
     def test_index_query_namespaces_default_timeout_when_none(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/query").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/query").mock(
             return_value=httpx.Response(200, json=_QUERY_RESPONSE)
         )
         idx = _make_index()
@@ -194,24 +225,30 @@ class TestIndexQueryAcceptsPerCallTimeout:
             namespaces=["ns1"],
             metric="cosine",
         )
+        assert route.called
+        assert _request_timeout(route) == _DEFAULT_TIMEOUT
 
     @respx.mock
     def test_index_fetch_by_metadata_default_timeout_when_none(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/vectors/fetch_by_metadata").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/vectors/fetch_by_metadata").mock(
             return_value=httpx.Response(
                 200, json={"vectors": {}, "namespace": "", "usage": {"readUnits": 1}}
             )
         )
         idx = _make_index()
         idx.fetch_by_metadata(filter={"genre": {"$eq": "comedy"}})
+        assert route.called
+        assert _request_timeout(route) == _DEFAULT_TIMEOUT
 
     @respx.mock
     def test_index_delete_namespace_default_timeout_when_none(self) -> None:
-        respx.delete(f"{INDEX_HOST_HTTPS}/namespaces/old-ns").mock(
+        route = respx.delete(f"{INDEX_HOST_HTTPS}/namespaces/old-ns").mock(
             return_value=httpx.Response(200, json={})
         )
         idx = _make_index()
         idx.delete_namespace(name="old-ns")
+        assert route.called
+        assert _request_timeout(route) == _DEFAULT_TIMEOUT
 
 
 # ---------------------------------------------------------------------------
@@ -231,29 +268,34 @@ class TestAsyncIndexQueryAcceptsPerCallTimeout:
         idx = _make_async_index()
         await idx.query(top_k=1, vector=[0.1, 0.2, 0.3], timeout=5.0)
         assert route.called
+        assert _request_timeout(route) == 5.0
 
     @respx.mock
     @pytest.mark.asyncio
     async def test_async_index_upsert_accepts_per_call_timeout(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/vectors/upsert").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/vectors/upsert").mock(
             return_value=httpx.Response(200, json={"upsertedCount": 1})
         )
         idx = _make_async_index()
         await idx.upsert(vectors=[("v1", [0.1, 0.2])], timeout=10.0)
+        assert route.called
+        assert _request_timeout(route) == 10.0
 
     @respx.mock
     @pytest.mark.asyncio
     async def test_async_index_fetch_accepts_per_call_timeout(self) -> None:
-        respx.get(f"{INDEX_HOST_HTTPS}/vectors/fetch").mock(
+        route = respx.get(f"{INDEX_HOST_HTTPS}/vectors/fetch").mock(
             return_value=httpx.Response(200, json={"vectors": {}, "namespace": ""})
         )
         idx = _make_async_index()
         await idx.fetch(ids=["v1"], timeout=3.0)
+        assert route.called
+        assert _request_timeout(route) == 3.0
 
     @respx.mock
     @pytest.mark.asyncio
     async def test_async_index_describe_index_stats_accepts_per_call_timeout(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/describe_index_stats").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/describe_index_stats").mock(
             return_value=httpx.Response(
                 200,
                 json={
@@ -266,11 +308,13 @@ class TestAsyncIndexQueryAcceptsPerCallTimeout:
         )
         idx = _make_async_index()
         await idx.describe_index_stats(timeout=6.0)
+        assert route.called
+        assert _request_timeout(route) == 6.0
 
     @respx.mock
     @pytest.mark.asyncio
     async def test_async_index_query_namespaces_accepts_per_call_timeout(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/query").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/query").mock(
             return_value=httpx.Response(200, json=_QUERY_RESPONSE)
         )
         idx = _make_async_index()
@@ -280,31 +324,37 @@ class TestAsyncIndexQueryAcceptsPerCallTimeout:
             metric="cosine",
             timeout=5.0,
         )
+        assert route.called
+        assert _request_timeout(route) == 5.0
 
     @respx.mock
     @pytest.mark.asyncio
     async def test_async_index_fetch_by_metadata_accepts_per_call_timeout(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/vectors/fetch_by_metadata").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/vectors/fetch_by_metadata").mock(
             return_value=httpx.Response(
                 200, json={"vectors": {}, "namespace": "", "usage": {"readUnits": 1}}
             )
         )
         idx = _make_async_index()
         await idx.fetch_by_metadata(filter={"genre": {"$eq": "comedy"}}, timeout=3.0)
+        assert route.called
+        assert _request_timeout(route) == 3.0
 
     @respx.mock
     @pytest.mark.asyncio
     async def test_async_index_delete_namespace_accepts_per_call_timeout(self) -> None:
-        respx.delete(f"{INDEX_HOST_HTTPS}/namespaces/old-ns").mock(
+        route = respx.delete(f"{INDEX_HOST_HTTPS}/namespaces/old-ns").mock(
             return_value=httpx.Response(200, json={})
         )
         idx = _make_async_index()
         await idx.delete_namespace(name="old-ns", timeout=2.0)
+        assert route.called
+        assert _request_timeout(route) == 2.0
 
     @respx.mock
     @pytest.mark.asyncio
     async def test_async_index_query_namespaces_default_timeout_when_none(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/query").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/query").mock(
             return_value=httpx.Response(200, json=_QUERY_RESPONSE)
         )
         idx = _make_async_index()
@@ -313,26 +363,32 @@ class TestAsyncIndexQueryAcceptsPerCallTimeout:
             namespaces=["ns1"],
             metric="cosine",
         )
+        assert route.called
+        assert _request_timeout(route) == _DEFAULT_TIMEOUT
 
     @respx.mock
     @pytest.mark.asyncio
     async def test_async_index_fetch_by_metadata_default_timeout_when_none(self) -> None:
-        respx.post(f"{INDEX_HOST_HTTPS}/vectors/fetch_by_metadata").mock(
+        route = respx.post(f"{INDEX_HOST_HTTPS}/vectors/fetch_by_metadata").mock(
             return_value=httpx.Response(
                 200, json={"vectors": {}, "namespace": "", "usage": {"readUnits": 1}}
             )
         )
         idx = _make_async_index()
         await idx.fetch_by_metadata(filter={"genre": {"$eq": "comedy"}})
+        assert route.called
+        assert _request_timeout(route) == _DEFAULT_TIMEOUT
 
     @respx.mock
     @pytest.mark.asyncio
     async def test_async_index_delete_namespace_default_timeout_when_none(self) -> None:
-        respx.delete(f"{INDEX_HOST_HTTPS}/namespaces/old-ns").mock(
+        route = respx.delete(f"{INDEX_HOST_HTTPS}/namespaces/old-ns").mock(
             return_value=httpx.Response(200, json={})
         )
         idx = _make_async_index()
         await idx.delete_namespace(name="old-ns")
+        assert route.called
+        assert _request_timeout(route) == _DEFAULT_TIMEOUT
 
 
 # ---------------------------------------------------------------------------
