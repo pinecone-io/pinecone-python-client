@@ -714,6 +714,48 @@ class TestAsyncRetryTransport:
         responses[1].aclose.assert_awaited_once()  # type: ignore[union-attr]
         responses[2].aclose.assert_not_awaited()  # type: ignore[union-attr]
 
+    @pytest.mark.asyncio
+    @patch("pinecone._internal.http_client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_async_retry_after_header_respected(self, mock_sleep: AsyncMock) -> None:
+        """When Retry-After is present (async), it overrides computed backoff."""
+        fake = _FakeAsyncTransport(
+            [
+                httpx.Response(429, headers={"Retry-After": "2.5"}, json={"message": "rate limited"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
+        transport = _AsyncRetryTransport(
+            transport=fake,  # type: ignore[arg-type]
+            retry_config=RetryConfig(max_retries=3, backoff_factor=2.0, max_wait=60.0),
+        )
+        response = await transport.handle_async_request(_make_request())
+        assert response.status_code == 200
+        assert fake.call_count == 2
+        mock_sleep.assert_awaited_once_with(2.5)
+
+    @pytest.mark.asyncio
+    @patch("pinecone._internal.http_client.random.uniform", side_effect=lambda a, b: b)
+    @patch("pinecone._internal.http_client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_async_retry_after_header_invalid_falls_back_to_backoff(
+        self, mock_sleep: AsyncMock, mock_uniform: Any
+    ) -> None:
+        """When Retry-After is unparseable (async), use computed backoff instead."""
+        fake = _FakeAsyncTransport(
+            [
+                httpx.Response(503, headers={"Retry-After": "not-a-number"}, json={"message": "unavailable"}),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
+        transport = _AsyncRetryTransport(
+            transport=fake,  # type: ignore[arg-type]
+            retry_config=RetryConfig(max_retries=3, backoff_factor=2.0, max_wait=60.0),
+        )
+        response = await transport.handle_async_request(_make_request())
+        assert response.status_code == 200
+        assert fake.call_count == 2
+        mock_uniform.assert_called_once_with(0.1, 1.0)
+        mock_sleep.assert_awaited_once_with(1.0)
+
 
 # ---------------------------------------------------------------------------
 # Integration: HTTPClient uses retry transport
