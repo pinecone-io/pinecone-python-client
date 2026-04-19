@@ -24,6 +24,7 @@ from pinecone.errors.exceptions import (
     ValidationError,
 )
 from pinecone.grpc import GrpcIndex
+from pinecone.grpc.future import PineconeFuture
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchResponse,
@@ -607,6 +608,92 @@ class TestGrpcIndexClose:
         assert call_order == ["shutdown(wait=True)", "http.close()", "channel.close()"]
         mock_executor.shutdown.assert_called_once_with(wait=True)
         mock_http.close.assert_called_once()
+
+
+class TestGrpcFutureReturningMethods:
+    """Tests for GrpcIndex.*_async() future-returning methods."""
+
+    def test_upsert_async_returns_pinecone_future(self, grpc_index: GrpcIndex) -> None:
+        mock_submit = MagicMock(return_value=MagicMock())
+        grpc_index._executor.submit = mock_submit  # type: ignore[method-assign]
+
+        vectors = [{"id": "v1", "values": [0.1, 0.2]}]
+        result = grpc_index.upsert_async(vectors=vectors, namespace="ns", timeout=12.5)
+
+        assert isinstance(result, PineconeFuture)
+        assert mock_submit.call_args[0][0] == grpc_index.upsert
+        assert mock_submit.call_args.kwargs == {
+            "vectors": vectors,
+            "namespace": "ns",
+            "timeout": 12.5,
+        }
+
+    def test_query_async_returns_pinecone_future(self, grpc_index: GrpcIndex) -> None:
+        mock_submit = MagicMock(return_value=MagicMock())
+        grpc_index._executor.submit = mock_submit  # type: ignore[method-assign]
+
+        vec = [0.1] * 4
+        result = grpc_index.query_async(top_k=5, vector=vec, filter={"a": 1}, timeout=7.0)
+
+        assert isinstance(result, PineconeFuture)
+        assert mock_submit.call_args[0][0] == grpc_index.query
+        assert mock_submit.call_args.kwargs == {
+            "top_k": 5,
+            "vector": vec,
+            "id": None,
+            "namespace": "",
+            "filter": {"a": 1},
+            "include_values": False,
+            "include_metadata": False,
+            "sparse_vector": None,
+            "scan_factor": None,
+            "max_candidates": None,
+            "timeout": 7.0,
+        }
+
+    def test_fetch_async_returns_pinecone_future(self, grpc_index: GrpcIndex) -> None:
+        mock_submit = MagicMock(return_value=MagicMock())
+        grpc_index._executor.submit = mock_submit  # type: ignore[method-assign]
+
+        result = grpc_index.fetch_async(ids=["a", "b"], namespace="ns", timeout=3.0)
+
+        assert isinstance(result, PineconeFuture)
+        assert mock_submit.call_args[0][0] == grpc_index.fetch
+        assert mock_submit.call_args.kwargs == {
+            "ids": ["a", "b"],
+            "namespace": "ns",
+            "timeout": 3.0,
+        }
+
+    def test_delete_async_returns_pinecone_future(self, grpc_index: GrpcIndex) -> None:
+        mock_submit = MagicMock(return_value=MagicMock())
+        grpc_index._executor.submit = mock_submit  # type: ignore[method-assign]
+
+        result = grpc_index.delete_async(
+            ids=["a"],
+            delete_all=False,
+            filter=None,
+            namespace="ns",
+            timeout=4.0,
+        )
+
+        assert isinstance(result, PineconeFuture)
+        assert mock_submit.call_args[0][0] == grpc_index.delete
+        assert mock_submit.call_args.kwargs == {
+            "ids": ["a"],
+            "delete_all": False,
+            "filter": None,
+            "namespace": "ns",
+            "timeout": 4.0,
+        }
+
+    def test_upsert_async_timeout_defaults_to_none(self, grpc_index: GrpcIndex) -> None:
+        mock_submit = MagicMock(return_value=MagicMock())
+        grpc_index._executor.submit = mock_submit  # type: ignore[method-assign]
+
+        grpc_index.upsert_async(vectors=[{"id": "v1", "values": [0.1]}])
+
+        assert mock_submit.call_args.kwargs["timeout"] is None
 
 
 class TestGrpcErrorWrapping:
