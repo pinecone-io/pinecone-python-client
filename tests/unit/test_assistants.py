@@ -2104,6 +2104,147 @@ def test_chat_message_parsing(assistants: Assistants) -> None:
 
 
 # ---------------------------------------------------------------------------
+# chat() — optional body parameters
+# ---------------------------------------------------------------------------
+
+_CHAT_RESPONSE = {
+    "id": "chat-abc123",
+    "model": "gpt-4o",
+    "usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30},
+    "message": {"role": "assistant", "content": "Hello!"},
+    "finish_reason": "stop",
+    "citations": [],
+}
+
+
+@respx.mock
+def test_chat_forwards_temperature(assistants: Assistants) -> None:
+    """chat() includes 'temperature' in the request body when provided."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, json=_CHAT_RESPONSE)
+    )
+
+    assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        temperature=0.7,
+    )
+
+    request_body = json.loads(chat_route.calls.last.request.content)
+    assert request_body["temperature"] == 0.7
+
+
+@respx.mock
+def test_chat_forwards_filter(assistants: Assistants) -> None:
+    """chat() includes 'filter' in the request body when provided."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, json=_CHAT_RESPONSE)
+    )
+
+    assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        filter={"doc_type": "pdf"},
+    )
+
+    request_body = json.loads(chat_route.calls.last.request.content)
+    assert request_body["filter"] == {"doc_type": "pdf"}
+
+
+@respx.mock
+def test_chat_forwards_json_response(assistants: Assistants) -> None:
+    """chat() includes 'json_response': true in the request body when json_response=True."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, json=_CHAT_RESPONSE)
+    )
+
+    assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        json_response=True,
+    )
+
+    request_body = json.loads(chat_route.calls.last.request.content)
+    assert request_body["json_response"] is True
+
+
+@respx.mock
+def test_chat_omits_defaults(assistants: Assistants) -> None:
+    """chat() omits optional keys from the body when using default values."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, json=_CHAT_RESPONSE)
+    )
+
+    assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+    )
+
+    request_body = json.loads(chat_route.calls.last.request.content)
+    assert "temperature" not in request_body
+    assert "filter" not in request_body
+    assert "json_response" not in request_body
+    assert "context_options" not in request_body
+
+
+@respx.mock
+def test_chat_forwards_context_options_dict(assistants: Assistants) -> None:
+    """chat() passes a dict context_options directly into the request body."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, json=_CHAT_RESPONSE)
+    )
+
+    assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        context_options={"top_k": 5},
+    )
+
+    request_body = json.loads(chat_route.calls.last.request.content)
+    assert request_body["context_options"] == {"top_k": 5}
+
+
+@respx.mock
+def test_chat_forwards_context_options_struct(assistants: Assistants) -> None:
+    """chat() serializes a ContextOptions struct to dict, omitting None-valued fields."""
+    from pinecone.models.assistant.options import ContextOptions
+
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    chat_route = respx.post(f"{DATA_PLANE_URL}/chat/test-assistant").mock(
+        return_value=httpx.Response(200, json=_CHAT_RESPONSE)
+    )
+
+    assistants.chat(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        context_options=ContextOptions(top_k=5),
+    )
+
+    request_body = json.loads(chat_route.calls.last.request.content)
+    assert request_body["context_options"] == {"top_k": 5}
+    assert "snippet_size" not in request_body["context_options"]
+    assert "multimodal" not in request_body["context_options"]
+    assert "include_binary_content" not in request_body["context_options"]
+
+
+# ---------------------------------------------------------------------------
 # chat_completions() — defaults
 # ---------------------------------------------------------------------------
 
