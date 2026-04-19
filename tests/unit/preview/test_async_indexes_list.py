@@ -17,7 +17,7 @@ from pinecone.preview.models.indexes import PreviewIndexModel
 
 BASE_URL = "https://api.test.pinecone.io"
 
-_INDEX_1: dict = {
+_INDEX_1: dict[str, object] = {
     "name": "index-one",
     "host": "index-one-xyz.svc.pinecone.io",
     "status": {"ready": True, "state": "Ready"},
@@ -31,7 +31,7 @@ _INDEX_1: dict = {
     "deletion_protection": "disabled",
 }
 
-_INDEX_2: dict = {
+_INDEX_2: dict[str, object] = {
     "name": "index-two",
     "host": "index-two-xyz.svc.pinecone.io",
     "status": {"ready": False, "state": "Initializing"},
@@ -45,7 +45,7 @@ _INDEX_2: dict = {
     "deletion_protection": "disabled",
 }
 
-_INDEX_3: dict = {
+_INDEX_3: dict[str, object] = {
     "name": "index-three",
     "host": "index-three-xyz.svc.pinecone.io",
     "status": {"ready": True, "state": "Ready"},
@@ -169,3 +169,38 @@ def test_async_list_is_not_coroutine() -> None:
     indexes = AsyncPreviewIndexes(config=config)
     assert not asyncio.iscoroutinefunction(AsyncPreviewIndexes.list)
     assert isinstance(indexes.list(), AsyncPaginator)
+
+
+@respx.mock
+async def test_async_list_skips_malformed_index_with_missing_type(
+    indexes: AsyncPreviewIndexes,
+) -> None:
+    """list() skips indexes whose schema fields are missing the type discriminator."""
+    malformed = {
+        "name": "legacy-test-index",
+        "host": "legacy-test-index.svc.pinecone.io",
+        "status": {"ready": True, "state": "Ready"},
+        "schema": {
+            "fields": {
+                "foo": {"filterable": True},  # missing 'type' discriminator
+                "bar": {"filterable": True},  # missing 'type' discriminator
+            }
+        },
+        "deployment": {
+            "deployment_type": "managed",
+            "environment": "us-east-1-aws",
+            "cloud": "aws",
+            "region": "us-east-1",
+        },
+        "deletion_protection": "disabled",
+    }
+    respx.get(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(200, json={"indexes": [_INDEX_1, malformed, _INDEX_2]})
+    )
+
+    items: list[PreviewIndexModel] = []
+    async for idx in indexes.list():
+        items.append(idx)
+
+    assert len(items) == 2
+    assert {item.name for item in items} == {"index-one", "index-two"}
