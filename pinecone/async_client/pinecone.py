@@ -390,6 +390,380 @@ class AsyncPinecone:
         """The resolved configuration for this client."""
         return self._config
 
+    # ---- Backcompat flat-method delegates (:meta private:) ----
+
+    async def create_index(
+        self,
+        name: str,
+        spec: Any,
+        dimension: int | None = None,
+        metric: str | None = "cosine",
+        timeout: int | None = None,
+        deletion_protection: Any = "disabled",
+        vector_type: str = "dense",
+        tags: dict[str, str] | None = None,
+    ) -> Any:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.create`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.create_index() is deprecated; use pc.indexes.create() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        resolved_dp = deletion_protection if deletion_protection is not None else "disabled"
+        return await self.indexes.create(
+            name=name,
+            spec=spec,
+            dimension=dimension,
+            metric=metric if metric is not None else "cosine",
+            vector_type=vector_type,
+            deletion_protection=resolved_dp,
+            tags=tags,
+            timeout=timeout,
+        )
+
+    async def create_index_for_model(
+        self,
+        name: str,
+        cloud: Any,
+        region: Any,
+        embed: Any,
+        tags: dict[str, str] | None = None,
+        deletion_protection: Any = "disabled",
+        read_capacity: dict[str, Any] | None = None,
+        schema: dict[str, Any] | None = None,
+        timeout: int | None = None,
+    ) -> Any:
+        """Backwards-compatibility delegate for integrated index creation.
+
+        See :meth:`AsyncPinecone.indexes.create` with ``IntegratedSpec``.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.create_index_for_model() is deprecated;"
+            " use pc.indexes.create() with IntegratedSpec instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        from pinecone.inference.models.index_embed import IndexEmbed as _IndexEmbed
+        from pinecone.models.indexes.specs import EmbedConfig as _EmbedConfig
+        from pinecone.models.indexes.specs import IntegratedSpec as _IntegratedSpec
+
+        if isinstance(embed, _IndexEmbed):
+            embed_config: Any = _EmbedConfig(
+                model=embed.model,
+                field_map={k: str(v) for k, v in embed.field_map.items()},
+                metric=embed.metric,
+                read_parameters=embed.read_parameters or None,
+                write_parameters=embed.write_parameters or None,
+            )
+        elif isinstance(embed, _EmbedConfig):
+            embed_config = embed
+        else:
+            embed_config = _EmbedConfig(**embed)
+
+        cloud_str = cloud.value if hasattr(cloud, "value") else str(cloud)
+        region_str = region.value if hasattr(region, "value") else str(region)
+        spec = _IntegratedSpec(cloud=cloud_str, region=region_str, embed=embed_config)
+        resolved_dp = deletion_protection if deletion_protection is not None else "disabled"
+        return await self.indexes.create(
+            name=name,
+            spec=spec,
+            tags=tags,
+            deletion_protection=resolved_dp,
+            schema=schema,
+            timeout=timeout,
+        )
+
+    async def describe_index(self, name: str) -> Any:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.describe`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.describe_index() is deprecated; use pc.indexes.describe() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self.indexes.describe(name)
+
+    async def list_indexes(self) -> Any:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.list`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.list_indexes() is deprecated; use pc.indexes.list() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self.indexes.list()
+
+    async def has_index(self, name: str) -> bool:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.exists`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.has_index() is deprecated; use pc.indexes.exists() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self.indexes.exists(name)
+
+    async def configure_index(
+        self,
+        name: str,
+        replicas: int | None = None,
+        pod_type: str | None = None,
+        deletion_protection: Any = None,
+        tags: dict[str, str] | None = None,
+        read_capacity: dict[str, Any] | None = None,
+    ) -> None:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.configure`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.configure_index() is deprecated; use pc.indexes.configure() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        await self.indexes.configure(
+            name=name,
+            replicas=replicas,
+            pod_type=pod_type,
+            deletion_protection=deletion_protection,
+            tags=tags,
+            read_capacity=read_capacity,
+        )
+
+    async def delete_index(self, name: str, timeout: int | None = None) -> None:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.delete`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.delete_index() is deprecated; use pc.indexes.delete() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        await self.indexes.delete(name, timeout=timeout)
+
+    async def create_collection(self, name: str, source: str) -> Any:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.collections.create`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.create_collection() is deprecated; use pc.collections.create() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self.collections.create(name=name, source=source)
+
+    async def list_collections(self) -> Any:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.collections.list`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.list_collections() is deprecated; use pc.collections.list() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self.collections.list()
+
+    async def describe_collection(self, name: str) -> Any:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.collections.describe`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.describe_collection() is deprecated;"
+            " use pc.collections.describe() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self.collections.describe(name)
+
+    async def delete_collection(self, name: str) -> None:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.collections.delete`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.delete_collection() is deprecated; use pc.collections.delete() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        await self.collections.delete(name)
+
+    async def create_backup(
+        self,
+        *,
+        index_name: str,
+        backup_name: str | None = None,
+        description: str = "",
+    ) -> Any:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.backups.create`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.create_backup() is deprecated; use pc.backups.create() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self.backups.create(
+            index_name=index_name,
+            name=backup_name,
+            description=description,
+        )
+
+    async def list_backups(
+        self,
+        *,
+        index_name: str | None = None,
+        limit: int | None = 10,
+        pagination_token: str | None = None,
+    ) -> Any:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.backups.list`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.list_backups() is deprecated; use pc.backups.list() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self.backups.list(
+            index_name=index_name,
+            limit=limit,
+            pagination_token=pagination_token,
+        )
+
+    async def describe_backup(self, *, backup_id: str) -> Any:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.backups.describe`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.describe_backup() is deprecated; use pc.backups.describe() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self.backups.describe(backup_id=backup_id)
+
+    async def delete_backup(self, *, backup_id: str) -> None:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.backups.delete`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.delete_backup() is deprecated; use pc.backups.delete() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        await self.backups.delete(backup_id=backup_id)
+
+    async def list_restore_jobs(
+        self,
+        *,
+        limit: int | None = 10,
+        pagination_token: str | None = None,
+    ) -> Any:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.restore_jobs.list`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.list_restore_jobs() is deprecated; use pc.restore_jobs.list() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self.restore_jobs.list(
+            limit=limit,
+            pagination_token=pagination_token,
+        )
+
+    async def describe_restore_job(self, *, job_id: str) -> Any:
+        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.restore_jobs.describe`.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.describe_restore_job() is deprecated;"
+            " use pc.restore_jobs.describe() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self.restore_jobs.describe(job_id=job_id)
+
+    def IndexAsyncio(self, host: str, **kwargs: Any) -> Any:  # noqa: N802
+        """Backwards-compatibility async index factory. See ``AsyncIndex``.
+
+        :meta private:
+        """
+        import warnings
+
+        warnings.warn(
+            "AsyncPinecone.IndexAsyncio() is deprecated; use AsyncIndex directly instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
+
+        return _AsyncIndex(
+            host=host,
+            api_key=self._config.api_key,
+            additional_headers=dict(self._config.additional_headers),
+            timeout=self._config.timeout,
+            proxy_url=self._config.proxy_url,
+            proxy_headers=dict(self._config.proxy_headers),
+            ssl_ca_certs=self._config.ssl_ca_certs,
+            ssl_verify=self._config.ssl_verify,
+            source_tag=self._config.source_tag,
+            connection_pool_maxsize=self._config.connection_pool_maxsize,
+        )
+
     def _build_index_kwargs(self, host: str) -> IndexKwargs:
         """Return the kwargs dict for constructing an AsyncIndex."""
         return IndexKwargs(
