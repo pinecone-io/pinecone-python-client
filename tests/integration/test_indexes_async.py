@@ -8,7 +8,7 @@ from pinecone import AsyncIndex, AsyncPinecone
 from pinecone.errors import ForbiddenError
 from pinecone.errors.exceptions import PineconeValueError
 from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus
-from pinecone.models.indexes.specs import ServerlessSpec
+from pinecone.models.indexes.specs import EmbedConfig, IntegratedSpec, ServerlessSpec
 from tests.integration.conftest import async_cleanup_resource, unique_name
 
 # ---------------------------------------------------------------------------
@@ -70,6 +70,57 @@ async def test_create_serverless_index_becomes_ready(async_client: AsyncPinecone
         assert model.deletion_protection == "disabled"
         assert isinstance(model.host, str)
         assert len(model.host) > 0
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+@pytest.mark.timeout(400)
+async def test_create_integrated_dense_index_becomes_ready_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """Create an integrated dense index asynchronously, wait for ready state, verify fields, then delete."""
+    name = unique_name("int")
+    try:
+        model = await async_client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="llama-text-embed-v2",
+                    field_map={"text": "chunk_text"},
+                    metric="cosine",
+                ),
+            ),
+            timeout=300,
+        )
+
+        assert model.name == name
+        assert model.status.ready is True
+        assert model.status.state == "Ready"
+        assert model.dimension == 1024
+        assert model.metric == "cosine"
+        assert model.vector_type == "dense"
+        assert model.embed is not None
+        assert model.embed.model == "llama-text-embed-v2"
+        assert model.embed.field_map["text"] == "chunk_text"
+
+        described = await async_client.indexes.describe(name)
+        assert described.name == model.name
+        assert described.status.ready is True
+        assert described.status.state == "Ready"
+        assert described.dimension == 1024
+        assert described.metric == "cosine"
+        assert described.vector_type == "dense"
+        assert described.embed is not None
+        assert described.embed.model == "llama-text-embed-v2"
+        assert described.embed.field_map["text"] == "chunk_text"
     finally:
         await async_cleanup_resource(
             lambda: async_client.indexes.delete(name),
