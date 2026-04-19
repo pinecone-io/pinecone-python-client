@@ -37,6 +37,12 @@ class Preview:
     Args:
         http: Shared HTTP client from the parent :class:`~pinecone.Pinecone` instance.
         config: SDK configuration shared with the parent client.
+
+    Examples:
+        >>> from pinecone import Pinecone
+        >>> pc = Pinecone(api_key="your-api-key")
+        >>> info = pc.preview.indexes.describe("articles-en-preview")
+        >>> print(info.host)
     """
 
     def __init__(self, http: HTTPClient, config: PineconeConfig) -> None:
@@ -62,6 +68,12 @@ class Preview:
 
         Returns:
             :class:`~pinecone.preview.indexes.PreviewIndexes` instance.
+
+        Examples:
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> info = pc.preview.indexes.describe("articles-en-preview")
+            >>> print(info.host)
         """
         if self._indexes is None:
             from pinecone.preview.indexes import PreviewIndexes
@@ -108,6 +120,17 @@ class Preview:
                 given but the index does not exist.
             :exc:`~pinecone.errors.exceptions.ApiError`: If the describe call
                 returns an error response.
+
+        Examples:
+            Resolve by name (host looked up via the control plane):
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> index = pc.preview.index(name="articles-en-preview")
+
+            Or pass a host directly to skip the control-plane call:
+
+            >>> index = pc.preview.index(host="https://articles-en-preview-xyz.pinecone.io")
         """
         if name is None and host is None:
             raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
@@ -137,6 +160,19 @@ class Preview:
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
+
+        Examples:
+            Explicit close after use:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> index = pc.preview.index(name="articles-en-preview")
+            >>> pc.preview.close()
+
+            Or use the parent client as a context manager, which closes preview automatically:
+
+            >>> with Pinecone(api_key="your-api-key") as pc:
+            ...     index = pc.preview.index(name="articles-en-preview")
         """
         if self._indexes is not None:
             self._indexes.close()
@@ -158,6 +194,15 @@ class AsyncPreview:
     Args:
         http: Shared async HTTP client from the parent :class:`~pinecone.AsyncPinecone` instance.
         config: SDK configuration shared with the parent client.
+
+    Examples:
+        >>> import asyncio
+        >>> from pinecone import AsyncPinecone
+        >>> async def main():
+        ...     pc = AsyncPinecone(api_key="your-api-key")
+        ...     info = await pc.preview.indexes.describe("articles-en-preview")
+        ...     print(info.host)
+        >>> asyncio.run(main())
     """
 
     def __init__(self, http: AsyncHTTPClient, config: PineconeConfig) -> None:
@@ -183,6 +228,15 @@ class AsyncPreview:
 
         Returns:
             :class:`~pinecone.preview.async_indexes.AsyncPreviewIndexes` instance.
+
+        Examples:
+            >>> import asyncio
+            >>> from pinecone import AsyncPinecone
+            >>> async def main():
+            ...     pc = AsyncPinecone(api_key="your-api-key")
+            ...     info = await pc.preview.indexes.describe("articles-en-preview")
+            ...     print(info.host)
+            >>> asyncio.run(main())
         """
         if self._indexes is None:
             from pinecone.preview.async_indexes import AsyncPreviewIndexes
@@ -235,6 +289,23 @@ class AsyncPreview:
                 given but the index does not exist (raised on first data-plane call).
             :exc:`~pinecone.errors.exceptions.ApiError`: If the describe call
                 returns an error response (raised on first data-plane call).
+
+        Examples:
+            Resolve by name (host resolved lazily on first data-plane call):
+
+            >>> import asyncio
+            >>> from pinecone import AsyncPinecone
+            >>> async def main():
+            ...     pc = AsyncPinecone(api_key="your-api-key")
+            ...     index = pc.preview.index(name="articles-en-preview")
+            >>> asyncio.run(main())
+
+            Or pass a host directly to skip the control-plane call:
+
+            >>> async def main():
+            ...     pc = AsyncPinecone(api_key="your-api-key")
+            ...     index = pc.preview.index(host="https://articles-en-preview-xyz.pinecone.io")
+            >>> asyncio.run(main())
         """
         if name is None and host is None:
             raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
@@ -272,6 +343,15 @@ class AsyncPreview:
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
+
+        Examples:
+            >>> import asyncio
+            >>> from pinecone import AsyncPinecone
+            >>> async def main():
+            ...     pc = AsyncPinecone(api_key="your-api-key")
+            ...     index = pc.preview.index(name="articles-en-preview")
+            ...     await pc.preview.close()
+            >>> asyncio.run(main())
         """
         if self._indexes is not None:
             await self._indexes.close()
