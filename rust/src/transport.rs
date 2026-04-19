@@ -964,21 +964,26 @@ impl GrpcChannel {
     /// Args:
     ///     filter: Metadata filter dict (optional). If present, stats reflect only
     ///             vectors matching the filter.
+    ///     timeout_s: Per-call timeout in seconds. None uses the client-level default.
     ///
     /// Returns:
     ///     Dict with "namespaces" (map of namespace → {"vector_count"}), "dimension",
     ///     "index_fullness", "total_vector_count", and optional "metric", "vector_type",
     ///     "memory_fullness", "storage_fullness".
-    #[pyo3(signature = (filter=None))]
+    #[pyo3(signature = (filter=None, timeout_s=None))]
     fn describe_index_stats(
         &self,
         py: Python<'_>,
         filter: Option<Bound<'_, PyDict>>,
+        timeout_s: Option<f64>,
     ) -> PyResult<Py<PyDict>> {
         let request = proto::DescribeIndexStatsRequest {
             filter: filter.map(|f| py_dict_to_struct(&f)).transpose()?,
         };
 
+        let timeout = timeout_s
+            .map(|secs| secs_to_duration(py, secs, "timeout_s"))
+            .transpose()?;
         let client = self.client.clone();
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
@@ -988,7 +993,13 @@ impl GrpcChannel {
                     .block_on(retry_on_unavailable(&retry_config, || {
                         let mut c = client.clone();
                         let r = request.clone();
-                        async move { c.describe_index_stats(r).await }
+                        async move {
+                            let mut req = tonic::Request::new(r);
+                            if let Some(dur) = timeout {
+                                req.set_timeout(dur);
+                            }
+                            c.describe_index_stats(req).await
+                        }
                     }))
             })
             .map_err(status_to_py_err)?;
@@ -1029,17 +1040,19 @@ impl GrpcChannel {
     ///     pagination_token: Token to continue a previous listing (optional).
     ///     limit: Max number of namespaces to return (optional).
     ///     prefix: Namespace prefix filter (optional).
+    ///     timeout_s: Per-call timeout in seconds. None uses the client-level default.
     ///
     /// Returns:
     ///     Dict with "namespaces" (list of namespace description dicts),
     ///     optional "pagination" dict, and "total_count".
-    #[pyo3(signature = (pagination_token=None, limit=None, prefix=None))]
+    #[pyo3(signature = (pagination_token=None, limit=None, prefix=None, timeout_s=None))]
     fn list_namespaces(
         &self,
         py: Python<'_>,
         pagination_token: Option<&str>,
         limit: Option<u32>,
         prefix: Option<&str>,
+        timeout_s: Option<f64>,
     ) -> PyResult<Py<PyDict>> {
         let request = proto::ListNamespacesRequest {
             pagination_token: pagination_token.map(|s| s.to_string()),
@@ -1047,6 +1060,9 @@ impl GrpcChannel {
             prefix: prefix.map(|s| s.to_string()),
         };
 
+        let timeout = timeout_s
+            .map(|secs| secs_to_duration(py, secs, "timeout_s"))
+            .transpose()?;
         let client = self.client.clone();
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
@@ -1056,7 +1072,13 @@ impl GrpcChannel {
                     .block_on(retry_on_unavailable(&retry_config, || {
                         let mut c = client.clone();
                         let r = request.clone();
-                        async move { c.list_namespaces(r).await }
+                        async move {
+                            let mut req = tonic::Request::new(r);
+                            if let Some(dur) = timeout {
+                                req.set_timeout(dur);
+                            }
+                            c.list_namespaces(req).await
+                        }
                     }))
             })
             .map_err(status_to_py_err)?;
@@ -1083,15 +1105,24 @@ impl GrpcChannel {
     ///
     /// Args:
     ///     namespace: The namespace to describe.
+    ///     timeout_s: Per-call timeout in seconds. None uses the client-level default.
     ///
     /// Returns:
     ///     Dict with "name", "record_count", and optional "schema" and "indexed_fields".
-    #[pyo3(signature = (namespace))]
-    fn describe_namespace(&self, py: Python<'_>, namespace: &str) -> PyResult<Py<PyDict>> {
+    #[pyo3(signature = (namespace, timeout_s=None))]
+    fn describe_namespace(
+        &self,
+        py: Python<'_>,
+        namespace: &str,
+        timeout_s: Option<f64>,
+    ) -> PyResult<Py<PyDict>> {
         let request = proto::DescribeNamespaceRequest {
             namespace: namespace.to_string(),
         };
 
+        let timeout = timeout_s
+            .map(|secs| secs_to_duration(py, secs, "timeout_s"))
+            .transpose()?;
         let client = self.client.clone();
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
@@ -1101,7 +1132,13 @@ impl GrpcChannel {
                     .block_on(retry_on_unavailable(&retry_config, || {
                         let mut c = client.clone();
                         let r = request.clone();
-                        async move { c.describe_namespace(r).await }
+                        async move {
+                            let mut req = tonic::Request::new(r);
+                            if let Some(dur) = timeout {
+                                req.set_timeout(dur);
+                            }
+                            c.describe_namespace(req).await
+                        }
                     }))
             })
             .map_err(status_to_py_err)?;
@@ -1114,15 +1151,24 @@ impl GrpcChannel {
     ///
     /// Args:
     ///     namespace: The namespace to delete.
+    ///     timeout_s: Per-call timeout in seconds. None uses the client-level default.
     ///
     /// Returns:
     ///     Empty dict.
-    #[pyo3(signature = (namespace))]
-    fn delete_namespace(&self, py: Python<'_>, namespace: &str) -> PyResult<Py<PyDict>> {
+    #[pyo3(signature = (namespace, timeout_s=None))]
+    fn delete_namespace(
+        &self,
+        py: Python<'_>,
+        namespace: &str,
+        timeout_s: Option<f64>,
+    ) -> PyResult<Py<PyDict>> {
         let request = proto::DeleteNamespaceRequest {
             namespace: namespace.to_string(),
         };
 
+        let timeout = timeout_s
+            .map(|secs| secs_to_duration(py, secs, "timeout_s"))
+            .transpose()?;
         let client = self.client.clone();
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
@@ -1131,7 +1177,13 @@ impl GrpcChannel {
                 .block_on(retry_on_unavailable(&retry_config, || {
                     let mut c = client.clone();
                     let r = request.clone();
-                    async move { c.delete_namespace(r).await }
+                    async move {
+                        let mut req = tonic::Request::new(r);
+                        if let Some(dur) = timeout {
+                            req.set_timeout(dur);
+                        }
+                        c.delete_namespace(req).await
+                    }
                 }))
         })
         .map_err(status_to_py_err)?;
@@ -1146,15 +1198,17 @@ impl GrpcChannel {
     ///     name: The name of the namespace to create.
     ///     schema: Optional metadata schema dict with "fields" mapping field names
     ///             to {"filterable": bool}.
+    ///     timeout_s: Per-call timeout in seconds. None uses the client-level default.
     ///
     /// Returns:
     ///     Dict with "name", "record_count", and optional "schema" and "indexed_fields".
-    #[pyo3(signature = (name, schema=None))]
+    #[pyo3(signature = (name, schema=None, timeout_s=None))]
     fn create_namespace(
         &self,
         py: Python<'_>,
         name: &str,
         schema: Option<Bound<'_, PyDict>>,
+        timeout_s: Option<f64>,
     ) -> PyResult<Py<PyDict>> {
         let metadata_schema = schema.map(|s| py_dict_to_metadata_schema(&s)).transpose()?;
 
@@ -1163,6 +1217,9 @@ impl GrpcChannel {
             schema: metadata_schema,
         };
 
+        let timeout = timeout_s
+            .map(|secs| secs_to_duration(py, secs, "timeout_s"))
+            .transpose()?;
         let client = self.client.clone();
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
@@ -1172,7 +1229,13 @@ impl GrpcChannel {
                     .block_on(retry_on_unavailable(&retry_config, || {
                         let mut c = client.clone();
                         let r = request.clone();
-                        async move { c.create_namespace(r).await }
+                        async move {
+                            let mut req = tonic::Request::new(r);
+                            if let Some(dur) = timeout {
+                                req.set_timeout(dur);
+                            }
+                            c.create_namespace(req).await
+                        }
                     }))
             })
             .map_err(status_to_py_err)?;
@@ -1188,11 +1251,12 @@ impl GrpcChannel {
     ///     filter: Metadata filter dict (optional).
     ///     limit: Max number of vectors to return (optional).
     ///     pagination_token: Token to continue a previous listing (optional).
+    ///     timeout_s: Per-call timeout in seconds. None uses the client-level default.
     ///
     /// Returns:
     ///     Dict with "vectors" (map of id → vector dict), "namespace",
     ///     optional "usage" dict, and optional "pagination" dict.
-    #[pyo3(signature = (namespace=None, filter=None, limit=None, pagination_token=None))]
+    #[pyo3(signature = (namespace=None, filter=None, limit=None, pagination_token=None, timeout_s=None))]
     fn fetch_by_metadata(
         &self,
         py: Python<'_>,
@@ -1200,6 +1264,7 @@ impl GrpcChannel {
         filter: Option<Bound<'_, PyDict>>,
         limit: Option<u32>,
         pagination_token: Option<&str>,
+        timeout_s: Option<f64>,
     ) -> PyResult<Py<PyDict>> {
         let request = proto::FetchByMetadataRequest {
             namespace: namespace.unwrap_or("").to_string(),
@@ -1208,6 +1273,9 @@ impl GrpcChannel {
             pagination_token: pagination_token.map(|s| s.to_string()),
         };
 
+        let timeout = timeout_s
+            .map(|secs| secs_to_duration(py, secs, "timeout_s"))
+            .transpose()?;
         let client = self.client.clone();
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
@@ -1217,7 +1285,13 @@ impl GrpcChannel {
                     .block_on(retry_on_unavailable(&retry_config, || {
                         let mut c = client.clone();
                         let r = request.clone();
-                        async move { c.fetch_by_metadata(r).await }
+                        async move {
+                            let mut req = tonic::Request::new(r);
+                            if let Some(dur) = timeout {
+                                req.set_timeout(dur);
+                            }
+                            c.fetch_by_metadata(req).await
+                        }
                     }))
             })
             .map_err(status_to_py_err)?;

@@ -11,8 +11,9 @@ import pytest
 
 pytest.importorskip("pinecone._grpc", reason="Rust extension not available; run maturin develop first")
 
-from pinecone._grpc import GrpcChannel  # type: ignore[import-not-found]  # noqa: E402
-from pinecone.errors.exceptions import PineconeValueError  # noqa: E402
+from pinecone._grpc import GrpcChannel  # type: ignore[import-not-found]
+
+from pinecone.errors.exceptions import PineconeValueError
 
 _ENDPOINT = "https://test-index-abc123.svc.us-east-1-aws.pinecone.io:443"
 _API_KEY = "test-api-key"
@@ -45,3 +46,41 @@ class TestUpsertTimeoutValidation:
         ch = _make_channel()
         with pytest.raises(PineconeValueError):
             ch.upsert(vectors=[{"id": "v1", "values": [0.1]}], timeout_s=float("inf"))
+
+
+class TestDescribeIndexStatsTimeoutValidation:
+    """Parity check: describe_index_stats now accepts timeout_s like upsert/query."""
+
+    def test_negative_timeout_raises_value_error(self) -> None:
+        ch = _make_channel()
+        with pytest.raises(PineconeValueError):
+            ch.describe_index_stats(timeout_s=-1.0)
+
+    def test_nan_timeout_raises_value_error(self) -> None:
+        ch = _make_channel()
+        with pytest.raises(PineconeValueError):
+            ch.describe_index_stats(timeout_s=float("nan"))
+
+    def test_inf_timeout_raises_value_error(self) -> None:
+        ch = _make_channel()
+        with pytest.raises(PineconeValueError):
+            ch.describe_index_stats(timeout_s=float("inf"))
+
+
+class TestFetchByMetadataTimeoutValidation:
+    """Parity check: fetch_by_metadata now accepts timeout_s like upsert/query."""
+
+    def test_negative_timeout_raises_value_error(self) -> None:
+        ch = _make_channel()
+        with pytest.raises(PineconeValueError):
+            ch.fetch_by_metadata(timeout_s=-1.0)
+
+    def test_nan_timeout_raises_value_error(self) -> None:
+        ch = _make_channel()
+        with pytest.raises(PineconeValueError):
+            ch.fetch_by_metadata(timeout_s=float("nan"))
+
+    def test_inf_timeout_raises_value_error(self) -> None:
+        ch = _make_channel()
+        with pytest.raises(PineconeValueError):
+            ch.fetch_by_metadata(timeout_s=float("inf"))
