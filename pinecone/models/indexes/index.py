@@ -123,6 +123,9 @@ class IndexModel(Struct, kw_only=True):
             (``"enabled"`` or ``"disabled"``).
         tags: User-defined key-value tags attached to the index, or ``None``
             if no tags are set.
+        embed: Embedding configuration for model-backed (integrated) indexes,
+            populated for indexes created with integrated inference and ``None``
+            otherwise. See :class:`ModelIndexEmbed`.
     """
 
     name: str
