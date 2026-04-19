@@ -2,8 +2,9 @@
 
 Phase 3 Tier 5: query-namespaces-filter, query-namespaces-many.
 ET-019: query-namespaces-dedup.
+DX-0075: query-namespaces-sparse (async).
 """
-# area tags covered: query-namespaces-filter, query-namespaces-many, query-namespaces-dedup
+# area tags covered: query-namespaces-filter, query-namespaces-many, query-namespaces-dedup, query-namespaces-sparse
 
 from __future__ import annotations
 
@@ -651,6 +652,121 @@ async def test_query_namespaces_include_values_rest_async(async_client: AsyncPin
                 f"match.values must be empty [] when include_values not requested (id={match.id!r}), "
                 f"got {match.values!r}"
             )
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_cleanup_resource(
+            lambda: async_client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-sparse — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_query_namespaces_sparse_rest_async(async_client: AsyncPinecone) -> None:
+    """query_namespaces() with sparse_vector on a sparse dotproduct index returns merged results (REST async).
+
+    Verifies that a sparse-only index can be queried across multiple namespaces
+    using only sparse_vector (no dense vector), with results merged and sorted
+    by dotproduct score (descending) and per-namespace usage populated.
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            vector_type="sparse",
+            metric="dotproduct",
+            timeout=300,
+        )
+
+        # Populate host cache so async_client.index(name=...) can resolve it
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        # Upsert sparse-only vectors into two namespaces
+        await idx.upsert(
+            vectors=[
+                {
+                    "id": "qns-ns1-v1",
+                    "sparse_values": {"indices": [0, 1, 2], "values": [0.5, 0.8, 0.3]},
+                },
+                {
+                    "id": "qns-ns1-v2",
+                    "sparse_values": {"indices": [1, 3, 5], "values": [0.2, 0.7, 0.4]},
+                },
+            ],
+            namespace="qns-ns1",
+        )
+        await idx.upsert(
+            vectors=[
+                {
+                    "id": "qns-ns2-v1",
+                    "sparse_values": {"indices": [0, 2, 4], "values": [0.6, 0.3, 0.9]},
+                },
+                {
+                    "id": "qns-ns2-v2",
+                    "sparse_values": {"indices": [1, 2, 3], "values": [0.4, 0.5, 0.6]},
+                },
+            ],
+            namespace="qns-ns2",
+        )
+
+        # Wait until sparse vectors are fetchable in both namespaces
+        await async_poll_until(
+            query_fn=lambda: idx.fetch(ids=["qns-ns1-v1", "qns-ns1-v2"], namespace="qns-ns1"),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="qns-ns1 sparse vectors fetchable before query_namespaces_sparse_async",
+        )
+        await async_poll_until(
+            query_fn=lambda: idx.fetch(ids=["qns-ns2-v1", "qns-ns2-v2"], namespace="qns-ns2"),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="qns-ns2 sparse vectors fetchable before query_namespaces_sparse_async",
+        )
+
+        # Sparse-only query: pass sparse_vector, not vector
+        results = await idx.query_namespaces(
+            namespaces=["qns-ns1", "qns-ns2"],
+            sparse_vector={"indices": [0, 1, 2], "values": [0.1, 0.2, 0.3]},
+            metric="dotproduct",
+            top_k=5,
+        )
+
+        assert isinstance(results, QueryNamespacesResults)
+        assert isinstance(results.matches, list)
+        assert len(results.matches) >= 1
+
+        for match in results.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+
+        # Scores sorted descending for dotproduct
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True), (
+            f"Expected scores sorted descending for dotproduct, got: {scores}"
+        )
+
+        # Per-namespace usage
+        assert isinstance(results.ns_usage, dict)
+        assert "qns-ns1" in results.ns_usage
+        assert "qns-ns2" in results.ns_usage
+        for ns_usage_val in results.ns_usage.values():
+            assert ns_usage_val.read_units >= 0
+
+        # Total usage
+        assert results.usage is not None
+        assert isinstance(results.usage.read_units, int)
+        assert results.usage.read_units >= 2
     finally:
         if idx is not None:
             await idx.close()
