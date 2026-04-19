@@ -604,15 +604,6 @@ def test_query_namespaces_include_values_rest(client: Pinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    reason=(
-        "query_namespaces() requires non-empty 'vector' kwarg even for sparse-only indexes; "
-        "sparse queries without a dense vector raise TypeError. "
-        "Fix: make 'vector' optional and allow sparse-only queries. "
-        "See follow-up task DX-0086."
-    ),
-    strict=True,
-)
 def test_query_namespaces_sparse_rest(client: Pinecone) -> None:
     """query_namespaces() with sparse_vector on a sparse dotproduct index returns merged results (REST sync).
 

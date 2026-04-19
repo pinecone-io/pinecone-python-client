@@ -91,11 +91,19 @@ class TestQueryNamespacesValidation:
 
     def test_query_namespaces_empty_vector_raises(self) -> None:
         idx = _make_index()
-        with pytest.raises(ValidationError, match="vector must be a non-empty list"):
+        with pytest.raises(ValidationError, match="at least one of 'vector' or 'sparse_vector' must be provided"):
             idx.query_namespaces(
                 vector=[],
                 namespaces=["ns1"],
                 metric="cosine",
+            )
+
+    def test_query_namespaces_no_vector_no_sparse_raises(self) -> None:
+        idx = _make_index()
+        with pytest.raises(ValidationError, match="at least one of 'vector' or 'sparse_vector' must be provided"):
+            idx.query_namespaces(
+                namespaces=["ns1"],
+                metric="dotproduct",
             )
 
     def test_query_namespaces_invalid_metric_raises(self) -> None:
@@ -117,6 +125,22 @@ class TestQueryNamespacesValidation:
                 namespaces=["ns1"],
                 metric="invalid",
             )
+
+    def test_query_namespaces_sparse_only_succeeds(self) -> None:
+        """Passing only sparse_vector (no vector) should not raise validation error."""
+        idx = _make_index()
+        response = _make_query_response([_scored("v1", 0.9)])
+
+        with patch.object(idx, "query", return_value=response) as mock_query:
+            idx.query_namespaces(
+                sparse_vector={"indices": [0, 1], "values": [0.5, 0.8]},
+                namespaces=["ns1"],
+                metric="dotproduct",
+            )
+            assert mock_query.call_count == 1
+            call_kwargs = mock_query.call_args.kwargs
+            assert "vector" not in call_kwargs
+            assert call_kwargs["sparse_vector"] == {"indices": [0, 1], "values": [0.5, 0.8]}
 
 
 class TestQueryNamespacesDedup:
