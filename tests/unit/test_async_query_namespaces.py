@@ -38,8 +38,7 @@ def _scored(id: str, score: float) -> ScoredVector:
 class TestAsyncQueryNamespacesFanOut:
     @pytest.mark.asyncio
     async def test_query_namespaces_fans_out(self) -> None:
-        """Mock AsyncIndex.query to return a QueryResponse with 2 matches, call
-        query_namespaces with 3 namespaces, verify query was awaited 3 times."""
+        """query_namespaces fans out one request per namespace and awaits each independently."""
         idx = _make_index()
         response = _make_query_response(
             [_scored("v1", 0.9), _scored("v2", 0.8)],
@@ -61,8 +60,7 @@ class TestAsyncQueryNamespacesFanOut:
 class TestAsyncQueryNamespacesMerge:
     @pytest.mark.asyncio
     async def test_query_namespaces_merges_results(self) -> None:
-        """Mock AsyncIndex.query to return different scores per namespace, verify
-        final results are sorted by score (cosine: descending)."""
+        """Merged matches from all namespaces are sorted by score (descending for cosine)."""
         idx = _make_index()
 
         async def query_side_effect(**kwargs: object) -> QueryResponse:
@@ -96,7 +94,9 @@ class TestAsyncQueryNamespacesValidation:
     @pytest.mark.asyncio
     async def test_query_namespaces_empty_vector_raises(self) -> None:
         idx = _make_index()
-        with pytest.raises(ValidationError, match="at least one of 'vector' or 'sparse_vector' must be provided"):
+        with pytest.raises(
+            ValidationError, match="at least one of 'vector' or 'sparse_vector' must be provided"
+        ):
             await idx.query_namespaces(
                 vector=[],
                 namespaces=["ns1"],
@@ -129,7 +129,7 @@ class TestAsyncQueryNamespacesValidation:
 class TestAsyncQueryNamespacesDedup:
     @pytest.mark.asyncio
     async def test_query_namespaces_deduplicates_namespaces(self) -> None:
-        """Call with namespaces=["a", "b", "a"], verify query is awaited only twice."""
+        """Duplicate namespace entries are collapsed before fan-out (unified-vec-0034)."""
         idx = _make_index()
         response = _make_query_response([_scored("v1", 0.5)])
 
@@ -148,8 +148,7 @@ class TestAsyncQueryNamespacesDedup:
 class TestAsyncQueryNamespacesDefaultTopK:
     @pytest.mark.asyncio
     async def test_query_namespaces_default_top_k(self) -> None:
-        """Don't pass top_k, verify aggregator uses 10 (mock query to return
-        15 matches each, verify result has 10)."""
+        """top_k defaults to 10 when caller omits it; excess matches are trimmed from the merged result."""
         idx = _make_index()
         many_matches = [_scored(f"v{i}", 0.9 - i * 0.01) for i in range(15)]
         response = _make_query_response(many_matches)
@@ -166,7 +165,7 @@ class TestAsyncQueryNamespacesDefaultTopK:
 class TestAsyncQueryNamespacesDRNParams:
     @pytest.mark.asyncio
     async def test_query_namespaces_forwards_scan_factor(self) -> None:
-        """Pass scan_factor, verify each query call receives it."""
+        """scan_factor is forwarded unchanged to every per-namespace query call."""
         idx = _make_index()
         response = _make_query_response([_scored("v1", 0.5)])
 
@@ -183,7 +182,7 @@ class TestAsyncQueryNamespacesDRNParams:
 
     @pytest.mark.asyncio
     async def test_query_namespaces_forwards_max_candidates(self) -> None:
-        """Pass max_candidates, verify each query call receives it."""
+        """max_candidates is forwarded unchanged to every per-namespace query call."""
         idx = _make_index()
         response = _make_query_response([_scored("v1", 0.5)])
 
@@ -200,7 +199,7 @@ class TestAsyncQueryNamespacesDRNParams:
 
     @pytest.mark.asyncio
     async def test_query_namespaces_drn_params_default_none(self) -> None:
-        """Call without DRN params, verify they default to None."""
+        """When scan_factor and max_candidates are omitted, per-namespace calls receive None for both."""
         idx = _make_index()
         response = _make_query_response([_scored("v1", 0.5)])
 
