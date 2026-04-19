@@ -564,6 +564,7 @@ class TestDescribeIndexStats:
 
         mock_channel.describe_index_stats.assert_called_once_with(
             filter={"genre": {"$eq": "drama"}},
+            timeout_s=None,
         )
 
     def test_describe_minimal_response(

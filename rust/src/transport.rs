@@ -195,6 +195,17 @@ fn pinecone_value_error(py: Python<'_>, msg: &str) -> PyErr {
     }
 }
 
+/// Convert a seconds-as-f64 value to a `Duration`, returning `PineconeValueError` if the
+/// value is negative, NaN, infinite, or otherwise out of range for `Duration`.
+fn secs_to_duration(py: Python<'_>, secs: f64, field: &str) -> PyResult<Duration> {
+    Duration::try_from_secs_f64(secs).map_err(|_| {
+        pinecone_value_error(
+            py,
+            &format!("{field} must be a non-negative finite number; got {secs}"),
+        )
+    })
+}
+
 /// Human-readable name for a gRPC status code.
 fn grpc_code_name(code: tonic::Code) -> &'static str {
     match code {
@@ -434,6 +445,7 @@ impl GrpcChannel {
     #[pyo3(signature = (endpoint, api_key, api_version, version, secure=true, timeout_s=None, connect_timeout_s=None, max_retries=None, source_tag=None, proxy_url=None))]
     #[allow(clippy::too_many_arguments)]
     fn new(
+        py: Python<'_>,
         endpoint: &str,
         api_key: &str,
         api_version: &str,
@@ -450,8 +462,10 @@ impl GrpcChannel {
             .build()
             .map_err(|e| PyRuntimeError::new_err(format!("Failed to create tokio runtime: {e}")))?;
 
-        let request_timeout = Duration::from_secs_f64(timeout_s.unwrap_or(20.0));
-        let connection_timeout = Duration::from_secs_f64(connect_timeout_s.unwrap_or(1.0));
+        let request_timeout =
+            secs_to_duration(py, timeout_s.unwrap_or(20.0), "timeout_s")?;
+        let connection_timeout =
+            secs_to_duration(py, connect_timeout_s.unwrap_or(1.0), "connect_timeout_s")?;
 
         let endpoint_with_port = ensure_port(endpoint);
 
@@ -557,6 +571,9 @@ impl GrpcChannel {
             namespace: namespace.unwrap_or("").to_string(),
         };
 
+        let timeout = timeout_s
+            .map(|secs| secs_to_duration(py, secs, "timeout_s"))
+            .transpose()?;
         let client = self.client.clone();
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
@@ -568,8 +585,8 @@ impl GrpcChannel {
                         let r = request.clone();
                         async move {
                             let mut req = tonic::Request::new(r);
-                            if let Some(secs) = timeout_s {
-                                req.set_timeout(Duration::from_secs_f64(secs));
+                            if let Some(dur) = timeout {
+                                req.set_timeout(dur);
                             }
                             c.upsert(req).await
                         }
@@ -639,6 +656,9 @@ impl GrpcChannel {
             max_candidates,
         };
 
+        let timeout = timeout_s
+            .map(|secs| secs_to_duration(py, secs, "timeout_s"))
+            .transpose()?;
         let client = self.client.clone();
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
@@ -650,8 +670,8 @@ impl GrpcChannel {
                         let r = request.clone();
                         async move {
                             let mut req = tonic::Request::new(r);
-                            if let Some(secs) = timeout_s {
-                                req.set_timeout(Duration::from_secs_f64(secs));
+                            if let Some(dur) = timeout {
+                                req.set_timeout(dur);
                             }
                             c.query(req).await
                         }
@@ -698,6 +718,9 @@ impl GrpcChannel {
             namespace: namespace.unwrap_or("").to_string(),
         };
 
+        let timeout = timeout_s
+            .map(|secs| secs_to_duration(py, secs, "timeout_s"))
+            .transpose()?;
         let client = self.client.clone();
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
@@ -709,8 +732,8 @@ impl GrpcChannel {
                         let r = request.clone();
                         async move {
                             let mut req = tonic::Request::new(r);
-                            if let Some(secs) = timeout_s {
-                                req.set_timeout(Duration::from_secs_f64(secs));
+                            if let Some(dur) = timeout {
+                                req.set_timeout(dur);
                             }
                             c.fetch(req).await
                         }
@@ -762,6 +785,9 @@ impl GrpcChannel {
             filter: filter.map(|f| py_dict_to_struct(&f)).transpose()?,
         };
 
+        let timeout = timeout_s
+            .map(|secs| secs_to_duration(py, secs, "timeout_s"))
+            .transpose()?;
         let client = self.client.clone();
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
@@ -772,8 +798,8 @@ impl GrpcChannel {
                     let r = request.clone();
                     async move {
                         let mut req = tonic::Request::new(r);
-                        if let Some(secs) = timeout_s {
-                            req.set_timeout(Duration::from_secs_f64(secs));
+                        if let Some(dur) = timeout {
+                            req.set_timeout(dur);
                         }
                         c.delete(req).await
                     }
@@ -824,6 +850,9 @@ impl GrpcChannel {
             dry_run,
         };
 
+        let timeout = timeout_s
+            .map(|secs| secs_to_duration(py, secs, "timeout_s"))
+            .transpose()?;
         let client = self.client.clone();
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
@@ -835,8 +864,8 @@ impl GrpcChannel {
                         let r = request.clone();
                         async move {
                             let mut req = tonic::Request::new(r);
-                            if let Some(secs) = timeout_s {
-                                req.set_timeout(Duration::from_secs_f64(secs));
+                            if let Some(dur) = timeout {
+                                req.set_timeout(dur);
                             }
                             c.update(req).await
                         }
@@ -880,6 +909,9 @@ impl GrpcChannel {
             namespace: namespace.unwrap_or("").to_string(),
         };
 
+        let timeout = timeout_s
+            .map(|secs| secs_to_duration(py, secs, "timeout_s"))
+            .transpose()?;
         let client = self.client.clone();
         let retry_config = self.retry_config.clone();
         #[allow(clippy::result_large_err)]
@@ -891,8 +923,8 @@ impl GrpcChannel {
                         let r = request.clone();
                         async move {
                             let mut req = tonic::Request::new(r);
-                            if let Some(secs) = timeout_s {
-                                req.set_timeout(Duration::from_secs_f64(secs));
+                            if let Some(dur) = timeout {
+                                req.set_timeout(dur);
                             }
                             c.list(req).await
                         }
@@ -1530,5 +1562,24 @@ mod tests {
         http_connector.enforce_http(false);
         // Constructing the Tunnel connector must not panic or error.
         let _tunnel = Tunnel::new(proxy_dst, http_connector);
+    }
+
+    #[test]
+    fn secs_to_duration_rejects_negative() {
+        // secs_to_duration delegates to try_from_secs_f64; verify that returns Err.
+        assert!(Duration::try_from_secs_f64(-1.0).is_err());
+    }
+
+    #[test]
+    fn secs_to_duration_rejects_nan_and_inf() {
+        assert!(Duration::try_from_secs_f64(f64::NAN).is_err());
+        assert!(Duration::try_from_secs_f64(f64::INFINITY).is_err());
+    }
+
+    #[test]
+    fn secs_to_duration_accepts_zero_and_positive() {
+        assert!(Duration::try_from_secs_f64(0.0).is_ok());
+        assert!(Duration::try_from_secs_f64(0.5).is_ok());
+        assert!(Duration::try_from_secs_f64(60.0).is_ok());
     }
 }
