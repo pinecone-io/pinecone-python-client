@@ -33,6 +33,33 @@ class AsyncPreviewIndex:
         _host_provider: Async callable that resolves the host on first data-plane use.
             Used internally when the factory is called with ``name=``; callers should
             not pass this directly.
+
+    Examples:
+        Use as an async context manager (recommended — closes the HTTP client automatically):
+
+        >>> import asyncio
+        >>> from pinecone import Pinecone
+        >>> pc = Pinecone(api_key="your-api-key")
+        >>> async def main() -> None:
+        ...     async with pc.preview.index(name="articles-en-preview") as index:
+        ...         response = await index.documents.upsert(
+        ...             namespace="articles-en",
+        ...             documents=[{"_id": "doc-1", "title": "Introduction to vectors"}],
+        ...         )
+        >>> asyncio.run(main())
+
+        Explicit open/close when a context manager is not convenient:
+
+        >>> async def main() -> None:
+        ...     index = pc.preview.index(host="https://my-index.svc.pinecone.io")
+        ...     try:
+        ...         response = await index.documents.upsert(
+        ...             namespace="articles-en",
+        ...             documents=[{"_id": "doc-1", "title": "Introduction to vectors"}],
+        ...         )
+        ...     finally:
+        ...         await index.close()
+        >>> asyncio.run(main())
     """
 
     def __init__(
@@ -60,6 +87,20 @@ class AsyncPreviewIndex:
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
+
+        Raises:
+            :exc:`RuntimeError`: If the host has not yet been resolved. When the index
+                was created with ``name=`` rather than ``host=``, the host is resolved
+                lazily on the first data-plane call. Access ``host`` only after at least
+                one data-plane operation has completed.
+
+        Examples:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> index = pc.preview.index(host="https://my-index.svc.pinecone.io")
+            >>> print(index.host)
+            https://my-index.svc.pinecone.io
         """
         if self._resolved_host is None:
             raise RuntimeError(
@@ -78,6 +119,20 @@ class AsyncPreviewIndex:
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
+
+        Examples:
+
+            >>> import asyncio
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> async def main() -> None:
+            ...     async with pc.preview.index(name="articles-en-preview") as index:
+            ...         docs = index.documents
+            ...         response = await docs.upsert(
+            ...             namespace="articles-en",
+            ...             documents=[{"_id": "doc-1", "title": "Introduction to vectors"}],
+            ...         )
+            >>> asyncio.run(main())
         """
         return self._documents
 
@@ -99,6 +154,16 @@ class AsyncPreviewIndex:
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
+
+        Examples:
+
+            >>> import asyncio
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> async def main() -> None:
+            ...     index = pc.preview.index(host="https://my-index.svc.pinecone.io")
+            ...     await index.close()
+            >>> asyncio.run(main())
         """
         await self._documents.close()
 

@@ -28,6 +28,28 @@ class PreviewIndex:
     Args:
         host: Normalized data-plane host URL for this index.
         config: SDK configuration shared with the parent client.
+
+    Examples:
+        Use as a context manager (recommended — closes the HTTP client automatically):
+
+        >>> from pinecone import Pinecone
+        >>> pc = Pinecone(api_key="your-api-key")
+        >>> with pc.preview.index(name="articles-en-preview") as index:
+        ...     response = index.documents.upsert(
+        ...         namespace="articles-en",
+        ...         documents=[{"_id": "doc-1", "title": "Introduction to vectors"}],
+        ...     )
+
+        Explicit open/close when a context manager is not convenient:
+
+        >>> index = pc.preview.index(host="https://my-index.svc.pinecone.io")
+        >>> try:
+        ...     response = index.documents.upsert(
+        ...         namespace="articles-en",
+        ...         documents=[{"_id": "doc-1", "title": "Introduction to vectors"}],
+        ...     )
+        ... finally:
+        ...     index.close()
     """
 
     def __init__(self, host: str, config: PineconeConfig) -> None:
@@ -46,6 +68,14 @@ class PreviewIndex:
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
+
+        Examples:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> index = pc.preview.index(host="https://my-index.svc.pinecone.io")
+            >>> print(index.host)
+            https://my-index.svc.pinecone.io
         """
         return self._host
 
@@ -59,6 +89,13 @@ class PreviewIndex:
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
+
+        Examples:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> index = pc.preview.index(host="https://my-index.svc.pinecone.io")
+            >>> index.close()
         """
         self.documents.close()
 
