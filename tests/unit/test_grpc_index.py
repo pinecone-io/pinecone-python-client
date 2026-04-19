@@ -248,7 +248,7 @@ class TestQuery:
             grpc_index.query(top_k=1, vector=[0.1], id="v1")
 
     def test_query_validates_neither_vector_nor_id(self, grpc_index: GrpcIndex) -> None:
-        with pytest.raises(ValidationError, match="got neither"):
+        with pytest.raises(ValidationError, match="At least one of vector, id, or sparse_vector"):
             grpc_index.query(top_k=1)
 
     def test_query_with_filter(self, grpc_index: GrpcIndex, mock_channel: MagicMock) -> None:
