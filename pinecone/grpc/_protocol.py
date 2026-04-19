@@ -18,6 +18,8 @@ class GrpcChannelProtocol(Protocol):
         self,
         vectors: list[dict[str, Any]],
         namespace: str | None,
+        *,
+        timeout_s: float | None = None,
     ) -> dict[str, Any]:
         """Upsert a batch of vectors."""
         ...
@@ -35,6 +37,7 @@ class GrpcChannelProtocol(Protocol):
         sparse_vector: dict[str, Any] | None = None,
         scan_factor: float | None = None,
         max_candidates: int | None = None,
+        timeout_s: float | None = None,
     ) -> dict[str, Any]:
         """Query for nearest neighbors."""
         ...
@@ -44,6 +47,7 @@ class GrpcChannelProtocol(Protocol):
         ids: list[str],
         *,
         namespace: str | None = None,
+        timeout_s: float | None = None,
     ) -> dict[str, Any]:
         """Fetch vectors by ID."""
         ...
@@ -55,6 +59,7 @@ class GrpcChannelProtocol(Protocol):
         delete_all: bool = False,
         namespace: str | None = None,
         filter: dict[str, Any] | None = None,
+        timeout_s: float | None = None,
     ) -> None:
         """Delete vectors."""
         ...
@@ -69,6 +74,7 @@ class GrpcChannelProtocol(Protocol):
         namespace: str | None = None,
         filter: dict[str, Any] | None = None,
         dry_run: bool | None = None,
+        timeout_s: float | None = None,
     ) -> dict[str, Any]:
         """Update a vector."""
         ...
@@ -80,6 +86,7 @@ class GrpcChannelProtocol(Protocol):
         limit: int | None = None,
         pagination_token: str | None = None,
         namespace: str | None = None,
+        timeout_s: float | None = None,
     ) -> dict[str, Any]:
         """List vector IDs."""
         ...

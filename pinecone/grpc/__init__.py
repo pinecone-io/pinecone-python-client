@@ -249,6 +249,7 @@ class GrpcIndex:
             | dict[str, Any]
         ],
         namespace: str = "",
+        timeout: float | None = None,
     ) -> UpsertResponse:
         """Upsert a batch of vectors into a namespace.
 
@@ -293,7 +294,7 @@ class GrpcIndex:
         grpc_vectors = [_vector_to_grpc_dict(v) for v in built]
 
         logger.info("Upserting %d vectors via gRPC into namespace %r", len(built), namespace)
-        result = self._call_channel("upsert", grpc_vectors, namespace or None)
+        result = self._call_channel("upsert", grpc_vectors, namespace or None, timeout_s=timeout)
         return UpsertResponse(upserted_count=result.get("upserted_count", 0))
 
     def query(
@@ -309,6 +310,7 @@ class GrpcIndex:
         sparse_vector: SparseValues | dict[str, Any] | None = None,
         scan_factor: float | None = None,
         max_candidates: int | None = None,
+        timeout: float | None = None,
     ) -> QueryResponse:
         """Query a namespace for the nearest neighbors of a vector.
 
@@ -378,6 +380,7 @@ class GrpcIndex:
             sparse_vector=sv_dict,
             scan_factor=scan_factor,
             max_candidates=max_candidates,
+            timeout_s=timeout,
         )
 
         matches = [_dict_to_scored_vector(m) for m in result.get("matches", [])]
@@ -393,6 +396,7 @@ class GrpcIndex:
         *,
         ids: list[str],
         namespace: str = "",
+        timeout: float | None = None,
     ) -> FetchResponse:
         """Fetch vectors by their IDs from a namespace.
 
@@ -417,7 +421,7 @@ class GrpcIndex:
             raise ValidationError("ids must be a non-empty list")
 
         logger.info("Fetching %d vectors via gRPC", len(ids))
-        result = self._call_channel("fetch", ids, namespace=namespace or None)
+        result = self._call_channel("fetch", ids, namespace=namespace or None, timeout_s=timeout)
 
         vectors: dict[str, Vector] = {}
         for vid, vdata in result.get("vectors", {}).items():
@@ -437,6 +441,7 @@ class GrpcIndex:
         delete_all: bool = False,
         filter: dict[str, Any] | None = None,
         namespace: str = "",
+        timeout: float | None = None,
     ) -> None:
         """Delete vectors from a namespace by ID, filter, or delete-all flag.
 
@@ -477,6 +482,7 @@ class GrpcIndex:
             delete_all=delete_all,
             namespace=namespace or None,
             filter=filter,
+            timeout_s=timeout,
         )
 
     def update(
@@ -489,6 +495,7 @@ class GrpcIndex:
         namespace: str = "",
         filter: dict[str, Any] | None = None,
         dry_run: bool = False,
+        timeout: float | None = None,
     ) -> UpdateResponse:
         """Update vectors by ID or metadata filter.
 
@@ -550,6 +557,7 @@ class GrpcIndex:
             namespace=namespace or None,
             filter=filter,
             dry_run=dry_run or None,
+            timeout_s=timeout,
         )
 
         return UpdateResponse(matched_records=result.get("matched_records"))
@@ -561,6 +569,7 @@ class GrpcIndex:
         limit: int | None = None,
         pagination_token: str | None = None,
         namespace: str = "",
+        timeout: float | None = None,
     ) -> ListResponse:
         """Fetch a single page of vector IDs from a namespace.
 
@@ -586,6 +595,7 @@ class GrpcIndex:
             limit=limit,
             pagination_token=pagination_token,
             namespace=namespace or None,
+            timeout_s=timeout,
         )
 
         vectors = [ListItem(id=v.get("id")) for v in result.get("vectors", [])]
@@ -608,6 +618,7 @@ class GrpcIndex:
         prefix: str | None = None,
         limit: int | None = None,
         namespace: str = "",
+        timeout: float | None = None,
     ) -> Iterator[ListResponse]:
         """List vector IDs in a namespace, automatically following pagination.
 
@@ -634,6 +645,7 @@ class GrpcIndex:
                 limit=limit,
                 pagination_token=pagination_token,
                 namespace=namespace,
+                timeout=timeout,
             )
             if page.vectors:
                 yield page
@@ -816,6 +828,7 @@ class GrpcIndex:
             | dict[str, Any]
         ],
         namespace: str = "",
+        timeout: float | None = None,
     ) -> PineconeFuture[UpsertResponse]:
         """Submit an upsert operation and return a :class:`PineconeFuture`.
 
@@ -836,7 +849,9 @@ class GrpcIndex:
             1
         """
         future: PineconeFuture[UpsertResponse] = PineconeFuture(
-            self._executor.submit(self.upsert, vectors=vectors, namespace=namespace)
+            self._executor.submit(
+                self.upsert, vectors=vectors, namespace=namespace, timeout=timeout
+            )
         )
         return future
 
@@ -853,6 +868,7 @@ class GrpcIndex:
         sparse_vector: SparseValues | dict[str, Any] | None = None,
         scan_factor: float | None = None,
         max_candidates: int | None = None,
+        timeout: float | None = None,
     ) -> PineconeFuture[QueryResponse]:
         """Submit a query operation and return a :class:`PineconeFuture`.
 
@@ -888,6 +904,7 @@ class GrpcIndex:
                 sparse_vector=sparse_vector,
                 scan_factor=scan_factor,
                 max_candidates=max_candidates,
+                timeout=timeout,
             )
         )
         return future
@@ -897,6 +914,7 @@ class GrpcIndex:
         *,
         ids: builtins.list[str],
         namespace: str = "",
+        timeout: float | None = None,
     ) -> PineconeFuture[FetchResponse]:
         """Submit a fetch operation and return a :class:`PineconeFuture`.
 
@@ -915,7 +933,7 @@ class GrpcIndex:
             [0.012, -0.087, 0.153]
         """
         future: PineconeFuture[FetchResponse] = PineconeFuture(
-            self._executor.submit(self.fetch, ids=ids, namespace=namespace)
+            self._executor.submit(self.fetch, ids=ids, namespace=namespace, timeout=timeout)
         )
         return future
 
@@ -926,6 +944,7 @@ class GrpcIndex:
         delete_all: bool = False,
         filter: dict[str, Any] | None = None,
         namespace: str = "",
+        timeout: float | None = None,
     ) -> PineconeFuture[None]:
         """Submit a delete operation and return a :class:`PineconeFuture`.
 
@@ -953,6 +972,7 @@ class GrpcIndex:
                 delete_all=delete_all,
                 filter=filter,
                 namespace=namespace,
+                timeout=timeout,
             )
         )
         return future

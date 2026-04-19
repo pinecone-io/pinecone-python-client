@@ -236,6 +236,7 @@ class TestQuery:
             sparse_vector=None,
             scan_factor=None,
             max_candidates=None,
+            timeout_s=None,
         )
 
     def test_query_validates_top_k(self, grpc_index: GrpcIndex) -> None:
@@ -339,6 +340,7 @@ class TestDelete:
             delete_all=False,
             namespace=None,
             filter=None,
+            timeout_s=None,
         )
 
     def test_delete_all(self, grpc_index: GrpcIndex, mock_channel: MagicMock) -> None:
@@ -351,6 +353,7 @@ class TestDelete:
             delete_all=True,
             namespace="my-ns",
             filter=None,
+            timeout_s=None,
         )
 
     def test_delete_by_filter(self, grpc_index: GrpcIndex, mock_channel: MagicMock) -> None:
@@ -363,6 +366,7 @@ class TestDelete:
             delete_all=False,
             namespace=None,
             filter={"genre": {"$eq": "obsolete"}},
+            timeout_s=None,
         )
 
     def test_delete_no_mode_raises(self, grpc_index: GrpcIndex) -> None:

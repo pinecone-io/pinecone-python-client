@@ -518,12 +518,13 @@ impl GrpcChannel {
     ///
     /// Returns:
     ///     Dict with "upserted_count".
-    #[pyo3(signature = (vectors, namespace=None))]
+    #[pyo3(signature = (vectors, namespace=None, timeout_s=None))]
     fn upsert(
         &self,
         py: Python<'_>,
         vectors: Vec<Bound<'_, PyDict>>,
         namespace: Option<&str>,
+        timeout_s: Option<f64>,
     ) -> PyResult<Py<PyDict>> {
         let mut proto_vectors = Vec::with_capacity(vectors.len());
         for v in &vectors {
@@ -565,7 +566,13 @@ impl GrpcChannel {
                     .block_on(retry_on_unavailable(&retry_config, || {
                         let mut c = client.clone();
                         let r = request.clone();
-                        async move { c.upsert(r).await }
+                        async move {
+                            let mut req = tonic::Request::new(r);
+                            if let Some(secs) = timeout_s {
+                                req.set_timeout(Duration::from_secs_f64(secs));
+                            }
+                            c.upsert(req).await
+                        }
                     }))
             })
             .map_err(status_to_py_err)?;
@@ -589,7 +596,7 @@ impl GrpcChannel {
     ///
     /// Returns:
     ///     Dict with "matches" (list of scored vector dicts) and "namespace".
-    #[pyo3(signature = (top_k, vector=None, id=None, namespace=None, filter=None, include_values=false, include_metadata=false, sparse_vector=None, scan_factor=None, max_candidates=None))]
+    #[pyo3(signature = (top_k, vector=None, id=None, namespace=None, filter=None, include_values=false, include_metadata=false, sparse_vector=None, scan_factor=None, max_candidates=None, timeout_s=None))]
     #[allow(clippy::too_many_arguments)]
     fn query(
         &self,
@@ -604,6 +611,7 @@ impl GrpcChannel {
         sparse_vector: Option<Bound<'_, PyDict>>,
         scan_factor: Option<f32>,
         max_candidates: Option<u32>,
+        timeout_s: Option<f64>,
     ) -> PyResult<Py<PyDict>> {
         let has_vector = vector.as_ref().is_some_and(|v| !v.is_empty());
         let has_id = id.is_some_and(|s| !s.is_empty());
@@ -640,7 +648,13 @@ impl GrpcChannel {
                     .block_on(retry_on_unavailable(&retry_config, || {
                         let mut c = client.clone();
                         let r = request.clone();
-                        async move { c.query(r).await }
+                        async move {
+                            let mut req = tonic::Request::new(r);
+                            if let Some(secs) = timeout_s {
+                                req.set_timeout(Duration::from_secs_f64(secs));
+                            }
+                            c.query(req).await
+                        }
                     }))
             })
             .map_err(status_to_py_err)?;
@@ -671,12 +685,13 @@ impl GrpcChannel {
     ///
     /// Returns:
     ///     Dict with "vectors" (map of id → vector dict) and "namespace".
-    #[pyo3(signature = (ids, namespace=None))]
+    #[pyo3(signature = (ids, namespace=None, timeout_s=None))]
     fn fetch(
         &self,
         py: Python<'_>,
         ids: Vec<String>,
         namespace: Option<&str>,
+        timeout_s: Option<f64>,
     ) -> PyResult<Py<PyDict>> {
         let request = proto::FetchRequest {
             ids,
@@ -692,7 +707,13 @@ impl GrpcChannel {
                     .block_on(retry_on_unavailable(&retry_config, || {
                         let mut c = client.clone();
                         let r = request.clone();
-                        async move { c.fetch(r).await }
+                        async move {
+                            let mut req = tonic::Request::new(r);
+                            if let Some(secs) = timeout_s {
+                                req.set_timeout(Duration::from_secs_f64(secs));
+                            }
+                            c.fetch(req).await
+                        }
                     }))
             })
             .map_err(status_to_py_err)?;
@@ -724,7 +745,7 @@ impl GrpcChannel {
     ///
     /// Returns:
     ///     Empty dict (delete has no response fields).
-    #[pyo3(signature = (ids=None, delete_all=false, namespace=None, filter=None))]
+    #[pyo3(signature = (ids=None, delete_all=false, namespace=None, filter=None, timeout_s=None))]
     fn delete(
         &self,
         py: Python<'_>,
@@ -732,6 +753,7 @@ impl GrpcChannel {
         delete_all: bool,
         namespace: Option<&str>,
         filter: Option<Bound<'_, PyDict>>,
+        timeout_s: Option<f64>,
     ) -> PyResult<Py<PyDict>> {
         let request = proto::DeleteRequest {
             ids: ids.unwrap_or_default(),
@@ -748,7 +770,13 @@ impl GrpcChannel {
                 .block_on(retry_on_unavailable(&retry_config, || {
                     let mut c = client.clone();
                     let r = request.clone();
-                    async move { c.delete(r).await }
+                    async move {
+                        let mut req = tonic::Request::new(r);
+                        if let Some(secs) = timeout_s {
+                            req.set_timeout(Duration::from_secs_f64(secs));
+                        }
+                        c.delete(req).await
+                    }
                 }))
         })
         .map_err(status_to_py_err)?;
@@ -770,7 +798,7 @@ impl GrpcChannel {
     ///
     /// Returns:
     ///     Dict with optional "matched_records" count.
-    #[pyo3(signature = (id, values=None, sparse_values=None, set_metadata=None, namespace=None, filter=None, dry_run=None))]
+    #[pyo3(signature = (id, values=None, sparse_values=None, set_metadata=None, namespace=None, filter=None, dry_run=None, timeout_s=None))]
     #[allow(clippy::too_many_arguments)]
     fn update(
         &self,
@@ -782,6 +810,7 @@ impl GrpcChannel {
         namespace: Option<&str>,
         filter: Option<Bound<'_, PyDict>>,
         dry_run: Option<bool>,
+        timeout_s: Option<f64>,
     ) -> PyResult<Py<PyDict>> {
         let request = proto::UpdateRequest {
             id: id.to_string(),
@@ -804,7 +833,13 @@ impl GrpcChannel {
                     .block_on(retry_on_unavailable(&retry_config, || {
                         let mut c = client.clone();
                         let r = request.clone();
-                        async move { c.update(r).await }
+                        async move {
+                            let mut req = tonic::Request::new(r);
+                            if let Some(secs) = timeout_s {
+                                req.set_timeout(Duration::from_secs_f64(secs));
+                            }
+                            c.update(req).await
+                        }
                     }))
             })
             .map_err(status_to_py_err)?;
@@ -828,7 +863,7 @@ impl GrpcChannel {
     /// Returns:
     ///     Dict with "vectors" (list of dicts with "id"), optional "pagination" dict,
     ///     "namespace", and optional "usage" dict.
-    #[pyo3(signature = (prefix=None, limit=None, pagination_token=None, namespace=None))]
+    #[pyo3(signature = (prefix=None, limit=None, pagination_token=None, namespace=None, timeout_s=None))]
     fn list(
         &self,
         py: Python<'_>,
@@ -836,6 +871,7 @@ impl GrpcChannel {
         limit: Option<u32>,
         pagination_token: Option<&str>,
         namespace: Option<&str>,
+        timeout_s: Option<f64>,
     ) -> PyResult<Py<PyDict>> {
         let request = proto::ListRequest {
             prefix: prefix.map(|s| s.to_string()),
@@ -853,7 +889,13 @@ impl GrpcChannel {
                     .block_on(retry_on_unavailable(&retry_config, || {
                         let mut c = client.clone();
                         let r = request.clone();
-                        async move { c.list(r).await }
+                        async move {
+                            let mut req = tonic::Request::new(r);
+                            if let Some(secs) = timeout_s {
+                                req.set_timeout(Duration::from_secs_f64(secs));
+                            }
+                            c.list(req).await
+                        }
                     }))
             })
             .map_err(status_to_py_err)?;
