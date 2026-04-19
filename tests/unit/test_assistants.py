@@ -3144,3 +3144,47 @@ def test_stream_chunk_unknown_type() -> None:
 
     with pytest.raises(msgspec.ValidationError):
         msgspec.convert({"type": "unknown", "data": "foo"}, ChatStreamChunk)
+
+
+# ---------------------------------------------------------------------------
+# close()
+# ---------------------------------------------------------------------------
+
+
+class TestAssistantsClose:
+    def test_close_calls_main_http_close(self, assistants: Assistants) -> None:
+        """close() calls close() on the main _http client."""
+        mock_http = MagicMock()
+        assistants._http = mock_http
+
+        assistants.close()
+
+        mock_http.close.assert_called_once()
+
+    def test_close_calls_eval_http_close(self, assistants: Assistants) -> None:
+        """close() calls close() on the _eval_http client."""
+        mock_eval_http = MagicMock()
+        assistants._eval_http = mock_eval_http
+
+        assistants.close()
+
+        mock_eval_http.close.assert_called_once()
+
+    def test_close_closes_cached_data_plane_clients(self, assistants: Assistants) -> None:
+        """close() closes all cached data-plane clients and clears the dict."""
+        mock_a = MagicMock()
+        mock_b = MagicMock()
+        assistants._data_plane_clients = {"a": mock_a, "b": mock_b}
+
+        assistants.close()
+
+        mock_a.close.assert_called_once()
+        mock_b.close.assert_called_once()
+        assert assistants._data_plane_clients == {}
+
+    def test_close_is_idempotent(self, assistants: Assistants) -> None:
+        """close() on an empty _data_plane_clients is a no-op and does not raise."""
+        assistants._data_plane_clients = {}
+
+        assistants.close()
+        assistants.close()
