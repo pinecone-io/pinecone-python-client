@@ -392,6 +392,20 @@ def test_chat_completion_stream_collect() -> None:
     assert stream.collect() == "Hello world"
 
 
+def test_chat_completion_stream_collect_skips_empty_choices() -> None:
+    """ChatCompletionStream.collect() skips chunks with no choices."""
+    empty1 = ChatCompletionStreamChunk(id="c0", choices=[])
+    content = ChatCompletionStreamChunk(
+        id="c1",
+        choices=[
+            ChatCompletionStreamChoice(index=0, delta=ChatCompletionStreamDelta(content="hello"))
+        ],
+    )
+    empty2 = ChatCompletionStreamChunk(id="c2", choices=[])
+    stream = ChatCompletionStream(iter([empty1, content, empty2]))
+    assert stream.collect() == "hello"
+
+
 # ---------------------------------------------------------------------------
 # AsyncChatCompletionStream
 # ---------------------------------------------------------------------------
@@ -435,3 +449,42 @@ async def test_async_chat_completion_stream_skips_none_content() -> None:
     texts = [t async for t in stream.text()]
     assert "None" not in texts
     assert all(t for t in texts)
+
+
+async def test_async_chat_completion_stream_text_skips_empty_choices() -> None:
+    """AsyncChatCompletionStream.text() skips chunks with no choices."""
+    empty1 = ChatCompletionStreamChunk(id="c0", choices=[])
+    content = ChatCompletionStreamChunk(
+        id="c1",
+        choices=[
+            ChatCompletionStreamChoice(index=0, delta=ChatCompletionStreamDelta(content="hello"))
+        ],
+    )
+    empty2 = ChatCompletionStreamChunk(id="c2", choices=[])
+
+    async def _gen() -> AsyncIterator[ChatCompletionStreamChunk]:
+        for c in [empty1, content, empty2]:
+            yield c
+
+    stream = AsyncChatCompletionStream(_gen())
+    texts = [t async for t in stream.text()]
+    assert texts == ["hello"]
+
+
+async def test_async_chat_completion_stream_collect_skips_empty_choices() -> None:
+    """AsyncChatCompletionStream.collect() skips chunks with no choices."""
+    empty1 = ChatCompletionStreamChunk(id="c0", choices=[])
+    content = ChatCompletionStreamChunk(
+        id="c1",
+        choices=[
+            ChatCompletionStreamChoice(index=0, delta=ChatCompletionStreamDelta(content="hello"))
+        ],
+    )
+    empty2 = ChatCompletionStreamChunk(id="c2", choices=[])
+
+    async def _gen() -> AsyncIterator[ChatCompletionStreamChunk]:
+        for c in [empty1, content, empty2]:
+            yield c
+
+    stream = AsyncChatCompletionStream(_gen())
+    assert await stream.collect() == "hello"
