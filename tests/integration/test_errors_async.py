@@ -368,6 +368,22 @@ async def test_update_input_validation_async() -> None:
         await index.close()
 
 
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_fetch_empty_ids_list_raises_value_error_async() -> None:
+    """fetch(ids=[]) raises PineconeValueError before any API call (async REST).
+
+    Uses a fake host so no real index or network call is required; the empty-list
+    check fires before any await would be reached.
+    """
+    index = AsyncIndex(host="fake-index.svc.pinecone.io", api_key="testkey")
+    try:
+        with pytest.raises(PineconeValueError, match="ids"):
+            await index.fetch(ids=[])
+    finally:
+        await index.close()
+
+
 # ---------------------------------------------------------------------------
 # namespace-name-must-be-string — REST async
 # ---------------------------------------------------------------------------

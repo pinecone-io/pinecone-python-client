@@ -383,6 +383,19 @@ def test_update_input_validation_rest() -> None:
 
 
 @pytest.mark.integration
+def test_fetch_empty_ids_list_raises_value_error() -> None:
+    """fetch(ids=[]) raises PineconeValueError before any API call (REST sync).
+
+    Uses a fake host so no real index or network call is required; the empty-list
+    check fires synchronously before the HTTP request would be made.
+    """
+    index = Index(host="fake-index.svc.pinecone.io", api_key="testkey")
+
+    with pytest.raises(PineconeValueError, match="ids"):
+        index.fetch(ids=[])
+
+
+@pytest.mark.integration
 def test_query_input_validation_grpc() -> None:
     """query() client-side validation raises PineconeValueError before any gRPC call.
 
