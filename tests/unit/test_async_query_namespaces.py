@@ -96,7 +96,7 @@ class TestAsyncQueryNamespacesValidation:
     @pytest.mark.asyncio
     async def test_query_namespaces_empty_vector_raises(self) -> None:
         idx = _make_index()
-        with pytest.raises(ValidationError, match="vector must be a non-empty list"):
+        with pytest.raises(ValidationError, match="at least one of 'vector' or 'sparse_vector' must be provided"):
             await idx.query_namespaces(
                 vector=[],
                 namespaces=["ns1"],

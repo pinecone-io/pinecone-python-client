@@ -45,13 +45,9 @@ class AsyncPreviewIndex:
         self._host_provider = _host_provider
         self._config = config
         if host is not None:
-            self._documents: AsyncPreviewDocuments = AsyncPreviewDocuments(
-                config=config, host=host
-            )
+            self._documents: AsyncPreviewDocuments = AsyncPreviewDocuments(config=config, host=host)
         else:
-            self._documents = AsyncPreviewDocuments(
-                config=config, _host_provider=_host_provider
-            )
+            self._documents = AsyncPreviewDocuments(config=config, _host_provider=_host_provider)
 
     @property
     def host(self) -> str:

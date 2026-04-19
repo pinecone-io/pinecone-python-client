@@ -414,7 +414,7 @@ class AsyncIndex:
     async def query_namespaces(
         self,
         *,
-        vector: list[float],
+        vector: list[float] | None = None,
         namespaces: list[str],
         metric: str,
         top_k: int | None = None,
@@ -433,7 +433,8 @@ class AsyncIndex:
         specified metric.
 
         Args:
-            vector: Dense query vector values (must be non-empty).
+            vector: Dense query vector values. Required for dense and hybrid
+                indexes; omit for sparse-only indexes (use *sparse_vector* instead).
             namespaces: Namespaces to query (must be non-empty). Duplicates
                 are removed while preserving order.
             metric: Distance metric — ``"cosine"``, ``"euclidean"``, or
@@ -443,6 +444,7 @@ class AsyncIndex:
             include_values: Whether to include vector values in results.
             include_metadata: Whether to include metadata in results.
             sparse_vector: Sparse query vector with indices and values.
+                Required for sparse-only indexes when *vector* is omitted.
             scan_factor: DRN performance tuning — controls how much of the
                 index is scanned during a query. Higher values scan more
                 data and may improve recall at the cost of latency.
@@ -454,7 +456,8 @@ class AsyncIndex:
             usage, and per-namespace usage.
 
         Raises:
-            :exc:`PineconeValueError`: If *namespaces* or *vector* is empty.
+            :exc:`PineconeValueError`: If *namespaces* is empty, or if both
+                *vector* and *sparse_vector* are absent/empty.
             :exc:`ValueError`: If *metric* is not a recognized value.
             :exc:`ApiError`: If any individual namespace query fails.
             :exc:`PineconeConnectionError`: If a network-level connection
@@ -463,19 +466,29 @@ class AsyncIndex:
 
         Examples:
 
+            # Dense query
             results = await idx.query_namespaces(
                 vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
                 namespaces=["articles-en", "articles-fr", "articles-de"],
                 metric="cosine",
                 top_k=10,
             )
+
+            # Sparse-only query (sparse index)
+            results = await idx.query_namespaces(
+                sparse_vector={"indices": [0, 1, 2], "values": [0.1, 0.2, 0.3]},
+                namespaces=["docs-en", "docs-fr"],
+                metric="dotproduct",
+                top_k=10,
+            )
+
             for match in results.matches:
                 print(match.id, match.score)
         """
         if not namespaces:
             raise ValidationError("namespaces must be a non-empty list")
-        if not vector:
-            raise ValidationError("vector must be a non-empty list")
+        if not vector and not sparse_vector:
+            raise ValidationError("at least one of 'vector' or 'sparse_vector' must be provided")
 
         valid_metrics = {"cosine", "euclidean", "dotproduct"}
         if metric not in valid_metrics:
@@ -487,18 +500,20 @@ class AsyncIndex:
         effective_top_k = top_k if top_k is not None else 10
         aggregator = QueryResultsAggregator(metric=metric, top_k=effective_top_k)
 
+        query_kwargs: dict[str, Any] = {
+            "top_k": effective_top_k,
+            "filter": filter,
+            "include_values": include_values,
+            "include_metadata": include_metadata,
+            "sparse_vector": sparse_vector,
+            "scan_factor": scan_factor,
+            "max_candidates": max_candidates,
+        }
+        if vector is not None:
+            query_kwargs["vector"] = vector
+
         async def _query_ns(ns: str) -> tuple[str, QueryResponse]:
-            result = await self.query(
-                top_k=effective_top_k,
-                vector=vector,
-                namespace=ns,
-                filter=filter,
-                include_values=include_values,
-                include_metadata=include_metadata,
-                sparse_vector=sparse_vector,
-                scan_factor=scan_factor,
-                max_candidates=max_candidates,
-            )
+            result = await self.query(namespace=ns, **query_kwargs)
             return (ns, result)
 
         results = await asyncio.gather(*[_query_ns(ns) for ns in namespaces])

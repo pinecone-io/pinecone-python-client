@@ -38,7 +38,9 @@ class Config(NamedTuple):
     def __repr__(self) -> str:
         masked_key = f"...{self.api_key[-4:]}" if len(self.api_key) >= 4 else "***"
         redacted_additional = _redact_headers(self.additional_headers)
-        redacted_proxy = _redact_headers(self.proxy_headers) if self.proxy_headers is not None else None
+        redacted_proxy = (
+            _redact_headers(self.proxy_headers) if self.proxy_headers is not None else None
+        )
         return (
             f"Config("
             f"api_key={masked_key!r}, "

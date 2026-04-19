@@ -108,3 +108,92 @@ async def async_cleanup_preview_indexes(
             name,
             "preview index",
         )
+
+
+@pytest.fixture(scope="session")
+def fts_index_state(
+    client: Pinecone,
+    preview_available: bool,
+) -> Generator[tuple[str, str] | None, None, None]:
+    """Session-scope: one FTS+dedicated index, docs upserted and verified searchable.
+
+    Creates the FTS cluster once per session so cold-start cost is paid once.
+    Yields (host, namespace) on success, or None if preview is unavailable or
+    FTS indexing doesn't complete within 300s.
+
+    Used by PVT-037 sync and async tests via client.preview.index(host=host)
+    and async_client.preview.index(host=host).
+    """
+    from pinecone.preview import PreviewSchemaBuilder
+    from pinecone.preview.models import PreviewIndexModel, PreviewTextQuery
+    from tests.integration.conftest import poll_until
+
+    if not preview_available:
+        yield None
+        return
+
+    name = unique_name("pvt037-fts")
+    namespace = "pvt037-shared-ns"
+
+    read_capacity = {
+        "mode": "Dedicated",
+        "dedicated": {
+            "node_type": "t1",
+            "scaling": "Manual",
+            "manual": {"shards": 1, "replicas": 1},
+        },
+    }
+    schema = (
+        PreviewSchemaBuilder()
+        .add_string_field("text", full_text_searchable=True)
+        .add_integer_field("year", filterable=True)
+        .build()
+    )
+
+    try:
+        client.preview.indexes.create(name=name, schema=schema, read_capacity=read_capacity)
+
+        poll_until(
+            lambda: client.preview.indexes.describe(name),
+            lambda m: isinstance(m, PreviewIndexModel) and m.status.state == "Ready",
+            timeout=300,
+            interval=5,
+            description=f"shared FTS index {name} ready",
+        )
+
+        model = client.preview.indexes.describe(name)
+        host = model.host
+
+        idx = client.preview.index(host=host)
+        idx.documents.upsert(
+            namespace=namespace,
+            documents=[
+                {"_id": "pvt037-a", "text": "ancient Rome civilization", "year": 100},
+                {"_id": "pvt037-b", "text": "medieval Europe castles", "year": 1200},
+            ],
+        )
+
+        poll_until(
+            lambda: idx.documents.search(
+                namespace=namespace,
+                top_k=5,
+                score_by=[PreviewTextQuery(field="text", query="ancient Rome")],
+                include_fields=["text", "year"],
+            ),
+            lambda r: len(r.matches) > 0,
+            timeout=300,
+            interval=5,
+            description="shared FTS docs searchable",
+        )
+
+        yield host, namespace
+
+    except Exception:
+        yield None
+
+    finally:
+        cleanup_resource(
+            lambda: client.preview.indexes.delete(name),
+            name,
+            "shared FTS index",
+        )

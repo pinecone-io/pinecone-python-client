@@ -2626,3 +2626,97 @@ async def test_async_describe_fts_string_field_server_applied_defaults(
     assert text_field.max_term_len == 40, (
         f"spec §1: server default for 'max_term_len' is 40, got {text_field.max_term_len!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# test_async_preview_document_model_attributes_after_fts_search — §7
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+async def test_async_preview_document_model_attributes_after_fts_search(
+    async_client: AsyncPinecone,
+    fts_index_state: tuple[str, str] | None,
+    require_preview: None,
+) -> None:
+    """Async parity: verify PreviewDocument attribute access after FTS search with real matches.
+
+    Spec §7: .id, ._id alias, .score, __getattr__ dynamic field, .get(key),
+    .get(key, default) for missing keys, .to_dict(), .to_json().
+
+    Reuses the session-scoped fts_index_state fixture (sync-created, warmed once per
+    session). The async client connects to the same index by host to avoid per-test
+    FTS cold-start latency. PVT-024 documented this gap.
+    """
+    import json
+
+    if fts_index_state is None:
+        pytest.skip("FTS index unavailable — preview endpoint unreachable or cold-start timeout")
+
+    host, namespace = fts_index_state
+    idx = async_client.preview.index(host=host)
+
+    response = await idx.documents.search(
+        namespace=namespace,
+        top_k=5,
+        score_by=[PreviewTextQuery(field="text", query="ancient Rome")],
+        include_fields=["text", "year"],
+    )
+
+    assert len(response.matches) > 0, (
+        "Expected at least one FTS match for 'ancient Rome' (session fixture confirmed searchable)"
+    )
+    doc = response.matches[0]
+
+    # §7: id and _id alias must both return the same non-empty string
+    assert isinstance(doc.id, str), f"doc.id must be str, got {type(doc.id)}"
+    assert doc._id == doc.id, f"doc._id must alias doc.id: {doc._id!r} != {doc.id!r}"
+    assert len(doc.id) > 0, "doc.id must be non-empty"
+
+    # §7: score is a positive float for a real FTS match
+    assert doc.score is not None, "doc.score must not be None for an FTS match"
+    assert isinstance(doc.score, float), f"doc.score must be float, got {type(doc.score)}"
+    assert doc.score > 0, f"doc.score must be positive for a real match, got {doc.score}"
+
+    # §7: __getattr__ dynamic field access
+    text_val = doc.text
+    assert isinstance(text_val, str), f"doc.text via __getattr__ must be str, got {type(text_val)}"
+    year_val = doc.year
+    # Integer filterable fields arrive as JSON numbers; msgspec dict[str, Any] may
+    # deserialize them as int or float depending on the server's wire representation.
+    assert isinstance(year_val, (int, float)), (
+        f"doc.year via __getattr__ must be a number, got {type(year_val)}"
+    )
+
+    # §7: .get(key) returns same value as attribute access
+    assert doc.get("text") == text_val, (
+        f"doc.get('text') must equal doc.text: {doc.get('text')!r} != {text_val!r}"
+    )
+    assert doc.get("year") == year_val, (
+        f"doc.get('year') must equal doc.year: {doc.get('year')!r} != {year_val!r}"
+    )
+
+    # §7: .get(missing_key, default) returns the default
+    sentinel = object()
+    assert doc.get("nonexistent_field", sentinel) is sentinel, (
+        "doc.get('nonexistent_field', sentinel) must return default for missing field"
+    )
+
+    # §7: to_dict() returns a plain dict with the raw API data
+    d = doc.to_dict()
+    assert isinstance(d, dict), f"doc.to_dict() must return dict, got {type(d)}"
+    id_key = "_id" if "_id" in d else "id"
+    assert id_key in d, f"to_dict() must include an id key ('_id' or 'id'), keys: {set(d.keys())}"
+    assert "score" in d, f"to_dict() must include 'score', keys: {set(d.keys())}"
+    assert "text" in d, f"to_dict() must include 'text' (from include_fields), keys: {set(d.keys())}"
+    assert d[id_key] == doc.id, f"to_dict()[{id_key!r}] must equal doc.id: {d[id_key]!r}"
+    assert d["score"] == doc.score, "to_dict()['score'] must equal doc.score"
+
+    # §7: to_json() returns valid JSON round-trippable to same content as to_dict()
+    j = doc.to_json()
+    assert isinstance(j, str), f"doc.to_json() must return str, got {type(j)}"
+    parsed = json.loads(j)
+    assert isinstance(parsed, dict), "doc.to_json() must parse to a dict"
+    assert parsed[id_key] == doc.id, f"to_json() parsed {id_key!r} must equal doc.id"
+    assert parsed["score"] == doc.score, "to_json() parsed score must equal doc.score"

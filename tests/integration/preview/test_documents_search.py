@@ -1107,7 +1107,7 @@ def test_sparse_vector_schema_and_query_accepted(
 @pytest.mark.timeout(300)
 def test_preview_document_model_attributes_after_fts_search(
     client: Pinecone,
-    fts_index_state: "tuple[str, str] | None",
+    fts_index_state: tuple[str, str] | None,
     require_preview: None,
 ) -> None:
     """Verify PreviewDocument attribute access after a real FTS search with actual matches.
