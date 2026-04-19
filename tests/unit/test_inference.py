@@ -388,3 +388,52 @@ def test_get_model_success(inference: Inference) -> None:
 def test_get_model_empty_name_raises(inference: Inference) -> None:
     with pytest.raises(ValidationError, match="non-empty"):
         inference.get_model(model_name="")
+
+
+# ---------------------------------------------------------------------------
+# model cached_property / ModelResource
+# ---------------------------------------------------------------------------
+
+
+def test_inference_model_cached_property(config: PineconeConfig) -> None:
+    inference = Inference(config=config)
+    assert inference.model is inference.model
+
+
+@respx.mock
+def test_inference_model_list(inference: Inference) -> None:
+    route = respx.get(f"{BASE_URL}/models").mock(
+        return_value=httpx.Response(200, json=make_model_list_response()),
+    )
+
+    result = inference.model.list()
+
+    assert isinstance(result, ModelInfoList)
+    assert len(result) == 2
+    assert route.called
+
+
+@respx.mock
+def test_inference_model_list_with_filters(inference: Inference) -> None:
+    route = respx.get(f"{BASE_URL}/models").mock(
+        return_value=httpx.Response(200, json=make_model_list_response()),
+    )
+
+    inference.model.list(type="embed", vector_type="dense")
+
+    request = route.calls[0].request
+    assert request.url.params["type"] == "embed"
+    assert request.url.params["vector_type"] == "dense"
+
+
+@respx.mock
+def test_inference_model_get(inference: Inference) -> None:
+    route = respx.get(f"{BASE_URL}/models/multilingual-e5-large").mock(
+        return_value=httpx.Response(200, json=make_model_info()),
+    )
+
+    result = inference.model.get("multilingual-e5-large")
+
+    assert isinstance(result, ModelInfo)
+    assert result.model == "multilingual-e5-large"
+    assert route.called
