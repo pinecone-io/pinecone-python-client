@@ -781,3 +781,46 @@ def test_index_model_bracket_access_on_real_describe(client: Pinecone) -> None:
             index_name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# back-compat shim — Pinecone.create_index_for_model()
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(400)
+def test_create_index_for_model_shim_emits_warning(client: Pinecone) -> None:
+    """create_index_for_model() emits DeprecationWarning and produces an index matching the direct path.
+
+    Verifies:
+    - The deprecated shim raises DeprecationWarning with 'create_index_for_model' in the message.
+    - Passing embed as a plain dict is normalised correctly (dict → EmbedConfig path).
+    - The returned IndexModel matches the shape produced by the direct IntegratedSpec path in DX-0070.
+    """
+    name = unique_name("shim")
+    try:
+        with pytest.warns(DeprecationWarning, match="create_index_for_model"):
+            model = client.create_index_for_model(
+                name=name,
+                cloud="aws",
+                region="us-east-1",
+                embed={
+                    "model": "llama-text-embed-v2",
+                    "field_map": {"text": "chunk_text"},
+                    "metric": "cosine",
+                },
+                timeout=300,
+            )
+
+        assert model.name == name
+        assert model.status.ready is True
+        assert model.embed is not None
+        assert model.embed.model == "llama-text-embed-v2"
+        assert model.embed.field_map["text"] == "chunk_text"
+    finally:
+        cleanup_resource(
+            lambda: client.indexes.delete(name),
+            name,
+            "index",
+        )
