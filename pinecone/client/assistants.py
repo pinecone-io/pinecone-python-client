@@ -36,7 +36,9 @@ from pinecone.models.assistant.message import Message
 from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.assistant.options import ContextOptions
 from pinecone.models.assistant.streaming import (
+    ChatCompletionStream,
     ChatCompletionStreamChunk,
+    ChatStream,
     ChatStreamChunk,
 )
 from pinecone.models.pagination import Page, Paginator
@@ -1088,7 +1090,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         json_response: bool = False,
         include_highlights: bool = False,
         context_options: ContextOptions | dict[str, Any] | None = None,
-    ) -> ChatResponse | Iterator[ChatStreamChunk]:
+    ) -> ChatResponse | ChatStream:
         """Chat with an assistant and receive citations in Pinecone-native format.
 
         Args:
@@ -1097,7 +1099,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                 Dicts are converted to :class:`Message` objects; role defaults
                 to ``"user"`` when not present.
             model (str): Large language model to use. Defaults to ``"gpt-4o"``.
-            stream (bool): If ``True``, return a streaming iterator. Defaults
+            stream (bool): If ``True``, return a :class:`ChatStream`. Defaults
                 to ``False``.
             temperature (float | None): Controls randomness. Lower values produce
                 more deterministic responses. Omitted from request when ``None``.
@@ -1111,8 +1113,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                 controlling context retrieval. Omitted from request when ``None``.
 
         Returns:
-            :class:`ChatResponse` for non-streaming requests, or an
-            :class:`Iterator[ChatStreamChunk]` for streaming requests.
+            :class:`ChatResponse` for non-streaming requests, or a
+            :class:`ChatStream` for streaming requests.
 
         Raises:
             :exc:`PineconeValueError`: If both ``stream=True`` and
@@ -1128,6 +1130,16 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             ...     assistant_name="my-assistant",
             ...     messages=[{"content": "What is Pinecone?"}],
             ... )
+
+            Streaming chat:
+
+            >>> stream = pc.assistants.chat(
+            ...     assistant_name="my-assistant",
+            ...     messages=[{"content": "What is Pinecone?"}],
+            ...     stream=True,
+            ... )
+            >>> for text in stream.text():
+            ...     print(text, end="", flush=True)
         """
         if stream and json_response:
             raise PineconeValueError("json_response cannot be used with stream=True")
@@ -1162,7 +1174,9 @@ class Assistants(AssistantsLegacyNamespaceMixin):
 
         http = self._data_plane_http(assistant_name)
         if stream:
-            return self._chat_streaming(http=http, url=f"/chat/{assistant_name}", body=body)
+            return ChatStream(
+                self._chat_streaming(http=http, url=f"/chat/{assistant_name}", body=body)
+            )
 
         response = http.post(f"/chat/{assistant_name}", json=body)
         return self._adapter.to_chat_response(response.content)
@@ -1176,7 +1190,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         stream: bool = False,
         temperature: float | None = None,
         filter: dict[str, Any] | None = None,
-    ) -> ChatCompletionResponse | Iterator[ChatCompletionStreamChunk]:
+    ) -> ChatCompletionResponse | ChatCompletionStream:
         """Chat with an assistant using an OpenAI-compatible interface.
 
         Returns responses in OpenAI chat completion format. Useful when you
@@ -1197,16 +1211,16 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                 to ``"user"`` when not present.
             model (str): Large language model to use. Defaults to ``"gpt-4o"``.
                 Not validated client-side — any string is accepted.
-            stream (bool): If ``True``, return a streaming iterator. Defaults
-                to ``False``.
+            stream (bool): If ``True``, return a :class:`ChatCompletionStream`.
+                Defaults to ``False``.
             temperature (float | None): Controls randomness. Lower values produce
                 more deterministic responses. Omitted from request when ``None``.
             filter (dict[str, Any] | None): Metadata filter restricting which
                 documents are used as context. Omitted from request when ``None``.
 
         Returns:
-            :class:`ChatCompletionResponse` for non-streaming requests, or an
-            :class:`Iterator[ChatCompletionStreamChunk]` for streaming requests.
+            :class:`ChatCompletionResponse` for non-streaming requests, or a
+            :class:`ChatCompletionStream` for streaming requests.
 
         Raises:
             :exc:`ApiError`: If the API returns an error response.
@@ -1250,7 +1264,9 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         http = self._data_plane_http(assistant_name)
         if stream:
             url = f"/chat/{assistant_name}/chat/completions"
-            return self._chat_completions_streaming(http=http, url=url, body=body)
+            return ChatCompletionStream(
+                self._chat_completions_streaming(http=http, url=url, body=body)
+            )
 
         response = http.post(f"/chat/{assistant_name}/chat/completions", json=body)
         return self._adapter.to_chat_completion_response(response.content)

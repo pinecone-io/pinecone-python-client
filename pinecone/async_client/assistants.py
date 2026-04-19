@@ -39,6 +39,8 @@ from pinecone.models.assistant.message import Message
 from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.assistant.options import ContextOptions
 from pinecone.models.assistant.streaming import (
+    AsyncChatCompletionStream,
+    AsyncChatStream,
     ChatCompletionStreamChunk,
     ChatStreamChunk,
 )
@@ -1097,7 +1099,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         json_response: bool = False,
         include_highlights: bool = False,
         context_options: ContextOptions | dict[str, Any] | None = None,
-    ) -> ChatResponse | AsyncIterator[ChatStreamChunk]:
+    ) -> ChatResponse | AsyncChatStream:
         """Chat with an assistant and receive citations in Pinecone-native format.
 
         Args:
@@ -1106,7 +1108,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 Dicts are converted to :class:`Message` objects; role defaults
                 to ``"user"`` when not present.
             model (str): Large language model to use. Defaults to ``"gpt-4o"``.
-            stream (bool): If ``True``, return an async streaming iterator.
+            stream (bool): If ``True``, return an :class:`AsyncChatStream`.
                 Defaults to ``False``.
             temperature (float | None): Controls randomness. Lower values produce
                 more deterministic responses. Omitted from request when ``None``.
@@ -1121,12 +1123,37 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Returns:
             :class:`ChatResponse` for non-streaming requests, or an
-            :class:`AsyncIterator[ChatStreamChunk]` for streaming requests.
+            :class:`AsyncChatStream` for streaming requests.
 
         Raises:
             :exc:`PineconeValueError`: If both ``stream=True`` and
                 ``json_response=True`` are specified.
             :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+            Non-streaming chat:
+
+            >>> import asyncio
+            >>> from pinecone import AsyncPinecone
+            >>> pc = AsyncPinecone(api_key="your-api-key")
+            >>> async def main() -> None:
+            ...     response = await pc.assistants.chat(
+            ...         assistant_name="my-assistant",
+            ...         messages=[{"content": "What is Pinecone?"}],
+            ...     )
+            >>> asyncio.run(main())
+
+            Streaming chat:
+
+            >>> async def stream_main() -> None:
+            ...     stream = await pc.assistants.chat(
+            ...         assistant_name="my-assistant",
+            ...         messages=[{"content": "What is Pinecone?"}],
+            ...         stream=True,
+            ...     )
+            ...     async for text in stream.text():
+            ...         print(text, end="", flush=True)
+            >>> asyncio.run(stream_main())
         """
         if stream and json_response:
             raise PineconeValueError("json_response cannot be used with stream=True")
@@ -1161,8 +1188,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         data_http = await self._data_plane_http(assistant_name)
 
         if stream:
-            return self._chat_streaming(
-                data_http=data_http, url=f"/chat/{assistant_name}", body=body
+            return AsyncChatStream(
+                self._chat_streaming(data_http=data_http, url=f"/chat/{assistant_name}", body=body)
             )
 
         response = await data_http.post(f"/chat/{assistant_name}", json=body)
@@ -1224,7 +1251,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         stream: bool = False,
         temperature: float | None = None,
         filter: dict[str, Any] | None = None,
-    ) -> ChatCompletionResponse | AsyncIterator[ChatCompletionStreamChunk]:
+    ) -> ChatCompletionResponse | AsyncChatCompletionStream:
         """Chat with an assistant using an OpenAI-compatible interface.
 
         Returns responses in OpenAI chat completion format. Useful when you
@@ -1297,10 +1324,12 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         data_http = await self._data_plane_http(assistant_name)
 
         if stream:
-            return self._chat_completions_streaming(
-                data_http=data_http,
-                url=f"/chat/{assistant_name}/chat/completions",
-                body=body,
+            return AsyncChatCompletionStream(
+                self._chat_completions_streaming(
+                    data_http=data_http,
+                    url=f"/chat/{assistant_name}/chat/completions",
+                    body=body,
+                )
             )
 
         response = await data_http.post(f"/chat/{assistant_name}/chat/completions", json=body)

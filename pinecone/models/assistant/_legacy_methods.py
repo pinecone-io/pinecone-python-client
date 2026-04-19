@@ -20,8 +20,6 @@ from __future__ import annotations
 from typing import IO, TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
-
     from pinecone.client.assistants import Assistants
     from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
     from pinecone.models.assistant.context import ContextResponse
@@ -29,7 +27,10 @@ if TYPE_CHECKING:
     from pinecone.models.assistant.list import ListFilesResponse
     from pinecone.models.assistant.message import Message
     from pinecone.models.assistant.options import ContextOptions
-    from pinecone.models.assistant.streaming import ChatCompletionStreamChunk, ChatStreamChunk
+    from pinecone.models.assistant.streaming import (
+        ChatCompletionStream,
+        ChatStream,
+    )
 
 
 class AssistantModelLegacyMethodsMixin:
@@ -203,7 +204,7 @@ class AssistantModelLegacyMethodsMixin:
         model: str | None = None,
         temperature: float | None = None,
         **kwargs: Any,
-    ) -> ChatCompletionResponse | Iterator[ChatCompletionStreamChunk]:
+    ) -> ChatCompletionResponse | ChatCompletionStream:
         """Deprecated alias for :meth:`Assistants.chat_completions`."""
         ns = self._resolve_assistants()
         return ns.chat_completions(
@@ -271,7 +272,7 @@ class AssistantModelLegacyMethodsMixin:
         include_highlights: bool = False,
         context_options: ContextOptions | dict[str, Any] | None = None,
         **kwargs: Any,
-    ) -> ChatResponse | Iterator[ChatStreamChunk]:
+    ) -> ChatResponse | ChatStream:
         """Deprecated alias for :meth:`Assistants.chat`."""
         ns = self._resolve_assistants()
         return ns.chat(

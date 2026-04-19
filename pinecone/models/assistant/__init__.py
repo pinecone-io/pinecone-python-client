@@ -36,9 +36,13 @@ from pinecone.models.assistant.message import Message
 from pinecone.models.assistant.model import AssistantModel
 from pinecone.models.assistant.options import ContextOptions
 from pinecone.models.assistant.streaming import (
+    AsyncChatCompletionStream,
+    AsyncChatStream,
+    ChatCompletionStream,
     ChatCompletionStreamChoice,
     ChatCompletionStreamChunk,
     ChatCompletionStreamDelta,
+    ChatStream,
     ChatStreamChunk,
     StreamCitationChunk,
     StreamContentChunk,
@@ -130,9 +134,12 @@ __all__ = [
     "AlignmentScores",
     "AssistantFileModel",
     "AssistantModel",
+    "AsyncChatCompletionStream",
+    "AsyncChatStream",
     "ChatCitation",
     "ChatCompletionChoice",
     "ChatCompletionResponse",
+    "ChatCompletionStream",
     "ChatCompletionStreamChoice",
     "ChatCompletionStreamChunk",
     "ChatCompletionStreamDelta",
@@ -140,6 +147,7 @@ __all__ = [
     "ChatMessage",
     "ChatReference",
     "ChatResponse",
+    "ChatStream",
     "ChatStreamChunk",
     "ChatUsage",
     "Citation",  # deprecated alias for ChatCitation
