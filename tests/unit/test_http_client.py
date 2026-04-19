@@ -525,6 +525,43 @@ class TestHTTPClientTransportErrors:
             with pytest.raises(PineconeConnectionError):
                 client.delete("/indexes/foo")
 
+    def test_transport_error_on_post(self) -> None:
+        client = _make_sync_client()
+        with respx.mock:
+            respx.post(f"{BASE_URL}/v").mock(side_effect=httpx.ConnectError("dns fail"))
+            with pytest.raises(PineconeConnectionError) as exc_info:
+                client.post("/v", json={"x": 1})
+            assert isinstance(exc_info.value.__cause__, httpx.ConnectError)
+
+    def test_timeout_on_put(self) -> None:
+        client = _make_sync_client()
+        with respx.mock:
+            respx.put(f"{BASE_URL}/v").mock(side_effect=httpx.ReadTimeout("put timeout"))
+            with pytest.raises(PineconeTimeoutError):
+                client.put("/v", json={"x": 1})
+
+    def test_timeout_on_patch(self) -> None:
+        client = _make_sync_client()
+        with respx.mock:
+            respx.patch(f"{BASE_URL}/v").mock(side_effect=httpx.ConnectTimeout("patch timeout"))
+            with pytest.raises(PineconeTimeoutError):
+                client.patch("/v", json={"x": 1})
+
+    def test_timeout_on_delete(self) -> None:
+        client = _make_sync_client()
+        with respx.mock:
+            respx.delete(f"{BASE_URL}/v").mock(side_effect=httpx.ReadTimeout("delete timeout"))
+            with pytest.raises(PineconeTimeoutError):
+                client.delete("/v")
+
+    def test_transport_error_during_stream_is_wrapped(self) -> None:
+        client = _make_sync_client()
+        with respx.mock:
+            respx.get(f"{BASE_URL}/stream").mock(side_effect=httpx.ReadTimeout("stream timeout"))
+            with pytest.raises(PineconeTimeoutError):
+                with client.stream("GET", "/stream"):
+                    pass
+
 
 class TestTransportErrorHierarchy:
     def test_timeout_error_is_pinecone_error(self) -> None:
@@ -593,6 +630,64 @@ class TestAsyncHTTPClientTransportErrors:
             )
             with pytest.raises(PineconeConnectionError):
                 await client.patch("/indexes/idx", json={"replicas": 2})
+
+    @pytest.mark.asyncio
+    async def test_async_transport_error_on_post(self) -> None:
+        client = _make_async_client()
+        with respx.mock:
+            respx.post(f"{BASE_URL}/v").mock(side_effect=httpx.ConnectError("dns fail"))
+            with pytest.raises(PineconeConnectionError) as exc_info:
+                await client.post("/v", json={"x": 1})
+            assert isinstance(exc_info.value.__cause__, httpx.ConnectError)
+
+    @pytest.mark.asyncio
+    async def test_async_timeout_on_put(self) -> None:
+        client = _make_async_client()
+        with respx.mock:
+            respx.put(f"{BASE_URL}/v").mock(side_effect=httpx.ReadTimeout("put timeout"))
+            with pytest.raises(PineconeTimeoutError):
+                await client.put("/v", json={"x": 1})
+
+    @pytest.mark.asyncio
+    async def test_async_timeout_on_patch(self) -> None:
+        client = _make_async_client()
+        with respx.mock:
+            respx.patch(f"{BASE_URL}/v").mock(side_effect=httpx.ConnectTimeout("patch timeout"))
+            with pytest.raises(PineconeTimeoutError):
+                await client.patch("/v", json={"x": 1})
+
+    @pytest.mark.asyncio
+    async def test_async_timeout_on_delete(self) -> None:
+        client = _make_async_client()
+        with respx.mock:
+            respx.delete(f"{BASE_URL}/v").mock(side_effect=httpx.ReadTimeout("delete timeout"))
+            with pytest.raises(PineconeTimeoutError):
+                await client.delete("/v")
+
+    @pytest.mark.asyncio
+    async def test_async_timeout_on_post(self) -> None:
+        client = _make_async_client()
+        with respx.mock:
+            respx.post(f"{BASE_URL}/v").mock(side_effect=httpx.ReadTimeout("post timeout"))
+            with pytest.raises(PineconeTimeoutError):
+                await client.post("/v", json={"x": 1})
+
+    @pytest.mark.asyncio
+    async def test_async_transport_error_on_delete(self) -> None:
+        client = _make_async_client()
+        with respx.mock:
+            respx.delete(f"{BASE_URL}/v").mock(side_effect=httpx.ConnectError("connection reset"))
+            with pytest.raises(PineconeConnectionError):
+                await client.delete("/v")
+
+    @pytest.mark.asyncio
+    async def test_async_transport_error_during_stream_is_wrapped(self) -> None:
+        client = _make_async_client()
+        with respx.mock:
+            respx.get(f"{BASE_URL}/stream").mock(side_effect=httpx.ReadTimeout("stream timeout"))
+            with pytest.raises(PineconeTimeoutError):
+                async with client.stream("GET", "/stream"):
+                    pass
 
 
 # ---------------------------------------------------------------------------
