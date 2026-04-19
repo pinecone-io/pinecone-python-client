@@ -44,7 +44,8 @@ def inference(config: PineconeConfig) -> AsyncInference:
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_async_embed_success(inference: AsyncInference) -> None:
+async def test_async_embed_returns_embeddings_list_with_model_and_usage(inference: AsyncInference) -> None:
+    """embed() returns an EmbeddingsList whose model, data, and usage fields reflect the response body."""
     route = respx.post(f"{BASE_URL}/embed").mock(
         return_value=httpx.Response(200, json=make_embed_response()),
     )
@@ -54,6 +55,7 @@ async def test_async_embed_success(inference: AsyncInference) -> None:
     assert isinstance(result, EmbeddingsList)
     assert result.model == "multilingual-e5-large"
     assert len(result.data) == 1
+    # Values + token count come from make_embed_response() factory.
     assert result.data[0].values == [0.1, 0.2, 0.3]
     assert result.usage.total_tokens == 205
     assert route.called
@@ -61,7 +63,8 @@ async def test_async_embed_success(inference: AsyncInference) -> None:
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_async_embed_single_string(inference: AsyncInference) -> None:
+async def test_async_embed_wraps_bare_string_input_as_text_dict(inference: AsyncInference) -> None:
+    """A bare string input is normalized to a one-element list of {"text": ...} dicts in the request body."""
     route = respx.post(f"{BASE_URL}/embed").mock(
         return_value=httpx.Response(200, json=make_embed_response()),
     )
@@ -103,7 +106,7 @@ async def test_async_embed_empty_model_raises(inference: AsyncInference) -> None
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_async_embed_with_parameters(inference: AsyncInference) -> None:
+async def test_async_embed_forwards_parameters_to_request_body(inference: AsyncInference) -> None:
     route = respx.post(f"{BASE_URL}/embed").mock(
         return_value=httpx.Response(200, json=make_embed_response()),
     )
@@ -120,7 +123,7 @@ async def test_async_embed_with_parameters(inference: AsyncInference) -> None:
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_async_embed_with_enum_model(inference: AsyncInference) -> None:
+async def test_async_embed_accepts_embed_model_enum(inference: AsyncInference) -> None:
     respx.post(f"{BASE_URL}/embed").mock(
         return_value=httpx.Response(200, json=make_embed_response()),
     )
@@ -137,7 +140,8 @@ async def test_async_embed_with_enum_model(inference: AsyncInference) -> None:
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_async_rerank_success(inference: AsyncInference) -> None:
+async def test_async_rerank_returns_rerank_result_with_model_and_usage(inference: AsyncInference) -> None:
+    """rerank() returns a RerankResult whose model, data, and usage fields reflect the response body."""
     route = respx.post(f"{BASE_URL}/rerank").mock(
         return_value=httpx.Response(200, json=make_rerank_response()),
     )
@@ -152,6 +156,7 @@ async def test_async_rerank_success(inference: AsyncInference) -> None:
     assert isinstance(result, RerankResult)
     assert result.model == "bge-reranker-v2-m3"
     assert len(result.data) == 2
+    # Score + unit count come from make_rerank_response() factory.
     assert result.data[0].score == 0.95
     assert result.usage.rerank_units == 1
     assert route.called
@@ -169,7 +174,7 @@ async def test_async_rerank_empty_docs_raises(inference: AsyncInference) -> None
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_async_rerank_string_documents(inference: AsyncInference) -> None:
+async def test_async_rerank_wraps_bare_string_documents_as_text_dicts(inference: AsyncInference) -> None:
     route = respx.post(f"{BASE_URL}/rerank").mock(
         return_value=httpx.Response(200, json=make_rerank_response()),
     )
@@ -186,7 +191,7 @@ async def test_async_rerank_string_documents(inference: AsyncInference) -> None:
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_async_rerank_default_rank_fields(inference: AsyncInference) -> None:
+async def test_async_rerank_defaults_rank_fields_to_text_when_omitted(inference: AsyncInference) -> None:
     route = respx.post(f"{BASE_URL}/rerank").mock(
         return_value=httpx.Response(200, json=make_rerank_response()),
     )
@@ -253,7 +258,7 @@ async def test_async_rerank_tuple_documents_raises(inference: AsyncInference) ->
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_async_rerank_with_enum_model(inference: AsyncInference) -> None:
+async def test_async_rerank_accepts_rerank_model_enum(inference: AsyncInference) -> None:
     respx.post(f"{BASE_URL}/rerank").mock(
         return_value=httpx.Response(200, json=make_rerank_response()),
     )

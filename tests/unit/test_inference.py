@@ -42,7 +42,8 @@ def inference(config: PineconeConfig) -> Inference:
 
 
 @respx.mock
-def test_embed_success(inference: Inference) -> None:
+def test_embed_returns_embeddings_list_with_model_and_usage(inference: Inference) -> None:
+    """embed() returns an EmbeddingsList whose model, data, and usage fields reflect the response body."""
     route = respx.post(f"{BASE_URL}/embed").mock(
         return_value=httpx.Response(200, json=make_embed_response()),
     )
@@ -52,6 +53,7 @@ def test_embed_success(inference: Inference) -> None:
     assert isinstance(result, EmbeddingsList)
     assert result.model == "multilingual-e5-large"
     assert len(result.data) == 1
+    # Values + token count come from make_embed_response() factory.
     assert result.data[0].values == [0.1, 0.2, 0.3]
     assert result.usage.total_tokens == 205
     assert route.called
@@ -59,6 +61,7 @@ def test_embed_success(inference: Inference) -> None:
 
 @respx.mock
 def test_embed_single_string_input(inference: Inference) -> None:
+    """A bare string input is normalized to a one-element list of {"text": ...} dicts in the request body."""
     route = respx.post(f"{BASE_URL}/embed").mock(
         return_value=httpx.Response(200, json=make_embed_response()),
     )
@@ -100,7 +103,7 @@ def test_embed_empty_model_raises(inference: Inference) -> None:
 
 
 @respx.mock
-def test_embed_with_parameters(inference: Inference) -> None:
+def test_embed_forwards_parameters_to_request_body(inference: Inference) -> None:
     route = respx.post(f"{BASE_URL}/embed").mock(
         return_value=httpx.Response(200, json=make_embed_response()),
     )
@@ -118,7 +121,7 @@ def test_embed_with_parameters(inference: Inference) -> None:
 
 
 @respx.mock
-def test_embed_with_enum_model(inference: Inference) -> None:
+def test_embed_accepts_embed_model_enum(inference: Inference) -> None:
     respx.post(f"{BASE_URL}/embed").mock(
         return_value=httpx.Response(200, json=make_embed_response()),
     )
@@ -134,7 +137,8 @@ def test_embed_with_enum_model(inference: Inference) -> None:
 
 
 @respx.mock
-def test_rerank_success(inference: Inference) -> None:
+def test_rerank_returns_rerank_result_with_model_and_usage(inference: Inference) -> None:
+    """rerank() returns a RerankResult whose model, data, and usage fields reflect the response body."""
     route = respx.post(f"{BASE_URL}/rerank").mock(
         return_value=httpx.Response(200, json=make_rerank_response()),
     )
@@ -149,13 +153,14 @@ def test_rerank_success(inference: Inference) -> None:
     assert isinstance(result, RerankResult)
     assert result.model == "bge-reranker-v2-m3"
     assert len(result.data) == 2
+    # Score + unit count come from make_rerank_response() factory.
     assert result.data[0].score == 0.95
     assert result.usage.rerank_units == 1
     assert route.called
 
 
 @respx.mock
-def test_rerank_string_documents(inference: Inference) -> None:
+def test_rerank_wraps_bare_string_documents_as_text_dicts(inference: Inference) -> None:
     route = respx.post(f"{BASE_URL}/rerank").mock(
         return_value=httpx.Response(200, json=make_rerank_response()),
     )
@@ -173,7 +178,7 @@ def test_rerank_string_documents(inference: Inference) -> None:
 
 
 @respx.mock
-def test_rerank_default_rank_fields(inference: Inference) -> None:
+def test_rerank_defaults_rank_fields_to_text_when_omitted(inference: Inference) -> None:
     route = respx.post(f"{BASE_URL}/rerank").mock(
         return_value=httpx.Response(200, json=make_rerank_response()),
     )
@@ -245,7 +250,7 @@ def test_rerank_mixed_types_raises(inference: Inference) -> None:
 
 
 @respx.mock
-def test_rerank_with_enum_model(inference: Inference) -> None:
+def test_rerank_accepts_rerank_model_enum(inference: Inference) -> None:
     respx.post(f"{BASE_URL}/rerank").mock(
         return_value=httpx.Response(200, json=make_rerank_response()),
     )
