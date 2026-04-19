@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 from concurrent.futures import (
     ALL_COMPLETED,
     FIRST_COMPLETED,
@@ -119,8 +118,6 @@ class TestDoneCallback:
         # Resolve the underlying future — callback should fire.
         underlying.set_result("value")
 
-        # Give a tiny window for the callback to execute.
-        time.sleep(0.05)
         assert len(results) == 1
         # The callback receives the PineconeFuture, not the underlying.
         assert results[0] is pf
@@ -132,7 +129,6 @@ class TestDoneCallback:
         results: list[object] = []
         pf.add_done_callback(lambda f: results.append(f.result()))
 
-        time.sleep(0.05)
         assert results == [99]
 
 
