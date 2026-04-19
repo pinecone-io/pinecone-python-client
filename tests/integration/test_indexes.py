@@ -7,7 +7,7 @@ import pytest
 from pinecone import GrpcIndex, Index, Pinecone
 from pinecone.errors import ForbiddenError, NotFoundError
 from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus
-from pinecone.models.indexes.specs import ServerlessSpec
+from pinecone.models.indexes.specs import EmbedConfig, IntegratedSpec, ServerlessSpec
 from tests.integration.conftest import cleanup_resource, unique_name
 
 # ---------------------------------------------------------------------------
@@ -67,6 +67,63 @@ def test_create_serverless_index_becomes_ready(client: Pinecone) -> None:
         assert model.deletion_protection == "disabled"
         assert isinstance(model.host, str)
         assert len(model.host) > 0
+    finally:
+        cleanup_resource(
+            lambda: client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
+# create-index — integrated (model-backed) dense
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(400)
+@pytest.mark.xfail(
+    reason="DX-0085: IndexModel missing embed field — API response embed is silently dropped by msgspec",
+    strict=True,
+)
+def test_create_integrated_dense_index_becomes_ready(client: Pinecone) -> None:
+    """Create an integrated dense index, wait for ready state, verify fields, then delete."""
+    name = unique_name("int")
+    try:
+        model = client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="llama-text-embed-v2",
+                    field_map={"text": "chunk_text"},
+                    metric="cosine",
+                ),
+            ),
+            timeout=300,
+        )
+
+        assert model.name == name
+        assert model.status.ready is True
+        assert model.status.state == "Ready"
+        assert model.dimension == 1024
+        assert model.metric == "cosine"
+        assert model.vector_type == "dense"
+        assert model.embed is not None
+        assert model.embed.model == "llama-text-embed-v2"
+        assert model.embed.field_map["text"] == "chunk_text"
+
+        desc = client.indexes.describe(name)
+        assert desc.name == name
+        assert desc.status.ready is True
+        assert desc.status.state == "Ready"
+        assert desc.dimension == 1024
+        assert desc.metric == "cosine"
+        assert desc.vector_type == "dense"
+        assert desc.embed is not None
+        assert desc.embed.model == "llama-text-embed-v2"
+        assert desc.embed.field_map["text"] == "chunk_text"
     finally:
         cleanup_resource(
             lambda: client.indexes.delete(name),
