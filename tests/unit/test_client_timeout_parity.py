@@ -33,6 +33,13 @@ _DATA_PLANE_METHODS = [
     "list",
 ]
 
+# Methods present on Index/AsyncIndex but not GrpcIndex — checked separately below
+_HTTP_ONLY_DATA_PLANE_METHODS = [
+    "query_namespaces",
+    "fetch_by_metadata",
+    "delete_namespace",
+]
+
 _QUERY_RESPONSE = {
     "matches": [{"id": "v1", "score": 0.9}],
     "namespace": "",
@@ -145,6 +152,67 @@ class TestIndexQueryAcceptsPerCallTimeout:
         idx = _make_index()
         idx.list_paginated(timeout=7.0)
 
+    @respx.mock
+    def test_index_query_namespaces_accepts_per_call_timeout(self) -> None:
+        respx.post(f"{INDEX_HOST_HTTPS}/query").mock(
+            return_value=httpx.Response(200, json=_QUERY_RESPONSE)
+        )
+        idx = _make_index()
+        idx.query_namespaces(
+            vector=[0.1, 0.2, 0.3],
+            namespaces=["ns1"],
+            metric="cosine",
+            timeout=5.0,
+        )
+
+    @respx.mock
+    def test_index_fetch_by_metadata_accepts_per_call_timeout(self) -> None:
+        respx.post(f"{INDEX_HOST_HTTPS}/vectors/fetch_by_metadata").mock(
+            return_value=httpx.Response(
+                200, json={"vectors": {}, "namespace": "", "usage": {"readUnits": 1}}
+            )
+        )
+        idx = _make_index()
+        idx.fetch_by_metadata(filter={"genre": {"$eq": "comedy"}}, timeout=3.0)
+
+    @respx.mock
+    def test_index_delete_namespace_accepts_per_call_timeout(self) -> None:
+        respx.delete(f"{INDEX_HOST_HTTPS}/namespaces/old-ns").mock(
+            return_value=httpx.Response(200, json={})
+        )
+        idx = _make_index()
+        idx.delete_namespace(name="old-ns", timeout=2.0)
+
+    @respx.mock
+    def test_index_query_namespaces_default_timeout_when_none(self) -> None:
+        respx.post(f"{INDEX_HOST_HTTPS}/query").mock(
+            return_value=httpx.Response(200, json=_QUERY_RESPONSE)
+        )
+        idx = _make_index()
+        idx.query_namespaces(
+            vector=[0.1, 0.2, 0.3],
+            namespaces=["ns1"],
+            metric="cosine",
+        )
+
+    @respx.mock
+    def test_index_fetch_by_metadata_default_timeout_when_none(self) -> None:
+        respx.post(f"{INDEX_HOST_HTTPS}/vectors/fetch_by_metadata").mock(
+            return_value=httpx.Response(
+                200, json={"vectors": {}, "namespace": "", "usage": {"readUnits": 1}}
+            )
+        )
+        idx = _make_index()
+        idx.fetch_by_metadata(filter={"genre": {"$eq": "comedy"}})
+
+    @respx.mock
+    def test_index_delete_namespace_default_timeout_when_none(self) -> None:
+        respx.delete(f"{INDEX_HOST_HTTPS}/namespaces/old-ns").mock(
+            return_value=httpx.Response(200, json={})
+        )
+        idx = _make_index()
+        idx.delete_namespace(name="old-ns")
+
 
 # ---------------------------------------------------------------------------
 # Async Index — per-call timeout forwarded
@@ -198,6 +266,73 @@ class TestAsyncIndexQueryAcceptsPerCallTimeout:
         )
         idx = _make_async_index()
         await idx.describe_index_stats(timeout=6.0)
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_index_query_namespaces_accepts_per_call_timeout(self) -> None:
+        respx.post(f"{INDEX_HOST_HTTPS}/query").mock(
+            return_value=httpx.Response(200, json=_QUERY_RESPONSE)
+        )
+        idx = _make_async_index()
+        await idx.query_namespaces(
+            vector=[0.1, 0.2, 0.3],
+            namespaces=["ns1"],
+            metric="cosine",
+            timeout=5.0,
+        )
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_index_fetch_by_metadata_accepts_per_call_timeout(self) -> None:
+        respx.post(f"{INDEX_HOST_HTTPS}/vectors/fetch_by_metadata").mock(
+            return_value=httpx.Response(
+                200, json={"vectors": {}, "namespace": "", "usage": {"readUnits": 1}}
+            )
+        )
+        idx = _make_async_index()
+        await idx.fetch_by_metadata(filter={"genre": {"$eq": "comedy"}}, timeout=3.0)
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_index_delete_namespace_accepts_per_call_timeout(self) -> None:
+        respx.delete(f"{INDEX_HOST_HTTPS}/namespaces/old-ns").mock(
+            return_value=httpx.Response(200, json={})
+        )
+        idx = _make_async_index()
+        await idx.delete_namespace(name="old-ns", timeout=2.0)
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_index_query_namespaces_default_timeout_when_none(self) -> None:
+        respx.post(f"{INDEX_HOST_HTTPS}/query").mock(
+            return_value=httpx.Response(200, json=_QUERY_RESPONSE)
+        )
+        idx = _make_async_index()
+        await idx.query_namespaces(
+            vector=[0.1, 0.2, 0.3],
+            namespaces=["ns1"],
+            metric="cosine",
+        )
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_index_fetch_by_metadata_default_timeout_when_none(self) -> None:
+        respx.post(f"{INDEX_HOST_HTTPS}/vectors/fetch_by_metadata").mock(
+            return_value=httpx.Response(
+                200, json={"vectors": {}, "namespace": "", "usage": {"readUnits": 1}}
+            )
+        )
+        idx = _make_async_index()
+        await idx.fetch_by_metadata(filter={"genre": {"$eq": "comedy"}})
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_index_delete_namespace_default_timeout_when_none(self) -> None:
+        respx.delete(f"{INDEX_HOST_HTTPS}/namespaces/old-ns").mock(
+            return_value=httpx.Response(200, json={})
+        )
+        idx = _make_async_index()
+        await idx.delete_namespace(name="old-ns")
 
 
 # ---------------------------------------------------------------------------
@@ -261,3 +396,9 @@ class TestAllDataPlaneMethodsAcceptTimeoutParity:
 
     def test_grpc_index_methods_have_timeout(self) -> None:
         self._check_methods(GrpcIndex, _DATA_PLANE_METHODS)
+
+    def test_index_http_only_methods_have_timeout(self) -> None:
+        self._check_methods(Index, _HTTP_ONLY_DATA_PLANE_METHODS)
+
+    def test_async_index_http_only_methods_have_timeout(self) -> None:
+        self._check_methods(AsyncIndex, _HTTP_ONLY_DATA_PLANE_METHODS)

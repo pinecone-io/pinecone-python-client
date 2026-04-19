@@ -430,6 +430,7 @@ class AsyncIndex:
         sparse_vector: SparseValues | dict[str, Any] | None = None,
         scan_factor: float | None = None,
         max_candidates: int | None = None,
+        timeout: float | None = None,
     ) -> QueryNamespacesResults:
         """Query multiple namespaces concurrently and return merged top results.
 
@@ -514,6 +515,7 @@ class AsyncIndex:
             "sparse_vector": sparse_vector,
             "scan_factor": scan_factor,
             "max_candidates": max_candidates,
+            "timeout": timeout,
         }
         if vector is not None:
             query_kwargs["vector"] = vector
@@ -580,6 +582,7 @@ class AsyncIndex:
         namespace: str = "",
         limit: int | None = None,
         pagination_token: str | None = None,
+        timeout: float | None = None,
     ) -> FetchByMetadataResponse:
         """Fetch vectors matching a metadata filter expression.
 
@@ -632,7 +635,7 @@ class AsyncIndex:
             body["paginationToken"] = pagination_token
 
         logger.info("Fetching vectors by metadata")
-        response = await self._http.post("/vectors/fetch_by_metadata", json=body)
+        response = await self._http.post("/vectors/fetch_by_metadata", timeout=timeout, json=body)
         result = self._adapter.to_fetch_by_metadata_response(response.content)
         result.response_info = extract_response_info(response)
         return result
@@ -1125,6 +1128,7 @@ class AsyncIndex:
         self,
         *,
         name: str,
+        timeout: float | None = None,
     ) -> None:
         """Delete a namespace by name, removing all its vectors.
 
@@ -1151,7 +1155,7 @@ class AsyncIndex:
             raise ValidationError("namespace name must be a non-empty string")
 
         logger.info("Deleting namespace %r", name)
-        await self._http.delete(f"/namespaces/{name}")
+        await self._http.delete(f"/namespaces/{name}", timeout=timeout)
 
     async def list_namespaces_paginated(
         self,
