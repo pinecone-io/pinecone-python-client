@@ -18,9 +18,11 @@ from pinecone.db_data.dataclasses.query_response import QueryResponse
 from pinecone.db_data.dataclasses.search_query import SearchQuery
 from pinecone.db_data.dataclasses.search_query_vector import SearchQueryVector
 from pinecone.db_data.dataclasses.search_rerank import SearchRerank
+from pinecone.db_data.dataclasses.sparse_values import SparseValues
 from pinecone.db_data.dataclasses.update_response import UpdateResponse
 from pinecone.db_data.dataclasses.upsert_response import UpsertResponse
 from pinecone.db_data.dataclasses.utils import DictLike
+from pinecone.db_data.dataclasses.vector import Vector
 
 __all__ = [
     "DictLike",
@@ -31,6 +33,8 @@ __all__ = [
     "SearchQuery",
     "SearchQueryVector",
     "SearchRerank",
+    "SparseValues",
     "UpdateResponse",
     "UpsertResponse",
+    "Vector",
 ]

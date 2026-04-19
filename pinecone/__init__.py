@@ -71,6 +71,8 @@ if TYPE_CHECKING:
     from pinecone.db_control.models.collection_description import CollectionDescription
     from pinecone.db_data.dataclasses.search_query import SearchQuery
     from pinecone.db_data.dataclasses.search_rerank import SearchRerank
+    from pinecone.db_data.dataclasses.sparse_values import SparseValues
+    from pinecone.db_data.dataclasses.vector import Vector
     from pinecone.errors.exceptions import (
         ApiError,
         ConflictError,
@@ -194,8 +196,6 @@ if TYPE_CHECKING:
         SearchResult,
         SearchUsage,
     )
-    from pinecone.models.vectors.sparse import SparseValues
-    from pinecone.models.vectors.vector import Vector
     from pinecone.utils.filter_builder import Field, FilterBuilder
 
 __version__ = "9.0.0"
@@ -506,7 +506,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "ServerlessSpec": ("pinecone.models.indexes.specs", "ServerlessSpec"),
     "ServerlessSpecInfo": ("pinecone.models.indexes.index", "ServerlessSpecInfo"),
     "SparseEmbedding": ("pinecone.models.inference.embed", "SparseEmbedding"),
-    "SparseValues": ("pinecone.models.vectors.sparse", "SparseValues"),
+    "SparseValues": ("pinecone.db_data.dataclasses.sparse_values", "SparseValues"),
     "StartImportResponse": (
         "pinecone.models.imports.model",
         "StartImportResponse",
@@ -527,7 +527,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
         "UpsertRecordsResponse",
     ),
     "UpsertResponse": ("pinecone.models.vectors.responses", "UpsertResponse"),
-    "Vector": ("pinecone.models.vectors.vector", "Vector"),
+    "Vector": ("pinecone.db_data.dataclasses.vector", "Vector"),
     "VectorType": ("pinecone.models.enums", "VectorType"),
 }
 
