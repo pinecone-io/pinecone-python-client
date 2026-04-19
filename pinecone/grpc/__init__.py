@@ -231,7 +231,7 @@ class GrpcIndex:
                 raise UnauthorizedError(msg) from exc
             if "PERMISSION_DENIED" in msg:
                 raise ForbiddenError(msg) from exc
-            if "DEADLINE_EXCEEDED" in msg:
+            if "DEADLINE_EXCEEDED" in msg or ("CANCELLED" in msg and "Timeout" in msg):
                 raise PineconeTimeoutError(msg) from exc
             if "ALREADY_EXISTS" in msg:
                 raise ConflictError(msg, status_code=409) from exc

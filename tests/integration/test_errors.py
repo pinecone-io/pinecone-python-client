@@ -9,9 +9,16 @@ from __future__ import annotations
 import pytest
 
 from pinecone import GrpcIndex, Index, Pinecone, PineconeValueError
-from pinecone.errors import ApiError, ConflictError, NotFoundError, PineconeError, UnauthorizedError
+from pinecone.errors import (
+    ApiError,
+    ConflictError,
+    NotFoundError,
+    PineconeError,
+    PineconeTimeoutError,
+    UnauthorizedError,
+)
 from pinecone.models.indexes.specs import ServerlessSpec
-from tests.integration.conftest import cleanup_resource, unique_name
+from tests.integration.conftest import cleanup_resource, poll_until, unique_name
 
 # ---------------------------------------------------------------------------
 # error-bad-api-key
@@ -613,3 +620,59 @@ def test_exception_catch_hierarchy_rest(client: Pinecone) -> None:
     assert caught, (
         "NotFoundError (ApiError subclass) must be catchable as PineconeError (unified-err-0001)"
     )
+
+
+# ---------------------------------------------------------------------------
+# error-grpc-deadline-exceeded  (grpc-timeout-0001)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_grpc_query_too_short_timeout_raises(client: Pinecone) -> None:
+    """A gRPC query with a sub-millisecond per-call timeout raises PineconeTimeoutError.
+
+    Verifies that:
+    1. The per-call timeout knob on GrpcIndex.query() is wired through to the
+       Rust transport (timeout_s= parameter on GrpcChannelProtocol.query).
+    2. When the deadline fires, the Rust channel raises an exception containing
+       DEADLINE_EXCEEDED, which _call_channel maps to PineconeTimeoutError.
+    3. A subsequent query with a generous timeout succeeds — confirming the
+       timeout is per-call and does not permanently break the channel.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=3,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        grpc_idx = client.index(name=name, grpc=True)
+
+        grpc_idx.upsert(
+            vectors=[
+                ("t1", [0.1, 0.2, 0.3]),
+                ("t2", [0.4, 0.5, 0.6]),
+                ("t3", [0.7, 0.8, 0.9]),
+            ]
+        )
+
+        # Wait until the upserted vectors are queryable
+        poll_until(
+            lambda: grpc_idx.query(vector=[0.1, 0.2, 0.3], top_k=3),
+            lambda r: len(r.matches) > 0,
+            timeout=60,
+            description="vectors queryable via gRPC",
+        )
+
+        # Sub-microsecond deadline — must fire before the server responds
+        with pytest.raises(PineconeTimeoutError):
+            grpc_idx.query(vector=[0.1, 0.2, 0.3], top_k=3, timeout=0.000001)
+
+        # Generous timeout: proves the channel is healthy and the knob is per-call
+        result = grpc_idx.query(vector=[0.1, 0.2, 0.3], top_k=3, timeout=30)
+        assert result.matches is not None
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
