@@ -4,12 +4,18 @@ from __future__ import annotations
 
 from typing import Any
 
+import httpx
 import pytest
 import respx
 from httpx import Response
 
 from pinecone.admin.admin import _OAUTH_URL, Admin
-from pinecone.errors.exceptions import ApiError, ValidationError
+from pinecone.errors.exceptions import (
+    ApiError,
+    PineconeConnectionError,
+    PineconeTimeoutError,
+    ValidationError,
+)
 
 
 def _token_response(token: str = "test-access-token") -> dict[str, Any]:
@@ -279,3 +285,62 @@ class TestAdminContextManager:
 
         with Admin(client_id="test-id", client_secret="test-secret") as admin:
             assert admin._http is not None
+
+
+class TestAdminOAuthNetworkErrors:
+    """Test network-level errors during OAuth token fetch."""
+
+    @respx.mock
+    def test_oauth_network_read_timeout_raises_pinecone_timeout_error(self) -> None:
+        respx.post(_OAUTH_URL).mock(side_effect=httpx.ReadTimeout("read timed out"))
+
+        with pytest.raises(PineconeTimeoutError, match="read timed out") as exc_info:
+            Admin(client_id="test-id", client_secret="test-secret")
+
+        assert isinstance(exc_info.value.__cause__, httpx.ReadTimeout)
+
+    @respx.mock
+    def test_oauth_network_connect_error_raises_pinecone_connection_error(self) -> None:
+        respx.post(_OAUTH_URL).mock(side_effect=httpx.ConnectError("connection refused"))
+
+        with pytest.raises(PineconeConnectionError, match="connection refused") as exc_info:
+            Admin(client_id="test-id", client_secret="test-secret")
+
+        assert isinstance(exc_info.value.__cause__, httpx.ConnectError)
+
+    @respx.mock
+    def test_oauth_network_pool_timeout_raises_pinecone_timeout_error(self) -> None:
+        respx.post(_OAUTH_URL).mock(side_effect=httpx.PoolTimeout("pool exhausted"))
+
+        with pytest.raises(PineconeTimeoutError):
+            Admin(client_id="test-id", client_secret="test-secret")
+
+
+class TestAdminOAuthNonJsonErrorBody:
+    """Test error handling when OAuth error response body is not valid JSON."""
+
+    @respx.mock
+    def test_oauth_non_json_error_with_html_body_falls_back_to_default_message(self) -> None:
+        respx.post(_OAUTH_URL).mock(
+            return_value=Response(
+                502,
+                text="<html>Bad Gateway</html>",
+                headers={"content-type": "text/html"},
+            )
+        )
+
+        with pytest.raises(ApiError, match="OAuth token request failed") as exc_info:
+            Admin(client_id="test-id", client_secret="test-secret")
+
+        assert exc_info.value.status_code == 502
+        assert exc_info.value.body is None
+
+    @respx.mock
+    def test_oauth_non_json_error_with_empty_body_falls_back_to_default_message(self) -> None:
+        respx.post(_OAUTH_URL).mock(return_value=Response(500, text=""))
+
+        with pytest.raises(ApiError, match="OAuth token request failed") as exc_info:
+            Admin(client_id="test-id", client_secret="test-secret")
+
+        assert exc_info.value.status_code == 500
+        assert exc_info.value.body is None
