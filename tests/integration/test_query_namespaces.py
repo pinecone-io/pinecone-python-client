@@ -596,3 +596,119 @@ def test_query_namespaces_include_values_rest(client: Pinecone) -> None:
             )
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-sparse — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.xfail(
+    reason=(
+        "query_namespaces() requires non-empty 'vector' kwarg even for sparse-only indexes; "
+        "sparse queries without a dense vector raise TypeError. "
+        "Fix: make 'vector' optional and allow sparse-only queries. "
+        "See follow-up task DX-0086."
+    ),
+    strict=True,
+)
+def test_query_namespaces_sparse_rest(client: Pinecone) -> None:
+    """query_namespaces() with sparse_vector on a sparse dotproduct index returns merged results (REST sync).
+
+    Verifies that a sparse-only index can be queried across multiple namespaces
+    using only sparse_vector (no dense vector), with results merged and sorted
+    by dotproduct score (descending) and per-namespace usage populated.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            vector_type="sparse",
+            metric="dotproduct",
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert sparse-only vectors into two namespaces
+        index.upsert(
+            vectors=[
+                {
+                    "id": "qns-ns1-v1",
+                    "sparse_values": {"indices": [0, 1, 2], "values": [0.5, 0.8, 0.3]},
+                },
+                {
+                    "id": "qns-ns1-v2",
+                    "sparse_values": {"indices": [1, 3, 5], "values": [0.2, 0.7, 0.4]},
+                },
+            ],
+            namespace="qns-ns1",
+        )
+        index.upsert(
+            vectors=[
+                {
+                    "id": "qns-ns2-v1",
+                    "sparse_values": {"indices": [0, 2, 4], "values": [0.6, 0.3, 0.9]},
+                },
+                {
+                    "id": "qns-ns2-v2",
+                    "sparse_values": {"indices": [1, 2, 3], "values": [0.4, 0.5, 0.6]},
+                },
+            ],
+            namespace="qns-ns2",
+        )
+
+        # Wait until sparse vectors are fetchable in both namespaces
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["qns-ns1-v1", "qns-ns1-v2"], namespace="qns-ns1"),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="qns-ns1 sparse vectors fetchable before query_namespaces_sparse",
+        )
+        poll_until(
+            query_fn=lambda: index.fetch(ids=["qns-ns2-v1", "qns-ns2-v2"], namespace="qns-ns2"),
+            check_fn=lambda r: len(r.vectors) == 2,
+            timeout=120,
+            description="qns-ns2 sparse vectors fetchable before query_namespaces_sparse",
+        )
+
+        # Sparse-only query: pass sparse_vector, not vector
+        results = index.query_namespaces(
+            namespaces=["qns-ns1", "qns-ns2"],
+            sparse_vector={"indices": [0, 1, 2], "values": [0.1, 0.2, 0.3]},
+            metric="dotproduct",
+            top_k=5,
+        )
+
+        assert isinstance(results, QueryNamespacesResults)
+        assert isinstance(results.matches, list)
+        assert len(results.matches) >= 1
+
+        for match in results.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+            assert match.namespace in ("qns-ns1", "qns-ns2"), (
+                f"Expected namespace qns-ns1 or qns-ns2, got {match.namespace!r}"
+            )
+
+        # Scores sorted descending for dotproduct
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True), (
+            f"Expected scores sorted descending for dotproduct, got: {scores}"
+        )
+
+        # Per-namespace usage
+        assert isinstance(results.ns_usage, dict)
+        assert "qns-ns1" in results.ns_usage
+        assert "qns-ns2" in results.ns_usage
+        for ns_usage_val in results.ns_usage.values():
+            assert ns_usage_val.read_units >= 0
+
+        # Total usage
+        assert results.usage is not None
+        assert isinstance(results.usage.read_units, int)
+        assert results.usage.read_units >= 2
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")
