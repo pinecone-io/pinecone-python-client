@@ -133,6 +133,64 @@ def test_create_integrated_dense_index_becomes_ready(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
+# create-index — integrated (model-backed) sparse
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(400)
+@pytest.mark.xfail(
+    reason="DX-0085: IndexModel missing embed field — API response embed is silently dropped by msgspec",
+    strict=True,
+)
+def test_create_integrated_sparse_index_becomes_ready(client: Pinecone) -> None:
+    """Create an integrated sparse index, wait for ready state, verify fields, then delete."""
+    name = unique_name("int")
+    try:
+        model = client.indexes.create(
+            name=name,
+            spec=IntegratedSpec(
+                cloud="aws",
+                region="us-east-1",
+                embed=EmbedConfig(
+                    model="pinecone-sparse-english-v0",
+                    field_map={"text": "chunk_text"},
+                    metric="dotproduct",
+                ),
+            ),
+            timeout=300,
+        )
+
+        assert model.name == name
+        assert model.status.ready is True
+        assert model.status.state == "Ready"
+        assert model.metric == "dotproduct"
+        assert model.vector_type == "sparse"
+        # Sparse indexes may not report a fixed dimension — just check the field is present
+        # and its value is not an unexpected type if populated.
+        assert model.dimension is None or isinstance(model.dimension, int)
+        assert model.embed is not None
+        assert model.embed.model == "pinecone-sparse-english-v0"
+        assert model.embed.field_map["text"] == "chunk_text"
+
+        desc = client.indexes.describe(name)
+        assert desc.name == name
+        assert desc.status.ready is True
+        assert desc.status.state == "Ready"
+        assert desc.metric == "dotproduct"
+        assert desc.vector_type == "sparse"
+        assert desc.embed is not None
+        assert desc.embed.model == "pinecone-sparse-english-v0"
+        assert desc.embed.field_map["text"] == "chunk_text"
+    finally:
+        cleanup_resource(
+            lambda: client.indexes.delete(name),
+            name,
+            "index",
+        )
+
+
+# ---------------------------------------------------------------------------
 # describe-index
 # ---------------------------------------------------------------------------
 
