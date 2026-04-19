@@ -10,6 +10,7 @@ if TYPE_CHECKING:
         IndexModel,
         IndexSpec,
         IndexStatus,
+        ModelIndexEmbed,
         PodSpecInfo,
         ServerlessSpecInfo,
     )
@@ -27,6 +28,7 @@ _LAZY_IMPORTS: dict[str, str] = {
     "IndexModel": "pinecone.models.indexes.index",
     "IndexSpec": "pinecone.models.indexes.index",
     "IndexStatus": "pinecone.models.indexes.index",
+    "ModelIndexEmbed": "pinecone.models.indexes.index",
     "PodSpecInfo": "pinecone.models.indexes.index",
     "ServerlessSpecInfo": "pinecone.models.indexes.index",
     "IndexList": "pinecone.models.indexes.list",

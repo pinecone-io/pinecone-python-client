@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+
 import pytest
 
 from pinecone import GrpcIndex, Index, Pinecone
@@ -82,10 +84,6 @@ def test_create_serverless_index_becomes_ready(client: Pinecone) -> None:
 
 @pytest.mark.integration
 @pytest.mark.timeout(400)
-@pytest.mark.xfail(
-    reason="DX-0085: IndexModel missing embed field — API response embed is silently dropped by msgspec",
-    strict=True,
-)
 def test_create_integrated_dense_index_becomes_ready(client: Pinecone) -> None:
     """Create an integrated dense index, wait for ready state, verify fields, then delete."""
     name = unique_name("int")
@@ -139,10 +137,6 @@ def test_create_integrated_dense_index_becomes_ready(client: Pinecone) -> None:
 
 @pytest.mark.integration
 @pytest.mark.timeout(400)
-@pytest.mark.xfail(
-    reason="DX-0085: IndexModel missing embed field — API response embed is silently dropped by msgspec",
-    strict=True,
-)
 def test_create_integrated_sparse_index_becomes_ready(client: Pinecone) -> None:
     """Create an integrated sparse index, wait for ready state, verify fields, then delete."""
     name = unique_name("int")
@@ -470,10 +464,8 @@ def test_configure_deletion_protection_toggle_rest(client: Pinecone) -> None:
         assert desc2.deletion_protection == "disabled"
     finally:
         # Ensure protection is off before deletion (in case test failed mid-way)
-        try:
+        with contextlib.suppress(Exception):
             client.indexes.configure(name, deletion_protection="disabled")
-        except Exception:
-            pass
         cleanup_resource(
             lambda: client.indexes.delete(name),
             name,
@@ -579,10 +571,8 @@ def test_configure_returns_none_and_preserves_deletion_protection(client: Pineco
 
     finally:
         # Ensure deletion protection is disabled before attempting to delete
-        try:
+        with contextlib.suppress(Exception):
             client.indexes.configure(name, deletion_protection="disabled")
-        except Exception:
-            pass
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
 
 

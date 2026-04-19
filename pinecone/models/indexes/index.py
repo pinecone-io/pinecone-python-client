@@ -83,6 +83,28 @@ class IndexSpec(Struct, kw_only=True):
     byoc: ByocSpecInfo | None = None
 
 
+class ModelIndexEmbed(Struct, kw_only=True):
+    """Embedding configuration for a model-backed (integrated) index.
+
+    Attributes:
+        model: The name of the embedding model used by this index.
+        metric: Distance metric, or ``None`` if inferred from the model.
+        dimension: Vector dimension, or ``None`` if inferred from the model.
+        vector_type: Vector type (``"dense"`` or ``"sparse"``), or ``None``.
+        field_map: Mapping of document field names to embedding input roles, or ``None``.
+        read_parameters: Model-specific parameters for read (query) operations, or ``None``.
+        write_parameters: Model-specific parameters for write (upsert) operations, or ``None``.
+    """
+
+    model: str
+    metric: str | None = None
+    dimension: int | None = None
+    vector_type: str | None = None
+    field_map: dict[str, str] | None = None
+    read_parameters: dict[str, Any] | None = None
+    write_parameters: dict[str, Any] | None = None
+
+
 class IndexModel(Struct, kw_only=True):
     """Response model for a Pinecone index.
 
@@ -112,6 +134,7 @@ class IndexModel(Struct, kw_only=True):
     dimension: int | None = None
     deletion_protection: str = "disabled"
     tags: dict[str, str] | None = None
+    embed: ModelIndexEmbed | None = None
 
     def __post_init__(self) -> None:
         """Normalize host to always include https:// scheme."""

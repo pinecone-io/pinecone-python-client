@@ -146,6 +146,7 @@ if TYPE_CHECKING:
         ByocSpecInfo,
         IndexModel,
         IndexSpec,
+        ModelIndexEmbed,
         PodSpecInfo,
         ServerlessSpecInfo,
     )
@@ -262,6 +263,7 @@ __all__ = [
     "ListResponse",
     "Message",
     "Metric",
+    "ModelIndexEmbed",
     "ModelInfo",
     "ModelInfoList",
     "NamespaceDescription",
@@ -440,6 +442,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "Message": ("pinecone.models.assistant.message", "Message"),
     "Metric": ("pinecone.models.enums", "Metric"),
     "ModelInfo": ("pinecone.models.inference.models", "ModelInfo"),
+    "ModelIndexEmbed": ("pinecone.models.indexes.index", "ModelIndexEmbed"),
     "ModelInfoList": ("pinecone.models.inference.model_list", "ModelInfoList"),
     "NamespaceDescription": (
         "pinecone.models.namespaces.models",
