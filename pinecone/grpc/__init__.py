@@ -660,6 +660,7 @@ class GrpcIndex:
         self,
         *,
         filter: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> DescribeIndexStatsResponse:
         """Return statistics for this index.
 
@@ -682,7 +683,7 @@ class GrpcIndex:
             )
         """
         logger.info("Describing index stats via gRPC")
-        result = self._call_channel("describe_index_stats", filter=filter)
+        result = self._call_channel("describe_index_stats", filter=filter, timeout_s=timeout)
 
         namespaces: dict[str, NamespaceSummary] = {}
         for ns_name, ns_data in result.get("namespaces", {}).items():
@@ -984,6 +985,7 @@ class GrpcIndex:
         *,
         records: builtins.list[dict[str, Any]],
         namespace: str,
+        timeout: float | None = None,
     ) -> UpsertRecordsResponse:
         """Upsert records for indexes with integrated inference.
 
@@ -1050,6 +1052,7 @@ class GrpcIndex:
         )
         response = self._http.post(
             f"/records/namespaces/{namespace}/upsert",
+            timeout=timeout,
             content=ndjson_body.encode("utf-8"),
             headers={"Content-Type": "application/x-ndjson"},
         )
@@ -1069,6 +1072,7 @@ class GrpcIndex:
         fields: builtins.list[str] | None = None,
         rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> SearchRecordsResponse:
         """Search records by text, vector, or ID with optional reranking.
 
@@ -1175,7 +1179,9 @@ class GrpcIndex:
             body["rerank"] = rerank
 
         logger.info("Searching namespace %r with top_k=%d (via REST)", namespace, top_k)
-        response = self._http.post(f"/records/namespaces/{namespace}/search", json=body)
+        response = self._http.post(
+            f"/records/namespaces/{namespace}/search", timeout=timeout, json=body
+        )
         result = self._adapter.to_search_response(response.content)
         result.response_info = extract_response_info(response)
         return result
@@ -1192,6 +1198,7 @@ class GrpcIndex:
         fields: builtins.list[str] | None = None,
         rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> SearchRecordsResponse:
         """Alias for :meth:`search`.
 
@@ -1207,6 +1214,7 @@ class GrpcIndex:
             fields=fields,
             rerank=rerank,
             match_terms=match_terms,
+            timeout=timeout,
         )
 
     def close(self) -> None:

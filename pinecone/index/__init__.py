@@ -129,6 +129,7 @@ class Index:
             | dict[str, Any]
         ],
         namespace: str = "",
+        timeout: float | None = None,
     ) -> UpsertResponse:
         """Upsert a batch of vectors into a namespace.
 
@@ -154,6 +155,8 @@ class Index:
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
+                Pass ``timeout=<seconds>`` to override the client-level default for this
+                call only.
 
         Examples:
 
@@ -196,7 +199,7 @@ class Index:
             body["namespace"] = namespace
 
         logger.info("Upserting %d vectors into namespace %r", len(built), namespace)
-        response = self._http.post("/vectors/upsert", json=body)
+        response = self._http.post("/vectors/upsert", timeout=timeout, json=body)
         result = self._adapter.to_upsert_response(response.content)
         result.response_info = extract_response_info(response)
         logger.debug("Upserted %d vectors", result.upserted_count)
@@ -208,6 +211,7 @@ class Index:
         namespace: str | None = None,
         batch_size: int = 500,
         show_progress: bool = True,
+        timeout: float | None = None,
     ) -> UpsertResponse:
         """Upsert vectors from a pandas DataFrame.
 
@@ -318,7 +322,7 @@ class Index:
         total_count = 0
         ns = namespace or ""
         for batch in batch_iter:
-            result = self.upsert(vectors=batch, namespace=ns)
+            result = self.upsert(vectors=batch, namespace=ns, timeout=timeout)
             total_count += result.upserted_count
 
         return UpsertResponse(upserted_count=total_count)
@@ -328,6 +332,7 @@ class Index:
         *,
         records: list[dict[str, Any]],
         namespace: str,
+        timeout: float | None = None,
     ) -> UpsertRecordsResponse:
         """Upsert records for indexes with integrated inference.
 
@@ -400,6 +405,7 @@ class Index:
         logger.info("Upserting %d records into namespace %r (NDJSON)", len(records), namespace)
         response = self._http.post(
             f"/records/namespaces/{namespace}/upsert",
+            timeout=timeout,
             content=ndjson_body.encode("utf-8"),
             headers={"Content-Type": "application/x-ndjson"},
         )
@@ -420,6 +426,7 @@ class Index:
         sparse_vector: SparseValues | dict[str, Any] | None = None,
         scan_factor: float | None = None,
         max_candidates: int | None = None,
+        timeout: float | None = None,
     ) -> QueryResponse:
         """Query a namespace for the nearest neighbors of a vector.
 
@@ -475,9 +482,7 @@ class Index:
         if has_vector and has_id:
             raise ValidationError("Exactly one of vector or id must be provided, not both")
         if not has_vector and not has_id and not has_sparse:
-            raise ValidationError(
-                "At least one of vector, id, or sparse_vector must be provided"
-            )
+            raise ValidationError("At least one of vector, id, or sparse_vector must be provided")
 
         body: dict[str, Any] = {
             "topK": top_k,
@@ -506,7 +511,7 @@ class Index:
             body["maxCandidates"] = max_candidates
 
         logger.info("Querying index with top_k=%d", top_k)
-        response = self._http.post("/query", json=body)
+        response = self._http.post("/query", timeout=timeout, json=body)
         result = self._adapter.to_query_response(response.content)
         result.response_info = extract_response_info(response)
         logger.debug("Query returned %d matches", len(result.matches))
@@ -628,6 +633,7 @@ class Index:
         *,
         ids: list[str],
         namespace: str = "",
+        timeout: float | None = None,
     ) -> FetchResponse:
         """Fetch vectors by their IDs from a namespace.
 
@@ -662,7 +668,7 @@ class Index:
             params["namespace"] = namespace
 
         logger.info("Fetching %d vectors", len(ids))
-        response = self._http.get("/vectors/fetch", params=params)
+        response = self._http.get("/vectors/fetch", timeout=timeout, params=params)
         result = self._adapter.to_fetch_response(response.content)
         result.response_info = extract_response_info(response)
         logger.debug("Fetched %d vectors", len(result.vectors))
@@ -739,6 +745,7 @@ class Index:
         delete_all: bool = False,
         filter: dict[str, Any] | None = None,
         namespace: str = "",
+        timeout: float | None = None,
     ) -> None:
         """Delete vectors from a namespace by ID, filter, or delete-all flag.
 
@@ -790,7 +797,7 @@ class Index:
             body["filter"] = filter
 
         logger.info("Deleting vectors from namespace %r", namespace)
-        self._http.post("/vectors/delete", json=body)
+        self._http.post("/vectors/delete", timeout=timeout, json=body)
 
     def update(
         self,
@@ -802,6 +809,7 @@ class Index:
         namespace: str = "",
         filter: dict[str, Any] | None = None,
         dry_run: bool = False,
+        timeout: float | None = None,
     ) -> UpdateResponse:
         """Update vectors by ID or metadata filter.
 
@@ -873,7 +881,7 @@ class Index:
             body["dryRun"] = True
 
         logger.info("Updating vectors in namespace %r", namespace)
-        response = self._http.post("/vectors/update", json=body)
+        response = self._http.post("/vectors/update", timeout=timeout, json=body)
         result = self._adapter.to_update_response(response.content)
         result.response_info = extract_response_info(response)
         return result
@@ -882,6 +890,7 @@ class Index:
         self,
         *,
         filter: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> DescribeIndexStatsResponse:
         """Return statistics for this index.
 
@@ -918,7 +927,7 @@ class Index:
             body["filter"] = filter
 
         logger.info("Describing index stats")
-        response = self._http.post("/describe_index_stats", json=body)
+        response = self._http.post("/describe_index_stats", timeout=timeout, json=body)
         result = self._adapter.to_stats_response(response.content)
         result.response_info = extract_response_info(response)
         return result
@@ -935,6 +944,7 @@ class Index:
         fields: list[str] | None = None,
         rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> SearchRecordsResponse:
         """Search records by text, vector, or ID with optional reranking.
 
@@ -1043,7 +1053,9 @@ class Index:
             body["rerank"] = rerank
 
         logger.info("Searching namespace %r with top_k=%d", namespace, top_k)
-        response = self._http.post(f"/records/namespaces/{namespace}/search", json=body)
+        response = self._http.post(
+            f"/records/namespaces/{namespace}/search", timeout=timeout, json=body
+        )
         result = self._adapter.to_search_response(response.content)
         result.response_info = extract_response_info(response)
         return result
@@ -1060,6 +1072,7 @@ class Index:
         fields: list[str] | None = None,
         rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> SearchRecordsResponse:
         """Alias for :meth:`search`.
 
@@ -1075,6 +1088,7 @@ class Index:
             fields=fields,
             rerank=rerank,
             match_terms=match_terms,
+            timeout=timeout,
         )
 
     def create_namespace(
@@ -1276,6 +1290,7 @@ class Index:
         limit: int | None = None,
         pagination_token: str | None = None,
         namespace: str = "",
+        timeout: float | None = None,
     ) -> ListResponse:
         """Fetch a single page of vector IDs from a namespace.
 
@@ -1308,7 +1323,7 @@ class Index:
             params["paginationToken"] = pagination_token
 
         logger.info("Listing vectors in namespace %r", namespace)
-        response = self._http.get("/vectors/list", params=params)
+        response = self._http.get("/vectors/list", timeout=timeout, params=params)
         result = self._adapter.to_list_response(response.content)
         result.response_info = extract_response_info(response)
         return result
@@ -1319,6 +1334,7 @@ class Index:
         prefix: str | None = None,
         limit: int | None = None,
         namespace: str = "",
+        timeout: float | None = None,
     ) -> Iterator[ListResponse]:
         """List vector IDs in a namespace, automatically following pagination.
 
@@ -1346,6 +1362,7 @@ class Index:
                 limit=limit,
                 pagination_token=pagination_token,
                 namespace=namespace,
+                timeout=timeout,
             )
             if page.vectors:
                 yield page

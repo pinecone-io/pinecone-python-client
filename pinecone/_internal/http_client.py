@@ -297,10 +297,13 @@ class HTTPClient:
     def _build_url(self, path: str) -> str:
         return f"{self._client.base_url}{path}"
 
-    def get(self, path: str, **kwargs: Any) -> httpx.Response:
+    def get(
+        self, path: str, timeout: float | httpx.Timeout | None = None, **kwargs: Any
+    ) -> httpx.Response:
         _log_curl("GET", self._build_url(path), dict(self._headers))
+        effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
-            response = self._client.get(path, **kwargs)
+            response = self._client.get(path, timeout=effective_timeout, **kwargs)
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
@@ -309,12 +312,15 @@ class HTTPClient:
         _release_response_refs(response)
         return response
 
-    def post(self, path: str, **kwargs: Any) -> httpx.Response:
+    def post(
+        self, path: str, timeout: float | httpx.Timeout | None = None, **kwargs: Any
+    ) -> httpx.Response:
         kwargs = _prepare_json_kwargs(kwargs)
         body = kwargs.get("content") if isinstance(kwargs.get("content"), bytes) else None
         _log_curl("POST", self._build_url(path), dict(self._headers), body=body)
+        effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
-            response = self._client.post(path, **kwargs)
+            response = self._client.post(path, timeout=effective_timeout, **kwargs)
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
@@ -323,12 +329,15 @@ class HTTPClient:
         _release_response_refs(response)
         return response
 
-    def put(self, path: str, **kwargs: Any) -> httpx.Response:
+    def put(
+        self, path: str, timeout: float | httpx.Timeout | None = None, **kwargs: Any
+    ) -> httpx.Response:
         kwargs = _prepare_json_kwargs(kwargs)
         body = kwargs.get("content") if isinstance(kwargs.get("content"), bytes) else None
         _log_curl("PUT", self._build_url(path), dict(self._headers), body=body)
+        effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
-            response = self._client.put(path, **kwargs)
+            response = self._client.put(path, timeout=effective_timeout, **kwargs)
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
@@ -337,12 +346,15 @@ class HTTPClient:
         _release_response_refs(response)
         return response
 
-    def patch(self, path: str, **kwargs: Any) -> httpx.Response:
+    def patch(
+        self, path: str, timeout: float | httpx.Timeout | None = None, **kwargs: Any
+    ) -> httpx.Response:
         kwargs = _prepare_json_kwargs(kwargs)
         body = kwargs.get("content") if isinstance(kwargs.get("content"), bytes) else None
         _log_curl("PATCH", self._build_url(path), dict(self._headers), body=body)
+        effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
-            response = self._client.patch(path, **kwargs)
+            response = self._client.patch(path, timeout=effective_timeout, **kwargs)
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
@@ -351,10 +363,13 @@ class HTTPClient:
         _release_response_refs(response)
         return response
 
-    def delete(self, path: str, **kwargs: Any) -> httpx.Response:
+    def delete(
+        self, path: str, timeout: float | httpx.Timeout | None = None, **kwargs: Any
+    ) -> httpx.Response:
         _log_curl("DELETE", self._build_url(path), dict(self._headers))
+        effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
-            response = self._client.delete(path, **kwargs)
+            response = self._client.delete(path, timeout=effective_timeout, **kwargs)
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
@@ -455,9 +470,12 @@ class AsyncHTTPClient:
             )
         return self._client
 
-    async def get(self, path: str, **kwargs: Any) -> httpx.Response:
+    async def get(
+        self, path: str, timeout: float | httpx.Timeout | None = None, **kwargs: Any
+    ) -> httpx.Response:
+        effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
-            response = await self._ensure_client().get(path, **kwargs)
+            response = await self._ensure_client().get(path, timeout=effective_timeout, **kwargs)
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
@@ -466,9 +484,14 @@ class AsyncHTTPClient:
         _release_response_refs(response)
         return response
 
-    async def post(self, path: str, **kwargs: Any) -> httpx.Response:
+    async def post(
+        self, path: str, timeout: float | httpx.Timeout | None = None, **kwargs: Any
+    ) -> httpx.Response:
+        effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
-            response = await self._ensure_client().post(path, **_prepare_json_kwargs(kwargs))
+            response = await self._ensure_client().post(
+                path, timeout=effective_timeout, **_prepare_json_kwargs(kwargs)
+            )
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
@@ -477,9 +500,14 @@ class AsyncHTTPClient:
         _release_response_refs(response)
         return response
 
-    async def put(self, path: str, **kwargs: Any) -> httpx.Response:
+    async def put(
+        self, path: str, timeout: float | httpx.Timeout | None = None, **kwargs: Any
+    ) -> httpx.Response:
+        effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
-            response = await self._ensure_client().put(path, **_prepare_json_kwargs(kwargs))
+            response = await self._ensure_client().put(
+                path, timeout=effective_timeout, **_prepare_json_kwargs(kwargs)
+            )
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
@@ -488,9 +516,14 @@ class AsyncHTTPClient:
         _release_response_refs(response)
         return response
 
-    async def patch(self, path: str, **kwargs: Any) -> httpx.Response:
+    async def patch(
+        self, path: str, timeout: float | httpx.Timeout | None = None, **kwargs: Any
+    ) -> httpx.Response:
+        effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
-            response = await self._ensure_client().patch(path, **_prepare_json_kwargs(kwargs))
+            response = await self._ensure_client().patch(
+                path, timeout=effective_timeout, **_prepare_json_kwargs(kwargs)
+            )
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
@@ -499,9 +532,12 @@ class AsyncHTTPClient:
         _release_response_refs(response)
         return response
 
-    async def delete(self, path: str, **kwargs: Any) -> httpx.Response:
+    async def delete(
+        self, path: str, timeout: float | httpx.Timeout | None = None, **kwargs: Any
+    ) -> httpx.Response:
+        effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
-            response = await self._ensure_client().delete(path, **kwargs)
+            response = await self._ensure_client().delete(path, timeout=effective_timeout, **kwargs)
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:

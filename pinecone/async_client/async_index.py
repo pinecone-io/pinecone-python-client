@@ -125,6 +125,7 @@ class AsyncIndex:
         *,
         records: list[dict[str, Any]],
         namespace: str,
+        timeout: float | None = None,
     ) -> UpsertRecordsResponse:
         """Upsert records for indexes with integrated inference.
 
@@ -195,6 +196,7 @@ class AsyncIndex:
         logger.info("Upserting %d records into namespace %r (NDJSON)", len(records), namespace)
         response = await self._http.post(
             f"/records/namespaces/{namespace}/upsert",
+            timeout=timeout,
             content=ndjson_body.encode("utf-8"),
             headers={"Content-Type": "application/x-ndjson"},
         )
@@ -212,6 +214,7 @@ class AsyncIndex:
             | dict[str, Any]
         ],
         namespace: str = "",
+        timeout: float | None = None,
     ) -> UpsertResponse:
         """Upsert a batch of vectors into a namespace.
 
@@ -275,7 +278,7 @@ class AsyncIndex:
             body["namespace"] = namespace
 
         logger.info("Upserting %d vectors into namespace %r", len(built), namespace)
-        response = await self._http.post("/vectors/upsert", json=body)
+        response = await self._http.post("/vectors/upsert", timeout=timeout, json=body)
         result = self._adapter.to_upsert_response(response.content)
         result.response_info = extract_response_info(response)
         logger.debug("Upserted %d vectors", result.upserted_count)
@@ -320,6 +323,7 @@ class AsyncIndex:
         sparse_vector: SparseValues | dict[str, Any] | None = None,
         scan_factor: float | None = None,
         max_candidates: int | None = None,
+        timeout: float | None = None,
     ) -> QueryResponse:
         """Query a namespace for the nearest neighbors of a vector.
 
@@ -407,7 +411,7 @@ class AsyncIndex:
             body["maxCandidates"] = max_candidates
 
         logger.info("Querying index with top_k=%d", top_k)
-        response = await self._http.post("/query", json=body)
+        response = await self._http.post("/query", timeout=timeout, json=body)
         result = self._adapter.to_query_response(response.content)
         result.response_info = extract_response_info(response)
         logger.debug("Query returned %d matches", len(result.matches))
@@ -529,6 +533,7 @@ class AsyncIndex:
         *,
         ids: list[str],
         namespace: str = "",
+        timeout: float | None = None,
     ) -> FetchResponse:
         """Fetch vectors by their IDs from a namespace.
 
@@ -562,7 +567,7 @@ class AsyncIndex:
             params["namespace"] = namespace
 
         logger.info("Fetching %d vectors", len(ids))
-        response = await self._http.get("/vectors/fetch", params=params)
+        response = await self._http.get("/vectors/fetch", timeout=timeout, params=params)
         result = self._adapter.to_fetch_response(response.content)
         result.response_info = extract_response_info(response)
         logger.debug("Fetched %d vectors", len(result.vectors))
@@ -639,6 +644,7 @@ class AsyncIndex:
         delete_all: bool = False,
         filter: dict[str, Any] | None = None,
         namespace: str = "",
+        timeout: float | None = None,
     ) -> None:
         """Delete vectors from a namespace by ID, filter, or delete-all flag.
 
@@ -689,7 +695,7 @@ class AsyncIndex:
             body["filter"] = filter
 
         logger.info("Deleting vectors from namespace %r", namespace)
-        await self._http.post("/vectors/delete", json=body)
+        await self._http.post("/vectors/delete", timeout=timeout, json=body)
 
     async def update(
         self,
@@ -701,6 +707,7 @@ class AsyncIndex:
         namespace: str = "",
         filter: dict[str, Any] | None = None,
         dry_run: bool = False,
+        timeout: float | None = None,
     ) -> UpdateResponse:
         """Update vectors by ID or metadata filter.
 
@@ -766,7 +773,7 @@ class AsyncIndex:
             body["dryRun"] = True
 
         logger.info("Updating vectors in namespace %r", namespace)
-        response = await self._http.post("/vectors/update", json=body)
+        response = await self._http.post("/vectors/update", timeout=timeout, json=body)
         result = self._adapter.to_update_response(response.content)
         result.response_info = extract_response_info(response)
         return result
@@ -783,6 +790,7 @@ class AsyncIndex:
         fields: list[str] | None = None,
         rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> SearchRecordsResponse:
         """Search records by text, vector, or ID with optional reranking.
 
@@ -867,7 +875,9 @@ class AsyncIndex:
             body["rerank"] = rerank
 
         logger.info("Searching namespace %r with top_k=%d", namespace, top_k)
-        response = await self._http.post(f"/records/namespaces/{namespace}/search", json=body)
+        response = await self._http.post(
+            f"/records/namespaces/{namespace}/search", timeout=timeout, json=body
+        )
         result = self._adapter.to_search_response(response.content)
         result.response_info = extract_response_info(response)
         return result
@@ -884,6 +894,7 @@ class AsyncIndex:
         fields: list[str] | None = None,
         rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> SearchRecordsResponse:
         """Alias for :meth:`search`.
 
@@ -898,6 +909,7 @@ class AsyncIndex:
             fields=fields,
             rerank=rerank,
             match_terms=match_terms,
+            timeout=timeout,
         )
 
     async def list_paginated(
@@ -907,6 +919,7 @@ class AsyncIndex:
         limit: int | None = None,
         pagination_token: str | None = None,
         namespace: str = "",
+        timeout: float | None = None,
     ) -> ListResponse:
         """Fetch a single page of vector IDs from a namespace.
 
@@ -938,7 +951,7 @@ class AsyncIndex:
             params["paginationToken"] = pagination_token
 
         logger.info("Listing vectors in namespace %r", namespace)
-        response = await self._http.get("/vectors/list", params=params)
+        response = await self._http.get("/vectors/list", timeout=timeout, params=params)
         result = self._adapter.to_list_response(response.content)
         result.response_info = extract_response_info(response)
         return result
@@ -949,6 +962,7 @@ class AsyncIndex:
         prefix: str | None = None,
         limit: int | None = None,
         namespace: str = "",
+        timeout: float | None = None,
     ) -> AsyncIterator[ListResponse]:
         """List vector IDs in a namespace, automatically following pagination.
 
@@ -976,6 +990,7 @@ class AsyncIndex:
                 limit=limit,
                 pagination_token=pagination_token,
                 namespace=namespace,
+                timeout=timeout,
             )
             if page.vectors:
                 yield page
@@ -988,6 +1003,7 @@ class AsyncIndex:
         self,
         *,
         filter: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> DescribeIndexStatsResponse:
         """Return statistics for this index.
 
@@ -1023,7 +1039,7 @@ class AsyncIndex:
             body["filter"] = filter
 
         logger.info("Describing index stats")
-        response = await self._http.post("/describe_index_stats", json=body)
+        response = await self._http.post("/describe_index_stats", timeout=timeout, json=body)
         result = self._adapter.to_stats_response(response.content)
         result.response_info = extract_response_info(response)
         return result
