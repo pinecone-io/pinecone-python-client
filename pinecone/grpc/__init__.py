@@ -263,6 +263,7 @@ class GrpcIndex:
                 and optional ``sparse_values`` / ``metadata`` keys.
             namespace (str): Target namespace. Defaults to the default
                 (empty-string) namespace.
+            timeout (float | None): Per-call timeout in seconds. None uses the client-level default.
 
         Returns:
             :class:`UpsertResponse` with the count of vectors upserted.
@@ -270,6 +271,8 @@ class GrpcIndex:
         Raises:
             :exc:`TypeError`: If a vector element is not a recognized format.
             :exc:`ValueError`: If a vector element is malformed.
+            :exc:`PineconeTimeoutError`: If the call exceeds *timeout* or the server
+                returns CANCELLED with a timeout cause.
 
         Examples:
 
@@ -330,6 +333,7 @@ class GrpcIndex:
             max_candidates (int | None): DRN optimization — caps candidate vectors to
                 rerank. Range 1–100000. Only supported for dedicated read node indexes.
                 None uses server default.
+            timeout (float | None): Per-call timeout in seconds. None uses the client-level default.
 
         Returns:
             :class:`QueryResponse` with matches, namespace, and usage info.
@@ -337,6 +341,8 @@ class GrpcIndex:
         Raises:
             :exc:`ValidationError`: If top_k < 1, both vector and id are provided,
                 or none of vector, id, or sparse_vector are provided.
+            :exc:`PineconeTimeoutError`: If the call exceeds *timeout* or the server
+                returns CANCELLED with a timeout cause.
 
         Examples:
 
@@ -405,6 +411,7 @@ class GrpcIndex:
         Args:
             ids (list[str]): List of vector IDs to fetch (must be non-empty).
             namespace (str): Namespace to fetch from. Defaults to the default namespace.
+            timeout (float | None): Per-call timeout in seconds. None uses the client-level default.
 
         Returns:
             :class:`FetchResponse` with a map of vector IDs to Vector objects, namespace,
@@ -412,6 +419,8 @@ class GrpcIndex:
 
         Raises:
             :exc:`ValidationError`: If ids is empty.
+            :exc:`PineconeTimeoutError`: If the call exceeds *timeout* or the server
+                returns CANCELLED with a timeout cause.
 
         Examples:
 
@@ -454,9 +463,12 @@ class GrpcIndex:
             delete_all (bool): If True, delete all vectors in the namespace.
             filter (dict[str, Any] | None): Metadata filter expression selecting vectors to delete.
             namespace (str): Namespace to delete from. Defaults to the default namespace.
+            timeout (float | None): Per-call timeout in seconds. None uses the client-level default.
 
         Raises:
             :exc:`ValidationError`: If zero or more than one deletion mode is specified.
+            :exc:`PineconeTimeoutError`: If the call exceeds *timeout* or the server
+                returns CANCELLED with a timeout cause.
 
         Examples:
 
@@ -510,12 +522,15 @@ class GrpcIndex:
             filter (dict[str, Any] | None): Metadata filter expression selecting vectors to update.
             dry_run (bool): If True, return the count of records that would be
                 affected without applying changes.
+            timeout (float | None): Per-call timeout in seconds. None uses the client-level default.
 
         Returns:
             :class:`UpdateResponse` with matched_records count (when available).
 
         Raises:
             :exc:`ValidationError`: If both or neither of id and filter are provided.
+            :exc:`PineconeTimeoutError`: If the call exceeds *timeout* or the server
+                returns CANCELLED with a timeout cause.
 
         Examples:
 
@@ -580,9 +595,14 @@ class GrpcIndex:
             limit (int | None): Maximum number of IDs to return in this page.
             pagination_token (str | None): Token from a previous response to fetch the next page.
             namespace (str): Namespace to list from. Defaults to the default namespace.
+            timeout (float | None): Per-call timeout in seconds. None uses the client-level default.
 
         Returns:
             :class:`ListResponse` with vector IDs, pagination info, namespace, and usage.
+
+        Raises:
+            :exc:`PineconeTimeoutError`: If the call exceeds *timeout* or the server
+                returns CANCELLED with a timeout cause.
 
         Examples:
 
@@ -630,9 +650,15 @@ class GrpcIndex:
             prefix (str | None): Return only IDs starting with this prefix.
             limit (int | None): Maximum number of IDs to return per page.
             namespace (str): Namespace to list from. Defaults to the default namespace.
+            timeout (float | None): Per-call timeout in seconds applied to each page
+                request. None uses the client-level default.
 
         Yields:
             :class:`ListResponse` for each page of results.
+
+        Raises:
+            :exc:`PineconeTimeoutError`: If any page call exceeds *timeout* or the
+                server returns CANCELLED with a timeout cause.
 
         Examples:
 
@@ -835,7 +861,8 @@ class GrpcIndex:
     ) -> PineconeFuture[UpsertResponse]:
         """Submit an upsert operation and return a :class:`PineconeFuture`.
 
-        Same parameters as :meth:`upsert`.
+        Same parameters as :meth:`upsert`, including ``timeout (float | None)``
+        which sets a per-call timeout in seconds.
 
         Returns:
             :class:`PineconeFuture` [:class:`UpsertResponse`] that resolves to
@@ -875,7 +902,8 @@ class GrpcIndex:
     ) -> PineconeFuture[QueryResponse]:
         """Submit a query operation and return a :class:`PineconeFuture`.
 
-        Same parameters as :meth:`query`.
+        Same parameters as :meth:`query`, including ``timeout (float | None)``
+        which sets a per-call timeout in seconds.
 
         Returns:
             :class:`PineconeFuture` [:class:`QueryResponse`] that resolves to
@@ -921,7 +949,8 @@ class GrpcIndex:
     ) -> PineconeFuture[FetchResponse]:
         """Submit a fetch operation and return a :class:`PineconeFuture`.
 
-        Same parameters as :meth:`fetch`.
+        Same parameters as :meth:`fetch`, including ``timeout (float | None)``
+        which sets a per-call timeout in seconds.
 
         Returns:
             :class:`PineconeFuture` [:class:`FetchResponse`] that resolves to
@@ -951,7 +980,8 @@ class GrpcIndex:
     ) -> PineconeFuture[None]:
         """Submit a delete operation and return a :class:`PineconeFuture`.
 
-        Same parameters as :meth:`delete`.
+        Same parameters as :meth:`delete`, including ``timeout (float | None)``
+        which sets a per-call timeout in seconds.
 
         Returns:
             :class:`PineconeFuture` [None] that resolves when the delete
