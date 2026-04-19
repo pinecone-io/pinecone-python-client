@@ -364,7 +364,7 @@ def test_get_model_success(inference: Inference) -> None:
         return_value=httpx.Response(200, json=make_model_info()),
     )
 
-    result = inference.get_model(model_name="multilingual-e5-large")
+    result = inference.get_model(model="multilingual-e5-large")
 
     assert isinstance(result, ModelInfo)
     assert result.model == "multilingual-e5-large"
@@ -387,7 +387,7 @@ def test_get_model_success(inference: Inference) -> None:
 
 def test_get_model_empty_name_raises(inference: Inference) -> None:
     with pytest.raises(ValidationError, match="non-empty"):
-        inference.get_model(model_name="")
+        inference.get_model(model="")
 
 
 # ---------------------------------------------------------------------------

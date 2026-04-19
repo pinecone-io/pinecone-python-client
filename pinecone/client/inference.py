@@ -84,13 +84,13 @@ class ModelResource:
         """
         return self._inference.list_models(type=type, vector_type=vector_type)
 
-    def get(self, model_name: str) -> ModelInfo:
+    def get(self, model: str) -> ModelInfo:
         """Get detailed information about a specific model.
 
         Delegates to :meth:`~Inference.get_model`.
 
         Args:
-            model_name (str): The model identifier to look up.
+            model (str): The model identifier to look up.
 
         Returns:
             A :class:`ModelInfo` with full model details.
@@ -106,7 +106,7 @@ class ModelResource:
             >>> info.type
             'embed'
         """
-        return self._inference.get_model(model_name=model_name)
+        return self._inference.get_model(model=model)
 
 
 class Inference:
@@ -258,7 +258,7 @@ class Inference:
                 To discover valid parameters for a model, call
                 :meth:`get_model`::
 
-                    pc.inference.get_model(model_name="bge-reranker-v2-m3").supported_parameters
+                    pc.inference.get_model(model="bge-reranker-v2-m3").supported_parameters
 
         Returns:
             A :class:`RerankResult` with ``.data`` and ``.usage``.
@@ -361,18 +361,18 @@ class Inference:
     def get_model(
         self,
         *,
-        model_name: str,
+        model: str,
     ) -> ModelInfo:
         """Get detailed information about a specific model.
 
         Args:
-            model_name (str): The model identifier to look up.
+            model (str): The model identifier to look up.
 
         Returns:
             A :class:`ModelInfo` with full model details.
 
         Raises:
-            :exc:`PineconeValueError`: If *model_name* is empty.
+            :exc:`PineconeValueError`: If *model* is empty.
             :exc:`NotFoundError`: If the model does not exist.
             :exc:`ApiError`: If the API returns another error response.
             :exc:`PineconeConnectionError`: If a network-level connection
@@ -382,13 +382,13 @@ class Inference:
         Examples:
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
-            >>> model = pc.inference.get_model(model_name="multilingual-e5-large")
-            >>> model.type
+            >>> model_info = pc.inference.get_model(model="multilingual-e5-large")
+            >>> model_info.type
             'embed'
         """
-        require_non_empty("model_name", model_name)
-        logger.info("Describing model %r", model_name)
-        response = self._http.get(f"/models/{model_name}")
+        require_non_empty("model", model)
+        logger.info("Describing model %r", model)
+        response = self._http.get(f"/models/{model}")
         result = self._adapter.to_model_info(response.content)
-        logger.debug("Described model %r", model_name)
+        logger.debug("Described model %r", model)
         return result

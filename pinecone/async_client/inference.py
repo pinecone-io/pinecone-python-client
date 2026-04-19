@@ -83,13 +83,13 @@ class AsyncModelResource:
         """
         return await self._inference.list_models(type=type, vector_type=vector_type)
 
-    async def get(self, model_name: str) -> ModelInfo:
+    async def get(self, model: str) -> ModelInfo:
         """Get detailed information about a specific model.
 
         Delegates to :meth:`~AsyncInference.get_model`.
 
         Args:
-            model_name (str): The model identifier to look up.
+            model (str): The model identifier to look up.
 
         Returns:
             A :class:`ModelInfo` with full model details.
@@ -105,7 +105,7 @@ class AsyncModelResource:
             ...     info.type
             'embed'
         """
-        return await self._inference.get_model(model_name=model_name)
+        return await self._inference.get_model(model=model)
 
 
 class AsyncInference:
@@ -337,18 +337,18 @@ class AsyncInference:
     async def get_model(
         self,
         *,
-        model_name: str,
+        model: str,
     ) -> ModelInfo:
         """Get detailed information about a specific model.
 
         Args:
-            model_name (str): The model identifier to look up.
+            model (str): The model identifier to look up.
 
         Returns:
             A :class:`ModelInfo` with full model details.
 
         Raises:
-            :exc:`PineconeValueError`: If *model_name* is empty.
+            :exc:`PineconeValueError`: If *model* is empty.
             :exc:`NotFoundError`: If the model does not exist.
             :exc:`ApiError`: If the API returns another error response.
             :exc:`PineconeConnectionError`: If a network-level connection
@@ -358,15 +358,15 @@ class AsyncInference:
         Examples:
             >>> from pinecone import AsyncPinecone
             >>> async with AsyncPinecone(api_key="your-api-key") as pc:
-            ...     model = await pc.inference.get_model(
-            ...         model_name="multilingual-e5-large",
+            ...     model_info = await pc.inference.get_model(
+            ...         model="multilingual-e5-large",
             ...     )
-            ...     model.type
+            ...     model_info.type
             'embed'
         """
-        require_non_empty("model_name", model_name)
-        logger.info("Describing model %r", model_name)
-        response = await self._http.get(f"/models/{model_name}")
+        require_non_empty("model", model)
+        logger.info("Describing model %r", model)
+        response = await self._http.get(f"/models/{model}")
         result = self._adapter.to_model_info(response.content)
-        logger.debug("Described model %r", model_name)
+        logger.debug("Described model %r", model)
         return result
