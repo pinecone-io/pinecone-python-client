@@ -449,7 +449,8 @@ class Index:
             :class:`QueryResponse` with matches, namespace, and usage info.
 
         Raises:
-            :exc:`PineconeValueError`: If top_k < 1, or both/neither vector and id provided.
+            :exc:`PineconeValueError`: If top_k < 1, both vector and id are provided,
+                or none of vector, id, or sparse_vector are provided.
             :exc:`ApiError`: If the API returns an error response (e.g. authentication
                 failure or server error).
             :exc:`PineconeConnectionError`: If a network-level connection
@@ -470,10 +471,13 @@ class Index:
 
         has_vector = vector is not None
         has_id = id is not None
+        has_sparse = sparse_vector is not None
         if has_vector and has_id:
             raise ValidationError("Exactly one of vector or id must be provided, not both")
-        if not has_vector and not has_id:
-            raise ValidationError("Exactly one of vector or id must be provided, got neither")
+        if not has_vector and not has_id and not has_sparse:
+            raise ValidationError(
+                "At least one of vector, id, or sparse_vector must be provided"
+            )
 
         body: dict[str, Any] = {
             "topK": top_k,

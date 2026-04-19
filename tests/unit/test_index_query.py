@@ -245,7 +245,7 @@ class TestQueryValidation:
 
     def test_neither_vector_nor_id_raises(self) -> None:
         idx = _make_index()
-        with pytest.raises(ValidationError, match="got neither"):
+        with pytest.raises(ValidationError, match="At least one of vector, id, or sparse_vector"):
             idx.query(top_k=1)
 
     def test_positional_args_rejected(self) -> None:

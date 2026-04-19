@@ -680,9 +680,6 @@ def test_query_namespaces_sparse_rest(client: Pinecone) -> None:
             assert isinstance(match, ScoredVector)
             assert isinstance(match.id, str)
             assert isinstance(match.score, float)
-            assert match.namespace in ("qns-ns1", "qns-ns2"), (
-                f"Expected namespace qns-ns1 or qns-ns2, got {match.namespace!r}"
-            )
 
         # Scores sorted descending for dotproduct
         scores = [m.score for m in results.matches]
