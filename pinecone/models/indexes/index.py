@@ -87,13 +87,16 @@ class ModelIndexEmbed(Struct, kw_only=True):
     """Embedding configuration for a model-backed (integrated) index.
 
     Attributes:
-        model: The name of the embedding model used by this index.
-        metric: Distance metric, or ``None`` if inferred from the model.
-        dimension: Vector dimension, or ``None`` if inferred from the model.
-        vector_type: Vector type (``"dense"`` or ``"sparse"``), or ``None``.
-        field_map: Mapping of document field names to embedding input roles, or ``None``.
-        read_parameters: Model-specific parameters for read (query) operations, or ``None``.
-        write_parameters: Model-specific parameters for write (upsert) operations, or ``None``.
+        model (str): The name of the embedding model used by this index.
+        metric (str | None): Distance metric, or ``None`` if inferred from the model.
+        dimension (int | None): Vector dimension, or ``None`` if inferred from the model.
+        vector_type (str | None): Vector type (``"dense"`` or ``"sparse"``), or ``None``.
+        field_map (dict[str, str] | None): Mapping of document field names to embedding
+            input roles, or ``None``.
+        read_parameters (dict[str, Any] | None): Model-specific parameters for read
+            (query) operations, or ``None``.
+        write_parameters (dict[str, Any] | None): Model-specific parameters for write
+            (upsert) operations, or ``None``.
     """
 
     model: str
