@@ -1,5 +1,7 @@
 from pinecone import Pinecone
 from pinecone.config import ConfigBuilder
+from pinecone.utils import normalize_host
+from pinecone.pinecone import check_realistic_host
 from .index_grpc import GRPCIndex
 
 
@@ -122,8 +124,13 @@ class PineconeGRPC(Pinecone):
         if name == "" and host == "":
             raise ValueError("Either name or host must be specified")
 
-        # Use host if it is provided, otherwise get host from describe_index
-        index_host = host or self.db.index._get_host(name)
+        if host != "":
+            check_realistic_host(host)
+            # Use host url if it is provided
+            index_host = normalize_host(host)
+        else:
+            # Otherwise, get host url from describe_index using the index name
+            index_host = self.db.index._get_host(name)
 
         pt = kwargs.pop("pool_threads", None) or self._pool_threads
 
