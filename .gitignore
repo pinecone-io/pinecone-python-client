@@ -23,3 +23,11 @@ target/
 
 # Virtual environments
 .venv/
+
+# Test / coverage artifacts
+.coverage
+htmlcov/
+
+# Harness artifacts (should live in the harness repo, not here)
+pipeline-state/
+tasks/
