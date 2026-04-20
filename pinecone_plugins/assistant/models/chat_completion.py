@@ -9,7 +9,7 @@ New code should import from the canonical module.
 """
 
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any
 
 from pinecone_plugins.assistant.models.core.dataclass import BaseDataclass
 from pinecone_plugins.assistant.models.shared import Message, Usage
@@ -29,7 +29,7 @@ class ChatCompletionResponse(BaseDataclass):
     """A non-streaming chat completion response."""
 
     id: str
-    choices: List[ChatCompletionChoice]
+    choices: list[ChatCompletionChoice]
     model: str
     usage: Usage
 
@@ -72,7 +72,7 @@ class StreamingChatCompletionChunk(BaseDataclass):
     """A streaming chunk from the OpenAI-compatible chat completion endpoint."""
 
     id: str
-    choices: List[StreamingChatCompletionChoice]
+    choices: list[StreamingChatCompletionChoice]
     model: str
 
     @classmethod

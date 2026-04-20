@@ -16,11 +16,11 @@ from urllib.parse import urljoin
 
 import requests  # noqa: TID251
 
-from pinecone.models.assistant.chat import ChatCitation, ChatUsage
-from pinecone.models.assistant.streaming import StreamContentDelta
 from pinecone_plugins.assistant.models.chat import (
     ChatResponse,
+    Citation,
     ContextOptions,
+    MessageDelta,
     StreamChatResponseCitation,
     StreamChatResponseContentDelta,
     StreamChatResponseMessageEnd,
@@ -33,7 +33,7 @@ from pinecone_plugins.assistant.models.chat_completion import (
 from pinecone_plugins.assistant.models.context_responses import ContextResponse
 from pinecone_plugins.assistant.models.file_model import FileModel
 from pinecone_plugins.assistant.models.list_files_response import ListFilesResponse
-from pinecone_plugins.assistant.models.shared import Message
+from pinecone_plugins.assistant.models.shared import Message, Usage
 
 HOST_SUFFIX = "assistant"
 MODELS = [
@@ -392,6 +392,7 @@ class AssistantModel:
                     res = None
                     if json_data.get("type") == "message_start":
                         res = StreamChatResponseMessageStart(
+                            type="message_start",
                             model=json_data.get("model", ""),
                             role=json_data.get("role", ""),
                         )
@@ -399,29 +400,32 @@ class AssistantModel:
                         delta_d = json_data.get("delta") or {}
                         res = StreamChatResponseContentDelta(
                             id=json_data.get("id", ""),
-                            delta=StreamContentDelta(content=delta_d.get("content", "")),
-                            model=json_data.get("model"),
+                            type="content_chunk",
+                            delta=MessageDelta(content=delta_d.get("content", "")),
+                            model=json_data.get("model", ""),
                         )
                     elif json_data.get("type") == "citation":
                         citation_d = json_data.get("citation") or {}
                         res = StreamChatResponseCitation(
                             id=json_data.get("id", ""),
-                            citation=ChatCitation(
+                            type="citation",
+                            citation=Citation(
                                 position=citation_d.get("position", 0),
                                 references=citation_d.get("references", []),
                             ),
-                            model=json_data.get("model"),
+                            model=json_data.get("model", ""),
                         )
                     elif json_data.get("type") == "message_end":
                         usage_d = json_data.get("usage") or {}
                         res = StreamChatResponseMessageEnd(
                             id=json_data.get("id", ""),
-                            usage=ChatUsage(
+                            type="message_end",
+                            usage=Usage(
                                 prompt_tokens=usage_d.get("prompt_tokens", 0),
                                 completion_tokens=usage_d.get("completion_tokens", 0),
                                 total_tokens=usage_d.get("total_tokens", 0),
                             ),
-                            model=json_data.get("model"),
+                            model=json_data.get("model", ""),
                         )
 
                     yield res
