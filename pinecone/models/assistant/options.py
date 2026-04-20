@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from msgspec import Struct
 
+from pinecone.models.assistant._mixin import StructDictMixin
 
-class ContextOptions(Struct, kw_only=True):
+
+class ContextOptions(StructDictMixin, Struct, kw_only=True):
     """Options controlling how context is retrieved for assistant operations.
 
     All fields are optional and default to ``None``, letting the server
@@ -24,3 +28,13 @@ class ContextOptions(Struct, kw_only=True):
     snippet_size: int | None = None
     multimodal: bool | None = None
     include_binary_content: bool | None = None
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> ContextOptions:
+        """Construct a ``ContextOptions`` from a plain dict representation."""
+        return cls(
+            top_k=d.get("top_k"),
+            snippet_size=d.get("snippet_size"),
+            multimodal=d.get("multimodal"),
+            include_binary_content=d.get("include_binary_content"),
+        )

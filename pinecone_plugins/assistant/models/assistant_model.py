@@ -392,7 +392,6 @@ class AssistantModel:
                     res = None
                     if json_data.get("type") == "message_start":
                         res = StreamChatResponseMessageStart(
-                            type="message_start",
                             model=json_data.get("model", ""),
                             role=json_data.get("role", ""),
                         )
@@ -400,7 +399,6 @@ class AssistantModel:
                         delta_d = json_data.get("delta") or {}
                         res = StreamChatResponseContentDelta(
                             id=json_data.get("id", ""),
-                            type="content_chunk",
                             delta=MessageDelta(content=delta_d.get("content", "")),
                             model=json_data.get("model", ""),
                         )
@@ -408,7 +406,6 @@ class AssistantModel:
                         citation_d = json_data.get("citation") or {}
                         res = StreamChatResponseCitation(
                             id=json_data.get("id", ""),
-                            type="citation",
                             citation=Citation(
                                 position=citation_d.get("position", 0),
                                 references=citation_d.get("references", []),
@@ -419,7 +416,6 @@ class AssistantModel:
                         usage_d = json_data.get("usage") or {}
                         res = StreamChatResponseMessageEnd(
                             id=json_data.get("id", ""),
-                            type="message_end",
                             usage=Usage(
                                 prompt_tokens=usage_d.get("prompt_tokens", 0),
                                 completion_tokens=usage_d.get("completion_tokens", 0),

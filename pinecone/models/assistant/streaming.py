@@ -11,13 +11,17 @@ from typing import TypeAlias
 
 from msgspec import Struct
 
+from pinecone.models.assistant._mixin import StructDictMixin
 from pinecone.models.assistant.chat import ChatCitation, ChatUsage
 
 
-class StreamMessageStart(Struct, kw_only=True, tag="message_start", tag_field="type"):
+class StreamMessageStart(
+    StructDictMixin, Struct, kw_only=True, tag="message_start", tag_field="type"
+):
     """First chunk in a chat stream, containing the model and role.
 
     Attributes:
+        type: Discriminator value ``"message_start"``.
         model: The model used to generate the response.
         role: The role of the message author (e.g. ``"assistant"``).
     """
@@ -25,8 +29,13 @@ class StreamMessageStart(Struct, kw_only=True, tag="message_start", tag_field="t
     model: str
     role: str
 
+    @property
+    def type(self) -> str:
+        """Discriminator value, always ``"message_start"``."""
+        return str(self.__struct_config__.tag)
 
-class StreamContentDelta(Struct, kw_only=True):
+
+class StreamContentDelta(StructDictMixin, Struct, kw_only=True):
     """The delta payload within a content chunk.
 
     Attributes:
@@ -36,10 +45,13 @@ class StreamContentDelta(Struct, kw_only=True):
     content: str
 
 
-class StreamContentChunk(Struct, kw_only=True, tag="content_chunk", tag_field="type"):
+class StreamContentChunk(
+    StructDictMixin, Struct, kw_only=True, tag="content_chunk", tag_field="type"
+):
     """A content chunk containing a text fragment in a delta object.
 
     Attributes:
+        type: Discriminator value ``"content_chunk"``.
         id: Unique identifier for this chunk.
         delta: The delta object containing the text fragment.
         model: The model used to generate this response, or ``None`` if not provided.
@@ -49,11 +61,17 @@ class StreamContentChunk(Struct, kw_only=True, tag="content_chunk", tag_field="t
     delta: StreamContentDelta
     model: str | None = None
 
+    @property
+    def type(self) -> str:
+        """Discriminator value, always ``"content_chunk"``."""
+        return str(self.__struct_config__.tag)
 
-class StreamCitationChunk(Struct, kw_only=True, tag="citation", tag_field="type"):
+
+class StreamCitationChunk(StructDictMixin, Struct, kw_only=True, tag="citation", tag_field="type"):
     """A citation chunk linking response text to source references.
 
     Attributes:
+        type: Discriminator value ``"citation"``.
         id: Unique identifier for this chunk.
         citation: The citation data with position and references.
         model: The model used to generate this response, or ``None`` if not provided.
@@ -63,11 +81,17 @@ class StreamCitationChunk(Struct, kw_only=True, tag="citation", tag_field="type"
     citation: ChatCitation
     model: str | None = None
 
+    @property
+    def type(self) -> str:
+        """Discriminator value, always ``"citation"``."""
+        return str(self.__struct_config__.tag)
 
-class StreamMessageEnd(Struct, kw_only=True, tag="message_end", tag_field="type"):
+
+class StreamMessageEnd(StructDictMixin, Struct, kw_only=True, tag="message_end", tag_field="type"):
     """Final chunk in a chat stream, containing token usage statistics.
 
     Attributes:
+        type: Discriminator value ``"message_end"``.
         id: Unique identifier for this chunk.
         usage: Token usage statistics for the request.
         model: The model used to generate this response, or ``None`` if not provided.
@@ -76,6 +100,11 @@ class StreamMessageEnd(Struct, kw_only=True, tag="message_end", tag_field="type"
     id: str
     usage: ChatUsage
     model: str | None = None
+
+    @property
+    def type(self) -> str:
+        """Discriminator value, always ``"message_end"``."""
+        return str(self.__struct_config__.tag)
 
 
 ChatStreamChunk: TypeAlias = (
@@ -243,7 +272,7 @@ class AsyncChatCompletionStream:
         return "".join(parts)
 
 
-class ChatCompletionStreamDelta(Struct, kw_only=True):
+class ChatCompletionStreamDelta(StructDictMixin, Struct, kw_only=True):
     """The delta payload within a chat completion streaming chunk.
 
     Attributes:
@@ -255,7 +284,7 @@ class ChatCompletionStreamDelta(Struct, kw_only=True):
     content: str | None = None
 
 
-class ChatCompletionStreamChoice(Struct, kw_only=True):
+class ChatCompletionStreamChoice(StructDictMixin, Struct, kw_only=True):
     """A single choice in a chat completion streaming chunk.
 
     Attributes:
@@ -270,7 +299,7 @@ class ChatCompletionStreamChoice(Struct, kw_only=True):
     finish_reason: str | None = None
 
 
-class ChatCompletionStreamChunk(Struct, kw_only=True):
+class ChatCompletionStreamChunk(StructDictMixin, Struct, kw_only=True):
     """A streaming chunk from the OpenAI-compatible chat completion endpoint.
 
     Attributes:

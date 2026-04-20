@@ -6,8 +6,10 @@ from typing import Any
 
 from msgspec import Struct
 
+from pinecone.models.assistant._mixin import StructDictMixin
 
-class Message(Struct, kw_only=True):
+
+class Message(StructDictMixin, Struct, kw_only=True):
     """A message to send to an assistant.
 
     Attributes:

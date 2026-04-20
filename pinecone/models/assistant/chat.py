@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from msgspec import Struct
 
+from pinecone.models.assistant._mixin import StructDictMixin
 from pinecone.models.assistant.file_model import AssistantFileModel
 
 
-class ChatUsage(Struct, kw_only=True):
+class ChatUsage(StructDictMixin, Struct, kw_only=True):
     """Token usage information for a chat request.
 
     Attributes:
@@ -20,8 +23,20 @@ class ChatUsage(Struct, kw_only=True):
     completion_tokens: int
     total_tokens: int
 
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> ChatUsage:
+        """Construct a ``ChatUsage`` from a plain dict representation.
 
-class ChatHighlight(Struct, kw_only=True):
+        Missing token count fields default to 0.
+        """
+        return cls(
+            prompt_tokens=d.get("prompt_tokens", 0),
+            completion_tokens=d.get("completion_tokens", 0),
+            total_tokens=d.get("total_tokens", 0),
+        )
+
+
+class ChatHighlight(StructDictMixin, Struct, kw_only=True):
     """A highlighted portion of a referenced document.
 
     Attributes:
@@ -33,7 +48,7 @@ class ChatHighlight(Struct, kw_only=True):
     content: str
 
 
-class ChatReference(Struct, kw_only=True):
+class ChatReference(StructDictMixin, Struct, kw_only=True):
     """A single reference within a citation.
 
     Attributes:
@@ -48,7 +63,7 @@ class ChatReference(Struct, kw_only=True):
     highlight: ChatHighlight | None = None
 
 
-class ChatCitation(Struct, kw_only=True):
+class ChatCitation(StructDictMixin, Struct, kw_only=True):
     """A citation linking a position in the response to source references.
 
     Attributes:
@@ -60,7 +75,7 @@ class ChatCitation(Struct, kw_only=True):
     references: list[ChatReference]
 
 
-class ChatMessage(Struct, kw_only=True):
+class ChatMessage(StructDictMixin, Struct, kw_only=True):
     """A message in a chat conversation.
 
     Attributes:
@@ -72,7 +87,7 @@ class ChatMessage(Struct, kw_only=True):
     content: str
 
 
-class ChatResponse(Struct, kw_only=True):
+class ChatResponse(StructDictMixin, Struct, kw_only=True):
     """Non-streaming response from the assistant chat endpoint.
 
     Attributes:
@@ -93,7 +108,7 @@ class ChatResponse(Struct, kw_only=True):
     citations: list[ChatCitation]
 
 
-class ChatCompletionChoice(Struct, kw_only=True):
+class ChatCompletionChoice(StructDictMixin, Struct, kw_only=True):
     """A single choice in a chat completion response.
 
     Attributes:
@@ -107,7 +122,7 @@ class ChatCompletionChoice(Struct, kw_only=True):
     finish_reason: str
 
 
-class ChatCompletionResponse(Struct, kw_only=True):
+class ChatCompletionResponse(StructDictMixin, Struct, kw_only=True):
     """Non-streaming response from the OpenAI-compatible chat completion endpoint.
 
     Attributes:
