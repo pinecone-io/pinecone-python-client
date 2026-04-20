@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from msgspec import Struct
 
+from pinecone.models._mixin import DictLikeStruct
 
-class SparseValues(Struct, rename="camel", gc=False):
+
+class SparseValues(DictLikeStruct, Struct, rename="camel", gc=False):
     """Sparse vector representation with indices and values.
 
     Attributes:
@@ -15,6 +19,14 @@ class SparseValues(Struct, rename="camel", gc=False):
 
     indices: list[int]
     values: list[float]
+
+    @staticmethod
+    def from_dict(sparse_values_dict: dict[str, Any]) -> SparseValues:
+        """Construct a ``SparseValues`` from a plain dict representation."""
+        return SparseValues(
+            indices=sparse_values_dict["indices"],
+            values=sparse_values_dict["values"],
+        )
 
     def __repr__(self) -> str:
         if len(self.indices) > 5:

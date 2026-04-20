@@ -30,7 +30,9 @@ class TestVectorPassthrough:
         assert result is v
 
     def test_vector_passthrough_empty_rejected(self) -> None:
-        with pytest.raises(PineconeValueError, match="at least one of"):
+        # Vector's __post_init__ validates at construction time, so callers
+        # cannot build a fully-empty vector to pass through the factory.
+        with pytest.raises(ValueError, match="values or sparse_values"):
             VectorFactory.build(Vector(id="v1"))
 
     def test_vector_passthrough_sparse_only_accepted(self) -> None:

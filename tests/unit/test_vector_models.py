@@ -44,9 +44,9 @@ class TestSparseValues:
 
 class TestVector:
     def test_minimal(self) -> None:
-        v = Vector(id="vec-1")
+        v = Vector(id="vec-1", values=[1.0, 2.0])
         assert v.id == "vec-1"
-        assert v.values == []
+        assert v.values == [1.0, 2.0]
         assert v.sparse_values is None
         assert v.metadata is None
 
@@ -61,8 +61,14 @@ class TestVector:
         assert v.sparse_values.indices == [0]
 
     def test_with_metadata(self) -> None:
-        v = Vector(id="vec-4", metadata={"genre": "comedy", "year": 2024})
+        v = Vector(id="vec-4", values=[0.1], metadata={"genre": "comedy", "year": 2024})
         assert v.metadata == {"genre": "comedy", "year": 2024}
+
+    def test_empty_vector_raises(self) -> None:
+        # Vector with neither values nor sparse_values raises at construction time
+        # (claim model-0042).
+        with pytest.raises(ValueError, match="values or sparse_values"):
+            Vector(id="empty")
 
     def test_from_dict(self) -> None:
         data: dict[str, Any] = {

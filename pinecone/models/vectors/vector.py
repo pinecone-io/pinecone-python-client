@@ -6,10 +6,11 @@ from typing import Any
 
 from msgspec import Struct
 
+from pinecone.models._mixin import DictLikeStruct
 from pinecone.models.vectors.sparse import SparseValues
 
 
-class Vector(Struct, rename="camel", gc=False):
+class Vector(DictLikeStruct, Struct, rename="camel", gc=False):
     """A stored vector with optional sparse values and metadata.
 
     Attributes:
@@ -25,6 +26,24 @@ class Vector(Struct, rename="camel", gc=False):
     values: list[float] = []
     sparse_values: SparseValues | None = None
     metadata: dict[str, Any] | None = None
+
+    def __post_init__(self) -> None:
+        """Require at least one of ``values`` or ``sparse_values`` to be populated."""
+        if not self.values and self.sparse_values is None:
+            raise ValueError("Vector must have either values or sparse_values")
+
+    @staticmethod
+    def from_dict(vector_dict: dict[str, Any]) -> Vector:
+        """Construct a ``Vector`` from a plain dict representation."""
+        sparse: SparseValues | None = None
+        if vector_dict.get("sparse_values") is not None:
+            sparse = SparseValues.from_dict(vector_dict["sparse_values"])
+        return Vector(
+            id=vector_dict["id"],
+            values=vector_dict.get("values", []),
+            sparse_values=sparse,
+            metadata=vector_dict.get("metadata"),
+        )
 
     def __repr__(self) -> str:
         if len(self.values) > 5:

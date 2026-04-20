@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import Any, Literal, overload
+from typing import Any
 
 from msgspec import Struct
 
+from pinecone.models._mixin import DictLikeStruct
 from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector, Vector
 
 
-class UpsertResponse(Struct, rename="camel", kw_only=True, gc=False):
+class UpsertResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=False):
     """Response from an upsert operation.
 
     Attributes:
@@ -23,18 +24,8 @@ class UpsertResponse(Struct, rename="camel", kw_only=True, gc=False):
     upserted_count: int
     response_info: ResponseInfo | None = None
 
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. response['upserted_count'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
 
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'upserted_count' in response``)."""
-        return key in self.__struct_fields__
-
-
-class QueryResponse(Struct, rename="camel", kw_only=True, gc=False):
+class QueryResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=False):
     """Response from a query operation.
 
     Attributes:
@@ -57,30 +48,8 @@ class QueryResponse(Struct, rename="camel", kw_only=True, gc=False):
         if self.namespace is None:
             self.namespace = ""
 
-    @overload
-    def __getitem__(self, key: Literal["matches"]) -> list[ScoredVector]: ...
 
-    @overload
-    def __getitem__(self, key: Literal["namespace"]) -> str | None: ...
-
-    @overload
-    def __getitem__(self, key: Literal["usage"]) -> Usage | None: ...
-
-    @overload
-    def __getitem__(self, key: str) -> Any: ...
-
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. response['matches'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
-
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'matches' in response``)."""
-        return key in self.__struct_fields__
-
-
-class FetchResponse(Struct, rename="camel", kw_only=True, gc=False):
+class FetchResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=False):
     """Response from a fetch operation.
 
     Attributes:
@@ -96,30 +65,8 @@ class FetchResponse(Struct, rename="camel", kw_only=True, gc=False):
     usage: Usage | None = None
     response_info: ResponseInfo | None = None
 
-    @overload
-    def __getitem__(self, key: Literal["vectors"]) -> dict[str, Vector]: ...
 
-    @overload
-    def __getitem__(self, key: Literal["namespace"]) -> str: ...
-
-    @overload
-    def __getitem__(self, key: Literal["usage"]) -> Usage | None: ...
-
-    @overload
-    def __getitem__(self, key: str) -> Any: ...
-
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. response['vectors'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
-
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'vectors' in response``)."""
-        return key in self.__struct_fields__
-
-
-class FetchByMetadataResponse(Struct, rename="camel", kw_only=True, gc=False):
+class FetchByMetadataResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=False):
     """Response from a fetch-by-metadata operation.
 
     Attributes:
@@ -137,16 +84,6 @@ class FetchByMetadataResponse(Struct, rename="camel", kw_only=True, gc=False):
     usage: Usage | None = None
     pagination: Pagination | None = None
     response_info: ResponseInfo | None = None
-
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
-
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator."""
-        return key in self.__struct_fields__
 
 
 class NamespaceSummary(Struct, rename="camel", kw_only=True, gc=False):
@@ -200,21 +137,6 @@ class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True, gc=False)
             parts.append(f"metric={self.metric!r}")
         parts.append(f"namespaces={len(self.namespaces)!r}")
         return f"DescribeIndexStatsResponse({', '.join(parts)})"
-
-    @overload
-    def __getitem__(self, key: Literal["namespaces"]) -> dict[str, NamespaceSummary]: ...
-
-    @overload
-    def __getitem__(self, key: Literal["dimension"]) -> int | None: ...
-
-    @overload
-    def __getitem__(self, key: Literal["total_vector_count"]) -> int: ...
-
-    @overload
-    def __getitem__(self, key: Literal["metric"]) -> str | None: ...
-
-    @overload
-    def __getitem__(self, key: str) -> Any: ...
 
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['dimension'])."""
@@ -289,12 +211,6 @@ class ListResponse(Struct, rename="camel", kw_only=True, gc=False):
     usage: Usage | None = None
     response_info: ResponseInfo | None = None
 
-    @overload
-    def __getitem__(self, key: int) -> ListItem: ...
-
-    @overload
-    def __getitem__(self, key: str) -> Any: ...
-
     def __getitem__(self, key: int | str) -> Any:
         """Support integer indexing into vectors and string bracket access.
 
@@ -347,7 +263,7 @@ class UpsertRecordsResponse(Struct, kw_only=True, gc=False):
         return key in self.__struct_fields__
 
 
-class UpdateResponse(Struct, rename="camel", kw_only=True, gc=False):
+class UpdateResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=False):
     """Response from an update operation.
 
     Attributes:
@@ -359,13 +275,3 @@ class UpdateResponse(Struct, rename="camel", kw_only=True, gc=False):
 
     matched_records: int | None = None
     response_info: ResponseInfo | None = None
-
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. response['matched_records'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
-
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'matched_records' in response``)."""
-        return key in self.__struct_fields__

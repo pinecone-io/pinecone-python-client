@@ -61,19 +61,34 @@ class IntegratedSpec(Struct, frozen=True, kw_only=True):
     embed: EmbedConfig
 
 
-class ServerlessSpec(Struct, kw_only=True):
+class ServerlessSpec(Struct, frozen=True, kw_only=True, omit_defaults=True):
     """Serverless index deployment spec.
 
     Attributes:
         cloud: Cloud provider (e.g. ``"aws"``, ``"gcp"``, ``"azure"``).
         region: Cloud region (e.g. ``"us-east-1"``, ``"eu-west-1"``).
+        read_capacity: Optional read capacity configuration (OnDemand or Dedicated),
+            or ``None`` to use the default.
+        schema: Optional metadata schema configuration mapping field names to their
+            config, or ``None`` for no schema.
     """
 
     cloud: str
     region: str
+    read_capacity: dict[str, Any] | None = None
+    schema: dict[str, Any] | None = None
+
+    def asdict(self) -> dict[str, Any]:
+        """Return a dict with spec data nested under a ``"serverless"`` key."""
+        body: dict[str, Any] = {"cloud": self.cloud, "region": self.region}
+        if self.read_capacity is not None:
+            body["read_capacity"] = self.read_capacity
+        if self.schema is not None:
+            body["schema"] = self.schema
+        return {"serverless": body}
 
 
-class PodSpec(Struct, kw_only=True):
+class PodSpec(Struct, frozen=True, kw_only=True):
     """Pod-based index deployment spec.
 
     Attributes:
@@ -96,14 +111,40 @@ class PodSpec(Struct, kw_only=True):
     metadata_config: dict[str, Any] | None = None
     source_collection: str | None = None
 
+    def asdict(self) -> dict[str, Any]:
+        """Return a dict with spec data nested under a ``"pod"`` key."""
+        body: dict[str, Any] = {
+            "environment": self.environment,
+            "pod_type": self.pod_type,
+            "replicas": self.replicas,
+            "shards": self.shards,
+            "pods": self.pods,
+        }
+        if self.metadata_config is not None:
+            body["metadata_config"] = self.metadata_config
+        if self.source_collection is not None:
+            body["source_collection"] = self.source_collection
+        return {"pod": body}
 
-class ByocSpec(Struct, kw_only=True, omit_defaults=True):
+
+class ByocSpec(Struct, frozen=True, kw_only=True, omit_defaults=True):
     """Bring-your-own-cloud index deployment spec.
 
     Attributes:
         environment: BYOC environment identifier (e.g. ``"aws-us-east-1-b921"``).
         read_capacity: Optional read capacity configuration (OnDemand or Dedicated).
+        schema: Optional metadata schema configuration.
     """
 
     environment: str
     read_capacity: dict[str, Any] | None = None
+    schema: dict[str, Any] | None = None
+
+    def asdict(self) -> dict[str, Any]:
+        """Return a dict with spec data nested under a ``"byoc"`` key."""
+        body: dict[str, Any] = {"environment": self.environment}
+        if self.read_capacity is not None:
+            body["read_capacity"] = self.read_capacity
+        if self.schema is not None:
+            body["schema"] = self.schema
+        return {"byoc": body}
