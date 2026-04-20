@@ -13,6 +13,11 @@ class IndexList:
     def __init__(self, indexes: list[IndexModel]) -> None:
         self._indexes = indexes
 
+    @property
+    def indexes(self) -> list[IndexModel]:
+        """Return the list of indexes."""
+        return self._indexes
+
     def __iter__(self) -> Iterator[IndexModel]:
         return iter(self._indexes)
 

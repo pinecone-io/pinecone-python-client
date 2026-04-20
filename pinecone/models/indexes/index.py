@@ -146,6 +146,10 @@ class IndexModel(Struct, kw_only=True):
         """Normalize host to always include https:// scheme."""
         self.host = normalize_host(self.host)
 
+    def __getattr__(self, name: str) -> Any:
+        """Raise AttributeError for unknown attributes (legacy dict-style delegation)."""
+        raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
+
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. index['name'])."""
         if key not in self.__struct_fields__:
@@ -155,3 +159,7 @@ class IndexModel(Struct, kw_only=True):
     def __contains__(self, key: object) -> bool:
         """Support ``in`` operator (e.g. ``'name' in index``)."""
         return key in self.__struct_fields__
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a dict representation of this index model."""
+        return {f: getattr(self, f) for f in self.__struct_fields__}

@@ -31,6 +31,15 @@ class BackupList:
         self._backups = backups
         self.pagination = pagination
 
+    @property
+    def data(self) -> list[BackupModel]:
+        """Return the list of backups."""
+        return self._backups
+
+    def __getattr__(self, name: str) -> object:
+        """Raise AttributeError for unknown attributes (legacy dict-style delegation)."""
+        raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
+
     def __iter__(self) -> Iterator[BackupModel]:
         return iter(self._backups)
 
@@ -87,6 +96,15 @@ class RestoreJobList:
         """
         self._restore_jobs = restore_jobs
         self.pagination = pagination
+
+    @property
+    def data(self) -> list[RestoreJobModel]:
+        """Return the list of restore jobs."""
+        return self._restore_jobs
+
+    def __getattr__(self, name: str) -> object:
+        """Raise AttributeError for unknown attributes (legacy dict-style delegation)."""
+        raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
 
     def __iter__(self) -> Iterator[RestoreJobModel]:
         return iter(self._restore_jobs)

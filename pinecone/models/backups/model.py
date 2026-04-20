@@ -44,6 +44,15 @@ class BackupModel(Struct, kw_only=True):
     tags: dict[str, str] | None = None
     created_at: str | None = None
 
+    @property
+    def schema(self) -> None:
+        """Metadata schema associated with this backup (not populated in the rewrite)."""
+        return None
+
+    def __getattr__(self, name: str) -> Any:
+        """Raise AttributeError for unknown attributes (legacy dict-style delegation)."""
+        raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
+
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. backup['backup_id'])."""
         if key not in self.__struct_fields__:
@@ -53,6 +62,10 @@ class BackupModel(Struct, kw_only=True):
     def __contains__(self, key: object) -> bool:
         """Support ``in`` operator (e.g. ``'backup_id' in backup``)."""
         return key in self.__struct_fields__
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a dict representation of this backup model."""
+        return {f: getattr(self, f) for f in self.__struct_fields__}
 
 
 class RestoreJobModel(Struct, kw_only=True):
@@ -78,6 +91,10 @@ class RestoreJobModel(Struct, kw_only=True):
     completed_at: str | None = None
     percent_complete: float | None = None
 
+    def __getattr__(self, name: str) -> Any:
+        """Raise AttributeError for unknown attributes (legacy dict-style delegation)."""
+        raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
+
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. job['restore_job_id'])."""
         if key not in self.__struct_fields__:
@@ -87,6 +104,10 @@ class RestoreJobModel(Struct, kw_only=True):
     def __contains__(self, key: object) -> bool:
         """Support ``in`` operator (e.g. ``'restore_job_id' in job``)."""
         return key in self.__struct_fields__
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a dict representation of this restore job model."""
+        return {f: getattr(self, f) for f in self.__struct_fields__}
 
 
 class CreateIndexFromBackupResponse(Struct, kw_only=True):
