@@ -5,6 +5,7 @@ from __future__ import annotations
 from pinecone.models.assistant.chat import (
     ChatCitation,
     ChatCompletionChoice,
+    ChatCompletionResponse,
     ChatHighlight,
     ChatMessage,
     ChatReference,
@@ -199,7 +200,9 @@ class TestChatCompletionChoice:
         c = ChatCompletionChoice(
             index=0, message=ChatMessage(role="assistant", content="Hi"), finish_reason="stop"
         )
-        assert "0" in repr(c) and "stop" in repr(c)
+        r = repr(c)
+        assert "0" in r
+        assert "stop" in r
 
     def test_repr_long_message_bounded(self) -> None:
         c = ChatCompletionChoice(
@@ -222,3 +225,44 @@ class TestChatCompletionChoice:
         c.message = object()  # type: ignore[assignment]
         assert isinstance(repr(c), str)
         assert isinstance(c._repr_html_(), str)
+
+
+def _ccr(n_choices: int = 1, content: str = "Hi") -> ChatCompletionResponse:
+    return ChatCompletionResponse(
+        id="c-1",
+        model="m",
+        usage=ChatUsage(prompt_tokens=1, completion_tokens=1, total_tokens=2),
+        choices=[
+            ChatCompletionChoice(
+                index=i,
+                message=ChatMessage(role="assistant", content=content),
+                finish_reason="stop",
+            )
+            for i in range(n_choices)
+        ],
+    )
+
+
+class TestChatCompletionResponse:
+    def test_repr(self) -> None:
+        assert "c-1" in repr(_ccr())
+
+    def test_repr_many_choices(self) -> None:
+        r = repr(_ccr(n_choices=100))
+        assert len(r) < 500
+
+    def test_repr_long_content_bounded(self) -> None:
+        assert len(repr(_ccr(content="x" * 100_000))) < 500
+
+    def test_repr_html(self) -> None:
+        assert "c-1" in _ccr()._repr_html_()
+
+    def test_repr_html_no_choices(self) -> None:
+        h = _ccr(n_choices=0)._repr_html_()
+        assert "<div" in h
+
+    def test_safe_on_malformed(self) -> None:
+        r = _ccr()
+        r.choices = object()  # type: ignore[assignment]
+        assert isinstance(repr(r), str)
+        assert isinstance(r._repr_html_(), str)

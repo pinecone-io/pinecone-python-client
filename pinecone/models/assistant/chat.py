@@ -347,3 +347,51 @@ class ChatCompletionResponse(StructDictMixin, Struct, kw_only=True):
     model: str
     usage: ChatUsage
     choices: list[ChatCompletionChoice]
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return (
+            f"ChatCompletionResponse(id={self.id!r}, model={self.model!r},"
+            f" choices={len(self.choices)}, usage={self.usage!r})"
+        )
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ChatCompletionResponse(...)")
+            return
+        first_content: str | None = None
+        if self.choices:
+            first_content = truncate_text(self.choices[0].message.content, max_chars=200)
+        with p.group(2, "ChatCompletionResponse(", ")"):
+            p.breakable()
+            p.text(f"id={self.id!r},")
+            p.breakable()
+            p.text(f"model={self.model!r},")
+            p.breakable()
+            p.text(f"usage={self.usage!r},")
+            p.breakable()
+            p.text(f"choices={len(self.choices)},")
+            if first_content is not None:
+                p.breakable()
+                p.text(f"first_choice_content={first_content!r},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ChatCompletionResponse")
+        builder.row("Id", self.id)
+        builder.row("Model", self.model)
+        builder.row("Choices", len(self.choices))
+        builder.row("Usage", repr(self.usage))
+        if self.choices:
+            first = self.choices[0]
+            builder.section(
+                "First choice",
+                [
+                    ("Index", first.index),
+                    ("Finish reason", first.finish_reason),
+                    ("Role", first.message.role),
+                    ("Content", truncate_text(first.message.content, max_chars=500)),
+                ],
+            )
+        return builder.build()
