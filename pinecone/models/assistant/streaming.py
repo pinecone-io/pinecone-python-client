@@ -208,6 +208,37 @@ class StreamMessageEnd(StructDictMixin, Struct, kw_only=True, tag="message_end",
         """Discriminator value, always ``"message_end"``."""
         return str(self.__struct_config__.tag)
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        model_part = f", model={self.model!r}" if self.model is not None else ""
+        return f"StreamMessageEnd(id={self.id!r}, usage={self.usage!r}{model_part})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("StreamMessageEnd(...)")
+            return
+        with p.group(2, "StreamMessageEnd(", ")"):
+            p.breakable()
+            p.text(f"id={self.id!r},")
+            if self.model is not None:
+                p.breakable()
+                p.text(f"model={self.model!r},")
+            p.breakable()
+            p.text(f"usage={self.usage!r},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("StreamMessageEnd")
+        builder.row("Type:", self.type)
+        builder.row("Id:", self.id)
+        if self.model is not None:
+            builder.row("Model:", self.model)
+        builder.row("Prompt tokens:", self.usage.prompt_tokens)
+        builder.row("Completion tokens:", self.usage.completion_tokens)
+        builder.row("Total tokens:", self.usage.total_tokens)
+        return builder.build()
+
 
 ChatStreamChunk: TypeAlias = (
     StreamMessageStart | StreamContentChunk | StreamCitationChunk | StreamMessageEnd
