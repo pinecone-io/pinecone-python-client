@@ -109,6 +109,35 @@ class StreamContentChunk(
         """Discriminator value, always ``"content_chunk"``."""
         return str(self.__struct_config__.tag)
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        model_part = f", model={self.model!r}" if self.model is not None else ""
+        return f"StreamContentChunk(id={self.id!r}, delta={self.delta!r}{model_part})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("StreamContentChunk(...)")
+            return
+        with p.group(2, "StreamContentChunk(", ")"):
+            p.breakable()
+            p.text(f"id={self.id!r},")
+            if self.model is not None:
+                p.breakable()
+                p.text(f"model={self.model!r},")
+            p.breakable()
+            p.text(f"delta={self.delta!r},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("StreamContentChunk")
+        builder.row("Type:", self.type)
+        builder.row("Id:", self.id)
+        if self.model is not None:
+            builder.row("Model:", self.model)
+        builder.row("Content:", truncate_text(self.delta.content, 500))
+        return builder.build()
+
 
 class StreamCitationChunk(StructDictMixin, Struct, kw_only=True, tag="citation", tag_field="type"):
     """A citation chunk linking response text to source references.

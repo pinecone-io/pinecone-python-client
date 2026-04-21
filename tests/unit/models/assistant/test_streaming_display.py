@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from pinecone.models.assistant.streaming import StreamContentDelta, StreamMessageStart
+from pinecone.models.assistant.streaming import (
+    StreamContentChunk,
+    StreamContentDelta,
+    StreamMessageStart,
+)
 
 
 class TestStreamMessageStart:
@@ -37,3 +41,28 @@ class TestStreamContentDelta:
         d.content = object()  # type: ignore[assignment]
         assert isinstance(repr(d), str)
         assert isinstance(d._repr_html_(), str)
+
+
+class TestStreamContentChunk:
+    def test_repr(self) -> None:
+        c = StreamContentChunk(id="c-1", delta=StreamContentDelta(content="hi"), model="m")
+        r = repr(c)
+        assert "c-1" in r
+
+    def test_repr_no_model(self) -> None:
+        c = StreamContentChunk(id="c-1", delta=StreamContentDelta(content="hi"))
+        assert "None" not in repr(c)
+
+    def test_repr_long_content_truncated(self) -> None:
+        c = StreamContentChunk(id="c-1", delta=StreamContentDelta(content="x" * 10_000))
+        assert len(repr(c)) < 500
+
+    def test_repr_html(self) -> None:
+        c = StreamContentChunk(id="c-1", delta=StreamContentDelta(content="hi"))
+        assert "hi" in c._repr_html_()
+
+    def test_safe_on_malformed(self) -> None:
+        c = StreamContentChunk(id="c-1", delta=StreamContentDelta(content="x"))
+        c.delta = object()  # type: ignore[assignment]
+        assert isinstance(repr(c), str)
+        assert isinstance(c._repr_html_(), str)
