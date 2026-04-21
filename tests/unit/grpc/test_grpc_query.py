@@ -46,3 +46,18 @@ def test_grpc_query_vector_id_sparse_none_rejected() -> None:
         match="At least one of vector, id, or sparse_vector must be provided",
     ):
         idx.query(top_k=5)
+
+
+def test_query_with_sparse_values_model_forwards_as_dict() -> None:
+    """SparseValues model is converted to plain dict before being forwarded to GrpcChannel."""
+    from pinecone.models.vectors.sparse import SparseValues
+
+    idx, mock_channel = _make_grpc_index()
+    mock_channel.query.return_value = {"matches": [], "namespace": ""}
+
+    sv = SparseValues(indices=[1, 4], values=[0.5, 0.2])
+    idx.query(top_k=5, sparse_vector=sv)
+
+    mock_channel.query.assert_called_once()
+    call_kwargs = mock_channel.query.call_args[1]
+    assert call_kwargs["sparse_vector"] == {"indices": [1, 4], "values": [0.5, 0.2]}

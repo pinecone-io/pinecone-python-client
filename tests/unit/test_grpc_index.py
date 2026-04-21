@@ -183,6 +183,40 @@ class TestUpsert:
         vec_dicts = call_args[0][0]
         assert vec_dicts[0]["id"] == "v1"
 
+    def test_upsert_with_vector_objects_preserves_sparse_values(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        from pinecone.models.vectors.sparse import SparseValues
+
+        mock_channel.upsert.return_value = {"upserted_count": 1}
+
+        grpc_index.upsert(
+            vectors=[
+                Vector(
+                    id="v1",
+                    values=[0.1, 0.2],
+                    sparse_values=SparseValues(indices=[0, 2], values=[0.9, 0.1]),
+                )
+            ]
+        )
+
+        call_args = mock_channel.upsert.call_args
+        vec_dict = call_args[0][0][0]
+        assert vec_dict["sparse_values"] == {"indices": [0, 2], "values": [0.9, 0.1]}
+
+    def test_upsert_with_vector_objects_preserves_metadata(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        mock_channel.upsert.return_value = {"upserted_count": 1}
+
+        grpc_index.upsert(
+            vectors=[Vector(id="v1", values=[0.1], metadata={"topic": "ai"})]
+        )
+
+        call_args = mock_channel.upsert.call_args
+        vec_dict = call_args[0][0][0]
+        assert vec_dict["metadata"] == {"topic": "ai"}
+
     def test_upsert_empty_namespace_passes_none(
         self, grpc_index: GrpcIndex, mock_channel: MagicMock
     ) -> None:
@@ -326,6 +360,25 @@ class TestFetch:
 
         result = grpc_index.fetch(ids=["nonexistent"])
         assert len(result.vectors) == 0
+
+    def test_fetch_inflates_sparse_values_from_response(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        from pinecone.models.vectors.sparse import SparseValues
+
+        mock_channel.fetch.return_value = {
+            "vectors": {
+                "v1": {
+                    "values": [0.1, 0.2],
+                    "sparse_values": {"indices": [0, 2], "values": [0.5, 0.3]},
+                    "metadata": None,
+                }
+            }
+        }
+
+        result = grpc_index.fetch(ids=["v1"])
+
+        assert result.vectors["v1"].sparse_values == SparseValues(indices=[0, 2], values=[0.5, 0.3])
 
 
 class TestDelete:
