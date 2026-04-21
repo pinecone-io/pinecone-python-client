@@ -204,6 +204,25 @@ class ChatMessage(StructDictMixin, Struct, kw_only=True):
     role: str
     content: str
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        truncated = truncate_text(self.content, max_chars=80)
+        return f"ChatMessage(role={self.role!r}, content={truncated!r})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        truncated = truncate_text(self.content, max_chars=200)
+        p.text(f"ChatMessage(role={self.role!r}, content={truncated!r})")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        return (
+            HtmlBuilder("ChatMessage")
+            .row("Role", self.role)
+            .row("Content", truncate_text(self.content, max_chars=500))
+            .build()
+        )
+
 
 class ChatResponse(StructDictMixin, Struct, kw_only=True):
     """Non-streaming response from the assistant chat endpoint.

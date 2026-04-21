@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from pinecone.models.assistant.chat import ChatCitation, ChatHighlight, ChatReference, ChatUsage
+from pinecone.models.assistant.chat import (
+    ChatCitation,
+    ChatHighlight,
+    ChatMessage,
+    ChatReference,
+    ChatUsage,
+)
 from pinecone.models.assistant.file_model import AssistantFileModel
 
 
@@ -120,3 +126,26 @@ class TestChatCitation:
         c.position = object()  # type: ignore[assignment]
         assert isinstance(repr(c), str)
         assert isinstance(c._repr_html_(), str)
+
+
+class TestChatMessage:
+    def test_repr(self) -> None:
+        assert "Hi" in repr(ChatMessage(role="assistant", content="Hi"))
+
+    def test_repr_long_truncated(self) -> None:
+        r = repr(ChatMessage(role="assistant", content="x" * 5000))
+        assert len(r) < 500
+        assert "..." in r
+
+    def test_repr_html(self) -> None:
+        assert "Hi" in ChatMessage(role="assistant", content="Hi")._repr_html_()
+
+    def test_repr_html_long_truncated(self) -> None:
+        h = ChatMessage(role="assistant", content="x" * 10_000)._repr_html_()
+        assert len(h) < 5000
+
+    def test_safe_on_malformed(self) -> None:
+        m = ChatMessage(role="user", content="x")
+        m.role = object()  # type: ignore[assignment]
+        assert isinstance(repr(m), str)
+        assert isinstance(m._repr_html_(), str)
