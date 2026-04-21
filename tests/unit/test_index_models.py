@@ -207,8 +207,76 @@ class TestServerlessSpec:
         decoded: dict[str, Any] = msgspec.json.decode(encoded)
         assert decoded == {"cloud": "aws", "region": "us-east-1"}
 
+    def test_asdict_minimal(self) -> None:
+        spec = ServerlessSpec(cloud="aws", region="us-east-1")
+        result = spec.asdict()
+        assert result == {"serverless": {"cloud": "aws", "region": "us-east-1"}}
+
+    def test_asdict_with_read_capacity(self) -> None:
+        spec = ServerlessSpec(cloud="aws", region="us-east-1", read_capacity={"mode": "OnDemand"})
+        result = spec.asdict()
+        assert result["serverless"]["read_capacity"] == {"mode": "OnDemand"}
+        assert result["serverless"]["cloud"] == "aws"
+        assert result["serverless"]["region"] == "us-east-1"
+
+    def test_asdict_with_schema(self) -> None:
+        spec = ServerlessSpec(
+            cloud="aws",
+            region="us-east-1",
+            schema={"fields": {"genre": {"type": "string"}}},
+        )
+        result = spec.asdict()
+        assert result["serverless"]["schema"] == {"fields": {"genre": {"type": "string"}}}
+        assert "read_capacity" not in result["serverless"]
+
+    def test_asdict_with_all_optional(self) -> None:
+        spec = ServerlessSpec(
+            cloud="aws",
+            region="us-east-1",
+            read_capacity={"mode": "OnDemand"},
+            schema={"fields": {"genre": {"type": "string"}}},
+        )
+        result = spec.asdict()
+        assert result["serverless"]["read_capacity"] == {"mode": "OnDemand"}
+        assert result["serverless"]["schema"] == {"fields": {"genre": {"type": "string"}}}
+
 
 class TestPodSpec:
+    def test_asdict_defaults(self) -> None:
+        spec = PodSpec(environment="us-east1-gcp")
+        result = spec.asdict()
+        assert "pod" in result
+        pod = result["pod"]
+        assert pod["environment"] == "us-east1-gcp"
+        assert pod["pod_type"] == "p1.x1"
+        assert pod["replicas"] == 1
+        assert pod["shards"] == 1
+        assert pod["pods"] == 1
+        assert "metadata_config" not in pod
+        assert "source_collection" not in pod
+
+    def test_asdict_with_metadata_config(self) -> None:
+        spec = PodSpec(environment="us-east1-gcp", metadata_config={"indexed": ["genre"]})
+        result = spec.asdict()
+        assert result["pod"]["metadata_config"] == {"indexed": ["genre"]}
+        assert "source_collection" not in result["pod"]
+
+    def test_asdict_with_source_collection(self) -> None:
+        spec = PodSpec(environment="us-east1-gcp", source_collection="my-coll")
+        result = spec.asdict()
+        assert result["pod"]["source_collection"] == "my-coll"
+        assert "metadata_config" not in result["pod"]
+
+    def test_asdict_with_all_optional(self) -> None:
+        spec = PodSpec(
+            environment="us-east1-gcp",
+            metadata_config={"indexed": ["genre"]},
+            source_collection="my-coll",
+        )
+        result = spec.asdict()
+        assert result["pod"]["metadata_config"] == {"indexed": ["genre"]}
+        assert result["pod"]["source_collection"] == "my-coll"
+
     def test_construct_with_defaults(self) -> None:
         spec = PodSpec(environment="us-east1-gcp")
         assert spec.pod_type == "p1.x1"
@@ -243,6 +311,33 @@ class TestPodSpec:
 
 
 class TestByocSpec:
+    def test_asdict_minimal(self) -> None:
+        spec = ByocSpec(environment="aws-us-east-1-b921")
+        result = spec.asdict()
+        assert result == {"byoc": {"environment": "aws-us-east-1-b921"}}
+
+    def test_asdict_with_read_capacity(self) -> None:
+        spec = ByocSpec(environment="aws-us-east-1-b921", read_capacity={"mode": "OnDemand"})
+        result = spec.asdict()
+        assert result["byoc"]["read_capacity"] == {"mode": "OnDemand"}
+        assert result["byoc"]["environment"] == "aws-us-east-1-b921"
+
+    def test_asdict_with_schema(self) -> None:
+        spec = ByocSpec(environment="aws-us-east-1-b921", schema={"fields": {}})
+        result = spec.asdict()
+        assert result["byoc"]["schema"] == {"fields": {}}
+        assert "read_capacity" not in result["byoc"]
+
+    def test_asdict_with_all_optional(self) -> None:
+        spec = ByocSpec(
+            environment="aws-us-east-1-b921",
+            read_capacity={"mode": "OnDemand"},
+            schema={"fields": {}},
+        )
+        result = spec.asdict()
+        assert result["byoc"]["read_capacity"] == {"mode": "OnDemand"}
+        assert result["byoc"]["schema"] == {"fields": {}}
+
     def test_construct_and_encode(self) -> None:
         spec = ByocSpec(environment="aws-us-east-1-b921")
         encoded = msgspec.json.encode(spec)
