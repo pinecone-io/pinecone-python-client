@@ -73,6 +73,38 @@ class ContextImageBlock(
     caption: str
     image_data: ContextImageData | None = None
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        image_summary = "present" if self.image_data is not None else "absent"
+        return (
+            f"ContextImageBlock(caption={truncate_text(self.caption, 80)!r},"
+            f" image_data=<{image_summary}>)"
+        )
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ContextImageBlock(...)")
+            return
+        image_summary = "present" if self.image_data is not None else "absent"
+        p.text(
+            f"ContextImageBlock(\n"
+            f"  caption={truncate_text(self.caption, 80)!r},\n"
+            f"  image_data=<{image_summary}>\n"
+            f")"
+        )
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ContextImageBlock")
+        builder.row("Caption", truncate_text(self.caption, 200))
+        if self.image_data is not None:
+            image_value = f"{self.image_data.mime_type} ({len(self.image_data.data):,} chars)"
+        else:
+            image_value = "—"
+        builder.row("Image", image_value)
+        return builder.build()
+
 
 class ContextTextBlock(Struct, kw_only=True, tag="text", tag_field="type"):
     """A text block within a multimodal context snippet.
