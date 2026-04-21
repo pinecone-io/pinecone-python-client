@@ -42,7 +42,9 @@ class TestQueryNamespacesDenseHappyPath:
         idx = _make_index()
         response = _make_query_response([_scored("v1", 0.9)])
 
-        with patch.object(idx, "query", new_callable=AsyncMock, return_value=response) as mock_query:
+        with patch.object(
+            idx, "query", new_callable=AsyncMock, return_value=response
+        ) as mock_query:
             await idx.query_namespaces(
                 vector=[0.1, 0.2, 0.3],
                 namespaces=["ns1", "ns2"],
@@ -61,7 +63,9 @@ class TestQueryNamespacesSparseOnly:
         idx = _make_index()
         response = _make_query_response([_scored("v1", 0.9)])
 
-        with patch.object(idx, "query", new_callable=AsyncMock, return_value=response) as mock_query:
+        with patch.object(
+            idx, "query", new_callable=AsyncMock, return_value=response
+        ) as mock_query:
             await idx.query_namespaces(
                 sparse_vector={"indices": [0, 1], "values": [0.1, 0.2]},
                 namespaces=["ns1"],

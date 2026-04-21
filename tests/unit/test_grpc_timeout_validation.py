@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import pytest
 
-pytest.importorskip("pinecone._grpc", reason="Rust extension not available; run maturin develop first")
+pytest.importorskip(
+    "pinecone._grpc", reason="Rust extension not available; run maturin develop first"
+)
 
 from pinecone._grpc import GrpcChannel  # type: ignore[import-not-found]
 

@@ -1053,9 +1053,7 @@ def test_batch_upsert_partial_failure_collects_failed_items(
     assert result.failed_batch_count == 1, (
         f"Expected 1 failed batch (bad-dim doc), got {result.failed_batch_count}"
     )
-    assert result.failed_item_count == 1, (
-        f"Expected 1 failed item, got {result.failed_item_count}"
-    )
+    assert result.failed_item_count == 1, f"Expected 1 failed item, got {result.failed_item_count}"
     assert result.successful_batch_count == 3, (
         f"Expected 3 successful batches, got {result.successful_batch_count}"
     )
@@ -1103,11 +1101,7 @@ def test_describe_dedicated_index_read_capacity_response_fields(
         PreviewReadCapacityStatus,
     )
 
-    schema = (
-        SchemaBuilder()
-        .add_string_field("text", full_text_searchable=True)
-        .build()
-    )
+    schema = SchemaBuilder().add_string_field("text", full_text_searchable=True).build()
     read_capacity = {
         "mode": "Dedicated",
         "dedicated": {
@@ -1139,7 +1133,9 @@ def test_describe_dedicated_index_read_capacity_response_fields(
 
     # read_capacity must be present and must be the Dedicated variant.
     rc = described.read_capacity
-    assert rc is not None, "describe() on a dedicated-capacity index must have read_capacity != None"
+    assert rc is not None, (
+        "describe() on a dedicated-capacity index must have read_capacity != None"
+    )
     assert isinstance(rc, PreviewReadCapacityDedicatedResponse), (
         f"read_capacity must be PreviewReadCapacityDedicatedResponse for a Dedicated index, "
         f"got {type(rc)}"

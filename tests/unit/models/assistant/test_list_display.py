@@ -66,7 +66,9 @@ class TestListAssistantsPretty:
 
 
 def mk_files(n: int) -> list[AssistantFileModel]:
-    return [AssistantFileModel(name=f"f{i}.txt", id=f"id-{i}", status="Available") for i in range(n)]
+    return [
+        AssistantFileModel(name=f"f{i}.txt", id=f"id-{i}", status="Available") for i in range(n)
+    ]
 
 
 class TestListFilesRepr:

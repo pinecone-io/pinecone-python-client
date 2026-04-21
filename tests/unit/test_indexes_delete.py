@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import itertools
+
 import httpx
 import pytest
 import respx

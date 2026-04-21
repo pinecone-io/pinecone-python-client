@@ -44,7 +44,9 @@ def inference(config: PineconeConfig) -> AsyncInference:
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_async_embed_returns_embeddings_list_with_model_and_usage(inference: AsyncInference) -> None:
+async def test_async_embed_returns_embeddings_list_with_model_and_usage(
+    inference: AsyncInference,
+) -> None:
     """embed() returns an EmbeddingsList whose model, data, and usage fields reflect the response body."""
     route = respx.post(f"{BASE_URL}/embed").mock(
         return_value=httpx.Response(200, json=make_embed_response()),
@@ -140,7 +142,9 @@ async def test_async_embed_accepts_embed_model_enum(inference: AsyncInference) -
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_async_rerank_returns_rerank_result_with_model_and_usage(inference: AsyncInference) -> None:
+async def test_async_rerank_returns_rerank_result_with_model_and_usage(
+    inference: AsyncInference,
+) -> None:
     """rerank() returns a RerankResult whose model, data, and usage fields reflect the response body."""
     route = respx.post(f"{BASE_URL}/rerank").mock(
         return_value=httpx.Response(200, json=make_rerank_response()),
@@ -174,7 +178,9 @@ async def test_async_rerank_empty_docs_raises(inference: AsyncInference) -> None
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_async_rerank_wraps_bare_string_documents_as_text_dicts(inference: AsyncInference) -> None:
+async def test_async_rerank_wraps_bare_string_documents_as_text_dicts(
+    inference: AsyncInference,
+) -> None:
     route = respx.post(f"{BASE_URL}/rerank").mock(
         return_value=httpx.Response(200, json=make_rerank_response()),
     )
@@ -191,7 +197,9 @@ async def test_async_rerank_wraps_bare_string_documents_as_text_dicts(inference:
 
 @respx.mock
 @pytest.mark.asyncio
-async def test_async_rerank_defaults_rank_fields_to_text_when_omitted(inference: AsyncInference) -> None:
+async def test_async_rerank_defaults_rank_fields_to_text_when_omitted(
+    inference: AsyncInference,
+) -> None:
     route = respx.post(f"{BASE_URL}/rerank").mock(
         return_value=httpx.Response(200, json=make_rerank_response()),
     )

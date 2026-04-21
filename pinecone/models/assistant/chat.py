@@ -157,6 +157,41 @@ class ChatCitation(StructDictMixin, Struct, kw_only=True):
     position: int
     references: list[ChatReference]
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return f"ChatCitation(position={self.position}, references={len(self.references)})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ChatCitation(...)")
+            return
+        names = [ref.file.name for ref in self.references[:3]]
+        extra = len(self.references) - 3
+        names_str = ", ".join(repr(n) for n in names)
+        if extra > 0:
+            names_str += f", ...{extra} more"
+        with p.group(2, "ChatCitation(", ")"):
+            p.breakable()
+            p.text(f"position={self.position},")
+            p.breakable()
+            p.text(f"references=[{names_str}],")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ChatCitation")
+        builder.row("Position", self.position)
+        builder.row("Reference count", len(self.references))
+        if self.references:
+            ref_rows: list[tuple[str, Any]] = []
+            for ref in self.references[:5]:
+                pages_val = abbreviate_list(ref.pages) if ref.pages is not None else "—"
+                ref_rows.append((ref.file.name, pages_val))
+            builder.section("References", ref_rows)
+        else:
+            builder.section("References", [("—", "")])
+        return builder.build()
+
 
 class ChatMessage(StructDictMixin, Struct, kw_only=True):
     """A message in a chat conversation.

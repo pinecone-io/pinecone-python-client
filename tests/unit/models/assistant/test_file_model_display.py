@@ -7,11 +7,18 @@ from pinecone.models.assistant.file_model import AssistantFileModel
 
 def make_full() -> AssistantFileModel:
     return AssistantFileModel(
-        name="doc.pdf", id="f-1", metadata={"k": "v"},
-        created_on="2026-01-01T00:00:00Z", updated_on="2026-01-02T00:00:00Z",
-        status="Available", size=1024, multimodal=False,
-        signed_url="https://example.com/...", content_hash="abc123",
-        percent_done=100.0, error_message=None,
+        name="doc.pdf",
+        id="f-1",
+        metadata={"k": "v"},
+        created_on="2026-01-01T00:00:00Z",
+        updated_on="2026-01-02T00:00:00Z",
+        status="Available",
+        size=1024,
+        multimodal=False,
+        signed_url="https://example.com/...",
+        content_hash="abc123",
+        percent_done=100.0,
+        error_message=None,
     )
 
 
@@ -20,7 +27,9 @@ def make_minimal() -> AssistantFileModel:
 
 
 def make_failed() -> AssistantFileModel:
-    return AssistantFileModel(name="a.txt", id="f-x", status="ProcessingFailed", error_message="boom" * 50)
+    return AssistantFileModel(
+        name="a.txt", id="f-x", status="ProcessingFailed", error_message="boom" * 50
+    )
 
 
 class TestRepr:
@@ -64,6 +73,7 @@ class TestReprHtml:
 class TestReprPretty:
     def test_populated(self) -> None:
         from IPython.lib.pretty import pretty
+
         assert "doc.pdf" in pretty(make_full())
 
 

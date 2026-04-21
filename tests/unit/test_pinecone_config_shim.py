@@ -69,7 +69,5 @@ def test_build_explicit_additional_headers_override_env(monkeypatch: pytest.Monk
 
 
 def test_build_filters_unknown_kwargs_and_passes_known_kwargs() -> None:
-    result = PineconeConfig.build(
-        api_key="k", source_tag="test-tag", not_a_field="ignored"
-    )
+    result = PineconeConfig.build(api_key="k", source_tag="test-tag", not_a_field="ignored")
     assert result.source_tag == "test-tag"

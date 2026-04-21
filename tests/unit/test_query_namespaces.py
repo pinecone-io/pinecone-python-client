@@ -91,7 +91,9 @@ class TestQueryNamespacesValidation:
 
     def test_query_namespaces_empty_vector_raises(self) -> None:
         idx = _make_index()
-        with pytest.raises(ValidationError, match="at least one of 'vector' or 'sparse_vector' must be provided"):
+        with pytest.raises(
+            ValidationError, match="at least one of 'vector' or 'sparse_vector' must be provided"
+        ):
             idx.query_namespaces(
                 vector=[],
                 namespaces=["ns1"],
@@ -100,7 +102,9 @@ class TestQueryNamespacesValidation:
 
     def test_query_namespaces_no_vector_no_sparse_raises(self) -> None:
         idx = _make_index()
-        with pytest.raises(ValidationError, match="at least one of 'vector' or 'sparse_vector' must be provided"):
+        with pytest.raises(
+            ValidationError, match="at least one of 'vector' or 'sparse_vector' must be provided"
+        ):
             idx.query_namespaces(
                 namespaces=["ns1"],
                 metric="dotproduct",

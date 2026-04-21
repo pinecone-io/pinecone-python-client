@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pinecone.models.assistant.chat import ChatHighlight, ChatReference, ChatUsage
+from pinecone.models.assistant.chat import ChatCitation, ChatHighlight, ChatReference, ChatUsage
 from pinecone.models.assistant.file_model import AssistantFileModel
 
 
@@ -88,5 +88,35 @@ class TestChatReference:
     def test_safe_on_malformed(self) -> None:
         c = ChatReference(file=_file())
         c.file = object()  # type: ignore[assignment]
+        assert isinstance(repr(c), str)
+        assert isinstance(c._repr_html_(), str)
+
+
+class TestChatCitation:
+    def test_repr(self) -> None:
+        c = ChatCitation(position=42, references=[ChatReference(file=_file())])
+        r = repr(c)
+        assert "42" in r
+
+    def test_repr_empty_refs(self) -> None:
+        r = repr(ChatCitation(position=0, references=[]))
+        assert "0" in r
+
+    def test_repr_large_refs_abbreviated(self) -> None:
+        refs = [ChatReference(file=_file()) for _ in range(500)]
+        r = repr(ChatCitation(position=1, references=refs))
+        assert len(r) < 500
+
+    def test_repr_html(self) -> None:
+        h = ChatCitation(position=1, references=[ChatReference(file=_file())])._repr_html_()
+        assert "doc.pdf" in h
+
+    def test_repr_html_empty_refs(self) -> None:
+        h = ChatCitation(position=0, references=[])._repr_html_()
+        assert "<div" in h
+
+    def test_safe_on_malformed(self) -> None:
+        c = ChatCitation(position=1, references=[])
+        c.position = object()  # type: ignore[assignment]
         assert isinstance(repr(c), str)
         assert isinstance(c._repr_html_(), str)

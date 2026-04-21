@@ -45,7 +45,7 @@ class TestRepr:
 
     def test_safe_on_malformed(self) -> None:
         m = make_minimal()
-        setattr(m, "name", None)
+        m.name = None
         r = repr(m)
         assert isinstance(r, str)
 
@@ -67,7 +67,7 @@ class TestReprHtml:
 
     def test_safe_on_malformed(self) -> None:
         m = make_minimal()
-        setattr(m, "name", object())
+        m.name = object()
         h = m._repr_html_()
         assert isinstance(h, str)
 

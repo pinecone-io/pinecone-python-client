@@ -6,7 +6,9 @@ from pinecone.models.assistant.operation import OperationModel
 
 
 def make_ok() -> OperationModel:
-    return OperationModel(operation_id="op-1", status="Succeeded", created_at="2026-01-01T00:00:00Z")
+    return OperationModel(
+        operation_id="op-1", status="Succeeded", created_at="2026-01-01T00:00:00Z"
+    )
 
 
 def make_failed() -> OperationModel:

@@ -720,7 +720,9 @@ class TestAsyncRetryTransport:
         """When Retry-After is present (async), it overrides computed backoff."""
         fake = _FakeAsyncTransport(
             [
-                httpx.Response(429, headers={"Retry-After": "2.5"}, json={"message": "rate limited"}),
+                httpx.Response(
+                    429, headers={"Retry-After": "2.5"}, json={"message": "rate limited"}
+                ),
                 httpx.Response(200, json={"ok": True}),
             ]
         )
@@ -742,7 +744,9 @@ class TestAsyncRetryTransport:
         """When Retry-After is unparseable (async), use computed backoff instead."""
         fake = _FakeAsyncTransport(
             [
-                httpx.Response(503, headers={"Retry-After": "not-a-number"}, json={"message": "unavailable"}),
+                httpx.Response(
+                    503, headers={"Retry-After": "not-a-number"}, json={"message": "unavailable"}
+                ),
                 httpx.Response(200, json={"ok": True}),
             ]
         )

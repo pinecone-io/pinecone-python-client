@@ -33,6 +33,7 @@ def _request_timeout(route: respx.Route) -> float | None:
         return None
     return ext.get("read")
 
+
 _DATA_PLANE_METHODS = [
     "upsert",
     "query",

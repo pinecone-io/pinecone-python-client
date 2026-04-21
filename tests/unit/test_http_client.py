@@ -558,9 +558,8 @@ class TestHTTPClientTransportErrors:
         client = _make_sync_client()
         with respx.mock:
             respx.get(f"{BASE_URL}/stream").mock(side_effect=httpx.ReadTimeout("stream timeout"))
-            with pytest.raises(PineconeTimeoutError):
-                with client.stream("GET", "/stream"):
-                    pass
+            with pytest.raises(PineconeTimeoutError), client.stream("GET", "/stream"):
+                pass
 
 
 class TestTransportErrorHierarchy:

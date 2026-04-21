@@ -979,11 +979,7 @@ class TestSchemaFieldTypes:
         """
         from pinecone.preview.models import PreviewSparseVectorField
 
-        schema = (
-            PreviewSchemaBuilder()
-            .add_sparse_vector_field("data", metric="dotproduct")
-            .build()
-        )
+        schema = PreviewSchemaBuilder().add_sparse_vector_field("data", metric="dotproduct").build()
         cleanup_preview_indexes.append(preview_index_name)
         client.preview.indexes.create(name=preview_index_name, schema=schema)
 

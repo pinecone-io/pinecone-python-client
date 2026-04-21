@@ -1183,7 +1183,9 @@ def test_preview_document_model_attributes_after_fts_search(
     id_key = "_id" if "_id" in d else "id"
     assert id_key in d, f"to_dict() must include an id key ('_id' or 'id'), keys: {set(d.keys())}"
     assert "_score" in d, f"to_dict() must include '_score', keys: {set(d.keys())}"
-    assert "text" in d, f"to_dict() must include 'text' (from include_fields), keys: {set(d.keys())}"
+    assert "text" in d, (
+        f"to_dict() must include 'text' (from include_fields), keys: {set(d.keys())}"
+    )
     assert d[id_key] == doc.id, f"to_dict()[{id_key!r}] must equal doc.id: {d[id_key]!r}"
     assert d["_score"] == doc.score, "to_dict()['_score'] must equal doc.score"
 
