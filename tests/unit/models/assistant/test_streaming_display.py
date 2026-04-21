@@ -3,6 +3,7 @@ from __future__ import annotations
 from pinecone.models.assistant.chat import ChatCitation, ChatReference, ChatUsage
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.streaming import (
+    ChatCompletionStreamDelta,
     StreamCitationChunk,
     StreamContentChunk,
     StreamContentDelta,
@@ -92,6 +93,30 @@ class TestStreamCitationChunk:
         c.citation = object()  # type: ignore[assignment]
         assert isinstance(repr(c), str)
         assert isinstance(c._repr_html_(), str)
+
+
+class TestChatCompletionStreamDelta:
+    def test_repr_full(self) -> None:
+        r = repr(ChatCompletionStreamDelta(role="assistant", content="hi"))
+        assert "assistant" in r
+        assert "hi" in r
+
+    def test_repr_empty(self) -> None:
+        r = repr(ChatCompletionStreamDelta())
+        assert "ChatCompletionStreamDelta" in r
+
+    def test_repr_long_content_truncated(self) -> None:
+        assert len(repr(ChatCompletionStreamDelta(content="x" * 5000))) < 500
+
+    def test_repr_html(self) -> None:
+        h = ChatCompletionStreamDelta(role="assistant", content="hi")._repr_html_()
+        assert "<div" in h
+
+    def test_safe_on_malformed(self) -> None:
+        d = ChatCompletionStreamDelta(role="assistant")
+        d.role = object()  # type: ignore[assignment]
+        assert isinstance(repr(d), str)
+        assert isinstance(d._repr_html_(), str)
 
 
 class TestStreamMessageEnd:

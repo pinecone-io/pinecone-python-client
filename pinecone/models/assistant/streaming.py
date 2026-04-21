@@ -416,6 +416,43 @@ class ChatCompletionStreamDelta(StructDictMixin, Struct, kw_only=True):
     role: str | None = None
     content: str | None = None
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        parts: list[str] = []
+        if self.role is not None:
+            parts.append(f"role={self.role!r}")
+        if self.content is not None:
+            parts.append(f"content={truncate_text(self.content, 80)!r}")
+        inner = ", ".join(parts) if parts else "<empty>"
+        return f"ChatCompletionStreamDelta({inner})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ChatCompletionStreamDelta(...)")
+            return
+        parts: list[str] = []
+        if self.role is not None:
+            parts.append(f"role={self.role!r}")
+        if self.content is not None:
+            parts.append(f"content={truncate_text(self.content, 200)!r}")
+        if not parts:
+            p.text("ChatCompletionStreamDelta(<empty>)")
+            return
+        with p.group(2, "ChatCompletionStreamDelta(", ")"):
+            for part in parts:
+                p.breakable()
+                p.text(f"{part},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ChatCompletionStreamDelta")
+        if self.role is not None:
+            builder.row("Role", self.role)
+        if self.content is not None:
+            builder.row("Content", truncate_text(self.content, 500))
+        return builder.build()
+
 
 class ChatCompletionStreamChoice(StructDictMixin, Struct, kw_only=True):
     """A single choice in a chat completion streaming chunk.
