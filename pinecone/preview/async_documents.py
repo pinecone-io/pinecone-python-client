@@ -377,8 +377,9 @@ class AsyncPreviewDocuments:
         body: dict[str, Any] = {
             "top_k": top_k,
             "score_by": normalized,
-            "include_fields": include_fields if include_fields is not None else [],
         }
+        if include_fields is not None:
+            body["include_fields"] = include_fields
         if filter is not None:
             body["filter"] = filter
 

@@ -178,7 +178,7 @@ def test_search_empty_score_by_raises(docs: PreviewDocuments) -> None:
 
 
 @respx.mock
-def test_search_include_fields_none_sends_empty_list(docs: PreviewDocuments) -> None:
+def test_search_include_fields_none_omits_key_from_body(docs: PreviewDocuments) -> None:
     route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
 
     docs.search(
@@ -189,7 +189,7 @@ def test_search_include_fields_none_sends_empty_list(docs: PreviewDocuments) -> 
     )
 
     body = orjson.loads(route.calls.last.request.content)
-    assert body["include_fields"] == []
+    assert "include_fields" not in body
 
 
 @respx.mock
@@ -298,6 +298,22 @@ def test_search_filter_omitted_when_not_provided(docs: PreviewDocuments) -> None
     assert "filter" not in body
 
 
+@respx.mock
+def test_search_omits_include_fields_from_body_when_not_specified(docs: PreviewDocuments) -> None:
+    route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+    docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1, 0.2]}])
+    body = orjson.loads(route.calls.last.request.content)
+    assert "include_fields" not in body
+
+
+@respx.mock
+def test_search_sends_include_fields_when_explicitly_specified(docs: PreviewDocuments) -> None:
+    route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+    docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1, 0.2]}], include_fields=["title", "category"])
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["include_fields"] == ["title", "category"]
+
+
 # ---------------------------------------------------------------------------
 # Async — mirrors sync (scenarios a-f)
 # ---------------------------------------------------------------------------
@@ -372,7 +388,7 @@ async def test_async_search_empty_score_by_raises(async_docs: AsyncPreviewDocume
 
 @pytest.mark.asyncio
 @respx.mock
-async def test_async_search_include_fields_none_sends_empty_list(
+async def test_async_search_include_fields_none_omits_key_from_body(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
     route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
@@ -385,7 +401,7 @@ async def test_async_search_include_fields_none_sends_empty_list(
     )
 
     body = orjson.loads(route.calls.last.request.content)
-    assert body["include_fields"] == []
+    assert "include_fields" not in body
 
 
 @pytest.mark.asyncio
@@ -561,3 +577,25 @@ async def test_async_search_filter_omitted_when_not_provided(
 
     body = orjson.loads(route.calls.last.request.content)
     assert "filter" not in body
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_search_omits_include_fields_from_body_when_not_specified(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+    await async_docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1, 0.2]}])
+    body = orjson.loads(route.calls.last.request.content)
+    assert "include_fields" not in body
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_search_sends_include_fields_when_explicitly_specified(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+    await async_docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1, 0.2]}], include_fields=["title", "category"])
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["include_fields"] == ["title", "category"]
