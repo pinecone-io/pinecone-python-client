@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from pinecone.models.admin.api_key import (  # noqa: F401
         APIKeyList,
         APIKeyModel,
+        APIKeyRole,
         APIKeyWithSecret,
     )
     from pinecone.models.admin.organization import (  # noqa: F401
@@ -151,6 +152,7 @@ _LAZY_IMPORTS: dict[str, str] = {
     # Admin
     "APIKeyList": "pinecone.models.admin.api_key",
     "APIKeyModel": "pinecone.models.admin.api_key",
+    "APIKeyRole": "pinecone.models.admin.api_key",
     "APIKeyWithSecret": "pinecone.models.admin.api_key",
     "OrganizationList": "pinecone.models.admin.organization",
     "OrganizationModel": "pinecone.models.admin.organization",

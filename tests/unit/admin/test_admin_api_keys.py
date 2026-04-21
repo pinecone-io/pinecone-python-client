@@ -13,7 +13,7 @@ from pinecone._internal.constants import ADMIN_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.admin.api_keys import ApiKeys
 from pinecone.errors.exceptions import ValidationError
-from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, ApiKeyRole, APIKeyWithSecret
+from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyRole, APIKeyWithSecret
 
 BASE_URL = "https://api.test.pinecone.io"
 
@@ -346,23 +346,23 @@ def test_repr(api_keys: ApiKeys) -> None:
 
 
 # ---------------------------------------------------------------------------
-# ApiKeyRole enum
+# APIKeyRole enum
 # ---------------------------------------------------------------------------
 
 
 def test_api_key_role_values() -> None:
-    assert ApiKeyRole.ProjectEditor == "ProjectEditor"
-    assert ApiKeyRole.ProjectViewer == "ProjectViewer"
-    assert ApiKeyRole.ControlPlaneEditor == "ControlPlaneEditor"
-    assert ApiKeyRole.ControlPlaneViewer == "ControlPlaneViewer"
-    assert ApiKeyRole.DataPlaneEditor == "DataPlaneEditor"
-    assert ApiKeyRole.DataPlaneViewer == "DataPlaneViewer"
-    assert len(ApiKeyRole) == 6
+    assert APIKeyRole.PROJECT_EDITOR == "ProjectEditor"
+    assert APIKeyRole.PROJECT_VIEWER == "ProjectViewer"
+    assert APIKeyRole.CONTROL_PLANE_EDITOR == "ControlPlaneEditor"
+    assert APIKeyRole.CONTROL_PLANE_VIEWER == "ControlPlaneViewer"
+    assert APIKeyRole.DATA_PLANE_EDITOR == "DataPlaneEditor"
+    assert APIKeyRole.DATA_PLANE_VIEWER == "DataPlaneViewer"
+    assert len(APIKeyRole) == 6
 
 
 def test_api_key_role_is_str() -> None:
-    assert isinstance(ApiKeyRole.ProjectEditor, str)
-    assert ApiKeyRole.ProjectEditor.value == "ProjectEditor"
+    assert isinstance(APIKeyRole.PROJECT_EDITOR, str)
+    assert APIKeyRole.PROJECT_EDITOR.value == "ProjectEditor"
 
 
 @respx.mock
@@ -381,7 +381,7 @@ def test_create_with_enum_roles(api_keys: ApiKeys) -> None:
     result = api_keys.create(
         project_id="p1",
         name="mykey",
-        roles=[ApiKeyRole.ProjectViewer],
+        roles=[APIKeyRole.PROJECT_VIEWER],
     )
 
     assert result.key.roles == ["ProjectViewer"]
@@ -403,7 +403,7 @@ def test_update_with_enum_roles(api_keys: ApiKeys) -> None:
         ),
     )
 
-    result = api_keys.update(api_key_id="k1", roles=[ApiKeyRole.ControlPlaneViewer])
+    result = api_keys.update(api_key_id="k1", roles=[APIKeyRole.CONTROL_PLANE_VIEWER])
 
     assert result.roles == ["ControlPlaneViewer"]
 
@@ -443,7 +443,7 @@ def test_create_mixed_enum_and_str_roles(api_keys: ApiKeys) -> None:
     result = api_keys.create(
         project_id="p1",
         name="mykey",
-        roles=[ApiKeyRole.ProjectEditor, "DataPlaneViewer"],
+        roles=[APIKeyRole.PROJECT_EDITOR, "DataPlaneViewer"],
     )
 
     assert result.key.roles == ["ProjectEditor", "DataPlaneViewer"]

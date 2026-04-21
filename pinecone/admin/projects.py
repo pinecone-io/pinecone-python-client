@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 from pinecone._internal.adapters.admin_adapter import AdminAdapter
 from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationError
-from pinecone.models.admin.api_key import ApiKeyRole
+from pinecone.models.admin.api_key import APIKeyRole
 from pinecone.models.admin.project import ProjectList, ProjectModel
 
 if TYPE_CHECKING:
@@ -334,7 +334,7 @@ class Projects:
         temp_key = self._admin.api_keys.create(
             project_id=project_id,
             name="_cleanup_temp_key",
-            roles=[ApiKeyRole.ProjectEditor],
+            roles=[APIKeyRole.PROJECT_EDITOR],
         )
         try:
             last_error: Exception | None = None

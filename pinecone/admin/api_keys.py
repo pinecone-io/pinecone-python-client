@@ -9,21 +9,21 @@ from typing import TYPE_CHECKING, Any
 from pinecone._internal.adapters.admin_adapter import AdminAdapter
 from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import ValidationError
-from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, ApiKeyRole, APIKeyWithSecret
+from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyRole, APIKeyWithSecret
 
 if TYPE_CHECKING:
     from pinecone._internal.http_client import HTTPClient
 
 logger = logging.getLogger(__name__)
 
-_VALID_ROLES = {r.value for r in ApiKeyRole}
+_VALID_ROLES = {r.value for r in APIKeyRole}
 
 
-def _validate_roles(roles: builtins.list[ApiKeyRole | str]) -> builtins.list[str]:
+def _validate_roles(roles: builtins.list[APIKeyRole | str]) -> builtins.list[str]:
     """Validate each role and return plain string values."""
     result: builtins.list[str] = []
     for role in roles:
-        role_str = role.value if isinstance(role, ApiKeyRole) else role
+        role_str = role.value if isinstance(role, APIKeyRole) else role
         if role_str not in _VALID_ROLES:
             opts = ", ".join(repr(v) for v in sorted(_VALID_ROLES))
             raise ValidationError(f"Invalid role {role_str!r}. Must be one of {opts}")
@@ -88,7 +88,7 @@ class ApiKeys:
         project_id: str,
         name: str,
         description: str | None = None,
-        roles: builtins.list[ApiKeyRole | str] | None = None,
+        roles: builtins.list[APIKeyRole | str] | None = None,
     ) -> APIKeyWithSecret:
         """Create a new API key for a project.
 
@@ -96,7 +96,7 @@ class ApiKeys:
             project_id (str): The identifier of the project.
             name (str): Name for the new API key (1-80 characters).
             description (str | None): Optional description for the API key.
-            roles (list[ApiKeyRole | str] | None): Roles to assign to the key.
+            roles (list[APIKeyRole | str] | None): Roles to assign to the key.
                 Valid values are ``"ProjectEditor"``, ``"ProjectViewer"``,
                 ``"ControlPlaneEditor"``, ``"ControlPlaneViewer"``,
                 ``"DataPlaneEditor"``, and ``"DataPlaneViewer"``.
@@ -166,7 +166,7 @@ class ApiKeys:
         *,
         api_key_id: str,
         name: str | None = None,
-        roles: builtins.list[ApiKeyRole | str] | None = None,
+        roles: builtins.list[APIKeyRole | str] | None = None,
     ) -> APIKeyModel:
         """Update an API key's settings.
 
@@ -175,7 +175,7 @@ class ApiKeys:
         Args:
             api_key_id (str): The identifier of the API key to update.
             name (str | None): New name for the API key.
-            roles (list[ApiKeyRole | str] | None): New roles for the API key.
+            roles (list[APIKeyRole | str] | None): New roles for the API key.
                 Replaces all existing roles.
 
         Returns:

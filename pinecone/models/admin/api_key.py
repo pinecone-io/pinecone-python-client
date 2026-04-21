@@ -9,20 +9,20 @@ from typing import Any
 from msgspec import Struct
 
 
-class ApiKeyRole(str, Enum):
+class APIKeyRole(str, Enum):
     """Roles that can be assigned to a Pinecone API key.
 
-    Possible values: ``ProjectEditor``, ``ProjectViewer``,
-    ``ControlPlaneEditor``, ``ControlPlaneViewer``,
-    ``DataPlaneEditor``, ``DataPlaneViewer``.
+    Possible values: ``PROJECT_EDITOR``, ``PROJECT_VIEWER``,
+    ``CONTROL_PLANE_EDITOR``, ``CONTROL_PLANE_VIEWER``,
+    ``DATA_PLANE_EDITOR``, ``DATA_PLANE_VIEWER``.
     """
 
-    ProjectEditor = "ProjectEditor"
-    ProjectViewer = "ProjectViewer"
-    ControlPlaneEditor = "ControlPlaneEditor"
-    ControlPlaneViewer = "ControlPlaneViewer"
-    DataPlaneEditor = "DataPlaneEditor"
-    DataPlaneViewer = "DataPlaneViewer"
+    PROJECT_EDITOR = "ProjectEditor"
+    PROJECT_VIEWER = "ProjectViewer"
+    CONTROL_PLANE_EDITOR = "ControlPlaneEditor"
+    CONTROL_PLANE_VIEWER = "ControlPlaneViewer"
+    DATA_PLANE_EDITOR = "DataPlaneEditor"
+    DATA_PLANE_VIEWER = "DataPlaneViewer"
 
 
 class APIKeyModel(Struct, kw_only=True):
