@@ -8,6 +8,8 @@ from typing import Any
 
 from msgspec import Struct
 
+from pinecone.models._mixin import StructDictMixin
+
 
 class APIKeyRole(str, Enum):
     """Roles that can be assigned to a Pinecone API key.
@@ -48,7 +50,7 @@ class APIKeyRole(str, Enum):
     DATA_PLANE_VIEWER = "DataPlaneViewer"
 
 
-class APIKeyModel(Struct, kw_only=True):
+class APIKeyModel(StructDictMixin, Struct, kw_only=True):
     """Response model for a Pinecone API key.
 
     Attributes:
@@ -124,7 +126,7 @@ class APIKeyModel(Struct, kw_only=True):
         return key in self.__struct_fields__
 
 
-class APIKeyWithSecret(Struct, kw_only=True):
+class APIKeyWithSecret(StructDictMixin, Struct, kw_only=True):
     """Response model for an API key with its secret value.
 
     The secret value is only available at creation time.

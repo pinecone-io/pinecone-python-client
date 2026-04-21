@@ -7,8 +7,10 @@ from typing import Any
 
 from msgspec import Struct
 
+from pinecone.models._mixin import StructDictMixin
 
-class OrganizationModel(Struct, kw_only=True):
+
+class OrganizationModel(StructDictMixin, Struct, kw_only=True):
     """Response model for a Pinecone organization.
 
     Attributes:
