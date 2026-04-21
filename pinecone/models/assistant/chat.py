@@ -6,6 +6,7 @@ from typing import Any
 
 from msgspec import Struct
 
+from pinecone.models._display import HtmlBuilder, safe_display
 from pinecone.models.assistant._mixin import StructDictMixin
 from pinecone.models.assistant.file_model import AssistantFileModel
 
@@ -34,6 +35,35 @@ class ChatUsage(StructDictMixin, Struct, kw_only=True):
             completion_tokens=d.get("completion_tokens", 0),
             total_tokens=d.get("total_tokens", 0),
         )
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return (
+            f"ChatUsage(prompt={self.prompt_tokens},"
+            f" completion={self.completion_tokens},"
+            f" total={self.total_tokens})"
+        )
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ChatUsage(...)")
+            return
+        with p.group(2, "ChatUsage(", ")"):
+            p.breakable()
+            p.text(f"prompt={self.prompt_tokens},")
+            p.breakable()
+            p.text(f"completion={self.completion_tokens},")
+            p.breakable()
+            p.text(f"total={self.total_tokens},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ChatUsage")
+        builder.row("Prompt tokens:", self.prompt_tokens)
+        builder.row("Completion tokens:", self.completion_tokens)
+        builder.row("Total tokens:", self.total_tokens)
+        return builder.build()
 
 
 class ChatHighlight(StructDictMixin, Struct, kw_only=True):
