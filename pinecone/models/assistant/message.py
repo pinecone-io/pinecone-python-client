@@ -6,6 +6,7 @@ from typing import Any
 
 from msgspec import Struct
 
+from pinecone.models._display import HtmlBuilder, safe_display, truncate_text
 from pinecone.models.assistant._mixin import StructDictMixin
 
 
@@ -19,6 +20,25 @@ class Message(StructDictMixin, Struct, kw_only=True):
 
     content: str
     role: str = "user"
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        truncated = truncate_text(self.content, max_chars=80)
+        return f"Message(role={self.role!r}, content={truncated!r})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        truncated = truncate_text(self.content, max_chars=200)
+        p.text(f"Message(role={self.role!r}, content={truncated!r})")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        return (
+            HtmlBuilder("Message")
+            .row("Role", self.role)
+            .row("Content", truncate_text(self.content, max_chars=500))
+            .build()
+        )
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> Message:
