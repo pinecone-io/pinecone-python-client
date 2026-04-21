@@ -469,7 +469,7 @@ class AsyncPreviewDocuments:
             f"/namespaces/{namespace}/documents/fetch",
             json=body,
         )
-        return PreviewDocumentsAdapter.to_fetch_response(response.content)
+        return PreviewDocumentsAdapter.to_fetch_response(response)
 
     async def delete(
         self,

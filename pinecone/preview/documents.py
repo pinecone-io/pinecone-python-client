@@ -420,7 +420,7 @@ class PreviewDocuments:
             f"/namespaces/{namespace}/documents/fetch",
             json=body,
         )
-        return PreviewDocumentsAdapter.to_fetch_response(response.content)
+        return PreviewDocumentsAdapter.to_fetch_response(response)
 
     def delete(
         self,

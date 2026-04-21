@@ -9,6 +9,7 @@ from pinecone.models.response_info import ResponseInfo
 from pinecone.preview._internal.adapters.documents import PreviewDocumentsAdapter
 from pinecone.preview.models.documents import (
     PreviewDocument,
+    PreviewDocumentFetchResponse,
     PreviewDocumentSearchResponse,
     PreviewDocumentUpsertResponse,
     PreviewUsage,
@@ -77,7 +78,7 @@ def test_decode_fetch_response_populates_documents_keyed_by_id() -> None:
             "usage": {"read_units": 2},
         }
     )
-    response = PreviewDocumentsAdapter.to_fetch_response(payload)
+    response = PreviewDocumentsAdapter.to_fetch_response(httpx.Response(200, content=payload))
     assert set(response.documents.keys()) == {"doc-1", "doc-2"}
     assert isinstance(response.documents["doc-1"], PreviewDocument)
     assert response.documents["doc-1"].id == "doc-1"
@@ -94,7 +95,7 @@ def test_decode_fetch_response_omits_missing_ids_from_map() -> None:
             "namespace": "ns",
         }
     )
-    response = PreviewDocumentsAdapter.to_fetch_response(payload)
+    response = PreviewDocumentsAdapter.to_fetch_response(httpx.Response(200, content=payload))
     assert "doc-99999" not in response.documents
     assert "doc-1" in response.documents
 
@@ -106,7 +107,7 @@ def test_decode_fetch_response_usage_defaults_to_none_when_absent() -> None:
             "namespace": "ns",
         }
     )
-    response = PreviewDocumentsAdapter.to_fetch_response(payload)
+    response = PreviewDocumentsAdapter.to_fetch_response(httpx.Response(200, content=payload))
     assert response.usage is None
 
 
@@ -140,4 +141,16 @@ def test_search_response_carries_response_info() -> None:
 
 def test_search_response_response_info_defaults_to_none() -> None:
     r = PreviewDocumentSearchResponse(matches=[], namespace="ns")
+    assert r.response_info is None
+
+
+def test_fetch_response_carries_response_info() -> None:
+    info = ResponseInfo(request_id="req-1", lsn_reconciled=7, lsn_committed=9)
+    r = PreviewDocumentFetchResponse(documents={}, namespace="ns", response_info=info)
+    assert r.response_info is not None
+    assert r.response_info.lsn_reconciled == 7
+
+
+def test_fetch_response_response_info_defaults_to_none() -> None:
+    r = PreviewDocumentFetchResponse(documents={}, namespace="ns")
     assert r.response_info is None

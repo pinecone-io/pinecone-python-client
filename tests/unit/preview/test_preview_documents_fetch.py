@@ -370,3 +370,79 @@ async def test_async_fetch_ids_omitted_when_not_provided(
 
     body = orjson.loads(route.calls.last.request.content)
     assert "ids" not in body
+
+
+# ---------------------------------------------------------------------------
+# Sync — response_info
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_fetch_response_exposes_response_info_from_headers(docs: PreviewDocuments) -> None:
+    respx.post(FETCH_URL).mock(
+        return_value=httpx.Response(
+            200,
+            json=_FETCH_RESPONSE,
+            headers={
+                "x-pinecone-lsn-reconciled": "7",
+                "x-pinecone-lsn-committed": "9",
+                "x-pinecone-request-id": "req-fetch-1",
+            },
+        )
+    )
+    result = docs.fetch(namespace="my-ns", ids=["doc-1", "doc-2"])
+    assert result.response_info is not None
+    assert result.response_info.lsn_reconciled == 7
+    assert result.response_info.lsn_committed == 9
+    assert result.response_info.request_id == "req-fetch-1"
+
+
+@respx.mock
+def test_fetch_response_info_is_none_when_headers_absent(docs: PreviewDocuments) -> None:
+    respx.post(FETCH_URL).mock(return_value=httpx.Response(200, json=_FETCH_RESPONSE))
+    result = docs.fetch(namespace="my-ns", ids=["doc-1", "doc-2"])
+    assert result.response_info is not None
+    assert result.response_info.lsn_reconciled is None
+    assert result.response_info.lsn_committed is None
+    assert result.response_info.request_id is None
+
+
+# ---------------------------------------------------------------------------
+# Async — response_info
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_fetch_response_exposes_response_info_from_headers(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    respx.post(FETCH_URL).mock(
+        return_value=httpx.Response(
+            200,
+            json=_FETCH_RESPONSE,
+            headers={
+                "x-pinecone-lsn-reconciled": "7",
+                "x-pinecone-lsn-committed": "9",
+                "x-pinecone-request-id": "req-fetch-1",
+            },
+        )
+    )
+    result = await async_docs.fetch(namespace="my-ns", ids=["doc-1", "doc-2"])
+    assert result.response_info is not None
+    assert result.response_info.lsn_reconciled == 7
+    assert result.response_info.lsn_committed == 9
+    assert result.response_info.request_id == "req-fetch-1"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_fetch_response_info_is_none_when_headers_absent(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    respx.post(FETCH_URL).mock(return_value=httpx.Response(200, json=_FETCH_RESPONSE))
+    result = await async_docs.fetch(namespace="my-ns", ids=["doc-1", "doc-2"])
+    assert result.response_info is not None
+    assert result.response_info.lsn_reconciled is None
+    assert result.response_info.lsn_committed is None
+    assert result.response_info.request_id is None

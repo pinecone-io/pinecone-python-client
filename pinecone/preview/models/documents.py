@@ -242,22 +242,27 @@ class PreviewDocumentFetchResponse:
         documents: Map of document ID to document.
         namespace: The namespace that was fetched from.
         usage: API usage statistics, or ``None`` when not returned.
+        response_info: HTTP response metadata (request ID and LSN headers),
+            or ``None`` when not present.
     """
 
-    __slots__ = ("documents", "namespace", "usage")
+    __slots__ = ("documents", "namespace", "response_info", "usage")
     documents: dict[str, PreviewDocument]
     namespace: str
     usage: PreviewUsage | None
+    response_info: ResponseInfo | None
 
     def __init__(
         self,
         documents: dict[str, PreviewDocument],
         namespace: str,
         usage: PreviewUsage | None = None,
+        response_info: ResponseInfo | None = None,
     ) -> None:
         object.__setattr__(self, "documents", documents)
         object.__setattr__(self, "namespace", namespace)
         object.__setattr__(self, "usage", usage)
+        object.__setattr__(self, "response_info", response_info)
 
     def __repr__(self) -> str:
         return (

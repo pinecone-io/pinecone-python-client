@@ -93,7 +93,7 @@ def test_preview_documents_search_adapter_wraps_decode_error() -> None:
 
 def test_preview_documents_fetch_adapter_wraps_decode_error() -> None:
     with pytest.raises(ResponseParsingError) as exc_info:
-        PreviewDocumentsAdapter.to_fetch_response(b"not json")
+        PreviewDocumentsAdapter.to_fetch_response(httpx.Response(200, content=b"not json"))
     assert isinstance(exc_info.value.__cause__, msgspec.DecodeError)
 
 
@@ -108,5 +108,5 @@ def test_preview_documents_search_adapter_wraps_validation_error() -> None:
 def test_preview_documents_fetch_adapter_wraps_validation_error() -> None:
     raw = b'{"documents": [], "namespace": "ns", "usage": {"read_units": "bad"}}'
     with pytest.raises(ResponseParsingError) as exc_info:
-        PreviewDocumentsAdapter.to_fetch_response(raw)
+        PreviewDocumentsAdapter.to_fetch_response(httpx.Response(200, content=raw))
     assert isinstance(exc_info.value.__cause__, (msgspec.ValidationError, msgspec.DecodeError))

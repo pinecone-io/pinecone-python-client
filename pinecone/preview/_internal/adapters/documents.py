@@ -48,9 +48,13 @@ class PreviewDocumentsAdapter:
         )
 
     @staticmethod
-    def to_fetch_response(data: bytes) -> PreviewDocumentFetchResponse:
-        envelope = decode_response(data, _FetchEnvelope)
+    def to_fetch_response(response: httpx.Response) -> PreviewDocumentFetchResponse:
+        envelope = decode_response(response.content, _FetchEnvelope)
         documents = {doc_id: PreviewDocument(doc) for doc_id, doc in envelope.documents.items()}
+        response_info: ResponseInfo = extract_response_info(response)
         return PreviewDocumentFetchResponse(
-            documents=documents, namespace=envelope.namespace, usage=envelope.usage
+            documents=documents,
+            namespace=envelope.namespace,
+            usage=envelope.usage,
+            response_info=response_info,
         )
