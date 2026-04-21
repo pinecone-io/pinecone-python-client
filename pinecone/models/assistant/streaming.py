@@ -320,6 +320,25 @@ class AsyncChatStream:
     def __init__(self, stream: AsyncIterator[ChatStreamChunk]) -> None:
         self._stream = stream
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return (
+            "AsyncChatStream(single-pass async, Pinecone-native chat stream"
+            " — iterate with `async for chunk in stream` or `await stream.collect()`)"
+        )
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("AsyncChatStream")
+        builder.row("Type", "Pinecone-native chat stream")
+        builder.row("Iteration", "single-pass async")
+        builder.row(
+            "Usage hint",
+            "Iterate with `async for chunk in stream`, or call `.text()` for"
+            " text-only fragments, or `await .collect()` for the full message",
+        )
+        return builder.build()
+
     def __aiter__(self) -> AsyncIterator[ChatStreamChunk]:
         return self._stream
 

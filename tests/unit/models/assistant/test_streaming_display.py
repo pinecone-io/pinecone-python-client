@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 
 from pinecone.models.assistant.chat import ChatCitation, ChatReference, ChatUsage
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.streaming import (
+    AsyncChatStream,
     ChatCompletionStreamChoice,
     ChatCompletionStreamChunk,
     ChatCompletionStreamDelta,
@@ -228,6 +229,31 @@ class TestChatStreamDisplay:
     def test_safe_on_malformed(self) -> None:
         # Simulate a ChatStream whose _stream attribute is bad
         s = ChatStream(self._dummy_iter())
+        object.__setattr__(s, "_stream", object())
+        assert isinstance(repr(s), str)
+        assert isinstance(s._repr_html_(), str)
+
+
+class TestAsyncChatStreamDisplay:
+    def _dummy_aiter(self) -> AsyncIterator[ChatStreamChunk]:  # type: ignore[type-arg]
+        async def _agen() -> AsyncIterator[ChatStreamChunk]:  # type: ignore[type-arg]
+            if False:
+                yield  # make this an async generator
+
+        return _agen()
+
+    def test_repr(self) -> None:
+        s = AsyncChatStream(self._dummy_aiter())
+        r = repr(s)
+        assert "AsyncChatStream" in r
+        assert "single-pass" in r
+
+    def test_repr_html(self) -> None:
+        s = AsyncChatStream(self._dummy_aiter())
+        assert "AsyncChatStream" in s._repr_html_()
+
+    def test_safe_on_malformed(self) -> None:
+        s = AsyncChatStream(self._dummy_aiter())
         object.__setattr__(s, "_stream", object())
         assert isinstance(repr(s), str)
         assert isinstance(s._repr_html_(), str)
