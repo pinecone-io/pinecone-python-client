@@ -60,7 +60,7 @@ class AssistantFileModel(
         return self.content_hash
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         parts = [f"name={self.name!r}", f"id={self.id!r}"]
         if self.status is not None:
             parts.append(f"status={self.status!r}")

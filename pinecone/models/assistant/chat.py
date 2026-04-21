@@ -37,7 +37,7 @@ class ChatUsage(StructDictMixin, Struct, kw_only=True):
         )
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             f"ChatUsage(prompt={self.prompt_tokens},"
             f" completion={self.completion_tokens},"
@@ -78,7 +78,7 @@ class ChatHighlight(StructDictMixin, Struct, kw_only=True):
     content: str
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         truncated = truncate_text(self.content, max_chars=80)
         return f"ChatHighlight(type={self.type!r}, content={truncated!r})"
 
@@ -110,7 +110,7 @@ class ChatReference(StructDictMixin, Struct, kw_only=True):
     highlight: ChatHighlight | None = None
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         pages_str = abbreviate_list(self.pages) if self.pages is not None else "None"
         highlight_str = "yes" if self.highlight is not None else "no"
         return (
@@ -158,7 +158,7 @@ class ChatCitation(StructDictMixin, Struct, kw_only=True):
     references: list[ChatReference]
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return f"ChatCitation(position={self.position}, references={len(self.references)})"
 
     @safe_display
@@ -205,7 +205,7 @@ class ChatMessage(StructDictMixin, Struct, kw_only=True):
     content: str
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         truncated = truncate_text(self.content, max_chars=80)
         return f"ChatMessage(role={self.role!r}, content={truncated!r})"
 
@@ -245,7 +245,7 @@ class ChatResponse(StructDictMixin, Struct, kw_only=True):
     citations: list[ChatCitation]
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             f"ChatResponse(id={self.id!r}, model={self.model!r},"
             f" finish_reason={self.finish_reason!r},"
@@ -303,7 +303,7 @@ class ChatCompletionChoice(StructDictMixin, Struct, kw_only=True):
     finish_reason: str
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             f"ChatCompletionChoice(index={self.index!r},"
             f" finish_reason={self.finish_reason!r},"
@@ -349,7 +349,7 @@ class ChatCompletionResponse(StructDictMixin, Struct, kw_only=True):
     choices: list[ChatCompletionChoice]
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             f"ChatCompletionResponse(id={self.id!r}, model={self.model!r},"
             f" choices={len(self.choices)}, usage={self.usage!r})"

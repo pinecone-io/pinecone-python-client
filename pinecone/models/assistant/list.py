@@ -29,7 +29,7 @@ class ListAssistantsResponse(Struct, kw_only=True):
         return self.next
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return f"ListAssistantsResponse(count={len(self.assistants)}, next={self.next!r})"
 
     @safe_display
@@ -78,7 +78,7 @@ class ListFilesResponse(Struct, kw_only=True):
         return self.next
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return f"ListFilesResponse(count={len(self.files)}, next={self.next!r})"
 
     @safe_display

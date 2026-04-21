@@ -31,7 +31,7 @@ class ContextOptions(StructDictMixin, Struct, kw_only=True):
     include_binary_content: bool | None = None
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         fields: list[str] = []
         if self.top_k is not None:
             fields.append(f"top_k={self.top_k!r}")

@@ -31,7 +31,7 @@ class OperationModel(StructDictMixin, Struct, kw_only=True):
     error: str | None = None
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         parts = [f"operation_id={self.operation_id!r}", f"status={self.status!r}"]
         if self.error is not None:
             parts.append(f"error={truncate_text(self.error, 80)!r}")

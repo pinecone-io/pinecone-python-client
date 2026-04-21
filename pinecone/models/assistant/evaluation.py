@@ -28,7 +28,7 @@ class EntailmentResult(Struct, kw_only=True):
     reasoning: str = ""
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             f"EntailmentResult(entailment={self.entailment!r},"
             f" fact={truncate_text(self.fact, max_chars=80)!r})"
@@ -79,7 +79,7 @@ class AlignmentScores(Struct, kw_only=True):
     alignment: float
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             f"AlignmentScores(correctness={self.correctness:.3f},"
             f" completeness={self.completeness:.3f},"
@@ -122,7 +122,7 @@ class AlignmentResult(Struct, kw_only=True):
     usage: ChatUsage
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             f"AlignmentResult(alignment={self.scores.alignment:.3f},"
             f" correctness={self.scores.correctness:.3f},"

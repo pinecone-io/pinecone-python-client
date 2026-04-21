@@ -22,7 +22,7 @@ class Message(StructDictMixin, Struct, kw_only=True):
     role: str = "user"
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         truncated = truncate_text(self.content, max_chars=80)
         return f"Message(role={self.role!r}, content={truncated!r})"
 

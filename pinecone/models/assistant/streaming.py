@@ -36,7 +36,7 @@ class StreamMessageStart(
         return str(self.__struct_config__.tag)
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return f"StreamMessageStart(model={self.model!r}, role={self.role!r})"
 
     @safe_display
@@ -69,7 +69,7 @@ class StreamContentDelta(StructDictMixin, Struct, kw_only=True):
     content: str
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return f"StreamContentDelta(content={truncate_text(self.content, 80)!r})"
 
     @safe_display
@@ -110,7 +110,7 @@ class StreamContentChunk(
         return str(self.__struct_config__.tag)
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         model_part = f", model={self.model!r}" if self.model is not None else ""
         return f"StreamContentChunk(id={self.id!r}, delta={self.delta!r}{model_part})"
 
@@ -159,7 +159,7 @@ class StreamCitationChunk(StructDictMixin, Struct, kw_only=True, tag="citation",
         return str(self.__struct_config__.tag)
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         model_part = f", model={self.model!r}" if self.model is not None else ""
         return f"StreamCitationChunk(id={self.id!r}, citation={self.citation!r}{model_part})"
 
@@ -209,7 +209,7 @@ class StreamMessageEnd(StructDictMixin, Struct, kw_only=True, tag="message_end",
         return str(self.__struct_config__.tag)
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         model_part = f", model={self.model!r}" if self.model is not None else ""
         return f"StreamMessageEnd(id={self.id!r}, usage={self.usage!r}{model_part})"
 
@@ -269,7 +269,7 @@ class ChatStream:
         self._stream = stream
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             "ChatStream(single-pass, Pinecone-native chat stream"
             " — iterate with `for chunk in stream` or `stream.text()`)"
@@ -321,7 +321,7 @@ class AsyncChatStream:
         self._stream = stream
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             "AsyncChatStream(single-pass async, Pinecone-native chat stream"
             " — iterate with `async for chunk in stream` or `await stream.collect()`)"
@@ -382,7 +382,7 @@ class ChatCompletionStream:
         self._stream = stream
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             "ChatCompletionStream(single-pass, OpenAI-compatible"
             " — iterate with `for chunk in stream` or `stream.text()`)"
@@ -441,7 +441,7 @@ class AsyncChatCompletionStream:
         self._stream = stream
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             "AsyncChatCompletionStream(single-pass async, OpenAI-compatible"
             " — iterate with `async for chunk in stream`)"
@@ -493,7 +493,7 @@ class ChatCompletionStreamDelta(StructDictMixin, Struct, kw_only=True):
     content: str | None = None
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         parts: list[str] = []
         if self.role is not None:
             parts.append(f"role={self.role!r}")
@@ -545,7 +545,7 @@ class ChatCompletionStreamChoice(StructDictMixin, Struct, kw_only=True):
     finish_reason: str | None = None
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         parts: list[str] = [f"index={self.index!r}", f"delta={self.delta!r}"]
         if self.finish_reason is not None:
             parts.append(f"finish_reason={self.finish_reason!r}")
@@ -598,7 +598,7 @@ class ChatCompletionStreamChunk(StructDictMixin, Struct, kw_only=True):
     system_fingerprint: str | None = None
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         parts: list[str] = [f"id={self.id!r}"]
         if self.model is not None:
             parts.append(f"model={self.model!r}")

@@ -25,7 +25,7 @@ class ContextImageData(Struct, kw_only=True):
     data: str
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             f"ContextImageData(type={self.type!r}, mime_type={self.mime_type!r},"
             f" data=<{len(self.data):,} bytes>)"
@@ -74,7 +74,7 @@ class ContextImageBlock(
     image_data: ContextImageData | None = None
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         image_summary = "present" if self.image_data is not None else "absent"
         return (
             f"ContextImageBlock(caption={truncate_text(self.caption, 80)!r},"
@@ -116,7 +116,7 @@ class ContextTextBlock(Struct, kw_only=True, tag="text", tag_field="type"):
     text: str
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return f"ContextTextBlock(text={truncate_text(self.text, 80)!r})"
 
     @safe_display
@@ -151,7 +151,7 @@ class FileReference(Struct, kw_only=True):
     pages: list[int] | None = None
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         pages_str = abbreviate_list(self.pages) if self.pages is not None else "None"
         return f"FileReference(file={self.file.name!r}, pages={pages_str})"
 
@@ -197,7 +197,7 @@ class TextSnippet(Struct, kw_only=True, tag="text", tag_field="type"):
     reference: FileReference
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         return (
             f"TextSnippet(score={self.score!r},"
             f" reference={self.reference.file.name!r},"
@@ -247,7 +247,7 @@ class MultimodalSnippet(Struct, kw_only=True, tag="multimodal", tag_field="type"
     reference: FileReference
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         n_text = sum(1 for b in self.content if isinstance(b, ContextTextBlock))
         n_image = len(self.content) - n_text
         return (
@@ -314,7 +314,7 @@ class ContextResponse(Struct, kw_only=True):
     id: str | None = None
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         id_part = f"id={self.id!r}, " if self.id is not None else ""
         return f"ContextResponse({id_part}snippets={len(self.snippets)}, usage={self.usage!r})"
 

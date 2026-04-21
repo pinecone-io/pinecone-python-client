@@ -5,7 +5,9 @@ from __future__ import annotations
 import functools
 import html
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from typing import Any, Literal
+from typing import Any, Literal, ParamSpec, overload
+
+P = ParamSpec("P")
 
 __all__ = [
     "HtmlBuilder",
@@ -193,11 +195,19 @@ class HtmlBuilder:
         return main_table + "".join(self._sections)
 
 
-def safe_display(method: Callable[..., str | None]) -> Callable[..., str | None]:
+@overload
+def safe_display(method: Callable[P, str]) -> Callable[P, str]: ...
+
+
+@overload
+def safe_display(method: Callable[P, None]) -> Callable[P, None]: ...
+
+
+def safe_display(method: Callable[..., Any]) -> Callable[..., Any]:
     is_pretty = method.__name__ == "_repr_pretty_"
 
     @functools.wraps(method)
-    def wrapper(*args: Any, **kwargs: Any) -> str | None:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return method(*args, **kwargs)
         except Exception:

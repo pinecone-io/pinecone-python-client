@@ -52,7 +52,7 @@ class AssistantModel(
             self.host = normalize_host(self.host)
 
     @safe_display
-    def __repr__(self) -> str:  # type: ignore[override]
+    def __repr__(self) -> str:
         parts = [f"name={self.name!r}", f"status={self.status!r}"]
         if self.host is not None:
             parts.append(f"host={self.host!r}")
