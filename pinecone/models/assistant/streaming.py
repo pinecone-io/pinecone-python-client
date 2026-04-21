@@ -468,6 +468,39 @@ class ChatCompletionStreamChoice(StructDictMixin, Struct, kw_only=True):
     delta: ChatCompletionStreamDelta
     finish_reason: str | None = None
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        parts: list[str] = [f"index={self.index!r}", f"delta={self.delta!r}"]
+        if self.finish_reason is not None:
+            parts.append(f"finish_reason={self.finish_reason!r}")
+        return f"ChatCompletionStreamChoice({', '.join(parts)})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ChatCompletionStreamChoice(...)")
+            return
+        with p.group(2, "ChatCompletionStreamChoice(", ")"):
+            p.breakable()
+            p.text(f"index={self.index!r},")
+            p.breakable()
+            p.text(f"delta={self.delta!r},")
+            if self.finish_reason is not None:
+                p.breakable()
+                p.text(f"finish_reason={self.finish_reason!r},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ChatCompletionStreamChoice")
+        builder.row("Index", self.index)
+        if self.delta.role is not None:
+            builder.row("Role", self.delta.role)
+        if self.delta.content is not None:
+            builder.row("Content", truncate_text(self.delta.content, 500))
+        if self.finish_reason is not None:
+            builder.row("Finish reason", self.finish_reason)
+        return builder.build()
+
 
 class ChatCompletionStreamChunk(StructDictMixin, Struct, kw_only=True):
     """A streaming chunk from the OpenAI-compatible chat completion endpoint.

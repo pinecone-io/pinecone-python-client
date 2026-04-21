@@ -3,6 +3,7 @@ from __future__ import annotations
 from pinecone.models.assistant.chat import ChatCitation, ChatReference, ChatUsage
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.streaming import (
+    ChatCompletionStreamChoice,
     ChatCompletionStreamDelta,
     StreamCitationChunk,
     StreamContentChunk,
@@ -139,3 +140,27 @@ class TestStreamMessageEnd:
         e.usage = object()  # type: ignore[assignment]
         assert isinstance(repr(e), str)
         assert isinstance(e._repr_html_(), str)
+
+
+class TestChatCompletionStreamChoice:
+    def test_repr(self) -> None:
+        c = ChatCompletionStreamChoice(
+            index=0, delta=ChatCompletionStreamDelta(content="hi"), finish_reason="stop"
+        )
+        r = repr(c)
+        assert "0" in r
+        assert "stop" in r
+
+    def test_repr_without_finish_reason(self) -> None:
+        c = ChatCompletionStreamChoice(index=0, delta=ChatCompletionStreamDelta(content="hi"))
+        assert "None" not in repr(c)
+
+    def test_repr_html(self) -> None:
+        c = ChatCompletionStreamChoice(index=0, delta=ChatCompletionStreamDelta(content="hi"))
+        assert "<div" in c._repr_html_()
+
+    def test_safe_on_malformed(self) -> None:
+        c = ChatCompletionStreamChoice(index=0, delta=ChatCompletionStreamDelta())
+        c.delta = object()  # type: ignore[assignment]
+        assert isinstance(repr(c), str)
+        assert isinstance(c._repr_html_(), str)
