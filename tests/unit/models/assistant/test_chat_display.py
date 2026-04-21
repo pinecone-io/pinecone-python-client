@@ -7,6 +7,7 @@ from pinecone.models.assistant.chat import (
     ChatHighlight,
     ChatMessage,
     ChatReference,
+    ChatResponse,
     ChatUsage,
 )
 from pinecone.models.assistant.file_model import AssistantFileModel
@@ -149,3 +150,44 @@ class TestChatMessage:
         m.role = object()  # type: ignore[assignment]
         assert isinstance(repr(m), str)
         assert isinstance(m._repr_html_(), str)
+
+
+def _resp(n_citations: int = 1, content: str = "Hi") -> ChatResponse:
+    return ChatResponse(
+        id="r-1",
+        model="m",
+        usage=ChatUsage(prompt_tokens=1, completion_tokens=1, total_tokens=2),
+        message=ChatMessage(role="assistant", content=content),
+        finish_reason="stop",
+        citations=[ChatCitation(position=i, references=[]) for i in range(n_citations)],
+    )
+
+
+class TestChatResponse:
+    def test_repr(self) -> None:
+        r = repr(_resp())
+        assert "r-1" in r
+        assert "citations=1" in r.replace(" ", "").lower() or "1" in r
+
+    def test_repr_many_citations(self) -> None:
+        r = repr(_resp(n_citations=500))
+        assert len(r) < 500
+
+    def test_repr_long_message_not_dumped(self) -> None:
+        r = repr(_resp(content="x" * 100_000))
+        assert len(r) < 1000
+
+    def test_repr_html(self) -> None:
+        h = _resp()._repr_html_()
+        assert "r-1" in h
+        assert "Hi" in h
+
+    def test_repr_html_long_message_truncated(self) -> None:
+        h = _resp(content="x" * 100_000)._repr_html_()
+        assert len(h) < 10_000
+
+    def test_safe_on_malformed(self) -> None:
+        r = _resp()
+        r.message = object()  # type: ignore[assignment]
+        assert isinstance(repr(r), str)
+        assert isinstance(r._repr_html_(), str)

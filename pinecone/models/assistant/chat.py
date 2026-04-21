@@ -244,6 +244,50 @@ class ChatResponse(StructDictMixin, Struct, kw_only=True):
     finish_reason: str
     citations: list[ChatCitation]
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return (
+            f"ChatResponse(id={self.id!r}, model={self.model!r},"
+            f" finish_reason={self.finish_reason!r},"
+            f" citations={len(self.citations)}, usage={self.usage!r})"
+        )
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ChatResponse(...)")
+            return
+        with p.group(2, "ChatResponse(", ")"):
+            p.breakable()
+            p.text(f"id={self.id!r},")
+            p.breakable()
+            p.text(f"model={self.model!r},")
+            p.breakable()
+            p.text(f"finish_reason={self.finish_reason!r},")
+            p.breakable()
+            p.text(f"citations={len(self.citations)},")
+            p.breakable()
+            p.text(f"usage={self.usage!r},")
+            p.breakable()
+            p.text(f"message={self.message!r},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ChatResponse")
+        builder.row("Id", self.id)
+        builder.row("Model", self.model)
+        builder.row("Finish reason", self.finish_reason)
+        builder.row("Citations", len(self.citations))
+        builder.row("Usage", repr(self.usage))
+        builder.section(
+            "Message",
+            [
+                ("Role", self.message.role),
+                ("Content", truncate_text(self.message.content, 500)),
+            ],
+        )
+        return builder.build()
+
 
 class ChatCompletionChoice(StructDictMixin, Struct, kw_only=True):
     """A single choice in a chat completion response.
