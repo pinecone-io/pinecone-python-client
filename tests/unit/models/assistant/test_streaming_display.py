@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 from pinecone.models.assistant.chat import ChatCitation, ChatReference, ChatUsage
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.streaming import (
     ChatCompletionStreamChoice,
     ChatCompletionStreamChunk,
     ChatCompletionStreamDelta,
+    ChatStream,
+    ChatStreamChunk,
     StreamCitationChunk,
     StreamContentChunk,
     StreamContentDelta,
@@ -198,3 +202,32 @@ class TestChatCompletionStreamChunk:
         c.choices = object()  # type: ignore[assignment]
         assert isinstance(repr(c), str)
         assert isinstance(c._repr_html_(), str)
+
+
+class TestChatStreamDisplay:
+    def _dummy_iter(self) -> Iterator[ChatStreamChunk]:
+        def _gen() -> Iterator[ChatStreamChunk]:
+            yield from []
+
+        return _gen()
+
+    def test_repr_does_not_consume(self) -> None:
+        it = self._dummy_iter()
+        s = ChatStream(it)
+        r = repr(s)
+        assert "ChatStream" in r
+        assert "single-pass" in r
+        # The iterator should still be intact — we didn't drain it.
+        assert list(s) == []
+
+    def test_repr_html(self) -> None:
+        s = ChatStream(self._dummy_iter())
+        h = s._repr_html_()
+        assert "ChatStream" in h
+
+    def test_safe_on_malformed(self) -> None:
+        # Simulate a ChatStream whose _stream attribute is bad
+        s = ChatStream(self._dummy_iter())
+        object.__setattr__(s, "_stream", object())
+        assert isinstance(repr(s), str)
+        assert isinstance(s._repr_html_(), str)
