@@ -4,6 +4,7 @@ from pinecone.models.assistant.chat import ChatCitation, ChatReference, ChatUsag
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.streaming import (
     ChatCompletionStreamChoice,
+    ChatCompletionStreamChunk,
     ChatCompletionStreamDelta,
     StreamCitationChunk,
     StreamContentChunk,
@@ -162,5 +163,38 @@ class TestChatCompletionStreamChoice:
     def test_safe_on_malformed(self) -> None:
         c = ChatCompletionStreamChoice(index=0, delta=ChatCompletionStreamDelta())
         c.delta = object()  # type: ignore[assignment]
+        assert isinstance(repr(c), str)
+        assert isinstance(c._repr_html_(), str)
+
+
+def _chunk(n_choices: int = 1) -> ChatCompletionStreamChunk:
+    return ChatCompletionStreamChunk(
+        id="c-1",
+        choices=[
+            ChatCompletionStreamChoice(index=i, delta=ChatCompletionStreamDelta(content=f"c{i}"))
+            for i in range(n_choices)
+        ],
+        model="m",
+    )
+
+
+class TestChatCompletionStreamChunk:
+    def test_repr(self) -> None:
+        assert "c-1" in repr(_chunk())
+
+    def test_repr_many_choices(self) -> None:
+        r = repr(_chunk(n_choices=50))
+        assert len(r) < 500
+
+    def test_repr_no_choices(self) -> None:
+        r = repr(_chunk(n_choices=0))
+        assert "c-1" in r
+
+    def test_repr_html(self) -> None:
+        assert "<div" in _chunk()._repr_html_()
+
+    def test_safe_on_malformed(self) -> None:
+        c = _chunk()
+        c.choices = object()  # type: ignore[assignment]
         assert isinstance(repr(c), str)
         assert isinstance(c._repr_html_(), str)

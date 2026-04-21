@@ -520,3 +520,65 @@ class ChatCompletionStreamChunk(StructDictMixin, Struct, kw_only=True):
     object: str | None = None
     created: int | None = None
     system_fingerprint: str | None = None
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        parts: list[str] = [f"id={self.id!r}"]
+        if self.model is not None:
+            parts.append(f"model={self.model!r}")
+        parts.append(f"choices={len(self.choices)}")
+        return f"ChatCompletionStreamChunk({', '.join(parts)})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ChatCompletionStreamChunk(...)")
+            return
+        first_content: str | None = None
+        if self.choices and self.choices[0].delta.content is not None:
+            first_content = truncate_text(self.choices[0].delta.content, max_chars=200)
+        with p.group(2, "ChatCompletionStreamChunk(", ")"):
+            p.breakable()
+            p.text(f"id={self.id!r},")
+            if self.model is not None:
+                p.breakable()
+                p.text(f"model={self.model!r},")
+            if self.object is not None:
+                p.breakable()
+                p.text(f"object={self.object!r},")
+            if self.created is not None:
+                p.breakable()
+                p.text(f"created={self.created!r},")
+            if self.system_fingerprint is not None:
+                p.breakable()
+                p.text(f"system_fingerprint={self.system_fingerprint!r},")
+            p.breakable()
+            p.text(f"choices={len(self.choices)},")
+            if first_content is not None:
+                p.breakable()
+                p.text(f"first_choice_content={first_content!r},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ChatCompletionStreamChunk")
+        builder.row("Id", self.id)
+        if self.model is not None:
+            builder.row("Model", self.model)
+        if self.object is not None:
+            builder.row("Object", self.object)
+        if self.created is not None:
+            builder.row("Created", self.created)
+        if self.system_fingerprint is not None:
+            builder.row("System fingerprint", self.system_fingerprint)
+        builder.row("Choices", len(self.choices))
+        if self.choices:
+            first = self.choices[0]
+            section_rows: list[tuple[str, Any]] = [("Index", first.index)]
+            if first.delta.role is not None:
+                section_rows.append(("Role", first.delta.role))
+            if first.delta.content is not None:
+                section_rows.append(("Content", truncate_text(first.delta.content, 500)))
+            if first.finish_reason is not None:
+                section_rows.append(("Finish reason", first.finish_reason))
+            builder.section("First choice", section_rows)
+        return builder.build()
