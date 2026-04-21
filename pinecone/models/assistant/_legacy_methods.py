@@ -80,7 +80,11 @@ class AssistantModelLegacyMethodsMixin:
         include_url: bool = False,
         **kwargs: Any,
     ) -> AssistantFileModel:
-        """Deprecated alias for :meth:`Assistants.describe_file`."""
+        """Describe a file associated with this assistant.
+
+        .. deprecated:: 9.0.0
+            Use :meth:`Assistants.describe_file` instead.
+        """
         ns = self._resolve_assistants()
         return ns.describe_file(
             assistant_name=self.name,  # type: ignore[attr-defined]
@@ -99,10 +103,11 @@ class AssistantModelLegacyMethodsMixin:
         file_id: str | None = None,
         **kwargs: Any,
     ) -> AssistantFileModel:
-        """Deprecated alias — upload a byte stream as a file.
+        """Upload a byte stream as a file to this assistant.
 
-        In the new SDK, byte streams are uploaded via the unified
-        :meth:`Assistants.upload_file` using ``file_stream=`` and ``file_name=``.
+        .. deprecated:: 9.0.0
+            Use :meth:`Assistants.upload_file` with ``file_stream=`` and
+            ``file_name=`` instead.
         """
         ns = self._resolve_assistants()
         return ns.upload_file(
@@ -121,11 +126,11 @@ class AssistantModelLegacyMethodsMixin:
         filter: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> list[AssistantFileModel]:
-        """Deprecated alias — return a materialized list of files.
+        """Return a materialized list of files for this assistant.
 
-        Legacy callers expected ``list_files()`` to return ``List[FileModel]``.
-        The new SDK's ``list_files`` returns a lazy paginator; this shim
-        materializes it.
+        .. deprecated:: 9.0.0
+            Use :meth:`Assistants.list_files` instead. Note that the namespace
+            method returns a lazy paginator; iterate over it to get all files.
         """
         ns = self._resolve_assistants()
         return list(
@@ -144,11 +149,13 @@ class AssistantModelLegacyMethodsMixin:
         page_size: int | None = None,
         **kwargs: Any,
     ) -> ListFilesResponse:
-        """Deprecated alias for :meth:`Assistants.list_files_page`.
+        """Return a single page of files for this assistant.
 
-        Returns a :class:`ListFilesResponse`-shaped object. Accepts ``limit``
-        (legacy) or ``page_size`` (current); neither is forwarded because the
-        underlying ``list_files_page`` endpoint does not support page-size control.
+        .. deprecated:: 9.0.0
+            Use :meth:`Assistants.list_files_page` instead. The ``limit`` and
+            ``page_size`` parameters are accepted for backwards compatibility but
+            are not forwarded; the underlying endpoint does not support page-size
+            control.
         """
         ns = self._resolve_assistants()
         return ns.list_files_page(
@@ -166,9 +173,10 @@ class AssistantModelLegacyMethodsMixin:
         file_id: str | None = None,
         **kwargs: Any,
     ) -> AssistantFileModel:
-        """Deprecated alias — upload a file to this assistant.
+        """Upload a file to this assistant.
 
-        Equivalent to ``pc.assistants.upload_file(assistant_name=self.name, ...)``.
+        .. deprecated:: 9.0.0
+            Use :meth:`Assistants.upload_file` instead.
         """
         ns = self._resolve_assistants()
         return ns.upload_file(
@@ -187,7 +195,11 @@ class AssistantModelLegacyMethodsMixin:
         timeout: int | None = None,
         **kwargs: Any,
     ) -> None:
-        """Deprecated alias for :meth:`Assistants.delete_file`."""
+        """Delete a file from this assistant.
+
+        .. deprecated:: 9.0.0
+            Use :meth:`Assistants.delete_file` instead.
+        """
         ns = self._resolve_assistants()
         ns.delete_file(
             assistant_name=self.name,  # type: ignore[attr-defined]
@@ -205,7 +217,11 @@ class AssistantModelLegacyMethodsMixin:
         temperature: float | None = None,
         **kwargs: Any,
     ) -> ChatCompletionResponse | ChatCompletionStream:
-        """Deprecated alias for :meth:`Assistants.chat_completions`."""
+        """Send a chat-completions request to this assistant.
+
+        .. deprecated:: 9.0.0
+            Use :meth:`Assistants.chat_completions` instead.
+        """
         ns = self._resolve_assistants()
         return ns.chat_completions(
             assistant_name=self.name,  # type: ignore[attr-defined]
@@ -226,11 +242,12 @@ class AssistantModelLegacyMethodsMixin:
         context_options: ContextOptions | dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> ContextResponse:
-        """Deprecated alias for :meth:`Assistants.context`.
+        """Retrieve context snippets from this assistant.
 
-        Retrieves context snippets from this assistant using the given query.
-        The *context_options* parameter is unpacked into *multimodal* and
-        *include_binary_content* for the new API.
+        .. deprecated:: 9.0.0
+            Use :meth:`Assistants.context` instead. The ``context_options``
+            parameter is unpacked into ``multimodal`` and
+            ``include_binary_content`` for the new API.
         """
         ns = self._resolve_assistants()
         # Unpack context_options into the new API's individual parameters.
@@ -273,7 +290,11 @@ class AssistantModelLegacyMethodsMixin:
         context_options: ContextOptions | dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> ChatResponse | ChatStream:
-        """Deprecated alias for :meth:`Assistants.chat`."""
+        """Send a chat request to this assistant.
+
+        .. deprecated:: 9.0.0
+            Use :meth:`Assistants.chat` instead.
+        """
         ns = self._resolve_assistants()
         return ns.chat(
             assistant_name=self.name,  # type: ignore[attr-defined]
