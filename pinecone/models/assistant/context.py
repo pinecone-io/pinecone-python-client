@@ -246,6 +246,54 @@ class MultimodalSnippet(Struct, kw_only=True, tag="multimodal", tag_field="type"
     score: float
     reference: FileReference
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        n_text = sum(1 for b in self.content if isinstance(b, ContextTextBlock))
+        n_image = len(self.content) - n_text
+        return (
+            f"MultimodalSnippet(score={self.score!r},"
+            f" reference={self.reference.file.name!r},"
+            f" blocks=<text:{n_text},image:{n_image}>)"
+        )
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("MultimodalSnippet(...)")
+            return
+        n_text = sum(1 for b in self.content if isinstance(b, ContextTextBlock))
+        n_image = len(self.content) - n_text
+        p.text(
+            f"MultimodalSnippet(\n"
+            f"  score={self.score!r},\n"
+            f"  reference={self.reference.file.name!r},\n"
+            f"  blocks=<text:{n_text},image:{n_image}>\n"
+            f")"
+        )
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        n_text = sum(1 for b in self.content if isinstance(b, ContextTextBlock))
+        n_image = len(self.content) - n_text
+        pages_val = (
+            abbreviate_list(self.reference.pages) if self.reference.pages is not None else "—"
+        )
+        builder = HtmlBuilder("MultimodalSnippet")
+        builder.row("Score", self.score)
+        builder.row("Reference", self.reference.file.name)
+        builder.row("Pages", pages_val)
+        builder.row("Blocks", f"{n_text} text, {n_image} image")
+        section_rows: list[tuple[str, Any]] = []
+        for block in self.content[:5]:
+            if isinstance(block, ContextTextBlock):
+                section_rows.append(("text", truncate_text(block.text, 60)))
+            else:
+                section_rows.append(("image", truncate_text(block.caption, 60)))
+        if len(self.content) > 5:
+            section_rows.append(("...", f"{len(self.content) - 5} more"))
+        builder.section("Blocks", section_rows)
+        return builder.build()
+
 
 ContextSnippet: TypeAlias = TextSnippet | MultimodalSnippet
 """A context snippet — either text or multimodal."""

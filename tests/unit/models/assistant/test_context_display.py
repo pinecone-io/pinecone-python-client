@@ -5,6 +5,7 @@ from pinecone.models.assistant.context import (
     ContextImageData,
     ContextTextBlock,
     FileReference,
+    MultimodalSnippet,
     TextSnippet,
 )
 from pinecone.models.assistant.file_model import AssistantFileModel
@@ -146,3 +147,38 @@ class TestTextSnippet:
         s.reference = object()  # type: ignore[assignment]
         assert isinstance(repr(s), str)
         assert isinstance(s._repr_html_(), str)
+
+
+class TestMultimodalSnippet:
+    def _blocks(self) -> list:  # type: ignore[type-arg]
+        return [
+            ContextTextBlock(text="hi"),
+            ContextImageBlock(
+                caption="A cat",
+                image_data=ContextImageData(type="base64", mime_type="image/png", data="AAA"),
+            ),
+        ]
+
+    def test_repr(self) -> None:
+        m = MultimodalSnippet(content=self._blocks(), score=0.7, reference=_ref())
+        r = repr(m)
+        assert "0.7" in r
+
+    def test_repr_many_blocks_bounded(self) -> None:
+        blocks = [ContextTextBlock(text="hi") for _ in range(200)]
+        m = MultimodalSnippet(content=blocks, score=0.5, reference=_ref())
+        assert len(repr(m)) < 500
+
+    def test_repr_html(self) -> None:
+        h = MultimodalSnippet(content=self._blocks(), score=0.5, reference=_ref())._repr_html_()
+        assert "doc.pdf" in h
+
+    def test_repr_html_empty_content(self) -> None:
+        h = MultimodalSnippet(content=[], score=0.0, reference=_ref())._repr_html_()
+        assert "<div" in h
+
+    def test_safe_on_malformed(self) -> None:
+        m = MultimodalSnippet(content=[], score=0.0, reference=_ref())
+        m.content = object()  # type: ignore[assignment]
+        assert isinstance(repr(m), str)
+        assert isinstance(m._repr_html_(), str)
