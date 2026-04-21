@@ -120,3 +120,53 @@ class AlignmentResult(Struct, kw_only=True):
     scores: AlignmentScores
     facts: list[EntailmentResult]
     usage: ChatUsage
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return (
+            f"AlignmentResult(alignment={self.scores.alignment:.3f},"
+            f" correctness={self.scores.correctness:.3f},"
+            f" completeness={self.scores.completeness:.3f},"
+            f" facts={len(self.facts)}, usage={self.usage!r})"
+        )
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("AlignmentResult(...)")
+            return
+        with p.group(2, "AlignmentResult(", ")"):
+            p.breakable()
+            p.text(f"alignment={self.scores.alignment:.3f},")
+            p.breakable()
+            p.text(f"correctness={self.scores.correctness:.3f},")
+            p.breakable()
+            p.text(f"completeness={self.scores.completeness:.3f},")
+            p.breakable()
+            p.text(f"facts={len(self.facts)},")
+            p.breakable()
+            p.text(f"usage={self.usage!r},")
+            for fact in self.facts[:3]:
+                p.breakable()
+                p.text(repr(fact))
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("AlignmentResult")
+        builder.row("Correctness", f"{self.scores.correctness:.3f}")
+        builder.row("Completeness", f"{self.scores.completeness:.3f}")
+        builder.row("Alignment", f"{self.scores.alignment:.3f}")
+        builder.row("Facts", len(self.facts))
+        builder.row("Usage", repr(self.usage))
+        if self.facts:
+            fact_rows: list[tuple[str, str]] = [
+                (f.entailment, truncate_text(f.fact, 80)) for f in self.facts[:5]
+            ]
+            builder.section("Facts", fact_rows)
+        contradictions = [f for f in self.facts if f.entailment == "contradicted"]
+        if contradictions:
+            contradiction_rows: list[tuple[str, str]] = [
+                (truncate_text(f.fact, 80), f.reasoning or "") for f in contradictions[:5]
+            ]
+            builder.section("Contradictions", contradiction_rows, theme="error")
+        return builder.build()
