@@ -327,7 +327,8 @@ class HTTPClient:
     ) -> httpx.Response:
         kwargs = _prepare_json_kwargs(kwargs)
         body = kwargs.get("content") if isinstance(kwargs.get("content"), bytes) else None
-        _log_curl("POST", self._build_url(path), dict(self._headers), body=body)
+        merged_headers = {**self._headers, **kwargs.get("headers", {})}
+        _log_curl("POST", self._build_url(path), merged_headers, body=body)
         effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
             response = self._client.post(path, timeout=effective_timeout, **kwargs)
@@ -344,7 +345,8 @@ class HTTPClient:
     ) -> httpx.Response:
         kwargs = _prepare_json_kwargs(kwargs)
         body = kwargs.get("content") if isinstance(kwargs.get("content"), bytes) else None
-        _log_curl("PUT", self._build_url(path), dict(self._headers), body=body)
+        merged_headers = {**self._headers, **kwargs.get("headers", {})}
+        _log_curl("PUT", self._build_url(path), merged_headers, body=body)
         effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
             response = self._client.put(path, timeout=effective_timeout, **kwargs)
@@ -361,7 +363,8 @@ class HTTPClient:
     ) -> httpx.Response:
         kwargs = _prepare_json_kwargs(kwargs)
         body = kwargs.get("content") if isinstance(kwargs.get("content"), bytes) else None
-        _log_curl("PATCH", self._build_url(path), dict(self._headers), body=body)
+        merged_headers = {**self._headers, **kwargs.get("headers", {})}
+        _log_curl("PATCH", self._build_url(path), merged_headers, body=body)
         effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
             response = self._client.patch(path, timeout=effective_timeout, **kwargs)
