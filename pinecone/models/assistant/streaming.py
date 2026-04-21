@@ -158,6 +158,36 @@ class StreamCitationChunk(StructDictMixin, Struct, kw_only=True, tag="citation",
         """Discriminator value, always ``"citation"``."""
         return str(self.__struct_config__.tag)
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        model_part = f", model={self.model!r}" if self.model is not None else ""
+        return f"StreamCitationChunk(id={self.id!r}, citation={self.citation!r}{model_part})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("StreamCitationChunk(...)")
+            return
+        with p.group(2, "StreamCitationChunk(", ")"):
+            p.breakable()
+            p.text(f"id={self.id!r},")
+            if self.model is not None:
+                p.breakable()
+                p.text(f"model={self.model!r},")
+            p.breakable()
+            p.text(f"citation={self.citation!r},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("StreamCitationChunk")
+        builder.row("Type:", self.type)
+        builder.row("Id:", self.id)
+        if self.model is not None:
+            builder.row("Model:", self.model)
+        builder.row("Position:", self.citation.position)
+        builder.row("References:", len(self.citation.references))
+        return builder.build()
+
 
 class StreamMessageEnd(StructDictMixin, Struct, kw_only=True, tag="message_end", tag_field="type"):
     """Final chunk in a chat stream, containing token usage statistics.

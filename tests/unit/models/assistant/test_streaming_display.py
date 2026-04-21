@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from pinecone.models.assistant.chat import ChatCitation, ChatReference
+from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.streaming import (
+    StreamCitationChunk,
     StreamContentChunk,
     StreamContentDelta,
     StreamMessageStart,
@@ -64,5 +67,27 @@ class TestStreamContentChunk:
     def test_safe_on_malformed(self) -> None:
         c = StreamContentChunk(id="c-1", delta=StreamContentDelta(content="x"))
         c.delta = object()  # type: ignore[assignment]
+        assert isinstance(repr(c), str)
+        assert isinstance(c._repr_html_(), str)
+
+
+def _cit() -> ChatCitation:
+    return ChatCitation(
+        position=1,
+        references=[ChatReference(file=AssistantFileModel(name="d.pdf", id="f"))],
+    )
+
+
+class TestStreamCitationChunk:
+    def test_repr(self) -> None:
+        c = StreamCitationChunk(id="c-1", citation=_cit())
+        assert "c-1" in repr(c)
+
+    def test_repr_html(self) -> None:
+        assert "<div" in StreamCitationChunk(id="c-1", citation=_cit())._repr_html_()
+
+    def test_safe_on_malformed(self) -> None:
+        c = StreamCitationChunk(id="c-1", citation=_cit())
+        c.citation = object()  # type: ignore[assignment]
         assert isinstance(repr(c), str)
         assert isinstance(c._repr_html_(), str)
