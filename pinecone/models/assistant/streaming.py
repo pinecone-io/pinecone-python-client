@@ -257,12 +257,21 @@ class ChatStream:
     The stream is single-pass: iterating, calling :meth:`text`, or calling
     :meth:`collect` all consume the same underlying iterator.
 
-    Example::
+    Examples:
+        >>> from pinecone import Pinecone
+        >>> pc = Pinecone(api_key="your-api-key")
+        >>> stream = pc.assistants.chat(assistant_name="acme-support-bot",
+        ...                             messages=[{"content": "What can you help me with?"}],
+        ...                             stream=True)
+        >>> for text in stream.text():
+        ...     print(text, end="", flush=True)
 
-        stream = pc.assistants.chat(assistant_name="my-assistant",
-                                    messages=[{"content": "Hi"}], stream=True)
-        for text in stream.text():
-            print(text, end="", flush=True)
+        Use :meth:`collect` to drain the stream and return the full content as a single string:
+
+        >>> stream = pc.assistants.chat(assistant_name="acme-support-bot",
+        ...                             messages=[{"content": "Summarize your capabilities."}],
+        ...                             stream=True)
+        >>> full_content = stream.collect()
     """
 
     def __init__(self, stream: Iterator[ChatStreamChunk]) -> None:
@@ -309,12 +318,30 @@ class AsyncChatStream:
     The stream is single-pass: iterating, calling :meth:`text`, or calling
     :meth:`collect` all consume the same underlying async iterator.
 
-    Example::
+    Examples:
+        >>> import asyncio
+        >>> from pinecone import Pinecone
+        >>> pc = Pinecone(api_key="your-api-key")
+        >>> async def main() -> None:
+        ...     stream = await pc.assistants.chat(
+        ...         assistant_name="acme-support-bot",
+        ...         messages=[{"content": "What can you help me with?"}],
+        ...         stream=True,
+        ...     )
+        ...     async for text in stream.text():
+        ...         print(text, end="", flush=True)
+        >>> asyncio.run(main())
 
-        stream = await pc.assistants.chat(assistant_name="my-assistant",
-                                          messages=[{"content": "Hi"}], stream=True)
-        async for text in stream.text():
-            print(text, end="", flush=True)
+        Use :meth:`collect` to drain the stream and return the full content as a single string:
+
+        >>> async def main() -> None:
+        ...     stream = await pc.assistants.chat(
+        ...         assistant_name="acme-support-bot",
+        ...         messages=[{"content": "Summarize your capabilities."}],
+        ...         stream=True,
+        ...     )
+        ...     full_content = await stream.collect()
+        >>> asyncio.run(main())
     """
 
     def __init__(self, stream: AsyncIterator[ChatStreamChunk]) -> None:
@@ -369,13 +396,25 @@ class ChatCompletionStream:
     The stream is single-pass: iterating, calling :meth:`text`, or calling
     :meth:`collect` all consume the same underlying iterator.
 
-    Example::
+    Examples:
+        >>> from pinecone import Pinecone
+        >>> pc = Pinecone(api_key="your-api-key")
+        >>> stream = pc.assistants.chat_completions(
+        ...     assistant_name="acme-support-bot",
+        ...     messages=[{"content": "What can you help me with?"}],
+        ...     stream=True,
+        ... )
+        >>> for text in stream.text():
+        ...     print(text, end="", flush=True)
 
-        stream = pc.assistants.chat_completions(assistant_name="my-assistant",
-                                                messages=[{"content": "Hi"}],
-                                                stream=True)
-        for text in stream.text():
-            print(text, end="", flush=True)
+        Use :meth:`collect` to drain the stream and return the full content as a single string:
+
+        >>> stream = pc.assistants.chat_completions(
+        ...     assistant_name="acme-support-bot",
+        ...     messages=[{"content": "Summarize your capabilities."}],
+        ...     stream=True,
+        ... )
+        >>> full_content = stream.collect()
     """
 
     def __init__(self, stream: Iterator[ChatCompletionStreamChunk]) -> None:
@@ -428,13 +467,30 @@ class AsyncChatCompletionStream:
     The stream is single-pass: iterating, calling :meth:`text`, or calling
     :meth:`collect` all consume the same underlying async iterator.
 
-    Example::
+    Examples:
+        >>> import asyncio
+        >>> from pinecone import Pinecone
+        >>> pc = Pinecone(api_key="your-api-key")
+        >>> async def main() -> None:
+        ...     stream = await pc.assistants.chat_completions(
+        ...         assistant_name="acme-support-bot",
+        ...         messages=[{"content": "What can you help me with?"}],
+        ...         stream=True,
+        ...     )
+        ...     async for text in stream.text():
+        ...         print(text, end="", flush=True)
+        >>> asyncio.run(main())
 
-        stream = await pc.assistants.chat_completions(assistant_name="my-assistant",
-                                                      messages=[{"content": "Hi"}],
-                                                      stream=True)
-        async for text in stream.text():
-            print(text, end="", flush=True)
+        Use :meth:`collect` to drain the stream and return the full content as a single string:
+
+        >>> async def main() -> None:
+        ...     stream = await pc.assistants.chat_completions(
+        ...         assistant_name="acme-support-bot",
+        ...         messages=[{"content": "Summarize your capabilities."}],
+        ...         stream=True,
+        ...     )
+        ...     full_content = await stream.collect()
+        >>> asyncio.run(main())
     """
 
     def __init__(self, stream: AsyncIterator[ChatCompletionStreamChunk]) -> None:
