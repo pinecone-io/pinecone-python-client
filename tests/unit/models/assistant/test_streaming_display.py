@@ -281,3 +281,29 @@ class TestChatCompletionStreamDisplay:
         object.__setattr__(s, "_stream", object())
         assert isinstance(repr(s), str)
         assert isinstance(s._repr_html_(), str)
+
+
+from pinecone.models.assistant.streaming import AsyncChatCompletionStream
+
+
+class TestAsyncChatCompletionStreamDisplay:
+    def _agen(self) -> AsyncIterator[ChatCompletionStreamChunk]:
+        async def _g() -> AsyncIterator[ChatCompletionStreamChunk]:
+            if False:
+                yield  # type: ignore[misc]
+
+        return _g()
+
+    def test_repr(self) -> None:
+        s = AsyncChatCompletionStream(self._agen())
+        assert "AsyncChatCompletionStream" in repr(s)
+
+    def test_repr_html(self) -> None:
+        s = AsyncChatCompletionStream(self._agen())
+        assert "AsyncChatCompletionStream" in s._repr_html_()
+
+    def test_safe_on_malformed(self) -> None:
+        s = AsyncChatCompletionStream(self._agen())
+        object.__setattr__(s, "_stream", object())
+        assert isinstance(repr(s), str)
+        assert isinstance(s._repr_html_(), str)

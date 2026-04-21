@@ -440,6 +440,25 @@ class AsyncChatCompletionStream:
     def __init__(self, stream: AsyncIterator[ChatCompletionStreamChunk]) -> None:
         self._stream = stream
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return (
+            "AsyncChatCompletionStream(single-pass async, OpenAI-compatible"
+            " — iterate with `async for chunk in stream`)"
+        )
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("AsyncChatCompletionStream")
+        builder.row("Type", "OpenAI-compatible")
+        builder.row("Iteration", "single-pass async")
+        builder.row(
+            "Usage hint",
+            "Iterate with `async for chunk in stream`, or call `.text()` for"
+            " text-only fragments, or `await .collect()` for the full message",
+        )
+        return builder.build()
+
     def __aiter__(self) -> AsyncIterator[ChatCompletionStreamChunk]:
         return self._stream
 
