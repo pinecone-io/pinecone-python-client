@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TypeAlias
+from typing import Any, TypeAlias
 
 from msgspec import Struct
 
+from pinecone.models._display import HtmlBuilder, safe_display, truncate_text
 from pinecone.models.assistant.chat import ChatUsage
 from pinecone.models.assistant.file_model import AssistantFileModel
 
@@ -22,6 +23,36 @@ class ContextImageData(Struct, kw_only=True):
     type: str
     mime_type: str
     data: str
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return (
+            f"ContextImageData(type={self.type!r}, mime_type={self.mime_type!r},"
+            f" data=<{len(self.data):,} bytes>)"
+        )
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ContextImageData(...)")
+            return
+        preview = self.data[:32] + "..." if len(self.data) > 32 else self.data
+        p.text(
+            f"ContextImageData(\n"
+            f"  type={self.type!r},\n"
+            f"  mime_type={self.mime_type!r},\n"
+            f"  data={preview!r}  # {len(self.data):,} bytes\n"
+            f")"
+        )
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ContextImageData")
+        builder.row("Type", self.type)
+        builder.row("MIME type", self.mime_type)
+        builder.row("Size", f"{len(self.data):,} chars")
+        builder.row("Preview", truncate_text(self.data, 32))
+        return builder.build()
 
 
 class ContextImageBlock(
