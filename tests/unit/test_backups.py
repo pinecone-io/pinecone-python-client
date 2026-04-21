@@ -180,6 +180,30 @@ def test_list_backups_no_pagination(backups: Backups) -> None:
     assert result.pagination is None
 
 
+@respx.mock
+def test_list_backups_default_limit_sent(backups: Backups) -> None:
+    route = respx.get(f"{BASE_URL}/backups").mock(
+        return_value=httpx.Response(200, json={"data": []}),
+    )
+
+    backups.list()
+
+    request = route.calls[0].request
+    assert request.url.params["limit"] == "10"
+
+
+@respx.mock
+def test_list_backups_for_index_default_limit_sent(backups: Backups) -> None:
+    route = respx.get(f"{BASE_URL}/indexes/my-index/backups").mock(
+        return_value=httpx.Response(200, json={"data": []}),
+    )
+
+    backups.list(index_name="my-index")
+
+    request = route.calls[0].request
+    assert request.url.params["limit"] == "10"
+
+
 # ---------------------------------------------------------------------------
 # describe()
 # ---------------------------------------------------------------------------

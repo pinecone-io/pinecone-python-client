@@ -130,6 +130,18 @@ async def test_async_list_backups_all(async_backups: AsyncBackups) -> None:
 
 
 @respx.mock
+async def test_async_list_backups_default_limit_sent(async_backups: AsyncBackups) -> None:
+    route = respx.get(f"{BASE_URL}/backups").mock(
+        return_value=httpx.Response(200, json={"data": []}),
+    )
+
+    await async_backups.list()
+
+    request = route.calls[0].request
+    assert request.url.params["limit"] == "10"
+
+
+@respx.mock
 async def test_async_list_backups_pagination_params(async_backups: AsyncBackups) -> None:
     route = respx.get(f"{BASE_URL}/backups").mock(
         return_value=httpx.Response(

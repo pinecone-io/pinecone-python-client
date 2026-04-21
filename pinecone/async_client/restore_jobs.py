@@ -44,16 +44,15 @@ class AsyncRestoreJobs:
     async def list(
         self,
         *,
-        limit: int | None = None,
+        limit: int = 10,
         pagination_token: str | None = None,
     ) -> RestoreJobList:
         """List all restore jobs in the project.
 
-        Supports cursor-based pagination. Defaults to at most 10 results
-        per page when no limit is specified.
+        Supports cursor-based pagination. Defaults to 10 results per page.
 
         Args:
-            limit (int | None): Maximum number of results per page.
+            limit (int): Maximum number of results per page. Defaults to 10.
             pagination_token (str | None): Token for cursor-based pagination.
 
         Returns:
@@ -76,9 +75,7 @@ class AsyncRestoreJobs:
             ...     jobs = await pc.restore_jobs.list(limit=5)
             ...     print(len(jobs))
         """
-        params: dict[str, Any] = {}
-        if limit is not None:
-            params["limit"] = limit
+        params: dict[str, Any] = {"limit": limit}
         if pagination_token is not None:
             params["paginationToken"] = pagination_token
 

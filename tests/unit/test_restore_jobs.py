@@ -55,6 +55,18 @@ def test_list_restore_jobs(restore_jobs: RestoreJobs) -> None:
 
 
 @respx.mock
+def test_list_restore_jobs_default_limit_sent(restore_jobs: RestoreJobs) -> None:
+    route = respx.get(f"{BASE_URL}/restore-jobs").mock(
+        return_value=httpx.Response(200, json={"data": []}),
+    )
+
+    restore_jobs.list()
+
+    request = route.calls[0].request
+    assert request.url.params["limit"] == "10"
+
+
+@respx.mock
 def test_list_restore_jobs_with_pagination(restore_jobs: RestoreJobs) -> None:
     route = respx.get(f"{BASE_URL}/restore-jobs").mock(
         return_value=httpx.Response(

@@ -735,7 +735,7 @@ class Pinecone:
         )
         return self.backups.list(
             index_name=index_name,
-            limit=limit,
+            limit=limit if limit is not None else 10,
             pagination_token=pagination_token,
         )
 
@@ -779,7 +779,7 @@ class Pinecone:
             stacklevel=2,
         )
         return self.restore_jobs.list(
-            limit=limit,
+            limit=limit if limit is not None else 10,
             pagination_token=pagination_token,
         )
 
