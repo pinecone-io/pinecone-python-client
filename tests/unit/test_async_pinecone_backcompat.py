@@ -289,3 +289,79 @@ def test_async_index_asyncio_delegate_emits_deprecation_and_returns_async_index(
     with pytest.warns(DeprecationWarning, match=r"IndexAsyncio\(\) is deprecated"):
         idx = pc.IndexAsyncio(host="my-index.svc.pinecone.io")
     assert isinstance(idx, AsyncIndex)
+
+
+# ---------------------------------------------------------------------------
+# __repr__ masking
+# ---------------------------------------------------------------------------
+
+
+def test_async_pinecone_repr_masks_full_api_key() -> None:
+    pc = AsyncPinecone(api_key="pcsk_secret_12345")
+    result = repr(pc)
+    assert "pcsk_secret_12345" not in result
+    assert "...2345" in result
+    assert "host=" in result
+    assert "AsyncPinecone" in result
+
+
+def test_async_pinecone_repr_masks_short_api_key() -> None:
+    pc = AsyncPinecone(api_key="ab")
+    result = repr(pc)
+    assert "api_key='***'" in result
+    assert "api_key='ab'" not in result
+
+
+def test_async_pinecone_repr_exactly_four_char_key_shows_last_four() -> None:
+    pc = AsyncPinecone(api_key="wxyz")
+    result = repr(pc)
+    assert "...wxyz" in result
+
+
+# ---------------------------------------------------------------------------
+# has_index / delete_index delegates
+# ---------------------------------------------------------------------------
+
+
+async def test_async_has_index_delegate_emits_deprecation_and_forwards() -> None:
+    pc, mock_indexes = _make_async_pc_with_mock_indexes()
+    with pytest.warns(DeprecationWarning, match=r"has_index\(\) is deprecated"):
+        result = await pc.has_index("my-index")
+    assert result is True
+    mock_indexes.exists.assert_awaited_once_with("my-index")
+
+
+async def test_async_delete_index_delegate_emits_deprecation_and_forwards() -> None:
+    pc, mock_indexes = _make_async_pc_with_mock_indexes()
+    with pytest.warns(DeprecationWarning, match=r"delete_index\(\) is deprecated"):
+        await pc.delete_index("my-index", timeout=30)
+    mock_indexes.delete.assert_awaited_once_with("my-index", timeout=30)
+
+    mock_indexes.delete.reset_mock()
+    with pytest.warns(DeprecationWarning, match=r"delete_index\(\) is deprecated"):
+        await pc.delete_index("my-index")
+    mock_indexes.delete.assert_awaited_once_with("my-index", timeout=None)
+
+
+# ---------------------------------------------------------------------------
+# delete_collection delegate
+# ---------------------------------------------------------------------------
+
+
+async def test_async_delete_collection_delegate_emits_deprecation_and_forwards() -> None:
+    pc, mock_collections = _make_async_pc_with_mock_collections()
+    with pytest.warns(DeprecationWarning, match=r"delete_collection\(\) is deprecated"):
+        await pc.delete_collection("my-coll")
+    mock_collections.delete.assert_awaited_once_with("my-coll")
+
+
+# ---------------------------------------------------------------------------
+# delete_backup delegate
+# ---------------------------------------------------------------------------
+
+
+async def test_async_delete_backup_delegate_emits_deprecation_and_forwards() -> None:
+    pc, mock_backups = _make_async_pc_with_mock_backups()
+    with pytest.warns(DeprecationWarning, match=r"delete_backup\(\) is deprecated"):
+        await pc.delete_backup(backup_id="bkp-123")
+    mock_backups.delete.assert_awaited_once_with(backup_id="bkp-123")
