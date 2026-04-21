@@ -300,13 +300,48 @@ class ChatStream:
         return self._stream
 
     def text(self) -> Iterator[str]:
-        """Yield text fragments, skipping start/citation/end chunks."""
+        """Yield text fragments, skipping start/citation/end chunks.
+
+        Returns:
+            Iterator of text fragment strings. Each fragment is a partial
+            response as it arrives from the server.
+
+        Examples:
+            Print tokens as they stream from the assistant:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> stream = pc.assistants.chat(
+            ...     assistant_name="acme-support-bot",
+            ...     messages=[{"content": "Explain vector databases in one sentence."}],
+            ...     stream=True,
+            ... )
+            >>> for chunk_text in stream.text():
+            ...     print(chunk_text, end="", flush=True)
+        """
         for chunk in self._stream:
             if isinstance(chunk, StreamContentChunk):
                 yield chunk.delta.content
 
     def collect(self) -> str:
-        """Drain the stream and return all content fragments concatenated."""
+        """Drain the stream and return all content fragments concatenated.
+
+        Returns:
+            The complete response as a single string.
+
+        Examples:
+            Collect the full response from the assistant:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> stream = pc.assistants.chat(
+            ...     assistant_name="acme-support-bot",
+            ...     messages=[{"content": "Explain vector databases in one sentence."}],
+            ...     stream=True,
+            ... )
+            >>> full = stream.collect()
+            >>> print(full)
+        """
         return "".join(
             chunk.delta.content for chunk in self._stream if isinstance(chunk, StreamContentChunk)
         )
@@ -370,13 +405,54 @@ class AsyncChatStream:
         return self._stream
 
     async def text(self) -> AsyncIterator[str]:
-        """Yield text fragments, skipping start/citation/end chunks."""
+        """Yield text fragments, skipping start/citation/end chunks.
+
+        Returns:
+            Async iterator of text fragment strings. Each fragment is a partial
+            response as it arrives from the server.
+
+        Examples:
+            Print tokens as they stream from the assistant:
+
+            >>> import asyncio
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> async def main() -> None:
+            ...     stream = await pc.assistants.chat(
+            ...         assistant_name="acme-support-bot",
+            ...         messages=[{"content": "Explain vector databases in one sentence."}],
+            ...         stream=True,
+            ...     )
+            ...     async for chunk_text in stream.text():
+            ...         print(chunk_text, end="", flush=True)
+            >>> asyncio.run(main())
+        """
         async for chunk in self._stream:
             if isinstance(chunk, StreamContentChunk):
                 yield chunk.delta.content
 
     async def collect(self) -> str:
-        """Drain the stream and return all content fragments concatenated."""
+        """Drain the stream and return all content fragments concatenated.
+
+        Returns:
+            The complete response as a single string.
+
+        Examples:
+            Collect the full response from the assistant:
+
+            >>> import asyncio
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> async def main() -> None:
+            ...     stream = await pc.assistants.chat(
+            ...         assistant_name="acme-support-bot",
+            ...         messages=[{"content": "Explain vector databases in one sentence."}],
+            ...         stream=True,
+            ...     )
+            ...     full = await stream.collect()
+            ...     print(full)
+            >>> asyncio.run(main())
+        """
         return "".join(
             [
                 chunk.delta.content
@@ -443,7 +519,25 @@ class ChatCompletionStream:
         return self._stream
 
     def text(self) -> Iterator[str]:
-        """Yield non-empty content strings, skipping role-only and finish chunks."""
+        """Yield non-empty content strings, skipping role-only and finish chunks.
+
+        Returns:
+            Iterator of non-empty text fragment strings. Role-only chunks and
+            finish-reason chunks with ``None`` or empty content are skipped.
+
+        Examples:
+            Print tokens as they stream from the assistant:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> stream = pc.assistants.chat_completions(
+            ...     assistant_name="acme-support-bot",
+            ...     messages=[{"content": "Explain vector databases in one sentence."}],
+            ...     stream=True,
+            ... )
+            >>> for chunk_text in stream.text():
+            ...     print(chunk_text, end="", flush=True)
+        """
         for chunk in self._stream:
             if chunk.choices:
                 content = chunk.choices[0].delta.content
@@ -451,7 +545,24 @@ class ChatCompletionStream:
                     yield content
 
     def collect(self) -> str:
-        """Drain the stream and return all content fragments concatenated."""
+        """Drain the stream and return all content fragments concatenated.
+
+        Returns:
+            The complete response as a single string.
+
+        Examples:
+            Collect the full response from the assistant:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> stream = pc.assistants.chat_completions(
+            ...     assistant_name="acme-support-bot",
+            ...     messages=[{"content": "Explain vector databases in one sentence."}],
+            ...     stream=True,
+            ... )
+            >>> full = stream.collect()
+            >>> print(full)
+        """
         parts: list[str] = []
         for chunk in self._stream:
             if chunk.choices:
@@ -519,7 +630,28 @@ class AsyncChatCompletionStream:
         return self._stream
 
     async def text(self) -> AsyncIterator[str]:
-        """Yield non-empty content strings, skipping role-only and finish chunks."""
+        """Yield non-empty content strings, skipping role-only and finish chunks.
+
+        Returns:
+            Async iterator of non-empty text fragment strings. Role-only chunks
+            and finish-reason chunks with ``None`` or empty content are skipped.
+
+        Examples:
+            Print tokens as they stream from the assistant:
+
+            >>> import asyncio
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> async def main() -> None:
+            ...     stream = await pc.assistants.chat_completions(
+            ...         assistant_name="acme-support-bot",
+            ...         messages=[{"content": "Explain vector databases in one sentence."}],
+            ...         stream=True,
+            ...     )
+            ...     async for chunk_text in stream.text():
+            ...         print(chunk_text, end="", flush=True)
+            >>> asyncio.run(main())
+        """
         async for chunk in self._stream:
             if chunk.choices:
                 content = chunk.choices[0].delta.content
@@ -527,7 +659,27 @@ class AsyncChatCompletionStream:
                     yield content
 
     async def collect(self) -> str:
-        """Drain the stream and return all content fragments concatenated."""
+        """Drain the stream and return all content fragments concatenated.
+
+        Returns:
+            The complete response as a single string.
+
+        Examples:
+            Collect the full response from the assistant:
+
+            >>> import asyncio
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> async def main() -> None:
+            ...     stream = await pc.assistants.chat_completions(
+            ...         assistant_name="acme-support-bot",
+            ...         messages=[{"content": "Explain vector databases in one sentence."}],
+            ...         stream=True,
+            ...     )
+            ...     full = await stream.collect()
+            ...     print(full)
+            >>> asyncio.run(main())
+        """
         parts: list[str] = []
         async for chunk in self._stream:
             if chunk.choices:
