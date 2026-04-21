@@ -77,10 +77,10 @@ def validate_read_capacity(read_capacity: dict[str, Any]) -> None:
             manual = dedicated["manual"]
             if not isinstance(manual, dict):
                 raise ValidationError("dedicated read_capacity manual must be a dict")
-            if "replicas" not in manual:
-                raise ValidationError("manual scaling must contain 'replicas'")
             if "shards" not in manual:
                 raise ValidationError("manual scaling must contain 'shards'")
+            if "replicas" not in manual:
+                raise ValidationError("manual scaling must contain 'replicas'")
 
 
 def validate_create_inputs(
