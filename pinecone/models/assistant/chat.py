@@ -6,7 +6,7 @@ from typing import Any
 
 from msgspec import Struct
 
-from pinecone.models._display import HtmlBuilder, safe_display
+from pinecone.models._display import HtmlBuilder, safe_display, truncate_text
 from pinecone.models.assistant._mixin import StructDictMixin
 from pinecone.models.assistant.file_model import AssistantFileModel
 
@@ -76,6 +76,23 @@ class ChatHighlight(StructDictMixin, Struct, kw_only=True):
 
     type: str
     content: str
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        truncated = truncate_text(self.content, max_chars=80)
+        return f"ChatHighlight(type={self.type!r}, content={truncated!r})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        truncated = truncate_text(self.content, max_chars=200)
+        p.text(f"ChatHighlight(type={self.type!r}, content={truncated!r})")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ChatHighlight")
+        builder.row("Type", self.type)
+        builder.row("Content", truncate_text(self.content, max_chars=500))
+        return builder.build()
 
 
 class ChatReference(StructDictMixin, Struct, kw_only=True):
