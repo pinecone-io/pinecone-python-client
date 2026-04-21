@@ -20,8 +20,29 @@ if TYPE_CHECKING:
     from pinecone.async_client.inference import AsyncInference
     from pinecone.async_client.restore_jobs import AsyncRestoreJobs
     from pinecone.client._assistant_namespace_proxy import _AsyncAssistantNamespaceProxy
-    from pinecone.models.enums import DeletionProtection
+    from pinecone.inference.models.index_embed import IndexEmbed
+    from pinecone.models.backups.list import BackupList, RestoreJobList
+    from pinecone.models.backups.model import BackupModel, RestoreJobModel
+    from pinecone.models.collections.list import CollectionList
+    from pinecone.models.collections.model import CollectionModel
+    from pinecone.models.enums import (
+        AwsRegion,
+        AzureRegion,
+        CloudProvider,
+        DeletionProtection,
+        GcpRegion,
+        Metric,
+        VectorType,
+    )
     from pinecone.models.indexes.index import IndexModel
+    from pinecone.models.indexes.list import IndexList
+    from pinecone.models.indexes.specs import (
+        ByocSpec,
+        EmbedConfig,
+        IntegratedSpec,
+        PodSpec,
+        ServerlessSpec,
+    )
     from pinecone.preview import AsyncPreview
 
 
@@ -395,14 +416,14 @@ class AsyncPinecone:
     async def create_index(
         self,
         name: str,
-        spec: Any,
+        spec: ServerlessSpec | PodSpec | ByocSpec | IntegratedSpec | dict[str, Any],
         dimension: int | None = None,
-        metric: str | None = "cosine",
+        metric: Metric | str | None = "cosine",
         timeout: int | None = None,
-        deletion_protection: Any = "disabled",
-        vector_type: str = "dense",
+        deletion_protection: DeletionProtection | str | None = "disabled",
+        vector_type: VectorType | str = "dense",
         tags: dict[str, str] | None = None,
-    ) -> Any:
+    ) -> IndexModel:
         """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.create`.
 
         :meta private:
@@ -429,15 +450,15 @@ class AsyncPinecone:
     async def create_index_for_model(
         self,
         name: str,
-        cloud: Any,
-        region: Any,
-        embed: Any,
+        cloud: CloudProvider | str,
+        region: AwsRegion | GcpRegion | AzureRegion | str,
+        embed: IndexEmbed | EmbedConfig | dict[str, Any],
         tags: dict[str, str] | None = None,
-        deletion_protection: Any = "disabled",
+        deletion_protection: DeletionProtection | str | None = "disabled",
         read_capacity: dict[str, Any] | None = None,
         schema: dict[str, Any] | None = None,
         timeout: int | None = None,
-    ) -> Any:
+    ) -> IndexModel:
         """Backwards-compatibility delegate for integrated index creation.
 
         See :meth:`AsyncPinecone.indexes.create` with ``IntegratedSpec``.
@@ -457,7 +478,7 @@ class AsyncPinecone:
         from pinecone.models.indexes.specs import IntegratedSpec as _IntegratedSpec
 
         if isinstance(embed, _IndexEmbed):
-            embed_config: Any = _EmbedConfig(
+            embed_config: EmbedConfig = _EmbedConfig(
                 model=embed.model,
                 field_map={k: str(v) for k, v in embed.field_map.items()},
                 metric=embed.metric,
@@ -482,7 +503,7 @@ class AsyncPinecone:
             timeout=timeout,
         )
 
-    async def describe_index(self, name: str) -> Any:
+    async def describe_index(self, name: str) -> IndexModel:
         """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.describe`.
 
         :meta private:
@@ -496,7 +517,7 @@ class AsyncPinecone:
         )
         return await self.indexes.describe(name)
 
-    async def list_indexes(self) -> Any:
+    async def list_indexes(self) -> IndexList:
         """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.list`.
 
         :meta private:
@@ -529,7 +550,7 @@ class AsyncPinecone:
         name: str,
         replicas: int | None = None,
         pod_type: str | None = None,
-        deletion_protection: Any = None,
+        deletion_protection: DeletionProtection | str | None = None,
         tags: dict[str, str] | None = None,
         read_capacity: dict[str, Any] | None = None,
     ) -> None:
@@ -567,7 +588,7 @@ class AsyncPinecone:
         )
         await self.indexes.delete(name, timeout=timeout)
 
-    async def create_collection(self, name: str, source: str) -> Any:
+    async def create_collection(self, name: str, source: str) -> CollectionModel:
         """Backwards-compatibility delegate. See :meth:`AsyncPinecone.collections.create`.
 
         :meta private:
@@ -581,7 +602,7 @@ class AsyncPinecone:
         )
         return await self.collections.create(name=name, source=source)
 
-    async def list_collections(self) -> Any:
+    async def list_collections(self) -> CollectionList:
         """Backwards-compatibility delegate. See :meth:`AsyncPinecone.collections.list`.
 
         :meta private:
@@ -595,7 +616,7 @@ class AsyncPinecone:
         )
         return await self.collections.list()
 
-    async def describe_collection(self, name: str) -> Any:
+    async def describe_collection(self, name: str) -> CollectionModel:
         """Backwards-compatibility delegate. See :meth:`AsyncPinecone.collections.describe`.
 
         :meta private:
@@ -630,7 +651,7 @@ class AsyncPinecone:
         index_name: str,
         backup_name: str | None = None,
         description: str = "",
-    ) -> Any:
+    ) -> BackupModel:
         """Backwards-compatibility delegate. See :meth:`AsyncPinecone.backups.create`.
 
         :meta private:
@@ -654,7 +675,7 @@ class AsyncPinecone:
         index_name: str | None = None,
         limit: int | None = 10,
         pagination_token: str | None = None,
-    ) -> Any:
+    ) -> BackupList:
         """Backwards-compatibility delegate. See :meth:`AsyncPinecone.backups.list`.
 
         :meta private:
@@ -672,7 +693,7 @@ class AsyncPinecone:
             pagination_token=pagination_token,
         )
 
-    async def describe_backup(self, *, backup_id: str) -> Any:
+    async def describe_backup(self, *, backup_id: str) -> BackupModel:
         """Backwards-compatibility delegate. See :meth:`AsyncPinecone.backups.describe`.
 
         :meta private:
@@ -705,7 +726,7 @@ class AsyncPinecone:
         *,
         limit: int | None = 10,
         pagination_token: str | None = None,
-    ) -> Any:
+    ) -> RestoreJobList:
         """Backwards-compatibility delegate. See :meth:`AsyncPinecone.restore_jobs.list`.
 
         :meta private:
@@ -722,7 +743,7 @@ class AsyncPinecone:
             pagination_token=pagination_token,
         )
 
-    async def describe_restore_job(self, *, job_id: str) -> Any:
+    async def describe_restore_job(self, *, job_id: str) -> RestoreJobModel:
         """Backwards-compatibility delegate. See :meth:`AsyncPinecone.restore_jobs.describe`.
 
         :meta private:
@@ -737,7 +758,7 @@ class AsyncPinecone:
         )
         return await self.restore_jobs.describe(job_id=job_id)
 
-    def IndexAsyncio(self, host: str, **kwargs: Any) -> Any:  # noqa: N802
+    def IndexAsyncio(self, host: str, **kwargs: Any) -> AsyncIndex:  # noqa: N802
         """Backwards-compatibility async index factory. See ``AsyncIndex``.
 
         :meta private:
