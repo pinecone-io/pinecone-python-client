@@ -7,28 +7,29 @@ from typing import Any, overload
 
 from msgspec import Struct
 
+from pinecone.models._mixin import StructDictMixin
 from pinecone.models.vectors.responses import Pagination
 
 
-class NamespaceFieldConfig(Struct, kw_only=True):
+class NamespaceFieldConfig(StructDictMixin, Struct, kw_only=True):
     """Configuration for a single metadata field in a namespace schema."""
 
     filterable: bool = False
 
 
-class NamespaceSchema(Struct, kw_only=True):
+class NamespaceSchema(StructDictMixin, Struct, kw_only=True):
     """Schema configuration for a namespace's metadata index."""
 
     fields: dict[str, NamespaceFieldConfig] = {}
 
 
-class IndexedFields(Struct, kw_only=True):
+class IndexedFields(StructDictMixin, Struct, kw_only=True):
     """List of indexed metadata fields in a namespace."""
 
     fields: list[str] = []
 
 
-class NamespaceDescription(Struct, kw_only=True):
+class NamespaceDescription(StructDictMixin, Struct, kw_only=True):
     """Description of a namespace including name, record count, and schema.
 
     Attributes:
@@ -54,7 +55,7 @@ class NamespaceDescription(Struct, kw_only=True):
         return key in self.__struct_fields__
 
 
-class ListNamespacesResponse(Struct, kw_only=True):
+class ListNamespacesResponse(StructDictMixin, Struct, kw_only=True):
     """Response from a list namespaces operation.
 
     Attributes:
@@ -97,5 +98,5 @@ class ListNamespacesResponse(Struct, kw_only=True):
     def __len__(self) -> int:
         return len(self.namespaces)
 
-    def __iter__(self) -> Iterator[NamespaceDescription]:
+    def __iter__(self) -> Iterator[NamespaceDescription]:  # type: ignore[override]
         return iter(self.namespaces)
