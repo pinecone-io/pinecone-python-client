@@ -7,10 +7,10 @@ from typing import Any, cast
 from msgspec import Struct
 
 from pinecone._internal.config import normalize_host
-from pinecone.models._mixin import _struct_to_dict_recursive
+from pinecone.models._mixin import StructDictMixin, _struct_to_dict_recursive
 
 
-class IndexStatus(Struct, kw_only=True):
+class IndexStatus(StructDictMixin, Struct, kw_only=True):
     """Status of an index.
 
     Attributes:
@@ -22,7 +22,7 @@ class IndexStatus(Struct, kw_only=True):
     state: str
 
 
-class ServerlessSpecInfo(Struct, kw_only=True):
+class ServerlessSpecInfo(StructDictMixin, Struct, kw_only=True):
     """Response-side serverless deployment configuration.
 
     Attributes:
@@ -34,7 +34,7 @@ class ServerlessSpecInfo(Struct, kw_only=True):
     region: str
 
 
-class PodSpecInfo(Struct, kw_only=True):
+class PodSpecInfo(StructDictMixin, Struct, kw_only=True):
     """Response-side pod deployment configuration.
 
     Attributes:
@@ -56,7 +56,7 @@ class PodSpecInfo(Struct, kw_only=True):
     source_collection: str | None = None
 
 
-class ByocSpecInfo(Struct, kw_only=True):
+class ByocSpecInfo(StructDictMixin, Struct, kw_only=True):
     """Response-side BYOC (bring your own cloud) deployment configuration.
 
     Attributes:
@@ -68,7 +68,7 @@ class ByocSpecInfo(Struct, kw_only=True):
     read_capacity: dict[str, Any] | None = None
 
 
-class IndexSpec(Struct, kw_only=True):
+class IndexSpec(StructDictMixin, Struct, kw_only=True):
     """Deployment specification for an index.
 
     Exactly one of ``serverless``, ``pod``, or ``byoc`` will be set.
@@ -84,7 +84,7 @@ class IndexSpec(Struct, kw_only=True):
     byoc: ByocSpecInfo | None = None
 
 
-class ModelIndexEmbed(Struct, kw_only=True):
+class ModelIndexEmbed(StructDictMixin, Struct, kw_only=True):
     """Embedding configuration for a model-backed (integrated) index.
 
     Attributes:

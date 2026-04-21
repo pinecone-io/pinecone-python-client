@@ -6,6 +6,8 @@ from typing import Any
 
 from msgspec import Struct
 
+from pinecone.models._mixin import StructDictMixin
+
 
 class EmbedConfig(Struct, frozen=True, kw_only=True):
     """Configuration for integrated (model-backed) embedding.
@@ -43,7 +45,7 @@ class EmbedConfig(Struct, frozen=True, kw_only=True):
         return result
 
 
-class IntegratedSpec(Struct, frozen=True, kw_only=True):
+class IntegratedSpec(StructDictMixin, Struct, frozen=True, kw_only=True):  # type: ignore[misc]
     """Integrated (model-backed) index deployment spec.
 
     Wraps cloud/region and embed config into a single convenience
@@ -61,7 +63,7 @@ class IntegratedSpec(Struct, frozen=True, kw_only=True):
     embed: EmbedConfig
 
 
-class ServerlessSpec(Struct, frozen=True, kw_only=True, omit_defaults=True):
+class ServerlessSpec(StructDictMixin, Struct, frozen=True, kw_only=True, omit_defaults=True):  # type: ignore[misc]
     """Serverless index deployment spec.
 
     Attributes:
@@ -88,7 +90,7 @@ class ServerlessSpec(Struct, frozen=True, kw_only=True, omit_defaults=True):
         return {"serverless": body}
 
 
-class PodSpec(Struct, frozen=True, kw_only=True):
+class PodSpec(StructDictMixin, Struct, frozen=True, kw_only=True):  # type: ignore[misc]
     """Pod-based index deployment spec.
 
     Attributes:
@@ -127,7 +129,7 @@ class PodSpec(Struct, frozen=True, kw_only=True):
         return {"pod": body}
 
 
-class ByocSpec(Struct, frozen=True, kw_only=True, omit_defaults=True):
+class ByocSpec(StructDictMixin, Struct, frozen=True, kw_only=True, omit_defaults=True):  # type: ignore[misc]
     """Bring-your-own-cloud index deployment spec.
 
     Attributes:

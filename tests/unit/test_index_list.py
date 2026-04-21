@@ -180,8 +180,8 @@ class TestListPaginated:
 
         item = result.vectors[0]
         assert item.id == "v1"
-        assert not hasattr(item, "values")
-        assert not hasattr(item, "metadata")
+        assert "values" not in item.__struct_fields__
+        assert "metadata" not in item.__struct_fields__
 
 
 # ---------------------------------------------------------------------------
