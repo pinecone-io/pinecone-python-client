@@ -41,6 +41,11 @@ class TestSparseValues:
         assert sv.indices == [1, 2]
         assert sv.values == [0.5, 0.6]
 
+    def test_from_dict_via_classmethod(self) -> None:
+        sv = SparseValues.from_dict({"indices": [0, 1], "values": [1.0, 2.0]})
+        assert sv.indices == [0, 1]
+        assert sv.values == [1.0, 2.0]
+
 
 class TestVector:
     def test_minimal(self) -> None:
@@ -82,6 +87,49 @@ class TestVector:
         assert v.values == [0.1, 0.2]
         assert v.sparse_values is not None
         assert v.metadata == {"key": "val"}
+
+    def test_from_dict_via_classmethod(self) -> None:
+        v = Vector.from_dict({"id": "v1", "values": [0.1, 0.2]})
+        assert v.id == "v1"
+        assert v.values == [0.1, 0.2]
+        assert v.sparse_values is None
+        assert v.metadata is None
+
+    def test_from_dict_sparse_only_via_classmethod(self) -> None:
+        v = Vector.from_dict(
+            {"id": "v2", "sparse_values": {"indices": [0, 3], "values": [1.0, 2.0]}}
+        )
+        assert v.values == []
+        assert v.sparse_values is not None
+        assert v.sparse_values.indices == [0, 3]
+        assert v.sparse_values.values == [1.0, 2.0]
+
+    def test_from_dict_with_all_fields_via_classmethod(self) -> None:
+        v = Vector.from_dict(
+            {
+                "id": "v3",
+                "values": [0.5],
+                "sparse_values": {"indices": [1], "values": [0.9]},
+                "metadata": {"tag": "test"},
+            }
+        )
+        assert v.id == "v3"
+        assert v.values == [0.5]
+        assert v.sparse_values is not None
+        assert v.sparse_values.indices == [1]
+        assert v.sparse_values.values == [0.9]
+        assert v.metadata == {"tag": "test"}
+
+    def test_from_dict_explicit_none_sparse_values(self) -> None:
+        """Explicit sparse_values=None exercises the .get() is not None false branch."""
+        v = Vector.from_dict({"id": "v3", "values": [0.1], "sparse_values": None})
+        assert v.sparse_values is None
+
+    def test_from_dict_missing_values_key(self) -> None:
+        v = Vector.from_dict(
+            {"id": "v4", "sparse_values": {"indices": [0], "values": [1.0]}}
+        )
+        assert v.values == []
 
 
 class TestScoredVector:
