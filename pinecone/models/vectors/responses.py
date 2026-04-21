@@ -7,7 +7,7 @@ from typing import Any
 
 from msgspec import Struct
 
-from pinecone.models._mixin import DictLikeStruct
+from pinecone.models._mixin import DictLikeStruct, StructDictMixin
 from pinecone.models.response_info import ResponseInfo as ResponseInfo  # re-export
 from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector, Vector
@@ -87,7 +87,7 @@ class FetchByMetadataResponse(DictLikeStruct, Struct, rename="camel", kw_only=Tr
     response_info: ResponseInfo | None = None
 
 
-class NamespaceSummary(Struct, rename="camel", kw_only=True, gc=False):
+class NamespaceSummary(StructDictMixin, Struct, rename="camel", kw_only=True, gc=False):
     """Summary statistics for a single namespace.
 
     Attributes:
@@ -97,7 +97,7 @@ class NamespaceSummary(Struct, rename="camel", kw_only=True, gc=False):
     vector_count: int = 0
 
 
-class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True, gc=False):
+class DescribeIndexStatsResponse(StructDictMixin, Struct, rename="camel", kw_only=True, gc=False):
     """Response from a describe index stats operation.
 
     Attributes:
@@ -150,7 +150,7 @@ class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True, gc=False)
         return key in self.__struct_fields__
 
 
-class Pagination(Struct, kw_only=True, gc=False):
+class Pagination(StructDictMixin, Struct, kw_only=True, gc=False):
     """Pagination token for continued listing.
 
     Attributes:
@@ -161,7 +161,7 @@ class Pagination(Struct, kw_only=True, gc=False):
     next: str | None = None
 
 
-class ListItem(Struct, kw_only=True, gc=False):
+class ListItem(StructDictMixin, Struct, kw_only=True, gc=False):
     """A single vector ID entry in a list response.
 
     Attributes:
@@ -171,7 +171,7 @@ class ListItem(Struct, kw_only=True, gc=False):
     id: str | None = None
 
 
-class ListResponse(Struct, rename="camel", kw_only=True, gc=False):
+class ListResponse(StructDictMixin, Struct, rename="camel", kw_only=True, gc=False):
     """Response from a list vectors operation.
 
     Attributes:
@@ -215,11 +215,11 @@ class ListResponse(Struct, rename="camel", kw_only=True, gc=False):
     def __len__(self) -> int:
         return len(self.vectors)
 
-    def __iter__(self) -> Iterator[ListItem]:
+    def __iter__(self) -> Iterator[ListItem]:  # type: ignore[override]
         return iter(self.vectors)
 
 
-class UpsertRecordsResponse(Struct, kw_only=True, gc=False):
+class UpsertRecordsResponse(StructDictMixin, Struct, kw_only=True, gc=False):
     """Response from an upsert_records operation.
 
     Attributes:
