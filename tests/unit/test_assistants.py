@@ -3103,7 +3103,7 @@ def test_evaluate_alignment(assistants: Assistants) -> None:
 @respx.mock
 def test_evaluate_alignment_request_body_fields(assistants: Assistants) -> None:
     """evaluate_alignment() sends all three required fields in the request body."""
-    respx.post(f"{EVAL_BASE_URL}/evaluation/metrics/alignment").mock(
+    route = respx.post(f"{EVAL_BASE_URL}/evaluation/metrics/alignment").mock(
         return_value=httpx.Response(200, json=make_alignment_response()),
     )
 
@@ -3112,6 +3112,12 @@ def test_evaluate_alignment_request_body_fields(assistants: Assistants) -> None:
         answer="A",
         ground_truth_answer="GT",
     )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["question"] == "Q"
+    assert body["answer"] == "A"
+    assert body["ground_truth_answer"] == "GT"
 
 
 @respx.mock
