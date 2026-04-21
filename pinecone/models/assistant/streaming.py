@@ -7,10 +7,11 @@ and chat completion streaming (OpenAI-compatible format).
 from __future__ import annotations
 
 from collections.abc import AsyncIterator, Iterator
-from typing import TypeAlias
+from typing import Any, TypeAlias
 
 from msgspec import Struct
 
+from pinecone.models._display import HtmlBuilder, safe_display
 from pinecone.models.assistant._mixin import StructDictMixin
 from pinecone.models.assistant.chat import ChatCitation, ChatUsage
 
@@ -33,6 +34,29 @@ class StreamMessageStart(
     def type(self) -> str:
         """Discriminator value, always ``"message_start"``."""
         return str(self.__struct_config__.tag)
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return f"StreamMessageStart(model={self.model!r}, role={self.role!r})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("StreamMessageStart(...)")
+            return
+        with p.group(2, "StreamMessageStart(", ")"):
+            p.breakable()
+            p.text(f"model={self.model!r},")
+            p.breakable()
+            p.text(f"role={self.role!r},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("StreamMessageStart")
+        builder.row("Type:", self.type)
+        builder.row("Model:", self.model)
+        builder.row("Role:", self.role)
+        return builder.build()
 
 
 class StreamContentDelta(StructDictMixin, Struct, kw_only=True):
