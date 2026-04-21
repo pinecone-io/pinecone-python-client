@@ -381,6 +381,25 @@ class ChatCompletionStream:
     def __init__(self, stream: Iterator[ChatCompletionStreamChunk]) -> None:
         self._stream = stream
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return (
+            "ChatCompletionStream(single-pass, OpenAI-compatible"
+            " — iterate with `for chunk in stream` or `stream.text()`)"
+        )
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ChatCompletionStream")
+        builder.row("Type", "OpenAI-compatible")
+        builder.row("Iteration", "single-pass")
+        builder.row(
+            "Usage hint",
+            "Iterate with `for chunk in stream`, or call `.text()` for"
+            " text-only fragments, or `.collect()` for the full message",
+        )
+        return builder.build()
+
     def __iter__(self) -> Iterator[ChatCompletionStreamChunk]:
         return self._stream
 

@@ -6,6 +6,7 @@ from pinecone.models.assistant.chat import ChatCitation, ChatReference, ChatUsag
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.streaming import (
     AsyncChatStream,
+    ChatCompletionStream,
     ChatCompletionStreamChoice,
     ChatCompletionStreamChunk,
     ChatCompletionStreamDelta,
@@ -254,6 +255,29 @@ class TestAsyncChatStreamDisplay:
 
     def test_safe_on_malformed(self) -> None:
         s = AsyncChatStream(self._dummy_aiter())
+        object.__setattr__(s, "_stream", object())
+        assert isinstance(repr(s), str)
+        assert isinstance(s._repr_html_(), str)
+
+
+class TestChatCompletionStreamDisplay:
+    def _gen(self) -> Iterator[ChatCompletionStreamChunk]:
+        def _g() -> Iterator[ChatCompletionStreamChunk]:
+            yield from []
+
+        return _g()
+
+    def test_repr(self) -> None:
+        s = ChatCompletionStream(self._gen())
+        assert "ChatCompletionStream" in repr(s)
+        assert "OpenAI" in repr(s) or "single-pass" in repr(s)
+
+    def test_repr_html(self) -> None:
+        s = ChatCompletionStream(self._gen())
+        assert "ChatCompletionStream" in s._repr_html_()
+
+    def test_safe_on_malformed(self) -> None:
+        s = ChatCompletionStream(self._gen())
         object.__setattr__(s, "_stream", object())
         assert isinstance(repr(s), str)
         assert isinstance(s._repr_html_(), str)
