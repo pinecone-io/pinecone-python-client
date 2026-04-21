@@ -13,7 +13,7 @@ from pinecone._internal.constants import ADMIN_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.admin.api_keys import ApiKeys
 from pinecone.errors.exceptions import ValidationError
-from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyWithSecret
+from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, ApiKeyRole, APIKeyWithSecret
 
 BASE_URL = "https://api.test.pinecone.io"
 
@@ -343,3 +343,115 @@ def test_keyword_only_args(api_keys: ApiKeys) -> None:
 
 def test_repr(api_keys: ApiKeys) -> None:
     assert repr(api_keys) == "ApiKeys()"
+
+
+# ---------------------------------------------------------------------------
+# ApiKeyRole enum
+# ---------------------------------------------------------------------------
+
+
+def test_api_key_role_values() -> None:
+    assert ApiKeyRole.ProjectEditor == "ProjectEditor"
+    assert ApiKeyRole.ProjectViewer == "ProjectViewer"
+    assert ApiKeyRole.ControlPlaneEditor == "ControlPlaneEditor"
+    assert ApiKeyRole.ControlPlaneViewer == "ControlPlaneViewer"
+    assert ApiKeyRole.DataPlaneEditor == "DataPlaneEditor"
+    assert ApiKeyRole.DataPlaneViewer == "DataPlaneViewer"
+    assert len(ApiKeyRole) == 6
+
+
+def test_api_key_role_is_str() -> None:
+    assert isinstance(ApiKeyRole.ProjectEditor, str)
+    assert ApiKeyRole.ProjectEditor.value == "ProjectEditor"
+
+
+@respx.mock
+def test_create_with_enum_roles(api_keys: ApiKeys) -> None:
+    route = respx.post(f"{BASE_URL}/admin/projects/p1/api-keys").mock(
+        return_value=httpx.Response(
+            201,
+            json=_api_key_with_secret_response(
+                key=_api_key_response(
+                    id="k1", name="mykey", project_id="p1", roles=["ProjectViewer"]
+                ),
+            ),
+        ),
+    )
+
+    result = api_keys.create(
+        project_id="p1",
+        name="mykey",
+        roles=[ApiKeyRole.ProjectViewer],
+    )
+
+    assert result.key.roles == ["ProjectViewer"]
+
+    # Enum value serialized as plain string on the wire
+    request = route.calls[0].request
+    expected_body = httpx.Request(
+        "POST", "/", json={"name": "mykey", "roles": ["ProjectViewer"]}
+    )
+    assert request.content == expected_body.content
+
+
+@respx.mock
+def test_update_with_enum_roles(api_keys: ApiKeys) -> None:
+    route = respx.patch(f"{BASE_URL}/admin/api-keys/k1").mock(
+        return_value=httpx.Response(
+            200,
+            json=_api_key_response(id="k1", roles=["ControlPlaneViewer"]),
+        ),
+    )
+
+    result = api_keys.update(api_key_id="k1", roles=[ApiKeyRole.ControlPlaneViewer])
+
+    assert result.roles == ["ControlPlaneViewer"]
+
+    request = route.calls[0].request
+    expected_body = httpx.Request(
+        "PATCH", "/", json={"roles": ["ControlPlaneViewer"]}
+    )
+    assert request.content == expected_body.content
+
+
+def test_create_invalid_role_raises(api_keys: ApiKeys) -> None:
+    with pytest.raises(ValidationError, match="Invalid role"):
+        api_keys.create(project_id="p1", name="mykey", roles=["NotARealRole"])
+
+
+def test_update_invalid_role_raises(api_keys: ApiKeys) -> None:
+    with pytest.raises(ValidationError, match="Invalid role"):
+        api_keys.update(api_key_id="k1", roles=["NotARealRole"])
+
+
+@respx.mock
+def test_create_mixed_enum_and_str_roles(api_keys: ApiKeys) -> None:
+    route = respx.post(f"{BASE_URL}/admin/projects/p1/api-keys").mock(
+        return_value=httpx.Response(
+            201,
+            json=_api_key_with_secret_response(
+                key=_api_key_response(
+                    id="k1",
+                    name="mykey",
+                    project_id="p1",
+                    roles=["ProjectEditor", "DataPlaneViewer"],
+                ),
+            ),
+        ),
+    )
+
+    result = api_keys.create(
+        project_id="p1",
+        name="mykey",
+        roles=[ApiKeyRole.ProjectEditor, "DataPlaneViewer"],
+    )
+
+    assert result.key.roles == ["ProjectEditor", "DataPlaneViewer"]
+
+    request = route.calls[0].request
+    expected_body = httpx.Request(
+        "POST",
+        "/",
+        json={"name": "mykey", "roles": ["ProjectEditor", "DataPlaneViewer"]},
+    )
+    assert request.content == expected_body.content

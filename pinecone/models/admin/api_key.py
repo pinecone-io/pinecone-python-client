@@ -3,9 +3,26 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from enum import Enum
 from typing import Any
 
 from msgspec import Struct
+
+
+class ApiKeyRole(str, Enum):
+    """Roles that can be assigned to a Pinecone API key.
+
+    Possible values: ``ProjectEditor``, ``ProjectViewer``,
+    ``ControlPlaneEditor``, ``ControlPlaneViewer``,
+    ``DataPlaneEditor``, ``DataPlaneViewer``.
+    """
+
+    ProjectEditor = "ProjectEditor"
+    ProjectViewer = "ProjectViewer"
+    ControlPlaneEditor = "ControlPlaneEditor"
+    ControlPlaneViewer = "ControlPlaneViewer"
+    DataPlaneEditor = "DataPlaneEditor"
+    DataPlaneViewer = "DataPlaneViewer"
 
 
 class APIKeyModel(Struct, kw_only=True):

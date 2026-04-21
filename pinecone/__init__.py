@@ -103,7 +103,7 @@ if TYPE_CHECKING:
     from pinecone.grpc.future import PineconeFuture
     from pinecone.index import Index
     from pinecone.inference.models.index_embed import IndexEmbed
-    from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyWithSecret
+    from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, ApiKeyRole, APIKeyWithSecret
     from pinecone.models.admin.organization import OrganizationList, OrganizationModel
     from pinecone.models.admin.project import ProjectList, ProjectModel
     from pinecone.models.assistant.chat import ChatCompletionResponse, ChatResponse
@@ -212,6 +212,7 @@ __all__ = [
     "Admin",
     "AlignmentResult",
     "ApiError",
+    "ApiKeyRole",
     "AssistantFileModel",
     "AssistantModel",
     "AsyncChatCompletionStream",
@@ -372,6 +373,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "UnauthorizedError": ("pinecone.errors.exceptions", "UnauthorizedError"),
     "UnauthorizedException": ("pinecone.errors.exceptions", "UnauthorizedException"),
     "Admin": ("pinecone.admin", "Admin"),
+    "ApiKeyRole": ("pinecone.models.admin.api_key", "ApiKeyRole"),
     "APIKeyList": ("pinecone.models.admin.api_key", "APIKeyList"),
     "APIKeyModel": ("pinecone.models.admin.api_key", "APIKeyModel"),
     "APIKeyWithSecret": ("pinecone.models.admin.api_key", "APIKeyWithSecret"),
