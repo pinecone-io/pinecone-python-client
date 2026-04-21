@@ -115,6 +115,23 @@ class ContextTextBlock(Struct, kw_only=True, tag="text", tag_field="type"):
 
     text: str
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return f"ContextTextBlock(text={truncate_text(self.text, 80)!r})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ContextTextBlock(...)")
+            return
+        p.text(f"ContextTextBlock(\n  text={truncate_text(self.text, 200)!r}\n)")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ContextTextBlock")
+        builder.row("Text", truncate_text(self.text, 500))
+        return builder.build()
+
 
 ContextContentBlock: TypeAlias = ContextTextBlock | ContextImageBlock
 """A content block within a multimodal snippet — either text or image."""

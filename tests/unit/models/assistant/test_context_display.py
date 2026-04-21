@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pinecone.models.assistant.context import ContextImageBlock, ContextImageData
+from pinecone.models.assistant.context import ContextImageBlock, ContextImageData, ContextTextBlock
 
 
 class TestContextImageData:
@@ -29,14 +29,19 @@ class TestContextImageData:
 
 class TestContextImageBlock:
     def test_repr_with_image(self) -> None:
-        b = ContextImageBlock(caption="A cat", image_data=ContextImageData(type="base64", mime_type="image/jpeg", data="X" * 500))
+        b = ContextImageBlock(
+            caption="A cat",
+            image_data=ContextImageData(type="base64", mime_type="image/jpeg", data="X" * 500),
+        )
         r = repr(b)
         assert "A cat" in r
         assert len(r) < 500
         assert "X" * 500 not in r
 
     def test_repr_without_image(self) -> None:
-        assert "absent" in repr(ContextImageBlock(caption="x")).lower() or "None" not in repr(ContextImageBlock(caption="x"))
+        assert "absent" in repr(ContextImageBlock(caption="x")).lower() or "None" not in repr(
+            ContextImageBlock(caption="x")
+        )
 
     def test_repr_long_caption_truncated(self) -> None:
         assert len(repr(ContextImageBlock(caption="x" * 5000))) < 500
@@ -49,5 +54,26 @@ class TestContextImageBlock:
     def test_safe_on_malformed(self) -> None:
         b = ContextImageBlock(caption="x")
         b.caption = object()  # type: ignore[assignment]
+        assert isinstance(repr(b), str)
+        assert isinstance(b._repr_html_(), str)
+
+
+class TestContextTextBlock:
+    def test_repr(self) -> None:
+        assert "hello" in repr(ContextTextBlock(text="hello"))
+
+    def test_repr_long_truncated(self) -> None:
+        assert len(repr(ContextTextBlock(text="x" * 5000))) < 500
+
+    def test_repr_html(self) -> None:
+        assert "<div" in ContextTextBlock(text="hi")._repr_html_()
+
+    def test_repr_html_long_truncated(self) -> None:
+        h = ContextTextBlock(text="x" * 10_000)._repr_html_()
+        assert len(h) < 5000
+
+    def test_safe_on_malformed(self) -> None:
+        b = ContextTextBlock(text="x")
+        b.text = object()  # type: ignore[assignment]
         assert isinstance(repr(b), str)
         assert isinstance(b._repr_html_(), str)
