@@ -8,6 +8,7 @@ from typing import Any
 from msgspec import Struct
 
 from pinecone.models._mixin import DictLikeStruct
+from pinecone.models.response_info import ResponseInfo as ResponseInfo  # re-export
 from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector, Vector
 
@@ -147,27 +148,6 @@ class DescribeIndexStatsResponse(Struct, rename="camel", kw_only=True, gc=False)
     def __contains__(self, key: object) -> bool:
         """Support ``in`` operator (e.g. ``'dimension' in response``)."""
         return key in self.__struct_fields__
-
-
-class ResponseInfo(Struct, kw_only=True, gc=False):
-    """HTTP response metadata carrier.
-
-    Attributes:
-        request_id (str | None): Server-assigned request identifier, or ``None`` if not
-            present in the response.
-        lsn_reconciled (int | None): Log sequence number indicating how far the index has
-            reconciled, or ``None`` if not present in the response headers.
-        lsn_committed (int | None): Log sequence number of the last committed write, or
-            ``None`` if not present in the response headers.
-    """
-
-    request_id: str | None = None
-    lsn_reconciled: int | None = None
-    lsn_committed: int | None = None
-
-    def is_reconciled(self, target: int) -> bool:
-        """Return True when the reconciled LSN meets or exceeds *target*."""
-        return self.lsn_reconciled is not None and self.lsn_reconciled >= target
 
 
 class Pagination(Struct, kw_only=True, gc=False):

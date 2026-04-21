@@ -490,7 +490,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "RankedDocument": ("pinecone.models.inference.rerank", "RankedDocument"),
     "RerankModel": ("pinecone.models.enums", "RerankModel"),
     "RerankResult": ("pinecone.models.inference.rerank", "RerankResult"),
-    "ResponseInfo": ("pinecone.models.vectors.responses", "ResponseInfo"),
+    "ResponseInfo": ("pinecone.models.response_info", "ResponseInfo"),
     "RestoreJobList": ("pinecone.models.backups.list", "RestoreJobList"),
     "RestoreJobModel": ("pinecone.models.backups.model", "RestoreJobModel"),
     "RetryConfig": ("pinecone._internal.config", "RetryConfig"),

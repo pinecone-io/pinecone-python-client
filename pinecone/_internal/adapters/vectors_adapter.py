@@ -14,13 +14,13 @@ from pinecone.models.namespaces.models import (
     ListNamespacesResponse,
     NamespaceDescription,
 )
+from pinecone.models.response_info import ResponseInfo
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchByMetadataResponse,
     FetchResponse,
     ListResponse,
     QueryResponse,
-    ResponseInfo,
     UpdateResponse,
     UpsertResponse,
 )

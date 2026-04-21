@@ -257,7 +257,7 @@ _LAZY_IMPORTS: dict[str, str] = {
     "NamespaceSummary": "pinecone.models.vectors.responses",
     "Pagination": "pinecone.models.vectors.responses",
     "QueryResponse": "pinecone.models.vectors.responses",
-    "ResponseInfo": "pinecone.models.vectors.responses",
+    "ResponseInfo": "pinecone.models.response_info",
     "UpdateResponse": "pinecone.models.vectors.responses",
     "UpsertRecordsResponse": "pinecone.models.vectors.responses",
     "UpsertResponse": "pinecone.models.vectors.responses",

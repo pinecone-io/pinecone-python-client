@@ -6,7 +6,7 @@ from typing import Any, Literal, TypedDict, overload
 
 from msgspec import Struct
 
-from pinecone.models.vectors.responses import ResponseInfo
+from pinecone.models.response_info import ResponseInfo
 
 
 class _RerankConfigRequired(TypedDict):
