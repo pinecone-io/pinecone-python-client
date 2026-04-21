@@ -61,7 +61,7 @@ class Vector(DictLikeStruct, Struct, rename="camel", gc=False):
         return f"Vector({', '.join(parts)})"
 
 
-class ScoredVector(Struct, rename="camel", kw_only=True, gc=False):
+class ScoredVector(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=False):
     """A vector match with similarity score from a query operation.
 
     Attributes:

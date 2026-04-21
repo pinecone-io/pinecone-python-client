@@ -7,12 +7,13 @@ from typing import Any
 
 from msgspec import Struct, field
 
+from pinecone.models._mixin import StructDictMixin
 from pinecone.models.vectors.responses import QueryResponse
 from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector
 
 
-class QueryNamespacesResults(Struct, kw_only=True):
+class QueryNamespacesResults(StructDictMixin, Struct, kw_only=True):
     """Aggregated results from querying multiple namespaces.
 
     Attributes:

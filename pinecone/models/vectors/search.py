@@ -6,7 +6,7 @@ from typing import Any, Literal, TypedDict, overload
 
 from msgspec import Struct
 
-from pinecone.models._mixin import DictLikeStruct
+from pinecone.models._mixin import DictLikeStruct, StructDictMixin
 from pinecone.models.response_info import ResponseInfo
 
 __all__ = [
@@ -67,7 +67,7 @@ class SearchInputs(_SearchInputsRequired, total=False):
     """
 
 
-class SearchUsage(Struct, kw_only=True):
+class SearchUsage(StructDictMixin, Struct, kw_only=True):
     """Usage statistics for a search operation.
 
     Attributes:
@@ -83,7 +83,7 @@ class SearchUsage(Struct, kw_only=True):
     rerank_units: int | None = None
 
 
-class Hit(Struct, kw_only=True, rename={"id_": "_id", "score_": "_score"}):
+class Hit(StructDictMixin, Struct, kw_only=True, rename={"id_": "_id", "score_": "_score"}):
     """A single search result hit.
 
     The API returns ``_id`` and ``_score`` as field names. These are mapped
@@ -130,7 +130,7 @@ class Hit(Struct, kw_only=True, rename={"id_": "_id", "score_": "_score"}):
         return f"Hit(id={self.id!r}, score={self.score!r}, fields={self.fields!r})"
 
 
-class SearchResult(Struct, kw_only=True):
+class SearchResult(StructDictMixin, Struct, kw_only=True):
     """The result wrapper containing hits.
 
     Attributes:
@@ -140,7 +140,7 @@ class SearchResult(Struct, kw_only=True):
     hits: list[Hit] = []
 
 
-class SearchRecordsResponse(Struct, kw_only=True):
+class SearchRecordsResponse(StructDictMixin, Struct, kw_only=True):
     """Response from a search records operation.
 
     Attributes:
