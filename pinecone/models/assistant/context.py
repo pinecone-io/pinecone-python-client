@@ -6,7 +6,7 @@ from typing import Any, TypeAlias
 
 from msgspec import Struct
 
-from pinecone.models._display import HtmlBuilder, safe_display, truncate_text
+from pinecone.models._display import HtmlBuilder, abbreviate_list, safe_display, truncate_text
 from pinecone.models.assistant.chat import ChatUsage
 from pinecone.models.assistant.file_model import AssistantFileModel
 
@@ -149,6 +149,31 @@ class FileReference(Struct, kw_only=True):
 
     file: AssistantFileModel
     pages: list[int] | None = None
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        pages_str = abbreviate_list(self.pages) if self.pages is not None else "None"
+        return f"FileReference(file={self.file.name!r}, pages={pages_str})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("FileReference(...)")
+            return
+        pages_str = abbreviate_list(self.pages) if self.pages is not None else "None"
+        with p.group(2, "FileReference(", ")"):
+            p.breakable()
+            p.text(f"file={self.file.name!r},")
+            p.breakable()
+            p.text(f"pages={pages_str},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        pages_val = abbreviate_list(self.pages) if self.pages is not None else "—"
+        builder = HtmlBuilder("FileReference")
+        builder.row("File", self.file.name)
+        builder.row("Pages", pages_val)
+        return builder.build()
 
 
 PageReference = FileReference

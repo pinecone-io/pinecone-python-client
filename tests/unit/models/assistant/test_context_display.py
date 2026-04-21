@@ -1,6 +1,12 @@
 from __future__ import annotations
 
-from pinecone.models.assistant.context import ContextImageBlock, ContextImageData, ContextTextBlock
+from pinecone.models.assistant.context import (
+    ContextImageBlock,
+    ContextImageData,
+    ContextTextBlock,
+    FileReference,
+)
+from pinecone.models.assistant.file_model import AssistantFileModel
 
 
 class TestContextImageData:
@@ -77,3 +83,35 @@ class TestContextTextBlock:
         b.text = object()  # type: ignore[assignment]
         assert isinstance(repr(b), str)
         assert isinstance(b._repr_html_(), str)
+
+
+def _f() -> AssistantFileModel:
+    return AssistantFileModel(name="doc.pdf", id="f-1")
+
+
+class TestFileReference:
+    def test_repr(self) -> None:
+        r = repr(FileReference(file=_f(), pages=[1, 2]))
+        assert "doc.pdf" in r
+        assert "1" in r
+
+    def test_repr_no_pages(self) -> None:
+        assert "doc.pdf" in repr(FileReference(file=_f()))
+
+    def test_repr_many_pages_abbreviated(self) -> None:
+        r = repr(FileReference(file=_f(), pages=list(range(1000))))
+        assert len(r) < 500
+        assert "more" in r
+
+    def test_repr_html(self) -> None:
+        assert "doc.pdf" in FileReference(file=_f(), pages=[1])._repr_html_()
+
+    def test_repr_html_no_pages(self) -> None:
+        h = FileReference(file=_f())._repr_html_()
+        assert "<div" in h
+
+    def test_safe_on_malformed(self) -> None:
+        r = FileReference(file=_f())
+        r.file = object()  # type: ignore[assignment]
+        assert isinstance(repr(r), str)
+        assert isinstance(r._repr_html_(), str)
