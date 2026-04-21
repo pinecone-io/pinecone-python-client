@@ -78,6 +78,35 @@ class AlignmentScores(Struct, kw_only=True):
     completeness: float
     alignment: float
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return (
+            f"AlignmentScores(correctness={self.correctness:.3f},"
+            f" completeness={self.completeness:.3f},"
+            f" alignment={self.alignment:.3f})"
+        )
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("AlignmentScores(...)")
+            return
+        with p.group(2, "AlignmentScores(", ")"):
+            p.breakable()
+            p.text(f"correctness={self.correctness:.3f},")
+            p.breakable()
+            p.text(f"completeness={self.completeness:.3f},")
+            p.breakable()
+            p.text(f"alignment={self.alignment:.3f},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("AlignmentScores")
+        builder.row("Correctness", f"{self.correctness:.3f}")
+        builder.row("Completeness", f"{self.completeness:.3f}")
+        builder.row("Alignment", f"{self.alignment:.3f}")
+        return builder.build()
+
 
 class AlignmentResult(Struct, kw_only=True):
     """Full result of an alignment evaluation.
