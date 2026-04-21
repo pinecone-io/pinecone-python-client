@@ -290,7 +290,7 @@ class PreviewDocuments:
                 :class:`~pinecone.preview.models.score_by.PreviewScoreByQuery`
                 structs or plain dicts.
             include_fields: Fields to include in each result. ``None`` returns
-                only ``_id`` and ``score``; ``["*"]`` returns all stored fields.
+                only ``_id`` and ``_score``; ``["*"]`` returns all stored fields.
             filter: Optional metadata filter expression.
 
         Returns:
