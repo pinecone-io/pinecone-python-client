@@ -226,10 +226,20 @@ def _raise_for_status(response: httpx.Response) -> None:
         body = None
 
     message = ""
-    if body and isinstance(body.get("message"), str):
-        message = body["message"]
+    if body:
+        for key in ("message", "error", "detail", "description"):
+            if isinstance(body.get(key), str):
+                message = body[key]
+                break
+        if not message:
+            message = f"Request failed with status {response.status_code}: {body}"
     else:
-        message = f"Request failed with status {response.status_code}"
+        raw = response.text.strip()
+        message = (
+            f"Request failed with status {response.status_code}: {raw}"
+            if raw
+            else f"Request failed with status {response.status_code}"
+        )
 
     status = response.status_code
     reason = response.reason_phrase
