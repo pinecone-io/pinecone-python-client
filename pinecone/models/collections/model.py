@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from msgspec import Struct
 
+from pinecone.models._mixin import StructDictMixin
 
-class CollectionModel(Struct, kw_only=True):
+
+class CollectionModel(StructDictMixin, Struct, kw_only=True):
     """Response model for a Pinecone collection.
 
     Attributes:
@@ -29,13 +29,3 @@ class CollectionModel(Struct, kw_only=True):
     size: int | None = None
     dimension: int | None = None
     vector_count: int | None = None
-
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. collection['name'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
-
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'name' in collection``)."""
-        return key in self.__struct_fields__

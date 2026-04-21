@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from msgspec import Struct
 
+from pinecone.models._mixin import StructDictMixin
+
 __all__ = ["ResponseInfo"]
 
 
-class ResponseInfo(Struct, kw_only=True, gc=False):
+class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
     """HTTP response metadata carrier.
 
     Attributes:

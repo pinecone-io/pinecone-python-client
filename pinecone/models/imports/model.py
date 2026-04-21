@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from msgspec import Struct
 
+from pinecone.models._mixin import StructDictMixin
 
-class ImportModel(Struct, kw_only=True, rename="camel"):
+
+class ImportModel(StructDictMixin, Struct, kw_only=True, rename="camel"):
     """Response model for a bulk import operation.
 
     Attributes:
@@ -30,18 +30,8 @@ class ImportModel(Struct, kw_only=True, rename="camel"):
     records_imported: int | None = None
     error: str | None = None
 
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. model['id'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
 
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'id' in model``)."""
-        return key in self.__struct_fields__
-
-
-class StartImportResponse(Struct, kw_only=True):
+class StartImportResponse(StructDictMixin, Struct, kw_only=True):
     """Response model for starting a bulk import operation.
 
     Attributes:
@@ -49,13 +39,3 @@ class StartImportResponse(Struct, kw_only=True):
     """
 
     id: str
-
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. response['id'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
-
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'id' in response``)."""
-        return key in self.__struct_fields__

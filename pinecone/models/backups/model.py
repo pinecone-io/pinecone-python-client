@@ -6,6 +6,8 @@ from typing import Any
 
 from msgspec import Struct
 
+from pinecone.models._mixin import StructDictMixin
+
 
 class BackupModel(Struct, kw_only=True):
     """Response model for a Pinecone backup.
@@ -110,7 +112,7 @@ class RestoreJobModel(Struct, kw_only=True):
         return {f: getattr(self, f) for f in self.__struct_fields__}
 
 
-class CreateIndexFromBackupResponse(Struct, kw_only=True):
+class CreateIndexFromBackupResponse(StructDictMixin, Struct, kw_only=True):
     """Response model for creating an index from a backup.
 
     Attributes:
@@ -120,13 +122,3 @@ class CreateIndexFromBackupResponse(Struct, kw_only=True):
 
     restore_job_id: str
     index_id: str
-
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. response['restore_job_id'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
-
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'restore_job_id' in response``)."""
-        return key in self.__struct_fields__
