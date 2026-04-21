@@ -210,7 +210,7 @@ class TestChatResponse:
     def test_repr(self) -> None:
         r = repr(_resp())
         assert "r-1" in r
-        assert "citations=1" in r.replace(" ", "").lower() or "1" in r
+        assert "citations=1" in r
 
     def test_repr_many_citations(self) -> None:
         r = repr(_resp(n_citations=500))

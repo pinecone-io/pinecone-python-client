@@ -18,7 +18,7 @@ class TestEntailmentResult:
 
     def test_repr_html_contradicted_shows_error_theme(self) -> None:
         h = EntailmentResult(fact="f", entailment="contradicted", reasoning="bad")._repr_html_()
-        assert "#991b1b" in h or "contradicted" in h
+        assert "#991b1b" in h
 
     def test_repr_html_without_reasoning(self) -> None:
         h = EntailmentResult(fact="f", entailment="entailed")._repr_html_()
@@ -112,7 +112,7 @@ class TestAlignmentResult:
 
     def test_repr_html_contradiction_section(self) -> None:
         h = _mk(3, has_contradiction=True)._repr_html_()
-        assert "#991b1b" in h or "contradict" in h.lower()
+        assert "#991b1b" in h
 
     def test_repr_html_empty_facts(self) -> None:
         assert "<div" in _mk(0)._repr_html_()
