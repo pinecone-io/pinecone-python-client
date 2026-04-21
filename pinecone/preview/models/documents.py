@@ -39,12 +39,12 @@ class PreviewUsage(Struct, kw_only=True):
 class PreviewDocument:
     """A document returned from a preview search operation.
 
-    Provides typed access to ``_id`` and ``score`` fields, plus attribute-style
+    Provides typed access to ``_id`` and ``_score`` fields, plus attribute-style
     and dict-style access to arbitrary document fields from ``include_fields``.
 
     The ``id``, ``_id``, and ``score`` typed properties always take precedence
-    over document fields with the same names — a document field named ``"score"``
-    is only reachable via ``.get("score")`` or ``.to_dict()["score"]``.
+    over document fields with the same names — a document field named ``"_score"``
+    is only reachable via ``.get("_score")`` or ``.to_dict()["_score"]``.
 
     .. admonition:: Preview
        :class: warning
@@ -58,6 +58,7 @@ class PreviewDocument:
         id: The document's unique identifier.
         _id: Alias for ``id``.
         score: Relevance score, or ``None`` when not present in the response.
+        _score: Alias for ``score``.
     """
 
     __slots__ = ("_data",)
@@ -79,10 +80,14 @@ class PreviewDocument:
 
     @property
     def score(self) -> float | None:
-        raw = self._data.get("score")
+        raw = self._data.get("_score")
         if raw is None:
             return None
         return float(raw)
+
+    @property
+    def _score(self) -> float | None:
+        return self.score
 
     def get(self, key: str, default: Any = None) -> Any:
         """Return the value for *key* from the document, or *default*.
@@ -134,8 +139,8 @@ class PreviewDocument:
 
     def __repr__(self) -> str:
         _id = self._data.get("_id") or self._data.get("id", "")
-        score = self._data.get("score")
-        extras = {k: v for k, v in self._data.items() if k not in ("_id", "id", "score")}
+        score = self._data.get("_score")
+        extras = {k: v for k, v in self._data.items() if k not in ("_id", "id", "_score")}
         if extras:
             return f"PreviewDocument(_id={_id!r}, score={score!r}, ...)"
         return f"PreviewDocument(_id={_id!r}, score={score!r})"

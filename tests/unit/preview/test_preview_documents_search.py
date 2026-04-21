@@ -20,8 +20,8 @@ SEARCH_URL = f"{INDEX_HOST}/namespaces/my-ns/documents/search"
 
 _SEARCH_RESPONSE = {
     "matches": [
-        {"_id": "doc-1", "score": 0.95, "title": "hello"},
-        {"_id": "doc-2", "score": 0.80},
+        {"_id": "doc-1", "_score": 0.95, "title": "hello"},
+        {"_id": "doc-2", "_score": 0.80},
     ],
     "namespace": "my-ns",
     "usage": {"read_units": 5},

@@ -22,8 +22,8 @@ def test_decode_search_response_populates_matches_namespace_and_usage() -> None:
     payload = orjson.dumps(
         {
             "matches": [
-                {"_id": "doc-1", "score": 0.9, "title": "Rome"},
-                {"_id": "doc-2", "score": 0.7, "title": "Athens"},
+                {"_id": "doc-1", "_score": 0.9, "title": "Rome"},
+                {"_id": "doc-2", "_score": 0.7, "title": "Athens"},
             ],
             "namespace": "wiki",
             "usage": {"read_units": 5},
@@ -43,7 +43,7 @@ def test_decode_search_response_populates_matches_namespace_and_usage() -> None:
 def test_decode_search_response_usage_defaults_to_none_when_absent() -> None:
     payload = orjson.dumps(
         {
-            "matches": [{"_id": "doc-1", "score": 0.5}],
+            "matches": [{"_id": "doc-1", "_score": 0.5}],
             "namespace": "ns",
         }
     )
@@ -54,7 +54,7 @@ def test_decode_search_response_usage_defaults_to_none_when_absent() -> None:
 def test_decode_search_response_dynamic_field_access_on_match() -> None:
     payload = orjson.dumps(
         {
-            "matches": [{"_id": "doc-1", "score": 0.8, "title": "Ancient Rome"}],
+            "matches": [{"_id": "doc-1", "_score": 0.8, "title": "Ancient Rome"}],
             "namespace": "ns",
         }
     )
@@ -109,7 +109,7 @@ def test_decode_fetch_response_usage_defaults_to_none_when_absent() -> None:
 
 
 def test_search_response_repr_matches_spec_format() -> None:
-    matches = [PreviewDocument({"_id": "doc-1", "score": 0.9})]
+    matches = [PreviewDocument({"_id": "doc-1", "_score": 0.9})]
     usage = PreviewUsage(read_units=3)
     r = PreviewDocumentSearchResponse(matches=matches, namespace="wiki", usage=usage)
     text = repr(r)
@@ -119,7 +119,7 @@ def test_search_response_repr_matches_spec_format() -> None:
 
 
 def test_search_response_repr_html_returns_html_string() -> None:
-    matches = [PreviewDocument({"_id": "doc-1", "score": 0.9})]
+    matches = [PreviewDocument({"_id": "doc-1", "_score": 0.9})]
     r = PreviewDocumentSearchResponse(matches=matches, namespace="ns")
     html = r._repr_html_()
     assert isinstance(html, str)

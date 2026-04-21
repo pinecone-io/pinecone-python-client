@@ -1176,16 +1176,16 @@ def test_preview_document_model_attributes_after_fts_search(
     )
 
     # §7: to_dict() returns a plain dict with the raw API data.
-    # The spec example uses "_id" as the key, but the API actually sends "id" —
-    # to_dict() passes through whatever the server returns unchanged.
+    # to_dict() passes through whatever the server returns unchanged — the
+    # server emits "_id" and "_score" as the wire keys.
     d = doc.to_dict()
     assert isinstance(d, dict), f"doc.to_dict() must return dict, got {type(d)}"
     id_key = "_id" if "_id" in d else "id"
     assert id_key in d, f"to_dict() must include an id key ('_id' or 'id'), keys: {set(d.keys())}"
-    assert "score" in d, f"to_dict() must include 'score', keys: {set(d.keys())}"
+    assert "_score" in d, f"to_dict() must include '_score', keys: {set(d.keys())}"
     assert "text" in d, f"to_dict() must include 'text' (from include_fields), keys: {set(d.keys())}"
     assert d[id_key] == doc.id, f"to_dict()[{id_key!r}] must equal doc.id: {d[id_key]!r}"
-    assert d["score"] == doc.score, "to_dict()['score'] must equal doc.score"
+    assert d["_score"] == doc.score, "to_dict()['_score'] must equal doc.score"
 
     # §7: to_json() returns valid JSON round-trippable to same content as to_dict()
     j = doc.to_json()
@@ -1193,4 +1193,4 @@ def test_preview_document_model_attributes_after_fts_search(
     parsed = json.loads(j)
     assert isinstance(parsed, dict), "doc.to_json() must parse to a dict"
     assert parsed[id_key] == doc.id, f"to_json() parsed {id_key!r} must equal doc.id"
-    assert parsed["score"] == doc.score, "to_json() parsed score must equal doc.score"
+    assert parsed["_score"] == doc.score, "to_json() parsed _score must equal doc.score"
