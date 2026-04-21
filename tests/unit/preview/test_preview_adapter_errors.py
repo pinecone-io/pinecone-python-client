@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import httpx
 import msgspec
 import pytest
 
@@ -86,7 +87,7 @@ def test_preview_list_backups_adapter_wraps_decode_error() -> None:
 
 def test_preview_documents_search_adapter_wraps_decode_error() -> None:
     with pytest.raises(ResponseParsingError) as exc_info:
-        PreviewDocumentsAdapter.to_search_response(b"not json")
+        PreviewDocumentsAdapter.to_search_response(httpx.Response(200, content=b"not json"))
     assert isinstance(exc_info.value.__cause__, msgspec.DecodeError)
 
 
@@ -100,7 +101,7 @@ def test_preview_documents_search_adapter_wraps_validation_error() -> None:
     # usage.read_units must be an int, not a string
     raw = b'{"matches": [], "namespace": "ns", "usage": {"read_units": "bad"}}'
     with pytest.raises(ResponseParsingError) as exc_info:
-        PreviewDocumentsAdapter.to_search_response(raw)
+        PreviewDocumentsAdapter.to_search_response(httpx.Response(200, content=raw))
     assert isinstance(exc_info.value.__cause__, msgspec.ValidationError)
 
 

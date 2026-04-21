@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import httpx
 import orjson
 
+from pinecone.models.response_info import ResponseInfo
 from pinecone.preview._internal.adapters.documents import PreviewDocumentsAdapter
 from pinecone.preview.models.documents import (
     PreviewDocument,
@@ -29,7 +31,7 @@ def test_decode_search_response_populates_matches_namespace_and_usage() -> None:
             "usage": {"read_units": 5},
         }
     )
-    response = PreviewDocumentsAdapter.to_search_response(payload)
+    response = PreviewDocumentsAdapter.to_search_response(httpx.Response(200, content=payload))
     assert response.namespace == "wiki"
     assert response.usage is not None
     assert response.usage.read_units == 5
@@ -47,7 +49,7 @@ def test_decode_search_response_usage_defaults_to_none_when_absent() -> None:
             "namespace": "ns",
         }
     )
-    response = PreviewDocumentsAdapter.to_search_response(payload)
+    response = PreviewDocumentsAdapter.to_search_response(httpx.Response(200, content=payload))
     assert response.usage is None
 
 
@@ -58,7 +60,7 @@ def test_decode_search_response_dynamic_field_access_on_match() -> None:
             "namespace": "ns",
         }
     )
-    response = PreviewDocumentsAdapter.to_search_response(payload)
+    response = PreviewDocumentsAdapter.to_search_response(httpx.Response(200, content=payload))
     match = response.matches[0]
     assert match.title == "Ancient Rome"  # type: ignore[attr-defined]
     assert match.get("missing") is None
@@ -124,3 +126,18 @@ def test_search_response_repr_html_returns_html_string() -> None:
     html = r._repr_html_()
     assert isinstance(html, str)
     assert "<table" in html
+
+
+def test_search_response_carries_response_info() -> None:
+    matches = [PreviewDocument({"_id": "doc-1", "_score": 0.9})]
+    info = ResponseInfo(request_id="req-1", lsn_reconciled=42, lsn_committed=50)
+    r = PreviewDocumentSearchResponse(matches=matches, namespace="ns", response_info=info)
+    assert r.response_info is not None
+    assert r.response_info.lsn_reconciled == 42
+    assert r.response_info.lsn_committed == 50
+    assert r.response_info.request_id == "req-1"
+
+
+def test_search_response_response_info_defaults_to_none() -> None:
+    r = PreviewDocumentSearchResponse(matches=[], namespace="ns")
+    assert r.response_info is None

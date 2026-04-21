@@ -388,7 +388,7 @@ class AsyncPreviewDocuments:
             f"/namespaces/{namespace}/documents/search",
             json=body,
         )
-        return PreviewDocumentsAdapter.to_search_response(response.content)
+        return PreviewDocumentsAdapter.to_search_response(response)
 
     async def fetch(
         self,

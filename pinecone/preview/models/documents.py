@@ -8,6 +8,7 @@ import orjson
 from msgspec import Struct
 
 from pinecone.models._display import render_table
+from pinecone.models.response_info import ResponseInfo
 
 __all__ = [
     "PreviewDocument",
@@ -184,22 +185,27 @@ class PreviewDocumentSearchResponse:
         matches: Ordered list of matching documents.
         namespace: The namespace that was searched.
         usage: API usage statistics, or ``None`` when not returned.
+        response_info: HTTP response metadata (request ID and LSN headers),
+            or ``None`` when not present.
     """
 
-    __slots__ = ("matches", "namespace", "usage")
+    __slots__ = ("matches", "namespace", "response_info", "usage")
     matches: list[PreviewDocument]
     namespace: str
     usage: PreviewUsage | None
+    response_info: ResponseInfo | None
 
     def __init__(
         self,
         matches: list[PreviewDocument],
         namespace: str,
         usage: PreviewUsage | None = None,
+        response_info: ResponseInfo | None = None,
     ) -> None:
         object.__setattr__(self, "matches", matches)
         object.__setattr__(self, "namespace", namespace)
         object.__setattr__(self, "usage", usage)
+        object.__setattr__(self, "response_info", response_info)
 
     def __repr__(self) -> str:
         return (

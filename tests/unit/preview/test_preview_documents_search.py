@@ -599,3 +599,79 @@ async def test_async_search_sends_include_fields_when_explicitly_specified(
     await async_docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1, 0.2]}], include_fields=["title", "category"])
     body = orjson.loads(route.calls.last.request.content)
     assert body["include_fields"] == ["title", "category"]
+
+
+# ---------------------------------------------------------------------------
+# Sync — response_info from response headers
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_search_response_exposes_response_info_from_headers(docs: PreviewDocuments) -> None:
+    respx.post(SEARCH_URL).mock(
+        return_value=httpx.Response(
+            200,
+            json=_SEARCH_RESPONSE,
+            headers={
+                "x-pinecone-lsn-reconciled": "42",
+                "x-pinecone-lsn-committed": "50",
+                "x-pinecone-request-id": "req-123",
+            },
+        )
+    )
+    result = docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1]}])
+    assert result.response_info is not None
+    assert result.response_info.lsn_reconciled == 42
+    assert result.response_info.lsn_committed == 50
+    assert result.response_info.request_id == "req-123"
+
+
+@respx.mock
+def test_search_response_info_is_none_when_headers_absent(docs: PreviewDocuments) -> None:
+    respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+    result = docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1]}])
+    assert result.response_info is not None
+    assert result.response_info.lsn_reconciled is None
+    assert result.response_info.lsn_committed is None
+    assert result.response_info.request_id is None
+
+
+# ---------------------------------------------------------------------------
+# Async — response_info from response headers
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_search_response_exposes_response_info_from_headers(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    respx.post(SEARCH_URL).mock(
+        return_value=httpx.Response(
+            200,
+            json=_SEARCH_RESPONSE,
+            headers={
+                "x-pinecone-lsn-reconciled": "42",
+                "x-pinecone-lsn-committed": "50",
+                "x-pinecone-request-id": "req-123",
+            },
+        )
+    )
+    result = await async_docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1]}])
+    assert result.response_info is not None
+    assert result.response_info.lsn_reconciled == 42
+    assert result.response_info.lsn_committed == 50
+    assert result.response_info.request_id == "req-123"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_search_response_info_is_none_when_headers_absent(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
+    result = await async_docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1]}])
+    assert result.response_info is not None
+    assert result.response_info.lsn_reconciled is None
+    assert result.response_info.lsn_committed is None
+    assert result.response_info.request_id is None

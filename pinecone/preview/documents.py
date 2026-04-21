@@ -346,7 +346,7 @@ class PreviewDocuments:
             f"/namespaces/{namespace}/documents/search",
             json=body,
         )
-        return PreviewDocumentsAdapter.to_search_response(response.content)
+        return PreviewDocumentsAdapter.to_search_response(response)
 
     def fetch(
         self,
