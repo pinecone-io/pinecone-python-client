@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from msgspec import Struct
 
 from pinecone._internal.config import normalize_host
+from pinecone.models._mixin import _struct_to_dict_recursive
 
 
 class IndexStatus(Struct, kw_only=True):
@@ -161,5 +162,5 @@ class IndexModel(Struct, kw_only=True):
         return key in self.__struct_fields__
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a dict representation of this index model."""
-        return {f: getattr(self, f) for f in self.__struct_fields__}
+        """Return a plain dict representation, recursively converting nested fields."""
+        return cast(dict[str, Any], _struct_to_dict_recursive(self))
