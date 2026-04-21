@@ -6,7 +6,7 @@ from typing import Any
 
 from msgspec import Struct
 
-from pinecone.models._display import HtmlBuilder, safe_display, truncate_text
+from pinecone.models._display import HtmlBuilder, abbreviate_list, safe_display, truncate_text
 from pinecone.models.assistant._mixin import StructDictMixin
 from pinecone.models.assistant.file_model import AssistantFileModel
 
@@ -108,6 +108,42 @@ class ChatReference(StructDictMixin, Struct, kw_only=True):
     file: AssistantFileModel
     pages: list[int] | None = None
     highlight: ChatHighlight | None = None
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        pages_str = abbreviate_list(self.pages) if self.pages is not None else "None"
+        highlight_str = "yes" if self.highlight is not None else "no"
+        return (
+            f"ChatReference(file={self.file.name!r},"
+            f" pages={pages_str}, highlight={highlight_str!r})"
+        )
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ChatReference(...)")
+            return
+        pages_str = abbreviate_list(self.pages) if self.pages is not None else "None"
+        highlight_str = "yes" if self.highlight is not None else "no"
+        with p.group(2, "ChatReference(", ")"):
+            p.breakable()
+            p.text(f"file={self.file.name!r},")
+            p.breakable()
+            p.text(f"pages={pages_str},")
+            p.breakable()
+            p.text(f"highlight={highlight_str!r},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        pages_val = abbreviate_list(self.pages) if self.pages is not None else "—"
+        highlight_val = type(self.highlight).__name__ if self.highlight is not None else "—"
+        builder = HtmlBuilder("ChatReference")
+        builder.row("File", self.file.name)
+        builder.row("Pages", pages_val)
+        builder.row("Highlight", highlight_val)
+        if self.highlight is not None:
+            builder.section("Highlight", [("Content", truncate_text(self.highlight.content, 500))])
+        return builder.build()
 
 
 class ChatCitation(StructDictMixin, Struct, kw_only=True):

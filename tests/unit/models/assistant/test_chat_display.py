@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from pinecone.models.assistant.chat import ChatHighlight, ChatUsage
+from pinecone.models.assistant.chat import ChatHighlight, ChatReference, ChatUsage
+from pinecone.models.assistant.file_model import AssistantFileModel
 
 
 class TestChatUsage:
@@ -52,3 +53,40 @@ class TestChatHighlight:
         hl.content = object()  # type: ignore[assignment]
         assert isinstance(repr(hl), str)
         assert isinstance(hl._repr_html_(), str)
+
+
+def _file() -> AssistantFileModel:
+    return AssistantFileModel(name="doc.pdf", id="f-1", status="Available")
+
+
+class TestChatReference:
+    def test_repr_minimal(self) -> None:
+        r = repr(ChatReference(file=_file()))
+        assert "doc.pdf" in r
+
+    def test_repr_with_pages_and_highlight(self) -> None:
+        r = repr(
+            ChatReference(
+                file=_file(), pages=[1, 2, 3], highlight=ChatHighlight(type="text", content="x")
+            )
+        )
+        assert "1" in r
+
+    def test_repr_many_pages_abbreviated(self) -> None:
+        r = repr(ChatReference(file=_file(), pages=list(range(2000))))
+        assert len(r) < 500
+        assert "more" in r
+
+    def test_repr_html(self) -> None:
+        h = ChatReference(file=_file(), pages=[1, 2])._repr_html_()
+        assert "doc.pdf" in h
+
+    def test_repr_html_no_highlight_shows_dash(self) -> None:
+        h = ChatReference(file=_file())._repr_html_()
+        assert "<div" in h
+
+    def test_safe_on_malformed(self) -> None:
+        c = ChatReference(file=_file())
+        c.file = object()  # type: ignore[assignment]
+        assert isinstance(repr(c), str)
+        assert isinstance(c._repr_html_(), str)
