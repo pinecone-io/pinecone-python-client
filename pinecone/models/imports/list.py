@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pinecone.models.imports.model import ImportModel
 
@@ -39,6 +39,12 @@ class ImportList:
 
     def __getitem__(self, index: int) -> ImportModel:
         return self._imports[index]
+
+    def to_dict(self) -> dict[str, Any]:
+        result: dict[str, Any] = {"data": [i.to_dict() for i in self._imports]}
+        if self.pagination is not None:
+            result["pagination"] = self.pagination.to_dict()
+        return result
 
     def __repr__(self) -> str:
         summaries = ", ".join(

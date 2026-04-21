@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pinecone.models.backups.model import BackupModel, RestoreJobModel
 
@@ -48,6 +48,12 @@ class BackupList:
 
     def __getitem__(self, index: int) -> BackupModel:
         return self._backups[index]
+
+    def to_dict(self) -> dict[str, Any]:
+        result: dict[str, Any] = {"data": [b.to_dict() for b in self._backups]}
+        if self.pagination is not None:
+            result["pagination"] = self.pagination.to_dict()
+        return result
 
     def names(self) -> list[str]:
         """Return a list of backup names, falling back to backup_id.
@@ -114,6 +120,12 @@ class RestoreJobList:
 
     def __getitem__(self, index: int) -> RestoreJobModel:
         return self._restore_jobs[index]
+
+    def to_dict(self) -> dict[str, Any]:
+        result: dict[str, Any] = {"data": [r.to_dict() for r in self._restore_jobs]}
+        if self.pagination is not None:
+            result["pagination"] = self.pagination.to_dict()
+        return result
 
     def __repr__(self) -> str:
         summaries = ", ".join(

@@ -61,6 +61,9 @@ class ProjectList:
     def __getitem__(self, index: int) -> ProjectModel:
         return self._projects[index]
 
+    def to_dict(self) -> dict[str, Any]:
+        return {"data": [p.to_dict() for p in self._projects]}
+
     def names(self) -> list[str]:
         """Return a list of project names.
 

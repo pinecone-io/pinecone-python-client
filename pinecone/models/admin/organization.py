@@ -61,6 +61,9 @@ class OrganizationList:
     def __getitem__(self, index: int) -> OrganizationModel:
         return self._organizations[index]
 
+    def to_dict(self) -> dict[str, Any]:
+        return {"data": [o.to_dict() for o in self._organizations]}
+
     def names(self) -> list[str]:
         """Return a list of organization names.
 
