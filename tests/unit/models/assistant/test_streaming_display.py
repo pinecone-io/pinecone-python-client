@@ -30,6 +30,24 @@ class TestStreamMessageStart:
         h = StreamMessageStart(model="m", role="assistant")._repr_html_()
         assert "m" in h
 
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(StreamMessageStart(model="m", role="assistant"))
+        assert "m" in r
+        assert "assistant" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        StreamMessageStart(model="m", role="assistant")._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "StreamMessageStart(...)" in buf.getvalue()
+
     def test_safe_on_malformed(self) -> None:
         s = StreamMessageStart(model="m", role="r")
         s.model = object()  # type: ignore[assignment]
@@ -48,6 +66,22 @@ class TestStreamContentDelta:
 
     def test_repr_html(self) -> None:
         assert "hi" in StreamContentDelta(content="hi")._repr_html_()
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        assert "hi" in pretty(StreamContentDelta(content="hi"))
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        StreamContentDelta(content="hi")._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "StreamContentDelta(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         d = StreamContentDelta(content="x")
@@ -74,6 +108,27 @@ class TestStreamContentChunk:
         c = StreamContentChunk(id="c-1", delta=StreamContentDelta(content="hi"))
         assert "hi" in c._repr_html_()
 
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        c = StreamContentChunk(id="c-1", delta=StreamContentDelta(content="hi"), model="m")
+        r = pretty(c)
+        assert "c-1" in r
+        assert "m" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        StreamContentChunk(id="c-1", delta=StreamContentDelta(content="hi"))._repr_pretty_(
+            printer, cycle=True
+        )
+        printer.flush()
+        assert "StreamContentChunk(...)" in buf.getvalue()
+
     def test_safe_on_malformed(self) -> None:
         c = StreamContentChunk(id="c-1", delta=StreamContentDelta(content="x"))
         c.delta = object()  # type: ignore[assignment]
@@ -95,6 +150,23 @@ class TestStreamCitationChunk:
 
     def test_repr_html(self) -> None:
         assert "<div" in StreamCitationChunk(id="c-1", citation=_cit())._repr_html_()
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(StreamCitationChunk(id="c-1", citation=_cit()))
+        assert "c-1" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        StreamCitationChunk(id="c-1", citation=_cit())._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "StreamCitationChunk(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         c = StreamCitationChunk(id="c-1", citation=_cit())
@@ -120,6 +192,24 @@ class TestChatCompletionStreamDelta:
         h = ChatCompletionStreamDelta(role="assistant", content="hi")._repr_html_()
         assert "<div" in h
 
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(ChatCompletionStreamDelta(role="assistant", content="hi"))
+        assert "assistant" in r
+        assert "hi" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        ChatCompletionStreamDelta(role="assistant")._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "ChatCompletionStreamDelta(...)" in buf.getvalue()
+
     def test_safe_on_malformed(self) -> None:
         d = ChatCompletionStreamDelta(role="assistant")
         d.role = object()  # type: ignore[assignment]
@@ -139,6 +229,28 @@ class TestStreamMessageEnd:
             id="e-1", usage=ChatUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
         )
         assert "<div" in e._repr_html_()
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        e = StreamMessageEnd(
+            id="e-1", usage=ChatUsage(prompt_tokens=5, completion_tokens=5, total_tokens=10)
+        )
+        r = pretty(e)
+        assert "e-1" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        StreamMessageEnd(
+            id="e-1", usage=ChatUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
+        )._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "StreamMessageEnd(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         e = StreamMessageEnd(
@@ -165,6 +277,29 @@ class TestChatCompletionStreamChoice:
     def test_repr_html(self) -> None:
         c = ChatCompletionStreamChoice(index=0, delta=ChatCompletionStreamDelta(content="hi"))
         assert "<div" in c._repr_html_()
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        c = ChatCompletionStreamChoice(
+            index=0, delta=ChatCompletionStreamDelta(content="hi"), finish_reason="stop"
+        )
+        r = pretty(c)
+        assert "0" in r
+        assert "stop" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        ChatCompletionStreamChoice(
+            index=0, delta=ChatCompletionStreamDelta(content="hi")
+        )._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "ChatCompletionStreamChoice(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         c = ChatCompletionStreamChoice(index=0, delta=ChatCompletionStreamDelta())
@@ -198,6 +333,23 @@ class TestChatCompletionStreamChunk:
 
     def test_repr_html(self) -> None:
         assert "<div" in _chunk()._repr_html_()
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(_chunk())
+        assert "c-1" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        _chunk()._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "ChatCompletionStreamChunk(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         c = _chunk()

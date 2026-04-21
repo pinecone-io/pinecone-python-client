@@ -24,6 +24,24 @@ class TestEntailmentResult:
         h = EntailmentResult(fact="f", entailment="entailed")._repr_html_()
         assert "<div" in h
 
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(EntailmentResult(fact="the sky is blue", entailment="entailed"))
+        assert "entailed" in r
+        assert "sky" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        EntailmentResult(fact="x", entailment="entailed")._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "EntailmentResult(...)" in buf.getvalue()
+
     def test_safe_on_malformed(self) -> None:
         e = EntailmentResult(fact="x", entailment="entailed")
         e.entailment = object()  # type: ignore[assignment]
@@ -38,6 +56,26 @@ class TestAlignmentScores:
 
     def test_repr_html(self) -> None:
         assert "<div" in AlignmentScores(correctness=1, completeness=1, alignment=1)._repr_html_()
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(AlignmentScores(correctness=0.8, completeness=0.9, alignment=0.85))
+        assert "0.800" in r or "0.8" in r
+        assert "0.900" in r or "0.9" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        AlignmentScores(correctness=0, completeness=0, alignment=0)._repr_pretty_(
+            printer, cycle=True
+        )
+        printer.flush()
+        assert "AlignmentScores(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         s = AlignmentScores(correctness=0, completeness=0, alignment=0)
@@ -78,6 +116,24 @@ class TestAlignmentResult:
 
     def test_repr_html_empty_facts(self) -> None:
         assert "<div" in _mk(0)._repr_html_()
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(_mk(3))
+        assert "0.85" in r or "0.850" in r
+        assert "3" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        _mk(1)._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "AlignmentResult(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         r = _mk(1)

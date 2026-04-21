@@ -94,6 +94,23 @@ class TestChatReference:
         h = ChatReference(file=_file())._repr_html_()
         assert "<div" in h
 
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(ChatReference(file=_file(), pages=[1, 2]))
+        assert "doc.pdf" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        ChatReference(file=_file())._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "ChatReference(...)" in buf.getvalue()
+
     def test_safe_on_malformed(self) -> None:
         c = ChatReference(file=_file())
         c.file = object()  # type: ignore[assignment]
@@ -124,6 +141,23 @@ class TestChatCitation:
         h = ChatCitation(position=0, references=[])._repr_html_()
         assert "<div" in h
 
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(ChatCitation(position=42, references=[ChatReference(file=_file())]))
+        assert "42" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        ChatCitation(position=1, references=[])._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "ChatCitation(...)" in buf.getvalue()
+
     def test_safe_on_malformed(self) -> None:
         c = ChatCitation(position=1, references=[])
         c.position = object()  # type: ignore[assignment]
@@ -146,6 +180,13 @@ class TestChatMessage:
     def test_repr_html_long_truncated(self) -> None:
         h = ChatMessage(role="assistant", content="x" * 10_000)._repr_html_()
         assert len(h) < 5000
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(ChatMessage(role="assistant", content="Hi"))
+        assert "assistant" in r
+        assert "Hi" in r
 
     def test_safe_on_malformed(self) -> None:
         m = ChatMessage(role="user", content="x")
@@ -188,6 +229,24 @@ class TestChatResponse:
         h = _resp(content="x" * 100_000)._repr_html_()
         assert len(h) < 10_000
 
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(_resp())
+        assert "r-1" in r
+        assert "m" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        _resp()._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "ChatResponse(...)" in buf.getvalue()
+
     def test_safe_on_malformed(self) -> None:
         r = _resp()
         r.message = object()  # type: ignore[assignment]
@@ -217,6 +276,29 @@ class TestChatCompletionChoice:
             index=0, message=ChatMessage(role="assistant", content="Hi"), finish_reason="stop"
         )
         assert "Hi" in c._repr_html_()
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        c = ChatCompletionChoice(
+            index=0, message=ChatMessage(role="assistant", content="Hi"), finish_reason="stop"
+        )
+        r = pretty(c)
+        assert "0" in r
+        assert "stop" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        ChatCompletionChoice(
+            index=0, message=ChatMessage(role="assistant", content="Hi"), finish_reason="stop"
+        )._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "ChatCompletionChoice(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         c = ChatCompletionChoice(
@@ -260,6 +342,24 @@ class TestChatCompletionResponse:
     def test_repr_html_no_choices(self) -> None:
         h = _ccr(n_choices=0)._repr_html_()
         assert "<div" in h
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(_ccr())
+        assert "c-1" in r
+        assert "m" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        _ccr()._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "ChatCompletionResponse(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         r = _ccr()

@@ -30,6 +30,25 @@ class TestContextImageData:
         assert len(h) < 5000
         assert "image/png" in h
 
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(ContextImageData(type="base64", mime_type="image/png", data="AAA"))
+        assert "image/png" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        ContextImageData(type="base64", mime_type="image/png", data="x")._repr_pretty_(
+            printer, cycle=True
+        )
+        printer.flush()
+        assert "ContextImageData(...)" in buf.getvalue()
+
     def test_safe_on_malformed(self) -> None:
         d = ContextImageData(type="base64", mime_type="image/png", data="x")
         d.mime_type = object()  # type: ignore[assignment]
@@ -61,6 +80,23 @@ class TestContextImageBlock:
         assert h is not None
         assert "cat" in h
 
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(ContextImageBlock(caption="A cat"))
+        assert "A cat" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        ContextImageBlock(caption="x")._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "ContextImageBlock(...)" in buf.getvalue()
+
     def test_safe_on_malformed(self) -> None:
         b = ContextImageBlock(caption="x")
         b.caption = object()  # type: ignore[assignment]
@@ -81,6 +117,23 @@ class TestContextTextBlock:
     def test_repr_html_long_truncated(self) -> None:
         h = ContextTextBlock(text="x" * 10_000)._repr_html_()
         assert len(h) < 5000
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(ContextTextBlock(text="hello"))
+        assert "hello" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        ContextTextBlock(text="hi")._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "ContextTextBlock(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         b = ContextTextBlock(text="x")
@@ -114,6 +167,23 @@ class TestFileReference:
         h = FileReference(file=_f())._repr_html_()
         assert "<div" in h
 
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(FileReference(file=_f(), pages=[1, 2]))
+        assert "doc.pdf" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        FileReference(file=_f())._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "FileReference(...)" in buf.getvalue()
+
     def test_safe_on_malformed(self) -> None:
         r = FileReference(file=_f())
         r.file = object()  # type: ignore[assignment]
@@ -143,6 +213,24 @@ class TestTextSnippet:
     def test_repr_html_long_truncated(self) -> None:
         h = TextSnippet(content="x" * 100_000, score=1.0, reference=_ref())._repr_html_()
         assert len(h) < 5000
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        r = pretty(TextSnippet(content="hello", score=0.9, reference=_ref()))
+        assert "0.9" in r
+        assert "hello" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        TextSnippet(content="x", score=0.5, reference=_ref())._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "TextSnippet(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         s = TextSnippet(content="x", score=0.0, reference=_ref())
@@ -179,6 +267,26 @@ class TestMultimodalSnippet:
         h = MultimodalSnippet(content=[], score=0.0, reference=_ref())._repr_html_()
         assert "<div" in h
 
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        m = MultimodalSnippet(content=self._blocks(), score=0.7, reference=_ref())
+        r = pretty(m)
+        assert "0.7" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        MultimodalSnippet(content=[], score=0.0, reference=_ref())._repr_pretty_(
+            printer, cycle=True
+        )
+        printer.flush()
+        assert "MultimodalSnippet(...)" in buf.getvalue()
+
     def test_safe_on_malformed(self) -> None:
         m = MultimodalSnippet(content=[], score=0.0, reference=_ref())
         m.content = object()  # type: ignore[assignment]
@@ -208,6 +316,25 @@ class TestContextResponse:
     def test_repr_html_empty_snippets(self) -> None:
         h = ContextResponse(snippets=[], usage=_usage())._repr_html_()
         assert "<div" in h
+
+    def test_repr_pretty_normal(self) -> None:
+        from IPython.lib.pretty import pretty
+
+        snippets = [TextSnippet(content="hi", score=0.9, reference=_ref())]
+        r = pretty(ContextResponse(snippets=snippets, usage=_usage(), id="c-1"))
+        assert "c-1" in r
+        assert "1" in r
+
+    def test_repr_pretty_cycle(self) -> None:
+        import io
+
+        from IPython.lib.pretty import RepresentationPrinter
+
+        buf = io.StringIO()
+        printer = RepresentationPrinter(buf)
+        ContextResponse(snippets=[], usage=_usage())._repr_pretty_(printer, cycle=True)
+        printer.flush()
+        assert "ContextResponse(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         r = ContextResponse(snippets=[], usage=_usage())
