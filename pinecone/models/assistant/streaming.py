@@ -11,7 +11,7 @@ from typing import Any, TypeAlias
 
 from msgspec import Struct
 
-from pinecone.models._display import HtmlBuilder, safe_display
+from pinecone.models._display import HtmlBuilder, safe_display, truncate_text
 from pinecone.models.assistant._mixin import StructDictMixin
 from pinecone.models.assistant.chat import ChatCitation, ChatUsage
 
@@ -67,6 +67,25 @@ class StreamContentDelta(StructDictMixin, Struct, kw_only=True):
     """
 
     content: str
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return f"StreamContentDelta(content={truncate_text(self.content, 80)!r})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("StreamContentDelta(...)")
+            return
+        with p.group(2, "StreamContentDelta(", ")"):
+            p.breakable()
+            p.text(f"content={truncate_text(self.content, 200)!r},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("StreamContentDelta")
+        builder.row("Content", truncate_text(self.content, 500))
+        return builder.build()
 
 
 class StreamContentChunk(
