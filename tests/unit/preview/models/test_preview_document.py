@@ -121,13 +121,27 @@ def test_score_collision_typed_property_wins() -> None:
 
 
 def test_id_collision_typed_property_wins() -> None:
-    # If the payload contains both "id" and "_id", _id wins for the typed prop.
+    # The typed property only reads "_id"; a user-defined "id" field never
+    # leaks through it.
     doc = PreviewDocument({"_id": "primary", "id": "secondary"})
     assert doc.id == "primary"
     assert doc._id == "primary"
     # But .get() still reaches both raw keys
     assert doc.get("_id") == "primary"
     assert doc.get("id") == "secondary"
+
+
+def test_id_property_does_not_fall_back_to_user_field() -> None:
+    # A document with a user-defined "id" but no "_id" must NOT return the
+    # user field via the typed property — accessing .id / ._id raises
+    # AttributeError, so `id` is reachable only via .get() / to_dict().
+    doc = PreviewDocument({"id": "user-field"})
+    with pytest.raises(AttributeError):
+        _ = doc.id
+    with pytest.raises(AttributeError):
+        _ = doc._id
+    assert doc.get("id") == "user-field"
+    assert doc.to_dict() == {"id": "user-field"}
 
 
 def test_score_field_only_via_get_when_desired() -> None:

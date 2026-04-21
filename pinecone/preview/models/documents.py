@@ -69,9 +69,9 @@ class PreviewDocument:
 
     @property
     def id(self) -> str:
-        value = self._data.get("_id") or self._data.get("id")
+        value = self._data.get("_id")
         if not value:
-            raise AttributeError("Document has no '_id' or 'id' field")
+            raise AttributeError("Document has no '_id' field")
         return str(value)
 
     @property
@@ -130,17 +130,22 @@ class PreviewDocument:
 
     def __getattr__(self, name: str) -> Any:
         # __slots__ attributes are resolved before __getattr__, so _data is safe.
-        # Properties (id, _id, score) are descriptors on the class and also
-        # take precedence over __getattr__.
+        # Properties (id, _id, score) are descriptors on the class and normally
+        # take precedence over __getattr__. But when a property raises
+        # AttributeError, Python falls back to __getattr__; block those reserved
+        # names here so a user-defined `id`/`_id`/`score` field cannot leak
+        # through the typed property's failure path.
+        if name in ("id", "_id", "score"):
+            raise AttributeError(f"{type(self).__name__!r} has no attribute {name!r}")
         data = object.__getattribute__(self, "_data")
         if name in data:
             return data[name]
         raise AttributeError(f"{type(self).__name__!r} has no attribute {name!r}")
 
     def __repr__(self) -> str:
-        _id = self._data.get("_id") or self._data.get("id", "")
+        _id = self._data.get("_id", "")
         score = self._data.get("_score")
-        extras = {k: v for k, v in self._data.items() if k not in ("_id", "id", "_score")}
+        extras = {k: v for k, v in self._data.items() if k not in ("_id", "_score")}
         if extras:
             return f"PreviewDocument(_id={_id!r}, score={score!r}, ...)"
         return f"PreviewDocument(_id={_id!r}, score={score!r})"
