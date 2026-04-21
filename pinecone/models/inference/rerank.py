@@ -7,8 +7,10 @@ from typing import Any, cast
 import msgspec
 from msgspec import Struct
 
+from pinecone.models._mixin import StructDictMixin
 
-class RerankUsage(Struct, kw_only=True):
+
+class RerankUsage(StructDictMixin, Struct, kw_only=True):
     """Usage information for a rerank request.
 
     Attributes:
@@ -17,18 +19,8 @@ class RerankUsage(Struct, kw_only=True):
 
     rerank_units: int
 
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. usage['rerank_units'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
 
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'rerank_units' in usage``)."""
-        return key in self.__struct_fields__
-
-
-class RankedDocument(Struct, kw_only=True):
+class RankedDocument(StructDictMixin, Struct, kw_only=True):
     """A document with its relevance score from a rerank operation.
 
     Attributes:
@@ -40,16 +32,6 @@ class RankedDocument(Struct, kw_only=True):
     index: int
     score: float
     document: dict[str, Any] | None = None
-
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. doc['score'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
-
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'score' in doc``)."""
-        return key in self.__struct_fields__
 
     def __repr__(self) -> str:
         if self.document is None:

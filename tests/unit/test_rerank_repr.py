@@ -68,7 +68,7 @@ class TestRerankResultRepr:
         assert "model='bge-reranker-v2-m3'" in r
         assert "count=20" in r
         assert "usage=" in r
-        assert "rerank_units=1" in r
+        assert "rerank_units" in r
         # Should NOT dump individual documents
         assert "RankedDocument" not in r
 

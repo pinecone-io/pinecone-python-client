@@ -8,8 +8,10 @@ from typing import Any, cast, overload
 import msgspec
 from msgspec import Struct
 
+from pinecone.models._mixin import DictLikeStruct, StructDictMixin
 
-class EmbedUsage(Struct, kw_only=True):
+
+class EmbedUsage(StructDictMixin, Struct, kw_only=True):
     """Token usage information for an embedding request.
 
     Attributes:
@@ -18,18 +20,8 @@ class EmbedUsage(Struct, kw_only=True):
 
     total_tokens: int
 
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. usage['total_tokens'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
 
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'total_tokens' in usage``)."""
-        return key in self.__struct_fields__
-
-
-class DenseEmbedding(Struct, kw_only=True):
+class DenseEmbedding(DictLikeStruct, Struct, kw_only=True):
     """A dense embedding vector.
 
     Attributes:
@@ -40,16 +32,6 @@ class DenseEmbedding(Struct, kw_only=True):
     values: list[float]
     vector_type: str = "dense"
 
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. embedding['values'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
-
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'values' in embedding``)."""
-        return key in self.__struct_fields__
-
     def __repr__(self) -> str:
         if len(self.values) > 5:
             preview = ", ".join(repr(v) for v in self.values[:3])
@@ -59,7 +41,7 @@ class DenseEmbedding(Struct, kw_only=True):
         return f"DenseEmbedding(values={values_str}, vector_type={self.vector_type!r})"
 
 
-class SparseEmbedding(Struct, kw_only=True):
+class SparseEmbedding(StructDictMixin, Struct, kw_only=True):
     """A sparse embedding vector.
 
     Attributes:
@@ -73,16 +55,6 @@ class SparseEmbedding(Struct, kw_only=True):
     sparse_indices: list[int]
     sparse_tokens: list[str] | None = None
     vector_type: str = "sparse"
-
-    def __getitem__(self, key: str) -> Any:
-        """Support bracket access (e.g. embedding['sparse_values'])."""
-        if key not in self.__struct_fields__:
-            raise KeyError(key)
-        return getattr(self, key)
-
-    def __contains__(self, key: object) -> bool:
-        """Support ``in`` operator (e.g. ``'sparse_values' in embedding``)."""
-        return key in self.__struct_fields__
 
     def __repr__(self) -> str:
         if len(self.sparse_indices) > 5:
