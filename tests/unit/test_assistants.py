@@ -3051,12 +3051,12 @@ def test_model_str_repr_dict_form_assistant() -> None:
 
 
 def test_model_str_repr_dict_form_file() -> None:
-    """AssistantFileModel __str__ and __repr__ show dictionary form."""
+    """AssistantFileModel __str__ shows dictionary form; __repr__ shows readable summary."""
     model = _make_file_model()
     as_dict = model.to_dict()
 
     assert str(model) == str(as_dict)
-    assert repr(model) == repr(as_dict)
+    assert "AssistantFileModel(" in repr(model)
 
 
 # ---------------------------------------------------------------------------
