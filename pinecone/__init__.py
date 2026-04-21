@@ -208,11 +208,11 @@ if _os.environ.get("PINECONE_DEBUG"):
 __all__ = [
     "APIKeyList",
     "APIKeyModel",
+    "APIKeyRole",
     "APIKeyWithSecret",
     "Admin",
     "AlignmentResult",
     "ApiError",
-    "APIKeyRole",
     "AssistantFileModel",
     "AssistantModel",
     "AsyncChatCompletionStream",

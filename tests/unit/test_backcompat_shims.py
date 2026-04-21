@@ -6,7 +6,6 @@ import importlib
 
 import pytest
 
-
 # (legacy_path, symbol_name, canonical_path)
 _REEXPORT_TRIPLES = [
     (

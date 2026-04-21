@@ -6,7 +6,20 @@ from typing import Any, Literal, TypedDict, overload
 
 from msgspec import Struct
 
+from pinecone.models._mixin import DictLikeStruct
 from pinecone.models.response_info import ResponseInfo
+
+__all__ = [
+    "Hit",
+    "RerankConfig",
+    "SearchInputs",
+    "SearchQuery",
+    "SearchQueryVector",
+    "SearchRecordsResponse",
+    "SearchRerank",
+    "SearchResult",
+    "SearchUsage",
+]
 
 
 class _RerankConfigRequired(TypedDict):
@@ -159,3 +172,67 @@ class SearchRecordsResponse(Struct, kw_only=True):
     def __contains__(self, key: object) -> bool:
         """Support ``in`` operator (e.g. ``'result' in response``)."""
         return key in self.__struct_fields__
+
+
+class SearchQuery(DictLikeStruct, Struct, kw_only=True, gc=False):
+    """Query parameters for a search operation (legacy backcompat type).
+
+    Attributes:
+        inputs (dict[str, Any]): Search inputs (e.g. ``{"text": "hello"}``).
+        top_k (int): Number of top results to return.
+        filter (dict[str, Any] | None): Metadata filter to apply, or ``None`` for no filter.
+        vector (dict[str, Any] | None): Explicit query vector, or ``None`` to use inputs.
+        id (str | None): ID of a stored record to use as query vector, or ``None``.
+        match_terms (dict[str, Any] | None): Full-text match terms, or ``None``.
+    """
+
+    inputs: dict[str, Any]
+    top_k: int
+    filter: dict[str, Any] | None = None
+    vector: dict[str, Any] | None = None
+    id: str | None = None
+    match_terms: dict[str, Any] | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a dict of non-None field values."""
+        return {f: getattr(self, f) for f in self.__struct_fields__ if getattr(self, f) is not None}
+
+
+class SearchQueryVector(DictLikeStruct, Struct, kw_only=True, gc=False):
+    """Explicit dense/sparse query vector for search operations (legacy backcompat type).
+
+    Attributes:
+        values (list[float] | None): Dense vector values, or ``None`` if not provided.
+        sparse_values (list[float] | None): Sparse vector values, or ``None`` if not provided.
+        sparse_indices (list[int] | None): Sparse vector indices, or ``None`` if not provided.
+    """
+
+    values: list[float] | None = None
+    sparse_values: list[float] | None = None
+    sparse_indices: list[int] | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a dict of non-None field values."""
+        return {f: getattr(self, f) for f in self.__struct_fields__ if getattr(self, f) is not None}
+
+
+class SearchRerank(DictLikeStruct, Struct, kw_only=True, gc=False):
+    """Reranking configuration for a search operation (legacy backcompat type).
+
+    Attributes:
+        model (str): Reranking model name (e.g. ``"bge-reranker-v2-m3"``).
+        top_n (int | None): Number of top results after reranking, or ``None`` to use ``top_k``.
+        rank_fields (list[str] | None): Record fields to rank on, or ``None``.
+        parameters (dict[str, Any] | None): Model-specific parameters, or ``None``.
+        query (str | None): Override query text for reranking, or ``None`` to infer from inputs.
+    """
+
+    model: str
+    top_n: int | None = None
+    rank_fields: list[str] | None = None
+    parameters: dict[str, Any] | None = None
+    query: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a dict of non-None field values."""
+        return {f: getattr(self, f) for f in self.__struct_fields__ if getattr(self, f) is not None}

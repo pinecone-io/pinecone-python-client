@@ -21,11 +21,9 @@ from pinecone.db_data.dataclasses.search_rerank import SearchRerank
 from pinecone.db_data.dataclasses.sparse_values import SparseValues
 from pinecone.db_data.dataclasses.update_response import UpdateResponse
 from pinecone.db_data.dataclasses.upsert_response import UpsertResponse
-from pinecone.db_data.dataclasses.utils import DictLike
 from pinecone.db_data.dataclasses.vector import Vector
 
 __all__ = [
-    "DictLike",
     "FetchByMetadataResponse",
     "FetchResponse",
     "Pagination",
