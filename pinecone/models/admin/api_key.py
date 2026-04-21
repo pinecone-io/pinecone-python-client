@@ -24,6 +24,21 @@ class APIKeyModel(Struct, kw_only=True):
     roles: list[str]
     description: str | None = None
 
+    @property
+    def role(self) -> str:
+        """Singular alias for ``roles`` when the key has exactly one role.
+
+        Raises:
+            ValueError: If the key has no roles or more than one role.
+        """
+        if len(self.roles) == 0:
+            raise ValueError("API key has no roles")
+        if len(self.roles) > 1:
+            raise ValueError(
+                f"API key has {len(self.roles)} roles; use .roles to access all"
+            )
+        return self.roles[0]
+
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. api_key['name'])."""
         if key not in self.__struct_fields__:

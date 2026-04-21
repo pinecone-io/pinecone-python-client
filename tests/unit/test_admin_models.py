@@ -250,6 +250,35 @@ class TestAPIKeyModel:
         assert "ab" not in result or "***" in result
         assert "***" in result
 
+    def test_api_key_role_singular_returns_single_role(self) -> None:
+        api_key = APIKeyModel(
+            id="key-123",
+            name="my-key",
+            project_id="proj-456",
+            roles=["ProjectEditor"],
+        )
+        assert api_key.role == "ProjectEditor"
+
+    def test_api_key_role_singular_raises_when_empty(self) -> None:
+        api_key = APIKeyModel(
+            id="key-123",
+            name="my-key",
+            project_id="proj-456",
+            roles=[],
+        )
+        with pytest.raises(ValueError, match="no roles"):
+            _ = api_key.role
+
+    def test_api_key_role_singular_raises_when_multiple(self) -> None:
+        api_key = APIKeyModel(
+            id="key-123",
+            name="my-key",
+            project_id="proj-456",
+            roles=["ProjectEditor", "DataPlaneEditor"],
+        )
+        with pytest.raises(ValueError, match="use .roles"):
+            _ = api_key.role
+
     def test_api_key_list_names(self) -> None:
         keys = APIKeyList(
             [
