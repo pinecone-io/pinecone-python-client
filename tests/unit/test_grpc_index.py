@@ -913,6 +913,11 @@ class TestGrpcIndexUpsertRecords:
         with pytest.raises(ValidationError, match="non-empty"):
             idx.upsert_records(namespace="", records=[{"_id": "r1"}])
 
+    def test_upsert_records_non_string_namespace_raises(self, mock_channel: MagicMock) -> None:
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        with pytest.raises(ValidationError, match="namespace must be a string"):
+            idx.upsert_records(namespace=42, records=[{"_id": "r1"}])  # type: ignore[arg-type]
+
     def test_upsert_records_empty_records_raises(self, mock_channel: MagicMock) -> None:
         idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
         with pytest.raises(ValidationError, match="non-empty"):
@@ -1010,6 +1015,78 @@ class TestGrpcIndexSearch:
                 rerank={"rank_fields": ["text"]},
             )
 
+    def test_search_non_string_namespace_raises(self, mock_channel: MagicMock) -> None:
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        with pytest.raises(ValidationError, match="namespace must be a string"):
+            idx.search(namespace=123, top_k=5, inputs={"text": "q"})  # type: ignore[arg-type]
+
+    def test_search_rerank_missing_rank_fields_raises(self, mock_channel: MagicMock) -> None:
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        with pytest.raises(ValidationError, match="rank_fields"):
+            idx.search(
+                namespace="test-ns",
+                top_k=5,
+                inputs={"text": "q"},
+                rerank={"model": "bge-reranker-v2-m3"},
+            )
+
+    @respx.mock
+    def test_search_with_id_forwarded_to_body(self, mock_channel: MagicMock) -> None:
+        import orjson
+
+        route = respx.post(_SEARCH_URL).mock(
+            return_value=httpx.Response(200, json=_SEARCH_RESPONSE)
+        )
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        idx.search(namespace="test-ns", top_k=3, id="rec-1")
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["query"]["id"] == "rec-1"
+
+    @respx.mock
+    def test_search_with_filter_forwarded_to_body(self, mock_channel: MagicMock) -> None:
+        import orjson
+
+        route = respx.post(_SEARCH_URL).mock(
+            return_value=httpx.Response(200, json=_SEARCH_RESPONSE)
+        )
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        filter_dict = {"topic": {"$eq": "ai"}}
+        idx.search(namespace="test-ns", top_k=5, inputs={"text": "q"}, filter=filter_dict)
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["query"]["filter"] == filter_dict
+
+    @respx.mock
+    def test_search_with_match_terms_forwarded_to_body(self, mock_channel: MagicMock) -> None:
+        import orjson
+
+        route = respx.post(_SEARCH_URL).mock(
+            return_value=httpx.Response(200, json=_SEARCH_RESPONSE)
+        )
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        match_terms = {"strategy": "all", "terms": ["ai"]}
+        idx.search(
+            namespace="test-ns", top_k=5, inputs={"text": "q"}, match_terms=match_terms
+        )
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["query"]["match_terms"] == match_terms
+
+    @respx.mock
+    def test_search_with_fields_forwarded_at_body_root(self, mock_channel: MagicMock) -> None:
+        import orjson
+
+        route = respx.post(_SEARCH_URL).mock(
+            return_value=httpx.Response(200, json=_SEARCH_RESPONSE)
+        )
+        idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
+        idx.search(namespace="test-ns", top_k=5, inputs={"text": "q"}, fields=["text", "title"])
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["fields"] == ["text", "title"]
+        assert "fields" not in body["query"]
+
     @respx.mock
     def test_search_records_alias(self, mock_channel: MagicMock) -> None:
         """search_records() is an alias for search() and produces the same result."""
@@ -1020,3 +1097,25 @@ class TestGrpcIndexSearch:
 
         assert isinstance(response, SearchRecordsResponse)
         assert len(response.result.hits) == 2
+
+
+class TestContextManager:
+    """GrpcIndex context manager (__enter__ / __exit__) closes all resources."""
+
+    def test_grpc_index_enter_exit_closes_resources(self, mock_channel: MagicMock) -> None:
+        idx = _make_grpc_index(mock_channel)
+
+        mock_http_close = MagicMock()
+        mock_channel_close = MagicMock()
+        mock_executor_shutdown = MagicMock()
+
+        idx._http.close = mock_http_close
+        idx._channel.close = mock_channel_close
+        idx._executor.shutdown = mock_executor_shutdown
+
+        with idx:
+            pass
+
+        mock_http_close.assert_called_once_with()
+        mock_channel_close.assert_called_once_with()
+        mock_executor_shutdown.assert_called_once_with(wait=True)
