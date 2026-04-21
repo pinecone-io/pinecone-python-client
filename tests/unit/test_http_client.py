@@ -117,7 +117,8 @@ class TestRaiseForStatus:
         response = httpx.Response(500, json={"error": "something"})
         with pytest.raises(ApiError) as exc_info:
             _raise_for_status(response)
-        assert "500" in exc_info.value.message
+        assert exc_info.value.message == "something"
+        assert exc_info.value.status_code == 500
 
     def test_body_attribute_contains_parsed_json(self) -> None:
         body = {"message": "conflict", "details": "already exists"}

@@ -28,6 +28,7 @@ async def test_search_records_delegates_to_search() -> None:
             fields=None,
             rerank=None,
             match_terms=None,
+            timeout=None,
         )
 
 
@@ -59,6 +60,7 @@ async def test_search_records_passes_all_params() -> None:
         "fields": ["title", "year"],
         "rerank": {"model": "bge-reranker-v2-m3", "rank_fields": ["text"]},
         "match_terms": {"strategy": "all", "terms": ["animal", "duck"]},
+        "timeout": None,
     }
 
     with patch.object(AsyncIndex, "search", new_callable=AsyncMock, return_value=mock_response):

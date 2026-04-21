@@ -234,7 +234,7 @@ class TestAsyncQuery:
     @pytest.mark.asyncio
     async def test_query_neither_vector_nor_id_raises(self) -> None:
         idx = _make_async_index()
-        with pytest.raises(ValidationError, match="got neither"):
+        with pytest.raises(ValidationError, match="At least one of vector, id, or sparse_vector"):
             await idx.query(top_k=1)
 
     @pytest.mark.asyncio

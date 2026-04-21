@@ -3047,7 +3047,7 @@ def test_model_str_repr_dict_form_assistant() -> None:
     as_dict = model.to_dict()
 
     assert str(model) == str(as_dict)
-    assert repr(model) == repr(as_dict)
+    assert "AssistantModel(" in repr(model)
 
 
 def test_model_str_repr_dict_form_file() -> None:

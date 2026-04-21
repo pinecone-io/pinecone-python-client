@@ -46,6 +46,7 @@ class TestSearchRecordsAlias:
                 fields=None,
                 rerank=None,
                 match_terms=None,
+                timeout=None,
             )
 
     def test_search_records_returns_search_result(self) -> None:
@@ -68,6 +69,7 @@ class TestSearchRecordsAlias:
             "fields": ["title", "genre"],
             "rerank": {"model": "bge-reranker", "rank_fields": ["text"]},
             "match_terms": {"strategy": "all", "terms": ["animal", "duck"]},
+            "timeout": None,
         }
         with patch.object(idx, "search", return_value=expected) as mock_search:
             idx.search_records(**kwargs)
