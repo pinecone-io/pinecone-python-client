@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from pinecone.models.assistant.chat import ChatUsage
 from pinecone.models.assistant.context import (
     ContextImageBlock,
     ContextImageData,
+    ContextResponse,
     ContextTextBlock,
     FileReference,
     MultimodalSnippet,
@@ -182,3 +184,33 @@ class TestMultimodalSnippet:
         m.content = object()  # type: ignore[assignment]
         assert isinstance(repr(m), str)
         assert isinstance(m._repr_html_(), str)
+
+
+def _usage() -> ChatUsage:
+    return ChatUsage(prompt_tokens=1, completion_tokens=0, total_tokens=1)
+
+
+class TestContextResponse:
+    def test_repr_populated(self) -> None:
+        snippets = [TextSnippet(content="hi", score=0.9, reference=_ref())]
+        r = repr(ContextResponse(snippets=snippets, usage=_usage(), id="c-1"))
+        assert "c-1" in r
+
+    def test_repr_large_snippets(self) -> None:
+        s = [TextSnippet(content="x" * 1000, score=0.5, reference=_ref()) for _ in range(100)]
+        assert len(repr(ContextResponse(snippets=s, usage=_usage()))) < 500
+
+    def test_repr_html(self) -> None:
+        snippets = [TextSnippet(content="hi", score=0.9, reference=_ref())]
+        h = ContextResponse(snippets=snippets, usage=_usage())._repr_html_()
+        assert "doc.pdf" in h
+
+    def test_repr_html_empty_snippets(self) -> None:
+        h = ContextResponse(snippets=[], usage=_usage())._repr_html_()
+        assert "<div" in h
+
+    def test_safe_on_malformed(self) -> None:
+        r = ContextResponse(snippets=[], usage=_usage())
+        r.snippets = object()  # type: ignore[assignment]
+        assert isinstance(repr(r), str)
+        assert isinstance(r._repr_html_(), str)

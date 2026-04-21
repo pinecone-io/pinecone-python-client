@@ -312,3 +312,43 @@ class ContextResponse(Struct, kw_only=True):
     snippets: list[ContextSnippet]
     usage: ChatUsage
     id: str | None = None
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        id_part = f"id={self.id!r}, " if self.id is not None else ""
+        return f"ContextResponse({id_part}snippets={len(self.snippets)}, usage={self.usage!r})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ContextResponse(...)")
+            return
+        with p.group(2, "ContextResponse(", ")"):
+            if self.id is not None:
+                p.breakable()
+                p.text(f"id={self.id!r},")
+            p.breakable()
+            p.text(f"snippets={len(self.snippets)},")
+            p.breakable()
+            p.text(f"usage={self.usage!r},")
+            for snippet in self.snippets[:3]:
+                p.breakable()
+                p.text(repr(snippet))
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ContextResponse")
+        if self.id is not None:
+            builder.row("Id", self.id)
+        builder.row("Snippets", len(self.snippets))
+        builder.row("Usage", repr(self.usage))
+        section_rows: list[tuple[str, Any]] = []
+        for snippet in self.snippets[:5]:
+            snippet_type = type(snippet).__name__
+            score = snippet.score
+            file_name = snippet.reference.file.name
+            section_rows.append((snippet_type, f"score={score}, file={file_name}"))
+        if len(self.snippets) > 5:
+            section_rows.append(("...", f"{len(self.snippets) - 5} more"))
+        builder.section("Snippets", section_rows)
+        return builder.build()
