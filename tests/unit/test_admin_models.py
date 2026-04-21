@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyWithSecret
+from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyRole, APIKeyWithSecret
 from pinecone.models.admin.organization import OrganizationList, OrganizationModel
 from pinecone.models.admin.project import ProjectList, ProjectModel
 
@@ -180,7 +180,7 @@ class TestAPIKeyModel:
             id="key-123",
             name="my-key",
             project_id="proj-456",
-            roles=["ProjectEditor", "DataPlaneEditor"],
+            roles=[APIKeyRole.PROJECT_EDITOR, APIKeyRole.DATA_PLANE_EDITOR],
         )
         assert api_key.id == "key-123"
         assert api_key.name == "my-key"
@@ -192,7 +192,7 @@ class TestAPIKeyModel:
             id="key-123",
             name="my-key",
             project_id="proj-456",
-            roles=["ProjectEditor"],
+            roles=[APIKeyRole.PROJECT_EDITOR],
         )
         assert api_key["name"] == "my-key"
         assert api_key["roles"] == ["ProjectEditor"]
@@ -204,7 +204,7 @@ class TestAPIKeyModel:
             id="key-123",
             name="my-key",
             project_id="proj-456",
-            roles=["ProjectEditor"],
+            roles=[APIKeyRole.PROJECT_EDITOR],
         )
         secret = APIKeyWithSecret(key=inner_key, value="pcsk_secret_value")
         assert secret.key is inner_key
@@ -216,7 +216,7 @@ class TestAPIKeyModel:
             id="key-123",
             name="my-key",
             project_id="proj-456",
-            roles=["ProjectEditor"],
+            roles=[APIKeyRole.PROJECT_EDITOR],
         )
         secret = APIKeyWithSecret(key=inner_key, value="pcsk_secret_value")
         assert secret["value"] == "pcsk_secret_value"
@@ -229,7 +229,7 @@ class TestAPIKeyModel:
             id="key-123",
             name="my-key",
             project_id="proj-456",
-            roles=["ProjectEditor"],
+            roles=[APIKeyRole.PROJECT_EDITOR],
         )
         secret = APIKeyWithSecret(key=inner_key, value="pcsk_abc123_secret_key9")
         result = repr(secret)
@@ -243,7 +243,7 @@ class TestAPIKeyModel:
             id="key-123",
             name="my-key",
             project_id="proj-456",
-            roles=["ProjectEditor"],
+            roles=[APIKeyRole.PROJECT_EDITOR],
         )
         secret = APIKeyWithSecret(key=inner_key, value="ab")
         result = repr(secret)
@@ -255,9 +255,10 @@ class TestAPIKeyModel:
             id="key-123",
             name="my-key",
             project_id="proj-456",
-            roles=["ProjectEditor"],
+            roles=[APIKeyRole.PROJECT_EDITOR],
         )
         assert api_key.role == "ProjectEditor"
+        assert isinstance(api_key.role, APIKeyRole)
 
     def test_api_key_role_singular_raises_when_empty(self) -> None:
         api_key = APIKeyModel(
@@ -274,16 +275,20 @@ class TestAPIKeyModel:
             id="key-123",
             name="my-key",
             project_id="proj-456",
-            roles=["ProjectEditor", "DataPlaneEditor"],
+            roles=[APIKeyRole.PROJECT_EDITOR, APIKeyRole.DATA_PLANE_EDITOR],
         )
-        with pytest.raises(ValueError, match="use .roles"):
+        with pytest.raises(ValueError, match=r"use \.roles"):
             _ = api_key.role
 
     def test_api_key_list_names(self) -> None:
         keys = APIKeyList(
             [
-                APIKeyModel(id="k-1", name="key-alpha", project_id="p-1", roles=["ProjectEditor"]),
-                APIKeyModel(id="k-2", name="key-beta", project_id="p-1", roles=["ProjectViewer"]),
+                APIKeyModel(
+                    id="k-1", name="key-alpha", project_id="p-1", roles=[APIKeyRole.PROJECT_EDITOR]
+                ),
+                APIKeyModel(
+                    id="k-2", name="key-beta", project_id="p-1", roles=[APIKeyRole.PROJECT_VIEWER]
+                ),
             ]
         )
         assert keys.names() == ["key-alpha", "key-beta"]
@@ -291,8 +296,27 @@ class TestAPIKeyModel:
     def test_api_key_list_len_and_iter(self) -> None:
         keys = APIKeyList(
             [
-                APIKeyModel(id="k-1", name="key-alpha", project_id="p-1", roles=["ProjectEditor"]),
+                APIKeyModel(
+                    id="k-1", name="key-alpha", project_id="p-1", roles=[APIKeyRole.PROJECT_EDITOR]
+                ),
             ]
         )
         assert len(keys) == 1
         assert [k.name for k in keys] == ["key-alpha"]
+
+    def test_api_key_roles_typed_as_enum_when_decoded(self) -> None:
+        import msgspec
+
+        data = b'{"id":"key-1","name":"k","project_id":"p","roles":["ProjectEditor"]}'
+        key = msgspec.json.decode(data, type=APIKeyModel)
+        assert isinstance(key.roles[0], APIKeyRole)
+        assert key.roles[0] == APIKeyRole.PROJECT_EDITOR
+        assert key.roles[0] == "ProjectEditor"
+
+    def test_api_key_roles_enum_equality_preserved(self) -> None:
+        import msgspec
+
+        data = b'{"id":"key-1","name":"k","project_id":"p","roles":["ProjectEditor"]}'
+        key = msgspec.json.decode(data, type=APIKeyModel)
+        assert key.roles[0] == APIKeyRole.PROJECT_EDITOR
+        assert key.roles[0] == "ProjectEditor"

@@ -388,9 +388,7 @@ def test_create_with_enum_roles(api_keys: ApiKeys) -> None:
 
     # Enum value serialized as plain string on the wire
     request = route.calls[0].request
-    expected_body = httpx.Request(
-        "POST", "/", json={"name": "mykey", "roles": ["ProjectViewer"]}
-    )
+    expected_body = httpx.Request("POST", "/", json={"name": "mykey", "roles": ["ProjectViewer"]})
     assert request.content == expected_body.content
 
 
@@ -408,9 +406,7 @@ def test_update_with_enum_roles(api_keys: ApiKeys) -> None:
     assert result.roles == ["ControlPlaneViewer"]
 
     request = route.calls[0].request
-    expected_body = httpx.Request(
-        "PATCH", "/", json={"roles": ["ControlPlaneViewer"]}
-    )
+    expected_body = httpx.Request("PATCH", "/", json={"roles": ["ControlPlaneViewer"]})
     assert request.content == expected_body.content
 
 
@@ -422,6 +418,50 @@ def test_create_invalid_role_raises(api_keys: ApiKeys) -> None:
 def test_update_invalid_role_raises(api_keys: ApiKeys) -> None:
     with pytest.raises(ValidationError, match="Invalid role"):
         api_keys.update(api_key_id="k1", roles=["NotARealRole"])
+
+
+@respx.mock
+def test_decoded_roles_are_api_key_role_instances(api_keys: ApiKeys) -> None:
+    respx.get(f"{BASE_URL}/admin/api-keys/k1").mock(
+        return_value=httpx.Response(
+            200,
+            json=_api_key_response(id="k1", roles=["ProjectEditor"]),
+        ),
+    )
+
+    result = api_keys.describe(api_key_id="k1")
+
+    assert isinstance(result.roles[0], APIKeyRole)
+
+
+@respx.mock
+def test_decoded_roles_enum_comparison(api_keys: ApiKeys) -> None:
+    respx.get(f"{BASE_URL}/admin/api-keys/k1").mock(
+        return_value=httpx.Response(
+            200,
+            json=_api_key_response(id="k1", roles=["ProjectEditor"]),
+        ),
+    )
+
+    result = api_keys.describe(api_key_id="k1")
+
+    assert result.roles[0] == APIKeyRole.PROJECT_EDITOR
+    assert result.roles[0] == "ProjectEditor"
+
+
+@respx.mock
+def test_decoded_role_property_is_api_key_role(api_keys: ApiKeys) -> None:
+    respx.get(f"{BASE_URL}/admin/api-keys/k1").mock(
+        return_value=httpx.Response(
+            200,
+            json=_api_key_response(id="k1", roles=["ProjectEditor"]),
+        ),
+    )
+
+    result = api_keys.describe(api_key_id="k1")
+
+    assert isinstance(result.role, APIKeyRole)
+    assert result.role == APIKeyRole.PROJECT_EDITOR
 
 
 @respx.mock

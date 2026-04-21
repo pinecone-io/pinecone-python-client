@@ -32,17 +32,17 @@ class APIKeyModel(Struct, kw_only=True):
         id: Unique identifier for the API key.
         name: Name of the API key.
         project_id: Identifier of the project the key belongs to.
-        roles: List of roles assigned to the key.
+        roles: List of roles assigned to the key (see :class:`APIKeyRole`).
     """
 
     id: str
     name: str
     project_id: str
-    roles: list[str]
+    roles: list[APIKeyRole]
     description: str | None = None
 
     @property
-    def role(self) -> str:
+    def role(self) -> APIKeyRole:
         """Singular alias for ``roles`` when the key has exactly one role.
 
         Raises:
@@ -51,9 +51,7 @@ class APIKeyModel(Struct, kw_only=True):
         if len(self.roles) == 0:
             raise ValueError("API key has no roles")
         if len(self.roles) > 1:
-            raise ValueError(
-                f"API key has {len(self.roles)} roles; use .roles to access all"
-            )
+            raise ValueError(f"API key has {len(self.roles)} roles; use .roles to access all")
         return self.roles[0]
 
     def __getitem__(self, key: str) -> Any:

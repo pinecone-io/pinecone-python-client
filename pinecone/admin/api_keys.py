@@ -19,15 +19,15 @@ logger = logging.getLogger(__name__)
 _VALID_ROLES = {r.value for r in APIKeyRole}
 
 
-def _validate_roles(roles: builtins.list[APIKeyRole | str]) -> builtins.list[str]:
-    """Validate each role and return plain string values."""
-    result: builtins.list[str] = []
+def _validate_roles(roles: builtins.list[APIKeyRole | str]) -> builtins.list[APIKeyRole]:
+    """Validate each role and return typed enum values."""
+    result: builtins.list[APIKeyRole] = []
     for role in roles:
         role_str = role.value if isinstance(role, APIKeyRole) else role
         if role_str not in _VALID_ROLES:
             opts = ", ".join(repr(v) for v in sorted(_VALID_ROLES))
             raise ValidationError(f"Invalid role {role_str!r}. Must be one of {opts}")
-        result.append(role_str)
+        result.append(APIKeyRole(role_str))
     return result
 
 
