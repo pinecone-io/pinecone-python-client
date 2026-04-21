@@ -7,11 +7,12 @@ from typing import Any
 from msgspec import Struct
 
 from pinecone.models._display import HtmlBuilder, abbreviate_list, safe_display
+from pinecone.models.assistant._mixin import StructDictMixin
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.model import AssistantModel
 
 
-class ListAssistantsResponse(Struct, kw_only=True):
+class ListAssistantsResponse(StructDictMixin, Struct, kw_only=True):
     """Paginated response for listing assistants.
 
     Attributes:
@@ -60,7 +61,7 @@ class ListAssistantsResponse(Struct, kw_only=True):
         return builder.build()
 
 
-class ListFilesResponse(Struct, kw_only=True):
+class ListFilesResponse(StructDictMixin, Struct, kw_only=True):
     """Paginated response for listing assistant files.
 
     Attributes:

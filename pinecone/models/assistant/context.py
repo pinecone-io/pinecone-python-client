@@ -7,11 +7,12 @@ from typing import Any, TypeAlias
 from msgspec import Struct
 
 from pinecone.models._display import HtmlBuilder, abbreviate_list, safe_display, truncate_text
+from pinecone.models.assistant._mixin import StructDictMixin
 from pinecone.models.assistant.chat import ChatUsage
 from pinecone.models.assistant.file_model import AssistantFileModel
 
 
-class ContextImageData(Struct, kw_only=True):
+class ContextImageData(StructDictMixin, Struct, kw_only=True):
     """Base64-encoded image data within a context snippet.
 
     Attributes:
@@ -106,7 +107,7 @@ class ContextImageBlock(
         return builder.build()
 
 
-class ContextTextBlock(Struct, kw_only=True, tag="text", tag_field="type"):
+class ContextTextBlock(StructDictMixin, Struct, kw_only=True, tag="text", tag_field="type"):
     """A text block within a multimodal context snippet.
 
     Attributes:
@@ -137,7 +138,7 @@ ContextContentBlock: TypeAlias = ContextTextBlock | ContextImageBlock
 """A content block within a multimodal snippet — either text or image."""
 
 
-class FileReference(Struct, kw_only=True):
+class FileReference(StructDictMixin, Struct, kw_only=True):
     """A reference to a source file.
 
     Attributes:
@@ -183,7 +184,7 @@ ContextReference: TypeAlias = FileReference
 """A reference to a source file."""
 
 
-class TextSnippet(Struct, kw_only=True, tag="text", tag_field="type"):
+class TextSnippet(StructDictMixin, Struct, kw_only=True, tag="text", tag_field="type"):
     """A text context snippet from a source document.
 
     Attributes:
@@ -233,7 +234,7 @@ class TextSnippet(Struct, kw_only=True, tag="text", tag_field="type"):
         return builder.build()
 
 
-class MultimodalSnippet(Struct, kw_only=True, tag="multimodal", tag_field="type"):
+class MultimodalSnippet(StructDictMixin, Struct, kw_only=True, tag="multimodal", tag_field="type"):
     """A multimodal context snippet containing text and/or image blocks.
 
     Attributes:
@@ -299,7 +300,7 @@ ContextSnippet: TypeAlias = TextSnippet | MultimodalSnippet
 """A context snippet — either text or multimodal."""
 
 
-class ContextResponse(Struct, kw_only=True):
+class ContextResponse(StructDictMixin, Struct, kw_only=True):
     """Response from the assistant context endpoint.
 
     Attributes:

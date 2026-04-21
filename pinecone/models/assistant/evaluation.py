@@ -7,12 +7,13 @@ from typing import Any, Literal
 from msgspec import Struct
 
 from pinecone.models._display import HtmlBuilder, safe_display, truncate_text
+from pinecone.models.assistant._mixin import StructDictMixin
 from pinecone.models.assistant.chat import ChatUsage
 
 EntailmentType = Literal["entailed", "contradicted", "neutral"] | str
 
 
-class EntailmentResult(Struct, kw_only=True):
+class EntailmentResult(StructDictMixin, Struct, kw_only=True):
     """A single fact with its entailment judgment.
 
     Attributes:
@@ -65,7 +66,7 @@ class EntailmentResult(Struct, kw_only=True):
         return builder.build()
 
 
-class AlignmentScores(Struct, kw_only=True):
+class AlignmentScores(StructDictMixin, Struct, kw_only=True):
     """Aggregate alignment scores for an evaluation.
 
     Attributes:
@@ -108,7 +109,7 @@ class AlignmentScores(Struct, kw_only=True):
         return builder.build()
 
 
-class AlignmentResult(Struct, kw_only=True):
+class AlignmentResult(StructDictMixin, Struct, kw_only=True):
     """Full result of an alignment evaluation.
 
     Attributes:
