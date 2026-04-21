@@ -41,12 +41,10 @@ class ApiKeys:
         http (HTTPClient): HTTP client for making API requests.
 
     Examples:
-
-        from pinecone import Admin
-
-        admin = Admin(client_id="my-id", client_secret="my-secret")
-        for key in admin.api_keys.list(project_id="proj-abc123"):
-            print(key.name)
+        >>> from pinecone import Admin
+        >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+        >>> for key in admin.api_keys.list(project_id="proj-abc123"):
+        ...     print(key.name)
     """
 
     def __init__(self, *, http: HTTPClient) -> None:
@@ -71,7 +69,8 @@ class ApiKeys:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            >>> admin = Admin(client_id="my-id", client_secret="my-secret")
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> for key in admin.api_keys.list(project_id="proj-abc123"):
             ...     print(key.name)
         """
@@ -111,14 +110,17 @@ class ApiKeys:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            >>> from pinecone import Admin, APIKeyRole
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> result = admin.api_keys.create(
-            ...     project_id="proj-abc123", name="my-key"
+            ...     project_id="proj-abc123", name="prod-search-key",
+            ...     roles=[APIKeyRole.PROJECT_EDITOR]
             ... )
             >>> result.value
             'pcsk_...'
 
             >>> result = admin.api_keys.create(
-            ...     project_id="proj-abc123", name="ci-key", roles=["ProjectViewer"]
+            ...     project_id="proj-abc123", name="ci-pipeline-key", roles=["ProjectViewer"]
             ... )
             >>> result.key.roles
             ['ProjectViewer']
@@ -150,6 +152,8 @@ class ApiKeys:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> key = admin.api_keys.describe(api_key_id="key-abc123")
             >>> key.name
             'my-key'
@@ -186,6 +190,8 @@ class ApiKeys:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> key = admin.api_keys.update(
             ...     api_key_id="key-abc123", name="new-name"
             ... )
@@ -215,6 +221,8 @@ class ApiKeys:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> admin.api_keys.delete(api_key_id="key-abc123")
         """
         require_non_empty("api_key_id", api_key_id)

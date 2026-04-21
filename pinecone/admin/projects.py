@@ -28,12 +28,10 @@ class Projects:
         http (HTTPClient): HTTP client for making API requests.
 
     Examples:
-
-        from pinecone import Admin
-
-        admin = Admin(client_id="my-id", client_secret="my-secret")
-        for project in admin.projects.list():
-            print(project.name)
+        >>> from pinecone import Admin
+        >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+        >>> for project in admin.projects.list():
+        ...     print(project.name)
     """
 
     def __init__(self, *, http: HTTPClient, admin: Admin | None = None) -> None:
@@ -55,7 +53,8 @@ class Projects:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            >>> admin = Admin(client_id="my-id", client_secret="my-secret")
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> for project in admin.projects.list():
             ...     print(project.name)
         """
@@ -88,6 +87,8 @@ class Projects:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> project = admin.projects.create(name="my-project")
             >>> project.name
             'my-project'
@@ -118,6 +119,8 @@ class Projects:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> project = admin.projects.describe(project_id="proj-abc123")
             >>> project.name
             'my-project'
@@ -146,6 +149,8 @@ class Projects:
             :exc:`PineconeError`: If multiple projects share *name*.
 
         Examples:
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> project = admin.projects.describe_by_name(name="my-project")
             >>> project.id
             'proj-abc123'
@@ -184,6 +189,8 @@ class Projects:
             :exc:`ValidationError`: If neither or both arguments are provided.
 
         Examples:
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> admin.projects.exists(project_id="proj-abc123")
             True
             >>> admin.projects.exists(name="nonexistent")
@@ -227,6 +234,8 @@ class Projects:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> project = admin.projects.update(
             ...     project_id="proj-abc123", name="new-name"
             ... )
@@ -318,7 +327,8 @@ class Projects:
             :exc:`ApiError`: If resource cleanup or project deletion fails after all retries.
 
         Examples:
-            >>> admin = Admin(client_id="my-id", client_secret="my-secret")
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> admin.projects.delete_with_cleanup(project_id="proj-abc123")
         """
         if self._admin is None:
@@ -389,6 +399,8 @@ class Projects:
                 still has indexes/collections/backups).
 
         Examples:
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> admin.projects.delete(project_id="proj-abc123")
         """
         require_non_empty("project_id", project_id)
