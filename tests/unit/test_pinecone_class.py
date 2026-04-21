@@ -506,3 +506,52 @@ class TestPineconeIndexAsyncioDelegate:
         mock_async_index.assert_called_once()
         _, kwargs = mock_async_index.call_args
         assert kwargs["host"] == "my-index.svc.pinecone.io"
+
+
+# ---------------------------------------------------------------------------
+# Lazy namespace property first-access and caching
+# ---------------------------------------------------------------------------
+
+
+class TestLazyNamespaces:
+    def test_collections_lazy_instantiation(self) -> None:
+        from pinecone.client.collections import Collections
+
+        pc = Pinecone(api_key="test-key")
+        assert pc._collections is None
+        result = pc.collections
+        assert isinstance(result, Collections)
+        assert pc._collections is result
+
+    def test_collections_cached_on_second_access(self) -> None:
+        pc = Pinecone(api_key="test-key")
+        first_access = pc.collections
+        assert pc.collections is first_access
+
+    def test_backups_lazy_instantiation(self) -> None:
+        from pinecone.client.backups import Backups
+
+        pc = Pinecone(api_key="test-key")
+        assert pc._backups is None
+        result = pc.backups
+        assert isinstance(result, Backups)
+        assert pc._backups is result
+
+    def test_backups_cached_on_second_access(self) -> None:
+        pc = Pinecone(api_key="test-key")
+        first_access = pc.backups
+        assert pc.backups is first_access
+
+    def test_restore_jobs_lazy_instantiation(self) -> None:
+        from pinecone.client.restore_jobs import RestoreJobs
+
+        pc = Pinecone(api_key="test-key")
+        assert pc._restore_jobs is None
+        result = pc.restore_jobs
+        assert isinstance(result, RestoreJobs)
+        assert pc._restore_jobs is result
+
+    def test_restore_jobs_cached_on_second_access(self) -> None:
+        pc = Pinecone(api_key="test-key")
+        first_access = pc.restore_jobs
+        assert pc.restore_jobs is first_access
