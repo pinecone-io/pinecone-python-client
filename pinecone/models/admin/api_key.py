@@ -15,6 +15,29 @@ class APIKeyRole(str, Enum):
     Possible values: ``PROJECT_EDITOR``, ``PROJECT_VIEWER``,
     ``CONTROL_PLANE_EDITOR``, ``CONTROL_PLANE_VIEWER``,
     ``DATA_PLANE_EDITOR``, ``DATA_PLANE_VIEWER``.
+
+    Examples:
+        Create a read-only API key using the enum:
+
+        >>> from pinecone import Admin
+        >>> from pinecone.models.admin.api_key import APIKeyRole
+        >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+        >>> result = admin.api_keys.create(
+        ...     project_id="proj-abc123",
+        ...     name="read-only-key",
+        ...     roles=[APIKeyRole.DATA_PLANE_VIEWER],
+        ... )
+        >>> result.key.roles
+        [<APIKeyRole.DATA_PLANE_VIEWER: 'DataPlaneViewer'>]
+
+        Update a key to use control-plane access:
+
+        >>> key = admin.api_keys.update(
+        ...     api_key_id="key-abc123",
+        ...     roles=[APIKeyRole.CONTROL_PLANE_EDITOR],
+        ... )
+        >>> key.role
+        <APIKeyRole.CONTROL_PLANE_EDITOR: 'ControlPlaneEditor'>
     """
 
     PROJECT_EDITOR = "ProjectEditor"
@@ -29,10 +52,28 @@ class APIKeyModel(Struct, kw_only=True):
     """Response model for a Pinecone API key.
 
     Attributes:
-        id: Unique identifier for the API key.
-        name: Name of the API key.
-        project_id: Identifier of the project the key belongs to.
-        roles: List of roles assigned to the key (see :class:`APIKeyRole`).
+        id (str): Unique identifier for the API key.
+        name (str): Name of the API key.
+        project_id (str): Identifier of the project the key belongs to.
+        roles (list[APIKeyRole]): List of roles assigned to the key
+            (see :class:`APIKeyRole`).
+        description (str | None): Optional description for the API key.
+            ``None`` if no description was set.
+
+    Examples:
+        Retrieve an API key and inspect its fields:
+
+        >>> from pinecone import Admin
+        >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+        >>> key = admin.api_keys.describe(api_key_id="key-abc123")
+        >>> key.id
+        'key-abc123'
+        >>> key.name
+        'prod-search-key'
+        >>> key.roles
+        [<APIKeyRole.DATA_PLANE_EDITOR: 'DataPlaneEditor'>]
+        >>> key.description
+        'Used by the search service'
     """
 
     id: str
@@ -45,8 +86,26 @@ class APIKeyModel(Struct, kw_only=True):
     def role(self) -> APIKeyRole:
         """Singular alias for ``roles`` when the key has exactly one role.
 
+        Returns:
+            str: The single role assigned to this key.
+
         Raises:
-            ValueError: If the key has no roles or more than one role.
+            :exc:`ValueError`: If the key has no roles or more than one role.
+
+        Examples:
+            Access the role of a single-role key:
+
+            >>> key = admin.api_keys.describe(api_key_id="key-abc123")
+            >>> key.role
+            <APIKeyRole.DATA_PLANE_EDITOR: 'DataPlaneEditor'>
+
+            Keys with multiple roles raise :exc:`ValueError`; use :attr:`roles` instead:
+
+            >>> try:
+            ...     key.role
+            ... except ValueError as exc:
+            ...     print(exc)
+            API key has 2 roles; use .roles to access all
         """
         if len(self.roles) == 0:
             raise ValueError("API key has no roles")
