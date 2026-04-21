@@ -129,22 +129,40 @@ class _RetryTransport(httpx.BaseTransport):
         self._config = retry_config or RetryConfig()
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
-        response = self._transport.handle_request(request)
-        for attempt in range(self._config.max_retries - 1):
+        last_exc: httpx.TransportError | None = None
+        for attempt in range(self._config.max_retries):
+            try:
+                response = self._transport.handle_request(request)
+            except httpx.TransportError as exc:
+                last_exc = exc
+                if attempt < self._config.max_retries - 1:
+                    logger.debug(
+                        "Connection error on attempt %d/%d, retrying: %s",
+                        attempt + 1,
+                        self._config.max_retries,
+                        exc,
+                    )
+                    time.sleep(self._compute_backoff(attempt))
+                continue
+            last_exc = None
             if response.status_code not in self._config.retryable_status_codes:
                 return response
-            response.close()
-            retry_after = response.headers.get("retry-after")
-            if retry_after is not None:
-                try:
-                    delay = float(retry_after)
-                except ValueError:
+            if attempt < self._config.max_retries - 1:
+                response.close()
+                retry_after = response.headers.get("retry-after")
+                if retry_after is not None:
+                    try:
+                        delay = float(retry_after)
+                    except ValueError:
+                        delay = self._compute_backoff(attempt)
+                else:
                     delay = self._compute_backoff(attempt)
+                time.sleep(delay)
             else:
-                delay = self._compute_backoff(attempt)
-            time.sleep(delay)
-            response = self._transport.handle_request(request)
-        return response
+                return response
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError("max_retries must be positive")
 
     def _compute_backoff(self, attempt: int) -> float:
         """Floored full jitter: uniform in [10%, 100%] of exponential base."""
@@ -171,22 +189,40 @@ class _AsyncRetryTransport(httpx.AsyncBaseTransport):
         self._config = retry_config or RetryConfig()
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
-        response = await self._transport.handle_async_request(request)
-        for attempt in range(self._config.max_retries - 1):
+        last_exc: httpx.TransportError | None = None
+        for attempt in range(self._config.max_retries):
+            try:
+                response = await self._transport.handle_async_request(request)
+            except httpx.TransportError as exc:
+                last_exc = exc
+                if attempt < self._config.max_retries - 1:
+                    logger.debug(
+                        "Connection error on attempt %d/%d, retrying: %s",
+                        attempt + 1,
+                        self._config.max_retries,
+                        exc,
+                    )
+                    await asyncio.sleep(self._compute_backoff(attempt))
+                continue
+            last_exc = None
             if response.status_code not in self._config.retryable_status_codes:
                 return response
-            await response.aclose()
-            retry_after = response.headers.get("retry-after")
-            if retry_after is not None:
-                try:
-                    delay = float(retry_after)
-                except ValueError:
+            if attempt < self._config.max_retries - 1:
+                await response.aclose()
+                retry_after = response.headers.get("retry-after")
+                if retry_after is not None:
+                    try:
+                        delay = float(retry_after)
+                    except ValueError:
+                        delay = self._compute_backoff(attempt)
+                else:
                     delay = self._compute_backoff(attempt)
+                await asyncio.sleep(delay)
             else:
-                delay = self._compute_backoff(attempt)
-            await asyncio.sleep(delay)
-            response = await self._transport.handle_async_request(request)
-        return response
+                return response
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError("max_retries must be positive")
 
     def _compute_backoff(self, attempt: int) -> float:
         """Floored full jitter: uniform in [10%, 100%] of exponential base."""
