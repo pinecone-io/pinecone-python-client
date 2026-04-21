@@ -76,3 +76,34 @@ class ListFilesResponse(Struct, kw_only=True):
     def next_token(self) -> str | None:
         """Backwards-compatibility alias for :attr:`next`."""
         return self.next
+
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return f"ListFilesResponse(count={len(self.files)}, next={self.next!r})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ListFilesResponse(...)")
+            return
+        preview = abbreviate_list(self.files, head=3, formatter=lambda f: f.name)
+        with p.group(2, "ListFilesResponse(", ")"):
+            p.breakable()
+            p.text(f"count={len(self.files)},")
+            p.breakable()
+            p.text(f"next={self.next!r},")
+            p.breakable()
+            p.text(f"files={preview}")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        next_display = self.next if self.next is not None else "—"
+        builder = HtmlBuilder("ListFilesResponse")
+        builder.row("Count:", len(self.files))
+        builder.row("Next page token:", next_display)
+        shown = self.files[:5]
+        section_rows: list[tuple[str, Any]] = [(f.name, f.status) for f in shown]
+        if len(self.files) > 5:
+            section_rows.append(("...", f"{len(self.files) - 5} more"))
+        builder.section("Files", section_rows)
+        return builder.build()
