@@ -75,6 +75,7 @@ class Admin:
             request.
         proxy_url (str | None): HTTP proxy URL for outgoing requests.
         ssl_verify (bool): Whether to verify SSL certificates. Defaults to ``True``.
+        source_tag (str | None): Tag appended to the User-Agent string for request attribution.
 
     Raises:
         :exc:`ValidationError`: If client_id or client_secret cannot be resolved.
@@ -97,6 +98,7 @@ class Admin:
         additional_headers: dict[str, str] | None = None,
         proxy_url: str | None = None,
         ssl_verify: bool = True,
+        source_tag: str | None = None,
     ) -> None:
         resolved_id = client_id or os.environ.get("PINECONE_CLIENT_ID", "")
         resolved_secret = client_secret or os.environ.get("PINECONE_CLIENT_SECRET", "")
@@ -112,11 +114,14 @@ class Admin:
                 "PINECONE_CLIENT_SECRET environment variable."
             )
 
+        resolved_source_tag = source_tag or ""
+
         token = self._fetch_token(
             resolved_id,
             resolved_secret,
             proxy_url=proxy_url,
             ssl_verify=ssl_verify,
+            source_tag=resolved_source_tag,
         )
 
         headers: dict[str, str] = {
@@ -132,6 +137,7 @@ class Admin:
             additional_headers=headers,
             proxy_url=proxy_url or "",
             ssl_verify=ssl_verify,
+            source_tag=resolved_source_tag,
         )
         # Prevent __post_init__ from falling back to PINECONE_API_KEY env var.
         # The Admin client authenticates via OAuth Bearer token, not Api-Key.
@@ -150,6 +156,7 @@ class Admin:
         *,
         proxy_url: str | None = None,
         ssl_verify: bool = True,
+        source_tag: str | None = None,
     ) -> str:
         """Exchange client credentials for a Bearer token.
 
@@ -158,6 +165,7 @@ class Admin:
             client_secret: OAuth2 client secret.
             proxy_url: Optional HTTP proxy URL.
             ssl_verify: Whether to verify SSL certificates.
+            source_tag: Optional source tag to append to the User-Agent string.
 
         Returns:
             The access token string.
@@ -188,7 +196,7 @@ class Admin:
                     content=body,
                     headers={
                         "Content-Type": "application/json",
-                        "User-Agent": build_user_agent(__version__, None),
+                        "User-Agent": build_user_agent(__version__, source_tag),
                         API_VERSION_HEADER: ADMIN_API_VERSION,
                     },
                 )

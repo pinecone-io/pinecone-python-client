@@ -9,6 +9,8 @@ import pytest
 import respx
 from httpx import Response
 
+from pinecone import __version__
+from pinecone._internal.constants import DEFAULT_BASE_URL
 from pinecone.admin.admin import _OAUTH_URL, Admin
 from pinecone.errors.exceptions import (
     ApiError,
@@ -244,6 +246,48 @@ class TestAdminOAuthUserAgent:
         request = route.calls.last.request
         ua = request.headers.get("User-Agent", "")
         assert ua.startswith("python-client-")
+
+        admin.close()
+
+
+class TestAdminSourceTag:
+    """Test that source_tag is correctly threaded into User-Agent headers."""
+
+    @respx.mock
+    def test_source_tag_appears_in_oauth_user_agent(self) -> None:
+        route = respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
+
+        admin = Admin(client_id="test-id", client_secret="test-secret", source_tag="myapp")
+
+        ua = route.calls.last.request.headers["User-Agent"]
+        assert ua.startswith("python-client-")
+        assert "source_tag=myapp" in ua
+
+        admin.close()
+
+    @respx.mock
+    def test_source_tag_appears_in_admin_api_user_agent(self) -> None:
+        respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
+        admin_route = respx.get(f"{DEFAULT_BASE_URL}/admin/organizations").mock(
+            return_value=Response(200, json={"data": []})
+        )
+
+        admin = Admin(client_id="test-id", client_secret="test-secret", source_tag="myapp")
+        admin.organizations.list()
+
+        ua = admin_route.calls.last.request.headers["User-Agent"]
+        assert "source_tag=myapp" in ua
+
+        admin.close()
+
+    @respx.mock
+    def test_no_source_tag_omits_suffix(self) -> None:
+        route = respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
+
+        admin = Admin(client_id="test-id", client_secret="test-secret")
+
+        ua = route.calls.last.request.headers["User-Agent"]
+        assert ua == f"python-client-{__version__}"
 
         admin.close()
 
