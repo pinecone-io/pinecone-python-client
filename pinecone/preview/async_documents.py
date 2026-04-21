@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 import msgspec
 
+from pinecone._internal.adapters.vectors_adapter import extract_response_info
 from pinecone._internal.batch import async_batch_execute
 from pinecone._internal.validation import require_in_range, require_non_empty
 from pinecone.errors.exceptions import PineconeValueError
@@ -224,7 +225,9 @@ class AsyncPreviewDocuments:
             f"/namespaces/{namespace}/documents/upsert",
             json={"documents": documents},
         )
-        return _UPSERT_DECODER.decode(response.content)
+        result = _UPSERT_DECODER.decode(response.content)
+        result.response_info = extract_response_info(response)
+        return result
 
     async def batch_upsert(
         self,

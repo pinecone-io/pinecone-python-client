@@ -239,3 +239,95 @@ async def test_async_upsert_duplicate_id_raises_with_offending_id(
             namespace="ns",
             documents=[{"_id": "dup-id"}, {"_id": "dup-id"}],
         )
+
+
+# ---------------------------------------------------------------------------
+# Sync — response_info
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_upsert_response_carries_response_info(docs: PreviewDocuments) -> None:
+    respx.post(UPSERT_URL).mock(
+        return_value=httpx.Response(
+            200,
+            json={"upserted_count": 2},
+            headers={
+                "x-pinecone-request-id": "req-abc",
+                "x-pinecone-lsn-reconciled": "10",
+                "x-pinecone-lsn-committed": "12",
+            },
+        )
+    )
+    result = docs.upsert(
+        namespace="my-ns",
+        documents=[{"_id": "a", "text": "hello"}, {"_id": "b", "text": "world"}],
+    )
+    assert result.response_info is not None
+    assert result.response_info.request_id == "req-abc"
+    assert result.response_info.lsn_reconciled == 10
+    assert result.response_info.lsn_committed == 12
+
+
+@respx.mock
+def test_upsert_response_info_is_none_when_headers_absent(docs: PreviewDocuments) -> None:
+    respx.post(UPSERT_URL).mock(
+        return_value=httpx.Response(200, json={"upserted_count": 1})
+    )
+    result = docs.upsert(
+        namespace="my-ns",
+        documents=[{"_id": "a", "text": "hello"}],
+    )
+    assert result.response_info is not None
+    assert result.response_info.request_id is None
+    assert result.response_info.lsn_reconciled is None
+    assert result.response_info.lsn_committed is None
+
+
+# ---------------------------------------------------------------------------
+# Async — response_info
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_upsert_response_carries_response_info(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    respx.post(UPSERT_URL).mock(
+        return_value=httpx.Response(
+            200,
+            json={"upserted_count": 2},
+            headers={
+                "x-pinecone-request-id": "req-abc",
+                "x-pinecone-lsn-reconciled": "10",
+                "x-pinecone-lsn-committed": "12",
+            },
+        )
+    )
+    result = await async_docs.upsert(
+        namespace="my-ns",
+        documents=[{"_id": "a", "text": "hello"}, {"_id": "b", "text": "world"}],
+    )
+    assert result.response_info is not None
+    assert result.response_info.request_id == "req-abc"
+    assert result.response_info.lsn_reconciled == 10
+    assert result.response_info.lsn_committed == 12
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_async_upsert_response_info_is_none_when_headers_absent(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    respx.post(UPSERT_URL).mock(
+        return_value=httpx.Response(200, json={"upserted_count": 1})
+    )
+    result = await async_docs.upsert(
+        namespace="my-ns",
+        documents=[{"_id": "a", "text": "hello"}],
+    )
+    assert result.response_info is not None
+    assert result.response_info.request_id is None
+    assert result.response_info.lsn_reconciled is None
+    assert result.response_info.lsn_committed is None

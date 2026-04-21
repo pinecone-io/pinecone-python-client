@@ -165,9 +165,12 @@ class PreviewDocumentUpsertResponse(Struct, kw_only=True):
 
     Attributes:
         upserted_count: Number of documents successfully upserted.
+        response_info: HTTP response metadata (request ID and LSN headers),
+            or ``None`` when not present.
     """
 
     upserted_count: int
+    response_info: ResponseInfo | None = None
 
 
 class PreviewDocumentSearchResponse:
