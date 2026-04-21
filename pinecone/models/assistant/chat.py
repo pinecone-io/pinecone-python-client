@@ -302,6 +302,36 @@ class ChatCompletionChoice(StructDictMixin, Struct, kw_only=True):
     message: ChatMessage
     finish_reason: str
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return (
+            f"ChatCompletionChoice(index={self.index!r},"
+            f" finish_reason={self.finish_reason!r},"
+            f" message={self.message!r})"
+        )
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("ChatCompletionChoice(...)")
+            return
+        with p.group(2, "ChatCompletionChoice(", ")"):
+            p.breakable()
+            p.text(f"index={self.index!r},")
+            p.breakable()
+            p.text(f"finish_reason={self.finish_reason!r},")
+            p.breakable()
+            p.text(f"message={self.message!r},")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        builder = HtmlBuilder("ChatCompletionChoice")
+        builder.row("Index", self.index)
+        builder.row("Finish reason", self.finish_reason)
+        builder.row("Role", self.message.role)
+        builder.row("Content", truncate_text(self.message.content, max_chars=500))
+        return builder.build()
+
 
 class ChatCompletionResponse(StructDictMixin, Struct, kw_only=True):
     """Non-streaming response from the OpenAI-compatible chat completion endpoint.

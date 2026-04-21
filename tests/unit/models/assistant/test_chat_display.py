@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pinecone.models.assistant.chat import (
     ChatCitation,
+    ChatCompletionChoice,
     ChatHighlight,
     ChatMessage,
     ChatReference,
@@ -191,3 +192,33 @@ class TestChatResponse:
         r.message = object()  # type: ignore[assignment]
         assert isinstance(repr(r), str)
         assert isinstance(r._repr_html_(), str)
+
+
+class TestChatCompletionChoice:
+    def test_repr(self) -> None:
+        c = ChatCompletionChoice(
+            index=0, message=ChatMessage(role="assistant", content="Hi"), finish_reason="stop"
+        )
+        assert "0" in repr(c) and "stop" in repr(c)
+
+    def test_repr_long_message_bounded(self) -> None:
+        c = ChatCompletionChoice(
+            index=0,
+            message=ChatMessage(role="assistant", content="x" * 10_000),
+            finish_reason="stop",
+        )
+        assert len(repr(c)) < 500
+
+    def test_repr_html(self) -> None:
+        c = ChatCompletionChoice(
+            index=0, message=ChatMessage(role="assistant", content="Hi"), finish_reason="stop"
+        )
+        assert "Hi" in c._repr_html_()
+
+    def test_safe_on_malformed(self) -> None:
+        c = ChatCompletionChoice(
+            index=0, message=ChatMessage(role="a", content="b"), finish_reason="stop"
+        )
+        c.message = object()  # type: ignore[assignment]
+        assert isinstance(repr(c), str)
+        assert isinstance(c._repr_html_(), str)
