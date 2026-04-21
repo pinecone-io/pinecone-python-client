@@ -60,6 +60,37 @@ class PreviewDocument:
         _id: Alias for ``id``.
         score: Relevance score, or ``None`` when not present in the response.
         _score: Alias for ``score``.
+
+    Examples:
+        Search an index and read the top-ranked document:
+
+        >>> from pinecone import Pinecone
+        >>> pc = Pinecone(api_key="your-api-key")
+        >>> index = pc.preview.index(host="https://articles-en-preview.svc.pinecone.io")
+        >>> results = index.documents.search(
+        ...     namespace="articles-en",
+        ...     top_k=5,
+        ...     score_by=[{"field": "chunk_text", "query": "climate change"}],
+        ... )
+        >>> doc = results.matches[0]
+        >>> doc.id
+        'article-42'
+        >>> doc.score
+        0.891
+
+        Read custom document fields via attribute access:
+
+        >>> doc.title  # doctest: +SKIP
+        'Ocean acidification and climate change'
+        >>> doc.category  # doctest: +SKIP
+        'science'
+
+        Read a field via dict-style access:
+
+        >>> doc.get("title")  # doctest: +SKIP
+        'Ocean acidification and climate change'
+        >>> doc.get("missing_field", "n/a")
+        'n/a'
     """
 
     __slots__ = ("_data",)
@@ -93,6 +124,10 @@ class PreviewDocument:
     def get(self, key: str, default: Any = None) -> Any:
         """Return the value for *key* from the document, or *default*.
 
+        Equivalent to :meth:`dict.get` on the underlying document data.
+        Typed properties (``_id``, ``_score``) are reachable via ``.get()``
+        alongside any custom fields returned by the operation.
+
         .. admonition:: Preview
            :class: warning
 
@@ -100,12 +135,33 @@ class PreviewDocument:
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
+
+        Args:
+            key (str): Name of the document field to retrieve.
+            default (Any): Value to return when *key* is absent
+                (default: ``None``).
+
+        Returns:
+            The field value, or *default* if the field is not present.
+
+        Examples:
+            Read a field with a fallback default:
+
+            >>> doc = results.matches[0]
+            >>> doc.get("category")
+            'science'
+            >>> doc.get("missing_field", "n/a")
+            'n/a'
         """
         return self._data.get(key, default)
 
     def to_dict(self) -> dict[str, Any]:
         """Return the document as a plain dictionary.
 
+        Returns a shallow copy of the underlying document data, including
+        ``_id``, ``_score``, and all custom fields from the operation.
+        Mutating the returned dict does not affect the document.
+
         .. admonition:: Preview
            :class: warning
 
@@ -113,12 +169,28 @@ class PreviewDocument:
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
+
+        Returns:
+            :class:`dict` mapping field names to their values.
+
+        Examples:
+            Convert a document to a dict for downstream processing:
+
+            >>> doc = results.matches[0]
+            >>> data = doc.to_dict()
+            >>> data["_id"]
+            'article-42'
+            >>> data["title"]
+            'Ocean acidification and climate change'
         """
         return dict(self._data)
 
     def to_json(self) -> str:
         """Return the document as a JSON string.
 
+        Serializes the document using orjson. The result is a decoded UTF-8
+        string suitable for writing to a file or logging.
+
         .. admonition:: Preview
            :class: warning
 
@@ -126,6 +198,19 @@ class PreviewDocument:
            Preview surface is not covered by SemVer — signatures and behavior
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
+
+        Returns:
+            :class:`str` — a compact JSON-encoded string (decoded UTF-8)
+            containing all document fields, including ``_id``, ``_score``,
+            and any custom fields from the operation.
+
+        Examples:
+            Serialize a document to JSON for logging:
+
+            >>> doc = results.matches[0]
+            >>> json_str = doc.to_json()
+            >>> import json; json.loads(json_str)["_id"]
+            'article-42'
         """
         return orjson.dumps(self._data).decode()
 
