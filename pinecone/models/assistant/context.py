@@ -196,6 +196,42 @@ class TextSnippet(Struct, kw_only=True, tag="text", tag_field="type"):
     score: float
     reference: FileReference
 
+    @safe_display
+    def __repr__(self) -> str:  # type: ignore[override]
+        return (
+            f"TextSnippet(score={self.score!r},"
+            f" reference={self.reference.file.name!r},"
+            f" content={truncate_text(self.content, 80)!r})"
+        )
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            p.text("TextSnippet(...)")
+            return
+        pages_str = (
+            abbreviate_list(self.reference.pages) if self.reference.pages is not None else "None"
+        )
+        p.text(
+            f"TextSnippet(\n"
+            f"  score={self.score!r},\n"
+            f"  reference={self.reference.file.name!r} pages={pages_str},\n"
+            f"  content={truncate_text(self.content, 200)!r}\n"
+            f")"
+        )
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        pages_val = (
+            abbreviate_list(self.reference.pages) if self.reference.pages is not None else "—"
+        )
+        builder = HtmlBuilder("TextSnippet")
+        builder.row("Score", self.score)
+        builder.row("Reference", self.reference.file.name)
+        builder.row("Pages", pages_val)
+        builder.row("Content", truncate_text(self.content, 500))
+        return builder.build()
+
 
 class MultimodalSnippet(Struct, kw_only=True, tag="multimodal", tag_field="type"):
     """A multimodal context snippet containing text and/or image blocks.

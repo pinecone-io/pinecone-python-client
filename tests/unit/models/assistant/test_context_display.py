@@ -5,6 +5,7 @@ from pinecone.models.assistant.context import (
     ContextImageData,
     ContextTextBlock,
     FileReference,
+    TextSnippet,
 )
 from pinecone.models.assistant.file_model import AssistantFileModel
 
@@ -115,3 +116,33 @@ class TestFileReference:
         r.file = object()  # type: ignore[assignment]
         assert isinstance(repr(r), str)
         assert isinstance(r._repr_html_(), str)
+
+
+def _ref() -> FileReference:
+    return FileReference(file=_f(), pages=[1, 2])
+
+
+class TestTextSnippet:
+    def test_repr(self) -> None:
+        r = repr(TextSnippet(content="hello", score=0.9, reference=_ref()))
+        assert "0.9" in r
+        assert "hello" in r
+
+    def test_repr_long_content_truncated(self) -> None:
+        s = TextSnippet(content="x" * 10_000, score=0.5, reference=_ref())
+        assert len(repr(s)) < 500
+
+    def test_repr_html(self) -> None:
+        h = TextSnippet(content="hi", score=0.9, reference=_ref())._repr_html_()
+        assert "hi" in h
+        assert "doc.pdf" in h
+
+    def test_repr_html_long_truncated(self) -> None:
+        h = TextSnippet(content="x" * 100_000, score=1.0, reference=_ref())._repr_html_()
+        assert len(h) < 5000
+
+    def test_safe_on_malformed(self) -> None:
+        s = TextSnippet(content="x", score=0.0, reference=_ref())
+        s.reference = object()  # type: ignore[assignment]
+        assert isinstance(repr(s), str)
+        assert isinstance(s._repr_html_(), str)
