@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from msgspec import Struct
 
 from pinecone._internal.batch import (
     _chunk,
@@ -10,6 +11,12 @@ from pinecone._internal.batch import (
     batch_execute,
 )
 from pinecone.models.batch import BatchResult
+from pinecone.models.response_info import ResponseInfo
+
+
+class _FakeResp(Struct, kw_only=True):
+    response_info: ResponseInfo | None = None
+
 
 # ---------------------------------------------------------------------------
 # Sync: batch_execute
@@ -164,7 +171,6 @@ async def test_async_batch_execute_all_succeed() -> None:
 async def test_async_batch_execute_partial_failure() -> None:
     """Async: one batch raises — failure recorded, others succeed."""
     items = [{"id": str(i)} for i in range(10)]
-    failed_batches: list[int] = []
 
     async def op(batch: list[dict]) -> None:  # type: ignore[type-arg]
         # fail the batch containing id "5"
@@ -194,3 +200,167 @@ def test_chunk_helper() -> None:
     """_chunk splits list into sublists of the given size."""
     result = _chunk([1, 2, 3, 4, 5], 2)
     assert result == [[1, 2], [3, 4], [5]]
+
+
+# ---------------------------------------------------------------------------
+# Sync: response_info aggregation
+# ---------------------------------------------------------------------------
+
+
+def _make_items(n: int) -> list[dict[str, object]]:
+    return [{"id": str(i)} for i in range(n)]
+
+
+class TestBatchExecuteResponseInfo:
+    def test_no_response_info_yields_none(self) -> None:
+        def op(batch: list[dict[str, object]]) -> _FakeResp:
+            return _FakeResp()
+
+        result = batch_execute(
+            items=_make_items(10),
+            operation=op,
+            batch_size=10,
+            max_workers=1,
+            show_progress=False,
+        )
+        assert result.response_info is None
+
+    def test_aggregates_max_across_successful_batches(self) -> None:
+        counter = [0]
+
+        def op(batch: list[dict[str, object]]) -> _FakeResp:
+            counter[0] += 1
+            i = counter[0]
+            return _FakeResp(
+                response_info=ResponseInfo(
+                    raw_headers={
+                        "x-pinecone-lsn-reconciled": str(i * 10),
+                        "x-pinecone-lsn-committed": str(i * 5),
+                    }
+                )
+            )
+
+        result = batch_execute(
+            items=_make_items(30),
+            operation=op,
+            batch_size=10,
+            max_workers=1,
+            show_progress=False,
+        )
+        assert result.response_info is not None
+        assert result.response_info.lsn_reconciled == 30
+        assert result.response_info.lsn_committed == 15
+
+    def test_failed_batches_excluded(self) -> None:
+        counter = [0]
+
+        def op(batch: list[dict[str, object]]) -> _FakeResp:
+            counter[0] += 1
+            if counter[0] == 2:
+                raise RuntimeError("middle batch failed")
+            return _FakeResp(
+                response_info=ResponseInfo(raw_headers={"x-pinecone-lsn-reconciled": "50"})
+            )
+
+        result = batch_execute(
+            items=_make_items(30),
+            operation=op,
+            batch_size=10,
+            max_workers=1,
+            show_progress=False,
+        )
+        assert result.response_info is not None
+        assert result.response_info.lsn_reconciled == 50
+
+    def test_all_failed_yields_none(self) -> None:
+        def op(batch: list[dict[str, object]]) -> _FakeResp:
+            raise RuntimeError("always fails")
+
+        result = batch_execute(
+            items=_make_items(20),
+            operation=op,
+            batch_size=10,
+            max_workers=1,
+            show_progress=False,
+        )
+        assert result.response_info is None
+
+    def test_partial_lsn_coverage(self) -> None:
+        counter = [0]
+
+        def op(batch: list[dict[str, object]]) -> _FakeResp:
+            counter[0] += 1
+            if counter[0] == 1:
+                return _FakeResp(
+                    response_info=ResponseInfo(raw_headers={"x-pinecone-lsn-reconciled": "42"})
+                )
+            return _FakeResp()
+
+        result = batch_execute(
+            items=_make_items(30),
+            operation=op,
+            batch_size=10,
+            max_workers=1,
+            show_progress=False,
+        )
+        assert result.response_info is not None
+        assert result.response_info.lsn_reconciled == 42
+
+    def test_only_lsn_reconciled_no_committed(self) -> None:
+        def op(batch: list[dict[str, object]]) -> _FakeResp:
+            return _FakeResp(
+                response_info=ResponseInfo(raw_headers={"x-pinecone-lsn-reconciled": "7"})
+            )
+
+        result = batch_execute(
+            items=_make_items(20),
+            operation=op,
+            batch_size=10,
+            max_workers=1,
+            show_progress=False,
+        )
+        assert result.response_info is not None
+        assert result.response_info.lsn_reconciled == 7
+        assert result.response_info.lsn_committed is None
+
+    def test_operation_returning_none_no_raise(self) -> None:
+        def op(batch: list[dict[str, object]]) -> None:
+            return None
+
+        result = batch_execute(
+            items=_make_items(10),
+            operation=op,
+            batch_size=10,
+            max_workers=1,
+            show_progress=False,
+        )
+        assert result.response_info is None
+
+    def test_operation_returning_plain_object_no_raise(self) -> None:
+        def op(batch: list[dict[str, object]]) -> object:
+            return object()
+
+        result = batch_execute(
+            items=_make_items(10),
+            operation=op,
+            batch_size=10,
+            max_workers=1,
+            show_progress=False,
+        )
+        assert result.response_info is None
+
+    def test_malformed_response_info_no_raise(self) -> None:
+        class _BadResp:
+            response_info = object()
+
+        def op(batch: list[dict[str, object]]) -> _BadResp:
+            return _BadResp()
+
+        result = batch_execute(
+            items=_make_items(10),
+            operation=op,
+            batch_size=10,
+            max_workers=1,
+            show_progress=False,
+        )
+        assert result.response_info is None

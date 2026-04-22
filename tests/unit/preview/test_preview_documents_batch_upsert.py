@@ -10,6 +10,7 @@ import pytest
 from pinecone._internal.config import PineconeConfig
 from pinecone.errors.exceptions import ValidationError
 from pinecone.models.batch import BatchResult
+from pinecone.models.response_info import ResponseInfo
 from pinecone.preview.async_documents import AsyncPreviewDocuments
 from pinecone.preview.documents import PreviewDocuments
 from pinecone.preview.models.documents import PreviewDocumentUpsertResponse
@@ -64,16 +65,18 @@ def test_batch_upsert_250_calls_upsert_three_times(docs: PreviewDocuments) -> No
 
 
 def test_batch_upsert_show_progress_propagated(docs: PreviewDocuments) -> None:
-    with patch.object(docs, "upsert", return_value=_UPSERT_RESPONSE):
-        with patch("pinecone._internal.batch._create_progress_bar") as mock_bar:
-            bar = MagicMock()
-            mock_bar.return_value = bar
-            docs.batch_upsert(
-                namespace="ns",
-                documents=_make_docs(10),
-                show_progress=False,
-            )
-            mock_bar.assert_called_once_with(1, "Upserting", False)
+    with (
+        patch.object(docs, "upsert", return_value=_UPSERT_RESPONSE),
+        patch("pinecone._internal.batch._create_progress_bar") as mock_bar,
+    ):
+        bar = MagicMock()
+        mock_bar.return_value = bar
+        docs.batch_upsert(
+            namespace="ns",
+            documents=_make_docs(10),
+            show_progress=False,
+        )
+        mock_bar.assert_called_once_with(1, "Upserting", False)
 
 
 def test_batch_upsert_partial_failure_captured(docs: PreviewDocuments) -> None:
@@ -254,3 +257,119 @@ async def test_async_batch_upsert_max_workers_zero_raises(
 ) -> None:
     with pytest.raises(ValidationError):
         await async_docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_workers=0)
+
+
+# ---------------------------------------------------------------------------
+# response_info aggregation — sync
+# ---------------------------------------------------------------------------
+
+
+class TestBatchUpsertResponseInfo:
+    def test_batch_upsert_aggregates_response_info(self, docs: PreviewDocuments) -> None:
+        counter = [0]
+
+        def _side_effect(
+            *, namespace: str, documents: list[dict[str, Any]]
+        ) -> PreviewDocumentUpsertResponse:
+            counter[0] += 1
+            i = counter[0]
+            return PreviewDocumentUpsertResponse(
+                upserted_count=len(documents),
+                response_info=ResponseInfo(raw_headers={"x-pinecone-lsn-reconciled": str(i * 10)}),
+            )
+
+        with patch.object(docs, "upsert", side_effect=_side_effect):
+            result = docs.batch_upsert(
+                namespace="ns",
+                documents=_make_docs(30),
+                batch_size=10,
+                max_workers=1,
+                show_progress=False,
+            )
+
+        assert result.response_info is not None
+        assert result.response_info.lsn_reconciled == 30
+        assert result.response_info.is_reconciled(30) is True
+        assert result.response_info.is_reconciled(31) is False
+
+    def test_batch_upsert_response_info_none_when_no_lsn_headers(
+        self, docs: PreviewDocuments
+    ) -> None:
+        def _side_effect(
+            *, namespace: str, documents: list[dict[str, Any]]
+        ) -> PreviewDocumentUpsertResponse:
+            return PreviewDocumentUpsertResponse(
+                upserted_count=len(documents),
+                response_info=ResponseInfo(raw_headers={"x-pinecone-request-id": "req-123"}),
+            )
+
+        with patch.object(docs, "upsert", side_effect=_side_effect):
+            result = docs.batch_upsert(
+                namespace="ns",
+                documents=_make_docs(20),
+                batch_size=10,
+                max_workers=1,
+                show_progress=False,
+            )
+
+        assert result.response_info is None
+
+
+# ---------------------------------------------------------------------------
+# response_info aggregation — async
+# ---------------------------------------------------------------------------
+
+
+class TestAsyncBatchUpsertResponseInfo:
+    @pytest.mark.asyncio
+    async def test_async_batch_upsert_aggregates_response_info(
+        self, async_docs: AsyncPreviewDocuments
+    ) -> None:
+        counter = [0]
+
+        async def _side_effect(
+            *, namespace: str, documents: list[dict[str, Any]]
+        ) -> PreviewDocumentUpsertResponse:
+            counter[0] += 1
+            i = counter[0]
+            return PreviewDocumentUpsertResponse(
+                upserted_count=len(documents),
+                response_info=ResponseInfo(raw_headers={"x-pinecone-lsn-reconciled": str(i * 10)}),
+            )
+
+        with patch.object(async_docs, "upsert", side_effect=_side_effect):
+            result = await async_docs.batch_upsert(
+                namespace="ns",
+                documents=_make_docs(30),
+                batch_size=10,
+                max_workers=1,
+                show_progress=False,
+            )
+
+        assert result.response_info is not None
+        assert result.response_info.lsn_reconciled == 30
+        assert result.response_info.is_reconciled(30) is True
+        assert result.response_info.is_reconciled(31) is False
+
+    @pytest.mark.asyncio
+    async def test_async_batch_upsert_response_info_none_when_no_lsn_headers(
+        self, async_docs: AsyncPreviewDocuments
+    ) -> None:
+        async def _side_effect(
+            *, namespace: str, documents: list[dict[str, Any]]
+        ) -> PreviewDocumentUpsertResponse:
+            return PreviewDocumentUpsertResponse(
+                upserted_count=len(documents),
+                response_info=ResponseInfo(raw_headers={"x-pinecone-request-id": "req-123"}),
+            )
+
+        with patch.object(async_docs, "upsert", side_effect=_side_effect):
+            result = await async_docs.batch_upsert(
+                namespace="ns",
+                documents=_make_docs(20),
+                batch_size=10,
+                max_workers=1,
+                show_progress=False,
+            )
+
+        assert result.response_info is None

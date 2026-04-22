@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from pinecone.models.batch import BatchError, BatchResult
+from pinecone.models.response_info import BatchResponseInfo
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -94,6 +95,35 @@ def _empty_result() -> BatchResult:
         successful_batch_count=0,
         failed_batch_count=0,
         errors=[],
+        response_info=None,
+    )
+
+
+def _collect_lsn(
+    batch_result: Any,
+    lsn_reconciled_values: list[int],
+    lsn_committed_values: list[int],
+) -> None:
+    response_info = getattr(batch_result, "response_info", None)
+    if response_info is None:
+        return
+    lsn_reconciled = getattr(response_info, "lsn_reconciled", None)
+    if lsn_reconciled is not None:
+        lsn_reconciled_values.append(lsn_reconciled)
+    lsn_committed = getattr(response_info, "lsn_committed", None)
+    if lsn_committed is not None:
+        lsn_committed_values.append(lsn_committed)
+
+
+def _build_aggregate(
+    lsn_reconciled_values: list[int],
+    lsn_committed_values: list[int],
+) -> BatchResponseInfo | None:
+    if not lsn_reconciled_values and not lsn_committed_values:
+        return None
+    return BatchResponseInfo(
+        lsn_reconciled=max(lsn_reconciled_values) if lsn_reconciled_values else None,
+        lsn_committed=max(lsn_committed_values) if lsn_committed_values else None,
     )
 
 
@@ -142,6 +172,8 @@ def batch_execute(
     total_batches = len(batches)
     errors: list[BatchError] = []
     successful_item_count = 0
+    lsn_reconciled_values: list[int] = []
+    lsn_committed_values: list[int] = []
 
     progress = _create_progress_bar(total_batches, desc, show_progress)
 
@@ -154,8 +186,7 @@ def batch_execute(
             for future in as_completed(future_to_batch):
                 batch_idx, batch = future_to_batch[future]
                 try:
-                    future.result()
-                    successful_item_count += len(batch)
+                    batch_result = future.result()
                 except Exception as exc:
                     errors.append(
                         BatchError(
@@ -165,11 +196,15 @@ def batch_execute(
                             error_message=str(exc),
                         )
                     )
+                else:
+                    successful_item_count += len(batch)
+                    _collect_lsn(batch_result, lsn_reconciled_values, lsn_committed_values)
                 progress.update(1)
     finally:
         progress.close()
 
     failed_item_count = sum(len(e.items) for e in errors)
+    response_info = _build_aggregate(lsn_reconciled_values, lsn_committed_values)
 
     return BatchResult(
         total_item_count=len(items),
@@ -179,6 +214,7 @@ def batch_execute(
         successful_batch_count=total_batches - len(errors),
         failed_batch_count=len(errors),
         errors=errors,
+        response_info=response_info,
     )
 
 
@@ -227,6 +263,8 @@ async def async_batch_execute(
     total_batches = len(batches)
     errors: list[BatchError] = []
     successful_item_count = 0
+    lsn_reconciled_values: list[int] = []
+    lsn_committed_values: list[int] = []
 
     semaphore = asyncio.Semaphore(max_concurrency)
     progress = _create_progress_bar(total_batches, desc, show_progress)
@@ -237,8 +275,7 @@ async def async_batch_execute(
         nonlocal successful_item_count
         async with semaphore:
             try:
-                await operation(batch)
-                successful_item_count += len(batch)
+                batch_result = await operation(batch)
             except Exception as exc:
                 errors.append(
                     BatchError(
@@ -248,6 +285,9 @@ async def async_batch_execute(
                         error_message=str(exc),
                     )
                 )
+            else:
+                successful_item_count += len(batch)
+                _collect_lsn(batch_result, lsn_reconciled_values, lsn_committed_values)
             progress.update(1)
 
     try:
@@ -257,6 +297,7 @@ async def async_batch_execute(
         progress.close()
 
     failed_item_count = sum(len(e.items) for e in errors)
+    response_info = _build_aggregate(lsn_reconciled_values, lsn_committed_values)
 
     return BatchResult(
         total_item_count=len(items),
@@ -266,4 +307,5 @@ async def async_batch_execute(
         successful_batch_count=total_batches - len(errors),
         failed_batch_count=len(errors),
         errors=errors,
+        response_info=response_info,
     )
