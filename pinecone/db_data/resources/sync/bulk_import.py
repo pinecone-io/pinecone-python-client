@@ -11,6 +11,10 @@ from pinecone.core.openapi.db_data.models import (
 )
 
 from .bulk_import_request_factory import BulkImportRequestFactory, ImportErrorMode
+from .bulk_import_validator import validate_bulk_import_uri
+from pinecone.db_data.dataclasses.bulk_import_validation_result import (
+    BulkImportValidationResult,
+)
 
 for m in [StartImportResponse, ListImportsResponse, ImportModel]:
     install_json_repr_override(m)
@@ -157,3 +161,54 @@ class BulkImportResource:
         """
         args = BulkImportRequestFactory.cancel_import_args(id=id)
         return self.__import_operations_api.cancel_bulk_import(**args)
+
+    def validate(
+        self,
+        uri: str,
+        dimension: int | None = None,
+        vector_type: Literal["dense", "sparse"] | None = None,
+        sample_rows: int = 100,
+        verbose: bool = False,
+    ) -> "BulkImportValidationResult":
+        """Validate parquet file(s) for Pinecone bulk import compatibility.
+
+        Reads only the parquet file footer (schema metadata) by default, making
+        this fast even for large remote files. Pass ``sample_rows > 0`` (the
+        default) to also read a small number of rows and check for null IDs,
+        non-finite vector values, and metadata correctness.
+
+        Requires ``pyarrow``. Install with ``pip install 'pinecone[parquet]'``.
+        Remote URIs (``s3://``, ``gs://``, ``az://``) work automatically when
+        the appropriate filesystem library is available in your environment
+        (``pyarrow`` includes built-in S3 support).
+
+        Args:
+            uri: Local path or remote URI. May point to a single ``.parquet``
+                file or a directory/prefix containing multiple files.
+            dimension: Expected vector dimension. A mismatch is reported as an
+                error. When omitted, dimension is inferred from the schema if
+                the file uses a ``fixed_size_list`` type.
+            vector_type: ``"dense"`` or ``"sparse"``. Inferred from column
+                names when omitted.
+            sample_rows: Rows to read for data-level checks. Set to ``0`` for
+                schema-only validation (no data download).
+
+        Returns:
+            :class:`~pinecone.BulkImportValidationResult`
+
+        Examples:
+            >>> result = index.bulk_import.validate("s3://my-bucket/vectors/")
+            >>> if not result.is_valid:
+            ...     for error in result.errors:
+            ...         print(error)
+
+            >>> # Schema-only check — reads only the parquet footer
+            >>> result = index.bulk_import.validate(
+            ...     "s3://my-bucket/vectors/",
+            ...     dimension=1024,
+            ...     sample_rows=0,
+            ... )
+        """
+        return validate_bulk_import_uri(
+            uri, dimension=dimension, vector_type=vector_type, sample_rows=sample_rows, verbose=verbose
+        )

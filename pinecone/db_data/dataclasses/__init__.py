@@ -8,6 +8,7 @@ from .search_rerank import SearchRerank
 from .query_response import QueryResponse
 from .upsert_response import UpsertResponse
 from .update_response import UpdateResponse
+from .bulk_import_validation_result import BulkImportValidationResult
 
 __all__ = [
     "SparseValues",
@@ -21,4 +22,5 @@ __all__ = [
     "QueryResponse",
     "UpsertResponse",
     "UpdateResponse",
+    "BulkImportValidationResult",
 ]

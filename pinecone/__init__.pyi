@@ -50,6 +50,8 @@ from pinecone.db_data.models import (
 )
 from pinecone.core.openapi.db_data.models import NamespaceDescription
 from pinecone.db_data.resources.sync.bulk_import import ImportErrorMode
+from pinecone.db_data.dataclasses.bulk_import_validation_result import BulkImportValidationResult
+from pinecone.db_data.resources.sync.bulk_import_validator import validate_bulk_import_uri as validate_bulk_import
 from pinecone.db_data.errors import (
     VectorDictionaryMissingKeysError,
     VectorDictionaryExcessKeysError,

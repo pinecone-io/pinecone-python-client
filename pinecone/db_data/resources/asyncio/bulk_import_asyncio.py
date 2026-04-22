@@ -11,6 +11,10 @@ from pinecone.core.openapi.db_data.models import (
 )
 
 from ..sync.bulk_import_request_factory import BulkImportRequestFactory
+from ..sync.bulk_import_validator import validate_bulk_import_uri
+from pinecone.db_data.dataclasses.bulk_import_validation_result import (
+    BulkImportValidationResult,
+)
 
 for m in [StartImportResponse, ListImportsResponse, ImportModel]:
     install_json_repr_override(m)
@@ -150,3 +154,23 @@ class BulkImportResourceAsyncio:
         """
         args = BulkImportRequestFactory.cancel_import_args(id=id)
         return await self.__import_operations_api.cancel_bulk_import(**args)
+
+    def validate(
+        self,
+        uri: str,
+        dimension: int | None = None,
+        vector_type: Literal["dense", "sparse"] | None = None,
+        sample_rows: int = 100,
+        verbose: bool = False,
+    ) -> "BulkImportValidationResult":
+        """Validate parquet file(s) for Pinecone bulk import compatibility.
+
+        This method is synchronous; pyarrow does not support async file I/O.
+        For schema-only validation (no data download) pass ``sample_rows=0``.
+
+        See :meth:`pinecone.db_data.resources.sync.bulk_import.BulkImportResource.validate`
+        for full documentation.
+        """
+        return validate_bulk_import_uri(
+            uri, dimension=dimension, vector_type=vector_type, sample_rows=sample_rows, verbose=verbose
+        )
