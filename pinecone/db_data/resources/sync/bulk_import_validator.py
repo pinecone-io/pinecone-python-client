@@ -162,7 +162,7 @@ def _validate_schema(
     if extra:
         errors.append(
             f"Unexpected column(s) {sorted(extra)} — no additional columns are permitted. "
-            "Only 'id', 'values', 'sparse_values', 'sparse_indices', and 'metadata' are allowed."
+            "Only 'id', 'values', 'sparse_values', and 'metadata' are allowed."
         )
 
 
