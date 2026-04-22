@@ -247,7 +247,7 @@ class TestResponseInfo:
         assert r.request_id is None
 
     def test_with_request_id(self) -> None:
-        r = ResponseInfo(request_id="abc-123")
+        r = ResponseInfo(raw_headers={"x-pinecone-request-id": "abc-123"})
         assert r.request_id == "abc-123"
 
 

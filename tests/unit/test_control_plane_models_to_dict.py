@@ -96,19 +96,17 @@ class TestCreateIndexFromBackupResponseToDict:
 
 class TestResponseInfoToDict:
     def test_response_info_to_dict(self) -> None:
-        info = ResponseInfo(request_id="req-123", lsn_reconciled=42)
+        info = ResponseInfo(raw_headers={"x-pinecone-request-id": "req-123", "x-pinecone-lsn-reconciled": "42"})
         result = info.to_dict()
         assert isinstance(result, dict)
-        assert result["request_id"] == "req-123"
-        assert result["lsn_reconciled"] == 42
+        assert result["raw_headers"]["x-pinecone-request-id"] == "req-123"
+        assert result["raw_headers"]["x-pinecone-lsn-reconciled"] == "42"
 
-    def test_response_info_to_dict_all_none(self) -> None:
+    def test_response_info_to_dict_empty_default(self) -> None:
         info = ResponseInfo()
         result = info.to_dict()
         assert isinstance(result, dict)
-        assert result["request_id"] is None
-        assert result["lsn_reconciled"] is None
-        assert result["lsn_committed"] is None
+        assert result == {"raw_headers": {}}
 
 
 class TestToDictIsPureRead:

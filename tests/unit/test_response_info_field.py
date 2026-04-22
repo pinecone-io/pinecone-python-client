@@ -22,7 +22,7 @@ class TestUpsertResponseInfo:
         assert result.response_info is None
 
     def test_upsert_response_accepts_response_info(self) -> None:
-        info = ResponseInfo(request_id="req-1")
+        info = ResponseInfo(raw_headers={"x-pinecone-request-id": "req-1"})
         result = UpsertResponse(upserted_count=5, response_info=info)
         assert result.response_info is not None
         assert result.response_info.request_id == "req-1"
@@ -34,7 +34,7 @@ class TestQueryResponseInfo:
         assert result.response_info is None
 
     def test_query_response_accepts_response_info(self) -> None:
-        info = ResponseInfo(request_id="req-2", lsn_reconciled=42)
+        info = ResponseInfo(raw_headers={"x-pinecone-request-id": "req-2", "x-pinecone-lsn-reconciled": "42"})
         result = QueryResponse(response_info=info)
         assert result.response_info is not None
         assert result.response_info.request_id == "req-2"
@@ -50,7 +50,7 @@ class TestSearchResponseInfo:
         assert result.response_info is None
 
     def test_search_response_accepts_response_info(self) -> None:
-        info = ResponseInfo(request_id="req-3")
+        info = ResponseInfo(raw_headers={"x-pinecone-request-id": "req-3"})
         result = SearchRecordsResponse(
             result=SearchResult(hits=[]),
             usage=SearchUsage(read_units=1),
@@ -90,7 +90,7 @@ class TestResponseInfoMutable:
     def test_response_info_can_be_set_after_construction(self) -> None:
         result = UpsertResponse(upserted_count=5)
         assert result.response_info is None
-        result.response_info = ResponseInfo(request_id="req-post")
+        result.response_info = ResponseInfo(raw_headers={"x-pinecone-request-id": "req-post"})
         assert result.response_info is not None
         assert result.response_info.request_id == "req-post"
 

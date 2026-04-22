@@ -27,32 +27,16 @@ from pinecone.models.vectors.responses import (
 from pinecone.models.vectors.search import SearchRecordsResponse
 
 
-def _parse_lsn(headers: httpx.Headers, name: str) -> int | None:
-    """Extract an integer LSN value from a response header.
-
-    Returns ``None`` when the header is absent or the value is not a valid
-    integer.  Header lookup is case-insensitive (httpx normalises names).
-    """
-    value = headers.get(name)
-    if value is None:
-        return None
-    try:
-        return int(value)
-    except (ValueError, TypeError):
-        return None
-
-
 def extract_response_info(response: httpx.Response) -> ResponseInfo:
     """Build a :class:`ResponseInfo` from *response* headers.
 
-    Extracts ``x-pinecone-request-id``, ``x-pinecone-lsn-reconciled``, and
-    ``x-pinecone-lsn-committed`` headers.
+    Captures every header on *response* with keys normalized to
+    lowercase. Typed convenience properties on :class:`ResponseInfo`
+    (``request_id``, ``lsn_reconciled``, ``lsn_committed``) read from
+    the stored ``raw_headers`` dict.
     """
-    headers = response.headers
     return ResponseInfo(
-        request_id=headers.get("x-pinecone-request-id"),
-        lsn_reconciled=_parse_lsn(headers, "x-pinecone-lsn-reconciled"),
-        lsn_committed=_parse_lsn(headers, "x-pinecone-lsn-committed"),
+        raw_headers={k.lower(): v for k, v in response.headers.items()},
     )
 
 

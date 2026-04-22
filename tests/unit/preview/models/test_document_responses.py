@@ -131,7 +131,7 @@ def test_search_response_repr_html_returns_html_string() -> None:
 
 def test_search_response_carries_response_info() -> None:
     matches = [PreviewDocument({"_id": "doc-1", "_score": 0.9})]
-    info = ResponseInfo(request_id="req-1", lsn_reconciled=42, lsn_committed=50)
+    info = ResponseInfo(raw_headers={"x-pinecone-request-id": "req-1", "x-pinecone-lsn-reconciled": "42", "x-pinecone-lsn-committed": "50"})
     r = PreviewDocumentSearchResponse(matches=matches, namespace="ns", response_info=info)
     assert r.response_info is not None
     assert r.response_info.lsn_reconciled == 42
@@ -145,7 +145,7 @@ def test_search_response_response_info_defaults_to_none() -> None:
 
 
 def test_fetch_response_carries_response_info() -> None:
-    info = ResponseInfo(request_id="req-1", lsn_reconciled=7, lsn_committed=9)
+    info = ResponseInfo(raw_headers={"x-pinecone-request-id": "req-1", "x-pinecone-lsn-reconciled": "7", "x-pinecone-lsn-committed": "9"})
     r = PreviewDocumentFetchResponse(documents={}, namespace="ns", response_info=info)
     assert r.response_info is not None
     assert r.response_info.lsn_reconciled == 7

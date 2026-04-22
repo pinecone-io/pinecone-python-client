@@ -64,21 +64,59 @@ class TestIsReconciled:
     """Tests for ResponseInfo.is_reconciled()."""
 
     def test_is_reconciled_true_equal(self) -> None:
-        info = ResponseInfo(lsn_reconciled=10)
+        info = ResponseInfo(raw_headers={"x-pinecone-lsn-reconciled": "10"})
         assert info.is_reconciled(10) is True
 
     def test_is_reconciled_true_exceeds(self) -> None:
-        info = ResponseInfo(lsn_reconciled=10)
+        info = ResponseInfo(raw_headers={"x-pinecone-lsn-reconciled": "10"})
         assert info.is_reconciled(5) is True
 
     def test_is_reconciled_false(self) -> None:
-        info = ResponseInfo(lsn_reconciled=5)
+        info = ResponseInfo(raw_headers={"x-pinecone-lsn-reconciled": "5"})
         assert info.is_reconciled(10) is False
 
     def test_is_reconciled_none(self) -> None:
-        info = ResponseInfo(lsn_reconciled=None)
+        info = ResponseInfo(raw_headers={})
         assert info.is_reconciled(1) is False
 
     def test_is_reconciled_default_none(self) -> None:
         info = ResponseInfo()
         assert info.is_reconciled(1) is False
+
+
+class TestRawHeaders:
+    """Tests for raw_headers capture and normalization."""
+
+    @staticmethod
+    def _make_response(headers: dict[str, str]) -> httpx.Response:
+        return httpx.Response(status_code=200, headers=headers)
+
+    def test_raw_headers_default_empty(self) -> None:
+        info = ResponseInfo()
+        assert info.raw_headers == {}
+
+    def test_raw_headers_captured_from_response(self) -> None:
+        response = self._make_response(
+            {"X-Pinecone-Request-Id": "r1", "X-Custom-Header": "v1", "X-Ratelimit-Remaining": "7"}
+        )
+        info = extract_response_info(response)
+        assert info.raw_headers["x-pinecone-request-id"] == "r1"
+        assert info.raw_headers["x-custom-header"] == "v1"
+        assert info.raw_headers["x-ratelimit-remaining"] == "7"
+
+    def test_raw_headers_keys_lowercased(self) -> None:
+        response = self._make_response({"X-Pinecone-Request-Id": "r-mixed-case"})
+        info = extract_response_info(response)
+        assert "x-pinecone-request-id" in info.raw_headers
+        assert "X-Pinecone-Request-Id" not in info.raw_headers
+
+    def test_raw_headers_empty_for_no_headers_response(self) -> None:
+        response = self._make_response({})
+        info = extract_response_info(response)
+        assert "x-pinecone-request-id" not in info.raw_headers
+
+    def test_raw_headers_arbitrary_header_accessible(self) -> None:
+        response = self._make_response({"x-ratelimit-remaining": "42", "retry-after": "60"})
+        info = extract_response_info(response)
+        assert info.raw_headers["x-ratelimit-remaining"] == "42"
+        assert info.raw_headers["retry-after"] == "60"
