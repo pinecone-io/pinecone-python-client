@@ -10,7 +10,6 @@ from pinecone.db_data.dataclasses.bulk_import_validation_result import (
 
 if TYPE_CHECKING:
     import pyarrow as pa
-    import pyarrow.parquet as pq
 
 # Matches Pinecone's documented metadata size limit.
 _MAX_METADATA_BYTES = 40 * 1024
@@ -231,6 +230,7 @@ def _validate_data_sample(
                     errors.append(
                         f"Row {i}: metadata size {size} bytes exceeds the 40 KB limit"
                     )
+                    continue
                 try:
                     obj = json.loads(raw)
                 except json.JSONDecodeError as e:
@@ -353,7 +353,8 @@ def validate_bulk_import_uri(
             schema = pq.read_schema(file_uri)
         except Exception as e:
             msg = f"failed to read parquet schema: {e}"
-            errors.append(f"{file_uri}: {msg}")
+            prefix = f"{file_uri}: " if multi else ""
+            errors.append(f"{prefix}{msg}")
             if verbose:
                 print(f"[{index:>{len(str(total))}}/{total}] BAD  {file_uri}")
                 print(f"         {msg}")

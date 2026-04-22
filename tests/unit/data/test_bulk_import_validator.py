@@ -5,7 +5,6 @@ Validation logic is adapted from the internal notebook
 """
 
 import json
-import math
 import pytest
 
 pytest.importorskip("pyarrow", reason="pyarrow required for bulk import validation")
@@ -17,9 +16,6 @@ from pinecone.db_data.resources.sync.bulk_import_validator import (
     validate_bulk_import_uri,
     _validate_schema,
     _validate_data_sample,
-)
-from pinecone.db_data.dataclasses.bulk_import_validation_result import (
-    BulkImportValidationResult,
 )
 
 
@@ -86,7 +82,6 @@ def make_dense_table(
     null_vector: bool = False,
     non_finite: bool = False,
 ) -> pa.Table:
-    schema = make_schema({"id": pa.string(), "values": pa.list_(float_type)})
     ids = [None if (null_id and i == 0) else ("" if (bad_id and i == 0) else f"vec-{i}") for i in range(n)]
     vectors = []
     for i in range(n):
@@ -297,7 +292,6 @@ class TestValidateDataSample:
         assert any("finite" in e.lower() or "Inf" in e for e in errors)
 
     def test_nan_value(self):
-        schema = make_schema({"id": pa.string(), "values": pa.list_(pa.float32())})
         table = pa.table(
             {
                 "id": pa.array(["a", "b"], pa.string()),

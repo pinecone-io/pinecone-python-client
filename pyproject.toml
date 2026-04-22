@@ -149,6 +149,13 @@ line-ending = "auto"
 docstring-code-format = false
 docstring-code-line-length = "dynamic"
 
+[tool.mypy]
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]
+module = ["pyarrow", "pyarrow.*"]
+ignore_missing_imports = true
+
 [tool.ruff.lint.per-file-ignores]
 # F403 Allow star imports
 "__init__.py" = ["F403", "F405"]

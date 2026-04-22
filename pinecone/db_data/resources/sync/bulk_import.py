@@ -169,7 +169,7 @@ class BulkImportResource:
         vector_type: Literal["dense", "sparse"] | None = None,
         sample_rows: int = 100,
         verbose: bool = False,
-    ) -> "BulkImportValidationResult":
+    ) -> BulkImportValidationResult:
         """Validate parquet file(s) for Pinecone bulk import compatibility.
 
         Reads only the parquet file footer (schema metadata) by default, making

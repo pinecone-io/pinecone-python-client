@@ -162,7 +162,7 @@ class BulkImportResourceAsyncio:
         vector_type: Literal["dense", "sparse"] | None = None,
         sample_rows: int = 100,
         verbose: bool = False,
-    ) -> "BulkImportValidationResult":
+    ) -> BulkImportValidationResult:
         """Validate parquet file(s) for Pinecone bulk import compatibility.
 
         This method is synchronous; pyarrow does not support async file I/O.
