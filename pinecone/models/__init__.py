@@ -120,6 +120,7 @@ if TYPE_CHECKING:
         ListNamespacesResponse,
         NamespaceDescription,
     )
+    from pinecone.models.response_info import BatchResponseInfo  # noqa: F401
     from pinecone.models.vectors.query_aggregator import QueryNamespacesResults  # noqa: F401
     from pinecone.models.vectors.responses import (  # noqa: F401
         DescribeIndexStatsResponse,
@@ -148,6 +149,7 @@ if TYPE_CHECKING:
 _LAZY_IMPORTS: dict[str, str] = {
     # Batch
     "BatchError": "pinecone.models.batch",
+    "BatchResponseInfo": "pinecone.models.response_info",
     "BatchResult": "pinecone.models.batch",
     # Admin
     "APIKeyList": "pinecone.models.admin.api_key",

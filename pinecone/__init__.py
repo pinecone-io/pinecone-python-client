@@ -171,6 +171,7 @@ if TYPE_CHECKING:
         NamespaceDescription,
     )
     from pinecone.models.pagination import AsyncPaginator, Page, Paginator
+    from pinecone.models.response_info import BatchResponseInfo
     from pinecone.models.vectors.query_aggregator import (
         QueryNamespacesResults,
         QueryResultsAggregator,
@@ -224,6 +225,7 @@ __all__ = [
     "AzureRegion",
     "BackupList",
     "BackupModel",
+    "BatchResponseInfo",
     "ByocSpec",
     "ByocSpecInfo",
     "ChatCompletionResponse",
@@ -492,6 +494,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "RankedDocument": ("pinecone.models.inference.rerank", "RankedDocument"),
     "RerankModel": ("pinecone.models.enums", "RerankModel"),
     "RerankResult": ("pinecone.models.inference.rerank", "RerankResult"),
+    "BatchResponseInfo": ("pinecone.models.response_info", "BatchResponseInfo"),
     "ResponseInfo": ("pinecone.models.response_info", "ResponseInfo"),
     "RestoreJobList": ("pinecone.models.backups.list", "RestoreJobList"),
     "RestoreJobModel": ("pinecone.models.backups.model", "RestoreJobModel"),

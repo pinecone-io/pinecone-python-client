@@ -10,6 +10,7 @@ import msgspec
 from msgspec import Struct
 
 from pinecone.models._display import render_table
+from pinecone.models.response_info import BatchResponseInfo
 
 
 class BatchError(Struct, kw_only=True):
@@ -72,6 +73,10 @@ class BatchResult(Struct, kw_only=True):
         successful_batch_count: Number of batches that succeeded.
         failed_batch_count: Number of batches that failed.
         errors: List of ``BatchError`` objects describing each failure.
+        response_info: Aggregate durability signal (``lsn_reconciled`` /
+            ``lsn_committed``) across successful sub-batches, or ``None``
+            when no sub-batch reported these headers. See
+            :class:`BatchResponseInfo`.
 
     Examples:
         Check for partial failure and retry:
@@ -90,6 +95,7 @@ class BatchResult(Struct, kw_only=True):
     successful_batch_count: int
     failed_batch_count: int
     errors: list[BatchError]
+    response_info: BatchResponseInfo | None = None
 
     @property
     def has_errors(self) -> bool:
@@ -150,6 +156,9 @@ class BatchResult(Struct, kw_only=True):
             "successful_batch_count": self.successful_batch_count,
             "failed_batch_count": self.failed_batch_count,
             "errors": [error.to_dict() for error in self.errors],
+            "response_info": (
+                self.response_info.to_dict() if self.response_info is not None else None
+            ),
         }
 
     def to_json(self) -> str:

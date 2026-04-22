@@ -6,7 +6,7 @@ from msgspec import Struct, field
 
 from pinecone.models._mixin import StructDictMixin
 
-__all__ = ["ResponseInfo"]
+__all__ = ["BatchResponseInfo", "ResponseInfo"]
 
 
 class ResponseInfo(StructDictMixin, Struct, kw_only=True):
@@ -63,3 +63,43 @@ def _parse_int(value: str | None) -> int | None:
         return int(value)
     except ValueError:
         return None
+
+
+class BatchResponseInfo(StructDictMixin, Struct, kw_only=True):
+    """Aggregate durability signal across a multi-request batch operation.
+
+    A batch operation fans out into N underlying HTTP requests, each
+    with its own response headers. ``BatchResponseInfo`` collapses the
+    reconciliation signal across those requests into a single object
+    that mirrors the read-your-writes API surface of :class:`ResponseInfo`.
+
+    Does **not** carry ``raw_headers`` or ``request_id`` — there is no
+    single source HTTP response to point at. Individual sub-request
+    diagnostics are available via :attr:`BatchError.error` for failed
+    batches.
+
+    Attributes:
+        lsn_reconciled (int | None): Maximum ``lsn_reconciled`` observed
+            across successful sub-batches, or ``None`` when no
+            successful batch reported this header. Use
+            :meth:`is_reconciled` for durability checks.
+        lsn_committed (int | None): Maximum ``lsn_committed`` observed
+            across successful sub-batches, or ``None`` when no
+            successful batch reported this header.
+
+    Examples:
+        Read-your-writes after a bulk upsert::
+
+            result = index.documents.batch_upsert(namespace="ns", documents=docs)
+            if result.response_info and result.response_info.is_reconciled(target_lsn):
+                # all writes durable through `target_lsn`
+                ...
+    """
+
+    lsn_reconciled: int | None = None
+    lsn_committed: int | None = None
+
+    def is_reconciled(self, target: int) -> bool:
+        """Return True when the aggregate reconciled LSN meets or exceeds *target*."""
+        lsn = self.lsn_reconciled
+        return lsn is not None and lsn >= target
