@@ -265,7 +265,7 @@ class AsyncioInference:
             async def main():
                 async with PineconeAsyncio() as pc:
                     result = await pc.inference.rerank(
-                        model="pinecone-rerank-v0",
+                        model="bge-reranker-v2-m3",
                         query="What is machine learning?",
                         documents=[
                             {"text": "Machine learning is a subset of AI.", "category": "tech"},
@@ -288,7 +288,7 @@ class AsyncioInference:
             async def main():
                 async with PineconeAsyncio() as pc:
                     result = await pc.inference.rerank(
-                        model=RerankModel.PINECONE_RERANK_V0,
+                        model=RerankModel.Bge_Reranker_V2_M3,
                         query="Your query here",
                         documents=["doc1", "doc2", "doc3"]
                     )
