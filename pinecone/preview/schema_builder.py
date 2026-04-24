@@ -32,7 +32,7 @@ class PreviewSchemaBuilder:
         >>> schema = (
         ...     PreviewSchemaBuilder()
         ...     .add_dense_vector_field("embedding", dimension=768, metric="cosine")
-        ...     .add_string_field("title", full_text_searchable=True, language="en")
+        ...     .add_string_field("title", full_text_search={"language": "en"})
         ...     .add_string_field("category", filterable=True)
         ...     .add_integer_field("year", filterable=True)
         ...     .build()
@@ -126,12 +126,7 @@ class PreviewSchemaBuilder:
         self,
         name: str,
         *,
-        full_text_searchable: bool = False,
-        language: str | None = None,
-        stemming: bool | None = None,
-        lowercase: bool | None = None,
-        max_term_len: int | None = None,
-        stop_words: bool | None = None,
+        full_text_search: dict[str, Any] | None = None,
         filterable: bool = False,
         description: str | None = None,
         **additional_options: Any,
@@ -146,43 +141,45 @@ class PreviewSchemaBuilder:
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
 
-        Boolean parameters ``full_text_searchable`` and ``filterable`` are
-        omitted from the wire payload when ``False``.  All ``None`` parameters
-        are omitted as well so the server applies its own defaults.
+        Full-text search is enabled by passing a ``full_text_search`` dict —
+        even an empty dict ``{}`` is a valid value and requests server
+        defaults for all options. Omit (or pass ``None``) to indicate the
+        field is not full-text searchable.
 
         Args:
             name: Field name. Replaces any existing field with the same name.
-            full_text_searchable: Enable full-text search indexing.
-            language: BCP-47 language code (e.g. ``"en"``). Server defaults to
-                ``"en"`` when ``full_text_searchable=True``.
-            stemming: Stem tokens to root form. Server default: ``False``.
-            lowercase: Lowercase tokens before indexing. Server default:
-                ``True``.
-            max_term_len: Maximum token length. Server default: ``40``.
-            stop_words: Remove common stop words. Server default: ``False``.
-            filterable: Enable metadata-filter support.
+            full_text_search: Full-text search configuration. Pass ``{}`` for
+                server defaults, or a dict with any of ``language``,
+                ``stemming``, ``lowercase``, ``max_term_len``, ``stop_words``.
+                ``None`` (default) means the field is not full-text
+                searchable.
+            filterable: Enable metadata-filter support. ``False`` values are
+                omitted from the wire payload.
             description: Optional human-readable description.
             **additional_options: Extra parameters merged into the field dict
                 last, for forward compatibility with new API features.
 
         Returns:
             ``self`` for method chaining.
+
+        Examples:
+            Enable FTS with server defaults::
+
+                builder.add_string_field("title", full_text_search={})
+
+            Enable FTS with an English language config::
+
+                builder.add_string_field("title", full_text_search={"language": "en"})
+
+            Filterable metadata field without FTS::
+
+                builder.add_string_field("category", filterable=True)
         """
         field: dict[str, Any] = {"type": "string"}
-        if full_text_searchable:
-            field["full_text_searchable"] = full_text_searchable
+        if full_text_search is not None:
+            field["full_text_search"] = dict(full_text_search)
         if filterable:
             field["filterable"] = filterable
-        if language is not None:
-            field["language"] = language
-        if stemming is not None:
-            field["stemming"] = stemming
-        if lowercase is not None:
-            field["lowercase"] = lowercase
-        if max_term_len is not None:
-            field["max_term_len"] = max_term_len
-        if stop_words is not None:
-            field["stop_words"] = stop_words
         if description is not None:
             field["description"] = description
         field.update(additional_options)
