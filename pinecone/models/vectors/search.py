@@ -194,7 +194,27 @@ class SearchQuery(DictLikeStruct, Struct, kw_only=True, gc=False):
     match_terms: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a dict of non-None field values."""
+        """Return a dict of non-None field values.
+
+        Returns:
+            Dictionary containing only the fields whose value is not ``None``.
+            Required fields (``inputs``, ``top_k``) are always present; optional
+            fields (``filter``, ``vector``, ``id``, ``match_terms``) are omitted
+            when they are ``None``.
+
+        Examples:
+            >>> from pinecone.db_data.dataclasses.search_query import SearchQuery
+            >>> query = SearchQuery(inputs={"text": "hello"}, top_k=10)
+            >>> query.to_dict()
+            {'inputs': {'text': 'hello'}, 'top_k': 10}
+            >>> query_with_filter = SearchQuery(
+            ...     inputs={"text": "hello"},
+            ...     top_k=10,
+            ...     filter={"genre": "action"},
+            ... )
+            >>> query_with_filter.to_dict()
+            {'inputs': {'text': 'hello'}, 'top_k': 10, 'filter': {'genre': 'action'}}
+        """
         return {f: getattr(self, f) for f in self.__struct_fields__ if getattr(self, f) is not None}
 
 
@@ -212,7 +232,26 @@ class SearchQueryVector(DictLikeStruct, Struct, kw_only=True, gc=False):
     sparse_indices: list[int] | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a dict of non-None field values."""
+        """Return a dict of non-None field values.
+
+        Returns:
+            Dictionary containing only the fields whose value is not ``None``.
+            All fields (``values``, ``sparse_values``, ``sparse_indices``) are
+            optional and omitted when ``None``.
+
+        Examples:
+            >>> from pinecone.db_data.dataclasses.search_query_vector import SearchQueryVector
+            >>> vec = SearchQueryVector(values=[0.1, 0.2, 0.3])
+            >>> vec.to_dict()
+            {'values': [0.1, 0.2, 0.3]}
+            >>> vec_sparse = SearchQueryVector(
+            ...     values=[0.1, 0.2],
+            ...     sparse_values=[0.5],
+            ...     sparse_indices=[3],
+            ... )
+            >>> vec_sparse.to_dict()
+            {'values': [0.1, 0.2], 'sparse_values': [0.5], 'sparse_indices': [3]}
+        """
         return {f: getattr(self, f) for f in self.__struct_fields__ if getattr(self, f) is not None}
 
 
@@ -234,5 +273,30 @@ class SearchRerank(DictLikeStruct, Struct, kw_only=True, gc=False):
     query: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a dict of non-None field values."""
+        """Return a dict of non-None field values.
+
+        Returns:
+            Dictionary containing only the fields whose value is not ``None``.
+            The ``model`` field is always present; optional fields (``top_n``,
+            ``rank_fields``, ``parameters``, ``query``) are omitted when ``None``.
+
+        Examples:
+            >>> from pinecone.db_data.dataclasses.search_rerank import SearchRerank
+            >>> rerank = SearchRerank(model="bge-reranker-v2-m3")
+            >>> rerank.to_dict()
+            {'model': 'bge-reranker-v2-m3'}
+            >>> rerank_full = SearchRerank(
+            ...     model="bge-reranker-v2-m3",
+            ...     top_n=5,
+            ...     rank_fields=["text"],
+            ...     query="hello world",
+            ... )
+            >>> d = rerank_full.to_dict()
+            >>> d["model"]
+            'bge-reranker-v2-m3'
+            >>> d["top_n"]
+            5
+            >>> d["rank_fields"]
+            ['text']
+        """
         return {f: getattr(self, f) for f in self.__struct_fields__ if getattr(self, f) is not None}

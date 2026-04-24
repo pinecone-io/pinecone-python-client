@@ -66,7 +66,33 @@ class BackupModel(Struct, kw_only=True):
         return key in self.__struct_fields__
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a dict representation of this backup model."""
+        """Return a dict representation of this backup model.
+
+        Returns:
+            Dictionary with all fields, including optional ones that are ``None``
+            (e.g. ``name``, ``description``, ``dimension``, ``metric``,
+            ``record_count``, ``namespace_count``, ``size_bytes``, ``tags``,
+            ``created_at``). Values are not recursively converted.
+
+        Examples:
+            >>> from pinecone.models.backups.model import BackupModel
+            >>> backup = BackupModel(
+            ...     backup_id="bkp-1",
+            ...     source_index_name="my-index",
+            ...     source_index_id="idx-abc",
+            ...     status="Ready",
+            ...     cloud="aws",
+            ...     region="us-east-1",
+            ...     name="weekly-backup",
+            ... )
+            >>> d = backup.to_dict()
+            >>> d["backup_id"]
+            'bkp-1'
+            >>> d["name"]
+            'weekly-backup'
+            >>> d["description"] is None
+            True
+        """
         return {f: getattr(self, f) for f in self.__struct_fields__}
 
 
@@ -108,7 +134,29 @@ class RestoreJobModel(Struct, kw_only=True):
         return key in self.__struct_fields__
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a dict representation of this restore job model."""
+        """Return a dict representation of this restore job model.
+
+        Returns:
+            Dictionary with all fields, including optional ones that are ``None``
+            (``completed_at`` and ``percent_complete``). Values are not
+            recursively converted.
+
+        Examples:
+            >>> from pinecone.models.backups.model import RestoreJobModel
+            >>> job = RestoreJobModel(
+            ...     restore_job_id="rj-1",
+            ...     backup_id="bkp-1",
+            ...     target_index_name="my-index",
+            ...     target_index_id="idx-abc",
+            ...     status="Running",
+            ...     created_at="2024-01-01T00:00:00Z",
+            ... )
+            >>> d = job.to_dict()
+            >>> d["restore_job_id"]
+            'rj-1'
+            >>> d["completed_at"] is None
+            True
+        """
         return {f: getattr(self, f) for f in self.__struct_fields__}
 
 

@@ -162,5 +162,31 @@ class IndexModel(Struct, kw_only=True):
         return key in self.__struct_fields__
 
     def to_dict(self) -> dict[str, Any]:
-        """Return a plain dict representation, recursively converting nested fields."""
+        """Return a plain dict representation, recursively converting nested fields.
+
+        Returns:
+            Dictionary with all top-level fields, where nested ``spec``, ``status``,
+            and ``embed`` structs are also converted to plain dicts recursively.
+            Optional fields (``dimension``, ``tags``, ``embed``) that are ``None``
+            are included in the output with their ``None`` values.
+
+        Examples:
+            >>> from pinecone.models.indexes.index import (
+            ...     IndexModel, IndexSpec, IndexStatus, ServerlessSpecInfo
+            ... )
+            >>> index = IndexModel(
+            ...     name="my-index",
+            ...     metric="cosine",
+            ...     host="my-index-xyz.svc.pinecone.io",
+            ...     status=IndexStatus(ready=True, state="Ready"),
+            ...     spec=IndexSpec(serverless=ServerlessSpecInfo(cloud="aws", region="us-east-1")),
+            ... )
+            >>> d = index.to_dict()
+            >>> d["name"]
+            'my-index'
+            >>> type(d["spec"])
+            <class 'dict'>
+            >>> d["spec"]["serverless"]
+            {'cloud': 'aws', 'region': 'us-east-1'}
+        """
         return cast(dict[str, Any], _struct_to_dict_recursive(self))
