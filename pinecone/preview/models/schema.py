@@ -14,6 +14,7 @@ from msgspec import Struct
 
 __all__ = [
     "PreviewDenseVectorField",
+    "PreviewFullTextSearchConfig",
     "PreviewIntegerField",
     "PreviewSchema",
     "PreviewSchemaField",
@@ -123,6 +124,42 @@ class PreviewSemanticTextField(Struct, tag="semantic_text", tag_field="type", kw
     write_parameters: dict[str, Any] | None = None
 
 
+class PreviewFullTextSearchConfig(Struct, kw_only=True):
+    """Full-text search configuration for a string field.
+
+    .. admonition:: Preview
+       :class: warning
+
+       Uses Pinecone API version ``2026-01.alpha``.
+       Preview surface is not covered by SemVer — signatures and behavior
+       may change in any minor SDK release. Pin your SDK version when
+       relying on preview features.
+
+    Presence of this object on a :class:`PreviewStringField` indicates the
+    field is full-text searchable; absence means it is not. All keys are
+    optional — an empty config (``PreviewFullTextSearchConfig()``) is
+    valid and requests the server defaults.
+
+    Attributes:
+        language: BCP-47 language code (e.g. ``"en"``). When ``None``, the
+            server applies its default (``"en"``).
+        stemming: Whether to stem tokens to root form during indexing.
+            When ``None``, the server applies its default (``False``).
+        lowercase: Whether to lowercase tokens before indexing. When
+            ``None``, the server applies its default (``True``).
+        max_term_len: Maximum term length for indexing. When ``None``, the
+            server applies its default (``40``).
+        stop_words: Whether to filter stop words during indexing. When
+            ``None``, the server applies its default (``False``).
+    """
+
+    language: str | None = None
+    stemming: bool | None = None
+    lowercase: bool | None = None
+    max_term_len: int | None = None
+    stop_words: bool | None = None
+
+
 class PreviewStringField(Struct, tag="string", tag_field="type", kw_only=True):
     """String field for metadata or full-text search.
 
@@ -134,25 +171,18 @@ class PreviewStringField(Struct, tag="string", tag_field="type", kw_only=True):
        may change in any minor SDK release. Pin your SDK version when
        relying on preview features.
 
-    String fields can be used for filtering (``filterable=True``) or
-    full-text search (``full_text_searchable=True``).
+    String fields can be used for filtering (``filterable=True``) and/or
+    full-text search (pass a :class:`PreviewFullTextSearchConfig` via
+    ``full_text_search``). Presence of ``full_text_search`` — even an
+    empty config — indicates the field is full-text searchable.
 
     Attributes:
         description: Optional human-readable description of the field.
         filterable: Whether the field can be used in metadata filters.
             Defaults to ``False``.
-        full_text_searchable: Whether the field supports full-text search.
-            Defaults to ``False``.
-        language: Language code for full-text search (e.g. ``"en"``), or
-            ``None``.
-        stemming: Whether to apply stemming during full-text indexing, or
-            ``None`` to use the server default.
-        lowercase: Whether to lower-case terms during full-text indexing,
-            or ``None`` to use the server default.
-        max_term_len: Maximum term length for full-text indexing, or
-            ``None`` to use the server default.
-        stop_words: Whether to filter stop words during full-text indexing
-            (server default: ``False``), or ``None`` to omit the parameter.
+        full_text_search: Full-text search configuration. Presence (even
+            an empty config) indicates the field is full-text searchable;
+            absence (``None``) means it is not.
 
     Note:
         The ``type`` field is automatically set to ``"string"`` by
@@ -161,12 +191,7 @@ class PreviewStringField(Struct, tag="string", tag_field="type", kw_only=True):
 
     description: str | None = None
     filterable: bool = False
-    full_text_searchable: bool = False
-    language: str | None = None
-    stemming: bool | None = None
-    lowercase: bool | None = None
-    max_term_len: int | None = None
-    stop_words: bool | None = None
+    full_text_search: PreviewFullTextSearchConfig | None = None
 
 
 class PreviewIntegerField(Struct, tag="float", tag_field="type", kw_only=True):
