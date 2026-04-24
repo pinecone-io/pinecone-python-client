@@ -30,13 +30,14 @@ from pinecone.models.vectors.search import SearchRecordsResponse
 def extract_response_info(response: httpx.Response) -> ResponseInfo:
     """Build a :class:`ResponseInfo` from *response* headers.
 
-    Captures every header on *response* with keys normalized to
-    lowercase. Typed convenience properties on :class:`ResponseInfo`
+    Captures every header on *response*. httpx normalizes all header
+    names to lowercase on the wire, so no explicit lowering is needed.
+    Typed convenience properties on :class:`ResponseInfo`
     (``request_id``, ``lsn_reconciled``, ``lsn_committed``) read from
     the stored ``raw_headers`` dict.
     """
     return ResponseInfo(
-        raw_headers={k.lower(): v for k, v in response.headers.items()},
+        raw_headers=dict(response.headers),
     )
 
 

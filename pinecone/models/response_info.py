@@ -9,7 +9,7 @@ from pinecone.models._mixin import StructDictMixin
 __all__ = ["BatchResponseInfo", "ResponseInfo"]
 
 
-class ResponseInfo(StructDictMixin, Struct, kw_only=True):
+class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
     """HTTP response metadata carrier.
 
     Stores every HTTP response header returned by the server (keys
@@ -117,7 +117,7 @@ def _parse_int(value: str | None) -> int | None:
         return None
 
 
-class BatchResponseInfo(StructDictMixin, Struct, kw_only=True):
+class BatchResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
     """Aggregate durability signal across a multi-request batch operation.
 
     A batch operation fans out into N underlying HTTP requests, each
