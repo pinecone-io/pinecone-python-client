@@ -45,9 +45,7 @@ async def test_async_end_to_end_flow(
     require_preview: None,
 ) -> None:
     """FTS schema: async create → batch_upsert 50 docs → poll → search → cleanup via fixture."""
-    schema = (
-        SchemaBuilder().add_string_field("text", full_text_searchable=True, language="en").build()
-    )
+    schema = SchemaBuilder().add_string_field("text", full_text_search={"language": "en"}).build()
     # Register for cleanup BEFORE create so teardown runs even if create raises.
     async_cleanup_preview_indexes.append(preview_index_name)
 
@@ -121,9 +119,7 @@ async def test_async_describe_after_create_matches_sync(
     require_preview: None,
 ) -> None:
     """Async describe path returns correct name and host after create."""
-    schema = (
-        SchemaBuilder().add_string_field("text", full_text_searchable=True, language="en").build()
-    )
+    schema = SchemaBuilder().add_string_field("text", full_text_search={"language": "en"}).build()
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
 
@@ -997,7 +993,7 @@ async def test_async_search_client_side_validation_rejects_invalid_parameters(
 
     # Empty score_by list must raise ValidationError.
     with pytest.raises(ValidationError, match="score_by"):
-        await idx.documents.search(namespace="ns", top_k=5, score_by=[])  # type: ignore[arg-type]
+        await idx.documents.search(namespace="ns", top_k=5, score_by=[])
 
 
 # ---------------------------------------------------------------------------
@@ -1044,7 +1040,7 @@ async def test_async_upsert_client_side_validation_rejects_invalid_documents(
 
     # Document with non-string '_id' must raise ValidationError.
     with pytest.raises(ValidationError, match="_id"):
-        await idx.documents.upsert(namespace="ns", documents=[{"_id": 42}])  # type: ignore[list-item]
+        await idx.documents.upsert(namespace="ns", documents=[{"_id": 42}])
 
     # Document with empty string '_id' must raise ValidationError.
     with pytest.raises(ValidationError, match="_id"):
@@ -1160,7 +1156,7 @@ async def test_async_filter_remaining_operators_accepted(
         PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])
     ]
 
-    async def _search_with_filter(f: dict) -> None:
+    async def _search_with_filter(f: dict[str, object]) -> None:
         result = await idx.documents.search(
             namespace=preview_namespace,
             top_k=5,
@@ -1234,8 +1230,8 @@ async def test_async_delete_timeout_negative_one_returns_immediately(
         description=f"index {preview_index_name} ready before delete",
     )
 
-    result = await async_client.preview.indexes.delete(preview_index_name, timeout=-1)
-    assert result is None, "delete(timeout=-1) must return None"
+    await async_client.preview.indexes.delete(preview_index_name, timeout=-1)
+    # Return type is verified by -> None annotation.
 
     # Verify the index eventually disappears (server finishes deletion async).
     _deleted_sentinel = object()
@@ -1368,7 +1364,7 @@ async def test_async_describe_raises_not_found_and_index_factory_validation(
 
     # Claim 4: async preview.index() with neither/both args raises PineconeValueError.
     with pytest.raises(PineconeValueError):
-        async_client.preview.index()  # type: ignore[call-arg]
+        async_client.preview.index()
 
     with pytest.raises(PineconeValueError):
         async_client.preview.index(name=phantom, host="https://dummy-host.pinecone.io")
@@ -1558,8 +1554,8 @@ async def test_async_describe_returns_typed_schema_fields(
         f"category field: expected PreviewStringField, got {type(cat)}"
     )
     assert cat.filterable is True, f"expected filterable=True, got {cat.filterable}"
-    assert cat.full_text_searchable is False, (
-        f"expected full_text_searchable=False, got {cat.full_text_searchable}"
+    assert cat.full_text_search is None, (
+        f"expected full_text_search=None (field is not FTS-enabled), got {cat.full_text_search!r}"
     )
 
     year = fields["year"]
@@ -1761,25 +1757,14 @@ async def test_async_documents_delete_returns_none_for_all_targeting_modes(
         ],
     )
 
-    # delete by IDs must return None.
-    result_ids = await idx.documents.delete(namespace=ns, ids=["doc-0"])
-    assert result_ids is None, (
-        f"async delete(ids=...) expected None, got {type(result_ids)}: {result_ids!r}"
-    )
+    # delete by IDs must return None (verified by -> None annotation).
+    await idx.documents.delete(namespace=ns, ids=["doc-0"])
 
     # delete by filter must return None.
-    result_filter = await idx.documents.delete(
-        namespace=ns, filter={"category": {"$eq": "vegetable"}}
-    )
-    assert result_filter is None, (
-        f"async delete(filter=...) expected None, got {type(result_filter)}: {result_filter!r}"
-    )
+    await idx.documents.delete(namespace=ns, filter={"category": {"$eq": "vegetable"}})
 
     # delete_all=True must return None.
-    result_all = await idx.documents.delete(namespace=ns, delete_all=True)
-    assert result_all is None, (
-        f"async delete(delete_all=True) expected None, got {type(result_all)}: {result_all!r}"
-    )
+    await idx.documents.delete(namespace=ns, delete_all=True)
 
 
 # ---------------------------------------------------------------------------
@@ -2343,7 +2328,7 @@ async def test_async_describe_dedicated_index_read_capacity_response_fields(
         PreviewReadCapacityStatus,
     )
 
-    schema = SchemaBuilder().add_string_field("text", full_text_searchable=True).build()
+    schema = SchemaBuilder().add_string_field("text", full_text_search={}).build()
     read_capacity = {
         "mode": "Dedicated",
         "dedicated": {
@@ -2551,9 +2536,9 @@ async def test_async_describe_fts_string_field_server_applied_defaults(
     if the user did not set them. The SDK model for the response must accept these
     server-populated values.'
 
-    Creates an FTS string field with only full_text_searchable=True (no lowercase/
-    stemming/max_term_len), then verifies async describe() returns PreviewStringField
-    with server-populated attribute values.
+    Creates an FTS string field with `full_text_search={}` (empty dict — server defaults;
+    no explicit lowercase/stemming/max_term_len), then verifies async describe() returns
+    PreviewStringField with server-populated attribute values.
     """
     from pinecone.preview.models import PreviewStringField
 
@@ -2565,7 +2550,7 @@ async def test_async_describe_fts_string_field_server_applied_defaults(
             "manual": {"shards": 1, "replicas": 1},
         },
     }
-    schema = SchemaBuilder().add_string_field("text", full_text_searchable=True).build()
+    schema = SchemaBuilder().add_string_field("text", full_text_search={}).build()
 
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(
@@ -2594,33 +2579,35 @@ async def test_async_describe_fts_string_field_server_applied_defaults(
     assert isinstance(text_field, PreviewStringField), (
         f"text field: expected PreviewStringField, got {type(text_field)}"
     )
-    assert text_field.full_text_searchable is True, (
-        f"full_text_searchable must be True, got {text_field.full_text_searchable!r}"
+    assert text_field.full_text_search is not None, (
+        "field must be FTS-enabled (full_text_search is not None), "
+        f"got {text_field.full_text_search!r}"
     )
     assert text_field.filterable is False, (
         f"filterable must be False (not set at create time), got {text_field.filterable!r}"
     )
 
-    assert text_field.lowercase is not None, (
+    cfg = text_field.full_text_search
+    assert cfg.lowercase is not None, (
         "spec §1: server must populate 'lowercase' default even when not explicitly set; "
         "got None — SDK model may not be accepting server-populated values"
     )
-    assert text_field.stemming is not None, (
+    assert cfg.stemming is not None, (
         "spec §1: server must populate 'stemming' default even when not explicitly set; "
         "got None — SDK model may not be accepting server-populated values"
     )
-    assert text_field.max_term_len is not None, (
+    assert cfg.max_term_len is not None, (
         "spec §1: server must populate 'max_term_len' default even when not explicitly set; "
         "got None — SDK model may not be accepting server-populated values"
     )
-    assert text_field.lowercase is True, (
-        f"spec §1: server default for 'lowercase' is True, got {text_field.lowercase!r}"
+    assert cfg.lowercase is True, (
+        f"spec §1: server default for 'lowercase' is True, got {cfg.lowercase!r}"
     )
-    assert text_field.stemming is False, (
-        f"spec §1: server default for 'stemming' is False, got {text_field.stemming!r}"
+    assert cfg.stemming is False, (
+        f"spec §1: server default for 'stemming' is False, got {cfg.stemming!r}"
     )
-    assert text_field.max_term_len == 40, (
-        f"spec §1: server default for 'max_term_len' is 40, got {text_field.max_term_len!r}"
+    assert cfg.max_term_len == 40, (
+        f"spec §1: server default for 'max_term_len' is 40, got {cfg.max_term_len!r}"
     )
 
 
