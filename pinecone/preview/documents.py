@@ -292,8 +292,10 @@ class PreviewDocuments:
             score_by: Non-empty list of scoring queries. Items may be typed
                 :class:`~pinecone.preview.models.score_by.PreviewScoreByQuery`
                 structs or plain dicts.
-            include_fields: Fields to include in each result. ``None`` returns
-                only ``_id`` and ``_score``; ``["*"]`` returns all stored fields.
+            include_fields: Fields to include in each result. ``None`` (default) omits
+                the key from the request — the server returns all stored fields.
+                Pass ``["*"]`` for explicit all-fields. Pass ``[]`` to return only
+                ``_id`` and score (lightest payload).
             filter: Optional metadata filter expression.
 
         Returns:
@@ -372,8 +374,10 @@ class PreviewDocuments:
         Args:
             namespace: Target namespace. Must be a non-empty string.
             ids: Optional list of document IDs to fetch.
-            include_fields: Fields to include in each result. ``None`` returns
-                only ``_id``; ``["*"]`` returns all stored fields.
+            include_fields: Fields to include in each result. ``None`` (default) omits
+                the key from the request — the server returns all stored fields.
+                Pass ``["*"]`` for explicit all-fields. Pass a narrower list to
+                project only the fields you need.
             filter: Optional metadata filter expression.
 
         Returns:
