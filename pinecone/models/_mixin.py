@@ -82,14 +82,6 @@ class DictLikeStruct(Struct):
             for field in self.__struct_fields__
         }
 
-    def __str__(self) -> str:
-        """Return string representation in dictionary form."""
-        return str(self.to_dict())
-
-    def __repr__(self) -> str:
-        """Return repr in dictionary form."""
-        return repr(self.to_dict())
-
 
 class StructDictMixin(DictLikeStruct):
     """Full dict-like access for ``msgspec.Struct`` subclasses.

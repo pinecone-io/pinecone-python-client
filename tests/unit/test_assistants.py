@@ -3042,21 +3042,19 @@ def test_list_assistants_response_empty_attribute_access() -> None:
 
 
 def test_model_str_repr_dict_form_assistant() -> None:
-    """AssistantModel __str__ and __repr__ show dictionary form."""
+    """AssistantModel __str__ and __repr__ show class name."""
     model = _make_assistant_model()
-    as_dict = model.to_dict()
 
-    assert str(model) == str(as_dict)
     assert "AssistantModel(" in repr(model)
+    assert "AssistantModel(" in str(model)
 
 
 def test_model_str_repr_dict_form_file() -> None:
-    """AssistantFileModel __str__ shows dictionary form; __repr__ shows readable summary."""
+    """AssistantFileModel __str__ and __repr__ show class name."""
     model = _make_file_model()
-    as_dict = model.to_dict()
 
-    assert str(model) == str(as_dict)
     assert "AssistantFileModel(" in repr(model)
+    assert "AssistantFileModel(" in str(model)
 
 
 # ---------------------------------------------------------------------------
