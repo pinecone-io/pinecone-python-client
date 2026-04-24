@@ -129,7 +129,7 @@ class AsyncPreviewIndexes:
                     {
                         "fields": {
                             "embedding": {"type": "dense_vector", "dimension": 1536},
-                            "title": {"type": "string", "full_text_searchable": True},
+                            "title": {"type": "string", "full_text_search": {}},
                         }
                     }
 
@@ -224,7 +224,7 @@ class AsyncPreviewIndexes:
                     await pc.preview.indexes.configure(
                         "my-index",
                         schema={"fields": {
-                            "summary": {"type": "string", "full_text_searchable": True},
+                            "summary": {"type": "string", "full_text_search": {}},
                         }},
                     )
 
