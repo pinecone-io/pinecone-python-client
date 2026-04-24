@@ -89,7 +89,7 @@ class APIKeyModel(StructDictMixin, Struct, kw_only=True):
         """Singular alias for ``roles`` when the key has exactly one role.
 
         Returns:
-            str: The single role assigned to this key.
+            :class:`APIKeyRole`: The single role assigned to this key.
 
         Raises:
             :exc:`ValueError`: If the key has no roles or more than one role.
