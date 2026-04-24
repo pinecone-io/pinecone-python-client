@@ -1020,3 +1020,89 @@ def test_query_namespaces_large_top_k_merge_rest(client: Pinecone) -> None:
             assert m.score >= 0.0, f"Unexpected negative cosine score {m.score} for {m.id}"
     finally:
         ensure_index_deleted(client, name)
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-dense-dotproduct — descending score ordering — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_query_namespaces_dense_dotproduct_scores_descending_rest(client: Pinecone) -> None:
+    """query_namespaces() with dense dotproduct metric returns matches sorted descending (REST sync).
+
+    Verifies unified-vec-0036 for the dense+dotproduct combination: higher dot
+    products rank first in the merged result set.
+
+    Strategy:
+    - Dense index, dimension 2, metric="dotproduct".
+    - Query vector: [1.0, 0.0].
+    - Upsert three vectors at known dot products from the query:
+        ns1: "ddp-high"  at [1.0, 0.0]  -> dotproduct 1.0
+        ns1: "ddp-low"   at [0.1, 0.0]  -> dotproduct 0.1
+        ns2: "ddp-mid"   at [0.5, 0.0]  -> dotproduct 0.5
+    - Assert scores are non-increasing (descending), and that "ddp-high" ranks
+      first while "ddp-low" ranks last.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="dotproduct",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        index.upsert(
+            vectors=[
+                {"id": "ddp-high", "values": [1.0, 0.0]},
+                {"id": "ddp-low", "values": [0.1, 0.0]},
+            ],
+            namespace="ddp-ns1",
+        )
+        index.upsert(
+            vectors=[{"id": "ddp-mid", "values": [0.5, 0.0]}],
+            namespace="ddp-ns2",
+        )
+
+        poll_until(
+            query_fn=lambda: index.query(vector=[1.0, 0.0], top_k=10, namespace="ddp-ns1"),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="ddp-ns1 vectors queryable before dotproduct sort test",
+        )
+        poll_until(
+            query_fn=lambda: index.query(vector=[1.0, 0.0], top_k=10, namespace="ddp-ns2"),
+            check_fn=lambda r: len(r.matches) >= 1,
+            timeout=120,
+            description="ddp-ns2 vector queryable before dotproduct sort test",
+        )
+
+        results = index.query_namespaces(
+            vector=[1.0, 0.0],
+            namespaces=["ddp-ns1", "ddp-ns2"],
+            metric="dotproduct",
+            top_k=5,
+        )
+
+        assert isinstance(results, QueryNamespacesResults)
+        assert len(results.matches) == 3
+
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True), (
+            f"Dotproduct scores must be descending: {scores}"
+        )
+
+        assert results.matches[0].id == "ddp-high"
+        assert results.matches[-1].id == "ddp-low"
+
+        for m in results.matches:
+            assert isinstance(m, ScoredVector)
+            assert isinstance(m.id, str)
+            assert isinstance(m.score, float)
+
+        assert results.ns_usage.keys() == {"ddp-ns1", "ddp-ns2"}
+    finally:
+        ensure_index_deleted(client, name)
