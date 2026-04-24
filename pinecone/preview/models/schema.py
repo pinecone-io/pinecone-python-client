@@ -21,6 +21,7 @@ __all__ = [
     "PreviewSemanticTextField",
     "PreviewSparseVectorField",
     "PreviewStringField",
+    "PreviewStringListField",
 ]
 
 
@@ -194,6 +195,39 @@ class PreviewStringField(Struct, tag="string", tag_field="type", kw_only=True):
     full_text_search: PreviewFullTextSearchConfig | None = None
 
 
+class PreviewStringListField(Struct, tag="string_list", tag_field="type", kw_only=True):
+    """List-of-strings field for metadata filtering.
+
+    .. admonition:: Preview
+       :class: warning
+
+       Uses Pinecone API version ``2026-01.alpha``.
+       Preview surface is not covered by SemVer — signatures and behavior
+       may change in any minor SDK release. Pin your SDK version when
+       relying on preview features.
+
+    Stores a list of strings per row — useful for tag-style metadata
+    (e.g. ``["sci-fi", "mystery"]``) that should be filterable against
+    individual elements.
+
+    The wire type tag is ``"string_list"``. The prior tag ``"string[]"``
+    is no longer accepted by the server.
+
+    Attributes:
+        description: Optional human-readable description of the field.
+        filterable: Whether the field can be used in metadata filters.
+            Defaults to ``False``.
+
+    Note:
+        The ``type`` field is automatically set to ``"string_list"`` by
+        msgspec's tagged union system and should not be included
+        explicitly.
+    """
+
+    description: str | None = None
+    filterable: bool = False
+
+
 class PreviewIntegerField(Struct, tag="float", tag_field="type", kw_only=True):
     """Integer (numeric) field for metadata filtering.
 
@@ -231,6 +265,7 @@ PreviewSchemaField = (
     | PreviewSparseVectorField
     | PreviewSemanticTextField
     | PreviewStringField
+    | PreviewStringListField
     | PreviewIntegerField
 )
 
