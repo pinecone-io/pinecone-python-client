@@ -153,9 +153,10 @@ class BatchResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
         ...     namespace="articles-en",
         ...     documents=documents,
         ... )
-        >>> target_lsn = result.response_info.lsn_committed
-        >>> if result.response_info and result.response_info.is_reconciled(target_lsn):
-        ...     pass  # all writes durable through target_lsn
+        >>> if result.response_info is not None:
+        ...     target_lsn = result.response_info.lsn_committed
+        ...     if result.response_info.is_reconciled(target_lsn):
+        ...         pass  # all writes durable through target_lsn
     """
 
     lsn_reconciled: int | None = None
