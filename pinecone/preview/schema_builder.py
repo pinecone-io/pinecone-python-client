@@ -292,7 +292,7 @@ class PreviewSchemaBuilder:
         self,
         name: str,
         *,
-        filterable: bool = True,
+        filterable: bool = False,
         description: str | None = None,
         **additional_options: Any,
     ) -> PreviewSchemaBuilder:
@@ -312,7 +312,7 @@ class PreviewSchemaBuilder:
 
         Args:
             name: Field name. Replaces any existing field with the same name.
-            filterable: Enable filtering on this field. Defaults to ``True``.
+            filterable: Enable filtering on this field. Defaults to ``False``.
             description: Optional human-readable description.
             **additional_options: Extra parameters merged into the field dict
                 last, for forward compatibility with new API features.

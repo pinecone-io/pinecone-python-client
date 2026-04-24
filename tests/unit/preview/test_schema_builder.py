@@ -214,7 +214,7 @@ def test_integer_field_defaults() -> None:
     schema = SchemaBuilder().add_integer_field("year").build()
     field = schema["fields"]["year"]
     assert field["type"] == "float"
-    assert field["filterable"] is True
+    assert "filterable" not in field
 
 
 def test_integer_field_filterable_false_omitted() -> None:
