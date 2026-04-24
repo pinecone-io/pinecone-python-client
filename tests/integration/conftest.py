@@ -97,6 +97,39 @@ def cleanup_resource(
         print(f"  WARNING: Failed to clean up {resource_type} {resource_id}: {exc}")
 
 
+def ensure_index_deleted(
+    client: Pinecone,
+    name: str,
+    *,
+    timeout: int = 120,
+    interval: int = 3,
+) -> None:
+    """Delete an index and poll until it disappears. Best-effort; never raises.
+
+    Unlike ``cleanup_resource``, this waits for the backend to finish the
+    asynchronous delete so the name is released before the test returns,
+    which reduces cross-test index-quota flakes.
+    """
+    try:
+        client.indexes.delete(name)
+    except Exception as exc:
+        print(f"  WARNING: delete call failed for index {name}: {exc}")
+
+    start = time.monotonic()
+    while time.monotonic() - start < timeout:
+        try:
+            listing = client.indexes.list()
+            existing = {i.name for i in listing.indexes}
+            if name not in existing:
+                print(f"  Cleaned up index: {name}")
+                return
+        except Exception as exc:
+            print(f"  WARNING: indexes.list() failed during cleanup of {name}: {exc}")
+        time.sleep(interval)
+
+    print(f"  WARNING: index {name} still present after {timeout}s — may leak quota")
+
+
 async def async_cleanup_resource(
     delete_fn: object,
     resource_id: str,
@@ -108,6 +141,34 @@ async def async_cleanup_resource(
         print(f"  Cleaned up {resource_type}: {resource_id}")
     except Exception as exc:
         print(f"  WARNING: Failed to clean up {resource_type} {resource_id}: {exc}")
+
+
+async def async_ensure_index_deleted(
+    async_client: AsyncPinecone,
+    name: str,
+    *,
+    timeout: int = 120,
+    interval: int = 3,
+) -> None:
+    """Async version of :func:`ensure_index_deleted`. Best-effort; never raises."""
+    try:
+        await async_client.indexes.delete(name)
+    except Exception as exc:
+        print(f"  WARNING: delete call failed for index {name}: {exc}")
+
+    start = time.monotonic()
+    while time.monotonic() - start < timeout:
+        try:
+            listing = await async_client.indexes.list()
+            existing = {i.name for i in listing.indexes}
+            if name not in existing:
+                print(f"  Cleaned up index: {name}")
+                return
+        except Exception as exc:
+            print(f"  WARNING: indexes.list() failed during cleanup of {name}: {exc}")
+        await asyncio.sleep(interval)
+
+    print(f"  WARNING: index {name} still present after {timeout}s — may leak quota")
 
 
 async def async_poll_until(
