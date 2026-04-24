@@ -4,15 +4,18 @@ from __future__ import annotations
 
 import msgspec
 import msgspec.json
+import pytest
 
 from pinecone.preview.models.schema import (
     PreviewDenseVectorField,
+    PreviewFullTextSearchConfig,
     PreviewIntegerField,
     PreviewSchema,
     PreviewSchemaField,
     PreviewSemanticTextField,
     PreviewSparseVectorField,
     PreviewStringField,
+    PreviewStringListField,
 )
 
 
@@ -30,23 +33,33 @@ def test_sparse_vector_field_defaults() -> None:
 
 
 def test_string_field_fts_and_filterable() -> None:
-    field = PreviewStringField(full_text_searchable=True, filterable=True, language="en")
-    assert field.full_text_searchable is True
+    field = PreviewStringField(
+        full_text_search=PreviewFullTextSearchConfig(language="en"),
+        filterable=True,
+    )
+    assert field.full_text_search is not None
+    assert field.full_text_search.language == "en"
     assert field.filterable is True
-    assert field.language == "en"
 
 
-def test_string_field_stop_words() -> None:
-    # Defaults to None
+def test_string_field_stop_words_config() -> None:
+    # Defaults: full_text_search is None (field is not FTS-enabled).
     field_default = PreviewStringField()
-    assert field_default.stop_words is None
+    assert field_default.full_text_search is None
 
-    # Can be set explicitly
-    field_true = PreviewStringField(stop_words=True)
-    assert field_true.stop_words is True
+    # Empty config: FTS enabled, all options server-defaulted.
+    field_empty = PreviewStringField(full_text_search=PreviewFullTextSearchConfig())
+    assert field_empty.full_text_search is not None
+    assert field_empty.full_text_search.stop_words is None
 
-    field_false = PreviewStringField(stop_words=False)
-    assert field_false.stop_words is False
+    # Explicit stop_words on the config.
+    field_true = PreviewStringField(full_text_search=PreviewFullTextSearchConfig(stop_words=True))
+    assert field_true.full_text_search is not None
+    assert field_true.full_text_search.stop_words is True
+
+    field_false = PreviewStringField(full_text_search=PreviewFullTextSearchConfig(stop_words=False))
+    assert field_false.full_text_search is not None
+    assert field_false.full_text_search.stop_words is False
 
 
 def test_integer_field_wire_type_is_float() -> None:
@@ -77,7 +90,7 @@ def test_preview_schema_decode() -> None:
     raw = b"""{
         "fields": {
             "embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"},
-            "title": {"type": "string", "full_text_searchable": true, "language": "en"},
+            "title": {"type": "string", "full_text_search": {"language": "en"}},
             "year": {"type": "float", "filterable": true},
             "body": {"type": "semantic_text", "model": "multilingual-e5-large"}
         }
@@ -86,7 +99,9 @@ def test_preview_schema_decode() -> None:
     assert isinstance(schema.fields["embedding"], PreviewDenseVectorField)
     assert schema.fields["embedding"].dimension == 1536
     assert isinstance(schema.fields["title"], PreviewStringField)
-    assert schema.fields["title"].full_text_searchable is True
+    title = schema.fields["title"]
+    assert title.full_text_search is not None
+    assert title.full_text_search.language == "en"
     assert isinstance(schema.fields["year"], PreviewIntegerField)
     assert schema.fields["year"].filterable is True
     assert isinstance(schema.fields["body"], PreviewSemanticTextField)
@@ -114,12 +129,7 @@ def test_dense_vector_field_all_defaults() -> None:
 def test_string_field_defaults() -> None:
     field = PreviewStringField()
     assert field.filterable is False
-    assert field.full_text_searchable is False
-    assert field.language is None
-    assert field.stemming is None
-    assert field.lowercase is None
-    assert field.max_term_len is None
-    assert field.stop_words is None
+    assert field.full_text_search is None
 
 
 def test_integer_field_defaults() -> None:
@@ -143,3 +153,89 @@ def test_preview_schema_decodes_empty_fields() -> None:
     schema = msgspec.json.decode(b'{"fields": {}}', type=PreviewSchema)
     assert schema.fields == {}
     assert isinstance(schema.fields, dict)
+
+
+# ---------------------------------------------------------------------------
+# PreviewFullTextSearchConfig
+# ---------------------------------------------------------------------------
+
+
+def test_full_text_search_config_all_defaults_none() -> None:
+    cfg = PreviewFullTextSearchConfig()
+    assert cfg.language is None
+    assert cfg.stemming is None
+    assert cfg.lowercase is None
+    assert cfg.max_term_len is None
+    assert cfg.stop_words is None
+
+
+def test_string_field_decodes_empty_full_text_search_dict() -> None:
+    # Per spec: an empty {} config is valid — FTS enabled with all server defaults.
+    raw = b'{"type": "string", "full_text_search": {}}'
+    field = msgspec.json.decode(raw, type=PreviewSchemaField)
+    assert isinstance(field, PreviewStringField)
+    assert field.full_text_search is not None
+    assert field.full_text_search.language is None
+
+
+def test_string_field_absent_full_text_search_is_none() -> None:
+    # Absence = field is not FTS-enabled.
+    raw = b'{"type": "string"}'
+    field = msgspec.json.decode(raw, type=PreviewSchemaField)
+    assert isinstance(field, PreviewStringField)
+    assert field.full_text_search is None
+
+
+def test_string_field_decodes_populated_full_text_search() -> None:
+    raw = (
+        b'{"type": "string", "full_text_search": {"language": "en", '
+        b'"stemming": true, "lowercase": false, "max_term_len": 64, "stop_words": true}}'
+    )
+    field = msgspec.json.decode(raw, type=PreviewSchemaField)
+    assert isinstance(field, PreviewStringField)
+    cfg = field.full_text_search
+    assert cfg is not None
+    assert cfg.language == "en"
+    assert cfg.stemming is True
+    assert cfg.lowercase is False
+    assert cfg.max_term_len == 64
+    assert cfg.stop_words is True
+
+
+# ---------------------------------------------------------------------------
+# PreviewStringListField
+# ---------------------------------------------------------------------------
+
+
+def test_string_list_field_defaults() -> None:
+    field = PreviewStringListField()
+    assert field.filterable is False
+    assert field.description is None
+
+
+def test_string_list_field_with_filterable_and_description() -> None:
+    field = PreviewStringListField(filterable=True, description="tags")
+    assert field.filterable is True
+    assert field.description == "tags"
+
+
+def test_string_list_field_decode_minimal() -> None:
+    raw = b'{"type": "string_list"}'
+    field = msgspec.json.decode(raw, type=PreviewSchemaField)
+    assert isinstance(field, PreviewStringListField)
+
+
+def test_string_list_field_decode_filterable() -> None:
+    raw = b'{"type": "string_list", "filterable": true, "description": "tags"}'
+    field = msgspec.json.decode(raw, type=PreviewSchemaField)
+    assert isinstance(field, PreviewStringListField)
+    assert field.filterable is True
+    assert field.description == "tags"
+
+
+def test_schema_field_union_rejects_old_string_array_tag() -> None:
+    # The tag "string[]" was renamed to "string_list". Decoding the old tag
+    # must now fail at the tagged-union discriminator.
+    raw = b'{"type": "string[]"}'
+    with pytest.raises(msgspec.ValidationError):
+        msgspec.json.decode(raw, type=PreviewSchemaField)
