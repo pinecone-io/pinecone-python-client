@@ -34,6 +34,7 @@ class PreviewSchemaBuilder:
         ...     .add_dense_vector_field("embedding", dimension=768, metric="cosine")
         ...     .add_string_field("title", full_text_search={"language": "en"})
         ...     .add_string_field("category", filterable=True)
+        ...     .add_string_list_field("tags", filterable=True)
         ...     .add_integer_field("year", filterable=True)
         ...     .build()
         ... )
