@@ -8,6 +8,8 @@ DX-0075: query-namespaces-sparse (async).
 
 from __future__ import annotations
 
+import time
+
 import pytest
 
 from pinecone import AsyncPinecone
@@ -17,6 +19,7 @@ from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
 from pinecone.models.vectors.vector import ScoredVector
 from tests.integration.conftest import (
     async_cleanup_resource,
+    async_ensure_index_deleted,
     async_poll_until,
     unique_name,
 )
@@ -775,3 +778,99 @@ async def test_query_namespaces_sparse_rest_async(async_client: AsyncPinecone) -
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-parallel — REST async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_query_namespaces_parallel_faster_than_serial_rest_async(
+    async_client: AsyncPinecone,
+) -> None:
+    """query_namespaces() across 10 namespaces executes queries concurrently (async).
+
+    Verifies claim unified-vec-0035: individual per-namespace queries are fanned
+    out via asyncio.gather, so wall-clock time is substantially less than a
+    sequential baseline.
+    """
+    name = unique_name("idx")
+    idx: AsyncIndex | None = None
+    try:
+        await async_client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+
+        # Populate host cache so async_client.index(name=...) can resolve it
+        await async_client.indexes.describe(name)
+        idx = async_client.index(name=name)
+
+        namespaces = [f"qnpa-ns-{i}" for i in range(10)]
+
+        for ns in namespaces:
+            await idx.upsert(
+                vectors=[
+                    {"id": f"{ns}-v{j}", "values": [float(j) / 5, 1.0 - float(j) / 5]}
+                    for j in range(5)
+                ],
+                namespace=ns,
+            )
+
+        # Wait for each namespace to have all 5 vectors queryable
+        for ns in namespaces:
+            await async_poll_until(
+                query_fn=lambda ns=ns: idx.query(vector=[0.5, 0.5], top_k=10, namespace=ns),
+                check_fn=lambda r: len(r.matches) >= 5,
+                timeout=120,
+                description=f"{ns} vectors queryable (async) before parallel test",
+            )
+
+        # Serial baseline: loop over each namespace sequentially
+        serial_start = time.monotonic()
+        for ns in namespaces:
+            await idx.query(vector=[0.5, 0.5], top_k=5, namespace=ns)
+        serial_elapsed = time.monotonic() - serial_start
+
+        # Parallel call: single query_namespaces fan-out via asyncio.gather
+        parallel_start = time.monotonic()
+        results = await idx.query_namespaces(
+            vector=[0.5, 0.5],
+            namespaces=namespaces,
+            metric="cosine",
+            top_k=5,
+        )
+        parallel_elapsed = time.monotonic() - parallel_start
+
+        # Correctness assertions
+        assert isinstance(results, QueryNamespacesResults)
+        assert isinstance(results.matches, list)
+        assert 1 <= len(results.matches) <= 5
+        for match in results.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True)
+        for ns in namespaces:
+            assert ns in results.ns_usage
+
+        # Skip if backend is too fast to distinguish parallel from serial
+        if serial_elapsed < 0.1:
+            pytest.skip(f"serial baseline too fast to be meaningful: {serial_elapsed:.3f}s")
+
+        # Parallelism assertion: parallel must be substantially faster
+        assert parallel_elapsed < serial_elapsed * 0.6, (
+            f"query_namespaces must fan out queries in parallel. "
+            f"serial={serial_elapsed:.3f}s parallel={parallel_elapsed:.3f}s "
+            f"ratio={parallel_elapsed / serial_elapsed:.2f} (expected < 0.60)"
+        )
+    finally:
+        if idx is not None:
+            await idx.close()
+        await async_ensure_index_deleted(async_client, name)

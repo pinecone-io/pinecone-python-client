@@ -7,13 +7,20 @@ ET-019: query-namespaces-dedup.
 
 from __future__ import annotations
 
+import time
+
 import pytest
 
 from pinecone import Pinecone
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
 from pinecone.models.vectors.vector import ScoredVector
-from tests.integration.conftest import cleanup_resource, poll_until, unique_name
+from tests.integration.conftest import (
+    cleanup_resource,
+    ensure_index_deleted,
+    poll_until,
+    unique_name,
+)
 
 # ---------------------------------------------------------------------------
 # query-namespaces-filter — REST sync
@@ -700,3 +707,90 @@ def test_query_namespaces_sparse_rest(client: Pinecone) -> None:
         assert results.usage.read_units >= 2
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-parallel — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_query_namespaces_parallel_faster_than_serial_rest(client: Pinecone) -> None:
+    """query_namespaces() across 10 namespaces executes queries in parallel.
+
+    Verifies claim unified-vec-0035: individual per-namespace queries are fanned
+    out via a thread pool, so wall-clock time is substantially less than a
+    sequential baseline.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        namespaces = [f"qnp-ns-{i}" for i in range(10)]
+
+        for ns in namespaces:
+            index.upsert(
+                vectors=[
+                    {"id": f"{ns}-v{j}", "values": [float(j) / 5, 1.0 - float(j) / 5]}
+                    for j in range(5)
+                ],
+                namespace=ns,
+            )
+
+        # Wait for each namespace to have all 5 vectors queryable
+        for ns in namespaces:
+            poll_until(
+                query_fn=lambda ns=ns: index.query(vector=[0.5, 0.5], top_k=10, namespace=ns),
+                check_fn=lambda r: len(r.matches) >= 5,
+                timeout=120,
+                description=f"{ns} vectors queryable before parallel test",
+            )
+
+        # Serial baseline: loop over each namespace individually
+        serial_start = time.monotonic()
+        for ns in namespaces:
+            index.query(vector=[0.5, 0.5], top_k=5, namespace=ns)
+        serial_elapsed = time.monotonic() - serial_start
+
+        # Parallel call: single query_namespaces fan-out
+        parallel_start = time.monotonic()
+        results = index.query_namespaces(
+            vector=[0.5, 0.5],
+            namespaces=namespaces,
+            metric="cosine",
+            top_k=5,
+        )
+        parallel_elapsed = time.monotonic() - parallel_start
+
+        # Correctness assertions
+        assert isinstance(results, QueryNamespacesResults)
+        assert isinstance(results.matches, list)
+        assert 1 <= len(results.matches) <= 5
+        for match in results.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True)
+        for ns in namespaces:
+            assert ns in results.ns_usage
+
+        # Skip if backend is too fast to distinguish parallel from serial
+        if serial_elapsed < 0.1:
+            pytest.skip(f"serial baseline too fast to be meaningful: {serial_elapsed:.3f}s")
+
+        # Parallelism assertion: parallel must be substantially faster
+        assert parallel_elapsed < serial_elapsed * 0.6, (
+            f"query_namespaces must fan out queries in parallel. "
+            f"serial={serial_elapsed:.3f}s parallel={parallel_elapsed:.3f}s "
+            f"ratio={parallel_elapsed / serial_elapsed:.2f} (expected < 0.60)"
+        )
+    finally:
+        ensure_index_deleted(client, name)
