@@ -23,8 +23,6 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True):
             surfaced by the typed properties below. Prefer the typed
             properties when available — wire header names may change,
             but property semantics are stable.
-
-    Properties:
         request_id (str | None): Server-assigned request identifier read
             from ``x-pinecone-request-id``, or ``None`` if not present.
         lsn_reconciled (int | None): Log sequence number indicating how
@@ -40,18 +38,72 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True):
 
     @property
     def request_id(self) -> str | None:
+        """Server-assigned request identifier from ``x-pinecone-request-id``.
+
+        Returns:
+            :class:`str` with the request ID, or ``None`` when the header
+            is absent.
+        """
         return self.raw_headers.get("x-pinecone-request-id")
 
     @property
     def lsn_reconciled(self) -> int | None:
+        """Log sequence number indicating how far the index has reconciled.
+
+        Parsed from the ``x-pinecone-lsn-reconciled`` response header.
+
+        Returns:
+            :class:`int` LSN, or ``None`` when the header is absent or
+            its value is not a valid integer.
+        """
         return _parse_int(self.raw_headers.get("x-pinecone-lsn-reconciled"))
 
     @property
     def lsn_committed(self) -> int | None:
+        """Log sequence number of the last committed write.
+
+        Parsed from the ``x-pinecone-lsn-committed`` response header.
+
+        Returns:
+            :class:`int` LSN, or ``None`` when the header is absent or
+            its value is not a valid integer.
+        """
         return _parse_int(self.raw_headers.get("x-pinecone-lsn-committed"))
 
     def is_reconciled(self, target: int) -> bool:
-        """Return True when the reconciled LSN meets or exceeds *target*."""
+        """Return ``True`` when the reconciled LSN meets or exceeds *target*.
+
+        Use this for read-your-writes consistency checks: pass the LSN from
+        a previous write response to verify that the index has caught up to
+        that write before issuing a query.
+
+        Args:
+            target (int): The LSN threshold to check against. Typically the
+                :attr:`lsn_committed` value returned by a prior upsert or
+                delete response.
+
+        Returns:
+            ``True`` if :attr:`lsn_reconciled` is not ``None`` and is
+            greater than or equal to *target*; ``False`` otherwise.
+
+        Examples:
+            Read-your-writes after an upsert:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> index = pc.Index("product-search")
+            >>> upsert_resp = index.upsert_records(
+            ...     namespace="electronics",
+            ...     records=[{"id": "prod-42", "_text": "wireless headphones"}],
+            ... )
+            >>> committed_lsn = upsert_resp.response_info.lsn_committed
+            >>> query_resp = index.search(
+            ...     namespace="electronics",
+            ...     query={"inputs": {"text": "headphones"}},
+            ... )
+            >>> query_resp.result.response_info.is_reconciled(committed_lsn)
+            True
+        """
         lsn = self.lsn_reconciled
         return lsn is not None and lsn >= target
 
