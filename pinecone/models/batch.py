@@ -81,11 +81,27 @@ class BatchResult(Struct, kw_only=True):
     Examples:
         Check for partial failure and retry:
 
-        >>> vectors = [{"id": f"v{i}", "values": [0.1] * 128} for i in range(1000)]
-        >>> result = index.batch_upsert(vectors=vectors, namespace="ns")
+        >>> from pinecone import Pinecone
+        >>> pc = Pinecone(api_key="your-api-key")
+        >>> index = pc.preview.index(name="articles-en-preview")
+        >>> documents = [
+        ...     {
+        ...         "_id": f"article-{i:05d}",
+        ...         "content": f"Article {i}",
+        ...         "embedding": [0.012, -0.087, 0.153],  # 1536-dim in practice
+        ...     }
+        ...     for i in range(1000)
+        ... ]
+        >>> result = index.documents.batch_upsert(
+        ...     namespace="articles-en",
+        ...     documents=documents,
+        ... )
         >>> if result.has_errors:
         ...     print(f"{result.failed_item_count} items failed, retrying...")
-        ...     retry = index.batch_upsert(vectors=result.failed_items, namespace="ns")
+        ...     retry = index.documents.batch_upsert(
+        ...         namespace="articles-en",
+        ...         documents=result.failed_items,
+        ...     )
     """
 
     total_item_count: int

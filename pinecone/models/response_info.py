@@ -140,12 +140,22 @@ class BatchResponseInfo(StructDictMixin, Struct, kw_only=True):
             successful batch reported this header.
 
     Examples:
-        Read-your-writes after a bulk upsert::
+        Read-your-writes after a bulk upsert:
 
-            result = index.documents.batch_upsert(namespace="ns", documents=docs)
-            if result.response_info and result.response_info.is_reconciled(target_lsn):
-                # all writes durable through `target_lsn`
-                ...
+        >>> from pinecone import Pinecone
+        >>> pc = Pinecone(api_key="your-api-key")
+        >>> index = pc.preview.index(name="articles-en-preview")
+        >>> documents = [
+        ...     {"_id": f"article-{i:05d}", "content": f"Article {i}"}
+        ...     for i in range(500)
+        ... ]
+        >>> result = index.documents.batch_upsert(
+        ...     namespace="articles-en",
+        ...     documents=documents,
+        ... )
+        >>> target_lsn = result.response_info.lsn_committed
+        >>> if result.response_info and result.response_info.is_reconciled(target_lsn):
+        ...     pass  # all writes durable through target_lsn
     """
 
     lsn_reconciled: int | None = None
