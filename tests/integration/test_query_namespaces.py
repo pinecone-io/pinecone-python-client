@@ -865,3 +865,158 @@ def test_query_namespaces_validation_errors_rest(client: Pinecone) -> None:
             )
     finally:
         ensure_index_deleted(client, name)
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-tie-breaking — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_query_namespaces_tie_breaking_rest(client: Pinecone) -> None:
+    """query_namespaces() preserves deterministic order for tied scores (REST sync).
+
+    Verifies unified-vec-0037: when multiple matches share the same score, the
+    heap-based aggregator preserves a deterministic order (insertion order).
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert identical vectors into two namespaces so every match scores 1.0
+        index.upsert(
+            vectors=[{"id": f"qnt-ns1-v{j}", "values": [1.0, 0.0]} for j in range(3)],
+            namespace="qnt-ns1",
+        )
+        index.upsert(
+            vectors=[{"id": f"qnt-ns2-v{j}", "values": [1.0, 0.0]} for j in range(3)],
+            namespace="qnt-ns2",
+        )
+
+        # Wait for each namespace to have all 3 vectors queryable
+        for ns in ("qnt-ns1", "qnt-ns2"):
+            poll_until(
+                query_fn=lambda ns=ns: index.query(vector=[1.0, 0.0], top_k=10, namespace=ns),
+                check_fn=lambda r: len(r.matches) >= 3,
+                timeout=120,
+                description=f"{ns} vectors queryable before tie-breaking test",
+            )
+
+        # Query twice with the same namespaces order
+        results_a = index.query_namespaces(
+            vector=[1.0, 0.0],
+            namespaces=["qnt-ns1", "qnt-ns2"],
+            metric="cosine",
+            top_k=6,
+        )
+        results_b = index.query_namespaces(
+            vector=[1.0, 0.0],
+            namespaces=["qnt-ns1", "qnt-ns2"],
+            metric="cosine",
+            top_k=6,
+        )
+
+        assert isinstance(results_a, QueryNamespacesResults)
+        assert isinstance(results_b, QueryNamespacesResults)
+        assert len(results_a.matches) == 6
+        assert len(results_b.matches) == 6
+
+        # All scores must be (approximately) 1.0
+        for m in results_a.matches:
+            assert m.score == pytest.approx(1.0, abs=1e-4), (
+                f"Expected score ~1.0 for {m.id}, got {m.score}"
+            )
+
+        # Deterministic: same order on repeated calls with the same namespace order
+        assert [m.id for m in results_a.matches] == [m.id for m in results_b.matches], (
+            "query_namespaces() returned different match order on repeated calls with identical "
+            f"input — non-deterministic tie-breaking detected.\n"
+            f"  call 1: {[m.id for m in results_a.matches]}\n"
+            f"  call 2: {[m.id for m in results_b.matches]}"
+        )
+    finally:
+        ensure_index_deleted(client, name)
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-large-top-k-merge — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_query_namespaces_large_top_k_merge_rest(client: Pinecone) -> None:
+    """query_namespaces() merges large per-namespace result sets into a correct top-k (REST sync).
+
+    Verifies unified-vec-0036: heap-based aggregation yields the global top-k
+    when each namespace contributes many matches.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Upsert 50 distinct vectors per namespace with interpolated values so scores differ
+        ns1_vectors = [
+            {"id": f"qnl-ns1-v{j}", "values": [float(j) / 50, 1.0 - float(j) / 50]}
+            for j in range(50)
+        ]
+        ns2_vectors = [
+            {"id": f"qnl-ns2-v{j}", "values": [float(j) / 100, 1.0 - float(j) / 100]}
+            for j in range(50)
+        ]
+        index.upsert(vectors=ns1_vectors, namespace="qnl-ns1")
+        index.upsert(vectors=ns2_vectors, namespace="qnl-ns2")
+
+        # Wait for all vectors to be queryable (use top_k=50 when polling)
+        for ns in ("qnl-ns1", "qnl-ns2"):
+            poll_until(
+                query_fn=lambda ns=ns: index.query(vector=[0.5, 0.5], top_k=50, namespace=ns),
+                check_fn=lambda r: len(r.matches) >= 50,
+                timeout=180,
+                description=f"{ns} 50 vectors queryable before large-top-k test",
+            )
+
+        results = index.query_namespaces(
+            vector=[0.5, 0.5],
+            namespaces=["qnl-ns1", "qnl-ns2"],
+            metric="cosine",
+            top_k=25,
+        )
+
+        assert isinstance(results, QueryNamespacesResults)
+        assert len(results.matches) == 25
+
+        # Scores must be in descending order
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True), (
+            f"Matches not sorted by descending score: {scores}"
+        )
+
+        # No duplicate IDs
+        assert len({m.id for m in results.matches}) == 25, (
+            "Duplicate match IDs in large-top-k results"
+        )
+
+        # Both namespaces must appear in ns_usage
+        assert set(results.ns_usage.keys()) == {"qnl-ns1", "qnl-ns2"}, (
+            f"Expected ns_usage keys {{'qnl-ns1', 'qnl-ns2'}}, got {set(results.ns_usage.keys())}"
+        )
+
+        # Cosine with non-negative vectors cannot yield negative scores
+        for m in results.matches:
+            assert m.score >= 0.0, f"Unexpected negative cosine score {m.score} for {m.id}"
+    finally:
+        ensure_index_deleted(client, name)
