@@ -62,6 +62,21 @@ class ProjectList:
         return self._projects[index]
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the list as a serializable dict.
+
+        Returns:
+            dict[str, Any]: A dict with a ``"data"`` key containing a list of
+            project dicts, each produced by :meth:`ProjectModel.to_dict`.
+
+        Examples:
+            Serialize all projects:
+
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+            >>> projects = admin.projects.list()
+            >>> projects.to_dict()
+            {'data': [{'name': 'production-search', ...}, {'name': 'staging-recommendations', ...}]}
+        """
         return {"data": [p.to_dict() for p in self._projects]}
 
     def names(self) -> list[str]:

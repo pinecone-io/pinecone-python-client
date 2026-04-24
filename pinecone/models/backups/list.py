@@ -50,6 +50,23 @@ class BackupList:
         return self._backups[index]
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the list as a serializable dict.
+
+        Returns:
+            dict[str, Any]: A dict with a ``"data"`` key containing a list of
+            backup dicts, each produced by :meth:`BackupModel.to_dict`. When the
+            wrapper has a pagination token, the dict also includes a
+            ``"pagination"`` key with the token for fetching the next page.
+
+        Examples:
+            Serialize a page of backups:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> backups = pc.list_backups(index_name="movie-recommendations")
+            >>> backups.to_dict()
+            {'data': [{'backup_id': 'bkp-abc123', ...}, {'backup_id': 'bkp-def456', ...}]}
+        """
         result: dict[str, Any] = {"data": [b.to_dict() for b in self._backups]}
         if self.pagination is not None:
             result["pagination"] = self.pagination.to_dict()
@@ -122,6 +139,23 @@ class RestoreJobList:
         return self._restore_jobs[index]
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the list as a serializable dict.
+
+        Returns:
+            dict[str, Any]: A dict with a ``"data"`` key containing a list of
+            restore job dicts, each produced by :meth:`RestoreJobModel.to_dict`.
+            When the wrapper has a pagination token, the dict also includes a
+            ``"pagination"`` key with the token for fetching the next page.
+
+        Examples:
+            Serialize a page of restore jobs:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> jobs = pc.list_restore_jobs(index_name="movie-recommendations")
+            >>> jobs.to_dict()
+            {'data': [{'restore_job_id': 'rj-abc123', ...}, {'restore_job_id': 'rj-def456', ...}]}
+        """
         result: dict[str, Any] = {"data": [r.to_dict() for r in self._restore_jobs]}
         if self.pagination is not None:
             result["pagination"] = self.pagination.to_dict()

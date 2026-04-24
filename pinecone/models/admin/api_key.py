@@ -179,6 +179,21 @@ class APIKeyList:
         return self._api_keys[index]
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the list as a serializable dict.
+
+        Returns:
+            dict[str, Any]: A dict with a ``"data"`` key containing a list of
+            API key dicts, each produced by :meth:`APIKeyModel.to_dict`.
+
+        Examples:
+            Serialize all API keys in a project:
+
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+            >>> keys = admin.api_keys.list(project_id="proj-abc123")
+            >>> keys.to_dict()
+            {'data': [{'name': 'prod-search-key', ...}, {'name': 'ci-pipeline-key', ...}]}
+        """
         return {"data": [k.to_dict() for k in self._api_keys]}
 
     def names(self) -> list[str]:

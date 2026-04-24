@@ -41,6 +41,24 @@ class ImportList:
         return self._imports[index]
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the list as a serializable dict.
+
+        Returns:
+            dict[str, Any]: A dict with a ``"data"`` key containing a list of
+            import dicts, each produced by :meth:`ImportModel.to_dict`. When the
+            wrapper has a pagination token, the dict also includes a
+            ``"pagination"`` key with the token for fetching the next page.
+
+        Examples:
+            Serialize a page of bulk imports:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> index = pc.Index("product-search")
+            >>> imports = index.list_imports_paginated()
+            >>> imports.to_dict()
+            {'data': [{'id': 'import-abc123', ...}, {'id': 'import-def456', ...}]}
+        """
         result: dict[str, Any] = {"data": [i.to_dict() for i in self._imports]}
         if self.pagination is not None:
             result["pagination"] = self.pagination.to_dict()

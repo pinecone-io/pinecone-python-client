@@ -62,6 +62,21 @@ class OrganizationList:
         return self._organizations[index]
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the list as a serializable dict.
+
+        Returns:
+            dict[str, Any]: A dict with a ``"data"`` key containing a list of
+            organization dicts, each produced by :meth:`OrganizationModel.to_dict`.
+
+        Examples:
+            Serialize all organizations:
+
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+            >>> orgs = admin.organizations.list()
+            >>> orgs.to_dict()
+            {'data': [{'name': 'acme-corp', ...}, {'name': 'research-team', ...}]}
+        """
         return {"data": [o.to_dict() for o in self._organizations]}
 
     def names(self) -> list[str]:

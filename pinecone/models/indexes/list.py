@@ -29,6 +29,21 @@ class IndexList:
         return self._indexes[index]
 
     def to_dict(self) -> dict[str, Any]:
+        """Return the list as a serializable dict.
+
+        Returns:
+            dict[str, Any]: A dict with a ``"data"`` key containing a list of
+            index dicts, each produced by :meth:`IndexModel.to_dict`.
+
+        Examples:
+            Serialize all indexes:
+
+            >>> from pinecone import Pinecone
+            >>> pc = Pinecone(api_key="your-api-key")
+            >>> indexes = pc.list_indexes()
+            >>> indexes.to_dict()
+            {'data': [{'name': 'movie-recommendations', ...}, {'name': 'product-search', ...}]}
+        """
         return {"data": [i.to_dict() for i in self._indexes]}
 
     def names(self) -> list[str]:
