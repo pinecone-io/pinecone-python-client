@@ -80,13 +80,19 @@ def test_string_field_defaults_omit_false_booleans() -> None:
     schema = SchemaBuilder().add_string_field("title").build()
     field = schema["fields"]["title"]
     assert field["type"] == "string"
-    assert "full_text_searchable" not in field
+    assert "full_text_search" not in field
     assert "filterable" not in field
 
 
-def test_string_field_full_text_searchable_true() -> None:
-    schema = SchemaBuilder().add_string_field("title", full_text_searchable=True).build()
-    assert schema["fields"]["title"]["full_text_searchable"] is True
+def test_string_field_full_text_search_empty_dict() -> None:
+    # Empty dict is valid — signals FTS-enabled with server defaults for all options.
+    schema = SchemaBuilder().add_string_field("title", full_text_search={}).build()
+    assert schema["fields"]["title"]["full_text_search"] == {}
+
+
+def test_string_field_full_text_search_with_language() -> None:
+    schema = SchemaBuilder().add_string_field("title", full_text_search={"language": "en"}).build()
+    assert schema["fields"]["title"]["full_text_search"] == {"language": "en"}
 
 
 def test_string_field_filterable_true() -> None:
@@ -94,35 +100,38 @@ def test_string_field_filterable_true() -> None:
     assert schema["fields"]["cat"]["filterable"] is True
 
 
-def test_string_field_omits_none_optional_params() -> None:
+def test_string_field_omits_full_text_search_when_not_provided() -> None:
     schema = SchemaBuilder().add_string_field("t").build()
     field = schema["fields"]["t"]
-    for key in ("language", "stemming", "lowercase", "max_term_len", "stop_words", "description"):
+    assert "full_text_search" not in field
+    # No flat FTS option keys leak to the top level.
+    for key in ("language", "stemming", "lowercase", "max_term_len", "stop_words"):
         assert key not in field
 
 
-def test_string_field_optional_params_included_when_set() -> None:
+def test_string_field_full_text_search_all_options() -> None:
+    cfg = {
+        "language": "en",
+        "stemming": True,
+        "lowercase": False,
+        "max_term_len": 40,
+        "stop_words": False,
+    }
     schema = (
         SchemaBuilder()
-        .add_string_field(
-            "body",
-            full_text_searchable=True,
-            language="en",
-            stemming=True,
-            lowercase=False,
-            max_term_len=40,
-            stop_words=False,
-            description="article body",
-        )
+        .add_string_field("body", full_text_search=cfg, description="article body")
         .build()
     )
     field = schema["fields"]["body"]
-    assert field["language"] == "en"
-    assert field["stemming"] is True
-    assert field["lowercase"] is False
-    assert field["max_term_len"] == 40
-    assert field["stop_words"] is False
+    assert field["full_text_search"] == cfg
     assert field["description"] == "article body"
+
+
+def test_string_field_full_text_search_dict_is_copied_not_aliased() -> None:
+    cfg = {"language": "en"}
+    builder = SchemaBuilder().add_string_field("title", full_text_search=cfg)
+    cfg["language"] = "fr"  # mutate after the call
+    assert builder.build()["fields"]["title"]["full_text_search"] == {"language": "en"}
 
 
 def test_string_field_additional_options_merged() -> None:
@@ -131,27 +140,25 @@ def test_string_field_additional_options_merged() -> None:
 
 
 def test_string_field_additional_options_merged_last() -> None:
-    # additional_options should be merged after explicit params
-    schema = (
-        SchemaBuilder()
-        .add_string_field("t", full_text_searchable=True, full_text_searchable_override=True)
-        .build()
-    )
-    field = schema["fields"]["t"]
-    assert field["full_text_searchable"] is True
-    assert field["full_text_searchable_override"] is True
+    # additional_options override explicit kwargs because they .update() last.
+    schema = SchemaBuilder().add_string_field("t", extra_future_key="x").build()
+    assert schema["fields"]["t"]["extra_future_key"] == "x"
+    assert schema["fields"]["t"]["type"] == "string"
 
 
 def test_string_field_full_text_and_filterable_together() -> None:
     schema = (
         SchemaBuilder()
-        .add_string_field("title", full_text_searchable=True, filterable=True, language="en")
+        .add_string_field(
+            "title",
+            full_text_search={"language": "en"},
+            filterable=True,
+        )
         .build()
     )
     field = schema["fields"]["title"]
-    assert field["full_text_searchable"] is True
+    assert field["full_text_search"] == {"language": "en"}
     assert field["filterable"] is True
-    assert field["language"] == "en"
 
 
 # ---------------------------------------------------------------------------
@@ -277,11 +284,12 @@ def test_duplicate_field_preserves_last_definition() -> None:
 
 
 @pytest.mark.parametrize(
-    "method_name,args,kwargs",
+    ("method_name", "args", "kwargs"),
     [
         ("add_dense_vector_field", ("vec",), {"dimension": 128, "metric": "cosine"}),
         ("add_sparse_vector_field", ("sparse",), {}),
         ("add_string_field", ("title",), {}),
+        ("add_string_list_field", ("tags",), {}),
         ("add_semantic_text_field", ("text",), {"model": "multilingual-e5-large"}),
         ("add_integer_field", ("year",), {}),
         ("add_custom_field", ("custom", {"type": "custom"}), {}),
@@ -328,6 +336,41 @@ def test_build_empty_schema_returns_empty_fields() -> None:
     result = SchemaBuilder().build()
     assert result == {"fields": {}}
     assert isinstance(result["fields"], dict)
+
+
+# ---------------------------------------------------------------------------
+# add_string_list_field
+# ---------------------------------------------------------------------------
+
+
+def test_string_list_field_defaults() -> None:
+    schema = SchemaBuilder().add_string_list_field("tags").build()
+    field = schema["fields"]["tags"]
+    assert field == {"type": "string_list"}
+
+
+def test_string_list_field_filterable_true() -> None:
+    schema = SchemaBuilder().add_string_list_field("tags", filterable=True).build()
+    assert schema["fields"]["tags"]["filterable"] is True
+
+
+def test_string_list_field_description() -> None:
+    schema = (
+        SchemaBuilder().add_string_list_field("tags", description="genres and keywords").build()
+    )
+    assert schema["fields"]["tags"]["description"] == "genres and keywords"
+
+
+def test_string_list_field_additional_options_merged() -> None:
+    schema = SchemaBuilder().add_string_list_field("tags", future_key="v").build()
+    assert schema["fields"]["tags"]["future_key"] == "v"
+
+
+def test_string_list_field_emits_snake_case_tag_not_brackets() -> None:
+    # Sanity-check: the old "string[]" tag must never appear.
+    schema = SchemaBuilder().add_string_list_field("tags").build()
+    assert schema["fields"]["tags"]["type"] == "string_list"
+    assert schema["fields"]["tags"]["type"] != "string[]"
 
 
 # ---------------------------------------------------------------------------
