@@ -83,11 +83,10 @@ class Admin:
 
     Examples:
 
-        from pinecone import Admin
-
-        admin = Admin(client_id="my-client-id", client_secret="my-secret")
-        for org in admin.organizations.list():
-            print(org.name)
+        >>> from pinecone import Admin
+        >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+        >>> for org in admin.organizations.list():
+        ...     print(org.name)
     """
 
     def __init__(
@@ -246,9 +245,10 @@ class Admin:
 
         Examples:
 
-            admin = Admin(client_id="my-client-id", client_secret="my-secret")
-            for org in admin.organizations.list():
-                print(org.name)
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+            >>> for org in admin.organizations.list():
+            ...     print(org.name)
         """
         if self._organizations is None:
             from pinecone.admin.organizations import Organizations as _Organizations
@@ -267,9 +267,10 @@ class Admin:
 
         Examples:
 
-            admin = Admin(client_id="my-client-id", client_secret="my-secret")
-            for project in admin.projects.list():
-                print(project.name)
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+            >>> for project in admin.projects.list():
+            ...     print(project.name)
         """
         if self._projects is None:
             from pinecone.admin.projects import Projects as _Projects
@@ -288,10 +289,11 @@ class Admin:
 
         Examples:
 
-            admin = Admin(client_id="my-client-id", client_secret="my-secret")
-            keys = admin.api_keys.list(project_id="proj-abc123")
-            for key in keys:
-                print(key.key.id)
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+            >>> keys = admin.api_keys.list(project_id="proj-abc123")
+            >>> for key in keys:
+            ...     print(key.key.id)
         """
         if self._api_keys is None:
             from pinecone.admin.api_keys import ApiKeys as _ApiKeys
