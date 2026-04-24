@@ -28,12 +28,13 @@ _INDEX_RESPONSE: dict = {
             "e": {"type": "dense_vector", "dimension": 4},
             "title": {
                 "type": "string",
-                "full_text_searchable": True,
-                "language": "en",
-                "stemming": False,
-                "lowercase": True,
-                "max_term_len": 40,
-                "stop_words": False,
+                "full_text_search": {
+                    "language": "en",
+                    "stemming": False,
+                    "lowercase": True,
+                    "max_term_len": 40,
+                    "stop_words": False,
+                },
             },
         }
     },
@@ -143,10 +144,10 @@ def test_describe_parses_full_response(indexes: PreviewIndexes) -> None:
 
     title_field = result.schema.fields["title"]
     assert isinstance(title_field, PreviewStringField)
-    assert title_field.full_text_searchable is True
-    assert title_field.language == "en"
-    assert title_field.lowercase is True
-    assert title_field.max_term_len == 40
+    assert title_field.full_text_search is not None
+    assert title_field.full_text_search.language == "en"
+    assert title_field.full_text_search.lowercase is True
+    assert title_field.full_text_search.max_term_len == 40
 
 
 @respx.mock
@@ -283,9 +284,12 @@ def test_delete_raises_timeout_error(indexes: PreviewIndexes) -> None:
     )
 
     monotonic_values = iter([0.0, 10.0])
-    with patch("time.sleep"), patch("time.monotonic", side_effect=monotonic_values):
-        with pytest.raises(PineconeTimeoutError):
-            indexes.delete("test-index", timeout=5)
+    with (
+        patch("time.sleep"),
+        patch("time.monotonic", side_effect=monotonic_values),
+        pytest.raises(PineconeTimeoutError),
+    ):
+        indexes.delete("test-index", timeout=5)
 
 
 @respx.mock

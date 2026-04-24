@@ -22,6 +22,7 @@ from pinecone.preview.models.requests import (
 )
 from pinecone.preview.models.schema import (
     PreviewDenseVectorField,
+    PreviewFullTextSearchConfig,
     PreviewSchema,
     PreviewStringField,
 )
@@ -30,7 +31,7 @@ from pinecone.preview.models.schema import (
 def _make_schema(num_fields: int = 1) -> PreviewSchema:
     fields: dict[str, object] = {"vec": PreviewDenseVectorField(dimension=1536, metric="cosine")}
     if num_fields > 1:
-        fields["text"] = PreviewStringField(full_text_searchable=True)
+        fields["text"] = PreviewStringField(full_text_search=PreviewFullTextSearchConfig())
     return PreviewSchema(fields=fields)  # type: ignore[arg-type]
 
 

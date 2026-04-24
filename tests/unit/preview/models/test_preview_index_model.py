@@ -19,6 +19,7 @@ from pinecone.preview.models.read_capacity import (
 )
 from pinecone.preview.models.schema import (
     PreviewDenseVectorField,
+    PreviewFullTextSearchConfig,
     PreviewSchema,
     PreviewSchemaField,
     PreviewStringField,
@@ -32,7 +33,7 @@ _FULL_PAYLOAD = b"""
     "status": {"ready": true, "state": "Ready"},
     "schema": {
         "fields": {
-            "title": {"type": "string", "full_text_searchable": true, "language": "en"},
+            "title": {"type": "string", "full_text_search": {"language": "en"}},
             "embedding": {"type": "dense_vector", "dimension": 768, "metric": "cosine"}
         }
     },
@@ -79,7 +80,7 @@ def _make_model(
 ) -> PreviewIndexModel:
     fields: dict[str, PreviewSchemaField] = {}
     for i in range(n_fields):
-        fields[f"field_{i}"] = PreviewStringField(full_text_searchable=True)
+        fields[f"field_{i}"] = PreviewStringField(full_text_search=PreviewFullTextSearchConfig())
 
     if deployment_type == "pod":
         deployment: PreviewManagedDeployment | PreviewPodDeployment = PreviewPodDeployment(

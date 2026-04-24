@@ -51,7 +51,7 @@ def test_create_adapter_preserves_explicit_false_overrides() -> None:
     req = PreviewCreateIndexRequest(
         schema={
             "fields": {
-                "title": {"type": "string", "filterable": False, "full_text_searchable": True}
+                "title": {"type": "string", "filterable": False, "full_text_search": {}},
             }
         }
     )
@@ -59,22 +59,24 @@ def test_create_adapter_preserves_explicit_false_overrides() -> None:
     data = orjson.loads(raw)
     field = data["schema"]["fields"]["title"]
     assert field.get("filterable") is False
-    assert field.get("full_text_searchable") is True
+    assert field.get("full_text_search") == {}
 
 
 def test_create_adapter_preserves_user_explicit_lowercase_false() -> None:
     req = PreviewCreateIndexRequest(
         schema={
             "fields": {
-                "title": {"type": "string", "full_text_searchable": True, "lowercase": False}
+                "title": {
+                    "type": "string",
+                    "full_text_search": {"lowercase": False},
+                }
             }
         }
     )
     raw = create_adapter.to_request(req)
     data = orjson.loads(raw)
     field = data["schema"]["fields"]["title"]
-    assert field.get("lowercase") is False
-    assert field.get("full_text_searchable") is True
+    assert field["full_text_search"]["lowercase"] is False
 
 
 def test_create_adapter_preserves_stemming_false_and_stop_words_false() -> None:
@@ -83,9 +85,7 @@ def test_create_adapter_preserves_stemming_false_and_stop_words_false() -> None:
             "fields": {
                 "title": {
                     "type": "string",
-                    "full_text_searchable": True,
-                    "stemming": False,
-                    "stop_words": False,
+                    "full_text_search": {"stemming": False, "stop_words": False},
                 }
             }
         }
@@ -93,9 +93,19 @@ def test_create_adapter_preserves_stemming_false_and_stop_words_false() -> None:
     raw = create_adapter.to_request(req)
     data = orjson.loads(raw)
     field = data["schema"]["fields"]["title"]
-    assert field.get("stemming") is False
-    assert field.get("stop_words") is False
-    assert field.get("full_text_searchable") is True
+    assert field["full_text_search"]["stemming"] is False
+    assert field["full_text_search"]["stop_words"] is False
+
+
+def test_create_adapter_preserves_empty_full_text_search_dict() -> None:
+    # {} is the minimum-viable FTS marker — it must survive _filter_none.
+    req = PreviewCreateIndexRequest(
+        schema={"fields": {"title": {"type": "string", "full_text_search": {}}}}
+    )
+    raw = create_adapter.to_request(req)
+    data = orjson.loads(raw)
+    field = data["schema"]["fields"]["title"]
+    assert field["full_text_search"] == {}
 
 
 def test_create_adapter_serializes_full_request() -> None:
@@ -247,12 +257,17 @@ def test_list_adapter_parses_multiple() -> None:
 def test_create_adapter_preserves_zero_integer_value() -> None:
     req = PreviewCreateIndexRequest(
         schema={
-            "fields": {"t": {"type": "string", "full_text_searchable": True, "max_term_len": 0}}
+            "fields": {
+                "t": {
+                    "type": "string",
+                    "full_text_search": {"max_term_len": 0},
+                }
+            }
         }
     )
     raw = create_adapter.to_request(req)
     data = orjson.loads(raw)
-    assert data["schema"]["fields"]["t"]["max_term_len"] == 0
+    assert data["schema"]["fields"]["t"]["full_text_search"]["max_term_len"] == 0
 
 
 def test_filter_none_preserves_empty_dict_and_empty_list() -> None:
