@@ -143,6 +143,9 @@ class APIKeyWithSecret(StructDictMixin, Struct, kw_only=True):
         masked = f"...{self.value[-4:]}" if len(self.value) >= 4 else "***"
         return f"APIKeyWithSecret(key={self.key!r}, value='{masked}')"
 
+    def __str__(self) -> str:
+        return repr(self)
+
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['value'])."""
         if key not in self.__struct_fields__:

@@ -250,6 +250,53 @@ class TestAPIKeyModel:
         assert "ab" not in result or "***" in result
         assert "***" in result
 
+    def test_api_key_with_secret_str_masks_value(self) -> None:
+        inner_key = APIKeyModel(
+            id="key-123",
+            name="my-key",
+            project_id="proj-456",
+            roles=[APIKeyRole.PROJECT_EDITOR],
+        )
+        secret = APIKeyWithSecret(key=inner_key, value="pcsk_abc123_secret_key9")
+        result = str(secret)
+        assert "pcsk_abc123_secret_key9" not in result
+        assert "...key9'" in result
+
+    def test_api_key_with_secret_str_masks_short_value(self) -> None:
+        inner_key = APIKeyModel(
+            id="key-123",
+            name="my-key",
+            project_id="proj-456",
+            roles=[APIKeyRole.PROJECT_EDITOR],
+        )
+        secret = APIKeyWithSecret(key=inner_key, value="ab")
+        result = str(secret)
+        assert "***" in result
+        assert "ab" not in result
+
+    def test_api_key_with_secret_f_string_masks_value(self) -> None:
+        inner_key = APIKeyModel(
+            id="key-123",
+            name="my-key",
+            project_id="proj-456",
+            roles=[APIKeyRole.PROJECT_EDITOR],
+        )
+        secret = APIKeyWithSecret(key=inner_key, value="pcsk_abc123_secret_key9")
+        result = f"key={secret}"
+        assert "pcsk_abc123_secret_key9" not in result
+        assert "...key9'" in result
+
+    def test_api_key_with_secret_to_dict_returns_raw_value(self) -> None:
+        inner_key = APIKeyModel(
+            id="key-123",
+            name="my-key",
+            project_id="proj-456",
+            roles=[APIKeyRole.PROJECT_EDITOR],
+        )
+        secret = APIKeyWithSecret(key=inner_key, value="pcsk_abc123_secret_key9")
+        d = secret.to_dict()
+        assert d["value"] == "pcsk_abc123_secret_key9"
+
     def test_api_key_role_singular_returns_single_role(self) -> None:
         api_key = APIKeyModel(
             id="key-123",
