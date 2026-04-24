@@ -262,7 +262,7 @@ class PreviewDocuments:
             items=documents,
             operation=lambda chunk: self.upsert(namespace=namespace, documents=chunk),
             batch_size=batch_size,
-            max_workers=max_workers,
+            max_concurrency=max_workers,
             show_progress=show_progress,
             desc="Upserting",
         )

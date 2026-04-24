@@ -53,7 +53,7 @@ def test_batch_execute_all_succeed() -> None:
         items=items,
         operation=noop,
         batch_size=3,
-        max_workers=2,
+        max_concurrency=2,
         show_progress=False,
     )
 
@@ -78,7 +78,7 @@ def test_batch_execute_partial_failure() -> None:
         items=items,
         operation=op,
         batch_size=5,
-        max_workers=1,  # serial so call order is deterministic
+        max_concurrency=1,  # serial so call order is deterministic
         show_progress=False,
     )
 
@@ -100,26 +100,26 @@ def test_batch_execute_invalid_batch_size() -> None:
         )
 
 
-def test_batch_execute_invalid_max_workers_zero() -> None:
-    """max_workers=0 raises ValueError."""
+def test_batch_execute_invalid_max_concurrency_zero() -> None:
+    """max_concurrency=0 raises ValueError."""
     with pytest.raises(ValueError, match="concurrency must be between"):
         batch_execute(
             items=[{"id": "x"}],
             operation=lambda b: None,
             batch_size=1,
-            max_workers=0,
+            max_concurrency=0,
             show_progress=False,
         )
 
 
-def test_batch_execute_invalid_max_workers_too_high() -> None:
-    """max_workers=65 raises ValueError."""
+def test_batch_execute_invalid_max_concurrency_too_high() -> None:
+    """max_concurrency=65 raises ValueError."""
     with pytest.raises(ValueError, match="concurrency must be between"):
         batch_execute(
             items=[{"id": "x"}],
             operation=lambda b: None,
             batch_size=1,
-            max_workers=65,
+            max_concurrency=65,
             show_progress=False,
         )
 
@@ -220,7 +220,7 @@ class TestBatchExecuteResponseInfo:
             items=_make_items(10),
             operation=op,
             batch_size=10,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
         assert result.response_info is None
@@ -244,7 +244,7 @@ class TestBatchExecuteResponseInfo:
             items=_make_items(30),
             operation=op,
             batch_size=10,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
         assert result.response_info is not None
@@ -266,7 +266,7 @@ class TestBatchExecuteResponseInfo:
             items=_make_items(30),
             operation=op,
             batch_size=10,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
         assert result.response_info is not None
@@ -280,7 +280,7 @@ class TestBatchExecuteResponseInfo:
             items=_make_items(20),
             operation=op,
             batch_size=10,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
         assert result.response_info is None
@@ -300,7 +300,7 @@ class TestBatchExecuteResponseInfo:
             items=_make_items(30),
             operation=op,
             batch_size=10,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
         assert result.response_info is not None
@@ -316,7 +316,7 @@ class TestBatchExecuteResponseInfo:
             items=_make_items(20),
             operation=op,
             batch_size=10,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
         assert result.response_info is not None
@@ -331,7 +331,7 @@ class TestBatchExecuteResponseInfo:
             items=_make_items(10),
             operation=op,
             batch_size=10,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
         assert result.response_info is None
@@ -344,7 +344,7 @@ class TestBatchExecuteResponseInfo:
             items=_make_items(10),
             operation=op,
             batch_size=10,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
         assert result.response_info is None
@@ -360,7 +360,7 @@ class TestBatchExecuteResponseInfo:
             items=_make_items(10),
             operation=op,
             batch_size=10,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
         assert result.response_info is None

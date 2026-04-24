@@ -137,14 +137,14 @@ def batch_execute(
     items: list[dict[str, Any]],
     operation: Callable[[list[dict[str, Any]]], Any],
     batch_size: int,
-    max_workers: int = 4,
+    max_concurrency: int = 4,
     show_progress: bool = True,
     desc: str = "Batches",
 ) -> BatchResult:
     """Execute *operation* on *items* in parallel batches.
 
     Items are split into chunks of *batch_size* and submitted to a
-    ``ThreadPoolExecutor`` with *max_workers* threads.  Exceptions raised
+    ``ThreadPoolExecutor`` with *max_concurrency* threads.  Exceptions raised
     by *operation* are caught per-batch and recorded as ``BatchError``
     entries in the result rather than propagated.
 
@@ -152,7 +152,7 @@ def batch_execute(
         items (list[dict[str, Any]]): Full list of items to process.
         operation (Callable): Callable that accepts a batch (sublist).
         batch_size (int): Maximum items per batch (must be >= 1).
-        max_workers (int): Thread pool size for concurrent requests
+        max_concurrency (int): Thread pool size for concurrent requests
             (1-64, default 4).
         show_progress (bool): Display a tqdm progress bar when installed.
         desc (str): Label shown on the progress bar.
@@ -161,9 +161,9 @@ def batch_execute(
         BatchResult with aggregated success/failure counts.
 
     Raises:
-        ValueError: If *batch_size* or *max_workers* is out of range.
+        ValueError: If *batch_size* or *max_concurrency* is out of range.
     """
-    _validate_batch_params(batch_size, max_workers)
+    _validate_batch_params(batch_size, max_concurrency)
 
     if not items:
         return _empty_result()
@@ -178,7 +178,7 @@ def batch_execute(
     progress = _create_progress_bar(total_batches, desc, show_progress)
 
     try:
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        with ThreadPoolExecutor(max_workers=max_concurrency) as executor:
             future_to_batch = {
                 executor.submit(operation, batch): (idx, batch) for idx, batch in enumerate(batches)
             }
