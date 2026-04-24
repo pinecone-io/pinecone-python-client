@@ -211,6 +211,7 @@ class AsyncIndexes:
         pod_type: str | None = None,
         deletion_protection: DeletionProtection | str | None = None,
         tags: dict[str, str] | None = None,
+        embed: dict[str, Any] | None = None,
         read_capacity: dict[str, Any] | None = None,
     ) -> None:
         """Configure an existing index.
@@ -225,6 +226,8 @@ class AsyncIndexes:
             deletion_protection (DeletionProtection | str | None): ``"enabled"`` or ``"disabled"``.
             tags (dict[str, str] | None): Key-value tags to merge with existing tags.
                 Set a value to ``""`` to remove a tag.
+            embed (dict[str, Any] | None): Integrated index embed configuration updates.
+                Forwarded verbatim as the ``embed`` key in the PATCH body.
             read_capacity (dict[str, Any] | None): Read capacity configuration for
                 BYOC indexes. Pass ``{"mode": "OnDemand"}`` or
                 ``{"mode": "Dedicated", "dedicated": {"node_type": "t1",
@@ -278,6 +281,10 @@ class AsyncIndexes:
             current = await self.describe(name)
             merged = {**(current.tags or {}), **tags}
             body["tags"] = merged
+
+        # Integrated embed config update
+        if embed is not None:
+            body["embed"] = embed
 
         await self._http.patch(f"/indexes/{name}", json=body)
         logger.debug("Configured index %r", name)

@@ -552,6 +552,7 @@ class AsyncPinecone:
         pod_type: str | None = None,
         deletion_protection: DeletionProtection | str | None = None,
         tags: dict[str, str] | None = None,
+        embed: dict[str, Any] | None = None,
         read_capacity: dict[str, Any] | None = None,
     ) -> None:
         """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.configure`.
@@ -571,6 +572,7 @@ class AsyncPinecone:
             pod_type=pod_type,
             deletion_protection=deletion_protection,
             tags=tags,
+            embed=embed,
             read_capacity=read_capacity,
         )
 
