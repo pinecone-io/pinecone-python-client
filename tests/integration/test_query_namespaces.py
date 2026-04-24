@@ -12,6 +12,7 @@ import time
 import pytest
 
 from pinecone import Pinecone
+from pinecone.errors.exceptions import ValidationError
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
 from pinecone.models.vectors.vector import ScoredVector
@@ -792,5 +793,75 @@ def test_query_namespaces_parallel_faster_than_serial_rest(client: Pinecone) -> 
             f"serial={serial_elapsed:.3f}s parallel={parallel_elapsed:.3f}s "
             f"ratio={parallel_elapsed / serial_elapsed:.2f} (expected < 0.60)"
         )
+    finally:
+        ensure_index_deleted(client, name)
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces-validation-errors — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(600)
+def test_query_namespaces_validation_errors_rest(client: Pinecone) -> None:
+    """query_namespaces() raises ValidationError for invalid argument combinations (REST sync).
+
+    Verifies the validation branches at pinecone/index/__init__.py:594-603:
+    - empty namespaces list
+    - neither vector nor sparse_vector provided
+    - invalid metric value
+    - empty vector list (falsy vector treated as missing)
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        index = client.index(name=name)
+
+        # Case 1 — empty namespaces list
+        with pytest.raises(ValidationError) as excinfo:
+            index.query_namespaces(
+                vector=[0.1, 0.2],
+                namespaces=[],
+                metric="cosine",
+                top_k=5,
+            )
+        assert "namespaces" in str(excinfo.value).lower()
+
+        # Case 2 — neither vector nor sparse_vector provided
+        with pytest.raises(ValidationError) as excinfo:
+            index.query_namespaces(
+                namespaces=["qne-ns1"],
+                metric="cosine",
+                top_k=5,
+            )
+        msg = str(excinfo.value).lower()
+        assert "vector" in msg and "sparse_vector" in msg
+
+        # Case 3 — invalid metric value
+        with pytest.raises(ValidationError) as excinfo:
+            index.query_namespaces(
+                vector=[0.1, 0.2],
+                namespaces=["qne-ns1"],
+                metric="manhattan",
+                top_k=5,
+            )
+        assert "metric" in str(excinfo.value).lower()
+        assert "manhattan" in str(excinfo.value)
+
+        # Case 4 — empty vector list (falsy [] treated as missing vector)
+        with pytest.raises(ValidationError):
+            index.query_namespaces(
+                vector=[],
+                namespaces=["qne-ns1"],
+                metric="cosine",
+                top_k=5,
+            )
     finally:
         ensure_index_deleted(client, name)
