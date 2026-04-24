@@ -27,12 +27,13 @@ _INDEX_RESPONSE: dict = {
             "e": {"type": "dense_vector", "dimension": 4},
             "title": {
                 "type": "string",
-                "full_text_searchable": True,
-                "language": "en",
-                "stemming": False,
-                "lowercase": True,
-                "max_term_len": 40,
-                "stop_words": False,
+                "full_text_search": {
+                    "language": "en",
+                    "stemming": False,
+                    "lowercase": True,
+                    "max_term_len": 40,
+                    "stop_words": False,
+                },
             },
         }
     },
@@ -142,10 +143,10 @@ async def test_describe_parses_full_response(indexes: AsyncPreviewIndexes) -> No
 
     title_field = result.schema.fields["title"]
     assert isinstance(title_field, PreviewStringField)
-    assert title_field.full_text_searchable is True
-    assert title_field.language == "en"
-    assert title_field.lowercase is True
-    assert title_field.max_term_len == 40
+    assert title_field.full_text_search is not None
+    assert title_field.full_text_search.language == "en"
+    assert title_field.full_text_search.lowercase is True
+    assert title_field.full_text_search.max_term_len == 40
 
 
 @respx.mock
