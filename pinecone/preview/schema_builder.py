@@ -186,6 +186,55 @@ class PreviewSchemaBuilder:
         self._fields[name] = field
         return self
 
+    def add_string_list_field(
+        self,
+        name: str,
+        *,
+        filterable: bool = False,
+        description: str | None = None,
+        **additional_options: Any,
+    ) -> PreviewSchemaBuilder:
+        """Add a list-of-strings field for metadata filtering.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        String-list fields store a list of strings per row — useful for
+        tag-style metadata (e.g. ``["sci-fi", "mystery"]``) that should be
+        filterable against individual elements.
+
+        The wire type is ``"string_list"``. ``filterable=False`` is omitted
+        from the wire payload; ``None`` values are omitted as well.
+
+        Args:
+            name: Field name. Replaces any existing field with the same name.
+            filterable: Enable metadata-filter support.
+            description: Optional human-readable description.
+            **additional_options: Extra parameters merged into the field dict
+                last, for forward compatibility with new API features.
+
+        Returns:
+            ``self`` for method chaining.
+
+        Examples:
+            Filterable tags field::
+
+                builder.add_string_list_field("tags", filterable=True)
+        """
+        field: dict[str, Any] = {"type": "string_list"}
+        if filterable:
+            field["filterable"] = filterable
+        if description is not None:
+            field["description"] = description
+        field.update(additional_options)
+        self._fields[name] = field
+        return self
+
     def add_semantic_text_field(
         self,
         name: str,
