@@ -12,6 +12,8 @@ Uses pytest-asyncio and the async_client fixture from the parent conftest.
 
 from __future__ import annotations
 
+import contextlib
+
 import pytest
 
 from pinecone import AsyncPinecone
@@ -809,12 +811,10 @@ async def test_async_delete_raises_forbidden_when_deletion_protection_enabled(
         )
     finally:
         # Disable protection so the cleanup fixture can delete the index.
-        try:
+        with contextlib.suppress(Exception):
             await async_client.preview.indexes.configure(
                 preview_index_name, deletion_protection="disabled"
             )
-        except Exception:
-            pass
 
 
 # ---------------------------------------------------------------------------
@@ -1238,17 +1238,17 @@ async def test_async_delete_timeout_negative_one_returns_immediately(
     assert result is None, "delete(timeout=-1) must return None"
 
     # Verify the index eventually disappears (server finishes deletion async).
-    _DELETED_SENTINEL = object()
+    _deleted_sentinel = object()
 
     async def _describe_or_sentinel() -> object:
         try:
             return await async_client.preview.indexes.describe(preview_index_name)
         except NotFoundError:
-            return _DELETED_SENTINEL
+            return _deleted_sentinel
 
     await async_poll_until(
         _describe_or_sentinel,
-        lambda r: r is _DELETED_SENTINEL,
+        lambda r: r is _deleted_sentinel,
         timeout=120,
         interval=5,
         description=f"index {preview_index_name} eventually deleted after timeout=-1",
@@ -2217,7 +2217,7 @@ async def test_async_batch_upsert_partial_failure_collects_failed_items(
     good_docs = [
         {"_id": f"good-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]} for i in range(3)
     ]
-    all_docs = good_docs + [bad_doc]
+    all_docs = [*good_docs, bad_doc]
 
     result = await idx.documents.batch_upsert(
         namespace=preview_namespace,

@@ -89,9 +89,7 @@ def test_full_text_search_only_flow(
     from pinecone.preview.models import PreviewIndexModel
 
     schema = (
-        PreviewSchemaBuilder()
-        .add_string_field("text", full_text_searchable=True, language="en")
-        .build()
+        PreviewSchemaBuilder().add_string_field("text", full_text_search={"language": "en"}).build()
     )
     cleanup_preview_indexes.append(preview_index_name)
     client.preview.indexes.create(name=preview_index_name, schema=schema)
@@ -151,7 +149,7 @@ def test_hybrid_search_combines_dense_and_text(
     schema = (
         PreviewSchemaBuilder()
         .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .add_string_field("chunk", full_text_searchable=True)
+        .add_string_field("chunk", full_text_search={})
         .build()
     )
     cleanup_preview_indexes.append(preview_index_name)
@@ -201,7 +199,7 @@ def test_boolean_query_string_with_filter(
 
     schema = (
         PreviewSchemaBuilder()
-        .add_string_field("chunk", full_text_searchable=True)
+        .add_string_field("chunk", full_text_search={})
         .add_string_field("category", filterable=True)
         .build()
     )
@@ -282,7 +280,7 @@ def test_sparse_vector_search(
     schema = (
         PreviewSchemaBuilder()
         .add_sparse_vector_field("sparse_embedding")
-        .add_string_field("title", full_text_searchable=True, language="en")
+        .add_string_field("title", full_text_search={"language": "en"})
         .build()
     )
     cleanup_preview_indexes.append(preview_index_name)
@@ -628,7 +626,7 @@ def test_search_client_side_validation_rejects_invalid_parameters(
 
     # Empty score_by list must raise ValidationError.
     with pytest.raises(ValidationError, match="score_by"):
-        idx.documents.search(namespace="ns", top_k=5, score_by=[])  # type: ignore[arg-type]
+        idx.documents.search(namespace="ns", top_k=5, score_by=[])
 
 
 # ---------------------------------------------------------------------------
@@ -697,7 +695,7 @@ def test_filter_remaining_operators_accepted(
         PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4])
     ]
 
-    def _search_with_filter(f: dict) -> None:
+    def _search_with_filter(f: dict[str, object]) -> None:
         result = idx.documents.search(
             namespace=preview_namespace,
             top_k=5,
@@ -775,7 +773,7 @@ def test_preview_index_model_read_capacity_on_demand(
         created.read_capacity,
         (PreviewReadCapacityOnDemandResponse,)
         + (PreviewReadCapacity.__args__ if hasattr(PreviewReadCapacity, "__args__") else ()),
-    ), (  # type: ignore[attr-defined]
+    ), (
         f"create() read_capacity expected PreviewReadCapacity or None, got {type(created.read_capacity)}"
     )
 

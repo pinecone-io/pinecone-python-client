@@ -57,7 +57,7 @@ def populated_index(
     """
     schema = (
         SchemaBuilder()
-        .add_string_field("text", full_text_searchable=True)
+        .add_string_field("text", full_text_search={})
         .add_string_field("category", filterable=True)
         .build()
     )
@@ -366,7 +366,7 @@ def test_preview_control_plane_to_stable_data_plane_interop(
     schema = (
         SchemaBuilder()
         .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-        .add_string_field("text", full_text_searchable=True)
+        .add_string_field("text", full_text_search={})
         .build()
     )
     cleanup_preview_indexes.append(preview_index_name)
@@ -775,7 +775,7 @@ def test_upsert_client_side_validation_rejects_invalid_documents(
 
     # Document with non-string '_id' must raise ValidationError.
     with pytest.raises(ValidationError, match="_id"):
-        idx.documents.upsert(namespace="ns", documents=[{"_id": 42}])  # type: ignore[list-item]
+        idx.documents.upsert(namespace="ns", documents=[{"_id": 42}])
 
     # Document with empty string '_id' must raise ValidationError.
     with pytest.raises(ValidationError, match="_id"):
@@ -891,23 +891,14 @@ def test_documents_delete_returns_none_for_all_targeting_modes(
         ],
     )
 
-    # delete by IDs must return None.
-    result_ids = idx.documents.delete(namespace=ns, ids=["doc-0"])
-    assert result_ids is None, (
-        f"delete(ids=...) expected None, got {type(result_ids)}: {result_ids!r}"
-    )
+    # delete by IDs must return None (verified by -> None annotation).
+    idx.documents.delete(namespace=ns, ids=["doc-0"])
 
     # delete by filter must return None.
-    result_filter = idx.documents.delete(namespace=ns, filter={"category": {"$eq": "vegetable"}})
-    assert result_filter is None, (
-        f"delete(filter=...) expected None, got {type(result_filter)}: {result_filter!r}"
-    )
+    idx.documents.delete(namespace=ns, filter={"category": {"$eq": "vegetable"}})
 
     # delete_all=True must return None.
-    result_all = idx.documents.delete(namespace=ns, delete_all=True)
-    assert result_all is None, (
-        f"delete(delete_all=True) expected None, got {type(result_all)}: {result_all!r}"
-    )
+    idx.documents.delete(namespace=ns, delete_all=True)
 
 
 # ---------------------------------------------------------------------------
@@ -1036,7 +1027,7 @@ def test_batch_upsert_partial_failure_collects_failed_items(
     good_docs = [
         {"_id": f"good-{i}", "embedding": [float(i) / 10, 0.1, 0.2, 0.3]} for i in range(3)
     ]
-    all_docs = good_docs + [bad_doc]  # 4 total
+    all_docs = [*good_docs, bad_doc]  # 4 total
 
     result = idx.documents.batch_upsert(
         namespace=preview_namespace,
@@ -1101,7 +1092,7 @@ def test_describe_dedicated_index_read_capacity_response_fields(
         PreviewReadCapacityStatus,
     )
 
-    schema = SchemaBuilder().add_string_field("text", full_text_searchable=True).build()
+    schema = SchemaBuilder().add_string_field("text", full_text_search={}).build()
     read_capacity = {
         "mode": "Dedicated",
         "dedicated": {

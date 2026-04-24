@@ -21,7 +21,7 @@ pytestmark = [pytest.mark.integration, pytest.mark.preview_integration]
 
 
 def _simple_fts_schema() -> dict:  # type: ignore[type-arg]
-    return PreviewSchemaBuilder().add_string_field("text", full_text_searchable=True).build()
+    return PreviewSchemaBuilder().add_string_field("text", full_text_search={}).build()
 
 
 def _is_ready(m: object) -> bool:

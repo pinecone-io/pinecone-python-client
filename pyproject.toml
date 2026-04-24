@@ -50,7 +50,7 @@ ignore = ["ASYNC109", "SIM108", "PERF203", "RUF002"]
 required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["E501", "B905", "S101", "S105", "S106", "S107", "S110", "T20", "PT019"]
+"tests/**" = ["E501", "B905", "S101", "S105", "S106", "S107", "S110", "T20", "PT018", "PT019"]
 "pinecone/_internal/http_client.py" = ["S311"]
 "pinecone/grpc/future.py" = ["S110", "SIM105"]
 # Backcompat shims must preserve legacy typing constructs (List, Optional)

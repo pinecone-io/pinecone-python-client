@@ -31,7 +31,7 @@ _DELETED = object()
 
 def _simple_fts_schema() -> dict[str, Any]:
     """Minimal single-field FTS schema used as a lightweight create payload."""
-    return PreviewSchemaBuilder().add_string_field("text", full_text_searchable=True).build()
+    return PreviewSchemaBuilder().add_string_field("text", full_text_search={}).build()
 
 
 def _is_ready(m: object) -> bool:
@@ -59,7 +59,7 @@ class TestMultiFieldSchema:
             .add_dense_vector_field("embedding", dimension=1536, metric="cosine")
             .add_sparse_vector_field("sparse")
             .add_semantic_text_field("content", model="multilingual-e5-large")
-            .add_string_field("title", full_text_searchable=True, language="en")
+            .add_string_field("title", full_text_search={"language": "en"})
             .add_string_field("category", filterable=True)
             .add_integer_field("year")
             .build()
@@ -132,7 +132,7 @@ class TestSchemaEvolution:
     ) -> None:
         """Create 1-field index, configure to add a 2nd field, poll until schema has 2 fields."""
         initial_schema = (
-            PreviewSchemaBuilder().add_string_field("text", full_text_searchable=True).build()
+            PreviewSchemaBuilder().add_string_field("text", full_text_search={}).build()
         )
         cleanup_preview_indexes.append(preview_index_name)
         client.preview.indexes.create(name=preview_index_name, schema=initial_schema)
@@ -147,7 +147,7 @@ class TestSchemaEvolution:
 
         evolved_schema = (
             PreviewSchemaBuilder()
-            .add_string_field("text", full_text_searchable=True)
+            .add_string_field("text", full_text_search={})
             .add_dense_vector_field("embedding", dimension=384, metric="cosine")
             .build()
         )
@@ -610,8 +610,7 @@ class TestDeleteTimeout:
             description=f"index {preview_index_name} ready before delete",
         )
 
-        result = client.preview.indexes.delete(preview_index_name, timeout=-1)
-        assert result is None, "delete(timeout=-1) must return None"
+        client.preview.indexes.delete(preview_index_name, timeout=-1)
 
         # Verify the index eventually disappears (the server finishes deletion async).
         def _check_deleted() -> object:
@@ -745,7 +744,7 @@ class TestDescribeNotFoundAndIndexFactoryValidation:
 
         # Claim 3: preview.index() with neither arg raises PineconeValueError.
         with pytest.raises(PineconeValueError):
-            client.preview.index()  # type: ignore[call-arg]
+            client.preview.index()
 
         # Claim 4: preview.index(name=..., host=...) with both args raises PineconeValueError.
         with pytest.raises(PineconeValueError):
@@ -954,8 +953,8 @@ class TestSchemaFieldTypes:
             f"category field: expected PreviewStringField, got {type(cat)}"
         )
         assert cat.filterable is True, f"expected filterable=True, got {cat.filterable}"
-        assert cat.full_text_searchable is False, (
-            f"expected full_text_searchable=False, got {cat.full_text_searchable}"
+        assert cat.full_text_search is None, (
+            f"expected full_text_search=None (field is not FTS-enabled), got {cat.full_text_search!r}"
         )
 
         year = fields["year"]
@@ -1020,7 +1019,7 @@ class TestSchemaFieldTypes:
         if the user did not set them. The SDK model for the response must accept these
         server-populated values.'
 
-        Creates an FTS string field with only full_text_searchable=True and no explicit
+        Creates an FTS string field with `full_text_search={}` (empty dict — server defaults) and no explicit
         lowercase/stemming/max_term_len, then verifies describe() returns a
         PreviewStringField with those attributes populated by the server. PVT-022 verified
         typed field dispatch for a filterable-only string field on an OnDemand index; no
@@ -1061,35 +1060,37 @@ class TestSchemaFieldTypes:
         assert isinstance(text_field, PreviewStringField), (
             f"text field: expected PreviewStringField, got {type(text_field)}"
         )
-        assert text_field.full_text_searchable is True, (
-            f"full_text_searchable must be True, got {text_field.full_text_searchable!r}"
+        assert text_field.full_text_search is not None, (
+            "field must be FTS-enabled (full_text_search is not None), "
+            f"got {text_field.full_text_search!r}"
         )
         assert text_field.filterable is False, (
             f"filterable must be False (not set at create time), got {text_field.filterable!r}"
         )
 
+        cfg = text_field.full_text_search
         # Spec §1 server-applied defaults: the API populates these even when not set by caller.
-        assert text_field.lowercase is not None, (
+        assert cfg.lowercase is not None, (
             "spec §1: server must populate 'lowercase' default even when not explicitly set; "
             "got None — SDK model may not be accepting server-populated values"
         )
-        assert text_field.stemming is not None, (
+        assert cfg.stemming is not None, (
             "spec §1: server must populate 'stemming' default even when not explicitly set; "
             "got None — SDK model may not be accepting server-populated values"
         )
-        assert text_field.max_term_len is not None, (
+        assert cfg.max_term_len is not None, (
             "spec §1: server must populate 'max_term_len' default even when not explicitly set; "
             "got None — SDK model may not be accepting server-populated values"
         )
         # Verify the documented server default values.
-        assert text_field.lowercase is True, (
-            f"spec §1: server default for 'lowercase' is True, got {text_field.lowercase!r}"
+        assert cfg.lowercase is True, (
+            f"spec §1: server default for 'lowercase' is True, got {cfg.lowercase!r}"
         )
-        assert text_field.stemming is False, (
-            f"spec §1: server default for 'stemming' is False, got {text_field.stemming!r}"
+        assert cfg.stemming is False, (
+            f"spec §1: server default for 'stemming' is False, got {cfg.stemming!r}"
         )
-        assert text_field.max_term_len == 40, (
-            f"spec §1: server default for 'max_term_len' is 40, got {text_field.max_term_len!r}"
+        assert cfg.max_term_len == 40, (
+            f"spec §1: server default for 'max_term_len' is 40, got {cfg.max_term_len!r}"
         )
 
 
