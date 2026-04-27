@@ -12,6 +12,7 @@ import sys
 import time
 from collections.abc import AsyncGenerator, Generator
 from typing import Any
+from urllib.parse import urlsplit
 
 import httpx
 import orjson
@@ -353,6 +354,27 @@ class HTTPClient:
             "timeout": httpx.Timeout(config.timeout).as_dict()
         }
         self._base_url_str: str = str(self._client.base_url).rstrip("/")
+        # Pre-tokenized Headers carrying the Host injection that
+        # httpx.Request._prepare would normally add. Lets the POST fast
+        # path use stream= (which skips encode_request/_prepare/read)
+        # without losing the Host header that HTTP/1.1 servers require.
+        # Cloning via httpx.Headers(other) is a fast list copy of the
+        # internal _list (~0.5 µs) vs ~3.5 µs to rebuild from a dict.
+        # Derive Host from the config (a plain str) rather than
+        # _client.base_url so the value stays a real str even when
+        # httpx.Client is mocked in unit tests.
+        post_headers_with_host: dict[str, str] = dict(self._post_default_headers)
+        host_netloc = urlsplit(config.host or DEFAULT_BASE_URL).netloc
+        if host_netloc:
+            post_headers_with_host["Host"] = host_netloc
+        self._post_default_headers_obj: httpx.Headers = httpx.Headers(
+            post_headers_with_host
+        )
+        # Cache of parsed httpx.URL by path. ~17 µs/call savings on hit
+        # since URL parsing dominates Request construction. Capped to
+        # prevent unbounded growth in long-lived clients with many
+        # distinct paths (e.g. per-namespace operations).
+        self._url_cache: dict[str, httpx.URL] = {}
 
     def _build_url(self, path: str) -> str:
         return f"{self._client.base_url}{path}"
@@ -397,14 +419,30 @@ class HTTPClient:
             else:
                 extensions = {"timeout": httpx.Timeout(timeout).as_dict()}
             try:
-                url = httpx.URL(f"{self._base_url_str}{path}")
+                url = self._url_cache.get(path)
+                if url is None:
+                    url = httpx.URL(f"{self._base_url_str}{path}")
+                    if len(self._url_cache) < 256:
+                        self._url_cache[path] = url
+                # Clone the pre-tokenized Headers (fast list copy) and
+                # add Content-Length per call — required because stream=
+                # bypasses Request._prepare which would otherwise inject
+                # it. Host is already baked into the cached Headers.
+                req_headers = httpx.Headers(self._post_default_headers_obj)
+                body_bytes = content_bytes if content_bytes is not None else b""
+                req_headers["Content-Length"] = str(len(body_bytes))
+                # stream= bypasses encode_request/_prepare/read inside
+                # Request.__init__ — saves ~16 µs/call. We then restore
+                # _content directly so request.content keeps working for
+                # any caller that inspects the body.
                 request = httpx.Request(
                     "POST",
                     url,
-                    content=content_bytes,
-                    headers=self._post_default_headers,
+                    stream=httpx.ByteStream(body_bytes),
+                    headers=req_headers,
                     extensions=extensions,
                 )
+                request._content = body_bytes
                 # Use the live transport reference (tests may swap _client).
                 response = self._client._transport.handle_request(request)
                 response.request = request
