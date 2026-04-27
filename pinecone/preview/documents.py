@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Any
 
 import msgspec
@@ -102,6 +103,19 @@ class PreviewDocuments:
             retry_config=config.retry_config,
         )
         self._http = _HTTPClient(dp_config, INDEXES_API_VERSION)
+        self._batch_executor: ThreadPoolExecutor | None = None
+        self._batch_executor_workers: int = 0
+
+    def _get_batch_executor(self, max_workers: int) -> ThreadPoolExecutor:
+        if self._batch_executor is None or self._batch_executor_workers != max_workers:
+            if self._batch_executor is not None:
+                self._batch_executor.shutdown(wait=False)
+            self._batch_executor = ThreadPoolExecutor(
+                max_workers=max_workers,
+                thread_name_prefix="pinecone-batch-upsert",
+            )
+            self._batch_executor_workers = max_workers
+        return self._batch_executor
 
     def close(self) -> None:
         """Close the underlying HTTP client. Idempotent.
@@ -115,6 +129,10 @@ class PreviewDocuments:
            relying on preview features.
         """
         self._http.close()
+        if self._batch_executor is not None:
+            self._batch_executor.shutdown(wait=False)
+            self._batch_executor = None
+            self._batch_executor_workers = 0
 
     def upsert(
         self,
@@ -265,6 +283,7 @@ class PreviewDocuments:
             max_concurrency=max_workers,
             show_progress=show_progress,
             desc="Upserting",
+            executor=self._get_batch_executor(max_workers),
         )
 
     def search(

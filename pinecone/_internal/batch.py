@@ -140,6 +140,7 @@ def batch_execute(
     max_concurrency: int = 4,
     show_progress: bool = True,
     desc: str = "Batches",
+    executor: ThreadPoolExecutor | None = None,
 ) -> BatchResult:
     """Execute *operation* on *items* in parallel batches.
 
@@ -156,6 +157,11 @@ def batch_execute(
             (1-64, default 4).
         show_progress (bool): Display a tqdm progress bar when installed.
         desc (str): Label shown on the progress bar.
+        executor (ThreadPoolExecutor | None): Optional caller-owned executor
+            to reuse across calls. When provided, threads are not spawned
+            or torn down per call. Caller is responsible for ``shutdown()``.
+            When ``None`` (default), a private executor is created and
+            shut down at the end of this call.
 
     Returns:
         BatchResult with aggregated success/failure counts.
@@ -177,31 +183,36 @@ def batch_execute(
 
     progress = _create_progress_bar(total_batches, desc, show_progress)
 
-    try:
-        with ThreadPoolExecutor(max_workers=max_concurrency) as executor:
-            future_to_batch = {
-                executor.submit(operation, batch): (idx, batch) for idx, batch in enumerate(batches)
-            }
+    own_executor = executor is None
+    if executor is None:
+        executor = ThreadPoolExecutor(max_workers=max_concurrency)
 
-            for future in as_completed(future_to_batch):
-                batch_idx, batch = future_to_batch[future]
-                try:
-                    batch_result = future.result()
-                except Exception as exc:
-                    errors.append(
-                        BatchError(
-                            batch_index=batch_idx,
-                            items=batch,
-                            error=exc,
-                            error_message=str(exc),
-                        )
+    try:
+        future_to_batch = {
+            executor.submit(operation, batch): (idx, batch) for idx, batch in enumerate(batches)
+        }
+
+        for future in as_completed(future_to_batch):
+            batch_idx, batch = future_to_batch[future]
+            try:
+                batch_result = future.result()
+            except Exception as exc:
+                errors.append(
+                    BatchError(
+                        batch_index=batch_idx,
+                        items=batch,
+                        error=exc,
+                        error_message=str(exc),
                     )
-                else:
-                    successful_item_count += len(batch)
-                    _collect_lsn(batch_result, lsn_reconciled_values, lsn_committed_values)
-                progress.update(1)
+                )
+            else:
+                successful_item_count += len(batch)
+                _collect_lsn(batch_result, lsn_reconciled_values, lsn_committed_values)
+            progress.update(1)
     finally:
         progress.close()
+        if own_executor:
+            executor.shutdown()
 
     failed_item_count = sum(len(e.items) for e in errors)
     response_info = _build_aggregate(lsn_reconciled_values, lsn_committed_values)
