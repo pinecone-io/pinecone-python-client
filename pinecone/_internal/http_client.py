@@ -339,6 +339,20 @@ class HTTPClient:
             proxy=proxy,
             verify=verify,
         )
+        # Pre-built per-request constants for the POST hot path. Lets us
+        # bypass httpx.Client.build_request's URL/header/cookie/queryparam
+        # merge cost on every call. The base-URL string is rstripped of
+        # the trailing '/' httpx adds so concatenation with leading-'/'
+        # paths yields the same URL as ``Client._merge_url(path)`` for
+        # base URLs with or without a path component.
+        self._post_default_headers: dict[str, str] = {
+            **self._headers,
+            "Content-Type": "application/json",
+        }
+        self._default_timeout_extensions: dict[str, Any] = {
+            "timeout": httpx.Timeout(config.timeout).as_dict()
+        }
+        self._base_url_str: str = str(self._client.base_url).rstrip("/")
 
     def _build_url(self, path: str) -> str:
         return f"{self._client.base_url}{path}"
@@ -361,6 +375,53 @@ class HTTPClient:
     def post(
         self, path: str, timeout: float | httpx.Timeout | None = None, **kwargs: Any
     ) -> httpx.Response:
+        # Fast path: callers only pass json= (and rarely timeout=). When
+        # nothing else is in kwargs we can construct the httpx.Request
+        # directly and skip Client.build_request's _merge_url/_merge_headers/
+        # cookies/queryparams/timeout work — ~40 µs of GIL-held work per call.
+        # When uncommon kwargs (params, files, content, headers) are passed,
+        # fall back to build_request so its full machinery handles them.
+        if kwargs.keys() <= {"json"}:
+            content_bytes: bytes | None = (
+                _encode_json(kwargs["json"]) if "json" in kwargs else None
+            )
+            if os.environ.get("PINECONE_DEBUG_CURL"):
+                _log_curl(
+                    "POST",
+                    self._build_url(path),
+                    self._post_default_headers,
+                    body=content_bytes,
+                )
+            if timeout is None:
+                extensions = self._default_timeout_extensions
+            else:
+                extensions = {"timeout": httpx.Timeout(timeout).as_dict()}
+            try:
+                url = httpx.URL(f"{self._base_url_str}{path}")
+                request = httpx.Request(
+                    "POST",
+                    url,
+                    content=content_bytes,
+                    headers=self._post_default_headers,
+                    extensions=extensions,
+                )
+                # Use the live transport reference (tests may swap _client).
+                response = self._client._transport.handle_request(request)
+                response.request = request
+                try:
+                    response.read()
+                except BaseException:
+                    response.close()
+                    raise
+            except httpx.TimeoutException as exc:
+                raise PineconeTimeoutError(str(exc)) from exc
+            except httpx.TransportError as exc:
+                raise PineconeConnectionError(str(exc)) from exc
+            _raise_for_status(response)
+            _release_response_refs(response)
+            return response
+
+        # Slow path: caller passed params=, files=, headers=, content=, etc.
         kwargs = _prepare_json_kwargs(kwargs)
         body = kwargs.get("content") if isinstance(kwargs.get("content"), bytes) else None
         merged_headers = {**self._headers, **kwargs.get("headers", {})}
@@ -370,11 +431,6 @@ class HTTPClient:
             request = self._client.build_request(
                 "POST", path, timeout=effective_timeout, **kwargs
             )
-            # Bypass Client.send's auth-flow / redirect loop /
-            # stream-wrapping — unused by the SDK — and call the
-            # client's current transport directly. Reading
-            # `_client._transport` (rather than caching) keeps tests
-            # that swap in a mock httpx.Client working.
             response = self._client._transport.handle_request(request)
             response.request = request
             try:
