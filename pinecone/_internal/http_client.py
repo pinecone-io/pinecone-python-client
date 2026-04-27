@@ -367,7 +367,21 @@ class HTTPClient:
         _log_curl("POST", self._build_url(path), merged_headers, body=body)
         effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
-            response = self._client.post(path, timeout=effective_timeout, **kwargs)
+            request = self._client.build_request(
+                "POST", path, timeout=effective_timeout, **kwargs
+            )
+            # Bypass Client.send's auth-flow / redirect loop /
+            # stream-wrapping — unused by the SDK — and call the
+            # client's current transport directly. Reading
+            # `_client._transport` (rather than caching) keeps tests
+            # that swap in a mock httpx.Client working.
+            response = self._client._transport.handle_request(request)
+            response.request = request
+            try:
+                response.read()
+            except BaseException:
+                response.close()
+                raise
         except httpx.TimeoutException as exc:
             raise PineconeTimeoutError(str(exc)) from exc
         except httpx.TransportError as exc:
