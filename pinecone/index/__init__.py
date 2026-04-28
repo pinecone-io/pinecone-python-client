@@ -160,21 +160,23 @@ class Index:
 
         Examples:
 
-            from pinecone import Index, Vector
+            .. code-block:: python
 
-            idx = Index(host="article-search-abc123.svc.pinecone.io", api_key="...")
-            response = idx.upsert(
-                vectors=[
-                    Vector(
-                        id="article-101",
-                        values=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
-                    ),
-                    ("article-102", [0.045, 0.021, -0.064]),  # truncated
-                    {"id": "article-103", "values": [0.091, -0.032, 0.178]},  # truncated
-                ],
-                namespace="articles-en",
-            )
-            print(response.upserted_count)
+                from pinecone import Index, Vector
+
+                idx = Index(host="article-search-abc123.svc.pinecone.io", api_key="...")
+                response = idx.upsert(
+                    vectors=[
+                        Vector(
+                            id="article-101",
+                            values=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
+                        ),
+                        ("article-102", [0.045, 0.021, -0.064]),  # truncated
+                        {"id": "article-103", "values": [0.091, -0.032, 0.178]},  # truncated
+                    ],
+                    namespace="articles-en",
+                )
+                print(response.upserted_count)
 
         .. note::
            All vectors are sent in a single request. For large datasets,
@@ -360,14 +362,16 @@ class Index:
 
         Examples:
 
-            response = idx.upsert_records(
-                namespace="articles-en",
-                records=[
-                    {"_id": "article-101", "text": "Vector databases enable similarity search."},
-                    {"_id": "article-102", "text": "RAG combines search with LLMs."},
-                ],
-            )
-            print(response.record_count)
+            .. code-block:: python
+
+                response = idx.upsert_records(
+                    namespace="articles-en",
+                    records=[
+                        {"_id": "article-101", "text": "Vector databases for search."},
+                        {"_id": "article-102", "text": "RAG combines search with LLMs."},
+                    ],
+                )
+                print(response.record_count)
 
         .. seealso::
            - :meth:`upsert` — for indexes where you provide your own vectors
@@ -466,12 +470,14 @@ class Index:
 
         Examples:
 
-            response = idx.query(
-                top_k=10,
-                vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
-            )
-            for match in response.matches:
-                print(match.id, match.score)
+            .. code-block:: python
+
+                response = idx.query(
+                    top_k=10,
+                    vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
+                )
+                for match in response.matches:
+                    print(match.id, match.score)
         """
         if top_k < 1:
             raise ValidationError(f"top_k must be a positive integer, got {top_k}")
@@ -572,24 +578,26 @@ class Index:
 
         Examples:
 
-            # Dense query
-            results = idx.query_namespaces(
-                vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
-                namespaces=["articles-en", "articles-fr", "articles-de"],
-                metric="cosine",
-                top_k=10,
-            )
+            .. code-block:: python
 
-            # Sparse-only query (sparse index)
-            results = idx.query_namespaces(
-                sparse_vector={"indices": [0, 1, 2], "values": [0.1, 0.2, 0.3]},
-                namespaces=["docs-en", "docs-fr"],
-                metric="dotproduct",
-                top_k=10,
-            )
+                # Dense query
+                results = idx.query_namespaces(
+                    vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
+                    namespaces=["articles-en", "articles-fr", "articles-de"],
+                    metric="cosine",
+                    top_k=10,
+                )
 
-            for match in results.matches:
-                print(match.id, match.score)
+                # Sparse-only query (sparse index)
+                results = idx.query_namespaces(
+                    sparse_vector={"indices": [0, 1, 2], "values": [0.1, 0.2, 0.3]},
+                    namespaces=["docs-en", "docs-fr"],
+                    metric="dotproduct",
+                    top_k=10,
+                )
+
+                for match in results.matches:
+                    print(match.id, match.score)
         """
         if not namespaces:
             raise ValidationError("namespaces must be a non-empty list")
@@ -658,9 +666,11 @@ class Index:
 
         Examples:
 
-            response = idx.fetch(ids=["article-101", "article-102"])
-            for vid, vec in response.vectors.items():
-                print(vid, vec.values)
+            .. code-block:: python
+
+                response = idx.fetch(ids=["article-101", "article-102"])
+                for vid, vec in response.vectors.items():
+                    print(vid, vec.values)
         """
         if not ids:
             raise ValidationError("ids must be a non-empty list")
@@ -710,22 +720,24 @@ class Index:
 
         Examples:
 
-            response = idx.fetch_by_metadata(
-                filter={"genre": {"$eq": "comedy"}},
-                namespace="movies",
-            )
-            for vid, vec in response.vectors.items():
-                print(vid, vec.values)
+            .. code-block:: python
 
-            # Paginate through all results
-            token = response.pagination.next if response.pagination else None
-            while token:
                 response = idx.fetch_by_metadata(
                     filter={"genre": {"$eq": "comedy"}},
                     namespace="movies",
-                    pagination_token=token,
                 )
+                for vid, vec in response.vectors.items():
+                    print(vid, vec.values)
+
+                # Paginate through all results
                 token = response.pagination.next if response.pagination else None
+                while token:
+                    response = idx.fetch_by_metadata(
+                        filter={"genre": {"$eq": "comedy"}},
+                        namespace="movies",
+                        pagination_token=token,
+                    )
+                    token = response.pagination.next if response.pagination else None
         """
         body: dict[str, Any] = {"filter": filter}
         if namespace:
@@ -846,15 +858,17 @@ class Index:
 
         Examples:
 
-            # Update by ID
-            # truncated; use your actual dimension
-            idx.update(id="article-101", values=[0.012, -0.087, 0.153])
+            .. code-block:: python
 
-            # Bulk-update metadata by filter
-            idx.update(
-                filter={"genre": {"$eq": "drama"}},
-                set_metadata={"year": 2020},
-            )
+                # Update by ID
+                # truncated; use your actual dimension
+                idx.update(id="article-101", values=[0.012, -0.087, 0.153])
+
+                # Bulk-update metadata by filter
+                idx.update(
+                    filter={"genre": {"$eq": "drama"}},
+                    set_metadata={"year": 2020},
+                )
         """
         has_id = id is not None
         has_filter = filter is not None
@@ -917,13 +931,15 @@ class Index:
 
         Examples:
 
-            stats = idx.describe_index_stats()
-            print(stats.total_vector_count, stats.dimension)
+            .. code-block:: python
 
-            # With filter — only count vectors matching the expression
-            stats = idx.describe_index_stats(
-                filter={"genre": {"$eq": "drama"}}
-            )
+                stats = idx.describe_index_stats()
+                print(stats.total_vector_count, stats.dimension)
+
+                # With filter — only count vectors matching the expression
+                stats = idx.describe_index_stats(
+                    filter={"genre": {"$eq": "drama"}}
+                )
         """
         body: dict[str, Any] = {}
         if filter is not None:
@@ -993,15 +1009,21 @@ class Index:
 
         Examples:
 
-            response = idx.search(
-                namespace="articles-en",
-                top_k=10,
-                inputs={"text": "benefits of vector databases for search"},
-            )
-            for hit in response.result.hits:
-                print(hit.id, hit.score)
+            Basic search:
+
+            .. code-block:: python
+
+                response = idx.search(
+                    namespace="articles-en",
+                    top_k=10,
+                    inputs={"text": "benefits of vector databases for search"},
+                )
+                for hit in response.result.hits:
+                    print(hit.id, hit.score)
 
             Search with reranking:
+
+            .. code-block:: python
 
                 response = idx.search(
                     namespace="articles-en",
@@ -1232,9 +1254,11 @@ class Index:
 
         Examples:
 
-            response = idx.list_namespaces_paginated(prefix="prod-", limit=10)
-            for ns in response.namespaces:
-                print(ns.name, ns.record_count)
+            .. code-block:: python
+
+                response = idx.list_namespaces_paginated(prefix="prod-", limit=10)
+                for ns in response.namespaces:
+                    print(ns.name, ns.record_count)
         """
         params: dict[str, Any] = {}
         if prefix is not None:
@@ -1314,9 +1338,11 @@ class Index:
 
         Examples:
 
-            response = idx.list_paginated(prefix="doc1#", limit=50)
-            for item in response.vectors:
-                print(item.id)
+            .. code-block:: python
+
+                response = idx.list_paginated(prefix="doc1#", limit=50)
+                for item in response.vectors:
+                    print(item.id)
         """
         params: dict[str, Any] = {"namespace": namespace}
         if prefix is not None:
@@ -1594,9 +1620,11 @@ class Index:
 
         Examples:
 
-            page = idx.list_imports_paginated(limit=10)
-            for imp in page:
-                print(imp.id, imp.status)
+            .. code-block:: python
+
+                page = idx.list_imports_paginated(limit=10)
+                for imp in page:
+                    print(imp.id, imp.status)
         """
         params: dict[str, Any] = {}
         if limit is not None:
