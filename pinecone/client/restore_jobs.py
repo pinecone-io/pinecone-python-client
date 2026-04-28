@@ -29,8 +29,7 @@ class RestoreJobs:
         from pinecone import Pinecone
 
         pc = Pinecone(api_key="your-api-key")
-        for job in pc.restore_jobs.list():
-            print(job.restore_job_id)
+        ids = [job.restore_job_id for job in pc.restore_jobs.list()]
     """
 
     def __init__(self, http: HTTPClient) -> None:

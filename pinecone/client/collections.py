@@ -29,8 +29,7 @@ class Collections:
         from pinecone import Pinecone
 
         pc = Pinecone(api_key="your-api-key")
-        for col in pc.collections.list():
-            print(col.name)
+        names = [col.name for col in pc.collections.list()]
     """
 
     def __init__(self, http: HTTPClient) -> None:
@@ -90,8 +89,6 @@ class Collections:
 
             collections = pc.collections.list()
             print(collections.names())
-            for col in collections:
-                print(col.name, col.status)
         """
         logger.info("Listing collections")
         response = self._http.get("/collections")

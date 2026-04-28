@@ -29,8 +29,7 @@ class Backups:
         from pinecone import Pinecone
 
         pc = Pinecone(api_key="your-api-key")
-        for backup in pc.backups.list():
-            print(backup.backup_id)
+        ids = [b.backup_id for b in pc.backups.list()]
     """
 
     def __init__(self, http: HTTPClient) -> None:

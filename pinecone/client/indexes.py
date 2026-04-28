@@ -56,8 +56,7 @@ class Indexes:
         from pinecone import Pinecone
 
         pc = Pinecone(api_key="your-api-key")
-        for idx in pc.indexes.list():
-            print(idx.name)
+        names = [idx.name for idx in pc.indexes.list()]
     """
 
     def __init__(self, http: HTTPClient, host_cache: dict[str, str] | None = None) -> None:
@@ -87,8 +86,6 @@ class Indexes:
 
             indexes = pc.indexes.list()
             print(indexes.names())
-            for idx in indexes:
-                print(idx.name, idx.metric)
         """
         logger.info("Listing indexes")
         response = self._http.get("/indexes")

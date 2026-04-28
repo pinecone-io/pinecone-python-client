@@ -77,6 +77,10 @@ timeout = 5
 
 [dependency-groups]
 dev = [
+    "anyio>=4.13.0",
     "ipykernel>=7.2.0",
+    "pytest>=9.0.3",
+    "pytest-anyio>=0.0.0",
     "python-dotenv>=1.2.2",
+    "respx>=0.22.0",
 ]

@@ -266,19 +266,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            file = pc.assistants.upload_file(
-                assistant_name="research-assistant",
-                file_path="/data/report.pdf",
-            )
-            print(file.status)
-
-            with open("report.pdf", "rb") as f:
-                file = pc.assistants.upload_file(
-                    assistant_name="research-assistant",
-                    file_stream=f,
-                    file_name="report.pdf",
-                    metadata={"source": "quarterly-review"},
-                )
+            file = pc.assistants.upload_file(assistant_name="my-assistant", file_path="report.pdf")
             print(file.status)
         """
         import json as _json
@@ -402,10 +390,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            file = pc.assistants.describe_file(
-                assistant_name="my-assistant",
-                file_id="file-abc123",
-            )
+            file = pc.assistants.describe_file(assistant_name="my-assistant", file_id="file-abc123")
             print(file.status)
         """
         data_http = self._data_plane_http(assistant_name)
@@ -489,16 +474,9 @@ class Assistants(AssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            page = pc.assistants.list_files_page(
-                assistant_name="my-assistant",
-            )
-            for f in page.files:
-                print(f.name)
-            if page.next:
-                next_page = pc.assistants.list_files_page(
-                    assistant_name="my-assistant",
-                    pagination_token=page.next,
-                )
+            page = pc.assistants.list_files_page(assistant_name="my-assistant")
+            names = [f.name for f in page.files]
+            token = page.next  # use as pagination_token for the next call
         """
         import json as _json
 
@@ -553,10 +531,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            pc.assistants.delete_file(
-                assistant_name="my-assistant",
-                file_id="file-abc123",
-            )
+            pc.assistants.delete_file(assistant_name="my-assistant", file_id="file-abc123")
         """
         data_http = self._data_plane_http(assistant_name)
         logger.info("Deleting file %r from assistant %r", file_id, assistant_name)
@@ -793,10 +768,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         Examples:
 
             page = pc.assistants.list_page(page_size=10)
-            for a in page.assistants:
-                print(a.name)
-            if page.next:
-                next_page = pc.assistants.list_page(pagination_token=page.next)
+            names = [a.name for a in page.assistants]
+            token = page.next  # use as pagination_token for the next call
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
@@ -1387,12 +1360,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            result = pc.assistants.evaluate_alignment(
-                question="What is the capital of Spain?",
-                answer="Barcelona.",
-                ground_truth_answer="Madrid.",
-            )
-            print(result.scores.alignment)
+            pc.assistants.evaluate_alignment(question="Q?", answer="A?", ground_truth_answer="B.")
         """
         body = {
             "question": question,

@@ -155,8 +155,7 @@ class Pinecone:
         Examples:
 
             pc = Pinecone(api_key="your-api-key")
-            for idx in pc.indexes.list():
-                print(idx.name)
+            names = [idx.name for idx in pc.indexes.list()]
         """
         if self._indexes is None:
             from pinecone.client.indexes import Indexes as _Indexes
@@ -176,8 +175,7 @@ class Pinecone:
         Examples:
 
             pc = Pinecone(api_key="your-api-key")
-            for col in pc.collections.list():
-                print(col.name)
+            names = [col.name for col in pc.collections.list()]
         """
         if self._collections is None:
             from pinecone.client.collections import Collections as _Collections
@@ -197,8 +195,7 @@ class Pinecone:
         Examples:
 
             pc = Pinecone(api_key="your-api-key")
-            for backup in pc.backups.list():
-                print(backup.backup_id)
+            ids = [b.backup_id for b in pc.backups.list()]
         """
         if self._backups is None:
             from pinecone.client.backups import Backups as _Backups
@@ -218,8 +215,7 @@ class Pinecone:
         Examples:
 
             pc = Pinecone(api_key="your-api-key")
-            for job in pc.restore_jobs.list():
-                print(job.restore_job_id)
+            ids = [job.restore_job_id for job in pc.restore_jobs.list()]
         """
         if self._restore_jobs is None:
             from pinecone.client.restore_jobs import RestoreJobs as _RestoreJobs
@@ -239,10 +235,7 @@ class Pinecone:
         Examples:
 
             pc = Pinecone(api_key="your-api-key")
-            embeddings = pc.inference.embed(
-                model="multilingual-e5-large",
-                inputs=["Hello, world!"],
-            )
+            embeddings = pc.inference.embed(model="multilingual-e5-large", inputs=["Hello, world!"])
         """
         if self._inference is None:
             from pinecone.client.inference import Inference as _Inference

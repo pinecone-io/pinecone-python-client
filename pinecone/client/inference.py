@@ -124,10 +124,7 @@ class Inference:
         from pinecone import Pinecone
 
         pc = Pinecone(api_key="your-api-key")
-        embeddings = pc.inference.embed(
-            model="multilingual-e5-large",
-            inputs=["Hello, world!"],
-        )
+        embeddings = pc.inference.embed(model="multilingual-e5-large", inputs=["Hello, world!"])
     """
 
     EmbedModel = _enums.EmbedModel
