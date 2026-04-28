@@ -119,6 +119,16 @@ class BatchResult(Struct, kw_only=True):
         return len(self.errors) > 0
 
     @property
+    def error_count(self) -> int:
+        """Alias for failed_item_count."""
+        return self.failed_item_count
+
+    @property
+    def success_count(self) -> int:
+        """Alias for successful_item_count."""
+        return self.successful_item_count
+
+    @property
     def failed_items(self) -> list[dict[str, Any]]:
         """All items from failed batches, flattened for retry.
 
