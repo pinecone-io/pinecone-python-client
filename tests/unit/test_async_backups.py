@@ -240,8 +240,11 @@ async def test_async_delete_empty_id_raises(async_backups: AsyncBackups) -> None
 # ---------------------------------------------------------------------------
 
 
-def test_repr(async_backups: AsyncBackups) -> None:
-    assert repr(async_backups) == "AsyncBackups()"
+def test_repr() -> None:
+    from unittest.mock import MagicMock
+
+    backups = AsyncBackups(http=MagicMock())
+    assert repr(backups) == "AsyncBackups()"
 
 
 # ---------------------------------------------------------------------------

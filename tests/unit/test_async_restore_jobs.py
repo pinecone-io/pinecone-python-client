@@ -309,5 +309,8 @@ def test_async_pinecone_restore_jobs_property() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_async_restore_jobs_repr(async_restore_jobs: AsyncRestoreJobs) -> None:
-    assert repr(async_restore_jobs) == "AsyncRestoreJobs()"
+def test_async_restore_jobs_repr() -> None:
+    from unittest.mock import MagicMock
+
+    restore_jobs = AsyncRestoreJobs(http=MagicMock())
+    assert repr(restore_jobs) == "AsyncRestoreJobs()"

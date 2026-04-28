@@ -223,8 +223,11 @@ async def test_collection_list_names(async_collections: AsyncCollections) -> Non
 # ---------------------------------------------------------------------------
 
 
-def test_repr(async_collections: AsyncCollections) -> None:
-    assert repr(async_collections) == "AsyncCollections()"
+def test_repr() -> None:
+    from unittest.mock import MagicMock
+
+    collections = AsyncCollections(http=MagicMock())
+    assert repr(collections) == "AsyncCollections()"
 
 
 # ---------------------------------------------------------------------------
