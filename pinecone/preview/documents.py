@@ -218,7 +218,7 @@ class PreviewDocuments:
         *,
         namespace: str,
         documents: list[dict[str, Any]],
-        batch_size: int = 100,
+        batch_size: int = 50,
         max_workers: int = 4,
         show_progress: bool = True,
     ) -> BatchResult:
