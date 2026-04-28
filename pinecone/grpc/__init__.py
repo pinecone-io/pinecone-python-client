@@ -276,22 +276,24 @@ class GrpcIndex:
 
         Examples:
 
-            from pinecone.grpc import GrpcIndex
-            from pinecone.models.vectors.vector import Vector
+            .. code-block:: python
 
-            idx = GrpcIndex(host="article-search-abc123.svc.pinecone.io", api_key="...")
-            response = idx.upsert(
-                vectors=[
-                    Vector(
-                        id="article-101",
-                        values=[0.012, -0.087, 0.153, ...],  # 1536-dim
-                    ),
-                    ("article-102", [0.045, 0.021, -0.064, ...]),
-                    {"id": "article-103", "values": [0.091, -0.032, 0.178, ...]},
-                ],
-                namespace="articles-en",
-            )
-            print(response.upserted_count)
+                from pinecone.grpc import GrpcIndex
+                from pinecone.models.vectors.vector import Vector
+
+                idx = GrpcIndex(host="article-search-abc123.svc.pinecone.io", api_key="...")
+                response = idx.upsert(
+                    vectors=[
+                        Vector(
+                            id="article-101",
+                            values=[0.012, -0.087, 0.153, ...],  # 1536-dim
+                        ),
+                        ("article-102", [0.045, 0.021, -0.064, ...]),
+                        {"id": "article-103", "values": [0.091, -0.032, 0.178, ...]},
+                    ],
+                    namespace="articles-en",
+                )
+                print(response.upserted_count)
         """
         built = [VectorFactory.build(v) for v in vectors]
         grpc_vectors = [_vector_to_grpc_dict(v) for v in built]
@@ -346,12 +348,14 @@ class GrpcIndex:
 
         Examples:
 
-            response = idx.query(
-                top_k=10,
-                vector=[0.012, -0.087, 0.153, ...],  # 1536-dim embedding
-            )
-            for match in response.matches:
-                print(match.id, match.score)
+            .. code-block:: python
+
+                response = idx.query(
+                    top_k=10,
+                    vector=[0.012, -0.087, 0.153, ...],  # 1536-dim embedding
+                )
+                for match in response.matches:
+                    print(match.id, match.score)
         """
         if top_k < 1:
             raise ValidationError(f"top_k must be a positive integer, got {top_k}")
@@ -424,9 +428,11 @@ class GrpcIndex:
 
         Examples:
 
-            response = idx.fetch(ids=["article-101", "article-102"])
-            for vid, vec in response.vectors.items():
-                print(vid, vec.values)
+            .. code-block:: python
+
+                response = idx.fetch(ids=["article-101", "article-102"])
+                for vid, vec in response.vectors.items():
+                    print(vid, vec.values)
         """
         if not ids:
             raise ValidationError("ids must be a non-empty list")
@@ -534,14 +540,16 @@ class GrpcIndex:
 
         Examples:
 
-            # Update by ID
-            idx.update(id="article-101", values=[0.012, -0.087, 0.153, ...])  # 1536-dim embedding
+            .. code-block:: python
 
-            # Bulk-update metadata by filter
-            idx.update(
-                filter={"genre": {"$eq": "drama"}},
-                set_metadata={"year": 2020},
-            )
+                # Update by ID
+                idx.update(id="article-101", values=[0.012, -0.087, 0.153, ...])  # 1536-dim embedding
+
+                # Bulk-update metadata by filter
+                idx.update(
+                    filter={"genre": {"$eq": "drama"}},
+                    set_metadata={"year": 2020},
+                )
         """
         has_id = id is not None
         has_filter = filter is not None
@@ -606,9 +614,11 @@ class GrpcIndex:
 
         Examples:
 
-            response = idx.list_paginated(prefix="doc1#", limit=50)
-            for item in response.vectors:
-                print(item.id)
+            .. code-block:: python
+
+                response = idx.list_paginated(prefix="doc1#", limit=50)
+                for item in response.vectors:
+                    print(item.id)
         """
         logger.info("Listing vectors via gRPC in namespace %r", namespace)
         result = self._call_channel(
@@ -700,13 +710,15 @@ class GrpcIndex:
 
         Examples:
 
-            stats = idx.describe_index_stats()
-            print(stats.total_vector_count, stats.dimension)
+            .. code-block:: python
 
-            # With filter — only count vectors matching the expression
-            stats = idx.describe_index_stats(
-                filter={"genre": {"$eq": "drama"}}
-            )
+                stats = idx.describe_index_stats()
+                print(stats.total_vector_count, stats.dimension)
+
+                # With filter — only count vectors matching the expression
+                stats = idx.describe_index_stats(
+                    filter={"genre": {"$eq": "drama"}}
+                )
         """
         logger.info("Describing index stats via gRPC")
         result = self._call_channel("describe_index_stats", filter=filter, timeout_s=timeout)
@@ -1043,16 +1055,18 @@ class GrpcIndex:
 
         Examples:
 
-            pc = Pinecone(api_key="YOUR_API_KEY")
-            idx = pc.GrpcIndex("my-index")
-            response = idx.upsert_records(
-                namespace="articles-en",
-                records=[
-                    {"_id": "article-101", "text": "Vector databases enable similarity search."},
-                    {"_id": "article-102", "text": "RAG combines search with LLMs."},
-                ],
-            )
-            print(response.record_count)
+            .. code-block:: python
+
+                pc = Pinecone(api_key="YOUR_API_KEY")
+                idx = pc.GrpcIndex("my-index")
+                response = idx.upsert_records(
+                    namespace="articles-en",
+                    records=[
+                        {"_id": "article-101", "text": "Vector databases enable similarity search."},
+                        {"_id": "article-102", "text": "RAG combines search with LLMs."},
+                    ],
+                )
+                print(response.record_count)
         """
         if not isinstance(namespace, str):
             raise ValidationError("namespace must be a string")
@@ -1146,15 +1160,19 @@ class GrpcIndex:
 
         Examples:
 
-            response = idx.search(
-                namespace="articles-en",
-                top_k=10,
-                inputs={"text": "benefits of vector databases for search"},
-            )
-            for hit in response.result.hits:
-                print(hit.id, hit.score)
+            .. code-block:: python
+
+                response = idx.search(
+                    namespace="articles-en",
+                    top_k=10,
+                    inputs={"text": "benefits of vector databases for search"},
+                )
+                for hit in response.result.hits:
+                    print(hit.id, hit.score)
 
             Search with reranking:
+
+            .. code-block:: python
 
                 response = idx.search(
                     namespace="articles-en",

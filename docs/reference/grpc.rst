@@ -1,4 +1,62 @@
-gRPC
-====
+GrpcIndex
+=========
 
-*Coming soon.*
+Obtain a ``GrpcIndex`` instance via :meth:`pinecone.Pinecone.index` with
+``grpc=True``, or construct one directly.
+
+.. code-block:: python
+
+   from pinecone import Pinecone
+
+   pc = Pinecone(api_key="your-api-key")
+
+   # Resolve host automatically by index name
+   idx = pc.index("my-index", grpc=True)
+
+   # — or — construct directly with a host URL
+   from pinecone.grpc import GrpcIndex
+   idx = GrpcIndex(host="my-index-abc123.svc.pinecone.io", api_key="your-api-key")
+
+``GrpcIndex`` exposes the same data-plane operations as
+:class:`~pinecone.index.Index` but uses gRPC transport (backed by a Rust
+extension) and returns :class:`~pinecone.grpc.future.PineconeFuture` objects
+from the ``*_async()`` methods.
+
+**Method groups:**
+
+- **Vectors** — :meth:`~pinecone.grpc.GrpcIndex.upsert`,
+  :meth:`~pinecone.grpc.GrpcIndex.upsert_from_dataframe`,
+  :meth:`~pinecone.grpc.GrpcIndex.upsert_records`,
+  :meth:`~pinecone.grpc.GrpcIndex.query`,
+  :meth:`~pinecone.grpc.GrpcIndex.fetch`,
+  :meth:`~pinecone.grpc.GrpcIndex.update`,
+  :meth:`~pinecone.grpc.GrpcIndex.delete`,
+  :meth:`~pinecone.grpc.GrpcIndex.list`,
+  :meth:`~pinecone.grpc.GrpcIndex.list_paginated`
+- **Stats** — :meth:`~pinecone.grpc.GrpcIndex.describe_index_stats`
+- **Integrated Inference** — :meth:`~pinecone.grpc.GrpcIndex.search`,
+  :meth:`~pinecone.grpc.GrpcIndex.search_records`
+- **Async variants** — :meth:`~pinecone.grpc.GrpcIndex.upsert_async`,
+  :meth:`~pinecone.grpc.GrpcIndex.query_async`,
+  :meth:`~pinecone.grpc.GrpcIndex.fetch_async`,
+  :meth:`~pinecone.grpc.GrpcIndex.delete_async`
+- **Lifecycle** — :meth:`~pinecone.grpc.GrpcIndex.close`
+
+.. autoclass:: pinecone.grpc.GrpcIndex
+   :members:
+   :undoc-members: False
+   :show-inheritance:
+   :special-members: __init__, __enter__, __exit__
+   :member-order: bysource
+
+PineconeFuture
+--------------
+
+``*_async()`` methods on :class:`GrpcIndex` return a
+:class:`~pinecone.grpc.future.PineconeFuture` which is fully compatible with
+:func:`concurrent.futures.as_completed` and :func:`concurrent.futures.wait`.
+
+.. autoclass:: pinecone.grpc.future.PineconeFuture
+   :members:
+   :undoc-members: False
+   :show-inheritance:
