@@ -37,6 +37,24 @@ def _filter_none(obj: Any) -> Any:
     return obj
 
 
+def _normalize_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    """Add filterable:true to bare string fields the API rejects without a capability."""
+    fields = schema.get("fields")
+    if not isinstance(fields, dict):
+        return schema
+    normalized: dict[str, Any] = {}
+    for name, field in fields.items():
+        if (
+            isinstance(field, dict)
+            and field.get("type") == "string"
+            and "full_text_search" not in field
+            and not field.get("filterable", False)
+        ):
+            field = {**field, "filterable": True}
+        normalized[name] = field
+    return {**schema, "fields": normalized}
+
+
 class _IndexListEnvelope(Struct, kw_only=True):
     indexes: list[PreviewIndexModel] = []
 
@@ -52,7 +70,10 @@ class PreviewCreateIndexAdapter:
 
     @staticmethod
     def to_request(request: PreviewCreateIndexRequest) -> bytes:
-        return orjson.dumps(_filter_none(msgspec.to_builtins(request)))
+        body = _filter_none(msgspec.to_builtins(request))
+        if isinstance(body.get("schema"), dict):
+            body["schema"] = _normalize_schema(body["schema"])
+        return orjson.dumps(body)
 
     @staticmethod
     def from_response(data: bytes) -> PreviewIndexModel:
@@ -64,7 +85,10 @@ class PreviewConfigureIndexAdapter:
 
     @staticmethod
     def to_request(request: PreviewConfigureIndexRequest) -> bytes:
-        return orjson.dumps(_filter_none(msgspec.to_builtins(request)))
+        body = _filter_none(msgspec.to_builtins(request))
+        if isinstance(body.get("schema"), dict):
+            body["schema"] = _normalize_schema(body["schema"])
+        return orjson.dumps(body)
 
     @staticmethod
     def from_response(data: bytes) -> PreviewIndexModel:
