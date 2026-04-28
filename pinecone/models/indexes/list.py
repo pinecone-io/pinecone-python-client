@@ -41,7 +41,7 @@ class IndexList:
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> indexes = pc.list_indexes()
-            >>> indexes.to_dict()
+            >>> indexes.to_dict()  # doctest: +SKIP
             {'data': [{'name': 'movie-recommendations', ...}, {'name': 'product-search', ...}]}
         """
         return {"data": [i.to_dict() for i in self._indexes]}

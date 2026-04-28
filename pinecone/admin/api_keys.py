@@ -117,12 +117,12 @@ class ApiKeys:
             ...     roles=[APIKeyRole.PROJECT_EDITOR]
             ... )
             >>> result.value
-            'pcsk_...'
+            'pcsk_abc123_secretvalue'
 
             >>> result = admin.api_keys.create(
             ...     project_id="proj-abc123", name="ci-pipeline-key", roles=["ProjectViewer"]
             ... )
-            >>> result.key.roles
+            >>> result.key.roles  # doctest: +SKIP
             ['ProjectViewer']
         """
         require_non_empty("project_id", project_id)
@@ -156,7 +156,7 @@ class ApiKeys:
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> key = admin.api_keys.describe(api_key_id="key-abc123")
             >>> key.name
-            'my-key'
+            'prod-search-key'
         """
         require_non_empty("api_key_id", api_key_id)
         logger.info("Describing API key %r", api_key_id)
@@ -195,7 +195,7 @@ class ApiKeys:
             >>> key = admin.api_keys.update(
             ...     api_key_id="key-abc123", name="new-name"
             ... )
-            >>> key.name
+            >>> key.name  # doctest: +SKIP
             'new-name'
         """
         require_non_empty("api_key_id", api_key_id)

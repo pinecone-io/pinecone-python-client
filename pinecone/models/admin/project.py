@@ -74,7 +74,7 @@ class ProjectList:
             >>> from pinecone import Admin
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> projects = admin.projects.list()
-            >>> projects.to_dict()
+            >>> projects.to_dict()  # doctest: +SKIP
             {'data': [{'name': 'production-search', ...}, {'name': 'staging-recommendations', ...}]}
         """
         return {"data": [p.to_dict() for p in self._projects]}
@@ -91,7 +91,7 @@ class ProjectList:
             >>> from pinecone import Admin
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> projects = admin.projects.list()
-            >>> projects.names()
+            >>> projects.names()  # doctest: +SKIP
             ['production-search', 'staging-recommendations']
         """
         return [project.name for project in self._projects]

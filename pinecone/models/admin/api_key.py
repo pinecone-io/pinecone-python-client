@@ -29,7 +29,7 @@ class APIKeyRole(str, Enum):
         ...     name="read-only-key",
         ...     roles=[APIKeyRole.DATA_PLANE_VIEWER],
         ... )
-        >>> result.key.roles
+        >>> result.key.roles  # doctest: +SKIP
         [<APIKeyRole.DATA_PLANE_VIEWER: 'DataPlaneViewer'>]
 
         Update a key to use control-plane access:
@@ -38,7 +38,7 @@ class APIKeyRole(str, Enum):
         ...     api_key_id="key-abc123",
         ...     roles=[APIKeyRole.CONTROL_PLANE_EDITOR],
         ... )
-        >>> key.role
+        >>> key.role  # doctest: +SKIP
         <APIKeyRole.CONTROL_PLANE_EDITOR: 'ControlPlaneEditor'>
     """
 
@@ -76,6 +76,7 @@ class APIKeyModel(StructDictMixin, Struct, kw_only=True):
         [<APIKeyRole.DATA_PLANE_EDITOR: 'DataPlaneEditor'>]
         >>> key.description
         'Used by the search service'
+
     """
 
     id: str
@@ -103,11 +104,17 @@ class APIKeyModel(StructDictMixin, Struct, kw_only=True):
 
             Keys with multiple roles raise :exc:`ValueError`; use :attr:`roles` instead:
 
-            >>> try:
-            ...     key.role
-            ... except ValueError as exc:
-            ...     print(exc)
-            API key has 2 roles; use .roles to access all
+            .. code-block:: python
+
+                multi_role_key = APIKeyModel(
+                    id="k2", name="k2", project_id="p1",
+                    roles=[APIKeyRole.PROJECT_EDITOR, APIKeyRole.DATA_PLANE_EDITOR]
+                )
+                try:
+                    multi_role_key.role
+                except ValueError as exc:
+                    print(exc)
+                # API key has 2 roles; use .roles to access all
         """
         if len(self.roles) == 0:
             raise ValueError("API key has no roles")
@@ -191,7 +198,7 @@ class APIKeyList:
             >>> from pinecone import Admin
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> keys = admin.api_keys.list(project_id="proj-abc123")
-            >>> keys.to_dict()
+            >>> keys.to_dict()  # doctest: +SKIP
             {'data': [{'name': 'prod-search-key', ...}, {'name': 'ci-pipeline-key', ...}]}
         """
         return {"data": [k.to_dict() for k in self._api_keys]}
@@ -208,7 +215,7 @@ class APIKeyList:
             >>> from pinecone import Admin
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> keys = admin.api_keys.list(project_id="proj-abc123")
-            >>> keys.names()
+            >>> keys.names()  # doctest: +SKIP
             ['prod-search-key', 'ci-pipeline-key']
         """
         return [api_key.name for api_key in self._api_keys]

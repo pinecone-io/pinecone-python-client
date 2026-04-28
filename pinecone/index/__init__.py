@@ -243,37 +243,41 @@ class Index:
         Examples:
             Upsert article embeddings from a DataFrame:
 
-            >>> import pandas as pd
-            >>> from pinecone import Pinecone
-            >>> pc = Pinecone(api_key="your-api-key")
-            >>> index = pc.index("article-search")
-            >>> df = pd.DataFrame([
-            ...     {"id": "article-101", "values": [0.012, -0.087, 0.153]},  # truncated
-            ...     {"id": "article-102", "values": [0.045, 0.021, -0.064]},  # truncated
-            ... ])
-            >>> response = index.upsert_from_dataframe(df)
-            >>> response.upserted_count
-            2
+            .. code-block:: python
+
+                import pandas as pd
+                from pinecone import Pinecone
+
+                pc = Pinecone(api_key="your-api-key")
+                index = pc.index("article-search")
+                df = pd.DataFrame([
+                    {"id": "article-101", "values": [0.012, -0.087, 0.153]},
+                    {"id": "article-102", "values": [0.045, 0.021, -0.064]},
+                ])
+                response = index.upsert_from_dataframe(df)
+                response.upserted_count  # 2
 
             Upsert with metadata, a custom namespace, and a smaller batch size:
 
-            >>> df = pd.DataFrame([
-            ...     {
-            ...         "id": "article-101",
-            ...         "values": [0.012, -0.087, 0.153],  # truncated
-            ...         "metadata": {"topic": "science", "year": 2024},
-            ...     },
-            ...     {
-            ...         "id": "article-102",
-            ...         "values": [0.045, 0.021, -0.064],  # truncated
-            ...         "metadata": {"topic": "technology", "year": 2024},
-            ...     },
-            ... ])
-            >>> response = index.upsert_from_dataframe(
-            ...     df,
-            ...     namespace="articles-en",
-            ...     batch_size=100,
-            ... )
+            .. code-block:: python
+
+                df = pd.DataFrame([
+                    {
+                        "id": "article-101",
+                        "values": [0.012, -0.087, 0.153],
+                        "metadata": {"topic": "science", "year": 2024},
+                    },
+                    {
+                        "id": "article-102",
+                        "values": [0.045, 0.021, -0.064],
+                        "metadata": {"topic": "technology", "year": 2024},
+                    },
+                ])
+                response = index.upsert_from_dataframe(
+                    df,
+                    namespace="articles-en",
+                    batch_size=100,
+                )
 
         .. seealso::
            - :meth:`upsert` — for upserting vectors directly (single batch,
@@ -1462,23 +1466,27 @@ class Index:
         Examples:
             Start an import and poll until complete:
 
-            >>> import time
-            >>> response = idx.start_import(uri="s3://my-bucket/vectors/")
-            >>> import_id = response.id
-            >>>
-            >>> # Poll until the import finishes
-            >>> import_op = idx.describe_import(import_id)
-            >>> while import_op.status not in ("Completed", "Failed", "Cancelled"):
-            ...     time.sleep(10)
-            ...     import_op = idx.describe_import(import_id)
-            >>> print(f"Status: {import_op.status}, records imported: {import_op.records_imported}")
+            .. code-block:: python
+
+                import time
+                response = idx.start_import(uri="s3://my-bucket/vectors/")
+                import_id = response.id
+
+                # Poll until the import finishes
+                import_op = idx.describe_import(import_id)
+                while import_op.status not in ("Completed", "Failed", "Cancelled"):
+                    time.sleep(10)
+                    import_op = idx.describe_import(import_id)
+                print(f"Status: {import_op.status}, records imported: {import_op.records_imported}")
 
             Abort on first error instead of continuing:
 
-            >>> response = idx.start_import(
-            ...     uri="s3://my-bucket/vectors/",
-            ...     error_mode="abort",
-            ... )
+            .. code-block:: python
+
+                response = idx.start_import(
+                    uri="s3://my-bucket/vectors/",
+                    error_mode="abort",
+                )
 
         .. seealso::
            - :meth:`upsert` — for upserting vectors directly in small

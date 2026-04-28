@@ -208,9 +208,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            >>> from pinecone import AsyncPinecone
-            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
-            ...     assistant = await pc.assistants.create(name="my-assistant")
+            from pinecone import AsyncPinecone
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                assistant = await pc.assistants.create(name="my-assistant")
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
@@ -436,17 +436,21 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         Examples:
             Update an assistant's instructions:
 
-            >>> assistant = await pc.assistants.update(
-            ...     name="my-assistant",
-            ...     instructions="You are a helpful research assistant.",
-            ... )
+            .. code-block:: python
+
+                assistant = await pc.assistants.update(
+                    name="my-assistant",
+                    instructions="You are a helpful research assistant.",
+                )
 
             Replace an assistant's metadata:
 
-            >>> assistant = await pc.assistants.update(
-            ...     name="my-assistant",
-            ...     metadata={"team": "ml", "version": "2"},
-            ... )
+            .. code-block:: python
+
+                assistant = await pc.assistants.update(
+                    name="my-assistant",
+                    metadata={"team": "ml", "version": "2"},
+                )
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
@@ -1045,12 +1049,14 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         Examples:
             Retrieve context using a text query:
 
-            >>> response = await pc.assistants.context(
-            ...     assistant_name="my-assistant",
-            ...     query="What is Pinecone?",
-            ... )
-            >>> for snippet in response.snippets:
-            ...     print(snippet.content)
+            .. code-block:: python
+
+                response = await pc.assistants.context(
+                    assistant_name="my-assistant",
+                    query="What is Pinecone?",
+                )
+                for snippet in response.snippets:
+                    print(snippet.content)
         """
         query_truthy = query is not None and query != ""
         messages_truthy = messages is not None and len(messages) > 0
@@ -1133,27 +1139,33 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         Examples:
             Non-streaming chat:
 
-            >>> import asyncio
-            >>> from pinecone import AsyncPinecone
-            >>> pc = AsyncPinecone(api_key="your-api-key")
-            >>> async def main() -> None:
-            ...     response = await pc.assistants.chat(
-            ...         assistant_name="my-assistant",
-            ...         messages=[{"content": "What is Pinecone?"}],
-            ...     )
-            >>> asyncio.run(main())
+            .. code-block:: python
+
+                import asyncio
+                from pinecone import AsyncPinecone
+
+                pc = AsyncPinecone(api_key="your-api-key")
+
+                async def main() -> None:
+                    response = await pc.assistants.chat(
+                        assistant_name="my-assistant",
+                        messages=[{"content": "What is Pinecone?"}],
+                    )
+                asyncio.run(main())
 
             Streaming chat:
 
-            >>> async def stream_main() -> None:
-            ...     stream = await pc.assistants.chat(
-            ...         assistant_name="my-assistant",
-            ...         messages=[{"content": "What is Pinecone?"}],
-            ...         stream=True,
-            ...     )
-            ...     async for text in stream.text():
-            ...         print(text, end="", flush=True)
-            >>> asyncio.run(stream_main())
+            .. code-block:: python
+
+                async def stream_main() -> None:
+                    stream = await pc.assistants.chat(
+                        assistant_name="my-assistant",
+                        messages=[{"content": "What is Pinecone?"}],
+                        stream=True,
+                    )
+                    async for text in stream.text():
+                        print(text, end="", flush=True)
+                asyncio.run(stream_main())
         """
         if stream and json_response:
             raise PineconeValueError("json_response cannot be used with stream=True")
@@ -1284,28 +1296,34 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         Examples:
             Non-streaming chat completion:
 
-            >>> import asyncio
-            >>> from pinecone import AsyncPinecone
-            >>> pc = AsyncPinecone(api_key="your-api-key")
-            >>> async def main() -> None:
-            ...     response = await pc.assistants.chat_completions(
-            ...         assistant_name="research-assistant",
-            ...         messages=[{"content": "Explain quantum entanglement briefly."}],
-            ...     )
-            ...     print(response.choices[0].message.content)
-            >>> asyncio.run(main())
+            .. code-block:: python
+
+                import asyncio
+                from pinecone import AsyncPinecone
+
+                pc = AsyncPinecone(api_key="your-api-key")
+
+                async def main() -> None:
+                    response = await pc.assistants.chat_completions(
+                        assistant_name="research-assistant",
+                        messages=[{"content": "Explain quantum entanglement briefly."}],
+                    )
+                    print(response.choices[0].message.content)
+                asyncio.run(main())
 
             Streaming chat completion:
 
-            >>> async def stream_main() -> None:
-            ...     stream = await pc.assistants.chat_completions(
-            ...         assistant_name="research-assistant",
-            ...         messages=[{"content": "Explain quantum entanglement briefly."}],
-            ...         stream=True,
-            ...     )
-            ...     async for chunk in stream:
-            ...         print(chunk)
-            >>> asyncio.run(stream_main())
+            .. code-block:: python
+
+                async def stream_main() -> None:
+                    stream = await pc.assistants.chat_completions(
+                        assistant_name="research-assistant",
+                        messages=[{"content": "Explain quantum entanglement briefly."}],
+                        stream=True,
+                    )
+                    async for chunk in stream:
+                        print(chunk)
+                asyncio.run(stream_main())
         """
         parsed: list[Message] = [
             m if isinstance(m, Message) else Message.from_dict(m) for m in messages

@@ -775,36 +775,40 @@ class GrpcIndex:
         Examples:
             Upsert article embeddings from a DataFrame:
 
-            >>> import pandas as pd
-            >>> from pinecone.grpc import GrpcIndex
-            >>> idx = GrpcIndex(host="article-search-abc123.svc.pinecone.io", api_key="...")
-            >>> df = pd.DataFrame([
-            ...     {"id": "article-101", "values": [0.012, -0.087, 0.153, ...]},
-            ...     {"id": "article-102", "values": [0.045, 0.021, -0.064, ...]},
-            ... ])
-            >>> response = idx.upsert_from_dataframe(df)
-            >>> response.upserted_count
-            2
+            .. code-block:: python
+
+                import pandas as pd
+                from pinecone.grpc import GrpcIndex
+
+                idx = GrpcIndex(host="article-search-abc123.svc.pinecone.io", api_key="your-api-key")
+                df = pd.DataFrame([
+                    {"id": "article-101", "values": [0.012, -0.087, 0.153]},
+                    {"id": "article-102", "values": [0.045, 0.021, -0.064]},
+                ])
+                response = idx.upsert_from_dataframe(df)
+                response.upserted_count
 
             Upsert with metadata, a custom namespace, and a smaller batch size:
 
-            >>> df = pd.DataFrame([
-            ...     {
-            ...         "id": "article-101",
-            ...         "values": [0.012, -0.087, 0.153, ...],
-            ...         "metadata": {"topic": "science", "year": 2024},
-            ...     },
-            ...     {
-            ...         "id": "article-102",
-            ...         "values": [0.045, 0.021, -0.064, ...],
-            ...         "metadata": {"topic": "technology", "year": 2024},
-            ...     },
-            ... ])
-            >>> response = idx.upsert_from_dataframe(
-            ...     df,
-            ...     namespace="articles-en",
-            ...     batch_size=100,
-            ... )
+            .. code-block:: python
+
+                df = pd.DataFrame([
+                    {
+                        "id": "article-101",
+                        "values": [0.012, -0.087, 0.153],
+                        "metadata": {"topic": "science", "year": 2024},
+                    },
+                    {
+                        "id": "article-102",
+                        "values": [0.045, 0.021, -0.064],
+                        "metadata": {"topic": "technology", "year": 2024},
+                    },
+                ])
+                response = idx.upsert_from_dataframe(
+                    df,
+                    namespace="articles-en",
+                    batch_size=100,
+                )
         """
         try:
             import pandas as pd
@@ -883,12 +887,13 @@ class GrpcIndex:
         Examples:
             Submit an upsert and retrieve the result:
 
-            >>> future = index.upsert_async(
-            ...     vectors=[("doc-42", [0.012, -0.087, 0.153])],
-            ... )
-            >>> result = future.result()
-            >>> result.upserted_count
-            1
+            .. code-block:: python
+
+                future = index.upsert_async(
+                    vectors=[("doc-42", [0.012, -0.087, 0.153])],
+                )
+                result = future.result()
+                result.upserted_count  # 1
         """
         future: PineconeFuture[UpsertResponse] = PineconeFuture(
             self._executor.submit(
@@ -924,15 +929,15 @@ class GrpcIndex:
         Examples:
             Submit a query and inspect the top match:
 
-            >>> future = index.query_async(
-            ...     vector=[0.012, -0.087, 0.153],
-            ...     top_k=5,
-            ... )
-            >>> result = future.result()
-            >>> result.matches[0].id
-            'doc-42'
-            >>> result.matches[0].score
-            0.95
+            .. code-block:: python
+
+                future = index.query_async(
+                    vector=[0.012, -0.087, 0.153],
+                    top_k=5,
+                )
+                result = future.result()
+                result.matches[0].id    # 'doc-42'
+                result.matches[0].score  # 0.95
         """
         future: PineconeFuture[QueryResponse] = PineconeFuture(
             self._executor.submit(
@@ -971,10 +976,11 @@ class GrpcIndex:
         Examples:
             Fetch vectors by ID and inspect the result:
 
-            >>> future = index.fetch_async(ids=["doc-42", "doc-43"])
-            >>> result = future.result()
-            >>> result.vectors["doc-42"].values
-            [0.012, -0.087, 0.153]
+            .. code-block:: python
+
+                future = index.fetch_async(ids=["doc-42", "doc-43"])
+                result = future.result()
+                result.vectors["doc-42"].values  # [0.012, -0.087, 0.153]
         """
         future: PineconeFuture[FetchResponse] = PineconeFuture(
             self._executor.submit(self.fetch, ids=ids, namespace=namespace, timeout=timeout)
@@ -1002,13 +1008,17 @@ class GrpcIndex:
         Examples:
             Delete vectors by ID and wait for completion:
 
-            >>> future = index.delete_async(ids=["doc-42", "doc-43"])
-            >>> future.result()
+            .. code-block:: python
+
+                future = index.delete_async(ids=["doc-42", "doc-43"])
+                future.result()
 
             Delete all vectors in a namespace:
 
-            >>> future = index.delete_async(delete_all=True, namespace="docs")
-            >>> future.result()
+            .. code-block:: python
+
+                future = index.delete_async(delete_all=True, namespace="docs")
+                future.result()
         """
         future: PineconeFuture[None] = PineconeFuture(
             self._executor.submit(

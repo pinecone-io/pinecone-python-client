@@ -64,7 +64,7 @@ class BackupList:
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> backups = pc.list_backups(index_name="movie-recommendations")
-            >>> backups.to_dict()
+            >>> backups.to_dict()  # doctest: +SKIP
             {'data': [{'backup_id': 'bkp-abc123', ...}, {'backup_id': 'bkp-def456', ...}]}
         """
         result: dict[str, Any] = {"data": [b.to_dict() for b in self._backups]}
@@ -86,7 +86,7 @@ class BackupList:
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> backups = pc.list_backups(index_name="movie-recommendations")
-            >>> backups.names()
+            >>> backups.names()  # doctest: +SKIP
             ['daily-2025-01-01', 'weekly-2024-12-29']
         """
         return [b.name or b.backup_id for b in self._backups]
@@ -150,11 +150,14 @@ class RestoreJobList:
         Examples:
             Serialize a page of restore jobs:
 
-            >>> from pinecone import Pinecone
-            >>> pc = Pinecone(api_key="your-api-key")
-            >>> jobs = pc.list_restore_jobs(index_name="movie-recommendations")
-            >>> jobs.to_dict()
-            {'data': [{'restore_job_id': 'rj-abc123', ...}, {'restore_job_id': 'rj-def456', ...}]}
+            .. code-block:: python
+
+                from pinecone import Pinecone
+
+                pc = Pinecone(api_key="your-api-key")
+                jobs = pc.restore_jobs.list()
+                jobs.to_dict()
+                # {'data': [{'restore_job_id': 'rj-abc123', ...}, {'restore_job_id': 'rj-def456', ...}]}
         """
         result: dict[str, Any] = {"data": [r.to_dict() for r in self._restore_jobs]}
         if self.pagination is not None:

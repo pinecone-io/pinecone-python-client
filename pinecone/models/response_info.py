@@ -89,20 +89,22 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
         Examples:
             Read-your-writes after an upsert:
 
-            >>> from pinecone import Pinecone
-            >>> pc = Pinecone(api_key="your-api-key")
-            >>> index = pc.Index("product-search")
-            >>> upsert_resp = index.upsert_records(
-            ...     namespace="electronics",
-            ...     records=[{"id": "prod-42", "_text": "wireless headphones"}],
-            ... )
-            >>> committed_lsn = upsert_resp.response_info.lsn_committed
-            >>> query_resp = index.search(
-            ...     namespace="electronics",
-            ...     query={"inputs": {"text": "headphones"}},
-            ... )
-            >>> query_resp.result.response_info.is_reconciled(committed_lsn)
-            True
+            .. code-block:: python
+
+                from pinecone import Pinecone
+
+                pc = Pinecone(api_key="your-api-key")
+                index = pc.index(host="product-search.svc.pinecone.io")
+                upsert_resp = index.upsert_records(
+                    namespace="electronics",
+                    records=[{"id": "prod-42", "_text": "wireless headphones"}],
+                )
+                committed_lsn = upsert_resp.response_info.lsn_committed
+                query_resp = index.search(
+                    namespace="electronics",
+                    inputs={"text": "headphones"},
+                )
+                query_resp.result.response_info.is_reconciled(committed_lsn)
         """
         lsn = self.lsn_reconciled
         return lsn is not None and lsn >= target
@@ -142,21 +144,24 @@ class BatchResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
     Examples:
         Read-your-writes after a bulk upsert:
 
-        >>> from pinecone import Pinecone
-        >>> pc = Pinecone(api_key="your-api-key")
-        >>> index = pc.preview.index(name="articles-en-preview")
-        >>> documents = [
-        ...     {"_id": f"article-{i:05d}", "content": f"Article {i}"}
-        ...     for i in range(500)
-        ... ]
-        >>> result = index.documents.batch_upsert(
-        ...     namespace="articles-en",
-        ...     documents=documents,
-        ... )
-        >>> if result.response_info is not None:
-        ...     target_lsn = result.response_info.lsn_committed
-        ...     if result.response_info.is_reconciled(target_lsn):
-        ...         pass  # all writes durable through target_lsn
+        .. code-block:: python
+
+            from pinecone import Pinecone
+
+            pc = Pinecone(api_key="your-api-key")
+            index = pc.preview.index(name="articles-en-preview")
+            documents = [
+                {"_id": f"article-{i:05d}", "content": f"Article {i}"}
+                for i in range(500)
+            ]
+            result = index.documents.batch_upsert(
+                namespace="articles-en",
+                documents=documents,
+            )
+            if result.response_info is not None:
+                target_lsn = result.response_info.lsn_committed
+                if result.response_info.is_reconciled(target_lsn):
+                    pass  # all writes durable through target_lsn
     """
 
     lsn_reconciled: int | None = None

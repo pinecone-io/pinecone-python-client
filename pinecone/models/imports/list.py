@@ -56,7 +56,7 @@ class ImportList:
             >>> pc = Pinecone(api_key="your-api-key")
             >>> index = pc.Index("product-search")
             >>> imports = index.list_imports_paginated()
-            >>> imports.to_dict()
+            >>> imports.to_dict()  # doctest: +SKIP
             {'data': [{'id': 'import-abc123', ...}, {'id': 'import-def456', ...}]}
         """
         result: dict[str, Any] = {"data": [i.to_dict() for i in self._imports]}

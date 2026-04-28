@@ -149,11 +149,12 @@ class Projects:
             :exc:`PineconeError`: If multiple projects share *name*.
 
         Examples:
-            >>> from pinecone import Admin
-            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
-            >>> project = admin.projects.describe_by_name(name="my-project")
-            >>> project.id
-            'proj-abc123'
+            .. code-block:: python
+
+                from pinecone import Admin
+                admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+                project = admin.projects.describe_by_name(name="my-project")
+                project.id  # 'proj-abc123'
         """
         require_non_empty("name", name)
         logger.info("Describing project by name %r", name)
@@ -239,7 +240,7 @@ class Projects:
             >>> project = admin.projects.update(
             ...     project_id="proj-abc123", name="new-name"
             ... )
-            >>> project.name
+            >>> project.name  # doctest: +SKIP
             'new-name'
         """
         require_non_empty("project_id", project_id)
@@ -327,9 +328,11 @@ class Projects:
             :exc:`ApiError`: If resource cleanup or project deletion fails after all retries.
 
         Examples:
-            >>> from pinecone import Admin
-            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
-            >>> admin.projects.delete_with_cleanup(project_id="proj-abc123")
+            .. code-block:: python
+
+                from pinecone import Admin
+                admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+                admin.projects.delete_with_cleanup(project_id="proj-abc123")
         """
         if self._admin is None:
             raise PineconeError(

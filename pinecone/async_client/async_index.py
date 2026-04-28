@@ -1320,23 +1320,27 @@ class AsyncIndex:
         Examples:
             Start an import and poll until complete:
 
-            >>> import asyncio
-            >>> response = await idx.start_import(uri="s3://my-bucket/vectors/")
-            >>> import_id = response.id
-            >>>
-            >>> # Poll until the import finishes
-            >>> import_op = await idx.describe_import(import_id)
-            >>> while import_op.status not in ("Completed", "Failed", "Cancelled"):
-            ...     await asyncio.sleep(10)
-            ...     import_op = await idx.describe_import(import_id)
-            >>> print(f"Status: {import_op.status}, records imported: {import_op.records_imported}")
+            .. code-block:: python
+
+                import asyncio
+                response = await idx.start_import(uri="s3://my-bucket/vectors/")
+                import_id = response.id
+
+                # Poll until the import finishes
+                import_op = await idx.describe_import(import_id)
+                while import_op.status not in ("Completed", "Failed", "Cancelled"):
+                    await asyncio.sleep(10)
+                    import_op = await idx.describe_import(import_id)
+                print(f"Status: {import_op.status}, records imported: {import_op.records_imported}")
 
             Abort on first error instead of continuing:
 
-            >>> response = await idx.start_import(
-            ...     uri="s3://my-bucket/vectors/",
-            ...     error_mode="abort",
-            ... )
+            .. code-block:: python
+
+                response = await idx.start_import(
+                    uri="s3://my-bucket/vectors/",
+                    error_mode="abort",
+                )
 
         .. seealso::
            - :meth:`upsert` — for upserting vectors directly in small

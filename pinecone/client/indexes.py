@@ -342,7 +342,7 @@ class Indexes:
 
             >>> from pinecone import Pinecone, ServerlessSpec
             >>> pc = Pinecone(api_key="your-api-key")
-            >>> pc.indexes.create(
+            >>> index = pc.indexes.create(
             ...     name="movie-recommendations",
             ...     dimension=1536,
             ...     spec=ServerlessSpec(cloud="aws", region="us-east-1"),
@@ -352,7 +352,7 @@ class Indexes:
 
             >>> from pinecone import Pinecone, IntegratedSpec, EmbedConfig
             >>> pc = Pinecone(api_key="your-api-key")
-            >>> pc.indexes.create(
+            >>> index = pc.indexes.create(
             ...     name="semantic-search",
             ...     spec=IntegratedSpec(
             ...         cloud="aws",

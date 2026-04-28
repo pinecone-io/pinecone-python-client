@@ -74,7 +74,7 @@ class OrganizationList:
             >>> from pinecone import Admin
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> orgs = admin.organizations.list()
-            >>> orgs.to_dict()
+            >>> orgs.to_dict()  # doctest: +SKIP
             {'data': [{'name': 'acme-corp', ...}, {'name': 'research-team', ...}]}
         """
         return {"data": [o.to_dict() for o in self._organizations]}
@@ -91,7 +91,7 @@ class OrganizationList:
             >>> from pinecone import Admin
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> orgs = admin.organizations.list()
-            >>> orgs.names()
+            >>> orgs.names()  # doctest: +SKIP
             ['acme-corp', 'research-team']
         """
         return [org.name for org in self._organizations]

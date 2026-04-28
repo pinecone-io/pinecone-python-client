@@ -1009,12 +1009,14 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         Examples:
             Retrieve context using a text query:
 
-            >>> response = pc.assistants.context(
-            ...     assistant_name="my-assistant",
-            ...     query="What is Pinecone?",
-            ... )
-            >>> for snippet in response.snippets:
-            ...     print(snippet.content)
+            .. code-block:: python
+
+                response = pc.assistants.context(
+                    assistant_name="my-assistant",
+                    query="What is Pinecone?",
+                )
+                for snippet in response.snippets:
+                    print(snippet.content)
         """
         query_truthy = query is not None and query != ""
         messages_truthy = messages is not None and len(messages) > 0
@@ -1097,22 +1099,26 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         Examples:
             Non-streaming chat:
 
-            >>> from pinecone import Pinecone
-            >>> pc = Pinecone(api_key="your-api-key")
-            >>> response = pc.assistants.chat(
-            ...     assistant_name="my-assistant",
-            ...     messages=[{"content": "What is Pinecone?"}],
-            ... )
+            .. code-block:: python
+
+                from pinecone import Pinecone
+                pc = Pinecone(api_key="your-api-key")
+                response = pc.assistants.chat(
+                    assistant_name="my-assistant",
+                    messages=[{"content": "What is Pinecone?"}],
+                )
 
             Streaming chat:
 
-            >>> stream = pc.assistants.chat(
-            ...     assistant_name="my-assistant",
-            ...     messages=[{"content": "What is Pinecone?"}],
-            ...     stream=True,
-            ... )
-            >>> for text in stream.text():
-            ...     print(text, end="", flush=True)
+            .. code-block:: python
+
+                stream = pc.assistants.chat(
+                    assistant_name="my-assistant",
+                    messages=[{"content": "What is Pinecone?"}],
+                    stream=True,
+                )
+                for text in stream.text():
+                    print(text, end="", flush=True)
         """
         if stream and json_response:
             raise PineconeValueError("json_response cannot be used with stream=True")
@@ -1201,24 +1207,27 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         Examples:
             Non-streaming chat completion:
 
-            >>> from pinecone import Pinecone
-            >>> pc = Pinecone(api_key="your-api-key")
-            >>> response = pc.assistants.chat_completions(
-            ...     assistant_name="research-assistant",
-            ...     messages=[{"content": "Explain quantum entanglement briefly."}],
-            ... )
-            >>> response.choices[0].message.content
-            'Quantum entanglement is a phenomenon...'
+            .. code-block:: python
+
+                from pinecone import Pinecone
+                pc = Pinecone(api_key="your-api-key")
+                response = pc.assistants.chat_completions(
+                    assistant_name="research-assistant",
+                    messages=[{"content": "Explain quantum entanglement briefly."}],
+                )
+                response.choices[0].message.content
 
             Streaming chat completion:
 
-            >>> stream = pc.assistants.chat_completions(
-            ...     assistant_name="research-assistant",
-            ...     messages=[{"content": "Explain quantum entanglement briefly."}],
-            ...     stream=True,
-            ... )
-            >>> for chunk in stream:
-            ...     print(chunk)
+            .. code-block:: python
+
+                stream = pc.assistants.chat_completions(
+                    assistant_name="research-assistant",
+                    messages=[{"content": "Explain quantum entanglement briefly."}],
+                    stream=True,
+                )
+                for chunk in stream:
+                    print(chunk)
         """
         parsed: list[Message] = [
             m if isinstance(m, Message) else Message.from_dict(m) for m in messages

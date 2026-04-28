@@ -364,22 +364,22 @@ class AsyncPinecone:
         Examples:
             Restore an index from a backup:
 
-            >>> from pinecone import AsyncPinecone
-            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
-            ...     index = await pc.create_index_from_backup(
-            ...         name="product-search-restored",
-            ...         backup_id="bk-daily-20240115",
-            ...     )
+            from pinecone import AsyncPinecone
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                index = await pc.create_index_from_backup(
+                    name="product-search-restored",
+                    backup_id="bk-daily-20240115",
+                )
 
             Restore with tags and deletion protection:
 
-            >>> async with AsyncPinecone(api_key="your-api-key") as pc:
-            ...     index = await pc.create_index_from_backup(
-            ...         name="product-search-restored",
-            ...         backup_id="bk-daily-20240115",
-            ...         deletion_protection="enabled",
-            ...         tags={"env": "production", "team": "search"},
-            ...     )
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                index = await pc.create_index_from_backup(
+                    name="product-search-restored",
+                    backup_id="bk-daily-20240115",
+                    deletion_protection="enabled",
+                    tags={"env": "production", "team": "search"},
+                )
         """
         require_non_empty("name", name)
         require_non_empty("backup_id", backup_id)

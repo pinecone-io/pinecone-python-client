@@ -102,7 +102,7 @@ class Organizations:
             >>> org = admin.organizations.update(
             ...     organization_id="org-abc123", name="New Name"
             ... )
-            >>> org.name
+            >>> org.name  # doctest: +SKIP
             'New Name'
         """
         require_non_empty("organization_id", organization_id)

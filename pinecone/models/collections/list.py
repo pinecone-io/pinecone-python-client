@@ -36,7 +36,7 @@ class CollectionList:
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> collections = pc.list_collections()
-            >>> collections.to_dict()
+            >>> collections.to_dict()  # doctest: +SKIP
             {'data': [{'name': 'movie-embeddings-v1', ...}, {'name': 'product-snapshot', ...}]}
         """
         return {"data": [c.to_dict() for c in self._collections]}

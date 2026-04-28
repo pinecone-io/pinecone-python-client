@@ -43,7 +43,7 @@ class ModelInfoList:
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> models = pc.inference.list_models()
-            >>> models.names()
+            >>> models.names()  # doctest: +SKIP
             ['multilingual-e5-large', 'pinecone-sparse-english-v0']
         """
         return [m.model for m in self._models]

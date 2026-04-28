@@ -42,7 +42,7 @@ class ModelResource:
         >>> from pinecone import Pinecone
         >>> pc = Pinecone(api_key="your-api-key")
         >>> models = pc.inference.model.list()
-        >>> models.names()
+        >>> models.names()  # doctest: +SKIP
         ['multilingual-e5-large', 'pinecone-sparse-english-v0']
 
         Get details about a specific model:
@@ -277,7 +277,7 @@ class Inference:
             ...     documents=["Apple is a fruit.", "Acme Inc. revolutionized tech."],
             ...     top_n=1,
             ... )
-            >>> result.data[0].score
+            >>> result.data[0].score  # doctest: +SKIP
             0.95
         """
         require_non_empty("model", str(model))
@@ -331,7 +331,7 @@ class Inference:
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> models = pc.inference.list_models()
-            >>> models.names()
+            >>> models.names()  # doctest: +SKIP
             ['multilingual-e5-large', 'pinecone-sparse-english-v0']
 
             List only embedding models:

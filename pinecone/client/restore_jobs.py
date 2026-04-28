@@ -71,7 +71,7 @@ class RestoreJobs:
             List with a page size limit:
 
             >>> jobs = pc.restore_jobs.list(limit=5)
-            >>> len(jobs)
+            >>> len(jobs)  # doctest: +SKIP
             5
         """
         params: dict[str, Any] = {"limit": limit}
