@@ -25,11 +25,10 @@ class Organizations:
 
     Examples:
 
-        from pinecone import Admin
-
-        admin = Admin(client_id="my-id", client_secret="my-secret")
-        for org in admin.organizations.list():
-            print(org.name)
+        >>> from pinecone import Admin
+        >>> admin = Admin(client_id="my-id", client_secret="my-secret")
+        >>> for org in admin.organizations.list():
+        ...     print(org.name)
     """
 
     def __init__(self, *, http: HTTPClient) -> None:
