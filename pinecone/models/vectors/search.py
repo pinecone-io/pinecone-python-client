@@ -217,6 +217,8 @@ class SearchQuery(DictLikeStruct, Struct, kw_only=True, gc=False):
         """
         return {f: getattr(self, f) for f in self.__struct_fields__ if getattr(self, f) is not None}
 
+    as_dict = to_dict
+
 
 class SearchQueryVector(DictLikeStruct, Struct, kw_only=True, gc=False):
     """Explicit dense/sparse query vector for search operations (legacy backcompat type).
@@ -253,6 +255,8 @@ class SearchQueryVector(DictLikeStruct, Struct, kw_only=True, gc=False):
             {'values': [0.1, 0.2], 'sparse_values': [0.5], 'sparse_indices': [3]}
         """
         return {f: getattr(self, f) for f in self.__struct_fields__ if getattr(self, f) is not None}
+
+    as_dict = to_dict
 
 
 class SearchRerank(DictLikeStruct, Struct, kw_only=True, gc=False):
@@ -300,3 +304,5 @@ class SearchRerank(DictLikeStruct, Struct, kw_only=True, gc=False):
             ['text']
         """
         return {f: getattr(self, f) for f in self.__struct_fields__ if getattr(self, f) is not None}
+
+    as_dict = to_dict
