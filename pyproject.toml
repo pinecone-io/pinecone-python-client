@@ -24,6 +24,14 @@ dev = [
     "mypy",
     "ruff",
 ]
+docs = [
+    "sphinx>=8.0",
+    "furo",
+    "myst-parser>=4.0",
+    "sphinx-autodoc-typehints>=2.0",
+    "sphinx-copybutton",
+    "sphinx-tabs",
+]
 
 [tool.maturin]
 manifest-path = "rust/Cargo.toml"
