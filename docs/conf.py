@@ -55,11 +55,10 @@ napoleon_use_returns = True
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "httpx": ("https://www.python-httpx.org/", None),
 }
 
 myst_enable_extensions = ["colon_fence", "deflist"]
 
 copybutton_prompt_text = r">>> |\.\.\. "
 
-suppress_warnings = ["myst.header"]
+suppress_warnings = ["myst.header", "intersphinx"]
