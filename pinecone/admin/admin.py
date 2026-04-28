@@ -182,7 +182,7 @@ class Admin:
         )
 
         transport = _RetryTransport(
-            transport=httpx.HTTPTransport(http2=True, socket_options=_build_socket_options()),
+            transport=httpx.HTTPTransport(http2=False, socket_options=_build_socket_options()),
         )
         with httpx.Client(
             transport=transport,

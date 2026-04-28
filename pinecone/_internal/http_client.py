@@ -322,7 +322,7 @@ class HTTPClient:
         )
         transport = _RetryTransport(
             transport=httpx.HTTPTransport(
-                http2=True, limits=limits, socket_options=_build_socket_options()
+                http2=False, limits=limits, socket_options=_build_socket_options()
             ),
             retry_config=config.retry_config,
         )
@@ -605,7 +605,7 @@ class AsyncHTTPClient:
             )
             transport = _AsyncRetryTransport(
                 transport=httpx.AsyncHTTPTransport(
-                    http2=True, limits=limits, socket_options=_build_socket_options()
+                    http2=False, limits=limits, socket_options=_build_socket_options()
                 ),
                 retry_config=self._config.retry_config,
             )
