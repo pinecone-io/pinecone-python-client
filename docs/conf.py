@@ -35,6 +35,7 @@ exclude_patterns = [
     "pinecone/config/**",
     "pinecone/utils/response_info.py",
     "pinecone_plugins/**",
+    "README.md",
 ]
 
 autodoc_mock_imports = ["pinecone._grpc"]
