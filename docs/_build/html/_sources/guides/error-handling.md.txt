@@ -1,0 +1,3 @@
+# Error Handling
+
+*Coming soon.*

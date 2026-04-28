@@ -1,0 +1,2253 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="#"><link rel="search" title="Search" href="search.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 --><title>Index - Pinecone 9.0.0 documentation</title>
+<link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">Pinecone 9.0.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text">Pinecone 9.0.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="getting-started/index.html">Getting Started</a><input aria-label="Toggle navigation of Getting Started" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/quickstart.html">Quickstart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/authentication.html">Authentication</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="guides/concepts.html">Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/sync-vs-async.html">Sync vs Async</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/error-handling.html">Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/pagination.html">Pagination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/performance.html">Performance</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How-To</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="how-to/index.html">How-To</a><input aria-label="Toggle navigation of How-To" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="how-to/indexes/serverless.html">Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/indexes/backups-and-restore.html">Backups and Restore</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/vectors/upsert-and-query.html">Upsert and Query</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/vectors/bulk-import.html">Bulk Import</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/vectors/namespaces.html">Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/inference/embeddings.html">Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/inference/reranking.html">Reranking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/integrated-records.html">Integrated Records</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/collections.html">Collections</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="reference/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="reference/pinecone.html">Pinecone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/async-pinecone.html">AsyncPinecone</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/sync-index.html">Index</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/async-index.html">AsyncIndex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/admin.html">Admin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/models.html">Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/exceptions.html">Exceptions</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          
+<section class="genindex-section">
+  <h1 id="index">Index</h1>
+  <div class="genindex-jumpbox"><a href="#_"><strong>_</strong></a> | <a href="#A"><strong>A</strong></a> | <a href="#B"><strong>B</strong></a> | <a href="#C"><strong>C</strong></a> | <a href="#D"><strong>D</strong></a> | <a href="#E"><strong>E</strong></a> | <a href="#F"><strong>F</strong></a> | <a href="#G"><strong>G</strong></a> | <a href="#H"><strong>H</strong></a> | <a href="#I"><strong>I</strong></a> | <a href="#K"><strong>K</strong></a> | <a href="#L"><strong>L</strong></a> | <a href="#M"><strong>M</strong></a> | <a href="#N"><strong>N</strong></a> | <a href="#O"><strong>O</strong></a> | <a href="#P"><strong>P</strong></a> | <a href="#Q"><strong>Q</strong></a> | <a href="#R"><strong>R</strong></a> | <a href="#S"><strong>S</strong></a> | <a href="#T"><strong>T</strong></a> | <a href="#U"><strong>U</strong></a> | <a href="#V"><strong>V</strong></a> | <a href="#W"><strong>W</strong></a></div>
+</section>
+<section id="_" class="genindex-section">
+  <h2>_</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.__aenter__">__aenter__() (pinecone.async_client.async_index.AsyncIndex method)</a>
+</li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.__aexit__">__aexit__() (pinecone.async_client.async_index.AsyncIndex method)</a>
+</li>
+        <li><a href="reference/sync-index.html#pinecone.index.Index.__enter__">__enter__() (pinecone.index.Index method)</a>
+</li>
+        <li><a href="reference/sync-index.html#pinecone.index.Index.__exit__">__exit__() (pinecone.index.Index method)</a>
+</li>
+        <li><a href="reference/admin.html#pinecone.admin.Admin.__init__">__init__() (pinecone.admin.Admin method)</a>
+
+        <ul>
+          <li><a href="reference/admin.html#pinecone.admin.api_keys.ApiKeys.__init__">(pinecone.admin.api_keys.ApiKeys method)</a>
+</li>
+          <li><a href="reference/admin.html#pinecone.admin.organizations.Organizations.__init__">(pinecone.admin.organizations.Organizations method)</a>
+</li>
+          <li><a href="reference/admin.html#pinecone.admin.projects.Projects.__init__">(pinecone.admin.projects.Projects method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.__init__">(pinecone.async_client.assistants.AsyncAssistants method)</a>
+</li>
+          <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.__init__">(pinecone.async_client.async_index.AsyncIndex method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.backups.AsyncBackups.__init__">(pinecone.async_client.backups.AsyncBackups method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.collections.AsyncCollections.__init__">(pinecone.async_client.collections.AsyncCollections method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.indexes.AsyncIndexes.__init__">(pinecone.async_client.indexes.AsyncIndexes method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.__init__">(pinecone.async_client.inference.AsyncInference method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.restore_jobs.AsyncRestoreJobs.__init__">(pinecone.async_client.restore_jobs.AsyncRestoreJobs method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.__init__">(pinecone.client.assistants.Assistants method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.backups.Backups.__init__">(pinecone.client.backups.Backups method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.collections.Collections.__init__">(pinecone.client.collections.Collections method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.indexes.Indexes.__init__">(pinecone.client.indexes.Indexes method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.__init__">(pinecone.client.inference.Inference method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.restore_jobs.RestoreJobs.__init__">(pinecone.client.restore_jobs.RestoreJobs method)</a>
+</li>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.__init__">(pinecone.index.Index method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.inference.models.index_embed.IndexEmbed.__init__">(pinecone.inference.models.index_embed.IndexEmbed method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyList.__init__">(pinecone.models.admin.api_key.APIKeyList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.admin.organization.OrganizationList.__init__">(pinecone.models.admin.organization.OrganizationList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.admin.project.ProjectList.__init__">(pinecone.models.admin.project.ProjectList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.AsyncChatCompletionStream.__init__">(pinecone.models.assistant.streaming.AsyncChatCompletionStream method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.AsyncChatStream.__init__">(pinecone.models.assistant.streaming.AsyncChatStream method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.ChatCompletionStream.__init__">(pinecone.models.assistant.streaming.ChatCompletionStream method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.ChatStream.__init__">(pinecone.models.assistant.streaming.ChatStream method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.backups.list.BackupList.__init__">(pinecone.models.backups.list.BackupList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.backups.list.RestoreJobList.__init__">(pinecone.models.backups.list.RestoreJobList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.collections.list.CollectionList.__init__">(pinecone.models.collections.list.CollectionList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.imports.list.ImportList.__init__">(pinecone.models.imports.list.ImportList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.indexes.list.IndexList.__init__">(pinecone.models.indexes.list.IndexList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.inference.model_list.ModelInfoList.__init__">(pinecone.models.inference.model_list.ModelInfoList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.pagination.AsyncPaginator.__init__">(pinecone.models.pagination.AsyncPaginator method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.pagination.Page.__init__">(pinecone.models.pagination.Page method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.pagination.Paginator.__init__">(pinecone.models.pagination.Paginator method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.vectors.query_aggregator.QueryResultsAggregator.__init__">(pinecone.models.vectors.query_aggregator.QueryResultsAggregator method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.Pinecone.__init__">(pinecone.Pinecone method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.utils.filter_builder.Field.__init__">(pinecone.utils.filter_builder.Field method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="A" class="genindex-section">
+  <h2>A</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id155">ABORT (pinecone.models.imports.error_mode.ImportErrorMode attribute)</a>, <a href="reference/models.html#pinecone.models.imports.error_mode.ImportErrorMode.ABORT">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.query_aggregator.QueryResultsAggregator.add_results">add_results() (pinecone.models.vectors.query_aggregator.QueryResultsAggregator method)</a>
+</li>
+        <li><a href="reference/admin.html#pinecone.admin.Admin">Admin (class in pinecone.admin)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.evaluation.AlignmentResult">AlignmentResult (class in pinecone.models.assistant.evaluation)</a>
+</li>
+        <li><a href="reference/admin.html#pinecone.admin.Admin.api_keys">api_keys (pinecone.admin.Admin property)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyList">APIKeyList (class in pinecone.models.admin.api_key)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyModel">APIKeyModel (class in pinecone.models.admin.api_key)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyRole">APIKeyRole (class in pinecone.models.admin.api_key)</a>
+</li>
+        <li><a href="reference/admin.html#pinecone.admin.api_keys.ApiKeys">ApiKeys (class in pinecone.admin.api_keys)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyWithSecret">APIKeyWithSecret (class in pinecone.models.admin.api_key)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.inference.models.index_embed.IndexEmbed.as_dict">as_dict() (pinecone.inference.models.index_embed.IndexEmbed method)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.indexes.specs.ByocSpec.asdict">asdict() (pinecone.models.indexes.specs.ByocSpec method)</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.indexes.specs.PodSpec.asdict">(pinecone.models.indexes.specs.PodSpec method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.indexes.specs.ServerlessSpec.asdict">(pinecone.models.indexes.specs.ServerlessSpec method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/pinecone.html#pinecone.Pinecone.assistant">assistant (pinecone.Pinecone property)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel">AssistantFileModel (class in pinecone.models.assistant.file_model)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.model.AssistantModel">AssistantModel (class in pinecone.models.assistant.model)</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants">Assistants (class in pinecone.client.assistants)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id235">assistants (pinecone.models.assistant.list.ListAssistantsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.list.ListAssistantsResponse.assistants">[1]</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.Pinecone.assistants">(pinecone.Pinecone property)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants">AsyncAssistants (class in pinecone.async_client.assistants)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.backups.AsyncBackups">AsyncBackups (class in pinecone.async_client.backups)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.AsyncChatCompletionStream">AsyncChatCompletionStream (class in pinecone.models.assistant.streaming)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.AsyncChatStream">AsyncChatStream (class in pinecone.models.assistant.streaming)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.collections.AsyncCollections">AsyncCollections (class in pinecone.async_client.collections)</a>
+</li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex">AsyncIndex (class in pinecone.async_client.async_index)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.indexes.AsyncIndexes">AsyncIndexes (class in pinecone.async_client.indexes)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference">AsyncInference (class in pinecone.async_client.inference)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.EmbedModel">AsyncInference.EmbedModel (class in pinecone.async_client.inference)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.RerankModel">AsyncInference.RerankModel (class in pinecone.async_client.inference)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.pagination.AsyncPaginator">AsyncPaginator (class in pinecone.models.pagination)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.restore_jobs.AsyncRestoreJobs">AsyncRestoreJobs (class in pinecone.async_client.restore_jobs)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.CloudProvider.AWS">AWS (pinecone.models.enums.CloudProvider attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.db_control.enums.clouds.AwsRegion">AwsRegion (class in pinecone.db_control.enums.clouds)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.CloudProvider.AZURE">AZURE (pinecone.models.enums.CloudProvider attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.db_control.enums.clouds.AzureRegion">AzureRegion (class in pinecone.db_control.enums.clouds)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="B" class="genindex-section">
+  <h2>B</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id165">backup_id (pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.backup_id">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id180">(pinecone.models.backups.model.RestoreJobModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.RestoreJobModel.backup_id">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.backups.list.BackupList">BackupList (class in pinecone.models.backups.list)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.backups.model.BackupModel">BackupModel (class in pinecone.models.backups.model)</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.client.backups.Backups">Backups (class in pinecone.client.backups)</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.Pinecone.backups">backups (pinecone.Pinecone property)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.models.response_info.BatchResponseInfo">BatchResponseInfo (class in pinecone.models.response_info)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.RerankModel.BGE_RERANKER_V2_M3">BGE_RERANKER_V2_M3 (pinecone.async_client.inference.AsyncInference.RerankModel attribute)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.RerankModel.BGE_RERANKER_V2_M3">(pinecone.client.inference.Inference.RerankModel attribute)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.enums.RerankModel.BGE_RERANKER_V2_M3">(pinecone.models.enums.RerankModel attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id10">byoc (pinecone.models.indexes.index.IndexSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexSpec.byoc">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.indexes.specs.ByocSpec">ByocSpec (class in pinecone.models.indexes.specs)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.indexes.index.ByocSpecInfo">ByocSpecInfo (class in pinecone.models.indexes.index)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="C" class="genindex-section">
+  <h2>C</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.cancel_import">cancel_import() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.cancel_import">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.chat">chat() (pinecone.async_client.assistants.AsyncAssistants method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.chat">(pinecone.client.assistants.Assistants method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.chat_completions">chat_completions() (pinecone.async_client.assistants.AsyncAssistants method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.chat_completions">(pinecone.client.assistants.Assistants method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.assistant.chat.ChatCompletionResponse">ChatCompletionResponse (class in pinecone.models.assistant.chat)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.ChatCompletionStream">ChatCompletionStream (class in pinecone.models.assistant.streaming)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.ChatCompletionStreamChunk">ChatCompletionStreamChunk (class in pinecone.models.assistant.streaming)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.chat.ChatResponse">ChatResponse (class in pinecone.models.assistant.chat)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.ChatStream">ChatStream (class in pinecone.models.assistant.streaming)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.ChatStreamChunk">ChatStreamChunk (in module pinecone.models.assistant.streaming)</a>
+</li>
+        <li><a href="reference/models.html#id247">choices (pinecone.models.assistant.chat.ChatCompletionResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.chat.ChatCompletionResponse.choices">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id261">(pinecone.models.assistant.streaming.ChatCompletionStreamChunk attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.ChatCompletionStreamChunk.choices">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id278">citation (pinecone.models.assistant.streaming.StreamCitationChunk attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.StreamCitationChunk.citation">[1]</a>
+</li>
+        <li><a href="reference/models.html#id241">citations (pinecone.models.assistant.chat.ChatResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.chat.ChatResponse.citations">[1]</a>
+</li>
+        <li><a href="reference/admin.html#pinecone.admin.Admin.close">close() (pinecone.admin.Admin method)</a>
+
+        <ul>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.close">(pinecone.async_client.assistants.AsyncAssistants method)</a>
+</li>
+          <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.close">(pinecone.async_client.async_index.AsyncIndex method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.close">(pinecone.async_client.inference.AsyncInference method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.close">(pinecone.client.assistants.Assistants method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.close">(pinecone.client.inference.Inference method)</a>
+</li>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.close">(pinecone.index.Index method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.Pinecone.close">(pinecone.Pinecone method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id166">cloud (pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.cloud">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id35">(pinecone.models.indexes.index.ServerlessSpecInfo attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.ServerlessSpecInfo.cloud">[1]</a>
+</li>
+          <li><a href="reference/models.html#id27">(pinecone.models.indexes.specs.IntegratedSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.IntegratedSpec.cloud">[1]</a>
+</li>
+          <li><a href="reference/models.html#id13">(pinecone.models.indexes.specs.ServerlessSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.ServerlessSpec.cloud">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.enums.CloudProvider">CloudProvider (class in pinecone.models.enums)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.RerankModel.COHERE_RERANK_3_5">COHERE_RERANK_3_5 (pinecone.async_client.inference.AsyncInference.RerankModel attribute)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.RerankModel.COHERE_RERANK_3_5">(pinecone.client.inference.Inference.RerankModel attribute)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.enums.RerankModel.COHERE_RERANK_3_5">(pinecone.models.enums.RerankModel attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.AsyncChatCompletionStream.collect">collect() (pinecone.models.assistant.streaming.AsyncChatCompletionStream method)</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.AsyncChatStream.collect">(pinecone.models.assistant.streaming.AsyncChatStream method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.ChatCompletionStream.collect">(pinecone.models.assistant.streaming.ChatCompletionStream method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.ChatStream.collect">(pinecone.models.assistant.streaming.ChatStream method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.db_control.models.collection_description.CollectionDescription">CollectionDescription (class in pinecone.db_control.models.collection_description)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.collections.list.CollectionList">CollectionList (class in pinecone.models.collections.list)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.collections.model.CollectionModel">CollectionModel (class in pinecone.models.collections.model)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/pinecone.html#pinecone.client.collections.Collections">Collections (class in pinecone.client.collections)</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.Pinecone.collections">collections (pinecone.Pinecone property)</a>
+</li>
+        <li><a href="reference/models.html#id181">completed_at (pinecone.models.backups.model.RestoreJobModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.RestoreJobModel.completed_at">[1]</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.Pinecone.config">config (pinecone.Pinecone property)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.indexes.AsyncIndexes.configure">configure() (pinecone.async_client.indexes.AsyncIndexes method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.indexes.Indexes.configure">(pinecone.client.indexes.Indexes method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id239">content (pinecone.models.assistant.message.Message attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.message.Message.content">[1]</a>
+</li>
+        <li><a href="reference/models.html#id223">content_hash (pinecone.models.assistant.file_model.AssistantFileModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.content_hash">[1]</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.context">context() (pinecone.async_client.assistants.AsyncAssistants method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.context">(pinecone.client.assistants.Assistants method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.assistant.options.ContextOptions">ContextOptions (class in pinecone.models.assistant.options)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.context.ContextResponse">ContextResponse (class in pinecone.models.assistant.context)</a>
+</li>
+        <li><a href="reference/models.html#id156">CONTINUE (pinecone.models.imports.error_mode.ImportErrorMode attribute)</a>, <a href="reference/models.html#pinecone.models.imports.error_mode.ImportErrorMode.CONTINUE">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyRole.CONTROL_PLANE_EDITOR">CONTROL_PLANE_EDITOR (pinecone.models.admin.api_key.APIKeyRole attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyRole.CONTROL_PLANE_VIEWER">CONTROL_PLANE_VIEWER (pinecone.models.admin.api_key.APIKeyRole attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.Metric.COSINE">COSINE (pinecone.models.enums.Metric attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.crc32c_hash">crc32c_hash (pinecone.models.assistant.file_model.AssistantFileModel property)</a>
+</li>
+        <li><a href="reference/admin.html#pinecone.admin.api_keys.ApiKeys.create">create() (pinecone.admin.api_keys.ApiKeys method)</a>
+
+        <ul>
+          <li><a href="reference/admin.html#pinecone.admin.projects.Projects.create">(pinecone.admin.projects.Projects method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.create">(pinecone.async_client.assistants.AsyncAssistants method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.backups.AsyncBackups.create">(pinecone.async_client.backups.AsyncBackups method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.collections.AsyncCollections.create">(pinecone.async_client.collections.AsyncCollections method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.indexes.AsyncIndexes.create">(pinecone.async_client.indexes.AsyncIndexes method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.create">(pinecone.client.assistants.Assistants method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.backups.Backups.create">(pinecone.client.backups.Backups method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.collections.Collections.create">(pinecone.client.collections.Collections method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.indexes.Indexes.create">(pinecone.client.indexes.Indexes method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/pinecone.html#pinecone.Pinecone.create_index_from_backup">create_index_from_backup() (pinecone.Pinecone method)</a>
+</li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.create_namespace">create_namespace() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.create_namespace">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id262">created (pinecone.models.assistant.streaming.ChatCompletionStreamChunk attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.ChatCompletionStreamChunk.created">[1]</a>
+</li>
+        <li><a href="reference/models.html#id204">created_at (pinecone.models.admin.organization.OrganizationModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.organization.OrganizationModel.created_at">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id210">(pinecone.models.admin.project.ProjectModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.project.ProjectModel.created_at">[1]</a>
+</li>
+          <li><a href="reference/models.html#id216">(pinecone.models.assistant.model.AssistantModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.model.AssistantModel.created_at">[1]</a>
+</li>
+          <li><a href="reference/models.html#id167">(pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.created_at">[1]</a>
+</li>
+          <li><a href="reference/models.html#id182">(pinecone.models.backups.model.RestoreJobModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.RestoreJobModel.created_at">[1]</a>
+</li>
+          <li><a href="reference/models.html#id146">(pinecone.models.imports.model.ImportModel attribute)</a>, <a href="reference/models.html#pinecone.models.imports.model.ImportModel.created_at">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id224">created_on (pinecone.models.assistant.file_model.AssistantFileModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.created_on">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.backups.model.CreateIndexFromBackupResponse">CreateIndexFromBackupResponse (class in pinecone.models.backups.model)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="D" class="genindex-section">
+  <h2>D</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.models.backups.list.BackupList.data">data (pinecone.models.backups.list.BackupList property)</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.backups.list.RestoreJobList.data">(pinecone.models.backups.list.RestoreJobList property)</a>
+</li>
+          <li><a href="reference/models.html#id123">(pinecone.models.inference.embed.EmbeddingsList attribute)</a>, <a href="reference/models.html#pinecone.models.inference.embed.EmbeddingsList.data">[1]</a>
+</li>
+          <li><a href="reference/models.html#id127">(pinecone.models.inference.rerank.RerankResult attribute)</a>, <a href="reference/models.html#pinecone.models.inference.rerank.RerankResult.data">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyRole.DATA_PLANE_EDITOR">DATA_PLANE_EDITOR (pinecone.models.admin.api_key.APIKeyRole attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyRole.DATA_PLANE_VIEWER">DATA_PLANE_VIEWER (pinecone.models.admin.api_key.APIKeyRole attribute)</a>
+</li>
+        <li><a href="reference/models.html#id133">default_dimension (pinecone.models.inference.models.ModelInfo attribute)</a>, <a href="reference/models.html#pinecone.models.inference.models.ModelInfo.default_dimension">[1]</a>
+</li>
+        <li><a href="reference/admin.html#pinecone.admin.api_keys.ApiKeys.delete">delete() (pinecone.admin.api_keys.ApiKeys method)</a>
+
+        <ul>
+          <li><a href="reference/admin.html#pinecone.admin.organizations.Organizations.delete">(pinecone.admin.organizations.Organizations method)</a>
+</li>
+          <li><a href="reference/admin.html#pinecone.admin.projects.Projects.delete">(pinecone.admin.projects.Projects method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.delete">(pinecone.async_client.assistants.AsyncAssistants method)</a>
+</li>
+          <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.delete">(pinecone.async_client.async_index.AsyncIndex method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.backups.AsyncBackups.delete">(pinecone.async_client.backups.AsyncBackups method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.collections.AsyncCollections.delete">(pinecone.async_client.collections.AsyncCollections method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.indexes.AsyncIndexes.delete">(pinecone.async_client.indexes.AsyncIndexes method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.delete">(pinecone.client.assistants.Assistants method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.backups.Backups.delete">(pinecone.client.backups.Backups method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.collections.Collections.delete">(pinecone.client.collections.Collections method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.indexes.Indexes.delete">(pinecone.client.indexes.Indexes method)</a>
+</li>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.delete">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.delete_file">delete_file() (pinecone.async_client.assistants.AsyncAssistants method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.delete_file">(pinecone.client.assistants.Assistants method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.delete_namespace">delete_namespace() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.delete_namespace">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/admin.html#pinecone.admin.projects.Projects.delete_with_cleanup">delete_with_cleanup() (pinecone.admin.projects.Projects method)</a>
+</li>
+        <li><a href="reference/models.html#id0">deletion_protection (pinecone.models.indexes.index.IndexModel attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexModel.deletion_protection">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.DeletionProtection">DeletionProtection (class in pinecone.models.enums)</a>
+</li>
+        <li><a href="reference/models.html#id274">delta (pinecone.models.assistant.streaming.StreamContentChunk attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.StreamContentChunk.delta">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.VectorType.DENSE">DENSE (pinecone.models.enums.VectorType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.inference.embed.DenseEmbedding">DenseEmbedding (class in pinecone.models.inference.embed)</a>
+</li>
+        <li><a href="reference/admin.html#pinecone.admin.api_keys.ApiKeys.describe">describe() (pinecone.admin.api_keys.ApiKeys method)</a>
+
+        <ul>
+          <li><a href="reference/admin.html#pinecone.admin.organizations.Organizations.describe">(pinecone.admin.organizations.Organizations method)</a>
+</li>
+          <li><a href="reference/admin.html#pinecone.admin.projects.Projects.describe">(pinecone.admin.projects.Projects method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.describe">(pinecone.async_client.assistants.AsyncAssistants method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.backups.AsyncBackups.describe">(pinecone.async_client.backups.AsyncBackups method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.collections.AsyncCollections.describe">(pinecone.async_client.collections.AsyncCollections method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.indexes.AsyncIndexes.describe">(pinecone.async_client.indexes.AsyncIndexes method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.restore_jobs.AsyncRestoreJobs.describe">(pinecone.async_client.restore_jobs.AsyncRestoreJobs method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.describe">(pinecone.client.assistants.Assistants method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.backups.Backups.describe">(pinecone.client.backups.Backups method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.collections.Collections.describe">(pinecone.client.collections.Collections method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.indexes.Indexes.describe">(pinecone.client.indexes.Indexes method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.restore_jobs.RestoreJobs.describe">(pinecone.client.restore_jobs.RestoreJobs method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/admin.html#pinecone.admin.projects.Projects.describe_by_name">describe_by_name() (pinecone.admin.projects.Projects method)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.describe_file">describe_file() (pinecone.async_client.assistants.AsyncAssistants method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.describe_file">(pinecone.client.assistants.Assistants method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.describe_import">describe_import() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.describe_import">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.describe_index_stats">describe_index_stats() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.describe_index_stats">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.describe_namespace">describe_namespace() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.describe_namespace">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.vectors.responses.DescribeIndexStatsResponse">DescribeIndexStatsResponse (class in pinecone.models.vectors.responses)</a>
+</li>
+        <li><a href="reference/models.html#id197">description (pinecone.models.admin.api_key.APIKeyModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.api_key.APIKeyModel.description">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id168">(pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.description">[1]</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.inference.models.ModelInfo.description">(pinecone.models.inference.models.ModelInfo property)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id169">dimension (pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.dimension">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id157">(pinecone.models.collections.model.CollectionModel attribute)</a>, <a href="reference/models.html#pinecone.models.collections.model.CollectionModel.dimension">[1]</a>
+</li>
+          <li><a href="reference/models.html#id1">(pinecone.models.indexes.index.IndexModel attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexModel.dimension">[1]</a>
+</li>
+          <li><a href="reference/models.html#id46">(pinecone.models.indexes.index.ModelIndexEmbed attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.ModelIndexEmbed.dimension">[1]</a>
+</li>
+          <li><a href="reference/models.html#id81">(pinecone.models.vectors.responses.DescribeIndexStatsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.DescribeIndexStatsResponse.dimension">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.enums.DeletionProtection.DISABLED">DISABLED (pinecone.models.enums.DeletionProtection attribute)</a>
+</li>
+        <li><a href="reference/models.html#id130">document (pinecone.models.inference.rerank.RankedDocument attribute)</a>, <a href="reference/models.html#pinecone.models.inference.rerank.RankedDocument.document">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.Metric.DOTPRODUCT">DOTPRODUCT (pinecone.models.enums.Metric attribute)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="E" class="genindex-section">
+  <h2>E</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.db_control.enums.clouds.AzureRegion.EASTUS2">EASTUS2 (pinecone.db_control.enums.clouds.AzureRegion attribute)</a>
+</li>
+        <li><a href="reference/models.html#id2">embed (pinecone.models.indexes.index.IndexModel attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexModel.embed">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id28">(pinecone.models.indexes.specs.IntegratedSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.IntegratedSpec.embed">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.embed">embed() (pinecone.async_client.inference.AsyncInference method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.embed">(pinecone.client.inference.Inference method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id106">embed_total_tokens (pinecone.models.vectors.search.SearchUsage attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.SearchUsage.embed_total_tokens">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.indexes.specs.EmbedConfig">EmbedConfig (class in pinecone.models.indexes.specs)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.inference.embed.EmbeddingsList">EmbeddingsList (class in pinecone.models.inference.embed)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.EmbedModel">EmbedModel (class in pinecone.models.enums)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.DeletionProtection.ENABLED">ENABLED (pinecone.models.enums.DeletionProtection attribute)</a>
+</li>
+        <li><a href="reference/models.html#id158">environment (pinecone.models.collections.model.CollectionModel attribute)</a>, <a href="reference/models.html#pinecone.models.collections.model.CollectionModel.environment">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id44">(pinecone.models.indexes.index.ByocSpecInfo attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.ByocSpecInfo.environment">[1]</a>
+</li>
+          <li><a href="reference/models.html#id37">(pinecone.models.indexes.index.PodSpecInfo attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.PodSpecInfo.environment">[1]</a>
+</li>
+          <li><a href="reference/models.html#id24">(pinecone.models.indexes.specs.ByocSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.ByocSpec.environment">[1]</a>
+</li>
+          <li><a href="reference/models.html#id17">(pinecone.models.indexes.specs.PodSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.PodSpec.environment">[1]</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id147">error (pinecone.models.imports.model.ImportModel attribute)</a>, <a href="reference/models.html#pinecone.models.imports.model.ImportModel.error">[1]</a>
+</li>
+        <li><a href="reference/models.html#id225">error_message (pinecone.models.assistant.file_model.AssistantFileModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.error_message">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.db_control.enums.clouds.AwsRegion.EU_WEST_1">EU_WEST_1 (pinecone.db_control.enums.clouds.AwsRegion attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.Metric.EUCLIDEAN">EUCLIDEAN (pinecone.models.enums.Metric attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.db_control.enums.clouds.GcpRegion.EUROPE_WEST4">EUROPE_WEST4 (pinecone.db_control.enums.clouds.GcpRegion attribute)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.evaluate_alignment">evaluate_alignment() (pinecone.async_client.assistants.AsyncAssistants method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.evaluate_alignment">(pinecone.client.assistants.Assistants method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/admin.html#pinecone.admin.projects.Projects.exists">exists() (pinecone.admin.projects.Projects method)</a>
+
+        <ul>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.indexes.AsyncIndexes.exists">(pinecone.async_client.indexes.AsyncIndexes method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.indexes.Indexes.exists">(pinecone.client.indexes.Indexes method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.utils.filter_builder.Field.exists">(pinecone.utils.filter_builder.Field method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="F" class="genindex-section">
+  <h2>F</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id258">facts (pinecone.models.assistant.evaluation.AlignmentResult attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.evaluation.AlignmentResult.facts">[1]</a>
+</li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.fetch">fetch() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.fetch">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.fetch_by_metadata">fetch_by_metadata() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.fetch_by_metadata">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.vectors.responses.FetchByMetadataResponse">FetchByMetadataResponse (class in pinecone.models.vectors.responses)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.responses.FetchResponse">FetchResponse (class in pinecone.models.vectors.responses)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.utils.filter_builder.Field">Field (class in pinecone.utils.filter_builder)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.inference.models.index_embed.IndexEmbed.field_map">field_map (pinecone.inference.models.index_embed.IndexEmbed attribute)</a>
+
+        <ul>
+          <li><a href="reference/models.html#id47">(pinecone.models.indexes.index.ModelIndexEmbed attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.ModelIndexEmbed.field_map">[1]</a>
+</li>
+          <li><a href="reference/models.html#id30">(pinecone.models.indexes.specs.EmbedConfig attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.EmbedConfig.field_map">[1]</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id98">fields (pinecone.models.vectors.search.Hit attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.Hit.fields">[1]</a>
+</li>
+        <li><a href="reference/models.html#id237">files (pinecone.models.assistant.list.ListFilesResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.list.ListFilesResponse.files">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.utils.filter_builder.FilterBuilder">FilterBuilder (in module pinecone.utils.filter_builder)</a>
+</li>
+        <li><a href="reference/models.html#id242">finish_reason (pinecone.models.assistant.chat.ChatResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.chat.ChatResponse.finish_reason">[1]</a>
+</li>
+        <li><a href="reference/models.html#id148">finished_at (pinecone.models.imports.model.ImportModel attribute)</a>, <a href="reference/models.html#pinecone.models.imports.model.ImportModel.finished_at">[1]</a>
+</li>
+        <li><a href="reference/models.html#id211">force_encryption_with_cmek (pinecone.models.admin.project.ProjectModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.project.ProjectModel.force_encryption_with_cmek">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.message.Message.from_dict">from_dict() (pinecone.models.assistant.message.Message class method)</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.assistant.options.ContextOptions.from_dict">(pinecone.models.assistant.options.ContextOptions class method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.vectors.sparse.SparseValues.from_dict">(pinecone.models.vectors.sparse.SparseValues static method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.vectors.vector.Vector.from_dict">(pinecone.models.vectors.vector.Vector static method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="G" class="genindex-section">
+  <h2>G</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.models.enums.CloudProvider.GCP">GCP (pinecone.models.enums.CloudProvider attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.db_control.enums.clouds.GcpRegion">GcpRegion (class in pinecone.db_control.enums.clouds)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.backups.AsyncBackups.get">get() (pinecone.async_client.backups.AsyncBackups method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.backups.Backups.get">(pinecone.client.backups.Backups method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.get_model">get_model() (pinecone.async_client.inference.AsyncInference method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.get_model">(pinecone.client.inference.Inference method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.vectors.query_aggregator.QueryResultsAggregator.get_results">get_results() (pinecone.models.vectors.query_aggregator.QueryResultsAggregator method)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.utils.filter_builder.Field.gt">gt() (pinecone.utils.filter_builder.Field method)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.utils.filter_builder.Field.gte">gte() (pinecone.utils.filter_builder.Field method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="H" class="genindex-section">
+  <h2>H</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.models.pagination.Page.has_more">has_more (pinecone.models.pagination.Page property)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.search.Hit">Hit (class in pinecone.models.vectors.search)</a>
+</li>
+        <li><a href="reference/models.html#id101">hits (pinecone.models.vectors.search.SearchResult attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.SearchResult.hits">[1]</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.host">host (pinecone.async_client.async_index.AsyncIndex property)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.host">(pinecone.index.Index property)</a>
+</li>
+          <li><a href="reference/models.html#id217">(pinecone.models.assistant.model.AssistantModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.model.AssistantModel.host">[1]</a>
+</li>
+          <li><a href="reference/models.html#id3">(pinecone.models.indexes.index.IndexModel attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexModel.host">[1]</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="I" class="genindex-section">
+  <h2>I</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id198">id (pinecone.models.admin.api_key.APIKeyModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.api_key.APIKeyModel.id">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id205">(pinecone.models.admin.organization.OrganizationModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.organization.OrganizationModel.id">[1]</a>
+</li>
+          <li><a href="reference/models.html#id212">(pinecone.models.admin.project.ProjectModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.project.ProjectModel.id">[1]</a>
+</li>
+          <li><a href="reference/models.html#id248">(pinecone.models.assistant.chat.ChatCompletionResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.chat.ChatCompletionResponse.id">[1]</a>
+</li>
+          <li><a href="reference/models.html#id243">(pinecone.models.assistant.chat.ChatResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.chat.ChatResponse.id">[1]</a>
+</li>
+          <li><a href="reference/models.html#id251">(pinecone.models.assistant.context.ContextResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.context.ContextResponse.id">[1]</a>
+</li>
+          <li><a href="reference/models.html#id226">(pinecone.models.assistant.file_model.AssistantFileModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.id">[1]</a>
+</li>
+          <li><a href="reference/models.html#id263">(pinecone.models.assistant.streaming.ChatCompletionStreamChunk attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.ChatCompletionStreamChunk.id">[1]</a>
+</li>
+          <li><a href="reference/models.html#id279">(pinecone.models.assistant.streaming.StreamCitationChunk attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.StreamCitationChunk.id">[1]</a>
+</li>
+          <li><a href="reference/models.html#id275">(pinecone.models.assistant.streaming.StreamContentChunk attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.StreamContentChunk.id">[1]</a>
+</li>
+          <li><a href="reference/models.html#id270">(pinecone.models.assistant.streaming.StreamMessageEnd attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.StreamMessageEnd.id">[1]</a>
+</li>
+          <li><a href="reference/models.html#id149">(pinecone.models.imports.model.ImportModel attribute)</a>, <a href="reference/models.html#pinecone.models.imports.model.ImportModel.id">[1]</a>
+</li>
+          <li><a href="reference/models.html#id154">(pinecone.models.imports.model.StartImportResponse attribute)</a>, <a href="reference/models.html#pinecone.models.imports.model.StartImportResponse.id">[1]</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.vectors.search.Hit.id">(pinecone.models.vectors.search.Hit property)</a>
+</li>
+          <li><a href="reference/models.html#id53">(pinecone.models.vectors.vector.Vector attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.vector.Vector.id">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id99">id_ (pinecone.models.vectors.search.Hit attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.Hit.id_">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.imports.error_mode.ImportErrorMode">ImportErrorMode (class in pinecone.models.imports.error_mode)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.imports.list.ImportList">ImportList (class in pinecone.models.imports.list)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.imports.model.ImportModel">ImportModel (class in pinecone.models.imports.model)</a>
+</li>
+        <li><a href="reference/models.html#id254">include_binary_content (pinecone.models.assistant.options.ContextOptions attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.options.ContextOptions.include_binary_content">[1]</a>
+</li>
+        <li><a href="reference/sync-index.html#pinecone.index.Index">Index (class in pinecone.index)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id131">index (pinecone.models.inference.rerank.RankedDocument attribute)</a>, <a href="reference/models.html#pinecone.models.inference.rerank.RankedDocument.index">[1]</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.Pinecone.index">index() (pinecone.Pinecone method)</a>
+</li>
+        <li><a href="reference/models.html#id82">index_fullness (pinecone.models.vectors.responses.DescribeIndexStatsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.DescribeIndexStatsResponse.index_fullness">[1]</a>
+</li>
+        <li><a href="reference/models.html#id188">index_id (pinecone.models.backups.model.CreateIndexFromBackupResponse attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.CreateIndexFromBackupResponse.index_id">[1]</a>
+</li>
+        <li><a href="reference/models.html#id190">indexed_fields (pinecone.models.namespaces.models.NamespaceDescription attribute)</a>, <a href="reference/models.html#pinecone.models.namespaces.models.NamespaceDescription.indexed_fields">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.inference.models.index_embed.IndexEmbed">IndexEmbed (class in pinecone.inference.models.index_embed)</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.client.indexes.Indexes">Indexes (class in pinecone.client.indexes)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.indexes.list.IndexList.indexes">indexes (pinecone.models.indexes.list.IndexList property)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.Pinecone.indexes">(pinecone.Pinecone property)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.indexes.list.IndexList">IndexList (class in pinecone.models.indexes.list)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.indexes.index.IndexModel">IndexModel (class in pinecone.models.indexes.index)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.indexes.index.IndexSpec">IndexSpec (class in pinecone.models.indexes.index)</a>
+</li>
+        <li><a href="reference/models.html#id57">indices (pinecone.models.vectors.sparse.SparseValues attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.sparse.SparseValues.indices">[1]</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.client.inference.Inference">Inference (class in pinecone.client.inference)</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.Pinecone.inference">inference (pinecone.Pinecone property)</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.EmbedModel">Inference.EmbedModel (class in pinecone.client.inference)</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.RerankModel">Inference.RerankModel (class in pinecone.client.inference)</a>
+</li>
+        <li><a href="reference/models.html#id218">instructions (pinecone.models.assistant.model.AssistantModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.model.AssistantModel.instructions">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.indexes.specs.IntegratedSpec">IntegratedSpec (class in pinecone.models.indexes.specs)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.utils.filter_builder.Field.is_in">is_in() (pinecone.utils.filter_builder.Field method)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.response_info.BatchResponseInfo.is_reconciled">is_reconciled() (pinecone.models.response_info.BatchResponseInfo method)</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.response_info.ResponseInfo.is_reconciled">(pinecone.models.response_info.ResponseInfo method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="K" class="genindex-section">
+  <h2>K</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id202">key (pinecone.models.admin.api_key.APIKeyWithSecret attribute)</a>, <a href="reference/models.html#pinecone.models.admin.api_key.APIKeyWithSecret.key">[1]</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="L" class="genindex-section">
+  <h2>L</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/admin.html#pinecone.admin.api_keys.ApiKeys.list">list() (pinecone.admin.api_keys.ApiKeys method)</a>
+
+        <ul>
+          <li><a href="reference/admin.html#pinecone.admin.organizations.Organizations.list">(pinecone.admin.organizations.Organizations method)</a>
+</li>
+          <li><a href="reference/admin.html#pinecone.admin.projects.Projects.list">(pinecone.admin.projects.Projects method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.list">(pinecone.async_client.assistants.AsyncAssistants method)</a>
+</li>
+          <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.list">(pinecone.async_client.async_index.AsyncIndex method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.backups.AsyncBackups.list">(pinecone.async_client.backups.AsyncBackups method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.collections.AsyncCollections.list">(pinecone.async_client.collections.AsyncCollections method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.indexes.AsyncIndexes.list">(pinecone.async_client.indexes.AsyncIndexes method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.restore_jobs.AsyncRestoreJobs.list">(pinecone.async_client.restore_jobs.AsyncRestoreJobs method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.list">(pinecone.client.assistants.Assistants method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.backups.Backups.list">(pinecone.client.backups.Backups method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.collections.Collections.list">(pinecone.client.collections.Collections method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.indexes.Indexes.list">(pinecone.client.indexes.Indexes method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.restore_jobs.RestoreJobs.list">(pinecone.client.restore_jobs.RestoreJobs method)</a>
+</li>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.list">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.list_files">list_files() (pinecone.async_client.assistants.AsyncAssistants method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.list_files">(pinecone.client.assistants.Assistants method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.list_files_page">list_files_page() (pinecone.async_client.assistants.AsyncAssistants method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.list_files_page">(pinecone.client.assistants.Assistants method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.list_imports">list_imports() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.list_imports">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.list_imports_paginated">list_imports_paginated() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.list_imports_paginated">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.list_models">list_models() (pinecone.async_client.inference.AsyncInference method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.list_models">(pinecone.client.inference.Inference method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.list_namespaces">list_namespaces() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.list_namespaces">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.list_namespaces_paginated">list_namespaces_paginated() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.list_namespaces_paginated">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.list_page">list_page() (pinecone.async_client.assistants.AsyncAssistants method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.list_page">(pinecone.client.assistants.Assistants method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.list_paginated">list_paginated() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.list_paginated">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.assistant.list.ListAssistantsResponse">ListAssistantsResponse (class in pinecone.models.assistant.list)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.list.ListFilesResponse">ListFilesResponse (class in pinecone.models.assistant.list)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.namespaces.models.ListNamespacesResponse">ListNamespacesResponse (class in pinecone.models.namespaces.models)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.responses.ListResponse">ListResponse (class in pinecone.models.vectors.responses)</a>
+</li>
+        <li><a href="reference/models.html#id92">lsn_committed (pinecone.models.response_info.BatchResponseInfo attribute)</a>, <a href="reference/models.html#pinecone.models.response_info.BatchResponseInfo.lsn_committed">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.response_info.ResponseInfo.lsn_committed">(pinecone.models.response_info.ResponseInfo attribute)</a>
+</li>
+          <li><a href="reference/models.html#id94">(pinecone.models.response_info.ResponseInfo property)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id93">lsn_reconciled (pinecone.models.response_info.BatchResponseInfo attribute)</a>, <a href="reference/models.html#pinecone.models.response_info.BatchResponseInfo.lsn_reconciled">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.response_info.ResponseInfo.lsn_reconciled">(pinecone.models.response_info.ResponseInfo attribute)</a>
+</li>
+          <li><a href="reference/models.html#id95">(pinecone.models.response_info.ResponseInfo property)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.utils.filter_builder.Field.lt">lt() (pinecone.utils.filter_builder.Field method)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.utils.filter_builder.Field.lte">lte() (pinecone.utils.filter_builder.Field method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="M" class="genindex-section">
+  <h2>M</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id74">matched_records (pinecone.models.vectors.responses.UpdateResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.UpdateResponse.matched_records">[1]</a>
+</li>
+        <li><a href="reference/models.html#id114">matches (pinecone.models.vectors.query_aggregator.QueryNamespacesResults attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.query_aggregator.QueryNamespacesResults.matches">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id59">(pinecone.models.vectors.responses.QueryResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.QueryResponse.matches">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id134">max_batch_size (pinecone.models.inference.models.ModelInfo attribute)</a>, <a href="reference/models.html#pinecone.models.inference.models.ModelInfo.max_batch_size">[1]</a>
+</li>
+        <li><a href="reference/models.html#id213">max_pods (pinecone.models.admin.project.ProjectModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.project.ProjectModel.max_pods">[1]</a>
+</li>
+        <li><a href="reference/models.html#id135">max_sequence_length (pinecone.models.inference.models.ModelInfo attribute)</a>, <a href="reference/models.html#pinecone.models.inference.models.ModelInfo.max_sequence_length">[1]</a>
+</li>
+        <li><a href="reference/models.html#id83">memory_fullness (pinecone.models.vectors.responses.DescribeIndexStatsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.DescribeIndexStatsResponse.memory_fullness">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.message.Message">Message (class in pinecone.models.assistant.message)</a>
+</li>
+        <li><a href="reference/models.html#id244">message (pinecone.models.assistant.chat.ChatResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.chat.ChatResponse.message">[1]</a>
+</li>
+        <li><a href="reference/models.html#id227">metadata (pinecone.models.assistant.file_model.AssistantFileModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.metadata">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id219">(pinecone.models.assistant.model.AssistantModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.model.AssistantModel.metadata">[1]</a>
+</li>
+          <li><a href="reference/models.html#id54">(pinecone.models.vectors.vector.Vector attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.vector.Vector.metadata">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id38">metadata_config (pinecone.models.indexes.index.PodSpecInfo attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.PodSpecInfo.metadata_config">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id18">(pinecone.models.indexes.specs.PodSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.PodSpec.metadata_config">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.enums.Metric">Metric (class in pinecone.models.enums)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.inference.models.index_embed.IndexEmbed.metric">metric (pinecone.inference.models.index_embed.IndexEmbed attribute)</a>
+
+        <ul>
+          <li><a href="reference/models.html#id170">(pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.metric">[1]</a>
+</li>
+          <li><a href="reference/models.html#id4">(pinecone.models.indexes.index.IndexModel attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexModel.metric">[1]</a>
+</li>
+          <li><a href="reference/models.html#id48">(pinecone.models.indexes.index.ModelIndexEmbed attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.ModelIndexEmbed.metric">[1]</a>
+</li>
+          <li><a href="reference/models.html#id31">(pinecone.models.indexes.specs.EmbedConfig attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.EmbedConfig.metric">[1]</a>
+</li>
+          <li><a href="reference/models.html#id84">(pinecone.models.vectors.responses.DescribeIndexStatsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.DescribeIndexStatsResponse.metric">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id136">modality (pinecone.models.inference.models.ModelInfo attribute)</a>, <a href="reference/models.html#pinecone.models.inference.models.ModelInfo.modality">[1]</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.model">model (pinecone.async_client.inference.AsyncInference property)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.model">(pinecone.client.inference.Inference property)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.inference.models.index_embed.IndexEmbed.model">(pinecone.inference.models.index_embed.IndexEmbed attribute)</a>
+</li>
+          <li><a href="reference/models.html#id249">(pinecone.models.assistant.chat.ChatCompletionResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.chat.ChatCompletionResponse.model">[1]</a>
+</li>
+          <li><a href="reference/models.html#id245">(pinecone.models.assistant.chat.ChatResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.chat.ChatResponse.model">[1]</a>
+</li>
+          <li><a href="reference/models.html#id264">(pinecone.models.assistant.streaming.ChatCompletionStreamChunk attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.ChatCompletionStreamChunk.model">[1]</a>
+</li>
+          <li><a href="reference/models.html#id280">(pinecone.models.assistant.streaming.StreamCitationChunk attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.StreamCitationChunk.model">[1]</a>
+</li>
+          <li><a href="reference/models.html#id276">(pinecone.models.assistant.streaming.StreamContentChunk attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.StreamContentChunk.model">[1]</a>
+</li>
+          <li><a href="reference/models.html#id271">(pinecone.models.assistant.streaming.StreamMessageEnd attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.StreamMessageEnd.model">[1]</a>
+</li>
+          <li><a href="reference/models.html#id267">(pinecone.models.assistant.streaming.StreamMessageStart attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.StreamMessageStart.model">[1]</a>
+</li>
+          <li><a href="reference/models.html#id49">(pinecone.models.indexes.index.ModelIndexEmbed attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.ModelIndexEmbed.model">[1]</a>
+</li>
+          <li><a href="reference/models.html#id32">(pinecone.models.indexes.specs.EmbedConfig attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.EmbedConfig.model">[1]</a>
+</li>
+          <li><a href="reference/models.html#id124">(pinecone.models.inference.embed.EmbeddingsList attribute)</a>, <a href="reference/models.html#pinecone.models.inference.embed.EmbeddingsList.model">[1]</a>
+</li>
+          <li><a href="reference/models.html#id137">(pinecone.models.inference.models.ModelInfo attribute)</a>, <a href="reference/models.html#pinecone.models.inference.models.ModelInfo.model">[1]</a>
+</li>
+          <li><a href="reference/models.html#id128">(pinecone.models.inference.rerank.RerankResult attribute)</a>, <a href="reference/models.html#pinecone.models.inference.rerank.RerankResult.model">[1]</a>
+</li>
+          <li><a href="reference/models.html#id109">(pinecone.models.vectors.search.RerankConfig attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.RerankConfig.model">[1]</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.models.indexes.index.ModelIndexEmbed">ModelIndexEmbed (class in pinecone.models.indexes.index)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.inference.models.ModelInfo">ModelInfo (class in pinecone.models.inference.models)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.inference.model_list.ModelInfoList">ModelInfoList (class in pinecone.models.inference.model_list)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.inference.model_list.ModelInfoList.models">models (pinecone.models.inference.model_list.ModelInfoList attribute)</a>
+
+        <ul>
+          <li><a href="reference/models.html#id145">(pinecone.models.inference.model_list.ModelInfoList property)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.EmbedModel.MULTILINGUAL_E5_LARGE">MULTILINGUAL_E5_LARGE (pinecone.async_client.inference.AsyncInference.EmbedModel attribute)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.EmbedModel.MULTILINGUAL_E5_LARGE">(pinecone.client.inference.Inference.EmbedModel attribute)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.enums.EmbedModel.MULTILINGUAL_E5_LARGE">(pinecone.models.enums.EmbedModel attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id228">multimodal (pinecone.models.assistant.file_model.AssistantFileModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.multimodal">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id255">(pinecone.models.assistant.options.ContextOptions attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.options.ContextOptions.multimodal">[1]</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="N" class="genindex-section">
+  <h2>N</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id163">name (pinecone.db_control.models.collection_description.CollectionDescription attribute)</a>, <a href="reference/models.html#pinecone.db_control.models.collection_description.CollectionDescription.name">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id199">(pinecone.models.admin.api_key.APIKeyModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.api_key.APIKeyModel.name">[1]</a>
+</li>
+          <li><a href="reference/models.html#id206">(pinecone.models.admin.organization.OrganizationModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.organization.OrganizationModel.name">[1]</a>
+</li>
+          <li><a href="reference/models.html#id214">(pinecone.models.admin.project.ProjectModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.project.ProjectModel.name">[1]</a>
+</li>
+          <li><a href="reference/models.html#id229">(pinecone.models.assistant.file_model.AssistantFileModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.name">[1]</a>
+</li>
+          <li><a href="reference/models.html#id220">(pinecone.models.assistant.model.AssistantModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.model.AssistantModel.name">[1]</a>
+</li>
+          <li><a href="reference/models.html#id171">(pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.name">[1]</a>
+</li>
+          <li><a href="reference/models.html#id159">(pinecone.models.collections.model.CollectionModel attribute)</a>, <a href="reference/models.html#pinecone.models.collections.model.CollectionModel.name">[1]</a>
+</li>
+          <li><a href="reference/models.html#id5">(pinecone.models.indexes.index.IndexModel attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexModel.name">[1]</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.inference.models.ModelInfo.name">(pinecone.models.inference.models.ModelInfo property)</a>
+</li>
+          <li><a href="reference/models.html#id191">(pinecone.models.namespaces.models.NamespaceDescription attribute)</a>, <a href="reference/models.html#pinecone.models.namespaces.models.NamespaceDescription.name">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyList.names">names() (pinecone.models.admin.api_key.APIKeyList method)</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.admin.organization.OrganizationList.names">(pinecone.models.admin.organization.OrganizationList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.admin.project.ProjectList.names">(pinecone.models.admin.project.ProjectList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.backups.list.BackupList.names">(pinecone.models.backups.list.BackupList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.collections.list.CollectionList.names">(pinecone.models.collections.list.CollectionList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.indexes.list.IndexList.names">(pinecone.models.indexes.list.IndexList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.inference.model_list.ModelInfoList.names">(pinecone.models.inference.model_list.ModelInfoList method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id67">namespace (pinecone.models.vectors.responses.FetchByMetadataResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.FetchByMetadataResponse.namespace">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id63">(pinecone.models.vectors.responses.FetchResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.FetchResponse.namespace">[1]</a>
+</li>
+          <li><a href="reference/models.html#id76">(pinecone.models.vectors.responses.ListResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.ListResponse.namespace">[1]</a>
+</li>
+          <li><a href="reference/models.html#id60">(pinecone.models.vectors.responses.QueryResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.QueryResponse.namespace">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id172">namespace_count (pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.namespace_count">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.namespaces.models.NamespaceDescription">NamespaceDescription (class in pinecone.models.namespaces.models)</a>
+</li>
+        <li><a href="reference/models.html#id194">namespaces (pinecone.models.namespaces.models.ListNamespacesResponse attribute)</a>, <a href="reference/models.html#pinecone.models.namespaces.models.ListNamespacesResponse.namespaces">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id85">(pinecone.models.vectors.responses.DescribeIndexStatsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.DescribeIndexStatsResponse.namespaces">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id236">next (pinecone.models.assistant.list.ListAssistantsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.list.ListAssistantsResponse.next">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id238">(pinecone.models.assistant.list.ListFilesResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.list.ListFilesResponse.next">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.assistant.list.ListAssistantsResponse.next_token">next_token (pinecone.models.assistant.list.ListAssistantsResponse property)</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.assistant.list.ListFilesResponse.next_token">(pinecone.models.assistant.list.ListFilesResponse property)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.utils.filter_builder.Field.not_in">not_in() (pinecone.utils.filter_builder.Field method)</a>
+</li>
+        <li><a href="reference/models.html#id115">ns_usage (pinecone.models.vectors.query_aggregator.QueryNamespacesResults attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.query_aggregator.QueryNamespacesResults.ns_usage">[1]</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="O" class="genindex-section">
+  <h2>O</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id265">object (pinecone.models.assistant.streaming.ChatCompletionStreamChunk attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.ChatCompletionStreamChunk.object">[1]</a>
+</li>
+        <li><a href="reference/models.html#id215">organization_id (pinecone.models.admin.project.ProjectModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.project.ProjectModel.organization_id">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.organization.OrganizationList">OrganizationList (class in pinecone.models.admin.organization)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.models.admin.organization.OrganizationModel">OrganizationModel (class in pinecone.models.admin.organization)</a>
+</li>
+        <li><a href="reference/admin.html#pinecone.admin.organizations.Organizations">Organizations (class in pinecone.admin.organizations)</a>
+</li>
+        <li><a href="reference/admin.html#pinecone.admin.Admin.organizations">organizations (pinecone.admin.Admin property)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="P" class="genindex-section">
+  <h2>P</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType.P1_X1">P1_X1 (pinecone.models.enums.PodType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType.P1_X2">P1_X2 (pinecone.models.enums.PodType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType.P1_X4">P1_X4 (pinecone.models.enums.PodType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType.P1_X8">P1_X8 (pinecone.models.enums.PodType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType.P2_X1">P2_X1 (pinecone.models.enums.PodType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType.P2_X2">P2_X2 (pinecone.models.enums.PodType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType.P2_X4">P2_X4 (pinecone.models.enums.PodType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType.P2_X8">P2_X8 (pinecone.models.enums.PodType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.pagination.Page">Page (class in pinecone.models.pagination)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.pagination.AsyncPaginator.pages">pages() (pinecone.models.pagination.AsyncPaginator method)</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.pagination.Paginator.pages">(pinecone.models.pagination.Paginator method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id195">pagination (pinecone.models.namespaces.models.ListNamespacesResponse attribute)</a>, <a href="reference/models.html#pinecone.models.namespaces.models.ListNamespacesResponse.pagination">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id68">(pinecone.models.vectors.responses.FetchByMetadataResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.FetchByMetadataResponse.pagination">[1]</a>
+</li>
+          <li><a href="reference/models.html#id77">(pinecone.models.vectors.responses.ListResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.ListResponse.pagination">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.pagination.AsyncPaginator.pagination_token">pagination_token (pinecone.models.pagination.AsyncPaginator property)</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.pagination.Paginator.pagination_token">(pinecone.models.pagination.Paginator property)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.pagination.Paginator">Paginator (class in pinecone.models.pagination)</a>
+</li>
+        <li><a href="reference/models.html#id110">parameters (pinecone.models.vectors.search.RerankConfig attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.RerankConfig.parameters">[1]</a>
+</li>
+        <li><a href="reference/models.html#id207">payment_status (pinecone.models.admin.organization.OrganizationModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.organization.OrganizationModel.payment_status">[1]</a>
+</li>
+        <li><a href="reference/models.html#id183">percent_complete (pinecone.models.backups.model.RestoreJobModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.RestoreJobModel.percent_complete">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id150">(pinecone.models.imports.model.ImportModel attribute)</a>, <a href="reference/models.html#pinecone.models.imports.model.ImportModel.percent_complete">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id230">percent_done (pinecone.models.assistant.file_model.AssistantFileModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.percent_done">[1]</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.Pinecone">Pinecone (class in pinecone)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.RerankModel.PINECONE_RERANK_V0">PINECONE_RERANK_V0 (pinecone.async_client.inference.AsyncInference.RerankModel attribute)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.RerankModel.PINECONE_RERANK_V0">(pinecone.client.inference.Inference.RerankModel attribute)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.enums.RerankModel.PINECONE_RERANK_V0">(pinecone.models.enums.RerankModel attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.EmbedModel.PINECONE_SPARSE_ENGLISH_V0">PINECONE_SPARSE_ENGLISH_V0 (pinecone.async_client.inference.AsyncInference.EmbedModel attribute)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.EmbedModel.PINECONE_SPARSE_ENGLISH_V0">(pinecone.client.inference.Inference.EmbedModel attribute)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.enums.EmbedModel.PINECONE_SPARSE_ENGLISH_V0">(pinecone.models.enums.EmbedModel attribute)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id208">plan (pinecone.models.admin.organization.OrganizationModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.organization.OrganizationModel.plan">[1]</a>
+</li>
+        <li><a href="reference/models.html#id11">pod (pinecone.models.indexes.index.IndexSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexSpec.pod">[1]</a>
+</li>
+        <li><a href="reference/models.html#id39">pod_type (pinecone.models.indexes.index.PodSpecInfo attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.PodSpecInfo.pod_type">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id19">(pinecone.models.indexes.specs.PodSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.PodSpec.pod_type">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id40">pods (pinecone.models.indexes.index.PodSpecInfo attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.PodSpecInfo.pods">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id20">(pinecone.models.indexes.specs.PodSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.PodSpec.pods">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.indexes.specs.PodSpec">PodSpec (class in pinecone.models.indexes.specs)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.indexes.index.PodSpecInfo">PodSpecInfo (class in pinecone.models.indexes.index)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType">PodType (class in pinecone.models.enums)</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.Pinecone.preview">preview (pinecone.Pinecone property)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyRole.PROJECT_EDITOR">PROJECT_EDITOR (pinecone.models.admin.api_key.APIKeyRole attribute)</a>
+</li>
+        <li><a href="reference/models.html#id200">project_id (pinecone.models.admin.api_key.APIKeyModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.api_key.APIKeyModel.project_id">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyRole.PROJECT_VIEWER">PROJECT_VIEWER (pinecone.models.admin.api_key.APIKeyRole attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.project.ProjectList">ProjectList (class in pinecone.models.admin.project)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.project.ProjectModel">ProjectModel (class in pinecone.models.admin.project)</a>
+</li>
+        <li><a href="reference/admin.html#pinecone.admin.projects.Projects">Projects (class in pinecone.admin.projects)</a>
+</li>
+        <li><a href="reference/admin.html#pinecone.admin.Admin.projects">projects (pinecone.admin.Admin property)</a>
+</li>
+        <li><a href="reference/models.html#id138">provider_name (pinecone.models.inference.models.ModelInfo attribute)</a>, <a href="reference/models.html#pinecone.models.inference.models.ModelInfo.provider_name">[1]</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="Q" class="genindex-section">
+  <h2>Q</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id111">query (pinecone.models.vectors.search.RerankConfig attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.RerankConfig.query">[1]</a>
+</li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.query">query() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.query">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.query_namespaces">query_namespaces() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.query_namespaces">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.models.vectors.query_aggregator.QueryNamespacesResults">QueryNamespacesResults (class in pinecone.models.vectors.query_aggregator)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.responses.QueryResponse">QueryResponse (class in pinecone.models.vectors.responses)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.query_aggregator.QueryResultsAggregator">QueryResultsAggregator (class in pinecone.models.vectors.query_aggregator)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="R" class="genindex-section">
+  <h2>R</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id112">rank_fields (pinecone.models.vectors.search.RerankConfig attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.RerankConfig.rank_fields">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.inference.rerank.RankedDocument">RankedDocument (class in pinecone.models.inference.rerank)</a>
+</li>
+        <li><a href="reference/models.html#id96">raw_headers (pinecone.models.response_info.ResponseInfo attribute)</a>, <a href="reference/models.html#pinecone.models.response_info.ResponseInfo.raw_headers">[1]</a>
+</li>
+        <li><a href="reference/models.html#id45">read_capacity (pinecone.models.indexes.index.ByocSpecInfo attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.ByocSpecInfo.read_capacity">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id25">(pinecone.models.indexes.specs.ByocSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.ByocSpec.read_capacity">[1]</a>
+</li>
+          <li><a href="reference/models.html#id14">(pinecone.models.indexes.specs.ServerlessSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.ServerlessSpec.read_capacity">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.inference.models.index_embed.IndexEmbed.read_parameters">read_parameters (pinecone.inference.models.index_embed.IndexEmbed attribute)</a>
+
+        <ul>
+          <li><a href="reference/models.html#id50">(pinecone.models.indexes.index.ModelIndexEmbed attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.ModelIndexEmbed.read_parameters">[1]</a>
+</li>
+          <li><a href="reference/models.html#id33">(pinecone.models.indexes.specs.EmbedConfig attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.EmbedConfig.read_parameters">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id107">read_units (pinecone.models.vectors.search.SearchUsage attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.SearchUsage.read_units">[1]</a>
+</li>
+        <li><a href="reference/models.html#id173">record_count (pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.record_count">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id192">(pinecone.models.namespaces.models.NamespaceDescription attribute)</a>, <a href="reference/models.html#pinecone.models.namespaces.models.NamespaceDescription.record_count">[1]</a>
+</li>
+          <li><a href="reference/models.html#id90">(pinecone.models.vectors.responses.UpsertRecordsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.UpsertRecordsResponse.record_count">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id151">records_imported (pinecone.models.imports.model.ImportModel attribute)</a>, <a href="reference/models.html#pinecone.models.imports.model.ImportModel.records_imported">[1]</a>
+</li>
+        <li><a href="reference/models.html#id174">region (pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.region">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id36">(pinecone.models.indexes.index.ServerlessSpecInfo attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.ServerlessSpecInfo.region">[1]</a>
+</li>
+          <li><a href="reference/models.html#id29">(pinecone.models.indexes.specs.IntegratedSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.IntegratedSpec.region">[1]</a>
+</li>
+          <li><a href="reference/models.html#id15">(pinecone.models.indexes.specs.ServerlessSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.ServerlessSpec.region">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id41">replicas (pinecone.models.indexes.index.PodSpecInfo attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.PodSpecInfo.replicas">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id21">(pinecone.models.indexes.specs.PodSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.PodSpec.replicas">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.response_info.ResponseInfo.request_id">request_id (pinecone.models.response_info.ResponseInfo attribute)</a>
+
+        <ul>
+          <li><a href="reference/models.html#id97">(pinecone.models.response_info.ResponseInfo property)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.inference.AsyncInference.rerank">rerank() (pinecone.async_client.inference.AsyncInference method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.inference.Inference.rerank">(pinecone.client.inference.Inference method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id108">rerank_units (pinecone.models.vectors.search.SearchUsage attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.SearchUsage.rerank_units">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.search.RerankConfig">RerankConfig (class in pinecone.models.vectors.search)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.RerankModel">RerankModel (class in pinecone.models.enums)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.inference.rerank.RerankResult">RerankResult (class in pinecone.models.inference.rerank)</a>
+</li>
+        <li><a href="reference/models.html#id86">response_info (pinecone.models.vectors.responses.DescribeIndexStatsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.DescribeIndexStatsResponse.response_info">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id69">(pinecone.models.vectors.responses.FetchByMetadataResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.FetchByMetadataResponse.response_info">[1]</a>
+</li>
+          <li><a href="reference/models.html#id64">(pinecone.models.vectors.responses.FetchResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.FetchResponse.response_info">[1]</a>
+</li>
+          <li><a href="reference/models.html#id78">(pinecone.models.vectors.responses.ListResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.ListResponse.response_info">[1]</a>
+</li>
+          <li><a href="reference/models.html#id61">(pinecone.models.vectors.responses.QueryResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.QueryResponse.response_info">[1]</a>
+</li>
+          <li><a href="reference/models.html#id75">(pinecone.models.vectors.responses.UpdateResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.UpdateResponse.response_info">[1]</a>
+</li>
+          <li><a href="reference/models.html#id91">(pinecone.models.vectors.responses.UpsertRecordsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.UpsertRecordsResponse.response_info">[1]</a>
+</li>
+          <li><a href="reference/models.html#id72">(pinecone.models.vectors.responses.UpsertResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.UpsertResponse.response_info">[1]</a>
+</li>
+          <li><a href="reference/models.html#id102">(pinecone.models.vectors.search.SearchRecordsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.SearchRecordsResponse.response_info">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.response_info.ResponseInfo">ResponseInfo (class in pinecone.models.response_info)</a>
+</li>
+        <li><a href="reference/models.html#id189">restore_job_id (pinecone.models.backups.model.CreateIndexFromBackupResponse attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.CreateIndexFromBackupResponse.restore_job_id">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id184">(pinecone.models.backups.model.RestoreJobModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.RestoreJobModel.restore_job_id">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/pinecone.html#pinecone.Pinecone.restore_jobs">restore_jobs (pinecone.Pinecone property)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.backups.list.RestoreJobList">RestoreJobList (class in pinecone.models.backups.list)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.backups.model.RestoreJobModel">RestoreJobModel (class in pinecone.models.backups.model)</a>
+</li>
+        <li><a href="reference/pinecone.html#pinecone.client.restore_jobs.RestoreJobs">RestoreJobs (class in pinecone.client.restore_jobs)</a>
+</li>
+        <li><a href="reference/models.html#id103">result (pinecone.models.vectors.search.SearchRecordsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.SearchRecordsResponse.result">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyModel.role">role (pinecone.models.admin.api_key.APIKeyModel property)</a>
+
+        <ul>
+          <li><a href="reference/models.html#id240">(pinecone.models.assistant.message.Message attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.message.Message.role">[1]</a>
+</li>
+          <li><a href="reference/models.html#id268">(pinecone.models.assistant.streaming.StreamMessageStart attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.StreamMessageStart.role">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id201">roles (pinecone.models.admin.api_key.APIKeyModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.api_key.APIKeyModel.roles">[1]</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="S" class="genindex-section">
+  <h2>S</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType.S1_X1">S1_X1 (pinecone.models.enums.PodType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType.S1_X2">S1_X2 (pinecone.models.enums.PodType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType.S1_X4">S1_X4 (pinecone.models.enums.PodType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.PodType.S1_X8">S1_X8 (pinecone.models.enums.PodType attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.backups.model.BackupModel.schema">schema (pinecone.models.backups.model.BackupModel property)</a>
+
+        <ul>
+          <li><a href="reference/models.html#id26">(pinecone.models.indexes.specs.ByocSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.ByocSpec.schema">[1]</a>
+</li>
+          <li><a href="reference/models.html#id16">(pinecone.models.indexes.specs.ServerlessSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.ServerlessSpec.schema">[1]</a>
+</li>
+          <li><a href="reference/models.html#id193">(pinecone.models.namespaces.models.NamespaceDescription attribute)</a>, <a href="reference/models.html#pinecone.models.namespaces.models.NamespaceDescription.schema">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id132">score (pinecone.models.inference.rerank.RankedDocument attribute)</a>, <a href="reference/models.html#pinecone.models.inference.rerank.RankedDocument.score">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.vectors.search.Hit.score">(pinecone.models.vectors.search.Hit property)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id100">score_ (pinecone.models.vectors.search.Hit attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.Hit.score_">[1]</a>
+</li>
+        <li><a href="reference/models.html#id259">scores (pinecone.models.assistant.evaluation.AlignmentResult attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.evaluation.AlignmentResult.scores">[1]</a>
+</li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.search">search() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.search">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.search_records">search_records() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.search_records">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.vectors.search.SearchInputs">SearchInputs (class in pinecone.models.vectors.search)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.search.SearchRecordsResponse">SearchRecordsResponse (class in pinecone.models.vectors.search)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.search.SearchResult">SearchResult (class in pinecone.models.vectors.search)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.search.SearchUsage">SearchUsage (class in pinecone.models.vectors.search)</a>
+</li>
+        <li><a href="reference/models.html#id12">serverless (pinecone.models.indexes.index.IndexSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexSpec.serverless">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.indexes.specs.ServerlessSpec">ServerlessSpec (class in pinecone.models.indexes.specs)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.indexes.index.ServerlessSpecInfo">ServerlessSpecInfo (class in pinecone.models.indexes.index)</a>
+</li>
+        <li><a href="reference/models.html#id42">shards (pinecone.models.indexes.index.PodSpecInfo attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.PodSpecInfo.shards">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id22">(pinecone.models.indexes.specs.PodSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.PodSpec.shards">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id139">short_description (pinecone.models.inference.models.ModelInfo attribute)</a>, <a href="reference/models.html#pinecone.models.inference.models.ModelInfo.short_description">[1]</a>
+</li>
+        <li><a href="reference/models.html#id231">signed_url (pinecone.models.assistant.file_model.AssistantFileModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.signed_url">[1]</a>
+</li>
+        <li><a href="reference/models.html#id232">size (pinecone.models.assistant.file_model.AssistantFileModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.size">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id160">(pinecone.models.collections.model.CollectionModel attribute)</a>, <a href="reference/models.html#pinecone.models.collections.model.CollectionModel.size">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id175">size_bytes (pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.size_bytes">[1]</a>
+</li>
+        <li><a href="reference/models.html#id256">snippet_size (pinecone.models.assistant.options.ContextOptions attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.options.ContextOptions.snippet_size">[1]</a>
+</li>
+        <li><a href="reference/models.html#id252">snippets (pinecone.models.assistant.context.ContextResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.context.ContextResponse.snippets">[1]</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id164">source (pinecone.db_control.models.collection_description.CollectionDescription attribute)</a>, <a href="reference/models.html#pinecone.db_control.models.collection_description.CollectionDescription.source">[1]</a>
+</li>
+        <li><a href="reference/models.html#id43">source_collection (pinecone.models.indexes.index.PodSpecInfo attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.PodSpecInfo.source_collection">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id23">(pinecone.models.indexes.specs.PodSpec attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.PodSpec.source_collection">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id176">source_index_id (pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.source_index_id">[1]</a>
+</li>
+        <li><a href="reference/models.html#id177">source_index_name (pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.source_index_name">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.enums.VectorType.SPARSE">SPARSE (pinecone.models.enums.VectorType attribute)</a>
+</li>
+        <li><a href="reference/models.html#id119">sparse_indices (pinecone.models.inference.embed.SparseEmbedding attribute)</a>, <a href="reference/models.html#pinecone.models.inference.embed.SparseEmbedding.sparse_indices">[1]</a>
+</li>
+        <li><a href="reference/models.html#id120">sparse_tokens (pinecone.models.inference.embed.SparseEmbedding attribute)</a>, <a href="reference/models.html#pinecone.models.inference.embed.SparseEmbedding.sparse_tokens">[1]</a>
+</li>
+        <li><a href="reference/models.html#id121">sparse_values (pinecone.models.inference.embed.SparseEmbedding attribute)</a>, <a href="reference/models.html#pinecone.models.inference.embed.SparseEmbedding.sparse_values">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id55">(pinecone.models.vectors.vector.Vector attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.vector.Vector.sparse_values">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.inference.embed.SparseEmbedding">SparseEmbedding (class in pinecone.models.inference.embed)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.sparse.SparseValues">SparseValues (class in pinecone.models.vectors.sparse)</a>
+</li>
+        <li><a href="reference/models.html#id6">spec (pinecone.models.indexes.index.IndexModel attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexModel.spec">[1]</a>
+</li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.start_import">start_import() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.start_import">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.imports.model.StartImportResponse">StartImportResponse (class in pinecone.models.imports.model)</a>
+</li>
+        <li><a href="reference/models.html#id233">status (pinecone.models.assistant.file_model.AssistantFileModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.status">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id221">(pinecone.models.assistant.model.AssistantModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.model.AssistantModel.status">[1]</a>
+</li>
+          <li><a href="reference/models.html#id178">(pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.status">[1]</a>
+</li>
+          <li><a href="reference/models.html#id185">(pinecone.models.backups.model.RestoreJobModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.RestoreJobModel.status">[1]</a>
+</li>
+          <li><a href="reference/models.html#id161">(pinecone.models.collections.model.CollectionModel attribute)</a>, <a href="reference/models.html#pinecone.models.collections.model.CollectionModel.status">[1]</a>
+</li>
+          <li><a href="reference/models.html#id152">(pinecone.models.imports.model.ImportModel attribute)</a>, <a href="reference/models.html#pinecone.models.imports.model.ImportModel.status">[1]</a>
+</li>
+          <li><a href="reference/models.html#id7">(pinecone.models.indexes.index.IndexModel attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexModel.status">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id87">storage_fullness (pinecone.models.vectors.responses.DescribeIndexStatsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.DescribeIndexStatsResponse.storage_fullness">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.StreamCitationChunk">StreamCitationChunk (class in pinecone.models.assistant.streaming)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.StreamContentChunk">StreamContentChunk (class in pinecone.models.assistant.streaming)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.StreamMessageEnd">StreamMessageEnd (class in pinecone.models.assistant.streaming)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.StreamMessageStart">StreamMessageStart (class in pinecone.models.assistant.streaming)</a>
+</li>
+        <li><a href="reference/models.html#id209">support_tier (pinecone.models.admin.organization.OrganizationModel attribute)</a>, <a href="reference/models.html#pinecone.models.admin.organization.OrganizationModel.support_tier">[1]</a>
+</li>
+        <li><a href="reference/models.html#id140">supported_dimensions (pinecone.models.inference.models.ModelInfo attribute)</a>, <a href="reference/models.html#pinecone.models.inference.models.ModelInfo.supported_dimensions">[1]</a>
+</li>
+        <li><a href="reference/models.html#id141">supported_metrics (pinecone.models.inference.models.ModelInfo attribute)</a>, <a href="reference/models.html#pinecone.models.inference.models.ModelInfo.supported_metrics">[1]</a>
+</li>
+        <li><a href="reference/models.html#id142">supported_parameters (pinecone.models.inference.models.ModelInfo attribute)</a>, <a href="reference/models.html#pinecone.models.inference.models.ModelInfo.supported_parameters">[1]</a>
+</li>
+        <li><a href="reference/models.html#id266">system_fingerprint (pinecone.models.assistant.streaming.ChatCompletionStreamChunk attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.ChatCompletionStreamChunk.system_fingerprint">[1]</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="T" class="genindex-section">
+  <h2>T</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id179">tags (pinecone.models.backups.model.BackupModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.BackupModel.tags">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id8">(pinecone.models.indexes.index.IndexModel attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexModel.tags">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id186">target_index_id (pinecone.models.backups.model.RestoreJobModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.RestoreJobModel.target_index_id">[1]</a>
+</li>
+        <li><a href="reference/models.html#id187">target_index_name (pinecone.models.backups.model.RestoreJobModel attribute)</a>, <a href="reference/models.html#pinecone.models.backups.model.RestoreJobModel.target_index_name">[1]</a>
+</li>
+        <li><a href="reference/models.html#id105">text (pinecone.models.vectors.search.SearchInputs attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.SearchInputs.text">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.AsyncChatCompletionStream.text">text() (pinecone.models.assistant.streaming.AsyncChatCompletionStream method)</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.AsyncChatStream.text">(pinecone.models.assistant.streaming.AsyncChatStream method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.ChatCompletionStream.text">(pinecone.models.assistant.streaming.ChatCompletionStream method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.ChatStream.text">(pinecone.models.assistant.streaming.ChatStream method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.admin.api_key.APIKeyList.to_dict">to_dict() (pinecone.models.admin.api_key.APIKeyList method)</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.admin.organization.OrganizationList.to_dict">(pinecone.models.admin.organization.OrganizationList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.admin.project.ProjectList.to_dict">(pinecone.models.admin.project.ProjectList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.backups.list.BackupList.to_dict">(pinecone.models.backups.list.BackupList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.backups.list.RestoreJobList.to_dict">(pinecone.models.backups.list.RestoreJobList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.backups.model.BackupModel.to_dict">(pinecone.models.backups.model.BackupModel method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.backups.model.RestoreJobModel.to_dict">(pinecone.models.backups.model.RestoreJobModel method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.collections.list.CollectionList.to_dict">(pinecone.models.collections.list.CollectionList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.imports.list.ImportList.to_dict">(pinecone.models.imports.list.ImportList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.indexes.index.IndexModel.to_dict">(pinecone.models.indexes.index.IndexModel method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.indexes.list.IndexList.to_dict">(pinecone.models.indexes.list.IndexList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.indexes.specs.EmbedConfig.to_dict">(pinecone.models.indexes.specs.EmbedConfig method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.inference.embed.EmbeddingsList.to_dict">(pinecone.models.inference.embed.EmbeddingsList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.inference.model_list.ModelInfoList.to_dict">(pinecone.models.inference.model_list.ModelInfoList method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.inference.models.ModelInfo.to_dict">(pinecone.models.inference.models.ModelInfo method)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.inference.rerank.RerankResult.to_dict">(pinecone.models.inference.rerank.RerankResult method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.models.pagination.AsyncPaginator.to_list">to_list() (pinecone.models.pagination.AsyncPaginator method)</a>
+
+        <ul>
+          <li><a href="reference/models.html#pinecone.models.pagination.Paginator.to_list">(pinecone.models.pagination.Paginator method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id257">top_k (pinecone.models.assistant.options.ContextOptions attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.options.ContextOptions.top_k">[1]</a>
+</li>
+        <li><a href="reference/models.html#id113">top_n (pinecone.models.vectors.search.RerankConfig attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.RerankConfig.top_n">[1]</a>
+</li>
+        <li><a href="reference/models.html#id196">total_count (pinecone.models.namespaces.models.ListNamespacesResponse attribute)</a>, <a href="reference/models.html#pinecone.models.namespaces.models.ListNamespacesResponse.total_count">[1]</a>
+</li>
+        <li><a href="reference/models.html#id88">total_vector_count (pinecone.models.vectors.responses.DescribeIndexStatsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.DescribeIndexStatsResponse.total_vector_count">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.assistant.streaming.StreamCitationChunk.type">type (pinecone.models.assistant.streaming.StreamCitationChunk attribute)</a>
+
+        <ul>
+          <li><a href="reference/models.html#id281">(pinecone.models.assistant.streaming.StreamCitationChunk property)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.StreamContentChunk.type">(pinecone.models.assistant.streaming.StreamContentChunk attribute)</a>
+</li>
+          <li><a href="reference/models.html#id277">(pinecone.models.assistant.streaming.StreamContentChunk property)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.StreamMessageEnd.type">(pinecone.models.assistant.streaming.StreamMessageEnd attribute)</a>
+</li>
+          <li><a href="reference/models.html#id272">(pinecone.models.assistant.streaming.StreamMessageEnd property)</a>
+</li>
+          <li><a href="reference/models.html#pinecone.models.assistant.streaming.StreamMessageStart.type">(pinecone.models.assistant.streaming.StreamMessageStart attribute)</a>
+</li>
+          <li><a href="reference/models.html#id269">(pinecone.models.assistant.streaming.StreamMessageStart property)</a>
+</li>
+          <li><a href="reference/models.html#id143">(pinecone.models.inference.models.ModelInfo attribute)</a>, <a href="reference/models.html#pinecone.models.inference.models.ModelInfo.type">[1]</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="U" class="genindex-section">
+  <h2>U</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/admin.html#pinecone.admin.api_keys.ApiKeys.update">update() (pinecone.admin.api_keys.ApiKeys method)</a>
+
+        <ul>
+          <li><a href="reference/admin.html#pinecone.admin.organizations.Organizations.update">(pinecone.admin.organizations.Organizations method)</a>
+</li>
+          <li><a href="reference/admin.html#pinecone.admin.projects.Projects.update">(pinecone.admin.projects.Projects method)</a>
+</li>
+          <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.update">(pinecone.async_client.assistants.AsyncAssistants method)</a>
+</li>
+          <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.update">(pinecone.async_client.async_index.AsyncIndex method)</a>
+</li>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.update">(pinecone.client.assistants.Assistants method)</a>
+</li>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.update">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id222">updated_at (pinecone.models.assistant.model.AssistantModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.model.AssistantModel.updated_at">[1]</a>
+</li>
+        <li><a href="reference/models.html#id234">updated_on (pinecone.models.assistant.file_model.AssistantFileModel attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.file_model.AssistantFileModel.updated_on">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.responses.UpdateResponse">UpdateResponse (class in pinecone.models.vectors.responses)</a>
+</li>
+        <li><a href="reference/async-pinecone.html#pinecone.async_client.assistants.AsyncAssistants.upload_file">upload_file() (pinecone.async_client.assistants.AsyncAssistants method)</a>
+
+        <ul>
+          <li><a href="reference/pinecone.html#pinecone.client.assistants.Assistants.upload_file">(pinecone.client.assistants.Assistants method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.upsert">upsert() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.upsert">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.upsert_from_dataframe">upsert_from_dataframe() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.upsert_from_dataframe">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/async-index.html#pinecone.async_client.async_index.AsyncIndex.upsert_records">upsert_records() (pinecone.async_client.async_index.AsyncIndex method)</a>
+
+        <ul>
+          <li><a href="reference/sync-index.html#pinecone.index.Index.upsert_records">(pinecone.index.Index method)</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#id73">upserted_count (pinecone.models.vectors.responses.UpsertResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.UpsertResponse.upserted_count">[1]</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.models.vectors.responses.UpsertRecordsResponse">UpsertRecordsResponse (class in pinecone.models.vectors.responses)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.models.vectors.responses.UpsertResponse">UpsertResponse (class in pinecone.models.vectors.responses)</a>
+</li>
+        <li><a href="reference/models.html#id153">uri (pinecone.models.imports.model.ImportModel attribute)</a>, <a href="reference/models.html#pinecone.models.imports.model.ImportModel.uri">[1]</a>
+</li>
+        <li><a href="reference/models.html#pinecone.db_control.enums.clouds.GcpRegion.US_CENTRAL1">US_CENTRAL1 (pinecone.db_control.enums.clouds.GcpRegion attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.db_control.enums.clouds.AwsRegion.US_EAST_1">US_EAST_1 (pinecone.db_control.enums.clouds.AwsRegion attribute)</a>
+</li>
+        <li><a href="reference/models.html#pinecone.db_control.enums.clouds.AwsRegion.US_WEST_2">US_WEST_2 (pinecone.db_control.enums.clouds.AwsRegion attribute)</a>
+</li>
+        <li><a href="reference/models.html#id250">usage (pinecone.models.assistant.chat.ChatCompletionResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.chat.ChatCompletionResponse.usage">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id246">(pinecone.models.assistant.chat.ChatResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.chat.ChatResponse.usage">[1]</a>
+</li>
+          <li><a href="reference/models.html#id253">(pinecone.models.assistant.context.ContextResponse attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.context.ContextResponse.usage">[1]</a>
+</li>
+          <li><a href="reference/models.html#id260">(pinecone.models.assistant.evaluation.AlignmentResult attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.evaluation.AlignmentResult.usage">[1]</a>
+</li>
+          <li><a href="reference/models.html#id273">(pinecone.models.assistant.streaming.StreamMessageEnd attribute)</a>, <a href="reference/models.html#pinecone.models.assistant.streaming.StreamMessageEnd.usage">[1]</a>
+</li>
+          <li><a href="reference/models.html#id125">(pinecone.models.inference.embed.EmbeddingsList attribute)</a>, <a href="reference/models.html#pinecone.models.inference.embed.EmbeddingsList.usage">[1]</a>
+</li>
+          <li><a href="reference/models.html#id129">(pinecone.models.inference.rerank.RerankResult attribute)</a>, <a href="reference/models.html#pinecone.models.inference.rerank.RerankResult.usage">[1]</a>
+</li>
+          <li><a href="reference/models.html#id116">(pinecone.models.vectors.query_aggregator.QueryNamespacesResults attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.query_aggregator.QueryNamespacesResults.usage">[1]</a>
+</li>
+          <li><a href="reference/models.html#id70">(pinecone.models.vectors.responses.FetchByMetadataResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.FetchByMetadataResponse.usage">[1]</a>
+</li>
+          <li><a href="reference/models.html#id65">(pinecone.models.vectors.responses.FetchResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.FetchResponse.usage">[1]</a>
+</li>
+          <li><a href="reference/models.html#id79">(pinecone.models.vectors.responses.ListResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.ListResponse.usage">[1]</a>
+</li>
+          <li><a href="reference/models.html#id62">(pinecone.models.vectors.responses.QueryResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.QueryResponse.usage">[1]</a>
+</li>
+          <li><a href="reference/models.html#id104">(pinecone.models.vectors.search.SearchRecordsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.search.SearchRecordsResponse.usage">[1]</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="V" class="genindex-section">
+  <h2>V</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id203">value (pinecone.models.admin.api_key.APIKeyWithSecret attribute)</a>, <a href="reference/models.html#pinecone.models.admin.api_key.APIKeyWithSecret.value">[1]</a>
+</li>
+        <li><a href="reference/models.html#id117">values (pinecone.models.inference.embed.DenseEmbedding attribute)</a>, <a href="reference/models.html#pinecone.models.inference.embed.DenseEmbedding.values">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id58">(pinecone.models.vectors.sparse.SparseValues attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.sparse.SparseValues.values">[1]</a>
+</li>
+          <li><a href="reference/models.html#id56">(pinecone.models.vectors.vector.Vector attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.vector.Vector.values">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.vectors.vector.Vector">Vector (class in pinecone.models.vectors.vector)</a>
+</li>
+        <li><a href="reference/models.html#id162">vector_count (pinecone.models.collections.model.CollectionModel attribute)</a>, <a href="reference/models.html#pinecone.models.collections.model.CollectionModel.vector_count">[1]</a>
+</li>
+        <li><a href="reference/models.html#id9">vector_type (pinecone.models.indexes.index.IndexModel attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.IndexModel.vector_type">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id51">(pinecone.models.indexes.index.ModelIndexEmbed attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.ModelIndexEmbed.vector_type">[1]</a>
+</li>
+          <li><a href="reference/models.html#id118">(pinecone.models.inference.embed.DenseEmbedding attribute)</a>, <a href="reference/models.html#pinecone.models.inference.embed.DenseEmbedding.vector_type">[1]</a>
+</li>
+          <li><a href="reference/models.html#id126">(pinecone.models.inference.embed.EmbeddingsList attribute)</a>, <a href="reference/models.html#pinecone.models.inference.embed.EmbeddingsList.vector_type">[1]</a>
+</li>
+          <li><a href="reference/models.html#id122">(pinecone.models.inference.embed.SparseEmbedding attribute)</a>, <a href="reference/models.html#pinecone.models.inference.embed.SparseEmbedding.vector_type">[1]</a>
+</li>
+          <li><a href="reference/models.html#id144">(pinecone.models.inference.models.ModelInfo attribute)</a>, <a href="reference/models.html#pinecone.models.inference.models.ModelInfo.vector_type">[1]</a>
+</li>
+          <li><a href="reference/models.html#id89">(pinecone.models.vectors.responses.DescribeIndexStatsResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.DescribeIndexStatsResponse.vector_type">[1]</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#id71">vectors (pinecone.models.vectors.responses.FetchByMetadataResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.FetchByMetadataResponse.vectors">[1]</a>
+
+        <ul>
+          <li><a href="reference/models.html#id66">(pinecone.models.vectors.responses.FetchResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.FetchResponse.vectors">[1]</a>
+</li>
+          <li><a href="reference/models.html#id80">(pinecone.models.vectors.responses.ListResponse attribute)</a>, <a href="reference/models.html#pinecone.models.vectors.responses.ListResponse.vectors">[1]</a>
+</li>
+        </ul></li>
+        <li><a href="reference/models.html#pinecone.models.enums.VectorType">VectorType (class in pinecone.models.enums)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="W" class="genindex-section">
+  <h2>W</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="reference/models.html#pinecone.inference.models.index_embed.IndexEmbed.write_parameters">write_parameters (pinecone.inference.models.index_embed.IndexEmbed attribute)</a>
+
+        <ul>
+          <li><a href="reference/models.html#id52">(pinecone.models.indexes.index.ModelIndexEmbed attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.index.ModelIndexEmbed.write_parameters">[1]</a>
+</li>
+          <li><a href="reference/models.html#id34">(pinecone.models.indexes.specs.EmbedConfig attribute)</a>, <a href="reference/models.html#pinecone.models.indexes.specs.EmbedConfig.write_parameters">[1]</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=0b13d40c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=258bad9d"></script>
+    </body>
+</html>
