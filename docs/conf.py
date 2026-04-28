@@ -38,7 +38,7 @@ exclude_patterns = [
     "README.md",
 ]
 
-autodoc_mock_imports = ["pinecone._grpc"]
+autodoc_mock_imports = ["pinecone._grpc", "pandas"]
 
 autodoc_default_options = {
     "members": True,

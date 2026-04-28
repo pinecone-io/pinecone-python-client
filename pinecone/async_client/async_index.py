@@ -153,14 +153,16 @@ class AsyncIndex:
 
         Examples:
 
-            response = await idx.upsert_records(
-                namespace="articles-en",
-                records=[
-                    {"_id": "article-101", "text": "Vector databases enable similarity search."},
-                    {"_id": "article-102", "text": "RAG combines search with LLMs."},
-                ],
-            )
-            print(response.record_count)
+            .. code-block:: python
+
+                response = await idx.upsert_records(
+                    namespace="articles-en",
+                    records=[
+                        {"_id": "article-101", "text": "Vector databases enable similarity search."},
+                        {"_id": "article-102", "text": "RAG combines search with LLMs."},
+                    ],
+                )
+                print(response.record_count)
 
         .. seealso::
            - :meth:`upsert` — for indexes where you provide your own vectors
@@ -242,20 +244,22 @@ class AsyncIndex:
 
         Examples:
 
-            from pinecone import Vector
+            .. code-block:: python
 
-            response = await idx.upsert(
-                vectors=[
-                    Vector(
-                        id="article-101",
-                        values=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
-                    ),
-                    ("article-102", [0.045, 0.021, -0.064]),  # truncated
-                    {"id": "article-103", "values": [0.091, -0.032, 0.178]},  # truncated
-                ],
-                namespace="articles-en",
-            )
-            print(response.upserted_count)
+                from pinecone import Vector
+
+                response = await idx.upsert(
+                    vectors=[
+                        Vector(
+                            id="article-101",
+                            values=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
+                        ),
+                        ("article-102", [0.045, 0.021, -0.064]),  # truncated
+                        {"id": "article-103", "values": [0.091, -0.032, 0.178]},  # truncated
+                    ],
+                    namespace="articles-en",
+                )
+                print(response.upserted_count)
 
         .. note::
            All vectors are sent in a single request. For large datasets,
@@ -357,21 +361,25 @@ class AsyncIndex:
 
         Examples:
 
-            response = await idx.query(
-                top_k=10,
-                vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
-            )
-            for match in response.matches:
-                print(match.id, match.score)
+            .. code-block:: python
+
+                response = await idx.query(
+                    top_k=10,
+                    vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
+                )
+                for match in response.matches:
+                    print(match.id, match.score)
 
             Query with a metadata filter:
 
-            response = await idx.query(
-                top_k=10,
-                vector=[0.012, -0.087, 0.153],
-                filter={"genre": "comedy", "year": {"$gte": 2020}},
-                namespace="movies-en",
-            )
+            .. code-block:: python
+
+                response = await idx.query(
+                    top_k=10,
+                    vector=[0.012, -0.087, 0.153],
+                    filter={"genre": "comedy", "year": {"$gte": 2020}},
+                    namespace="movies-en",
+                )
         """
         if top_k < 1:
             raise ValidationError(f"top_k must be a positive integer, got {top_k}")
@@ -473,24 +481,26 @@ class AsyncIndex:
 
         Examples:
 
-            # Dense query
-            results = await idx.query_namespaces(
-                vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
-                namespaces=["articles-en", "articles-fr", "articles-de"],
-                metric="cosine",
-                top_k=10,
-            )
+            .. code-block:: python
 
-            # Sparse-only query (sparse index)
-            results = await idx.query_namespaces(
-                sparse_vector={"indices": [0, 1, 2], "values": [0.1, 0.2, 0.3]},
-                namespaces=["docs-en", "docs-fr"],
-                metric="dotproduct",
-                top_k=10,
-            )
+                # Dense query
+                results = await idx.query_namespaces(
+                    vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
+                    namespaces=["articles-en", "articles-fr", "articles-de"],
+                    metric="cosine",
+                    top_k=10,
+                )
 
-            for match in results.matches:
-                print(match.id, match.score)
+                # Sparse-only query (sparse index)
+                results = await idx.query_namespaces(
+                    sparse_vector={"indices": [0, 1, 2], "values": [0.1, 0.2, 0.3]},
+                    namespaces=["docs-en", "docs-fr"],
+                    metric="dotproduct",
+                    top_k=10,
+                )
+
+                for match in results.matches:
+                    print(match.id, match.score)
         """
         if not namespaces:
             raise ValidationError("namespaces must be a non-empty list")
@@ -557,9 +567,11 @@ class AsyncIndex:
 
         Examples:
 
-            response = await idx.fetch(ids=["article-101", "article-102"])
-            for vid, vec in response.vectors.items():
-                print(vid, vec.values)
+            .. code-block:: python
+
+                response = await idx.fetch(ids=["article-101", "article-102"])
+                for vid, vec in response.vectors.items():
+                    print(vid, vec.values)
         """
         if not ids:
             raise ValidationError("ids must be a non-empty list")
@@ -609,22 +621,24 @@ class AsyncIndex:
 
         Examples:
 
-            response = await idx.fetch_by_metadata(
-                filter={"genre": {"$eq": "comedy"}},
-                namespace="movies",
-            )
-            for vid, vec in response.vectors.items():
-                print(vid, vec.values)
+            .. code-block:: python
 
-            # Paginate through all results
-            token = response.pagination.next if response.pagination else None
-            while token:
                 response = await idx.fetch_by_metadata(
                     filter={"genre": {"$eq": "comedy"}},
                     namespace="movies",
-                    pagination_token=token,
                 )
+                for vid, vec in response.vectors.items():
+                    print(vid, vec.values)
+
+                # Paginate through all results
                 token = response.pagination.next if response.pagination else None
+                while token:
+                    response = await idx.fetch_by_metadata(
+                        filter={"genre": {"$eq": "comedy"}},
+                        namespace="movies",
+                        pagination_token=token,
+                    )
+                    token = response.pagination.next if response.pagination else None
         """
         body: dict[str, Any] = {"filter": filter}
         if namespace:
@@ -738,15 +752,17 @@ class AsyncIndex:
 
         Examples:
 
-            # Update by ID
-            # truncated values; use your actual dimension
-            await idx.update(id="article-101", values=[0.012, -0.087, 0.153])
+            .. code-block:: python
 
-            # Bulk-update metadata by filter
-            await idx.update(
-                filter={"genre": {"$eq": "drama"}},
-                set_metadata={"year": 2020},
-            )
+                # Update by ID
+                # truncated values; use your actual dimension
+                await idx.update(id="article-101", values=[0.012, -0.087, 0.153])
+
+                # Bulk-update metadata by filter
+                await idx.update(
+                    filter={"genre": {"$eq": "drama"}},
+                    set_metadata={"year": 2020},
+                )
         """
         has_id = id is not None
         has_filter = filter is not None
@@ -835,13 +851,15 @@ class AsyncIndex:
 
         Examples:
 
-            response = await idx.search(
-                namespace="articles-en",
-                top_k=10,
-                inputs={"text": "benefits of vector databases for search"},
-            )
-            for hit in response.result.hits:
-                print(hit.id, hit.score)
+            .. code-block:: python
+
+                response = await idx.search(
+                    namespace="articles-en",
+                    top_k=10,
+                    inputs={"text": "benefits of vector databases for search"},
+                )
+                for hit in response.result.hits:
+                    print(hit.id, hit.score)
         """
         if not isinstance(namespace, str):
             raise ValidationError("namespace must be a string")
@@ -941,9 +959,11 @@ class AsyncIndex:
 
         Examples:
 
-            response = await idx.list_paginated(prefix="doc1#", limit=50)
-            for item in response.vectors:
-                print(item.id)
+            .. code-block:: python
+
+                response = await idx.list_paginated(prefix="doc1#", limit=50)
+                for item in response.vectors:
+                    print(item.id)
         """
         params: dict[str, Any] = {"namespace": namespace}
         if prefix is not None:
@@ -1029,13 +1049,15 @@ class AsyncIndex:
 
         Examples:
 
-            stats = await idx.describe_index_stats()
-            print(stats.total_vector_count, stats.dimension)
+            .. code-block:: python
 
-            # With filter — only count vectors matching the expression
-            stats = await idx.describe_index_stats(
-                filter={"genre": {"$eq": "drama"}}
-            )
+                stats = await idx.describe_index_stats()
+                print(stats.total_vector_count, stats.dimension)
+
+                # With filter — only count vectors matching the expression
+                stats = await idx.describe_index_stats(
+                    filter={"genre": {"$eq": "drama"}}
+                )
         """
         body: dict[str, Any] = {}
         if filter is not None:
@@ -1180,9 +1202,11 @@ class AsyncIndex:
 
         Examples:
 
-            response = await idx.list_namespaces_paginated(prefix="prod-", limit=10)
-            for ns in response.namespaces:
-                print(ns.name, ns.record_count)
+            .. code-block:: python
+
+                response = await idx.list_namespaces_paginated(prefix="prod-", limit=10)
+                for ns in response.namespaces:
+                    print(ns.name, ns.record_count)
         """
         params: dict[str, Any] = {}
         if prefix is not None:
@@ -1453,9 +1477,11 @@ class AsyncIndex:
 
         Examples:
 
-            page = await idx.list_imports_paginated(limit=10)
-            for imp in page:
-                print(imp.id, imp.status)
+            .. code-block:: python
+
+                page = await idx.list_imports_paginated(limit=10)
+                for imp in page:
+                    print(imp.id, imp.status)
         """
         params: dict[str, Any] = {}
         if limit is not None:
