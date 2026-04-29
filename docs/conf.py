@@ -35,7 +35,6 @@ exclude_patterns = [
     "pinecone/config/**",
     "pinecone/utils/response_info.py",
     "pinecone/exceptions.py",
-    "pinecone_plugins/**",
     "README.md",
 ]
 

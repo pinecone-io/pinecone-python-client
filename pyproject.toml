@@ -61,15 +61,6 @@ required-imports = ["from __future__ import annotations"]
 "tests/**" = ["E501", "B905", "S101", "S105", "S106", "S107", "S110", "T20", "PT018", "PT019"]
 "pinecone/_internal/http_client.py" = ["S311"]
 "pinecone/grpc/future.py" = ["S110", "SIM105"]
-# Backcompat shims must preserve legacy typing constructs (List, Optional)
-# because tests do identity checks on field annotation objects:
-#   dataclasses.fields(X).type is SomeClass / == List[X] / == Optional[X]
-# I002: no required-imports (from __future__ import annotations breaks identity checks)
-# UP006: allow List[] (tests compare with typing.List, not builtin list)
-# UP007: allow Optional[X] (tests compare with typing.Optional, not X | None)
-# UP035: allow typing imports of List/Optional that UP006/UP007 need
-# UP045: allow Optional[X] in annotations
-"pinecone_plugins/**" = ["I002", "UP006", "UP007", "UP035", "UP045"]
 
 [tool.pytest.ini_options]
 anyio_mode = "auto"
