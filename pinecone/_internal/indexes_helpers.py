@@ -19,7 +19,7 @@ from pinecone._internal.validation import require_non_empty
 
 if TYPE_CHECKING:
     from pinecone.models.indexes.index import IndexModel
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import PineconeTypeError, ValidationError
 from pinecone.models.enums import DeletionProtection, Metric, VectorType
 from pinecone.models.indexes.specs import ByocSpec, IntegratedSpec, PodSpec, ServerlessSpec
 
@@ -112,6 +112,11 @@ def validate_create_inputs(
 
     if isinstance(spec, dict) and not ({"serverless", "pod", "byoc"} & spec.keys()):
         raise ValidationError("spec dict must contain a 'serverless', 'pod', or 'byoc' key")
+
+    if dimension is not None and not isinstance(dimension, int):
+        raise PineconeTypeError(
+            f"dimension must be an integer, got {type(dimension).__name__!r}"
+        )
 
     resolved_vt = resolve_enum_value(vector_type)
     if resolved_vt == "sparse" and dimension is not None:
