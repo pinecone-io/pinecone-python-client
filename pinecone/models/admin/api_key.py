@@ -19,8 +19,6 @@ class APIKeyRole(str, Enum):
     ``DATA_PLANE_EDITOR``, ``DATA_PLANE_VIEWER``.
 
     Examples:
-        Create a read-only API key using the enum:
-
         >>> from pinecone import Admin
         >>> from pinecone.models.admin.api_key import APIKeyRole
         >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
@@ -63,8 +61,6 @@ class APIKeyModel(StructDictMixin, Struct, kw_only=True):
             ``None`` if no description was set.
 
     Examples:
-        Retrieve an API key and inspect its fields:
-
         >>> from pinecone import Admin
         >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
         >>> key = admin.api_keys.describe(api_key_id="key-abc123")
@@ -96,8 +92,6 @@ class APIKeyModel(StructDictMixin, Struct, kw_only=True):
             :exc:`ValueError`: If the key has no roles or more than one role.
 
         Examples:
-            Access the role of a single-role key:
-
             >>> key = admin.api_keys.describe(api_key_id="key-abc123")
             >>> key.role
             <APIKeyRole.DATA_PLANE_EDITOR: 'DataPlaneEditor'>
@@ -193,8 +187,6 @@ class APIKeyList:
             API key dicts, each produced by :meth:`APIKeyModel.to_dict`.
 
         Examples:
-            Serialize all API keys in a project:
-
             >>> from pinecone import Admin
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> keys = admin.api_keys.list(project_id="proj-abc123")
@@ -210,8 +202,6 @@ class APIKeyList:
             list[str]: API key names in the same order as the list.
 
         Examples:
-            List names of all API keys in a project:
-
             >>> from pinecone import Admin
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> keys = admin.api_keys.list(project_id="proj-abc123")

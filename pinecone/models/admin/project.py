@@ -69,8 +69,6 @@ class ProjectList:
             project dicts, each produced by :meth:`ProjectModel.to_dict`.
 
         Examples:
-            Serialize all projects:
-
             >>> from pinecone import Admin
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> projects = admin.projects.list()
@@ -86,8 +84,6 @@ class ProjectList:
             list[str]: Project names in the same order as the list.
 
         Examples:
-            List names of all projects:
-
             >>> from pinecone import Admin
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> projects = admin.projects.list()

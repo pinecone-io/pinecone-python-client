@@ -238,7 +238,7 @@ class PreviewIndexes:
 
         Examples:
 
-            Add a field to an existing schema::
+            .. code-block:: python
 
                 pc.preview.indexes.configure(
                     "my-index",
@@ -345,8 +345,10 @@ class PreviewIndexes:
 
         Examples:
 
-            desc = pc.preview.indexes.describe("my-preview-index")
-            print(desc.host)
+            .. code-block:: python
+
+                desc = pc.preview.indexes.describe("my-preview-index")
+                print(desc.host)
         """
         require_non_empty("name", name)
         logger.info("Describing preview index name=%r", name)
@@ -392,7 +394,7 @@ class PreviewIndexes:
                 error response.
 
         Examples:
-            Iterate over all preview indexes one item at a time::
+            .. code-block:: python
 
                 for index in pc.preview.indexes.list():
                     print(index.name)
@@ -440,8 +442,10 @@ class PreviewIndexes:
 
         Examples:
 
-            if pc.preview.indexes.exists("my-preview-index"):
-                print("Index found")
+            .. code-block:: python
+
+                if pc.preview.indexes.exists("my-preview-index"):
+                    print("Index found")
         """
         require_non_empty("name", name)
         try:
@@ -490,13 +494,15 @@ class PreviewIndexes:
 
         Examples:
 
-            pc.preview.indexes.delete("my-preview-index")
+            .. code-block:: python
 
-            # Delete and wait up to 60 seconds
-            pc.preview.indexes.delete("my-preview-index", timeout=60)
+                pc.preview.indexes.delete("my-preview-index")
 
-            # Delete without polling
-            pc.preview.indexes.delete("my-preview-index", timeout=-1)
+                # Delete and wait up to 60 seconds
+                pc.preview.indexes.delete("my-preview-index", timeout=60)
+
+                # Delete without polling
+                pc.preview.indexes.delete("my-preview-index", timeout=-1)
         """
         require_non_empty("name", name)
         logger.info("Deleting preview index name=%r", name)
@@ -620,7 +626,7 @@ class PreviewIndexes:
                 error response.
 
         Examples:
-            Iterate over all backups for an index::
+            .. code-block:: python
 
                 for backup in pc.preview.indexes.list_backups("my-index"):
                     print(backup.backup_id, backup.status)

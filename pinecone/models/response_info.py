@@ -87,8 +87,6 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
             greater than or equal to *target*; ``False`` otherwise.
 
         Examples:
-            Read-your-writes after an upsert:
-
             .. code-block:: python
 
                 from pinecone import Pinecone
@@ -142,8 +140,6 @@ class BatchResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
             successful batch reported this header.
 
     Examples:
-        Read-your-writes after a bulk upsert:
-
         .. code-block:: python
 
             from pinecone import Pinecone

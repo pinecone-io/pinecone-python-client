@@ -56,7 +56,7 @@ class AsyncPreviewIndexes:
             the preview API version.
 
     Examples:
-        Create a preview index::
+        .. code-block:: python
 
             pc = AsyncPinecone(api_key="...")
             index = await pc.preview.indexes.create(
@@ -158,7 +158,7 @@ class AsyncPreviewIndexes:
                 error response.
 
         Examples:
-            Create a new preview index::
+            .. code-block:: python
 
                 index = await pc.preview.indexes.create(
                     schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536}}},
@@ -248,7 +248,7 @@ class AsyncPreviewIndexes:
 
         Examples:
 
-            Add a field to an existing schema::
+            .. code-block:: python
 
                 async def main():
                     await pc.preview.indexes.configure(
@@ -359,8 +359,10 @@ class AsyncPreviewIndexes:
 
         Examples:
 
-            desc = await pc.preview.indexes.describe("product-search-preview")
-            print(desc.host)
+            .. code-block:: python
+
+                desc = await pc.preview.indexes.describe("product-search-preview")
+                print(desc.host)
         """
         require_non_empty("name", name)
         logger.info("Describing preview index name=%r", name)
@@ -406,7 +408,7 @@ class AsyncPreviewIndexes:
                 error response.
 
         Examples:
-            Iterate over all preview indexes::
+            .. code-block:: python
 
                 async for index in pc.preview.indexes.list():
                     print(index.name)
@@ -451,8 +453,10 @@ class AsyncPreviewIndexes:
 
         Examples:
 
-            if await pc.preview.indexes.exists("product-search-preview"):
-                print("Index found")
+            .. code-block:: python
+
+                if await pc.preview.indexes.exists("product-search-preview"):
+                    print("Index found")
         """
         require_non_empty("name", name)
         try:
@@ -500,13 +504,15 @@ class AsyncPreviewIndexes:
 
         Examples:
 
-            await pc.preview.indexes.delete("product-search-preview")
+            .. code-block:: python
 
-            # Delete and wait up to 60 seconds
-            await pc.preview.indexes.delete("product-search-preview", timeout=60)
+                await pc.preview.indexes.delete("product-search-preview")
 
-            # Delete without polling
-            await pc.preview.indexes.delete("product-search-preview", timeout=-1)
+                # Delete and wait up to 60 seconds
+                await pc.preview.indexes.delete("product-search-preview", timeout=60)
+
+                # Delete without polling
+                await pc.preview.indexes.delete("product-search-preview", timeout=-1)
         """
         require_non_empty("name", name)
         logger.info("Deleting preview index name=%r", name)
@@ -630,7 +636,7 @@ class AsyncPreviewIndexes:
                 error response.
 
         Examples:
-            Iterate over all backups for an index::
+            .. code-block:: python
 
                 async for backup in pc.preview.indexes.list_backups("my-index"):
                     print(backup.backup_id, backup.status)

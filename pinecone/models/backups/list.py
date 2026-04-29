@@ -59,8 +59,6 @@ class BackupList:
             ``"pagination"`` key with the token for fetching the next page.
 
         Examples:
-            Serialize a page of backups:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> backups = pc.list_backups(index_name="movie-recommendations")
@@ -81,8 +79,6 @@ class BackupList:
             list[str]: Backup names (or IDs when names are absent).
 
         Examples:
-            List names of all backups for an index:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> backups = pc.list_backups(index_name="movie-recommendations")
@@ -148,8 +144,6 @@ class RestoreJobList:
             ``"pagination"`` key with the token for fetching the next page.
 
         Examples:
-            Serialize a page of restore jobs:
-
             .. code-block:: python
 
                 from pinecone import Pinecone
@@ -157,7 +151,7 @@ class RestoreJobList:
                 pc = Pinecone(api_key="your-api-key")
                 jobs = pc.restore_jobs.list()
                 jobs.to_dict()
-                # {'data': [{'restore_job_id': 'rj-abc123', ...}, {'restore_job_id': 'rj-def456', ...}]}
+                # {'data': [{'restore_job_id': 'rj-abc123', ...}, ...]}
         """
         result: dict[str, Any] = {"data": [r.to_dict() for r in self._restore_jobs]}
         if self.pagination is not None:

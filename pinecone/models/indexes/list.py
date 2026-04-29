@@ -36,8 +36,6 @@ class IndexList:
             index dicts, each produced by :meth:`IndexModel.to_dict`.
 
         Examples:
-            Serialize all indexes:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> indexes = pc.list_indexes()

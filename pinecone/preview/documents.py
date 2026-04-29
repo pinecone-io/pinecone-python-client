@@ -69,8 +69,6 @@ class PreviewDocuments:
         host: Data-plane host URL for this index.
 
     Examples:
-        Get the documents namespace from a preview index and upsert a document:
-
         >>> from pinecone import Pinecone
         >>> pc = Pinecone(api_key="your-api-key")
         >>> index = pc.preview.index(name="articles-en-preview")
@@ -166,8 +164,6 @@ class PreviewDocuments:
                 values are not unique within the batch.
 
         Examples:
-            Upsert a single document with text fields:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> index = pc.preview.index(name="articles-en-preview")
@@ -251,8 +247,6 @@ class PreviewDocuments:
                 max_workers is outside [1, 64].
 
         Examples:
-            Batch upsert a large corpus of documents:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> index = pc.preview.index(name="articles-en-preview")
@@ -326,8 +320,6 @@ class PreviewDocuments:
                 empty, ``top_k`` is outside [1, 10000], or ``score_by`` is empty.
 
         Examples:
-            Search with a dense vector query:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> index = pc.preview.index(name="articles-en-preview")
@@ -408,8 +400,6 @@ class PreviewDocuments:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is empty.
 
         Examples:
-            Fetch specific documents by ID:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> index = pc.preview.index(name="articles-en-preview")
@@ -481,8 +471,6 @@ class PreviewDocuments:
                 ``ids`` and ``filter`` are both provided.
 
         Examples:
-            Delete specific documents by ID:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> index = pc.preview.index(name="articles-en-preview")

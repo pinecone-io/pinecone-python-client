@@ -122,8 +122,6 @@ class Preview:
                 returns an error response.
 
         Examples:
-            Resolve by name (host looked up via the control plane):
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> index = pc.preview.index(name="articles-en-preview")
@@ -162,8 +160,6 @@ class Preview:
            relying on preview features.
 
         Examples:
-            Explicit close after use:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> index = pc.preview.index(name="articles-en-preview")
@@ -291,8 +287,6 @@ class AsyncPreview:
                 returns an error response (raised on first data-plane call).
 
         Examples:
-            Resolve by name (host resolved lazily on first data-plane call):
-
             >>> import asyncio
             >>> from pinecone import AsyncPinecone
             >>> async def main():

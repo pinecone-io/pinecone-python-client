@@ -315,8 +315,6 @@ class ChatStream:
             response as it arrives from the server.
 
         Examples:
-            Print tokens as they stream from the assistant:
-
             .. code-block:: python
 
                 from pinecone import Pinecone
@@ -340,8 +338,6 @@ class ChatStream:
             The complete response as a single string.
 
         Examples:
-            Collect the full response from the assistant:
-
             .. code-block:: python
 
                 from pinecone import Pinecone
@@ -428,8 +424,6 @@ class AsyncChatStream:
             response as it arrives from the server.
 
         Examples:
-            Print tokens as they stream from the assistant:
-
             .. code-block:: python
 
                 import asyncio
@@ -456,8 +450,6 @@ class AsyncChatStream:
             The complete response as a single string.
 
         Examples:
-            Collect the full response from the assistant:
-
             .. code-block:: python
 
                 import asyncio
@@ -550,8 +542,6 @@ class ChatCompletionStream:
             finish-reason chunks with ``None`` or empty content are skipped.
 
         Examples:
-            Print tokens as they stream from the assistant:
-
             .. code-block:: python
 
                 from pinecone import Pinecone
@@ -577,8 +567,6 @@ class ChatCompletionStream:
             The complete response as a single string.
 
         Examples:
-            Collect the full response from the assistant:
-
             .. code-block:: python
 
                 from pinecone import Pinecone
@@ -669,8 +657,6 @@ class AsyncChatCompletionStream:
             and finish-reason chunks with ``None`` or empty content are skipped.
 
         Examples:
-            Print tokens as they stream from the assistant:
-
             .. code-block:: python
 
                 import asyncio
@@ -699,8 +685,6 @@ class AsyncChatCompletionStream:
             The complete response as a single string.
 
         Examples:
-            Collect the full response from the assistant:
-
             .. code-block:: python
 
                 import asyncio

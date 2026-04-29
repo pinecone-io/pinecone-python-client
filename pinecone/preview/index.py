@@ -30,8 +30,6 @@ class PreviewIndex:
         config: SDK configuration shared with the parent client.
 
     Examples:
-        Use as a context manager (recommended — closes the HTTP client automatically):
-
         >>> from pinecone import Pinecone
         >>> pc = Pinecone(api_key="your-api-key")
         >>> with pc.preview.index(name="articles-en-preview") as index:

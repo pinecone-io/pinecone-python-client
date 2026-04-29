@@ -35,8 +35,6 @@ class AsyncPreviewIndex:
             not pass this directly.
 
     Examples:
-        Use as an async context manager (recommended — closes the HTTP client automatically):
-
         >>> import asyncio
         >>> from pinecone import Pinecone
         >>> pc = Pinecone(api_key="your-api-key")

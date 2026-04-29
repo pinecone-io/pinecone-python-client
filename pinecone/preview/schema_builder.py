@@ -164,7 +164,7 @@ class PreviewSchemaBuilder:
             ``self`` for method chaining.
 
         Examples:
-            Enable FTS with server defaults::
+            .. code-block:: python
 
                 builder.add_string_field("title", full_text_search={})
 
@@ -223,7 +223,7 @@ class PreviewSchemaBuilder:
             ``self`` for method chaining.
 
         Examples:
-            Filterable tags field::
+            .. code-block:: python
 
                 builder.add_string_list_field("tags", filterable=True)
         """

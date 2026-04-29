@@ -50,8 +50,6 @@ class ImportList:
             ``"pagination"`` key with the token for fetching the next page.
 
         Examples:
-            Serialize a page of bulk imports:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> index = pc.Index("product-search")

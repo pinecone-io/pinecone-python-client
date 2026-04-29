@@ -58,8 +58,6 @@ class AsyncPreviewDocuments:
             use. Used internally when the factory is called with ``name=``.
 
     Examples:
-        Get the documents namespace from an async preview index and upsert a document:
-
         >>> import asyncio
         >>> from pinecone import AsyncPinecone
         >>> async def main():
@@ -174,8 +172,6 @@ class AsyncPreviewDocuments:
                 values are not unique within the batch.
 
         Examples:
-            Upsert a single document with text fields:
-
             >>> import asyncio
             >>> from pinecone import AsyncPinecone
             >>> async def main():
@@ -267,8 +263,6 @@ class AsyncPreviewDocuments:
                 max_workers is outside [1, 64].
 
         Examples:
-            Batch upsert a large corpus of documents concurrently:
-
             >>> import asyncio
             >>> from pinecone import AsyncPinecone
             >>> async def main():
@@ -342,8 +336,6 @@ class AsyncPreviewDocuments:
                 empty, ``top_k`` is outside [1, 10000], or ``score_by`` is empty.
 
         Examples:
-            Search with a dense vector query:
-
             >>> import asyncio
             >>> from pinecone import AsyncPinecone
             >>> async def main():
@@ -431,8 +423,6 @@ class AsyncPreviewDocuments:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is empty.
 
         Examples:
-            Fetch specific documents by ID:
-
             >>> import asyncio
             >>> from pinecone import AsyncPinecone
             >>> async def main():
@@ -511,8 +501,6 @@ class AsyncPreviewDocuments:
                 ``ids`` and ``filter`` are both provided.
 
         Examples:
-            Delete specific documents by ID:
-
             >>> import asyncio
             >>> from pinecone import AsyncPinecone
             >>> async def main():

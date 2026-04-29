@@ -62,8 +62,6 @@ class PreviewDocument:
         _score: Alias for ``score``.
 
     Examples:
-        Search an index and read the top-ranked document:
-
         >>> from pinecone import Pinecone
         >>> pc = Pinecone(api_key="your-api-key")
         >>> index = pc.preview.index(host="https://articles-en-preview.svc.pinecone.io")
@@ -145,8 +143,6 @@ class PreviewDocument:
             The field value, or *default* if the field is not present.
 
         Examples:
-            Read a field with a fallback default:
-
             >>> doc = results.matches[0]
             >>> doc.get("category")
             'science'
@@ -174,8 +170,6 @@ class PreviewDocument:
             :class:`dict` mapping field names to their values.
 
         Examples:
-            Convert a document to a dict for downstream processing:
-
             >>> doc = results.matches[0]
             >>> data = doc.to_dict()
             >>> data["_id"]
@@ -205,8 +199,6 @@ class PreviewDocument:
             and any custom fields from the operation.
 
         Examples:
-            Serialize a document to JSON for logging:
-
             >>> doc = results.matches[0]
             >>> json_str = doc.to_json()
             >>> import json; json.loads(json_str)["_id"]

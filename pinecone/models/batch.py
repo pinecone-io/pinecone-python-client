@@ -79,8 +79,6 @@ class BatchResult(Struct, kw_only=True):
             :class:`BatchResponseInfo`.
 
     Examples:
-        Check for partial failure and retry:
-
         >>> from pinecone import Pinecone
         >>> pc = Pinecone(api_key="your-api-key")
         >>> index = pc.preview.index(name="articles-en-preview")

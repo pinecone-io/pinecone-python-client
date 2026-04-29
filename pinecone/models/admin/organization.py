@@ -69,8 +69,6 @@ class OrganizationList:
             organization dicts, each produced by :meth:`OrganizationModel.to_dict`.
 
         Examples:
-            Serialize all organizations:
-
             >>> from pinecone import Admin
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> orgs = admin.organizations.list()
@@ -86,8 +84,6 @@ class OrganizationList:
             list[str]: Organization names in the same order as the list.
 
         Examples:
-            List names of all organizations:
-
             >>> from pinecone import Admin
             >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
             >>> orgs = admin.organizations.list()

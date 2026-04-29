@@ -45,8 +45,6 @@ class Paginator(Generic[T]):
             yields all items.
 
     Examples:
-        Iterate over results one item at a time:
-
         .. code-block:: python
 
             paginator = pc.assistants.list()
@@ -103,8 +101,6 @@ class Paginator(Generic[T]):
             Each page has an ``items`` list and an optional ``pagination_token``.
 
         Examples:
-            Process results page by page:
-
             .. code-block:: python
 
                 for page in pc.assistants.list().pages():
@@ -136,8 +132,6 @@ class Paginator(Generic[T]):
             list of all items.
 
         Examples:
-            Collect all assistants at once:
-
             .. code-block:: python
 
                 all_assistants = pc.assistants.list().to_list()
@@ -168,8 +162,6 @@ class AsyncPaginator(Generic[T]):
             yields all items.
 
     Examples:
-        Iterate over results one item at a time:
-
         .. code-block:: python
 
             paginator = async_pc.assistants.list()
@@ -228,11 +220,11 @@ class AsyncPaginator(Generic[T]):
             ``pagination_token``.
 
         Examples:
-            Process results page by page:
+                .. code-block:: python
 
-                async for page in async_pc.assistants.list().pages():
-                    for assistant in page.items:
-                        print(assistant.name)
+                    async for page in async_pc.assistants.list().pages():
+                        for assistant in page.items:
+                            print(assistant.name)
         """
         count = 0
         token: str | None = self._initial_token
@@ -259,10 +251,10 @@ class AsyncPaginator(Generic[T]):
             list of all items.
 
         Examples:
-            Collect all assistants at once:
+                .. code-block:: python
 
-                paginator = async_pc.assistants.list()
-                all_assistants = await paginator.to_list()
+                    paginator = async_pc.assistants.list()
+                    all_assistants = await paginator.to_list()
         """
         return [item async for item in self]
 

@@ -38,8 +38,6 @@ class ModelInfoList:
             list[str]: Model identifiers from each :class:`ModelInfo`.
 
         Examples:
-            List available model names:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> models = pc.inference.list_models()

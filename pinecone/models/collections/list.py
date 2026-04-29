@@ -31,8 +31,6 @@ class CollectionList:
             collection dicts, each produced by :meth:`CollectionModel.to_dict`.
 
         Examples:
-            Serialize all collections:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> collections = pc.list_collections()
