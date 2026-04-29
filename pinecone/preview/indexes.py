@@ -148,11 +148,12 @@ class PreviewIndexes:
                 error response.
 
         Examples:
+            .. code-block:: python
 
-            pc.preview.indexes.create(
-                schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536}}},
-                name="my-preview-index",
-            )
+                pc.preview.indexes.create(
+                    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536}}},
+                    name="my-preview-index",
+                )
         """
         if tags is not None:
             for key, value in tags.items():
@@ -559,12 +560,13 @@ class PreviewIndexes:
                 error response.
 
         Examples:
+            .. code-block:: python
 
-            pc.preview.indexes.create_backup("my-index")
+                pc.preview.indexes.create_backup("my-index")
 
-            pc.preview.indexes.create_backup(
-                "my-index", name="nightly", description="Daily backup"
-            )
+                pc.preview.indexes.create_backup(
+                    "my-index", name="nightly", description="Daily backup"
+                )
         """
         require_non_empty("index_name", index_name)
 

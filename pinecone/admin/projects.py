@@ -398,8 +398,7 @@ class Projects:
 
         Raises:
             :exc:`ValidationError`: If *project_id* is empty.
-            :exc:`ApiError`: If the API returns an error response (e.g. 4xx if project
-                still has indexes/collections/backups).
+            :exc:`ApiError`: If the API returns an error (project still has indexes or collections).
 
         Examples:
             >>> from pinecone import Admin

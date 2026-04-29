@@ -477,15 +477,16 @@ class GrpcIndex:
                 returns CANCELLED with a timeout cause.
 
         Examples:
+            .. code-block:: python
 
-            # Delete by IDs
-            idx.delete(ids=["article-101", "article-102"])
+                # Delete by IDs
+                idx.delete(ids=["article-101", "article-102"])
 
-            # Delete all vectors in a namespace
-            idx.delete(delete_all=True, namespace="articles-deprecated")
+                # Delete all vectors in a namespace
+                idx.delete(delete_all=True, namespace="articles-deprecated")
 
-            # Delete by metadata filter
-            idx.delete(filter={"category": {"$eq": "obsolete"}})
+                # Delete by metadata filter
+                idx.delete(filter={"category": {"$eq": "obsolete"}})
         """
         mode_count = sum([ids is not None, delete_all, filter is not None])
         if mode_count == 0:
@@ -543,7 +544,7 @@ class GrpcIndex:
             .. code-block:: python
 
                 # Update by ID
-                idx.update(id="article-101", values=[0.012, -0.087, 0.153, ...])  # 1536-dim embedding
+                idx.update(id="article-101", values=[0.012, -0.087, 0.153, ...])
 
                 # Bulk-update metadata by filter
                 idx.update(
@@ -671,10 +672,11 @@ class GrpcIndex:
                 server returns CANCELLED with a timeout cause.
 
         Examples:
+            .. code-block:: python
 
-            for page in idx.list(prefix="doc1#"):
-                for item in page.vectors:
-                    print(item.id)
+                for page in idx.list(prefix="doc1#"):
+                    for item in page.vectors:
+                        print(item.id)
         """
         pagination_token: str | None = None
         while True:
@@ -780,7 +782,10 @@ class GrpcIndex:
                 import pandas as pd
                 from pinecone.grpc import GrpcIndex
 
-                idx = GrpcIndex(host="article-search-abc123.svc.pinecone.io", api_key="your-api-key")
+                idx = GrpcIndex(
+                    host="article-search-abc123.svc.pinecone.io",
+                    api_key="your-api-key",
+                )
                 df = pd.DataFrame([
                     {"id": "article-101", "values": [0.012, -0.087, 0.153]},
                     {"id": "article-102", "values": [0.045, 0.021, -0.064]},
@@ -1072,7 +1077,7 @@ class GrpcIndex:
                 response = idx.upsert_records(
                     namespace="articles-en",
                     records=[
-                        {"_id": "article-101", "text": "Vector databases enable similarity search."},
+                        {"_id": "article-101", "text": "Vector DBs enable similarity search."},
                         {"_id": "article-102", "text": "RAG combines search with LLMs."},
                     ],
                 )

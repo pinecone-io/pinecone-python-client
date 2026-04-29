@@ -570,12 +570,13 @@ class AsyncPreviewIndexes:
                 error response.
 
         Examples:
+            .. code-block:: python
 
-            await pc.preview.indexes.create_backup("my-index")
+                await pc.preview.indexes.create_backup("my-index")
 
-            await pc.preview.indexes.create_backup(
-                "my-index", name="nightly", description="Daily backup"
-            )
+                await pc.preview.indexes.create_backup(
+                    "my-index", name="nightly", description="Daily backup"
+                )
         """
         require_non_empty("index_name", index_name)
 

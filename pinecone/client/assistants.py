@@ -913,11 +913,12 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            .. code-block:: python
 
-            pc.assistants.delete(name="my-assistant")
+                pc.assistants.delete(name="my-assistant")
 
-            # Return immediately without waiting for deletion
-            pc.assistants.delete(name="my-assistant", timeout=-1)
+                # Return immediately without waiting for deletion
+                pc.assistants.delete(name="my-assistant", timeout=-1)
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
