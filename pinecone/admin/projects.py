@@ -83,7 +83,7 @@ class Projects:
             A :class:`ProjectModel` with the created project details.
 
         Raises:
-            :exc:`ValidationError`: If *name* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name* is empty.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -115,7 +115,7 @@ class Projects:
             A :class:`ProjectModel` with full project details.
 
         Raises:
-            :exc:`ValidationError`: If *project_id* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *project_id* is empty.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -144,7 +144,7 @@ class Projects:
             A :class:`ProjectModel` with full project details.
 
         Raises:
-            :exc:`ValidationError`: If *name* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name* is empty.
             :exc:`NotFoundError`: If no project matches *name*.
             :exc:`PineconeError`: If multiple projects share *name*.
 
@@ -187,7 +187,8 @@ class Projects:
             ``True`` if the project exists, ``False`` otherwise.
 
         Raises:
-            :exc:`ValidationError`: If neither or both arguments are provided.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`:
+                If neither or both arguments are provided.
 
         Examples:
             >>> from pinecone import Admin
@@ -231,7 +232,7 @@ class Projects:
             A :class:`ProjectModel` with the updated project details.
 
         Raises:
-            :exc:`ValidationError`: If *project_id* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *project_id* is empty.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -324,7 +325,7 @@ class Projects:
 
         Raises:
             :exc:`PineconeError`: If no admin back-reference is available.
-            :exc:`ValidationError`: If *project_id* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *project_id* is empty.
             :exc:`ApiError`: If resource cleanup or project deletion fails after all retries.
 
         Examples:
@@ -397,7 +398,7 @@ class Projects:
             project_id (str): The identifier of the project to delete.
 
         Raises:
-            :exc:`ValidationError`: If *project_id* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *project_id* is empty.
             :exc:`ApiError`: If the API returns an error (project still has indexes or collections).
 
         Examples:

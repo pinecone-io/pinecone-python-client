@@ -65,7 +65,7 @@ class ApiKeys:
             An :class:`APIKeyList` supporting iteration, len(), and index access.
 
         Raises:
-            :exc:`ValidationError`: If *project_id* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *project_id* is empty.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -106,7 +106,8 @@ class ApiKeys:
             The secret value is only available at creation time.
 
         Raises:
-            :exc:`ValidationError`: If *project_id* or *name* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`:
+                If *project_id* or *name* is empty.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -148,7 +149,7 @@ class ApiKeys:
             An :class:`APIKeyModel` with full API key details.
 
         Raises:
-            :exc:`ValidationError`: If *api_key_id* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *api_key_id* is empty.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -186,7 +187,7 @@ class ApiKeys:
             An :class:`APIKeyModel` with the updated API key details.
 
         Raises:
-            :exc:`ValidationError`: If *api_key_id* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *api_key_id* is empty.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -217,7 +218,7 @@ class ApiKeys:
             api_key_id (str): The identifier of the API key to delete.
 
         Raises:
-            :exc:`ValidationError`: If *api_key_id* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *api_key_id* is empty.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:

@@ -69,7 +69,7 @@ class Organizations:
             An :class:`OrganizationModel` with full organization details.
 
         Raises:
-            :exc:`ValidationError`: If *organization_id* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *organization_id* is empty.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -95,7 +95,8 @@ class Organizations:
             An :class:`OrganizationModel` with the updated organization details.
 
         Raises:
-            :exc:`ValidationError`: If *organization_id* or *name* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`:
+                If *organization_id* or *name* is empty.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -123,7 +124,7 @@ class Organizations:
             organization_id (str): The identifier of the organization to delete.
 
         Raises:
-            :exc:`ValidationError`: If *organization_id* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *organization_id* is empty.
             :exc:`ApiError`: If the API returns an error response (e.g. 4xx if org has projects).
 
         Examples:

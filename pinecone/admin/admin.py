@@ -78,7 +78,8 @@ class Admin:
         source_tag (str | None): Tag appended to the User-Agent string for request attribution.
 
     Raises:
-        :exc:`ValidationError`: If client_id or client_secret cannot be resolved.
+        :exc:`~pinecone.errors.exceptions.PineconeValueError`:
+            If client_id or client_secret cannot be resolved.
         :exc:`ApiError`: If the OAuth token request fails.
 
     Examples:
