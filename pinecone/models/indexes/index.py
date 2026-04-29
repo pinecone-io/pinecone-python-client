@@ -140,6 +140,10 @@ class IndexModel(Struct, kw_only=True):
         embed: Embedding configuration for model-backed (integrated) indexes,
             populated for indexes created with integrated inference and ``None``
             otherwise. See :class:`ModelIndexEmbed`.
+        created_at: ISO-8601 timestamp of when the index was created, or
+            ``None`` if the server response did not include it. Stored as
+            a string; parse with ``datetime.fromisoformat`` if you need
+            a ``datetime`` object.
     """
 
     name: str
@@ -152,6 +156,7 @@ class IndexModel(Struct, kw_only=True):
     deletion_protection: str = "disabled"
     tags: dict[str, str] | None = None
     embed: ModelIndexEmbed | None = None
+    created_at: str | None = None
 
     def __post_init__(self) -> None:
         """Normalize host to always include https:// scheme."""

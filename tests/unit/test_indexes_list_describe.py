@@ -160,3 +160,39 @@ def test_exists_false(indexes: Indexes) -> None:
 
 def test_exists_empty_name_returns_false(indexes: Indexes) -> None:
     assert indexes.exists("") is False
+
+
+# ---------------------------------------------------------------------------
+# IndexModel.created_at decode tests
+# ---------------------------------------------------------------------------
+
+
+def test_index_model_decodes_created_at() -> None:
+    import msgspec
+
+    from pinecone.models.indexes.index import IndexModel
+
+    payload = b"""{
+        "name": "x", "metric": "cosine", "host": "h",
+        "status": {"ready": true, "state": "Ready"},
+        "spec": {"serverless": {"cloud": "aws", "region": "us-east-1"}},
+        "vector_type": "dense",
+        "created_at": "2026-04-29T10:00:00Z"
+    }"""
+    model = msgspec.json.decode(payload, type=IndexModel)
+    assert model.created_at == "2026-04-29T10:00:00Z"
+
+
+def test_index_model_created_at_defaults_to_none() -> None:
+    import msgspec
+
+    from pinecone.models.indexes.index import IndexModel
+
+    payload = b"""{
+        "name": "x", "metric": "cosine", "host": "h",
+        "status": {"ready": true, "state": "Ready"},
+        "spec": {"serverless": {"cloud": "aws", "region": "us-east-1"}},
+        "vector_type": "dense"
+    }"""
+    model = msgspec.json.decode(payload, type=IndexModel)
+    assert model.created_at is None
