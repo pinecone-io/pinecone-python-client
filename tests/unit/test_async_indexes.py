@@ -178,9 +178,8 @@ async def test_exists_false(async_indexes: AsyncIndexes) -> None:
     assert await async_indexes.exists("no-such-index") is False
 
 
-async def test_exists_empty_name_raises(async_indexes: AsyncIndexes) -> None:
-    with pytest.raises(ValidationError):
-        await async_indexes.exists("")
+async def test_exists_empty_name_returns_false(async_indexes: AsyncIndexes) -> None:
+    assert await async_indexes.exists("") is False
 
 
 # ---------------------------------------------------------------------------

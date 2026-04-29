@@ -158,6 +158,5 @@ def test_exists_false(indexes: Indexes) -> None:
     assert indexes.exists("no-such-index") is False
 
 
-def test_exists_empty_name_raises(indexes: Indexes) -> None:
-    with pytest.raises(ValidationError):
-        indexes.exists("")
+def test_exists_empty_name_returns_false(indexes: Indexes) -> None:
+    assert indexes.exists("") is False

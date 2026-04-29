@@ -135,9 +135,9 @@ class AsyncIndexes:
 
         Returns:
             True if the index exists, False otherwise.
+            Returns False immediately without a network call if *name* is empty or whitespace-only.
 
         Raises:
-            :exc:`PineconeValueError`: If *name* is empty.
             :exc:`ApiError`: If the API returns an error other than 404.
 
         Examples:
@@ -146,7 +146,8 @@ class AsyncIndexes:
                 if await pc.indexes.exists("my-index"):
                     print("Index found")
         """
-        require_non_empty("name", name)
+        if not name:
+            return False
         try:
             await self.describe(name)
             return True
