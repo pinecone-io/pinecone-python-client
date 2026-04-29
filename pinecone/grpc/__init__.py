@@ -1073,7 +1073,7 @@ class GrpcIndex:
             .. code-block:: python
 
                 pc = Pinecone(api_key="YOUR_API_KEY")
-                idx = pc.GrpcIndex("my-index")
+                idx = pc.index("my-index", grpc=True)
                 response = idx.upsert_records(
                     namespace="articles-en",
                     records=[

@@ -51,7 +51,7 @@ batches. For typical read-heavy or mixed workloads, `Index` is simpler to operat
 index = pc.Index("my-index")
 
 # gRPC — high-throughput upserts
-index = pc.GrpcIndex("my-index")
+index = pc.index("my-index", grpc=True)
 ```
 
 ### How do I handle a `ConflictError` when creating an index that already exists?

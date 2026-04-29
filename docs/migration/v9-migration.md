@@ -89,7 +89,7 @@ package. You do not need to install `grpcio` or `grpcio-tools`. The interface—
 
 ```python
 # v9 — interface is the same; no grpcio dependency required
-index = pc.GrpcIndex("my-index")
+index = pc.index("my-index", grpc=True)
 index.upsert(vectors=[...])
 ```
 
@@ -123,7 +123,7 @@ Python 3.9 support is dropped. The minimum supported version is Python 3.10.
 | Configure index | `pc.configure_index("name", ...)` | `pc.indexes.configure("name", ...)` |
 | Check index exists | `pc.describe_index("name")` + try/except | `pc.indexes.exists("name")` |
 | Get data-plane index | `pc.Index("name")` | `pc.Index("name")` *(unchanged)* |
-| Get gRPC index | `pc.GrpcIndex("name")` | `pc.GrpcIndex("name")` *(unchanged)* |
+| Get gRPC index | `Pinecone(...).GrpcIndex("name")` | `pc.index("name", grpc=True)` |
 | Create collection | `pc.create_collection(name=..., source=...)` | `pc.collections.create(name=..., source=...)` |
 | List collections | `pc.list_collections()` | `pc.collections.list()` |
 | Delete collection | `pc.delete_collection("name")` | `pc.collections.delete("name")` |
