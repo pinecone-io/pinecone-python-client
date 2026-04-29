@@ -120,13 +120,15 @@ class AsyncInference:
 
     Examples:
 
-        from pinecone import AsyncPinecone
+        .. code-block:: python
 
-        async with AsyncPinecone(api_key="your-api-key") as pc:
-            embeddings = await pc.inference.embed(
-                model="multilingual-e5-large",
-                inputs=["Hello, world!"],
-            )
+            from pinecone import AsyncPinecone
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                embeddings = await pc.inference.embed(
+                    model="multilingual-e5-large",
+                    inputs=["Hello, world!"],
+                )
     """
 
     EmbedModel = _enums.EmbedModel

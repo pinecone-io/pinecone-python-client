@@ -73,16 +73,18 @@ class AsyncPinecone:
 
     Examples:
 
-        from pinecone import AsyncPinecone
+        .. code-block:: python
 
-        async with AsyncPinecone(api_key="your-api-key") as pc:
-            desc = await pc.indexes.describe("my-index")
-            index = pc.index(host=desc.host)
-            async with index:
-                results = await index.query(
-                    vector=[0.012, -0.087, 0.153, ...],  # 1536-dim embedding
-                    top_k=10,
-                )
+            from pinecone import AsyncPinecone
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                desc = await pc.indexes.describe("my-index")
+                index = pc.index(host=desc.host)
+                async with index:
+                    results = await index.query(
+                        vector=[0.012, -0.087, 0.153, ...],  # 1536-dim embedding
+                        top_k=10,
+                    )
 
     .. note:: **Differences from sync Pinecone**
 
@@ -296,11 +298,13 @@ class AsyncPinecone:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                embeddings = await pc.inference.embed(
-                    model="multilingual-e5-large",
-                    inputs=["Hello, world!"],
-                )
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    embeddings = await pc.inference.embed(
+                        model="multilingual-e5-large",
+                        inputs=["Hello, world!"],
+                    )
         """
         if self._inference is None:
             from pinecone.async_client.inference import AsyncInference as _AsyncInference

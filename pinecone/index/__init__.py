@@ -1146,13 +1146,15 @@ class Index:
 
         Examples:
 
-            ns = idx.create_namespace(name="movies-en")
-            print(ns.name, ns.record_count)
+            .. code-block:: python
 
-            ns = idx.create_namespace(
-                name="movies-en",
-                schema={"fields": {"genre": {"filterable": True}}},
-            )
+                ns = idx.create_namespace(name="movies-en")
+                print(ns.name, ns.record_count)
+
+                ns = idx.create_namespace(
+                    name="movies-en",
+                    schema={"fields": {"genre": {"filterable": True}}},
+                )
         """
         if not isinstance(name, str):
             raise ValidationError("namespace name must be a string")

@@ -82,10 +82,12 @@ class AsyncCollections:
 
         Examples:
 
-            collections = await pc.collections.list()
-            print(collections.names())
-            for col in collections:
-                print(col.name, col.status)
+            .. code-block:: python
+
+                collections = await pc.collections.list()
+                print(collections.names())
+                for col in collections:
+                    print(col.name, col.status)
         """
         logger.info("Listing collections")
         response = await self._http.get("/collections")

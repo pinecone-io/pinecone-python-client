@@ -35,7 +35,6 @@ Sub-clients for each resource type are accessed as namespace properties (e.g.
    :undoc-members: False
    :show-inheritance:
    :special-members: __init__, __aenter__, __aexit__
-   :canonical: pinecone.AsyncPinecone
 
 
 AsyncIndexes Namespace

@@ -363,11 +363,13 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            page = await pc.assistants.list_page(page_size=10)
-            for a in page.assistants:
-                print(a.name)
-            if page.next:
-                next_page = await pc.assistants.list_page(pagination_token=page.next)
+            .. code-block:: python
+
+                page = await pc.assistants.list_page(page_size=10)
+                for a in page.assistants:
+                    print(a.name)
+                if page.next:
+                    next_page = await pc.assistants.list_page(pagination_token=page.next)
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
@@ -587,11 +589,13 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            file = await pc.assistants.describe_file(
-                assistant_name="my-assistant",
-                file_id="file-abc123",
-            )
-            print(file.status)
+            .. code-block:: python
+
+                file = await pc.assistants.describe_file(
+                    assistant_name="my-assistant",
+                    file_id="file-abc123",
+                )
+                print(file.status)
         """
         data_http = await self._data_plane_http(assistant_name)
         params: dict[str, str] = {}
@@ -629,16 +633,18 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            page = await pc.assistants.list_files_page(
-                assistant_name="my-assistant",
-            )
-            for f in page.files:
-                print(f.name)
-            if page.next:
-                next_page = await pc.assistants.list_files_page(
+            .. code-block:: python
+
+                page = await pc.assistants.list_files_page(
                     assistant_name="my-assistant",
-                    pagination_token=page.next,
                 )
+                for f in page.files:
+                    print(f.name)
+                if page.next:
+                    next_page = await pc.assistants.list_files_page(
+                        assistant_name="my-assistant",
+                        pagination_token=page.next,
+                    )
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
@@ -854,20 +860,22 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            file = await async_pc.assistants.upload_file(
-                assistant_name="research-assistant",
-                file_path="/data/report.pdf",
-            )
-            print(file.status)
+            .. code-block:: python
 
-            with open("report.pdf", "rb") as f:
                 file = await async_pc.assistants.upload_file(
                     assistant_name="research-assistant",
-                    file_stream=f,
-                    file_name="report.pdf",
-                    metadata={"source": "quarterly-review"},
+                    file_path="/data/report.pdf",
                 )
-            print(file.status)
+                print(file.status)
+
+                with open("report.pdf", "rb") as f:
+                    file = await async_pc.assistants.upload_file(
+                        assistant_name="research-assistant",
+                        file_stream=f,
+                        file_name="report.pdf",
+                        metadata={"source": "quarterly-review"},
+                    )
+                print(file.status)
         """
         import json as _json
 
@@ -971,10 +979,12 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            await pc.assistants.delete_file(
-                assistant_name="my-assistant",
-                file_id="file-abc123",
-            )
+            .. code-block:: python
+
+                await pc.assistants.delete_file(
+                    assistant_name="my-assistant",
+                    file_id="file-abc123",
+                )
         """
         data_http = await self._data_plane_http(assistant_name)
         logger.info("Deleting file %r from assistant %r", file_id, assistant_name)
@@ -1421,12 +1431,14 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            result = await pc.assistants.evaluate_alignment(
-                question="What is the capital of Spain?",
-                answer="Barcelona.",
-                ground_truth_answer="Madrid.",
-            )
-            print(result.scores.alignment)
+            .. code-block:: python
+
+                result = await pc.assistants.evaluate_alignment(
+                    question="What is the capital of Spain?",
+                    answer="Barcelona.",
+                    ground_truth_answer="Madrid.",
+                )
+                print(result.scores.alignment)
         """
         body = {
             "question": question,

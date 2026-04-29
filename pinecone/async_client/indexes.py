@@ -344,24 +344,26 @@ class AsyncIndexes:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                await pc.indexes.create(
-                    name="my-index",
-                    dimension=1536,
-                    spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-                )
+            .. code-block:: python
 
-                await pc.indexes.create(
-                    name="my-integrated-index",
-                    spec=IntegratedSpec(
-                        cloud="aws",
-                        region="us-east-1",
-                        embed=EmbedConfig(
-                            model="multilingual-e5-large",
-                            field_map={"text": "my_text_field"},
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    await pc.indexes.create(
+                        name="my-index",
+                        dimension=1536,
+                        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+                    )
+
+                    await pc.indexes.create(
+                        name="my-integrated-index",
+                        spec=IntegratedSpec(
+                            cloud="aws",
+                            region="us-east-1",
+                            embed=EmbedConfig(
+                                model="multilingual-e5-large",
+                                field_map={"text": "my_text_field"},
+                            ),
                         ),
-                    ),
-                )
+                    )
         """
         if isinstance(spec, IntegratedSpec):
             validate_integrated_inputs(

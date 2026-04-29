@@ -47,11 +47,15 @@ class Paginator(Generic[T]):
     Examples:
         Iterate over results one item at a time:
 
+        .. code-block:: python
+
             paginator = pc.assistants.list()
             for assistant in paginator:
                 print(assistant.name)
 
         Collect all results into a list:
+
+        .. code-block:: python
 
             all_assistants = pc.assistants.list().to_list()
     """
@@ -101,6 +105,8 @@ class Paginator(Generic[T]):
         Examples:
             Process results page by page:
 
+            .. code-block:: python
+
                 for page in pc.assistants.list().pages():
                     for assistant in page.items:
                         print(assistant.name)
@@ -132,6 +138,8 @@ class Paginator(Generic[T]):
         Examples:
             Collect all assistants at once:
 
+            .. code-block:: python
+
                 all_assistants = pc.assistants.list().to_list()
         """
         return list(self)
@@ -162,11 +170,15 @@ class AsyncPaginator(Generic[T]):
     Examples:
         Iterate over results one item at a time:
 
+        .. code-block:: python
+
             paginator = async_pc.assistants.list()
             async for assistant in paginator:
                 print(assistant.name)
 
         Collect all results into a list:
+
+        .. code-block:: python
 
             paginator = async_pc.assistants.list()
             all_assistants = await paginator.to_list()
