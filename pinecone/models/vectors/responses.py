@@ -25,6 +25,10 @@ class UpsertResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=Fa
     upserted_count: int
     response_info: ResponseInfo | None = None
 
+    @property
+    def _response_info(self) -> ResponseInfo | None:
+        return self.response_info
+
 
 class QueryResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=False):
     """Response from a query operation.
@@ -43,6 +47,10 @@ class QueryResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=Fal
     namespace: str | None = ""
     usage: Usage | None = None
     response_info: ResponseInfo | None = None
+
+    @property
+    def _response_info(self) -> ResponseInfo | None:
+        return self.response_info
 
     def __post_init__(self) -> None:
         """Normalize null namespace to empty string (claim unified-rs-0013)."""
@@ -66,6 +74,10 @@ class FetchResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=Fal
     usage: Usage | None = None
     response_info: ResponseInfo | None = None
 
+    @property
+    def _response_info(self) -> ResponseInfo | None:
+        return self.response_info
+
 
 class FetchByMetadataResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=False):
     """Response from a fetch-by-metadata operation.
@@ -85,6 +97,10 @@ class FetchByMetadataResponse(DictLikeStruct, Struct, rename="camel", kw_only=Tr
     usage: Usage | None = None
     pagination: Pagination | None = None
     response_info: ResponseInfo | None = None
+
+    @property
+    def _response_info(self) -> ResponseInfo | None:
+        return self.response_info
 
 
 class NamespaceSummary(StructDictMixin, Struct, rename="camel", kw_only=True, gc=False):
@@ -128,6 +144,10 @@ class DescribeIndexStatsResponse(StructDictMixin, Struct, rename="camel", kw_onl
     memory_fullness: float | None = None
     storage_fullness: float | None = None
     response_info: ResponseInfo | None = None
+
+    @property
+    def _response_info(self) -> ResponseInfo | None:
+        return self.response_info
 
     def __repr__(self) -> str:
         parts = []
@@ -191,6 +211,10 @@ class ListResponse(StructDictMixin, Struct, rename="camel", kw_only=True, gc=Fal
     usage: Usage | None = None
     response_info: ResponseInfo | None = None
 
+    @property
+    def _response_info(self) -> ResponseInfo | None:
+        return self.response_info
+
     def __getitem__(self, key: int | str) -> Any:
         """Support integer indexing into vectors and string bracket access.
 
@@ -232,6 +256,10 @@ class UpsertRecordsResponse(StructDictMixin, Struct, kw_only=True, gc=False):
     record_count: int
     response_info: ResponseInfo | None = None
 
+    @property
+    def _response_info(self) -> ResponseInfo | None:
+        return self.response_info
+
     def __getitem__(self, key: str) -> Any:
         """Support bracket access (e.g. response['record_count'])."""
         if key not in self.__struct_fields__:
@@ -255,3 +283,7 @@ class UpdateResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=Fa
 
     matched_records: int | None = None
     response_info: ResponseInfo | None = None
+
+    @property
+    def _response_info(self) -> ResponseInfo | None:
+        return self.response_info
