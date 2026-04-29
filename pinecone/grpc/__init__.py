@@ -136,9 +136,11 @@ class GrpcIndex:
 
     Examples:
 
-        from pinecone.grpc import GrpcIndex
+        .. code-block:: python
 
-        idx = GrpcIndex(host="movie-recs-abc123.svc.pinecone.io", api_key="...")
+            from pinecone.grpc import GrpcIndex
+
+            idx = GrpcIndex(host="movie-recs-abc123.svc.pinecone.io", api_key="...")
     """
 
     def __init__(
@@ -471,12 +473,16 @@ class GrpcIndex:
             namespace (str): Namespace to delete from. Defaults to the default namespace.
             timeout (float | None): Per-call timeout in seconds. None uses the client-level default.
 
+        Returns:
+            None
+
         Raises:
             :exc:`ValidationError`: If zero or more than one deletion mode is specified.
             :exc:`PineconeTimeoutError`: If the call exceeds *timeout* or the server
                 returns CANCELLED with a timeout cause.
 
         Examples:
+
             .. code-block:: python
 
                 # Delete by IDs
@@ -775,7 +781,6 @@ class GrpcIndex:
             :exc:`PineconeValueError`: If *batch_size* is not a positive integer.
 
         Examples:
-            Upsert article embeddings from a DataFrame:
 
             .. code-block:: python
 
@@ -792,8 +797,6 @@ class GrpcIndex:
                 ])
                 response = idx.upsert_from_dataframe(df)
                 response.upserted_count
-
-            Upsert with metadata, a custom namespace, and a smaller batch size:
 
             .. code-block:: python
 
@@ -890,7 +893,6 @@ class GrpcIndex:
             the upsert result.
 
         Examples:
-            Submit an upsert and retrieve the result:
 
             .. code-block:: python
 
@@ -932,7 +934,6 @@ class GrpcIndex:
             the query result containing scored matches.
 
         Examples:
-            Submit a query and inspect the top match:
 
             .. code-block:: python
 
@@ -979,7 +980,6 @@ class GrpcIndex:
             the fetched vectors keyed by ID.
 
         Examples:
-            Fetch vectors by ID and inspect the result:
 
             .. code-block:: python
 
@@ -1011,14 +1011,11 @@ class GrpcIndex:
             operation completes.
 
         Examples:
-            Delete vectors by ID and wait for completion:
 
             .. code-block:: python
 
                 future = index.delete_async(ids=["doc-42", "doc-43"])
                 future.result()
-
-            Delete all vectors in a namespace:
 
             .. code-block:: python
 

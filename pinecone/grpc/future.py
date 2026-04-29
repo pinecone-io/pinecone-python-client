@@ -30,7 +30,6 @@ class PineconeFuture(Future["_T"]):
     the message ``"deadline exceeded"``.
 
     Examples:
-        Upsert vectors asynchronously and wait for the result:
 
         .. code-block:: python
 
@@ -40,8 +39,6 @@ class PineconeFuture(Future["_T"]):
             result = future.result()  # blocks up to 5 seconds
             result.upserted_count
             # 1
-
-        Fire multiple upserts concurrently and collect results:
 
         .. code-block:: python
 
@@ -107,7 +104,6 @@ class PineconeFuture(Future["_T"]):
                 result is available.
 
         Examples:
-            Wait for the result with the default 5-second timeout:
 
             .. code-block:: python
 
@@ -115,14 +111,10 @@ class PineconeFuture(Future["_T"]):
                 result = future.result()
                 result.upserted_count  # 1
 
-            Wait up to 30 seconds for a large batch to complete:
-
             .. code-block:: python
 
                 future = idx.upsert_async(vectors=large_batch)
                 result = future.result(timeout=30.0)
-
-            Block indefinitely until the operation finishes:
 
             .. code-block:: python
 
