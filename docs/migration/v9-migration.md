@@ -110,6 +110,78 @@ top-level package instead.
 
 Python 3.9 support is dropped. The minimum supported version is Python 3.10.
 
+### 8. Removal of the `pinecone_plugins.assistant` import path
+
+In v8, the assistant SDK shipped as a separate plugin package
+(`pinecone-plugin-assistant`) installed alongside `pinecone`. Code
+imported model classes from `pinecone_plugins.assistant.*`:
+
+```python
+# v8
+from pinecone_plugins.assistant.models import (
+    AssistantModel, ContextOptions, Message, FileModel,
+)
+from pinecone_plugins.assistant.models.chat import ChatResponse
+```
+
+In v9 the assistant API is built into the main `pinecone` package
+and the `pinecone_plugins` import tree has been removed. **All
+classes are now reachable from `pinecone.models.assistant`** under
+either the canonical name or a legacy alias.
+
+Replace each legacy import with the canonical path:
+
+| v8 import path | v9 import path |
+|---|---|
+| `from pinecone_plugins.assistant.models import AssistantModel` | `from pinecone.models.assistant import AssistantModel` |
+| `from pinecone_plugins.assistant.models import ContextOptions` | `from pinecone.models.assistant import ContextOptions` |
+| `from pinecone_plugins.assistant.models import Message` | `from pinecone.models.assistant import Message` |
+| `from pinecone_plugins.assistant.models import FileModel` | `from pinecone.models.assistant import FileModel` *(deprecated alias for `AssistantFileModel`)* |
+| `from pinecone_plugins.assistant.models.chat import ChatResponse` | `from pinecone.models.assistant import ChatResponse` |
+| `from pinecone_plugins.assistant.models.chat import Citation, Reference, Highlight` | `from pinecone.models.assistant import Citation, Reference, Highlight` *(deprecated aliases for `ChatCitation` etc.)* |
+| `from pinecone_plugins.assistant.models.chat import StreamChatResponseMessageStart, StreamChatResponseContentDelta, StreamChatResponseCitation, StreamChatResponseMessageEnd` | `from pinecone.models.assistant import StreamChatResponseMessageStart, StreamChatResponseContentDelta, StreamChatResponseCitation, StreamChatResponseMessageEnd` *(deprecated aliases for `StreamMessageStart` etc.)* |
+| `from pinecone_plugins.assistant.models.chat_completion import ChatCompletionResponse, StreamingChatCompletionChunk` | `from pinecone.models.assistant import ChatCompletionResponse, StreamingChatCompletionChunk` |
+| `from pinecone_plugins.assistant.models.context_responses import ContextResponse, TextSnippet, MultimodalSnippet` | `from pinecone.models.assistant import ContextResponse, TextSnippet, MultimodalSnippet` |
+| `from pinecone_plugins.assistant.models.context_responses import TextBlock, ImageBlock, Image` | `from pinecone.models.assistant import TextBlock, ImageBlock, Image` *(deprecated aliases for `ContextTextBlock`, `ContextImageBlock`, `ContextImageData`)* |
+| `from pinecone_plugins.assistant.models.context_responses import PdfReference, TextReference, JsonReference, MarkdownReference, DocxReference` | `from pinecone.models.assistant import PdfReference, TextReference, JsonReference, MarkdownReference, DocxReference` *(all five alias the consolidated `FileReference`)* |
+| `from pinecone_plugins.assistant.models.evaluation_responses import AlignmentResponse, Metrics, EvaluatedFact` | `from pinecone.models.assistant import AlignmentResponse, Metrics, EvaluatedFact` *(deprecated aliases for `AlignmentResult`, `AlignmentScores`, `EntailmentResult`)* |
+| `from pinecone_plugins.assistant.models.list_files_response import ListFilesResponse` | `from pinecone.models.assistant import ListFilesResponse` |
+| `from pinecone_plugins.assistant.models.list_assistants_response import ListAssistantsResponse` | `from pinecone.models.assistant import ListAssistantsResponse` |
+| `from pinecone_plugins.assistant.models.shared import Message, Usage, TokenCounts` | `from pinecone.models.assistant import Message, Usage, TokenCounts` *(`Usage` and `TokenCounts` are deprecated aliases for `ChatUsage`)* |
+| `from pinecone_plugins.assistant.assistant.assistant import Assistant` | No replacement — see note below. |
+
+**What does *not* change.** Method-call backcompat is preserved:
+
+```python
+# Both v8 and v9
+pc = Pinecone(api_key="...")
+pc.assistant.create_assistant("my-assistant")        # works in v9
+pc.assistant.list_assistants()                       # works in v9
+assistant = pc.assistant.describe_assistant("my-assistant")
+assistant.upload_file(file_path="report.pdf")        # works in v9
+assistant.chat(messages=[...])                       # works in v9
+```
+
+The `pc.assistant` namespace is preserved and singular/plural
+forms (`pc.assistant` and `pc.assistants`) are interchangeable.
+Legacy method names like `create_assistant`, `delete_assistant`,
+`list_assistants_paginated`, etc. continue to work alongside the
+canonical `pc.assistants.create`, `.delete`, `.list_page`.
+
+**The legacy plugin class is removed.** Code that manually
+instantiated the plugin (`Assistant(config, client_builder)` from
+`pinecone_plugins.assistant.assistant.assistant`) has no v9
+equivalent — the plugin discovery system was retired and
+`pc.assistant` is now a property on the `Pinecone` client. Such
+code must be rewritten to use `pc.assistants` directly.
+
+**Environment variables** `PINECONE_PLUGIN_ASSISTANT_CONTROL_HOST`
+and `PINECONE_PLUGIN_ASSISTANT_DATA_HOST` are no longer consulted.
+To target a non-prod control plane, pass `host=` to the `Pinecone`
+constructor or set `PINECONE_HOST`. The data-plane host is
+discovered automatically from the `host` field of the
+`describe_assistant` response.
+
 ---
 
 ## v8 → v9 migration table
@@ -147,6 +219,7 @@ The following aliases remain importable from `pinecone` but are deprecated:
 | `PineconeAsyncio` | `AsyncPinecone` |
 | `ForbiddenException` | `ForbiddenError` *(`ForbiddenException` still works as a deprecated alias)* |
 | `NotFoundException` | `NotFoundError` *(`NotFoundException` still works as a deprecated alias)* |
+| `pinecone_plugins.assistant.*` (any submodule) | `pinecone.models.assistant`, `pinecone.client.assistants.Assistants` (via `pc.assistant` / `pc.assistants`) |
 
 These aliases will be removed in a future major release. Update your code to use the
 canonical names.
