@@ -109,6 +109,16 @@ class ModelIndexEmbed(StructDictMixin, Struct, kw_only=True):
     write_parameters: dict[str, Any] | None = None
 
 
+class IndexTags(dict):  # type: ignore[type-arg]
+    """A dict subclass for index tags that adds a ``to_dict()`` helper.
+
+    Backwards-compatible with legacy SDK code that called ``.tags.to_dict()``.
+    """
+
+    def to_dict(self) -> dict[str, str]:
+        return dict(self)
+
+
 class IndexModel(Struct, kw_only=True):
     """Response model for a Pinecone index.
 
@@ -146,6 +156,8 @@ class IndexModel(Struct, kw_only=True):
     def __post_init__(self) -> None:
         """Normalize host to always include https:// scheme."""
         self.host = normalize_host(self.host)
+        if isinstance(self.tags, dict) and not isinstance(self.tags, IndexTags):
+            self.tags = IndexTags(self.tags)
 
     def __getattr__(self, name: str) -> Any:
         """Raise AttributeError for unknown attributes (legacy dict-style delegation)."""

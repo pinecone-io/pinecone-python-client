@@ -151,6 +151,7 @@ if TYPE_CHECKING:
         ByocSpecInfo,
         IndexModel,
         IndexSpec,
+        IndexTags,
         ModelIndexEmbed,
         PodSpecInfo,
         ServerlessSpecInfo,
@@ -267,6 +268,7 @@ __all__ = [
     "IndexList",
     "IndexModel",
     "IndexSpec",
+    "IndexTags",
     "IntegratedSpec",
     "ListAssistantsResponse",
     "ListConversionException",
@@ -452,6 +454,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "IndexList": ("pinecone.models.indexes.list", "IndexList"),
     "IndexModel": ("pinecone.models.indexes.index", "IndexModel"),
     "IndexSpec": ("pinecone.models.indexes.index", "IndexSpec"),
+    "IndexTags": ("pinecone.models.indexes.index", "IndexTags"),
     "IntegratedSpec": ("pinecone.models.indexes.specs", "IntegratedSpec"),
     "ListNamespacesResponse": (
         "pinecone.models.namespaces.models",
