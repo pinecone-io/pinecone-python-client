@@ -13,6 +13,11 @@ from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector
 
 
+class QueryResultsAggregatorInvalidTopKError(ValueError):
+    def __init__(self, top_k: int) -> None:
+        super().__init__(f"Invalid top_k value {top_k}. top_k must be at least 1.")
+
+
 class QueryNamespacesResults(StructDictMixin, Struct, kw_only=True):
     """Aggregated results from querying multiple namespaces.
 
@@ -75,7 +80,7 @@ class QueryResultsAggregator:
                 f"Invalid metric {metric!r}. Must be one of: {', '.join(sorted(_VALID_METRICS))}"
             )
         if top_k < 1:
-            raise ValueError("top_k must be >= 1")
+            raise QueryResultsAggregatorInvalidTopKError(top_k)
 
         self._metric = metric
         self._top_k = top_k

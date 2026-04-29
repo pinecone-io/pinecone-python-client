@@ -147,7 +147,7 @@ class TestValidation:
             QueryResultsAggregator(metric="invalid")
 
     def test_invalid_top_k_raises(self) -> None:
-        with pytest.raises(ValueError, match="top_k must be >= 1"):
+        with pytest.raises(ValueError, match="Invalid top_k value 0"):
             QueryResultsAggregator(metric="cosine", top_k=0)
 
 

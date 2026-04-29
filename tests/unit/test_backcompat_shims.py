@@ -58,6 +58,16 @@ _REEXPORT_TRIPLES = [
         "Vector",
         "pinecone.models.vectors.vector",
     ),
+    (
+        "pinecone.db_data.query_results_aggregator",
+        "QueryResultsAggregator",
+        "pinecone.models.vectors.query_aggregator",
+    ),
+    (
+        "pinecone.db_data.query_results_aggregator",
+        "QueryResultsAggregatorInvalidTopKError",
+        "pinecone.models.vectors.query_aggregator",
+    ),
 ]
 
 
