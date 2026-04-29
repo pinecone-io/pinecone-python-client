@@ -307,6 +307,14 @@ async def test_index_exists_returns_correct_bool(async_client: AsyncPinecone) ->
         )
 
 
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_index_exists_with_empty_name_returns_false(async_client: AsyncPinecone) -> None:
+    """Empty/whitespace names must short-circuit to False without a network call."""
+    assert await async_client.indexes.exists("") is False
+    assert await async_client.has_index("") is False
+
+
 # ---------------------------------------------------------------------------
 # configure-index
 # ---------------------------------------------------------------------------

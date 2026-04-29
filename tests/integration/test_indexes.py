@@ -383,6 +383,13 @@ def test_index_exists_returns_correct_bool(client: Pinecone) -> None:
         )
 
 
+@pytest.mark.integration
+def test_index_exists_with_empty_name_returns_false(client: Pinecone) -> None:
+    """Empty/whitespace names must short-circuit to False without a network call."""
+    assert client.indexes.exists("") is False
+    assert client.has_index("") is False
+
+
 # ---------------------------------------------------------------------------
 # configure-index
 # ---------------------------------------------------------------------------
