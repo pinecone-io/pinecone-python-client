@@ -14,7 +14,7 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.client.indexes import Indexes
-from pinecone.errors.exceptions import IndexInitFailedError, ValidationError
+from pinecone.errors.exceptions import IndexInitFailedError, PineconeValueError, ValidationError
 from pinecone.models.enums import DeletionProtection, Metric, VectorType
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.specs import ByocSpec, PodSpec, ServerlessSpec
@@ -719,4 +719,43 @@ def test_create_byoc_missing_dimension(indexes: Indexes) -> None:
         indexes.create(
             name="byoc-idx",
             spec=ByocSpec(environment="aws-us-east-1-b921"),
+        )
+
+
+# ---------------------------------------------------------------------------
+# Legacy-parity tests (BC-0074): PineconeValueError for client-side validation
+# These mirror the three legacy PineconeApiException scenarios that now raise
+# PineconeValueError because validation happens client-side before any request.
+# ---------------------------------------------------------------------------
+
+
+def test_create_index_invalid_name_raises_value_error(indexes: Indexes) -> None:
+    """Uppercase characters in index name are rejected client-side."""
+    with pytest.raises(PineconeValueError, match="lowercase"):
+        indexes.create(
+            name="Invalid-name",
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+
+
+def test_create_index_invalid_metric_raises_value_error(indexes: Indexes) -> None:
+    """Unsupported metric values are rejected client-side."""
+    with pytest.raises(PineconeValueError, match="metric must be one of"):
+        indexes.create(
+            name="valid-name",
+            dimension=2,
+            metric="banana",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+
+
+def test_create_index_missing_dimension_raises_value_error(indexes: Indexes) -> None:
+    """Dense indexes require an explicit dimension."""
+    with pytest.raises(PineconeValueError, match="dimension is required"):
+        indexes.create(
+            name="valid-name",
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
         )

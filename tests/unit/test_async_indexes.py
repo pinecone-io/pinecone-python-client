@@ -21,6 +21,7 @@ from pinecone.errors.exceptions import (
     IndexInitFailedError,
     NotFoundError,
     PineconeTimeoutError,
+    PineconeValueError,
     ValidationError,
 )
 from pinecone.models.enums import DeletionProtection, EmbedModel, Metric, VectorType
@@ -1592,3 +1593,49 @@ async def test_polling_sleep_interval(async_indexes: AsyncIndexes) -> None:
 
     assert mock_sleep.call_count == 1
     mock_sleep.assert_called_with(_POLL_INTERVAL_SECONDS)
+
+
+# ---------------------------------------------------------------------------
+# Legacy-parity tests (BC-0074): PineconeValueError for client-side validation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_create_index_invalid_name_raises_value_error(
+    async_indexes: AsyncIndexes,
+) -> None:
+    """Uppercase characters in index name are rejected client-side."""
+    with pytest.raises(PineconeValueError, match="lowercase"):
+        await async_indexes.create(
+            name="Invalid-name",
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+
+
+@pytest.mark.asyncio
+async def test_create_index_invalid_metric_raises_value_error(
+    async_indexes: AsyncIndexes,
+) -> None:
+    """Unsupported metric values are rejected client-side."""
+    with pytest.raises(PineconeValueError, match="metric must be one of"):
+        await async_indexes.create(
+            name="valid-name",
+            dimension=2,
+            metric="banana",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
+
+
+@pytest.mark.asyncio
+async def test_create_index_missing_dimension_raises_value_error(
+    async_indexes: AsyncIndexes,
+) -> None:
+    """Dense indexes require an explicit dimension."""
+    with pytest.raises(PineconeValueError, match="dimension is required"):
+        await async_indexes.create(
+            name="valid-name",
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        )
