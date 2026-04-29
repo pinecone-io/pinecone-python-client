@@ -65,21 +65,25 @@ class AsyncBackups:
         Examples:
             Create a backup of an index:
 
-            from pinecone import AsyncPinecone
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                backup = await pc.backups.create(
-                    index_name="product-search",
-                )
-                print(backup.backup_id)
+            .. code-block:: python
+
+                from pinecone import AsyncPinecone
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    backup = await pc.backups.create(
+                        index_name="product-search",
+                    )
+                    print(backup.backup_id)
 
             Create a backup with a name and description:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                backup = await pc.backups.create(
-                    index_name="product-search",
-                    name="daily-20240115",
-                    description="Scheduled daily backup before reindexing",
-                )
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    backup = await pc.backups.create(
+                        index_name="product-search",
+                        name="daily-20240115",
+                        description="Scheduled daily backup before reindexing",
+                    )
         """
         require_non_empty("index_name", index_name)
         body: dict[str, Any] = {}
@@ -118,18 +122,22 @@ class AsyncBackups:
         Examples:
             List all backups in the project:
 
-            from pinecone import AsyncPinecone
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                for backup in await pc.backups.list():
-                    print(backup.backup_id, backup.name)
+            .. code-block:: python
+
+                from pinecone import AsyncPinecone
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    for backup in await pc.backups.list():
+                        print(backup.backup_id, backup.name)
 
             List backups for a specific index:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                for backup in await pc.backups.list(
-                    index_name="product-search",
-                ):
-                    print(backup.name)
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    for backup in await pc.backups.list(
+                        index_name="product-search",
+                    ):
+                        print(backup.name)
         """
         params: dict[str, Any] = {"limit": limit}
         if pagination_token is not None:
@@ -161,12 +169,14 @@ class AsyncBackups:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-            from pinecone import AsyncPinecone
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                backup = await pc.backups.describe(
-                    backup_id="bk-daily-20240115",
-                )
-                print(backup.status)
+            .. code-block:: python
+
+                from pinecone import AsyncPinecone
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    backup = await pc.backups.describe(
+                        backup_id="bk-daily-20240115",
+                    )
+                    print(backup.status)
         """
         require_non_empty("backup_id", backup_id)
         logger.info("Describing backup %r", backup_id)
@@ -190,12 +200,14 @@ class AsyncBackups:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-            from pinecone import AsyncPinecone
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                backup = await pc.backups.get(
-                    backup_id="bk-daily-20240115",
-                )
-                print(backup.status)
+            .. code-block:: python
+
+                from pinecone import AsyncPinecone
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    backup = await pc.backups.get(
+                        backup_id="bk-daily-20240115",
+                    )
+                    print(backup.status)
         """
         return await self.describe(backup_id=backup_id)
 
@@ -211,9 +223,11 @@ class AsyncBackups:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-            from pinecone import AsyncPinecone
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                await pc.backups.delete(backup_id="bk-daily-20240115")
+            .. code-block:: python
+
+                from pinecone import AsyncPinecone
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    await pc.backups.delete(backup_id="bk-daily-20240115")
         """
         require_non_empty("backup_id", backup_id)
         logger.info("Deleting backup %r", backup_id)
