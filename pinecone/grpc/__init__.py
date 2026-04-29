@@ -1034,6 +1034,33 @@ class GrpcIndex:
         )
         return future
 
+    def update_async(
+        self,
+        *,
+        id: str | None = None,
+        values: builtins.list[float] | None = None,
+        sparse_values: SparseValues | dict[str, Any] | None = None,
+        set_metadata: dict[str, Any] | None = None,
+        filter: dict[str, Any] | None = None,
+        namespace: str = "",
+        dry_run: bool = False,
+        timeout: float | None = None,
+    ) -> PineconeFuture[UpdateResponse]:
+        """Submit an update call without blocking; returns a :class:`PineconeFuture`."""
+        return PineconeFuture(
+            self._executor.submit(
+                self.update,
+                id=id,
+                values=values,
+                sparse_values=sparse_values,
+                set_metadata=set_metadata,
+                filter=filter,
+                namespace=namespace,
+                dry_run=dry_run,
+                timeout=timeout,
+            )
+        )
+
     def upsert_records(
         self,
         *,

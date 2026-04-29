@@ -749,6 +749,15 @@ class TestGrpcFutureReturningMethods:
 
         assert mock_submit.call_args.kwargs["timeout"] is None
 
+    def test_update_async_returns_pinecone_future(self, grpc_index: GrpcIndex) -> None:
+        mock_submit = MagicMock(return_value=MagicMock())
+        grpc_index._executor.submit = mock_submit  # type: ignore[method-assign]
+        result = grpc_index.update_async(id="v1", values=[0.1, 0.2])
+        assert isinstance(result, PineconeFuture)
+        assert mock_submit.call_args[0][0] == grpc_index.update
+        assert mock_submit.call_args.kwargs["id"] == "v1"
+        assert mock_submit.call_args.kwargs["values"] == [0.1, 0.2]
+
 
 class TestGrpcErrorWrapping:
     """Tests for GrpcIndex._call_channel error wrapping."""
