@@ -202,9 +202,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../guides/performance.html">Performance</a></li>
@@ -214,16 +214,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../how-to/index.html">How-To</a><input aria-label="Toggle navigation of How-To" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../../how-to/indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../how-to/indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../how-to/indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../how-to/indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../how-to/indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../how-to/vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../how-to/vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../how-to/vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../how-to/inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../how-to/inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../how-to/integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../how-to/collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../how-to/vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../how-to/vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../how-to/vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../how-to/inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../how-to/inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../how-to/integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../how-to/collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -235,7 +235,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -243,7 +243,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
 </ul>
 
@@ -662,11 +662,13 @@
 
 <span class="sd">        Examples:</span>
 
-<span class="sd">            page = await pc.assistants.list_page(page_size=10)</span>
-<span class="sd">            for a in page.assistants:</span>
-<span class="sd">                print(a.name)</span>
-<span class="sd">            if page.next:</span>
-<span class="sd">                next_page = await pc.assistants.list_page(pagination_token=page.next)</span>
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                page = await pc.assistants.list_page(page_size=10)</span>
+<span class="sd">                for a in page.assistants:</span>
+<span class="sd">                    print(a.name)</span>
+<span class="sd">                if page.next:</span>
+<span class="sd">                    next_page = await pc.assistants.list_page(pagination_token=page.next)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">pinecone._internal.kwargs_aliases</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
             <span class="n">reject_unknown_kwargs</span><span class="p">,</span>
@@ -891,11 +893,13 @@
 
 <span class="sd">        Examples:</span>
 
-<span class="sd">            file = await pc.assistants.describe_file(</span>
-<span class="sd">                assistant_name=&quot;my-assistant&quot;,</span>
-<span class="sd">                file_id=&quot;file-abc123&quot;,</span>
-<span class="sd">            )</span>
-<span class="sd">            print(file.status)</span>
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                file = await pc.assistants.describe_file(</span>
+<span class="sd">                    assistant_name=&quot;my-assistant&quot;,</span>
+<span class="sd">                    file_id=&quot;file-abc123&quot;,</span>
+<span class="sd">                )</span>
+<span class="sd">                print(file.status)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data_http</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_plane_http</span><span class="p">(</span><span class="n">assistant_name</span><span class="p">)</span>
         <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -936,16 +940,18 @@
 
 <span class="sd">        Examples:</span>
 
-<span class="sd">            page = await pc.assistants.list_files_page(</span>
-<span class="sd">                assistant_name=&quot;my-assistant&quot;,</span>
-<span class="sd">            )</span>
-<span class="sd">            for f in page.files:</span>
-<span class="sd">                print(f.name)</span>
-<span class="sd">            if page.next:</span>
-<span class="sd">                next_page = await pc.assistants.list_files_page(</span>
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                page = await pc.assistants.list_files_page(</span>
 <span class="sd">                    assistant_name=&quot;my-assistant&quot;,</span>
-<span class="sd">                    pagination_token=page.next,</span>
 <span class="sd">                )</span>
+<span class="sd">                for f in page.files:</span>
+<span class="sd">                    print(f.name)</span>
+<span class="sd">                if page.next:</span>
+<span class="sd">                    next_page = await pc.assistants.list_files_page(</span>
+<span class="sd">                        assistant_name=&quot;my-assistant&quot;,</span>
+<span class="sd">                        pagination_token=page.next,</span>
+<span class="sd">                    )</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">pinecone._internal.kwargs_aliases</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
             <span class="n">reject_unknown_kwargs</span><span class="p">,</span>
@@ -1167,20 +1173,22 @@
 
 <span class="sd">        Examples:</span>
 
-<span class="sd">            file = await async_pc.assistants.upload_file(</span>
-<span class="sd">                assistant_name=&quot;research-assistant&quot;,</span>
-<span class="sd">                file_path=&quot;/data/report.pdf&quot;,</span>
-<span class="sd">            )</span>
-<span class="sd">            print(file.status)</span>
+<span class="sd">            .. code-block:: python</span>
 
-<span class="sd">            with open(&quot;report.pdf&quot;, &quot;rb&quot;) as f:</span>
 <span class="sd">                file = await async_pc.assistants.upload_file(</span>
 <span class="sd">                    assistant_name=&quot;research-assistant&quot;,</span>
-<span class="sd">                    file_stream=f,</span>
-<span class="sd">                    file_name=&quot;report.pdf&quot;,</span>
-<span class="sd">                    metadata={&quot;source&quot;: &quot;quarterly-review&quot;},</span>
+<span class="sd">                    file_path=&quot;/data/report.pdf&quot;,</span>
 <span class="sd">                )</span>
-<span class="sd">            print(file.status)</span>
+<span class="sd">                print(file.status)</span>
+
+<span class="sd">                with open(&quot;report.pdf&quot;, &quot;rb&quot;) as f:</span>
+<span class="sd">                    file = await async_pc.assistants.upload_file(</span>
+<span class="sd">                        assistant_name=&quot;research-assistant&quot;,</span>
+<span class="sd">                        file_stream=f,</span>
+<span class="sd">                        file_name=&quot;report.pdf&quot;,</span>
+<span class="sd">                        metadata={&quot;source&quot;: &quot;quarterly-review&quot;},</span>
+<span class="sd">                    )</span>
+<span class="sd">                print(file.status)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">json</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_json</span>
 
@@ -1287,10 +1295,12 @@
 
 <span class="sd">        Examples:</span>
 
-<span class="sd">            await pc.assistants.delete_file(</span>
-<span class="sd">                assistant_name=&quot;my-assistant&quot;,</span>
-<span class="sd">                file_id=&quot;file-abc123&quot;,</span>
-<span class="sd">            )</span>
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                await pc.assistants.delete_file(</span>
+<span class="sd">                    assistant_name=&quot;my-assistant&quot;,</span>
+<span class="sd">                    file_id=&quot;file-abc123&quot;,</span>
+<span class="sd">                )</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">data_http</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_plane_http</span><span class="p">(</span><span class="n">assistant_name</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Deleting file </span><span class="si">%r</span><span class="s2"> from assistant </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="n">assistant_name</span><span class="p">)</span>
@@ -1735,12 +1745,14 @@
 
 <span class="sd">        Examples:</span>
 
-<span class="sd">            result = await pc.assistants.evaluate_alignment(</span>
-<span class="sd">                question=&quot;What is the capital of Spain?&quot;,</span>
-<span class="sd">                answer=&quot;Barcelona.&quot;,</span>
-<span class="sd">                ground_truth_answer=&quot;Madrid.&quot;,</span>
-<span class="sd">            )</span>
-<span class="sd">            print(result.scores.alignment)</span>
+<span class="sd">            .. code-block:: python</span>
+
+<span class="sd">                result = await pc.assistants.evaluate_alignment(</span>
+<span class="sd">                    question=&quot;What is the capital of Spain?&quot;,</span>
+<span class="sd">                    answer=&quot;Barcelona.&quot;,</span>
+<span class="sd">                    ground_truth_answer=&quot;Madrid.&quot;,</span>
+<span class="sd">                )</span>
+<span class="sd">                print(result.scores.alignment)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">body</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;question&quot;</span><span class="p">:</span> <span class="n">question</span><span class="p">,</span>

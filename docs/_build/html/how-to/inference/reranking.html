@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Integrated Records" href="../integrated-records.html"><link rel="prev" title="Embeddings" href="embeddings.html">
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Integrated Records (Server-Side Embedding)" href="../integrated-records.html"><link rel="prev" title="Generating Embeddings" href="embeddings.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Reranking - Pinecone 9.0.0 documentation</title>
+        <title>Reranking Results - Pinecone 9.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">How-To</a><input aria-label="Toggle navigation of How-To" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="embeddings.html">Embeddings</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,152 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="reranking">
-<h1>Reranking<a class="headerlink" href="#reranking" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+          <section id="reranking-results">
+<h1>Reranking Results<a class="headerlink" href="#reranking-results" title="Link to this heading">¶</a></h1>
+<p>Reranking reorders a set of candidate documents by relevance to a query. Use it after
+an initial retrieval step (vector search, keyword search, or a combined approach) to
+surface the most relevant results at the top.</p>
+<section id="basic-usage">
+<h2>Basic usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">documents</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;Apple is a technology company.&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;The apple is a popular fruit.&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;Pinecone is a vector database.&quot;</span><span class="p">},</span>
+<span class="p">]</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">rerank</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;bge-reranker-v2-m3&quot;</span><span class="p">,</span>
+    <span class="n">query</span><span class="o">=</span><span class="s2">&quot;Tell me about tech companies&quot;</span><span class="p">,</span>
+    <span class="n">documents</span><span class="o">=</span><span class="n">documents</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">score</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">document</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Pass plain strings and they are automatically wrapped as <code class="docutils literal notranslate"><span class="pre">{&quot;text&quot;:</span> <span class="pre">...}</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">rerank</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;bge-reranker-v2-m3&quot;</span><span class="p">,</span>
+    <span class="n">query</span><span class="o">=</span><span class="s2">&quot;machine learning&quot;</span><span class="p">,</span>
+    <span class="n">documents</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Neural networks are a type of ML model.&quot;</span><span class="p">,</span> <span class="s2">&quot;Python is a programming language.&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="response-rerankresult">
+<h2>Response: RerankResult<a class="headerlink" href="#response-rerankresult" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">rerank</span></code> returns a :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.inference.rerank.RerankResult</span></code> containing:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.data</span></code> — list of :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.inference.rerank.RankedDocument</span></code>, ordered
+by descending score.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.model</span></code> — model name used.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.usage.rerank_units</span></code> — rerank units consumed.</p></li>
+</ul>
+<p>Each :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.inference.rerank.RankedDocument</span></code> has:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.index</span></code> — the original position of the document in the input list.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.score</span></code> — relevance score (higher is more relevant).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.document</span></code> — the original document dict (<code class="docutils literal notranslate"><span class="pre">None</span></code> when <code class="docutils literal notranslate"><span class="pre">return_documents=False</span></code>).</p></li>
+</ul>
+</section>
+<section id="top-n-return-only-the-best-results">
+<h2>top_n: return only the best results<a class="headerlink" href="#top-n-return-only-the-best-results" title="Link to this heading">¶</a></h2>
+<p>Pass <code class="docutils literal notranslate"><span class="pre">top_n</span></code> to receive only the top N documents after reranking:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">rerank</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;bge-reranker-v2-m3&quot;</span><span class="p">,</span>
+    <span class="n">query</span><span class="o">=</span><span class="s2">&quot;search query&quot;</span><span class="p">,</span>
+    <span class="n">documents</span><span class="o">=</span><span class="n">documents</span><span class="p">,</span>
+    <span class="n">top_n</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span>
+</pre></div>
+</div>
+</section>
+<section id="rank-fields-choose-which-field-to-score-on">
+<h2>rank_fields: choose which field to score on<a class="headerlink" href="#rank-fields-choose-which-field-to-score-on" title="Link to this heading">¶</a></h2>
+<p>By default the reranker scores the <code class="docutils literal notranslate"><span class="pre">&quot;text&quot;</span></code> field. Override with <code class="docutils literal notranslate"><span class="pre">rank_fields</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">rerank</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;bge-reranker-v2-m3&quot;</span><span class="p">,</span>
+    <span class="n">query</span><span class="o">=</span><span class="s2">&quot;quarterly earnings&quot;</span><span class="p">,</span>
+    <span class="n">documents</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Apple Q4 2024 results&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;Revenue grew 6% year over year.&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Banana prices rise&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;Fruit prices hit new highs.&quot;</span><span class="p">},</span>
+    <span class="p">],</span>
+    <span class="n">rank_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="using-the-rerankmodel-enum">
+<h2>Using the RerankModel enum<a class="headerlink" href="#using-the-rerankmodel-enum" title="Link to this heading">¶</a></h2>
+<p>Use the :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.enums.RerankModel</span></code> enum for tab-completion and typo
+safety:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone.client.inference</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inference</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">rerank</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">Inference</span><span class="o">.</span><span class="n">RerankModel</span><span class="o">.</span><span class="n">Bge_Reranker_V2_M3</span><span class="p">,</span>
+    <span class="n">query</span><span class="o">=</span><span class="s2">&quot;machine learning&quot;</span><span class="p">,</span>
+    <span class="n">documents</span><span class="o">=</span><span class="n">documents</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="reranking-in-a-pipeline">
+<h2>Reranking in a pipeline<a class="headerlink" href="#reranking-in-a-pipeline" title="Link to this heading">¶</a></h2>
+<p>A typical two-stage retrieval pipeline: fetch candidates from Pinecone, then rerank.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+<span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+
+<span class="c1"># Stage 1: vector retrieval</span>
+<span class="n">query_embedding</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;multilingual-e5-large&quot;</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;best noise-cancelling headphones&quot;</span><span class="p">],</span>
+    <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;input_type&quot;</span><span class="p">:</span> <span class="s2">&quot;query&quot;</span><span class="p">},</span>
+<span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+<span class="n">matches</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">vector</span><span class="o">=</span><span class="n">query_embedding</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">include_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">m</span><span class="o">.</span><span class="n">id</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="o">.</span><span class="n">matches</span>
+<span class="p">]</span>
+
+<span class="c1"># Stage 2: rerank</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">rerank</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;bge-reranker-v2-m3&quot;</span><span class="p">,</span>
+    <span class="n">query</span><span class="o">=</span><span class="s2">&quot;best noise-cancelling headphones&quot;</span><span class="p">,</span>
+    <span class="n">documents</span><span class="o">=</span><span class="n">candidates</span><span class="p">,</span>
+    <span class="n">rank_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">],</span>
+    <span class="n">top_n</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">score</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">document</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For integrated indexes, pass <code class="docutils literal notranslate"><span class="pre">rerank</span></code> directly inside
+:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.search</span></code> — see :doc:<code class="docutils literal notranslate"><span class="pre">/how-to/integrated-records</span></code>.</p>
+</section>
+<section id="list-available-reranking-models">
+<h2>List available reranking models<a class="headerlink" href="#list-available-reranking-models" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">models</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;rerank&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">names</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
 </section>
 
         </article>
@@ -299,7 +437,7 @@
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Integrated Records</div>
+                <div class="title">Integrated Records (Server-Side Embedding)</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -310,7 +448,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Embeddings</div>
+                <div class="title">Generating Embeddings</div>
                 
               </div>
             </a>
@@ -332,8 +470,33 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Reranking Results</a><ul>
+<li><a class="reference internal" href="#basic-usage">Basic usage</a></li>
+<li><a class="reference internal" href="#response-rerankresult">Response: RerankResult</a></li>
+<li><a class="reference internal" href="#top-n-return-only-the-best-results">top_n: return only the best results</a></li>
+<li><a class="reference internal" href="#rank-fields-choose-which-field-to-score-on">rank_fields: choose which field to score on</a></li>
+<li><a class="reference internal" href="#using-the-rerankmodel-enum">Using the RerankModel enum</a></li>
+<li><a class="reference internal" href="#reranking-in-a-pipeline">Reranking in a pipeline</a></li>
+<li><a class="reference internal" href="#list-available-reranking-models">List available reranking models</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

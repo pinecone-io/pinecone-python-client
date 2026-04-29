@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="prev" title="v9 Migration Guide" href="migration/v9-migration.html">
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="prev" title="Migrating from v8.x to v9.x" href="migration/v9-migration.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>FAQ - Pinecone 9.0.0 documentation</title>
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="how-to/index.html">How-To</a><input aria-label="Toggle navigation of How-To" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="how-to/indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how-to/indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="how-to/indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how-to/vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how-to/vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how-to/vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how-to/inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how-to/inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how-to/integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="how-to/collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="how-to/collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,96 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
           <section id="faq">
 <h1>FAQ<a class="headerlink" href="#faq" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+<section id="why-is-my-import-slow">
+<h2>Why is my import slow?<a class="headerlink" href="#why-is-my-import-slow" title="Link to this heading">¶</a></h2>
+<p>Cold imports of large packages can take tens of milliseconds. The SDK uses lazy imports
+so the heavy modules (<code class="docutils literal notranslate"><span class="pre">httpx</span></code>, <code class="docutils literal notranslate"><span class="pre">msgspec</span></code>, <code class="docutils literal notranslate"><span class="pre">orjson</span></code>) load only when you first use them.
+The fastest way to initialize is to import just what you need:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>   <span class="c1"># imports only the Pinecone class</span>
+</pre></div>
+</div>
+<p>Avoid wildcard imports (<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">pinecone</span> <span class="pre">import</span> <span class="pre">*</span></code>) in performance-sensitive startup paths.</p>
+</section>
+<section id="why-does-pc-indexes-list-not-support-pagination">
+<h2>Why does <code class="docutils literal notranslate"><span class="pre">pc.indexes.list()</span></code> not support pagination?<a class="headerlink" href="#why-does-pc-indexes-list-not-support-pagination" title="Link to this heading">¶</a></h2>
+<p>Serverless index listings return at most a few hundred entries, which fits comfortably
+in a single response. A paginated API would add complexity for no practical benefit at
+this scale.</p>
+</section>
+<section id="can-i-use-the-async-client-with-fastapi">
+<h2>Can I use the async client with FastAPI?<a class="headerlink" href="#can-i-use-the-async-client-with-fastapi" title="Link to this heading">¶</a></h2>
+<p>Yes. Use <code class="docutils literal notranslate"><span class="pre">AsyncPinecone</span></code> as a FastAPI dependency or inside a lifespan context manager:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">asynccontextmanager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncPinecone</span>
+
+<span class="nd">@asynccontextmanager</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">lifespan</span><span class="p">(</span><span class="n">app</span><span class="p">:</span> <span class="n">FastAPI</span><span class="p">):</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">AsyncPinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pc</span><span class="p">:</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">pc</span> <span class="o">=</span> <span class="n">pc</span>
+        <span class="k">yield</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">(</span><span class="n">lifespan</span><span class="o">=</span><span class="n">lifespan</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">AsyncPinecone</span></code> shares an <code class="docutils literal notranslate"><span class="pre">httpx.AsyncClient</span></code> connection pool across the full lifetime
+of the context, so you get efficient connection reuse without re-establishing the pool
+on every request.</p>
+</section>
+<section id="does-the-sdk-support-http-2">
+<h2>Does the SDK support HTTP/2?<a class="headerlink" href="#does-the-sdk-support-http-2" title="Link to this heading">¶</a></h2>
+<p>Yes. The SDK uses <code class="docutils literal notranslate"><span class="pre">httpx</span></code>, which multiplexes requests over a single HTTP/2 connection
+by default when the server supports it. No configuration is required.</p>
+</section>
+<section id="what-is-the-difference-between-index-and-grpcindex">
+<h2>What is the difference between <code class="docutils literal notranslate"><span class="pre">Index</span></code> and <code class="docutils literal notranslate"><span class="pre">GrpcIndex</span></code>?<a class="headerlink" href="#what-is-the-difference-between-index-and-grpcindex" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Index</span></code> uses the REST/HTTP API. <code class="docutils literal notranslate"><span class="pre">GrpcIndex</span></code> uses gRPC, which has lower per-request
+overhead and is better suited to high-throughput bulk operations such as large upsert
+batches. For typical read-heavy or mixed workloads, <code class="docutils literal notranslate"><span class="pre">Index</span></code> is simpler to operate.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># REST — general purpose</span>
+<span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="s2">&quot;my-index&quot;</span><span class="p">)</span>
+
+<span class="c1"># gRPC — high-throughput upserts</span>
+<span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">GrpcIndex</span><span class="p">(</span><span class="s2">&quot;my-index&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="how-do-i-handle-a-conflicterror-when-creating-an-index-that-already-exists">
+<h2>How do I handle a <code class="docutils literal notranslate"><span class="pre">ConflictError</span></code> when creating an index that already exists?<a class="headerlink" href="#how-do-i-handle-a-conflicterror-when-creating-an-index-that-already-exists" title="Link to this heading">¶</a></h2>
+<p>Catch <code class="docutils literal notranslate"><span class="pre">ConflictError</span></code> from the top-level <code class="docutils literal notranslate"><span class="pre">pinecone</span></code> package:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span><span class="p">,</span> <span class="n">ConflictError</span><span class="p">,</span> <span class="n">ServerlessSpec</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;my-index&quot;</span><span class="p">,</span>
+        <span class="n">dimension</span><span class="o">=</span><span class="mi">1536</span><span class="p">,</span>
+        <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+        <span class="n">spec</span><span class="o">=</span><span class="n">ServerlessSpec</span><span class="p">(</span><span class="n">cloud</span><span class="o">=</span><span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+<span class="k">except</span> <span class="n">ConflictError</span><span class="p">:</span>
+    <span class="k">pass</span>  <span class="c1"># index already exists — continue</span>
+</pre></div>
+</div>
+</section>
+<section id="why-are-responses-immutable">
+<h2>Why are responses immutable?<a class="headerlink" href="#why-are-responses-immutable" title="Link to this heading">¶</a></h2>
+<p>Response objects are <code class="docutils literal notranslate"><span class="pre">msgspec.Struct</span></code> instances, which are frozen by default. Immutability
+eliminates a class of bugs where code accidentally modifies a shared response object and
+enables safe use across threads without locks. If you need a mutable copy, convert it:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">msgspec</span>
+<span class="n">idx</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="s2">&quot;my-index&quot;</span><span class="p">)</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">msgspec</span><span class="o">.</span><span class="n">structs</span><span class="o">.</span><span class="n">asdict</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>   <span class="c1"># returns a plain dict you can modify</span>
+</pre></div>
+</div>
+</section>
 </section>
 
         </article>
@@ -302,7 +384,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">v9 Migration Guide</div>
+                <div class="title">Migrating from v8.x to v9.x</div>
                 
               </div>
             </a>
@@ -324,8 +406,33 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">FAQ</a><ul>
+<li><a class="reference internal" href="#why-is-my-import-slow">Why is my import slow?</a></li>
+<li><a class="reference internal" href="#why-does-pc-indexes-list-not-support-pagination">Why does <code class="docutils literal notranslate"><span class="pre">pc.indexes.list()</span></code> not support pagination?</a></li>
+<li><a class="reference internal" href="#can-i-use-the-async-client-with-fastapi">Can I use the async client with FastAPI?</a></li>
+<li><a class="reference internal" href="#does-the-sdk-support-http-2">Does the SDK support HTTP/2?</a></li>
+<li><a class="reference internal" href="#what-is-the-difference-between-index-and-grpcindex">What is the difference between <code class="docutils literal notranslate"><span class="pre">Index</span></code> and <code class="docutils literal notranslate"><span class="pre">GrpcIndex</span></code>?</a></li>
+<li><a class="reference internal" href="#how-do-i-handle-a-conflicterror-when-creating-an-index-that-already-exists">How do I handle a <code class="docutils literal notranslate"><span class="pre">ConflictError</span></code> when creating an index that already exists?</a></li>
+<li><a class="reference internal" href="#why-are-responses-immutable">Why are responses immutable?</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

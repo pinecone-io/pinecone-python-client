@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Pod Indexes" href="pod.html"><link rel="prev" title="How-To" href="../index.html">
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Working with Pod-Based Indexes" href="pod.html"><link rel="prev" title="How-To" href="../index.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Serverless Indexes - Pinecone 9.0.0 documentation</title>
+        <title>Working with Serverless Indexes - Pinecone 9.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">How-To</a><input aria-label="Toggle navigation of How-To" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pod.html">Pod Indexes</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,136 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="serverless-indexes">
-<h1>Serverless Indexes<a class="headerlink" href="#serverless-indexes" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+          <section id="working-with-serverless-indexes">
+<h1>Working with Serverless Indexes<a class="headerlink" href="#working-with-serverless-indexes" title="Link to this heading">¶</a></h1>
+<p>Serverless indexes scale automatically — you pay for storage and queries without managing
+infrastructure. Pinecone handles capacity, replication, and availability.</p>
+<section id="create-a-serverless-index">
+<h2>Create a serverless index<a class="headerlink" href="#create-a-serverless-index" title="Link to this heading">¶</a></h2>
+<p>Pass a :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.ServerlessSpec</span></code> with a cloud provider and region:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span><span class="p">,</span> <span class="n">ServerlessSpec</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;product-search&quot;</span><span class="p">,</span>
+    <span class="n">dimension</span><span class="o">=</span><span class="mi">1536</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="n">ServerlessSpec</span><span class="p">(</span><span class="n">cloud</span><span class="o">=</span><span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">create</span></code> polls until the index is ready by default. Pass <code class="docutils literal notranslate"><span class="pre">timeout=-1</span></code> to return immediately
+without waiting.</p>
+<section id="supported-clouds-and-regions">
+<h3>Supported clouds and regions<a class="headerlink" href="#supported-clouds-and-regions" title="Link to this heading">¶</a></h3>
+<p>Use the :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.CloudProvider</span></code>, :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.AwsRegion</span></code>,
+:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.GcpRegion</span></code>, and :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.AzureRegion</span></code> enums for
+tab-completion and typo safety:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span><span class="p">,</span> <span class="n">ServerlessSpec</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone.models.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">AwsRegion</span><span class="p">,</span> <span class="n">CloudProvider</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;product-search&quot;</span><span class="p">,</span>
+    <span class="n">dimension</span><span class="o">=</span><span class="mi">1536</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="n">ServerlessSpec</span><span class="p">(</span>
+        <span class="n">cloud</span><span class="o">=</span><span class="n">CloudProvider</span><span class="o">.</span><span class="n">AWS</span><span class="p">,</span>
+        <span class="n">region</span><span class="o">=</span><span class="n">AwsRegion</span><span class="o">.</span><span class="n">US_EAST_1</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>AWS:</strong> <code class="docutils literal notranslate"><span class="pre">us-east-1</span></code>, <code class="docutils literal notranslate"><span class="pre">us-west-2</span></code>, <code class="docutils literal notranslate"><span class="pre">eu-west-1</span></code></p>
+<p><strong>GCP:</strong> <code class="docutils literal notranslate"><span class="pre">us-central1</span></code>, <code class="docutils literal notranslate"><span class="pre">europe-west4</span></code></p>
+<p><strong>Azure:</strong> <code class="docutils literal notranslate"><span class="pre">eastus2</span></code></p>
+</section>
+<section id="enable-deletion-protection">
+<h3>Enable deletion protection<a class="headerlink" href="#enable-deletion-protection" title="Link to this heading">¶</a></h3>
+<p>Add <code class="docutils literal notranslate"><span class="pre">deletion_protection=&quot;enabled&quot;</span></code> to prevent accidental deletes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span><span class="p">,</span> <span class="n">ServerlessSpec</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone.models.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeletionProtection</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;product-search&quot;</span><span class="p">,</span>
+    <span class="n">dimension</span><span class="o">=</span><span class="mi">1536</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="n">ServerlessSpec</span><span class="p">(</span><span class="n">cloud</span><span class="o">=</span><span class="s2">&quot;aws&quot;</span><span class="p">,</span> <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">),</span>
+    <span class="n">deletion_protection</span><span class="o">=</span><span class="n">DeletionProtection</span><span class="o">.</span><span class="n">ENABLED</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="check-index-status">
+<h2>Check index status<a class="headerlink" href="#check-index-status" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">describe</span></code> returns an :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.IndexModel</span></code> with the current state:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">desc</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>   <span class="c1"># e.g. &quot;Ready&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">ready</span><span class="p">)</span>   <span class="c1"># True when ready to accept requests</span>
+</pre></div>
+</div>
+<p>Poll manually when you passed <code class="docutils literal notranslate"><span class="pre">timeout=-1</span></code> to <code class="docutils literal notranslate"><span class="pre">create</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="k">while</span> <span class="ow">not</span> <span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">ready</span><span class="p">:</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="list-indexes">
+<h2>List indexes<a class="headerlink" href="#list-indexes" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">list</span></code> returns an :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.IndexList</span></code> you can iterate, slice, or call
+<code class="docutils literal notranslate"><span class="pre">.names()</span></code> on:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">idx</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+
+<span class="c1"># Just the names</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">list</span><span class="p">()</span><span class="o">.</span><span class="n">names</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="describe-an-index">
+<h2>Describe an index<a class="headerlink" href="#describe-an-index" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">idx</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">dimension</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">metric</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">serverless</span><span class="o">.</span><span class="n">cloud</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">serverless</span><span class="o">.</span><span class="n">region</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="delete-an-index">
+<h2>Delete an index<a class="headerlink" href="#delete-an-index" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">delete</span></code> polls until the index is gone. Pass <code class="docutils literal notranslate"><span class="pre">timeout=-1</span></code> to return immediately.</p>
+<p>If deletion protection is enabled, disable it first:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">,</span> <span class="n">deletion_protection</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.IndexModel</span></code> — full index response model</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.IndexList</span></code> — list response model</p></li>
+<li><p>:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/indexes/pod</span></code> — pod-based index management</p></li>
+<li><p>:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/indexes/backups-and-restore</span></code> — create and restore backups</p></li>
+</ul>
+</section>
 </section>
 
         </article>
@@ -299,7 +421,7 @@
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Pod Indexes</div>
+                <div class="title">Working with Pod-Based Indexes</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -332,8 +454,36 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Working with Serverless Indexes</a><ul>
+<li><a class="reference internal" href="#create-a-serverless-index">Create a serverless index</a><ul>
+<li><a class="reference internal" href="#supported-clouds-and-regions">Supported clouds and regions</a></li>
+<li><a class="reference internal" href="#enable-deletion-protection">Enable deletion protection</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#check-index-status">Check index status</a></li>
+<li><a class="reference internal" href="#list-indexes">List indexes</a></li>
+<li><a class="reference internal" href="#describe-an-index">Describe an index</a></li>
+<li><a class="reference internal" href="#delete-an-index">Delete an index</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

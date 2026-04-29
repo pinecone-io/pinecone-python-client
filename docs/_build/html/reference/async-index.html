@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../how-to/index.html">How-To</a><input aria-label="Toggle navigation of How-To" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="sync-index.html">Index</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 </ul>
 
@@ -354,7 +354,7 @@
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>PineconeValueError</strong> – If no API key can be resolved or the host is invalid.</p>
+<dd class="field-even"><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If no API key can be resolved or the host is invalid.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -412,19 +412,19 @@ explicit namespace (must be non-empty).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpsertRecordsResponse</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.responses.UpsertRecordsResponse" title="pinecone.models.vectors.responses.UpsertRecordsResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpsertRecordsResponse</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">UpsertRecordsResponse</span></code> with the count of records submitted.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If namespace is not a string or is empty/whitespace,
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If namespace is not a string or is empty/whitespace,
     records is empty, or a record is missing an identifier field.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -459,7 +459,7 @@ overwritten.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vectors</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="#pinecone.async_client.async_index.AsyncIndex.list" title="pinecone.async_client.async_index.AsyncIndex.list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]] | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="#pinecone.async_client.async_index.AsyncIndex.list" title="pinecone.async_client.async_index.AsyncIndex.list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]] | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span>) – Sequence of vectors to upsert. Each element can be a
+<li><p><strong>vectors</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence</span></code></a>[<a class="reference internal" href="models.html#pinecone.models.vectors.vector.Vector" title="pinecone.models.vectors.vector.Vector"><code class="xref py py-class docutils literal notranslate"><span class="pre">Vector</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="#pinecone.async_client.async_index.AsyncIndex.list" title="pinecone.async_client.async_index.AsyncIndex.list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]] | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="#pinecone.async_client.async_index.AsyncIndex.list" title="pinecone.async_client.async_index.AsyncIndex.list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]] | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span>) – Sequence of vectors to upsert. Each element can be a
 <code class="docutils literal notranslate"><span class="pre">Vector</span></code> instance, a tuple of <code class="docutils literal notranslate"><span class="pre">(id,</span> <span class="pre">values)</span></code> or
 <code class="docutils literal notranslate"><span class="pre">(id,</span> <span class="pre">values,</span> <span class="pre">metadata)</span></code>, or a dict with <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">values</span></code>,
 and optional <code class="docutils literal notranslate"><span class="pre">sparse_values</span></code> / <code class="docutils literal notranslate"><span class="pre">metadata</span></code> keys.</p></li>
@@ -469,19 +469,19 @@ and optional <code class="docutils literal notranslate"><span class="pre">sparse
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpsertResponse</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.responses.UpsertResponse" title="pinecone.models.vectors.responses.UpsertResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpsertResponse</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">UpsertResponse</span></code> with the count of vectors upserted.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeTypeError</strong> – If a vector element is not a recognized format.</p></li>
-<li><p><strong>PineconeValueError</strong> – If a vector element is malformed.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTypeError" title="pinecone.errors.exceptions.PineconeTypeError"><strong>PineconeTypeError</strong></a> – If a vector element is not a recognized format.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If a vector element is malformed.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -532,11 +532,11 @@ bulk loading from cloud storage.</p>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.14)"><strong>NotImplementedError</strong></a> – Always.</p></li>
-<li><p><strong>PineconeValueError</strong> – If <em>batch_size</em> is not a positive integer.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If <em>batch_size</em> is not a positive integer.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpsertResponse</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.responses.UpsertResponse" title="pinecone.models.vectors.responses.UpsertResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpsertResponse</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -563,7 +563,7 @@ bulk loading from cloud storage.</p>
 <li><p><strong>filter</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Metadata filter expression.</p></li>
 <li><p><strong>include_values</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Whether to include vector values in results.</p></li>
 <li><p><strong>include_metadata</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Whether to include metadata in results.</p></li>
-<li><p><strong>sparse_vector</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">SparseValues</span></code> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Sparse query vector
+<li><p><strong>sparse_vector</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.sparse.SparseValues" title="pinecone.models.vectors.sparse.SparseValues"><code class="xref py py-class docutils literal notranslate"><span class="pre">SparseValues</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Sparse query vector
 with indices and values.</p></li>
 <li><p><strong>scan_factor</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – DRN optimization — adjusts how much of the
 index is scanned. Range 0.5–4.0. Only supported for dedicated read
@@ -575,19 +575,19 @@ None uses server default.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueryResponse</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.responses.QueryResponse" title="pinecone.models.vectors.responses.QueryResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueryResponse</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">QueryResponse</span></code> with matches, namespace, and usage info.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If top_k &lt; 1, both vector and id are provided,
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If top_k &lt; 1, both vector and id are provided,
     or none of vector, id, or sparse_vector are provided.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -632,7 +632,7 @@ are removed while preserving order.</p></li>
 <li><p><strong>filter</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Metadata filter expression applied to every namespace.</p></li>
 <li><p><strong>include_values</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Whether to include vector values in results.</p></li>
 <li><p><strong>include_metadata</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Whether to include metadata in results.</p></li>
-<li><p><strong>sparse_vector</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">SparseValues</span></code> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Sparse query vector with indices and values.
+<li><p><strong>sparse_vector</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.sparse.SparseValues" title="pinecone.models.vectors.sparse.SparseValues"><code class="xref py py-class docutils literal notranslate"><span class="pre">SparseValues</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Sparse query vector with indices and values.
 Required for sparse-only indexes when <em>vector</em> is omitted.</p></li>
 <li><p><strong>scan_factor</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – DRN performance tuning — controls how much of the
 index is scanned during a query. Higher values scan more
@@ -643,7 +643,7 @@ candidate vectors to consider during the search phase.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueryNamespacesResults</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.query_aggregator.QueryNamespacesResults" title="pinecone.models.vectors.query_aggregator.QueryNamespacesResults"><code class="xref py py-class docutils literal notranslate"><span class="pre">QueryNamespacesResults</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">QueryNamespacesResults</span></code> with the merged top-k matches, total
@@ -651,13 +651,13 @@ usage, and per-namespace usage.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If <em>namespaces</em> is empty, or if both
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If <em>namespaces</em> is empty, or if both
     <em>vector</em> and <em>sparse_vector</em> are absent/empty.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If <em>metric</em> is not a recognized value.</p></li>
-<li><p><strong>ApiError</strong> – If any individual namespace query fails.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If any individual namespace query fails.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -697,7 +697,7 @@ usage, and per-namespace usage.</p>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">FetchResponse</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.responses.FetchResponse" title="pinecone.models.vectors.responses.FetchResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">FetchResponse</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">FetchResponse</span></code> with a map of vector IDs to Vector objects, namespace,
@@ -706,11 +706,11 @@ than raising an error.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If ids is empty.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If ids is empty.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -743,14 +743,14 @@ next page. When <code class="docutils literal notranslate"><span class="pre">Non
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">FetchByMetadataResponse</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.responses.FetchByMetadataResponse" title="pinecone.models.vectors.responses.FetchByMetadataResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">FetchByMetadataResponse</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">FetchByMetadataResponse</span></code> with matched vectors, namespace, usage,
 and pagination token for the next page (if any).</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ApiError</strong> – If the API returns an error response (e.g. authentication
+<dd class="field-even"><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response (e.g. authentication
     failure or server error).</p>
 </dd>
 </dl>
@@ -799,11 +799,11 @@ Deleting IDs that do not exist does not raise an error.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If zero or more than one deletion mode is specified.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If zero or more than one deletion mode is specified.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -826,7 +826,7 @@ await idx.delete(filter={“category”: {“$eq”: “obsolete”}})</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>id</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – ID of the vector to update.</p></li>
 <li><p><strong>values</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pinecone.async_client.async_index.AsyncIndex.list" title="pinecone.async_client.async_index.AsyncIndex.list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – New dense vector values.</p></li>
-<li><p><strong>sparse_values</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">SparseValues</span></code> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – New sparse vector.</p></li>
+<li><p><strong>sparse_values</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.sparse.SparseValues" title="pinecone.models.vectors.sparse.SparseValues"><code class="xref py py-class docutils literal notranslate"><span class="pre">SparseValues</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – New sparse vector.</p></li>
 <li><p><strong>set_metadata</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Metadata fields to set or overwrite.</p></li>
 <li><p><strong>namespace</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Namespace to target. Defaults to the default namespace.</p></li>
 <li><p><strong>filter</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Metadata filter expression selecting vectors to update.</p></li>
@@ -836,18 +836,18 @@ affected without applying changes.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateResponse</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.responses.UpdateResponse" title="pinecone.models.vectors.responses.UpdateResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateResponse</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">UpdateResponse</span></code> with matched_records count (when available).</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If both or neither of id and filter are provided.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If both or neither of id and filter are provided.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -876,7 +876,7 @@ server-side), a raw vector, or an existing record ID as the query.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>namespace</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Namespace to search in (required).</p></li>
 <li><p><strong>top_k</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Number of results to return (must be &gt;= 1).</p></li>
-<li><p><strong>inputs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">SearchInputs</span></code> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Inputs for
+<li><p><strong>inputs</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.search.SearchInputs" title="pinecone.models.vectors.search.SearchInputs"><code class="xref py py-class docutils literal notranslate"><span class="pre">SearchInputs</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Inputs for
 server-side embedding (e.g. <code class="docutils literal notranslate"><span class="pre">{&quot;text&quot;:</span> <span class="pre">&quot;query</span> <span class="pre">text&quot;}</span></code>).
 Use <code class="xref py py-class docutils literal notranslate"><span class="pre">SearchInputs</span></code> for typed key validation and IDE
 autocompletion (e.g. <code class="docutils literal notranslate"><span class="pre">SearchInputs(text=&quot;query</span> <span class="pre">text&quot;)</span></code>).</p></li>
@@ -885,7 +885,7 @@ autocompletion (e.g. <code class="docutils literal notranslate"><span class="pre
 <li><p><strong>filter</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Metadata filter expression.</p></li>
 <li><p><strong>fields</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#pinecone.async_client.async_index.AsyncIndex.list" title="pinecone.async_client.async_index.AsyncIndex.list"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Field names to include in results.
 When <code class="docutils literal notranslate"><span class="pre">None</span></code>, the server returns all available fields.</p></li>
-<li><p><strong>rerank</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">RerankConfig</span></code> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Reranking
+<li><p><strong>rerank</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.search.RerankConfig" title="pinecone.models.vectors.search.RerankConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">RerankConfig</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span>) – Reranking
 configuration with <code class="docutils literal notranslate"><span class="pre">model</span></code> (required), <code class="docutils literal notranslate"><span class="pre">rank_fields</span></code>
 (required), and optional <code class="docutils literal notranslate"><span class="pre">top_n</span></code>, <code class="docutils literal notranslate"><span class="pre">parameters</span></code>, <code class="docutils literal notranslate"><span class="pre">query</span></code>
 keys. Use <code class="xref py py-class docutils literal notranslate"><span class="pre">RerankConfig</span></code> for IDE autocompletion.</p></li>
@@ -898,19 +898,19 @@ for sparse indexes using <code class="docutils literal notranslate"><span class=
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">SearchRecordsResponse</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.search.SearchRecordsResponse" title="pinecone.models.vectors.search.SearchRecordsResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">SearchRecordsResponse</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">SearchRecordsResponse</span></code> with hits and usage statistics.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">namespace</span></code> is not a string, <code class="docutils literal notranslate"><span class="pre">top_k</span> <span class="pre">&lt;</span> <span class="pre">1</span></code>,
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">namespace</span></code> is not a string, <code class="docutils literal notranslate"><span class="pre">top_k</span> <span class="pre">&lt;</span> <span class="pre">1</span></code>,
     or <code class="docutils literal notranslate"><span class="pre">rerank</span></code> is missing required keys.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -933,18 +933,18 @@ for sparse indexes using <code class="docutils literal notranslate"><span class=
 <p>Prefer calling <a class="reference internal" href="#pinecone.async_client.async_index.AsyncIndex.search" title="pinecone.async_client.async_index.AsyncIndex.search"><code class="xref py py-meth docutils literal notranslate"><span class="pre">search()</span></code></a> directly — this alias exists for backwards compatibility.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">SearchRecordsResponse</span></code></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.search.SearchRecordsResponse" title="pinecone.models.vectors.search.SearchRecordsResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">SearchRecordsResponse</span></code></a></span></p>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
 <li><p><strong>namespace</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
 <li><p><strong>top_k</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
-<li><p><strong>inputs</strong> (<em>SearchInputs</em><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>inputs</strong> (<a class="reference internal" href="models.html#pinecone.models.vectors.search.SearchInputs" title="pinecone.models.vectors.search.SearchInputs"><em>SearchInputs</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
 <li><p><strong>vector</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
 <li><p><strong>id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
 <li><p><strong>filter</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
 <li><p><strong>fields</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
-<li><p><strong>rerank</strong> (<em>RerankConfig</em><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>rerank</strong> (<a class="reference internal" href="models.html#pinecone.models.vectors.search.RerankConfig" title="pinecone.models.vectors.search.RerankConfig"><em>RerankConfig</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
 <li><p><strong>match_terms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
 <li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
@@ -967,15 +967,15 @@ for sparse indexes using <code class="docutils literal notranslate"><span class=
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListResponse</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.responses.ListResponse" title="pinecone.models.vectors.responses.ListResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListResponse</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ListResponse</span></code> with vector IDs, pagination info, namespace, and usage.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If inputs are invalid.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If inputs are invalid.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1006,7 +1006,7 @@ follows pagination tokens until all pages have been retrieved.</p>
 <dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ListResponse</span></code> for each page of results.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.AsyncIterator" title="(in Python v3.14)"><em>AsyncIterator</em></a>[<em>ListResponse</em>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.AsyncIterator" title="(in Python v3.14)"><em>AsyncIterator</em></a>[<a class="reference internal" href="models.html#pinecone.models.vectors.responses.ListResponse" title="pinecone.models.vectors.responses.ListResponse"><em>ListResponse</em></a>]</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -1034,7 +1034,7 @@ provided, only vectors matching the filter are counted.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DescribeIndexStatsResponse</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.vectors.responses.DescribeIndexStatsResponse" title="pinecone.models.vectors.responses.DescribeIndexStatsResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">DescribeIndexStatsResponse</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DescribeIndexStatsResponse</span></code> with namespace summaries, dimension,
@@ -1042,10 +1042,10 @@ total vector count, and fullness metrics.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1074,19 +1074,19 @@ with metadata field indexing settings.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamespaceDescription</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.namespaces.models.NamespaceDescription" title="pinecone.models.namespaces.models.NamespaceDescription"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamespaceDescription</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">NamespaceDescription</span></code> with the namespace name and record count.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If the name is not a string or is empty/whitespace.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response (e.g. 409 conflict
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If the name is not a string or is empty/whitespace.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response (e.g. 409 conflict
     when namespace already exists).</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1104,7 +1104,7 @@ print(ns.name, ns.record_count)</p>
 <dd class="field-odd"><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Name of the namespace to describe.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamespaceDescription</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.namespaces.models.NamespaceDescription" title="pinecone.models.namespaces.models.NamespaceDescription"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamespaceDescription</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">NamespaceDescription</span></code> with the namespace name, record count,
@@ -1112,11 +1112,11 @@ and schema information.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If the name is not a string or is empty/whitespace.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If the name is not a string or is empty/whitespace.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1144,11 +1144,11 @@ print(ns.name, ns.record_count)</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If the name is not a string or is empty/whitespace.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If the name is not a string or is empty/whitespace.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1169,14 +1169,14 @@ print(ns.name, ns.record_count)</p>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListNamespacesResponse</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.namespaces.models.ListNamespacesResponse" title="pinecone.models.namespaces.models.ListNamespacesResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListNamespacesResponse</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ListNamespacesResponse</span></code> with namespace descriptions, pagination info,
 and total count.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ApiError</strong> – If the API returns an error response.</p>
+<dd class="field-even"><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -1205,7 +1205,7 @@ retrieved.</p>
 <dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ListNamespacesResponse</span></code> for each page of results.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.AsyncIterator" title="(in Python v3.14)"><em>AsyncIterator</em></a>[<em>ListNamespacesResponse</em>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.AsyncIterator" title="(in Python v3.14)"><em>AsyncIterator</em></a>[<a class="reference internal" href="models.html#pinecone.models.namespaces.models.ListNamespacesResponse" title="pinecone.models.namespaces.models.ListNamespacesResponse"><em>ListNamespacesResponse</em></a>]</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -1244,7 +1244,7 @@ for the required Parquet schema and supported storage formats.</p>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">StartImportResponse</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.imports.model.StartImportResponse" title="pinecone.models.imports.model.StartImportResponse"><code class="xref py py-class docutils literal notranslate"><span class="pre">StartImportResponse</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">StartImportResponse</span></code> with the ID of the created import
@@ -1252,11 +1252,11 @@ operation.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">error_mode</span></code> is not <code class="docutils literal notranslate"><span class="pre">&quot;continue&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;abort&quot;</span></code>.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">error_mode</span></code> is not <code class="docutils literal notranslate"><span class="pre">&quot;continue&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;abort&quot;</span></code>.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1301,18 +1301,18 @@ batches (single request per call).</p></li>
 <dd class="field-odd"><p><strong>id</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Import operation ID. Integers are converted to strings silently.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportModel</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.imports.model.ImportModel" title="pinecone.models.imports.model.ImportModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportModel</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportModel</span></code> with the import operation details.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If the ID is empty or exceeds 1000 characters.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If the ID is empty or exceeds 1000 characters.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1337,11 +1337,11 @@ print(import_op.status, import_op.percent_complete)</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>PineconeValueError</strong> – If the ID is empty or exceeds 1000 characters.</p></li>
-<li><p><strong>ApiError</strong> – If the API returns an error response.</p></li>
-<li><p><strong>PineconeConnectionError</strong> – If a network-level connection
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><strong>PineconeValueError</strong></a> – If the ID is empty or exceeds 1000 characters.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeConnectionError" title="pinecone.errors.exceptions.PineconeConnectionError"><strong>PineconeConnectionError</strong></a> – If a network-level connection
     fails (DNS, refused, transport error).</p></li>
-<li><p><strong>PineconeTimeoutError</strong> – If the request exceeds the configured timeout.</p></li>
+<li><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.PineconeTimeoutError" title="pinecone.errors.exceptions.PineconeTimeoutError"><strong>PineconeTimeoutError</strong></a> – If the request exceeds the configured timeout.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1368,10 +1368,10 @@ from a previous call.</p></li>
 <dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportModel</span></code> for each import operation.</p>
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ApiError</strong> – If the API returns an error response.</p>
+<dd class="field-odd"><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.AsyncIterator" title="(in Python v3.14)"><em>AsyncIterator</em></a>[<em>ImportModel</em>]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.AsyncIterator" title="(in Python v3.14)"><em>AsyncIterator</em></a>[<a class="reference internal" href="models.html#pinecone.models.imports.model.ImportModel" title="pinecone.models.imports.model.ImportModel"><em>ImportModel</em></a>]</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
@@ -1396,13 +1396,13 @@ fetch the next page.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportList</span></code></span></p>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="models.html#pinecone.models.imports.list.ImportList" title="pinecone.models.imports.list.ImportList"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportList</span></code></a></span></p>
 </dd>
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">ImportList</span></code> with the import operations for the requested page.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>ApiError</strong> – If the API returns an error response.</p>
+<dd class="field-even"><p><a class="reference internal" href="exceptions.html#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><strong>ApiError</strong></a> – If the API returns an error response.</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>

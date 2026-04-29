@@ -17,14 +17,6 @@ pip install pinecone
 uv add pinecone
 ```
 
-## Optional extras
-
-Install the gRPC transport for higher-throughput data-plane operations:
-
-```bash
-pip install "pinecone[grpc]"
-```
-
 ## Verify the installation
 
 ```bash

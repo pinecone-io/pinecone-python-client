@@ -6,7 +6,7 @@
 <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="FAQ" href="../faq.html"><link rel="prev" title="Exceptions" href="../reference/exceptions.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>v9 Migration Guide - Pinecone 9.0.0 documentation</title>
+        <title>Migrating from v8.x to v9.x - Pinecone 9.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../how-to/index.html">How-To</a><input aria-label="Toggle navigation of How-To" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul class="current">
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">v9 Migration Guide</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,231 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="v9-migration-guide">
-<h1>v9 Migration Guide<a class="headerlink" href="#v9-migration-guide" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+          <section id="migrating-from-v8-x-to-v9-x">
+<h1>Migrating from v8.x to v9.x<a class="headerlink" href="#migrating-from-v8-x-to-v9-x" title="Link to this heading">¶</a></h1>
+<p>v9 is a ground-up rewrite focused on simplicity, performance, and type safety. This guide
+covers the breaking changes and shows you the v9 equivalent for each v8 pattern.</p>
+<section id="key-changes">
+<h2>Key changes<a class="headerlink" href="#key-changes" title="Link to this heading">¶</a></h2>
+<section id="namespace-pattern-for-control-plane-operations">
+<h3>1. Namespace pattern for control-plane operations<a class="headerlink" href="#namespace-pattern-for-control-plane-operations" title="Link to this heading">¶</a></h3>
+<p>In v8, control-plane methods lived directly on the <code class="docutils literal notranslate"><span class="pre">Pinecone</span></code> client:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># v8</span>
+<span class="n">pc</span><span class="o">.</span><span class="n">create_index</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my-index&quot;</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1536</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span> <span class="n">spec</span><span class="o">=...</span><span class="p">)</span>
+<span class="n">indexes</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">list_indexes</span><span class="p">()</span>
+<span class="n">pc</span><span class="o">.</span><span class="n">delete_index</span><span class="p">(</span><span class="s2">&quot;my-index&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In v9, they are grouped under namespace properties:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># v9</span>
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my-index&quot;</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="mi">1536</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span> <span class="n">spec</span><span class="o">=...</span><span class="p">)</span>
+<span class="n">indexes</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;my-index&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The same pattern applies to collections, backups, and inference:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pc</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">pc</span><span class="o">.</span><span class="n">backups</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+<span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="async-client-rename">
+<h3>2. Async client rename<a class="headerlink" href="#async-client-rename" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">PineconeAsyncio</span></code> is renamed to <code class="docutils literal notranslate"><span class="pre">AsyncPinecone</span></code>. The old name still works but is
+deprecated and will be removed in a future release.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># v8</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">PineconeAsyncio</span>
+<span class="k">async</span> <span class="k">with</span> <span class="n">PineconeAsyncio</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pc</span><span class="p">:</span>
+    <span class="o">...</span>
+
+<span class="c1"># v9</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncPinecone</span>
+<span class="k">async</span> <span class="k">with</span> <span class="n">AsyncPinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pc</span><span class="p">:</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="response-models">
+<h3>3. Response models<a class="headerlink" href="#response-models" title="Link to this heading">¶</a></h3>
+<p>v8 returned a mix of plain dicts and Pydantic models. v9 returns <code class="docutils literal notranslate"><span class="pre">msgspec.Struct</span></code> instances.
+Field access is identical—<code class="docutils literal notranslate"><span class="pre">idx.name</span></code>, <code class="docutils literal notranslate"><span class="pre">idx.dimension</span></code>—but the objects are immutable.
+<code class="docutils literal notranslate"><span class="pre">dict()</span></code> no longer works; use <code class="docutils literal notranslate"><span class="pre">msgspec.structs.asdict(idx)</span></code> if you need a dict.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># v9 — field access is unchanged</span>
+<span class="n">idx</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="s2">&quot;my-index&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>        <span class="c1"># works</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">dimension</span><span class="p">)</span>   <span class="c1"># works</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">idx</span><span class="p">))</span>       <span class="c1"># TypeError — structs are not dict-convertible</span>
+</pre></div>
+</div>
+</section>
+<section id="http-transport-httpx-replaces-urllib3">
+<h3>4. HTTP transport: httpx replaces urllib3<a class="headerlink" href="#http-transport-httpx-replaces-urllib3" title="Link to this heading">¶</a></h3>
+<p>The SDK uses <code class="docutils literal notranslate"><span class="pre">httpx</span></code> with HTTP/2 instead of <code class="docutils literal notranslate"><span class="pre">urllib3</span></code>. Retry behavior is now configured
+with <code class="docutils literal notranslate"><span class="pre">RetryConfig</span></code> passed at client construction:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># v8 — retry parameters were keyword args on the client</span>
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># v9</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span><span class="p">,</span> <span class="n">RetryConfig</span>
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span>
+    <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+    <span class="n">retry_config</span><span class="o">=</span><span class="n">RetryConfig</span><span class="p">(</span><span class="n">max_retries</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">backoff_factor</span><span class="o">=</span><span class="mf">1.5</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="grpc-rust-extension-replaces-grpcio">
+<h3>5. gRPC: Rust extension replaces grpcio<a class="headerlink" href="#grpc-rust-extension-replaces-grpcio" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">GrpcIndex</span></code> is now backed by a compiled Rust extension instead of the Python <code class="docutils literal notranslate"><span class="pre">grpcio</span></code>
+package. You do not need to install <code class="docutils literal notranslate"><span class="pre">grpcio</span></code> or <code class="docutils literal notranslate"><span class="pre">grpcio-tools</span></code>. The interface—<code class="docutils literal notranslate"><span class="pre">upsert</span></code>,
+<code class="docutils literal notranslate"><span class="pre">query</span></code>, <code class="docutils literal notranslate"><span class="pre">fetch</span></code>, <code class="docutils literal notranslate"><span class="pre">delete</span></code>—is unchanged.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># v9 — interface is the same; no grpcio dependency required</span>
+<span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">GrpcIndex</span><span class="p">(</span><span class="s2">&quot;my-index&quot;</span><span class="p">)</span>
+<span class="n">index</span><span class="o">.</span><span class="n">upsert</span><span class="p">(</span><span class="n">vectors</span><span class="o">=</span><span class="p">[</span><span class="o">...</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+<section id="import-paths">
+<h3>6. Import paths<a class="headerlink" href="#import-paths" title="Link to this heading">¶</a></h3>
+<p>Most public classes are still importable directly from <code class="docutils literal notranslate"><span class="pre">pinecone</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span><span class="p">,</span> <span class="n">AsyncPinecone</span><span class="p">,</span> <span class="n">Index</span><span class="p">,</span> <span class="n">GrpcIndex</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">ServerlessSpec</span><span class="p">,</span> <span class="n">PodSpec</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConflictError</span><span class="p">,</span> <span class="n">NotFoundException</span><span class="p">,</span> <span class="n">ForbiddenException</span>
+</pre></div>
+</div>
+<p>Deep imports (<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">pinecone.core.client.api...</span></code>) are no longer supported. Use the
+top-level package instead.</p>
+</section>
+<section id="python-version-requirement">
+<h3>7. Python version requirement<a class="headerlink" href="#python-version-requirement" title="Link to this heading">¶</a></h3>
+<p>Python 3.9 support is dropped. The minimum supported version is Python 3.10.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="v8-v9-migration-table">
+<h2>v8 → v9 migration table<a class="headerlink" href="#v8-v9-migration-table" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation</p></th>
+<th class="head"><p>v8</p></th>
+<th class="head"><p>v9</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Create index</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.create_index(name=...,</span> <span class="pre">dimension=...,</span> <span class="pre">spec=...)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.indexes.create(name=...,</span> <span class="pre">dimension=...,</span> <span class="pre">spec=...)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>List indexes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.list_indexes()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.indexes.list()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Describe index</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.describe_index(&quot;name&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.indexes.describe(&quot;name&quot;)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Delete index</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.delete_index(&quot;name&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.indexes.delete(&quot;name&quot;)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Configure index</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.configure_index(&quot;name&quot;,</span> <span class="pre">...)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.indexes.configure(&quot;name&quot;,</span> <span class="pre">...)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Check index exists</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.describe_index(&quot;name&quot;)</span></code> + try/except</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.indexes.exists(&quot;name&quot;)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Get data-plane index</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.Index(&quot;name&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.Index(&quot;name&quot;)</span></code> <em>(unchanged)</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>Get gRPC index</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.GrpcIndex(&quot;name&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.GrpcIndex(&quot;name&quot;)</span></code> <em>(unchanged)</em></p></td>
+</tr>
+<tr class="row-even"><td><p>Create collection</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.create_collection(name=...,</span> <span class="pre">source=...)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.collections.create(name=...,</span> <span class="pre">source=...)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>List collections</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.list_collections()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.collections.list()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Delete collection</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.delete_collection(&quot;name&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.collections.delete(&quot;name&quot;)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Upsert vectors</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">index.upsert(vectors=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">index.upsert(vectors=[...])</span></code> <em>(unchanged)</em></p></td>
+</tr>
+<tr class="row-even"><td><p>Query vectors</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">index.query(vector=[...],</span> <span class="pre">top_k=10)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">index.query(vector=[...],</span> <span class="pre">top_k=10)</span></code> <em>(unchanged)</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>Fetch vectors</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">index.fetch(ids=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">index.fetch(ids=[...])</span></code> <em>(unchanged)</em></p></td>
+</tr>
+<tr class="row-even"><td><p>Delete vectors</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">index.delete(ids=[...])</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">index.delete(ids=[...])</span></code> <em>(unchanged)</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>Async client</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PineconeAsyncio(api_key=...)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AsyncPinecone(api_key=...)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Retry config</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Pinecone(retries=3)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Pinecone(retry_config=RetryConfig(max_retries=3))</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Convert response to dict</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict(idx)</span></code> or <code class="docutils literal notranslate"><span class="pre">idx.to_dict()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">msgspec.structs.asdict(idx)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Embed text</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.inference.embed(...)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pc.inference.embed(...)</span></code> <em>(unchanged)</em></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<hr class="docutils" />
+<section id="legacy-aliases">
+<h2>Legacy aliases<a class="headerlink" href="#legacy-aliases" title="Link to this heading">¶</a></h2>
+<p>The following aliases remain importable from <code class="docutils literal notranslate"><span class="pre">pinecone</span></code> but are deprecated:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Deprecated name</p></th>
+<th class="head"><p>Canonical name</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PineconeAsyncio</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AsyncPinecone</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ForbiddenException</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForbiddenException</span></code> <em>(still valid — error class name unchanged)</em></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NotFoundException</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NotFoundException</span></code> <em>(still valid — error class name unchanged)</em></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>These aliases will be removed in a future major release. Update your code to use the
+canonical names.</p>
+</section>
 </section>
 
         </article>
@@ -332,8 +549,38 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Migrating from v8.x to v9.x</a><ul>
+<li><a class="reference internal" href="#key-changes">Key changes</a><ul>
+<li><a class="reference internal" href="#namespace-pattern-for-control-plane-operations">1. Namespace pattern for control-plane operations</a></li>
+<li><a class="reference internal" href="#async-client-rename">2. Async client rename</a></li>
+<li><a class="reference internal" href="#response-models">3. Response models</a></li>
+<li><a class="reference internal" href="#http-transport-httpx-replaces-urllib3">4. HTTP transport: httpx replaces urllib3</a></li>
+<li><a class="reference internal" href="#grpc-rust-extension-replaces-grpcio">5. gRPC: Rust extension replaces grpcio</a></li>
+<li><a class="reference internal" href="#import-paths">6. Import paths</a></li>
+<li><a class="reference internal" href="#python-version-requirement">7. Python version requirement</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#v8-v9-migration-table">v8 → v9 migration table</a></li>
+<li><a class="reference internal" href="#legacy-aliases">Legacy aliases</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

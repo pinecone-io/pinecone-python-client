@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Namespaces" href="namespaces.html"><link rel="prev" title="Upsert and Query" href="upsert-and-query.html">
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Working with Namespaces" href="namespaces.html"><link rel="prev" title="Upserting and Querying Vectors" href="upsert-and-query.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Bulk Import - Pinecone 9.0.0 documentation</title>
+        <title>Bulk Importing Vectors - Pinecone 9.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">How-To</a><input aria-label="Toggle navigation of How-To" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,115 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="bulk-import">
-<h1>Bulk Import<a class="headerlink" href="#bulk-import" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+          <section id="bulk-importing-vectors">
+<h1>Bulk Importing Vectors<a class="headerlink" href="#bulk-importing-vectors" title="Link to this heading">¶</a></h1>
+<p>Bulk import loads vectors from cloud storage (Amazon S3, Google Cloud Storage, or Azure Blob
+Storage) into a Pinecone index. The import runs server-side, so it handles millions of vectors
+without keeping a long-lived client connection open.</p>
+<p>The source must be a directory of Parquet files formatted to the
+<code class="docutils literal notranslate"><span class="pre">Pinecone-required</span> <span class="pre">schema</span> <span class="pre">&lt;https://docs.pinecone.io/guides/data/understanding-imports&gt;</span></code>_.</p>
+<section id="start-an-import">
+<h2>Start an import<a class="headerlink" href="#start-an-import" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.start_import</span></code> initiates the operation and returns immediately with an
+operation ID:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+<span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">start_import</span><span class="p">(</span><span class="n">uri</span><span class="o">=</span><span class="s2">&quot;s3://my-bucket/embeddings/&quot;</span><span class="p">)</span>
+<span class="n">import_id</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">id</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">import_id</span><span class="p">)</span>  <span class="c1"># e.g. &quot;1&quot;</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">uri</span></code> points to a directory prefix, not an individual file.</p>
+</section>
+<section id="handle-errors-during-import">
+<h2>Handle errors during import<a class="headerlink" href="#handle-errors-during-import" title="Link to this heading">¶</a></h2>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">error_mode</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;continue&quot;</span></code> — the server skips records that fail to parse and
+continues importing the rest. Pass <code class="docutils literal notranslate"><span class="pre">error_mode=&quot;abort&quot;</span></code> to stop the entire import on the
+first error:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">start_import</span><span class="p">(</span>
+    <span class="n">uri</span><span class="o">=</span><span class="s2">&quot;s3://my-bucket/embeddings/&quot;</span><span class="p">,</span>
+    <span class="n">error_mode</span><span class="o">=</span><span class="s2">&quot;abort&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also use the :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.ImportErrorMode</span></code> enum:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone.models.imports.error_mode</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImportErrorMode</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">start_import</span><span class="p">(</span>
+    <span class="n">uri</span><span class="o">=</span><span class="s2">&quot;s3://my-bucket/embeddings/&quot;</span><span class="p">,</span>
+    <span class="n">error_mode</span><span class="o">=</span><span class="n">ImportErrorMode</span><span class="o">.</span><span class="n">ABORT</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="check-import-status">
+<h2>Check import status<a class="headerlink" href="#check-import-status" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.describe_import</span></code> returns an :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.ImportModel</span></code>
+with the current state:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">import_op</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">describe_import</span><span class="p">(</span><span class="n">import_id</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">import_op</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>           <span class="c1"># e.g. &quot;InProgress&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">import_op</span><span class="o">.</span><span class="n">percent_complete</span><span class="p">)</span> <span class="c1"># e.g. 42.0</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">import_op</span><span class="o">.</span><span class="n">records_imported</span><span class="p">)</span> <span class="c1"># e.g. 150000</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">status</span></code> is one of: <code class="docutils literal notranslate"><span class="pre">&quot;Pending&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;InProgress&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Completed&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Failed&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Cancelled&quot;</span></code>.</p>
+</section>
+<section id="poll-until-complete">
+<h2>Poll until complete<a class="headerlink" href="#poll-until-complete" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="n">import_op</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">describe_import</span><span class="p">(</span><span class="n">import_id</span><span class="p">)</span>
+<span class="k">while</span> <span class="n">import_op</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;Completed&quot;</span><span class="p">,</span> <span class="s2">&quot;Failed&quot;</span><span class="p">,</span> <span class="s2">&quot;Cancelled&quot;</span><span class="p">):</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">import_op</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">describe_import</span><span class="p">(</span><span class="n">import_id</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">import_op</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;Completed&quot;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Imported </span><span class="si">{</span><span class="n">import_op</span><span class="o">.</span><span class="n">records_imported</span><span class="si">}</span><span class="s2"> records&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Import ended with status: </span><span class="si">{</span><span class="n">import_op</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">import_op</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">import_op</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="list-imports">
+<h2>List imports<a class="headerlink" href="#list-imports" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.list_imports</span></code> yields :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.ImportModel</span></code> objects
+for all imports on the index, following pagination automatically:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">imp</span> <span class="ow">in</span> <span class="n">index</span><span class="o">.</span><span class="n">list_imports</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">imp</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">imp</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">imp</span><span class="o">.</span><span class="n">percent_complete</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Pass <code class="docutils literal notranslate"><span class="pre">limit</span></code> to control the page size (max 100):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">imp</span> <span class="ow">in</span> <span class="n">index</span><span class="o">.</span><span class="n">list_imports</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">imp</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">imp</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="cancel-an-import">
+<h2>Cancel an import<a class="headerlink" href="#cancel-an-import" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.cancel_import</span></code> stops an in-progress import. Already-imported records
+are not rolled back.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span><span class="o">.</span><span class="n">cancel_import</span><span class="p">(</span><span class="n">import_id</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/vectors/upsert-and-query</span></code> — upsert vectors directly in batches</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index</span></code> — full data plane client reference</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.ImportModel</span></code> — import operation model</p></li>
+</ul>
+</section>
 </section>
 
         </article>
@@ -299,7 +400,7 @@
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Namespaces</div>
+                <div class="title">Working with Namespaces</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -310,7 +411,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Upsert and Query</div>
+                <div class="title">Upserting and Querying Vectors</div>
                 
               </div>
             </a>
@@ -332,8 +433,33 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Bulk Importing Vectors</a><ul>
+<li><a class="reference internal" href="#start-an-import">Start an import</a></li>
+<li><a class="reference internal" href="#handle-errors-during-import">Handle errors during import</a></li>
+<li><a class="reference internal" href="#check-import-status">Check import status</a></li>
+<li><a class="reference internal" href="#poll-until-complete">Poll until complete</a></li>
+<li><a class="reference internal" href="#list-imports">List imports</a></li>
+<li><a class="reference internal" href="#cancel-an-import">Cancel an import</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

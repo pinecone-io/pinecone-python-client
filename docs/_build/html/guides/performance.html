@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Guides</a><input aria-label="Toggle navigation of Guides" checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pagination.html">Pagination</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../how-to/index.html">How-To</a><input aria-label="Toggle navigation of How-To" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,169 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
           <section id="performance">
 <h1>Performance<a class="headerlink" href="#performance" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+<p>The SDK is designed for low overhead. This page describes the key design choices and
+the patterns that keep your application fast.</p>
+<section id="http-2-multiplexing">
+<h2>HTTP/2 Multiplexing<a class="headerlink" href="#http-2-multiplexing" title="Link to this heading">¶</a></h2>
+<p>The SDK uses <a class="reference external" href="https://www.python-httpx.org/">httpx</a> with the <code class="docutils literal notranslate"><span class="pre">httpx[http2]</span></code> transport.
+HTTP/2 multiplexes multiple requests over a single TCP connection, eliminating the
+per-request connection setup cost that HTTP/1.1 incurs under concurrency.</p>
+<p>This is enabled by default — no configuration required.</p>
+</section>
+<section id="connection-pooling">
+<h2>Connection Pooling<a class="headerlink" href="#connection-pooling" title="Link to this heading">¶</a></h2>
+<p>Both <code class="docutils literal notranslate"><span class="pre">Pinecone</span></code> and <code class="docutils literal notranslate"><span class="pre">Index</span></code> maintain a persistent <code class="docutils literal notranslate"><span class="pre">httpx.Client</span></code> (or <code class="docutils literal notranslate"><span class="pre">httpx.AsyncClient</span></code>
+for the async variants). Creating a new client for every request wastes time on TLS
+handshakes and connection setup.</p>
+<p><strong>Reuse the same <code class="docutils literal notranslate"><span class="pre">Index</span></code> instance</strong> across calls rather than constructing a new one each
+time:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Good — one client, many calls</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">()</span>
+<span class="n">desc</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+<span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">host</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">batches</span><span class="p">:</span>
+    <span class="n">index</span><span class="o">.</span><span class="n">upsert</span><span class="p">(</span><span class="n">vectors</span><span class="o">=</span><span class="n">batch</span><span class="p">)</span>
+
+<span class="c1"># Bad — a new HTTP client for every upsert</span>
+<span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">batches</span><span class="p">:</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">host</span><span class="p">)</span>  <span class="c1"># new client every time</span>
+    <span class="n">index</span><span class="o">.</span><span class="n">upsert</span><span class="p">(</span><span class="n">vectors</span><span class="o">=</span><span class="n">batch</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Use the context manager protocol to ensure connections are released when you are done:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">pc</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">host</span><span class="p">)</span> <span class="k">as</span> <span class="n">index</span><span class="p">:</span>
+    <span class="n">index</span><span class="o">.</span><span class="n">upsert</span><span class="p">(</span><span class="n">vectors</span><span class="o">=</span><span class="n">large_batch</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="fast-serialization-with-msgspec-and-orjson">
+<h2>Fast Serialization with msgspec and orjson<a class="headerlink" href="#fast-serialization-with-msgspec-and-orjson" title="Link to this heading">¶</a></h2>
+<p>Response models are <code class="docutils literal notranslate"><span class="pre">msgspec.Struct</span></code> instances. <code class="docutils literal notranslate"><span class="pre">msgspec</span></code> uses zero-copy deserialization
+and avoids Python object allocation overhead that Pydantic-based models incur. Request
+bodies are serialized with <code class="docutils literal notranslate"><span class="pre">orjson</span></code>, which is typically 5–10× faster than the standard
+library <code class="docutils literal notranslate"><span class="pre">json</span></code> module.</p>
+<p>These libraries are always active — no configuration is needed.</p>
+</section>
+<section id="cold-import-cost">
+<h2>Cold Import Cost<a class="headerlink" href="#cold-import-cost" title="Link to this heading">¶</a></h2>
+<p>The SDK uses lazy imports to keep its cold-start time under 10 ms. Top-level SDK symbols
+(<code class="docutils literal notranslate"><span class="pre">Pinecone</span></code>, <code class="docutils literal notranslate"><span class="pre">AsyncPinecone</span></code>, etc.) are available as soon as you import <code class="docutils literal notranslate"><span class="pre">pinecone</span></code>, but
+heavy optional dependencies (gRPC, pandas, tqdm) are only imported when you actually use
+them.</p>
+<p>If your application is latency-sensitive at startup, avoid importing <code class="docutils literal notranslate"><span class="pre">pinecone</span></code> in
+module-level code that runs before it is needed:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fine — deferred to first use</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_index</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Index</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+    <span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">pc</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="batching">
+<h2>Batching<a class="headerlink" href="#batching" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Index.upsert()</span></code> sends all provided vectors in a single request. For very large datasets,
+split vectors into chunks of 100–1000 and upsert each chunk separately:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">500</span>
+
+<span class="n">all_vectors</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>  <span class="c1"># your full list</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_vectors</span><span class="p">),</span> <span class="n">BATCH_SIZE</span><span class="p">):</span>
+    <span class="n">batch</span> <span class="o">=</span> <span class="n">all_vectors</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">BATCH_SIZE</span><span class="p">]</span>
+    <span class="n">index</span><span class="o">.</span><span class="n">upsert</span><span class="p">(</span><span class="n">vectors</span><span class="o">=</span><span class="n">batch</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Index.upsert_records()</span></code> works the same way for integrated-inference indexes.</p>
+<p>For the highest throughput, use the <code class="docutils literal notranslate"><span class="pre">GrpcIndex</span></code> with <code class="docutils literal notranslate"><span class="pre">upsert_async()</span></code> so batches are
+submitted concurrently:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">as_completed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone.grpc</span><span class="w"> </span><span class="kn">import</span> <span class="n">GrpcIndex</span>
+
+<span class="k">with</span> <span class="n">GrpcIndex</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s2">&quot;product-search-abc123.svc.pinecone.io&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">index</span><span class="p">:</span>
+    <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">index</span><span class="o">.</span><span class="n">upsert_async</span><span class="p">(</span><span class="n">vectors</span><span class="o">=</span><span class="n">batch</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">batches</span>
+    <span class="p">]</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">result</span><span class="p">()</span><span class="o">.</span><span class="n">upserted_count</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Or use <code class="docutils literal notranslate"><span class="pre">upsert_from_dataframe()</span></code> which handles batching and concurrency automatically:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">upsert_from_dataframe</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="async-concurrency">
+<h2>Async Concurrency<a class="headerlink" href="#async-concurrency" title="Link to this heading">¶</a></h2>
+<p>The async client (<code class="docutils literal notranslate"><span class="pre">AsyncPinecone</span></code> / <code class="docutils literal notranslate"><span class="pre">AsyncIndex</span></code>) allows many concurrent requests over
+the same connection without threads:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncPinecone</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">upsert_batch</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="n">AsyncIndex</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">index</span><span class="o">.</span><span class="n">upsert</span><span class="p">(</span><span class="n">vectors</span><span class="o">=</span><span class="n">batch</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">upserted_count</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">AsyncPinecone</span><span class="p">()</span> <span class="k">as</span> <span class="n">pc</span><span class="p">:</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="k">await</span> <span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">pc</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">desc</span><span class="o">.</span><span class="n">host</span><span class="p">)</span> <span class="k">as</span> <span class="n">index</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+                <span class="o">*</span><span class="p">[</span><span class="n">upsert_batch</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span> <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">batches</span><span class="p">]</span>
+            <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total upserted: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Technique</p></th>
+<th class="head"><p>Where it helps</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>HTTP/2 + httpx</p></td>
+<td><p>All transports, always active</p></td>
+</tr>
+<tr class="row-odd"><td><p>Reuse <code class="docutils literal notranslate"><span class="pre">Index</span></code> instance</p></td>
+<td><p>Eliminate per-call TLS/connection overhead</p></td>
+</tr>
+<tr class="row-even"><td><p>msgspec structs</p></td>
+<td><p>Response deserialization — faster than Pydantic</p></td>
+</tr>
+<tr class="row-odd"><td><p>orjson</p></td>
+<td><p>Request serialization — faster than stdlib <code class="docutils literal notranslate"><span class="pre">json</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Lazy imports</p></td>
+<td><p>Reduce cold-start time</p></td>
+</tr>
+<tr class="row-odd"><td><p>Vector batching</p></td>
+<td><p>Upsert throughput</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GrpcIndex</span></code> + <code class="docutils literal notranslate"><span class="pre">upsert_async()</span></code></p></td>
+<td><p>Highest-throughput bulk upsert</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">AsyncIndex</span></code> + <code class="docutils literal notranslate"><span class="pre">asyncio.gather()</span></code></p></td>
+<td><p>High-concurrency async workloads</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 </section>
 
         </article>
@@ -332,8 +487,33 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Performance</a><ul>
+<li><a class="reference internal" href="#http-2-multiplexing">HTTP/2 Multiplexing</a></li>
+<li><a class="reference internal" href="#connection-pooling">Connection Pooling</a></li>
+<li><a class="reference internal" href="#fast-serialization-with-msgspec-and-orjson">Fast Serialization with msgspec and orjson</a></li>
+<li><a class="reference internal" href="#cold-import-cost">Cold Import Cost</a></li>
+<li><a class="reference internal" href="#batching">Batching</a></li>
+<li><a class="reference internal" href="#async-concurrency">Async Concurrency</a></li>
+<li><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

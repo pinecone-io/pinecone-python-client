@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Serverless Indexes" href="indexes/serverless.html"><link rel="prev" title="Performance" href="../guides/performance.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Working with Serverless Indexes" href="indexes/serverless.html"><link rel="prev" title="Performance" href="../guides/performance.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>How-To - Pinecone 9.0.0 documentation</title>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children current-page"><a class="current reference internal" href="#">How-To</a><input aria-label="Toggle navigation of How-To" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 </ul>
 
@@ -288,16 +288,16 @@
 <h1>How-To<a class="headerlink" href="#how-to" title="Link to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l1"><a class="reference internal" href="vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l1"><a class="reference internal" href="vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l1"><a class="reference internal" href="vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l1"><a class="reference internal" href="inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="inference/reranking.html">Reranking</a></li>
-<li class="toctree-l1"><a class="reference internal" href="integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l1"><a class="reference internal" href="collections.html">Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="collections.html">Working with Collections</a></li>
 </ul>
 </div>
 </section>
@@ -312,7 +312,7 @@
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Serverless Indexes</div>
+                <div class="title">Working with Serverless Indexes</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>

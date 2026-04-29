@@ -5,13 +5,7 @@ transport backed by a native Rust extension (`pinecone._grpc`). For bulk upsert 
 high-throughput workloads, gRPC typically delivers better performance than the default
 REST client because it uses binary serialization and HTTP/2 multiplexing.
 
-## Installation
-
-Install the `grpc` extra to pull in the Rust extension:
-
-```bash
-pip install "pinecone[grpc]"
-```
+gRPC transport is included in the base `pinecone` package — no extra install required.
 
 ## Creating a GrpcIndex
 

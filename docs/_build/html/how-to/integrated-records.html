@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Collections" href="collections.html"><link rel="prev" title="Reranking" href="inference/reranking.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Working with Collections" href="collections.html"><link rel="prev" title="Reranking Results" href="inference/reranking.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Integrated Records - Pinecone 9.0.0 documentation</title>
+        <title>Integrated Records (Server-Side Embedding) - Pinecone 9.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">How-To</a><input aria-label="Toggle navigation of How-To" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,169 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="integrated-records">
-<h1>Integrated Records<a class="headerlink" href="#integrated-records" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+          <section id="integrated-records-server-side-embedding">
+<h1>Integrated Records (Server-Side Embedding)<a class="headerlink" href="#integrated-records-server-side-embedding" title="Link to this heading">¶</a></h1>
+<p>Integrated indexes store text records and embed them server-side using a hosted model.
+You write text; Pinecone handles the embedding. No separate <code class="docutils literal notranslate"><span class="pre">embed</span></code> step required.</p>
+<section id="create-an-integrated-index">
+<h2>Create an integrated index<a class="headerlink" href="#create-an-integrated-index" title="Link to this heading">¶</a></h2>
+<p>Use :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.IntegratedSpec</span></code> and provide an :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.EmbedConfig</span></code>
+that maps a document field to the embedding input:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone.models.indexes.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmbedConfig</span><span class="p">,</span> <span class="n">IntegratedSpec</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;articles&quot;</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="n">IntegratedSpec</span><span class="p">(</span>
+        <span class="n">cloud</span><span class="o">=</span><span class="s2">&quot;aws&quot;</span><span class="p">,</span>
+        <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">,</span>
+        <span class="n">embed</span><span class="o">=</span><span class="n">EmbedConfig</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">=</span><span class="s2">&quot;multilingual-e5-large&quot;</span><span class="p">,</span>
+            <span class="n">field_map</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;body&quot;</span><span class="p">},</span>   <span class="c1"># embed the &quot;body&quot; field of each record</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">field_map</span></code> maps the model’s input field name (<code class="docutils literal notranslate"><span class="pre">&quot;text&quot;</span></code> for most models) to the
+field in your records that holds the content to embed.</p>
+<p>Get a handle to the index:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;articles&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="upsert-records">
+<h2>Upsert records<a class="headerlink" href="#upsert-records" title="Link to this heading">¶</a></h2>
+<p>Call :meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.upsert_records</span></code> with a list of record dicts. Each record
+must have an <code class="docutils literal notranslate"><span class="pre">_id</span></code> (or <code class="docutils literal notranslate"><span class="pre">id</span></code>) field. Include any fields you configured in
+<code class="docutils literal notranslate"><span class="pre">field_map</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">upsert_records</span><span class="p">(</span>
+    <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;en&quot;</span><span class="p">,</span>
+    <span class="n">records</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;article-1&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;Vector databases accelerate AI search.&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;article-2&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;RAG pipelines combine retrieval with generation.&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="s2">&quot;article-3&quot;</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="s2">&quot;Pinecone scales to billions of vectors.&quot;</span><span class="p">},</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">record_count</span><span class="p">)</span>   <span class="c1"># number of records submitted</span>
+</pre></div>
+</div>
+<p>Records are sent as newline-delimited JSON (NDJSON). Embeddings are generated
+asynchronously by Pinecone; allow a moment before searching.</p>
+</section>
+<section id="search-records">
+<h2>Search records<a class="headerlink" href="#search-records" title="Link to this heading">¶</a></h2>
+<p>Call :meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.search</span></code> with <code class="docutils literal notranslate"><span class="pre">inputs</span></code> containing the query text. Pinecone
+embeds the query server-side and returns the nearest records:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+    <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;en&quot;</span><span class="p">,</span>
+    <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;AI and machine learning&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">hit</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">hits</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">hit</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">hit</span><span class="o">.</span><span class="n">score</span><span class="p">,</span> <span class="n">hit</span><span class="o">.</span><span class="n">fields</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="response-searchrecordsresponse">
+<h3>Response: SearchRecordsResponse<a class="headerlink" href="#response-searchrecordsresponse" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">search</span></code> returns a :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.vectors.search.SearchRecordsResponse</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.result.hits</span></code> — list of :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.vectors.search.Hit</span></code> objects, ordered
+by descending score.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.usage.read_units</span></code> — read units consumed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.usage.embed_total_tokens</span></code> — tokens used for embedding the query.</p></li>
+</ul>
+<p>Each :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.vectors.search.Hit</span></code> exposes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.id</span></code> — the record identifier.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.score</span></code> — similarity score (higher is more relevant).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.fields</span></code> — dict of record fields returned in the result.</p></li>
+</ul>
+</section>
+<section id="use-searchinputs-for-ide-support">
+<h3>Use SearchInputs for IDE support<a class="headerlink" href="#use-searchinputs-for-ide-support" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone.models.vectors.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">SearchInputs</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+    <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;en&quot;</span><span class="p">,</span>
+    <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="n">SearchInputs</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;AI and machine learning&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="rerank-in-a-single-search-call">
+<h2>Rerank in a single search call<a class="headerlink" href="#rerank-in-a-single-search-call" title="Link to this heading">¶</a></h2>
+<p>Pass a <code class="docutils literal notranslate"><span class="pre">rerank</span></code> config to retrieve and rerank in one request:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone.models.vectors.search</span><span class="w"> </span><span class="kn">import</span> <span class="n">RerankConfig</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+    <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;en&quot;</span><span class="p">,</span>
+    <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;best practices for vector search&quot;</span><span class="p">},</span>
+    <span class="n">rerank</span><span class="o">=</span><span class="n">RerankConfig</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="s2">&quot;bge-reranker-v2-m3&quot;</span><span class="p">,</span>
+        <span class="n">rank_fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">],</span>
+        <span class="n">top_n</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">hit</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">hits</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">hit</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">hit</span><span class="o">.</span><span class="n">score</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">top_k</span></code> controls how many candidates are retrieved; <code class="docutils literal notranslate"><span class="pre">top_n</span></code> controls how many
+survive reranking. The response contains at most <code class="docutils literal notranslate"><span class="pre">top_n</span></code> hits.</p>
+<p>You can also pass a plain dict for <code class="docutils literal notranslate"><span class="pre">rerank</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+    <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;en&quot;</span><span class="p">,</span>
+    <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;best practices&quot;</span><span class="p">},</span>
+    <span class="n">rerank</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;bge-reranker-v2-m3&quot;</span><span class="p">,</span> <span class="s2">&quot;rank_fields&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">],</span> <span class="s2">&quot;top_n&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="filter-by-metadata">
+<h2>Filter by metadata<a class="headerlink" href="#filter-by-metadata" title="Link to this heading">¶</a></h2>
+<p>Pass a <code class="docutils literal notranslate"><span class="pre">filter</span></code> dict to restrict results to records matching metadata conditions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+    <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;en&quot;</span><span class="p">,</span>
+    <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;quantum computing&quot;</span><span class="p">},</span>
+    <span class="nb">filter</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$eq&quot;</span><span class="p">:</span> <span class="s2">&quot;science&quot;</span><span class="p">}},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="select-returned-fields">
+<h2>Select returned fields<a class="headerlink" href="#select-returned-fields" title="Link to this heading">¶</a></h2>
+<p>By default the server returns all record fields. Use <code class="docutils literal notranslate"><span class="pre">fields</span></code> to restrict the response:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+    <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;en&quot;</span><span class="p">,</span>
+    <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;AI research&quot;</span><span class="p">},</span>
+    <span class="n">fields</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">,</span> <span class="s2">&quot;author&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/inference/embeddings</span></code> — generate embeddings manually for non-integrated indexes.</p></li>
+<li><p>:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/inference/reranking</span></code> — rerank results from any source.</p></li>
+</ul>
+</section>
 </section>
 
         </article>
@@ -299,7 +454,7 @@
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Collections</div>
+                <div class="title">Working with Collections</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -310,7 +465,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Reranking</div>
+                <div class="title">Reranking Results</div>
                 
               </div>
             </a>
@@ -332,8 +487,37 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Integrated Records (Server-Side Embedding)</a><ul>
+<li><a class="reference internal" href="#create-an-integrated-index">Create an integrated index</a></li>
+<li><a class="reference internal" href="#upsert-records">Upsert records</a></li>
+<li><a class="reference internal" href="#search-records">Search records</a><ul>
+<li><a class="reference internal" href="#response-searchrecordsresponse">Response: SearchRecordsResponse</a></li>
+<li><a class="reference internal" href="#use-searchinputs-for-ide-support">Use SearchInputs for IDE support</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#rerank-in-a-single-search-call">Rerank in a single search call</a></li>
+<li><a class="reference internal" href="#filter-by-metadata">Filter by metadata</a></li>
+<li><a class="reference internal" href="#select-returned-fields">Select returned fields</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

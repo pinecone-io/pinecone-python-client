@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Upsert and Query" href="../vectors/upsert-and-query.html"><link rel="prev" title="Pod Indexes" href="pod.html">
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Upserting and Querying Vectors" href="../vectors/upsert-and-query.html"><link rel="prev" title="Working with Pod-Based Indexes" href="pod.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Backups and Restore - Pinecone 9.0.0 documentation</title>
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">How-To</a><input aria-label="Toggle navigation of How-To" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,141 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
           <section id="backups-and-restore">
 <h1>Backups and Restore<a class="headerlink" href="#backups-and-restore" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+<p>Backups are point-in-time snapshots of an index. Use them to protect against data loss,
+create copies of an index, or restore a previous state.</p>
+<section id="create-a-backup">
+<h2>Create a backup<a class="headerlink" href="#create-a-backup" title="Link to this heading">¶</a></h2>
+<p>Pass the name of the index you want to back up:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">backup</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">backups</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">backup</span><span class="o">.</span><span class="n">backup_id</span><span class="p">)</span>   <span class="c1"># e.g. &quot;bk-abc123&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">backup</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>      <span class="c1"># e.g. &quot;Initializing&quot;</span>
+</pre></div>
+</div>
+<p>Add a name and description for easier identification:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">backup</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">backups</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;product-search&quot;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pre-reindex-snapshot&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Backup before schema migration on 2025-03-01&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The backup transitions through <code class="docutils literal notranslate"><span class="pre">Initializing</span></code> → <code class="docutils literal notranslate"><span class="pre">Ready</span></code> when complete.</p>
+</section>
+<section id="list-backups">
+<h2>List backups<a class="headerlink" href="#list-backups" title="Link to this heading">¶</a></h2>
+<p>List all backups in the project:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">backup</span> <span class="ow">in</span> <span class="n">pc</span><span class="o">.</span><span class="n">backups</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">backup</span><span class="o">.</span><span class="n">backup_id</span><span class="p">,</span> <span class="n">backup</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">backup</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Filter by index:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">backup</span> <span class="ow">in</span> <span class="n">pc</span><span class="o">.</span><span class="n">backups</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="n">index_name</span><span class="o">=</span><span class="s2">&quot;product-search&quot;</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">backup</span><span class="o">.</span><span class="n">backup_id</span><span class="p">,</span> <span class="n">backup</span><span class="o">.</span><span class="n">created_at</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">list</span></code> returns a :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.backups.list.BackupList</span></code> with cursor-based
+pagination. Pass <code class="docutils literal notranslate"><span class="pre">limit</span></code> to control page size and <code class="docutils literal notranslate"><span class="pre">pagination_token</span></code> to advance pages:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">page</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">backups</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">page</span><span class="o">.</span><span class="n">pagination</span> <span class="ow">and</span> <span class="n">page</span><span class="o">.</span><span class="n">pagination</span><span class="o">.</span><span class="n">next</span><span class="p">:</span>
+    <span class="n">next_page</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">backups</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pagination_token</span><span class="o">=</span><span class="n">page</span><span class="o">.</span><span class="n">pagination</span><span class="o">.</span><span class="n">next</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="describe-a-backup">
+<h2>Describe a backup<a class="headerlink" href="#describe-a-backup" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">backup</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">backups</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="n">backup_id</span><span class="o">=</span><span class="s2">&quot;bk-abc123&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">backup</span><span class="o">.</span><span class="n">source_index_name</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">backup</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">backup</span><span class="o">.</span><span class="n">dimension</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">backup</span><span class="o">.</span><span class="n">metric</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">backup</span><span class="o">.</span><span class="n">record_count</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">backup</span><span class="o">.</span><span class="n">size_bytes</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="restore-a-backup-to-a-new-index">
+<h2>Restore a backup to a new index<a class="headerlink" href="#restore-a-backup-to-a-new-index" title="Link to this heading">¶</a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">create_index_from_backup</span></code> on the top-level client to restore a backup into a new
+index:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">create_index_from_backup</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;product-search-restored&quot;</span><span class="p">,</span>
+    <span class="n">backup_id</span><span class="o">=</span><span class="s2">&quot;bk-abc123&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">index</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">create_index_from_backup</span></code> polls until the new index is ready. Pass <code class="docutils literal notranslate"><span class="pre">timeout=-1</span></code> to
+return immediately:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">create_index_from_backup</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;product-search-restored&quot;</span><span class="p">,</span>
+    <span class="n">backup_id</span><span class="o">=</span><span class="s2">&quot;bk-abc123&quot;</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Enable deletion protection or add tags to the restored index:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">create_index_from_backup</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;product-search-restored&quot;</span><span class="p">,</span>
+    <span class="n">backup_id</span><span class="o">=</span><span class="s2">&quot;bk-abc123&quot;</span><span class="p">,</span>
+    <span class="n">deletion_protection</span><span class="o">=</span><span class="s2">&quot;enabled&quot;</span><span class="p">,</span>
+    <span class="n">tags</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;env&quot;</span><span class="p">:</span> <span class="s2">&quot;production&quot;</span><span class="p">,</span> <span class="s2">&quot;team&quot;</span><span class="p">:</span> <span class="s2">&quot;search&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="monitor-restore-jobs">
+<h2>Monitor restore jobs<a class="headerlink" href="#monitor-restore-jobs" title="Link to this heading">¶</a></h2>
+<p>Each call to <code class="docutils literal notranslate"><span class="pre">create_index_from_backup</span></code> starts a restore job. List all restore jobs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">pc</span><span class="o">.</span><span class="n">restore_jobs</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">restore_job_id</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">percent_complete</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Describe a specific job:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">job</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">restore_jobs</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="n">job_id</span><span class="o">=</span><span class="s2">&quot;rj-xyz789&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">restore_job_id</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">backup_id</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">target_index_name</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>         <span class="c1"># e.g. &quot;Running&quot;, &quot;Completed&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">percent_complete</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">completed_at</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">describe</span></code> returns a :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.backups.model.RestoreJobModel</span></code>.</p>
+</section>
+<section id="delete-a-backup">
+<h2>Delete a backup<a class="headerlink" href="#delete-a-backup" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pc</span><span class="o">.</span><span class="n">backups</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">backup_id</span><span class="o">=</span><span class="s2">&quot;bk-abc123&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Deleting a backup does not affect the source index or any indexes restored from it.</p>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.backups.model.BackupModel</span></code> — backup response model</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.backups.list.BackupList</span></code> — backup list response</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.backups.model.RestoreJobModel</span></code> — restore job model</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.backups.list.RestoreJobList</span></code> — restore job list response</p></li>
+<li><p>:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/indexes/serverless</span></code> — serverless index management</p></li>
+<li><p>:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/indexes/pod</span></code> — pod-based index management</p></li>
+</ul>
+</section>
 </section>
 
         </article>
@@ -299,7 +426,7 @@
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Upsert and Query</div>
+                <div class="title">Upserting and Querying Vectors</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -310,7 +437,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Pod Indexes</div>
+                <div class="title">Working with Pod-Based Indexes</div>
                 
               </div>
             </a>
@@ -332,8 +459,33 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Backups and Restore</a><ul>
+<li><a class="reference internal" href="#create-a-backup">Create a backup</a></li>
+<li><a class="reference internal" href="#list-backups">List backups</a></li>
+<li><a class="reference internal" href="#describe-a-backup">Describe a backup</a></li>
+<li><a class="reference internal" href="#restore-a-backup-to-a-new-index">Restore a backup to a new index</a></li>
+<li><a class="reference internal" href="#monitor-restore-jobs">Monitor restore jobs</a></li>
+<li><a class="reference internal" href="#delete-a-backup">Delete a backup</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

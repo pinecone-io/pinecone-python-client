@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Reranking" href="reranking.html"><link rel="prev" title="Namespaces" href="../vectors/namespaces.html">
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Reranking Results" href="reranking.html"><link rel="prev" title="Working with Namespaces" href="../vectors/namespaces.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Embeddings - Pinecone 9.0.0 documentation</title>
+        <title>Generating Embeddings - Pinecone 9.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">How-To</a><input aria-label="Toggle navigation of How-To" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,124 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="embeddings">
-<h1>Embeddings<a class="headerlink" href="#embeddings" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+          <section id="generating-embeddings">
+<h1>Generating Embeddings<a class="headerlink" href="#generating-embeddings" title="Link to this heading">¶</a></h1>
+<p>Pinecone hosts embedding models so you can generate vectors without managing your own
+embedding infrastructure. Call <code class="docutils literal notranslate"><span class="pre">pc.inference.embed</span></code> and pass your text inputs directly.</p>
+<section id="basic-usage">
+<h2>Basic usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;multilingual-e5-large&quot;</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;The quick brown fox&quot;</span><span class="p">,</span> <span class="s2">&quot;A second piece of text&quot;</span><span class="p">],</span>
+    <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;input_type&quot;</span><span class="p">:</span> <span class="s2">&quot;passage&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">embedding</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">embedding</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span>   <span class="c1"># first five values</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">parameters</span></code> dict is model-specific. Common keys:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">input_type</span></code> — <code class="docutils literal notranslate"><span class="pre">&quot;query&quot;</span></code> for search queries, <code class="docutils literal notranslate"><span class="pre">&quot;passage&quot;</span></code> for documents being indexed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">truncate</span></code> — <code class="docutils literal notranslate"><span class="pre">&quot;END&quot;</span></code> (default) or <code class="docutils literal notranslate"><span class="pre">&quot;NONE&quot;</span></code> to raise an error on overlong input.</p></li>
+</ul>
+<p>Discover supported parameters for any model:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">info</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;multilingual-e5-large&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">supported_parameters</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="response-embeddingslist">
+<h2>Response: EmbeddingsList<a class="headerlink" href="#response-embeddingslist" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">embed</span></code> returns an :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.inference.embed.EmbeddingsList</span></code> containing:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.data</span></code> — list of :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.inference.embed.DenseEmbedding</span></code> or
+:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.inference.embed.SparseEmbedding</span></code> objects (one per input).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.model</span></code> — model name used.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.usage.total_tokens</span></code> — token count consumed.</p></li>
+</ul>
+<p>Iterate to access individual embeddings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">emb</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">emb</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>       <span class="c1"># DenseEmbedding: list of floats</span>
+</pre></div>
+</div>
+<p>For sparse embeddings (e.g. <code class="docutils literal notranslate"><span class="pre">pinecone-sparse-english-v0</span></code>), access <code class="docutils literal notranslate"><span class="pre">sparse_indices</span></code>
+and <code class="docutils literal notranslate"><span class="pre">sparse_values</span></code> instead:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;pinecone-sparse-english-v0&quot;</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;machine learning frameworks&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">sparse</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sparse</span><span class="o">.</span><span class="n">sparse_indices</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sparse</span><span class="o">.</span><span class="n">sparse_values</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Some models return hybrid (dense + sparse) embeddings as two separate items per input.</p>
+</section>
+<section id="using-the-embedmodel-enum">
+<h2>Using the EmbedModel enum<a class="headerlink" href="#using-the-embedmodel-enum" title="Link to this heading">¶</a></h2>
+<p>Use the :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.enums.EmbedModel</span></code> enum for tab-completion and typo
+safety:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone.client.inference</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inference</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">Inference</span><span class="o">.</span><span class="n">EmbedModel</span><span class="o">.</span><span class="n">Multilingual_E5_Large</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;search query&quot;</span><span class="p">],</span>
+    <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;input_type&quot;</span><span class="p">:</span> <span class="s2">&quot;query&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="batch-size">
+<h2>Batch size<a class="headerlink" href="#batch-size" title="Link to this heading">¶</a></h2>
+<p>Send multiple inputs in a single call to amortize network overhead. The API enforces a
+per-call token limit; for large batches, split inputs into chunks and iterate:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>   <span class="c1"># potentially hundreds of documents</span>
+
+<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">96</span>
+<span class="n">all_embeddings</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">texts</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">):</span>
+    <span class="n">batch</span> <span class="o">=</span> <span class="n">texts</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;multilingual-e5-large&quot;</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">batch</span><span class="p">)</span>
+    <span class="n">all_embeddings</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="storing-embeddings-in-an-index">
+<h2>Storing embeddings in an index<a class="headerlink" href="#storing-embeddings-in-an-index" title="Link to this heading">¶</a></h2>
+<p>Extract raw values and upsert into a standard (non-integrated) index:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+
+<span class="n">vectors</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;doc-</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">emb</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">emb</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="n">index</span><span class="o">.</span><span class="n">upsert</span><span class="p">(</span><span class="n">vectors</span><span class="o">=</span><span class="n">vectors</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For server-side embedding (no manual embed step), use an integrated index and
+:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.upsert_records</span></code> instead — see
+:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/integrated-records</span></code>.</p>
+</section>
+<section id="list-available-models">
+<h2>List available models<a class="headerlink" href="#list-available-models" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">models</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">inference</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">list</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;embed&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">names</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
 </section>
 
         </article>
@@ -299,7 +409,7 @@
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Reranking</div>
+                <div class="title">Reranking Results</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -310,7 +420,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Namespaces</div>
+                <div class="title">Working with Namespaces</div>
                 
               </div>
             </a>
@@ -332,8 +442,32 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Generating Embeddings</a><ul>
+<li><a class="reference internal" href="#basic-usage">Basic usage</a></li>
+<li><a class="reference internal" href="#response-embeddingslist">Response: EmbeddingsList</a></li>
+<li><a class="reference internal" href="#using-the-embedmodel-enum">Using the EmbedModel enum</a></li>
+<li><a class="reference internal" href="#batch-size">Batch size</a></li>
+<li><a class="reference internal" href="#storing-embeddings-in-an-index">Storing embeddings in an index</a></li>
+<li><a class="reference internal" href="#list-available-models">List available models</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

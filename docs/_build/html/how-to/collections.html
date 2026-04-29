@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="API Reference" href="../reference/index.html"><link rel="prev" title="Integrated Records" href="integrated-records.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="API Reference" href="../reference/index.html"><link rel="prev" title="Integrated Records (Server-Side Embedding)" href="integrated-records.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Collections - Pinecone 9.0.0 documentation</title>
+        <title>Working with Collections - Pinecone 9.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">How-To</a><input aria-label="Toggle navigation of How-To" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,98 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="collections">
-<h1>Collections<a class="headerlink" href="#collections" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+          <section id="working-with-collections">
+<h1>Working with Collections<a class="headerlink" href="#working-with-collections" title="Link to this heading">¶</a></h1>
+<p>Collections are read-only snapshots of pod indexes. Use them to back up index data,
+duplicate an index, or restore a known-good state. Collections are only supported for
+pod-based indexes — serverless indexes use backups instead.</p>
+<section id="create-a-collection">
+<h2>Create a collection<a class="headerlink" href="#create-a-collection" title="Link to this heading">¶</a></h2>
+<p>Pass the name of the pod index you want to snapshot:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">collection</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;snap-2025-01&quot;</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="s2">&quot;my-pod-index&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">collection</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>   <span class="c1"># &quot;Initializing&quot; immediately after creation</span>
+</pre></div>
+</div>
+<p>The collection transitions through <code class="docutils literal notranslate"><span class="pre">Initializing</span></code> → <code class="docutils literal notranslate"><span class="pre">Ready</span></code> when the snapshot is
+complete. <code class="docutils literal notranslate"><span class="pre">create</span></code> returns immediately without polling; check status with <code class="docutils literal notranslate"><span class="pre">describe</span></code>.</p>
+</section>
+<section id="list-collections">
+<h2>List collections<a class="headerlink" href="#list-collections" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">list</span></code> returns a :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.collections.list.CollectionList</span></code> you can
+iterate or call <code class="docutils literal notranslate"><span class="pre">.names()</span></code> on:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">pc</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">col</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">names</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">list</span><span class="p">()</span><span class="o">.</span><span class="n">names</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>   <span class="c1"># e.g. [&quot;snap-2025-01&quot;, &quot;archive-q3&quot;]</span>
+</pre></div>
+</div>
+</section>
+<section id="describe-a-collection">
+<h2>Describe a collection<a class="headerlink" href="#describe-a-collection" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">describe</span></code> returns a :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.collections.model.CollectionModel</span></code> with
+detailed information:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">col</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="s2">&quot;snap-2025-01&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>          <span class="c1"># &quot;snap-2025-01&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>        <span class="c1"># &quot;Ready&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">dimension</span><span class="p">)</span>     <span class="c1"># vector dimension</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">vector_count</span><span class="p">)</span>  <span class="c1"># number of vectors stored</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>          <span class="c1"># size in bytes</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>   <span class="c1"># cloud environment</span>
+</pre></div>
+</div>
+<p>Poll until ready after creation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="s2">&quot;snap-2025-01&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">col</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s2">&quot;Ready&quot;</span><span class="p">:</span>
+        <span class="k">break</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="delete-a-collection">
+<h2>Delete a collection<a class="headerlink" href="#delete-a-collection" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pc</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;snap-2025-01&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">delete</span></code> raises :exc:<code class="docutils literal notranslate"><span class="pre">~pinecone.exceptions.NotFoundError</span></code> if the collection does not
+exist.</p>
+</section>
+<section id="create-an-index-from-a-collection">
+<h2>Create an index from a collection<a class="headerlink" href="#create-an-index-from-a-collection" title="Link to this heading">¶</a></h2>
+<p>Pass <code class="docutils literal notranslate"><span class="pre">source_collection</span></code> inside a :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.PodSpec</span></code> to restore collection
+data into a new pod index:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone.models.indexes.specs</span><span class="w"> </span><span class="kn">import</span> <span class="n">PodSpec</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;restored-index&quot;</span><span class="p">,</span>
+    <span class="n">dimension</span><span class="o">=</span><span class="mi">1536</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="n">PodSpec</span><span class="p">(</span>
+        <span class="n">environment</span><span class="o">=</span><span class="s2">&quot;us-east-1-aws&quot;</span><span class="p">,</span>
+        <span class="n">pod_type</span><span class="o">=</span><span class="s2">&quot;p1.x1&quot;</span><span class="p">,</span>
+        <span class="n">source_collection</span><span class="o">=</span><span class="s2">&quot;snap-2025-01&quot;</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The new index is pre-populated with all vectors from the collection snapshot.</p>
+</section>
 </section>
 
         </article>
@@ -310,7 +394,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Integrated Records</div>
+                <div class="title">Integrated Records (Server-Side Embedding)</div>
                 
               </div>
             </a>
@@ -332,8 +416,31 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Working with Collections</a><ul>
+<li><a class="reference internal" href="#create-a-collection">Create a collection</a></li>
+<li><a class="reference internal" href="#list-collections">List collections</a></li>
+<li><a class="reference internal" href="#describe-a-collection">Describe a collection</a></li>
+<li><a class="reference internal" href="#delete-a-collection">Delete a collection</a></li>
+<li><a class="reference internal" href="#create-an-index-from-a-collection">Create an index from a collection</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

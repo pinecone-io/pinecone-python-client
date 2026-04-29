@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Embeddings" href="../inference/embeddings.html"><link rel="prev" title="Bulk Import" href="bulk-import.html">
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Generating Embeddings" href="../inference/embeddings.html"><link rel="prev" title="Bulk Importing Vectors" href="bulk-import.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Namespaces - Pinecone 9.0.0 documentation</title>
+        <title>Working with Namespaces - Pinecone 9.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">How-To</a><input aria-label="Toggle navigation of How-To" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,142 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="namespaces">
-<h1>Namespaces<a class="headerlink" href="#namespaces" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+          <section id="working-with-namespaces">
+<h1>Working with Namespaces<a class="headerlink" href="#working-with-namespaces" title="Link to this heading">¶</a></h1>
+<p>Namespaces are logical partitions within a Pinecone index. Vectors in different namespaces
+are completely isolated — a query in one namespace never returns results from another.</p>
+<p>Common uses include separating data by customer, language, environment (staging vs.
+production), or data version.</p>
+<p>The default namespace is the empty string <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>. All operations that accept a <code class="docutils literal notranslate"><span class="pre">namespace</span></code>
+parameter default to <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> when <code class="docutils literal notranslate"><span class="pre">namespace</span></code> is omitted.</p>
+<section id="upsert-into-a-namespace">
+<h2>Upsert into a namespace<a class="headerlink" href="#upsert-into-a-namespace" title="Link to this heading">¶</a></h2>
+<p>Pass <code class="docutils literal notranslate"><span class="pre">namespace</span></code> to :meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.upsert</span></code> to write vectors into a specific partition:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span><span class="p">,</span> <span class="n">Vector</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+<span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+
+<span class="n">index</span><span class="o">.</span><span class="n">upsert</span><span class="p">(</span>
+    <span class="n">vectors</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">Vector</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;product-001&quot;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">0.012</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.087</span><span class="p">,</span> <span class="mf">0.153</span><span class="p">,</span> <span class="o">...</span><span class="p">]),</span>
+        <span class="n">Vector</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;product-002&quot;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">0.045</span><span class="p">,</span>  <span class="mf">0.021</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.064</span><span class="p">,</span> <span class="o">...</span><span class="p">]),</span>
+    <span class="p">],</span>
+    <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;catalog-us&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Vectors upserted without a <code class="docutils literal notranslate"><span class="pre">namespace</span></code> go into the default namespace <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>.</p>
+</section>
+<section id="query-within-a-namespace">
+<h2>Query within a namespace<a class="headerlink" href="#query-within-a-namespace" title="Link to this heading">¶</a></h2>
+<p>Pass <code class="docutils literal notranslate"><span class="pre">namespace</span></code> to :meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.query</span></code> to restrict the search to a single partition:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+    <span class="n">vector</span><span class="o">=</span><span class="p">[</span><span class="mf">0.012</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.087</span><span class="p">,</span> <span class="mf">0.153</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;catalog-us&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">matches</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">score</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Queries return <code class="docutils literal notranslate"><span class="pre">response.namespace</span></code> indicating which namespace was searched.</p>
+<section id="query-across-multiple-namespaces">
+<h3>Query across multiple namespaces<a class="headerlink" href="#query-across-multiple-namespaces" title="Link to this heading">¶</a></h3>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.query_namespaces</span></code> fans out queries in parallel and returns merged
+top results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">query_namespaces</span><span class="p">(</span>
+    <span class="n">vector</span><span class="o">=</span><span class="p">[</span><span class="mf">0.012</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.087</span><span class="p">,</span> <span class="mf">0.153</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="n">namespaces</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;catalog-us&quot;</span><span class="p">,</span> <span class="s2">&quot;catalog-eu&quot;</span><span class="p">,</span> <span class="s2">&quot;catalog-ap&quot;</span><span class="p">],</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+    <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">matches</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">score</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="list-namespaces">
+<h2>List namespaces<a class="headerlink" href="#list-namespaces" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.list_namespaces</span></code> yields one :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.ListNamespacesResponse</span></code>
+per page, following pagination automatically:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">index</span><span class="o">.</span><span class="n">list_namespaces</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">page</span><span class="o">.</span><span class="n">namespaces</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ns</span><span class="o">.</span><span class="n">record_count</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Each :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.NamespaceDescription</span></code> has <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">record_count</span></code> fields.</p>
+<p>Filter by prefix to list a subset of namespaces:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">index</span><span class="o">.</span><span class="n">list_namespaces</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;catalog-&quot;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">page</span><span class="o">.</span><span class="n">namespaces</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For a single page without automatic pagination, use
+:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.list_namespaces_paginated</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">page</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">list_namespaces_paginated</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">ns</span> <span class="ow">in</span> <span class="n">page</span><span class="o">.</span><span class="n">namespaces</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ns</span><span class="o">.</span><span class="n">record_count</span><span class="p">)</span>
+
+<span class="c1"># Fetch the next page manually</span>
+<span class="k">if</span> <span class="n">page</span><span class="o">.</span><span class="n">pagination</span> <span class="ow">and</span> <span class="n">page</span><span class="o">.</span><span class="n">pagination</span><span class="o">.</span><span class="n">next</span><span class="p">:</span>
+    <span class="n">next_page</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">list_namespaces_paginated</span><span class="p">(</span>
+        <span class="n">limit</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">pagination_token</span><span class="o">=</span><span class="n">page</span><span class="o">.</span><span class="n">pagination</span><span class="o">.</span><span class="n">next</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="delete-all-vectors-in-a-namespace">
+<h2>Delete all vectors in a namespace<a class="headerlink" href="#delete-all-vectors-in-a-namespace" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.delete</span></code> with <code class="docutils literal notranslate"><span class="pre">delete_all=True</span></code> removes every vector in a namespace
+without deleting the namespace itself:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">delete_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;catalog-staging&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Alternatively, :meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.delete_namespace</span></code> removes the namespace and all its
+vectors:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span><span class="o">.</span><span class="n">delete_namespace</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;catalog-staging&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="describe-a-namespace">
+<h2>Describe a namespace<a class="headerlink" href="#describe-a-namespace" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.describe_namespace</span></code> returns metadata for a single namespace:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ns</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">describe_namespace</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;catalog-us&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">record_count</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="create-a-namespace">
+<h2>Create a namespace<a class="headerlink" href="#create-a-namespace" title="Link to this heading">¶</a></h2>
+<p>Namespaces are created automatically when you first upsert into them. Use
+:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.create_namespace</span></code> when you need to pre-create one with a custom
+schema or when you want to configure indexed metadata fields up front:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ns</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">create_namespace</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;catalog-us&quot;</span><span class="p">,</span>
+    <span class="n">schema</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;filterable&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}}},</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">ns</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ns</span><span class="o">.</span><span class="n">record_count</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/vectors/upsert-and-query</span></code> — upsert and query operations</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index</span></code> — full data plane client reference</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.ListNamespacesResponse</span></code> — list namespaces response model</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.NamespaceDescription</span></code> — namespace metadata model</p></li>
+</ul>
+</section>
 </section>
 
         </article>
@@ -299,7 +427,7 @@
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Embeddings</div>
+                <div class="title">Generating Embeddings</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -310,7 +438,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Bulk Import</div>
+                <div class="title">Bulk Importing Vectors</div>
                 
               </div>
             </a>
@@ -332,8 +460,36 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Working with Namespaces</a><ul>
+<li><a class="reference internal" href="#upsert-into-a-namespace">Upsert into a namespace</a></li>
+<li><a class="reference internal" href="#query-within-a-namespace">Query within a namespace</a><ul>
+<li><a class="reference internal" href="#query-across-multiple-namespaces">Query across multiple namespaces</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#list-namespaces">List namespaces</a></li>
+<li><a class="reference internal" href="#delete-all-vectors-in-a-namespace">Delete all vectors in a namespace</a></li>
+<li><a class="reference internal" href="#describe-a-namespace">Describe a namespace</a></li>
+<li><a class="reference internal" href="#create-a-namespace">Create a namespace</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

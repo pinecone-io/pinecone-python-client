@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Bulk Import" href="bulk-import.html"><link rel="prev" title="Backups and Restore" href="../indexes/backups-and-restore.html">
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Bulk Importing Vectors" href="bulk-import.html"><link rel="prev" title="Backups and Restore" href="../indexes/backups-and-restore.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Upsert and Query - Pinecone 9.0.0 documentation</title>
+        <title>Upserting and Querying Vectors - Pinecone 9.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">How-To</a><input aria-label="Toggle navigation of How-To" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../collections.html">Collections</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,210 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="upsert-and-query">
-<h1>Upsert and Query<a class="headerlink" href="#upsert-and-query" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+          <section id="upserting-and-querying-vectors">
+<h1>Upserting and Querying Vectors<a class="headerlink" href="#upserting-and-querying-vectors" title="Link to this heading">¶</a></h1>
+<p>Use the :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index</span></code> client to insert and retrieve vectors from a Pinecone index.
+Get an index client via :meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Pinecone.index</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+<span class="n">index</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;movie-recommendations&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="upsert-vectors">
+<h2>Upsert vectors<a class="headerlink" href="#upsert-vectors" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.upsert</span></code> inserts vectors or overwrites existing ones with the same ID.</p>
+<p>Pass a list of tuples <code class="docutils literal notranslate"><span class="pre">(id,</span> <span class="pre">values)</span></code> or <code class="docutils literal notranslate"><span class="pre">(id,</span> <span class="pre">values,</span> <span class="pre">metadata)</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span><span class="o">.</span><span class="n">upsert</span><span class="p">(</span>
+    <span class="n">vectors</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;movie-001&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.012</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.087</span><span class="p">,</span> <span class="mf">0.153</span><span class="p">,</span> <span class="o">...</span><span class="p">]),</span>
+        <span class="p">(</span><span class="s2">&quot;movie-002&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.045</span><span class="p">,</span>  <span class="mf">0.021</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.064</span><span class="p">,</span> <span class="o">...</span><span class="p">]),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<section id="using-vector-objects">
+<h3>Using Vector objects<a class="headerlink" href="#using-vector-objects" title="Link to this heading">¶</a></h3>
+<p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.Vector</span></code> objects support metadata and sparse values:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Vector</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">upsert</span><span class="p">(</span>
+    <span class="n">vectors</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">Vector</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;movie-001&quot;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">0.012</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.087</span><span class="p">,</span> <span class="mf">0.153</span><span class="p">,</span> <span class="o">...</span><span class="p">]),</span>
+        <span class="n">Vector</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;movie-002&quot;</span><span class="p">,</span>
+            <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">0.045</span><span class="p">,</span> <span class="mf">0.021</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.064</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+            <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;genre&quot;</span><span class="p">:</span> <span class="s2">&quot;comedy&quot;</span><span class="p">,</span> <span class="s2">&quot;year&quot;</span><span class="p">:</span> <span class="mi">2022</span><span class="p">},</span>
+        <span class="p">),</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">upserted_count</span><span class="p">)</span>  <span class="c1"># 2</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">upsert</span></code> returns a :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.UpsertResponse</span></code> with <code class="docutils literal notranslate"><span class="pre">upserted_count</span></code>.</p>
+</section>
+<section id="upsert-into-a-namespace">
+<h3>Upsert into a namespace<a class="headerlink" href="#upsert-into-a-namespace" title="Link to this heading">¶</a></h3>
+<p>Pass <code class="docutils literal notranslate"><span class="pre">namespace</span></code> to target a specific partition:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span><span class="o">.</span><span class="n">upsert</span><span class="p">(</span>
+    <span class="n">vectors</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;movie-001&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.012</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.087</span><span class="p">,</span> <span class="mf">0.153</span><span class="p">,</span> <span class="o">...</span><span class="p">])],</span>
+    <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;movies-en&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The default namespace is <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>.</p>
+</section>
+<section id="large-datasets">
+<h3>Large datasets<a class="headerlink" href="#large-datasets" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">upsert</span></code> sends all vectors in a single request. For large datasets, batch your calls
+(100–500 vectors per batch) or use :meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.upsert_from_dataframe</span></code> for
+DataFrame input with automatic batching. For millions of vectors, consider
+:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.start_import</span></code> to load from cloud storage.</p>
+</section>
+</section>
+<section id="query-for-nearest-neighbors">
+<h2>Query for nearest neighbors<a class="headerlink" href="#query-for-nearest-neighbors" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.query</span></code> returns the <code class="docutils literal notranslate"><span class="pre">top_k</span></code> closest vectors to a query vector:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+    <span class="n">vector</span><span class="o">=</span><span class="p">[</span><span class="mf">0.012</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.087</span><span class="p">,</span> <span class="mf">0.153</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">matches</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">score</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Each element of <code class="docutils literal notranslate"><span class="pre">response.matches</span></code> is a :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.ScoredVector</span></code> with
+<code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">score</span></code>, <code class="docutils literal notranslate"><span class="pre">values</span></code>, <code class="docutils literal notranslate"><span class="pre">metadata</span></code>, and <code class="docutils literal notranslate"><span class="pre">sparse_values</span></code> fields. Results are ordered from
+most similar to least similar.</p>
+<section id="include-values-or-metadata-in-results">
+<h3>Include values or metadata in results<a class="headerlink" href="#include-values-or-metadata-in-results" title="Link to this heading">¶</a></h3>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">values</span></code> and <code class="docutils literal notranslate"><span class="pre">metadata</span></code> are omitted from matches to reduce payload size.
+Enable them explicitly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+    <span class="n">vector</span><span class="o">=</span><span class="p">[</span><span class="mf">0.012</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.087</span><span class="p">,</span> <span class="mf">0.153</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="n">top_k</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">include_values</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">include_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">matches</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">score</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="filter-by-metadata">
+<h3>Filter by metadata<a class="headerlink" href="#filter-by-metadata" title="Link to this heading">¶</a></h3>
+<p>Pass a <code class="docutils literal notranslate"><span class="pre">filter</span></code> expression to restrict results to vectors whose metadata satisfies the condition:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+    <span class="n">vector</span><span class="o">=</span><span class="p">[</span><span class="mf">0.012</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.087</span><span class="p">,</span> <span class="mf">0.153</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="nb">filter</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;genre&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$eq&quot;</span><span class="p">:</span> <span class="s2">&quot;action&quot;</span><span class="p">},</span> <span class="s2">&quot;year&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$gte&quot;</span><span class="p">:</span> <span class="mi">2020</span><span class="p">}},</span>
+    <span class="n">include_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="using-the-field-filter-builder">
+<h3>Using the Field filter builder<a class="headerlink" href="#using-the-field-filter-builder" title="Link to this heading">¶</a></h3>
+<p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.Field</span></code> provides a Python-native API for building filter expressions.
+The <code class="docutils literal notranslate"><span class="pre">==</span></code>, <code class="docutils literal notranslate"><span class="pre">!=</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;</span></code>, and <code class="docutils literal notranslate"><span class="pre">|</span></code> operators and <code class="docutils literal notranslate"><span class="pre">.gt()</span></code> / <code class="docutils literal notranslate"><span class="pre">.gte()</span></code> / <code class="docutils literal notranslate"><span class="pre">.lt()</span></code> / <code class="docutils literal notranslate"><span class="pre">.lte()</span></code> /
+<code class="docutils literal notranslate"><span class="pre">.is_in()</span></code> / <code class="docutils literal notranslate"><span class="pre">.not_in()</span></code> methods return a :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.utils.filter_builder.Condition</span></code>
+object. Pass it to <code class="docutils literal notranslate"><span class="pre">filter</span></code> via <code class="docutils literal notranslate"><span class="pre">.to_dict()</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Field</span>
+
+<span class="n">condition</span> <span class="o">=</span> <span class="p">(</span><span class="n">Field</span><span class="p">(</span><span class="s2">&quot;genre&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;action&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">Field</span><span class="p">(</span><span class="s2">&quot;year&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">gte</span><span class="p">(</span><span class="mi">2020</span><span class="p">)</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+    <span class="n">vector</span><span class="o">=</span><span class="p">[</span><span class="mf">0.012</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.087</span><span class="p">,</span> <span class="mf">0.153</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+    <span class="n">top_k</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="nb">filter</span><span class="o">=</span><span class="n">condition</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
+    <span class="n">include_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">FilterBuilder</span></code> is an alias for <code class="docutils literal notranslate"><span class="pre">Field</span></code> and can be used interchangeably.</p>
+</section>
+</section>
+<section id="fetch-vectors-by-id">
+<h2>Fetch vectors by ID<a class="headerlink" href="#fetch-vectors-by-id" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.fetch</span></code> retrieves stored vectors by their IDs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;movie-001&quot;</span><span class="p">,</span> <span class="s2">&quot;movie-002&quot;</span><span class="p">])</span>
+<span class="k">for</span> <span class="n">vid</span><span class="p">,</span> <span class="n">vec</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">vectors</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">vid</span><span class="p">,</span> <span class="n">vec</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">response.vectors</span></code> is a <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">Vector]</span></code>. IDs that do not exist are omitted rather than
+raising an error.</p>
+</section>
+<section id="update-a-vector">
+<h2>Update a vector<a class="headerlink" href="#update-a-vector" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.update</span></code> replaces a vector’s dense values, sparse values, or metadata.</p>
+<p>Update dense values by ID:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;movie-001&quot;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">0.099</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.045</span><span class="p">,</span> <span class="mf">0.210</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Update metadata without changing values:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;movie-001&quot;</span><span class="p">,</span> <span class="n">set_metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;rating&quot;</span><span class="p">:</span> <span class="mf">4.5</span><span class="p">,</span> <span class="s2">&quot;genre&quot;</span><span class="p">:</span> <span class="s2">&quot;thriller&quot;</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Bulk-update metadata for all vectors matching a filter:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+    <span class="nb">filter</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;genre&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$eq&quot;</span><span class="p">:</span> <span class="s2">&quot;drama&quot;</span><span class="p">}},</span>
+    <span class="n">set_metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;category&quot;</span><span class="p">:</span> <span class="s2">&quot;classic&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="delete-vectors">
+<h2>Delete vectors<a class="headerlink" href="#delete-vectors" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.delete</span></code> removes vectors from a namespace. Specify exactly one of
+<code class="docutils literal notranslate"><span class="pre">ids</span></code>, <code class="docutils literal notranslate"><span class="pre">delete_all</span></code>, or <code class="docutils literal notranslate"><span class="pre">filter</span></code>.</p>
+<p>Delete by ID:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">ids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;movie-001&quot;</span><span class="p">,</span> <span class="s2">&quot;movie-002&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Delete all vectors in a namespace:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">delete_all</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">namespace</span><span class="o">=</span><span class="s2">&quot;movies-deprecated&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Delete by metadata filter:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">index</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="nb">filter</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;year&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$lte&quot;</span><span class="p">:</span> <span class="mi">2000</span><span class="p">}})</span>
+</pre></div>
+</div>
+</section>
+<section id="inspect-index-stats">
+<h2>Inspect index stats<a class="headerlink" href="#inspect-index-stats" title="Link to this heading">¶</a></h2>
+<p>:meth:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index.describe_index_stats</span></code> returns aggregate counts and
+per-namespace summaries:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stats</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">describe_index_stats</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">total_vector_count</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">dimension</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">index_fullness</span><span class="p">)</span>     <span class="c1"># fraction 0.0–1.0</span>
+
+<span class="k">for</span> <span class="n">namespace</span><span class="p">,</span> <span class="n">summary</span> <span class="ow">in</span> <span class="n">stats</span><span class="o">.</span><span class="n">namespaces</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">namespace</span><span class="p">,</span> <span class="n">summary</span><span class="o">.</span><span class="n">vector_count</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Pass a <code class="docutils literal notranslate"><span class="pre">filter</span></code> to count only matching vectors:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stats</span> <span class="o">=</span> <span class="n">index</span><span class="o">.</span><span class="n">describe_index_stats</span><span class="p">(</span><span class="nb">filter</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;genre&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;$eq&quot;</span><span class="p">:</span> <span class="s2">&quot;action&quot;</span><span class="p">}})</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">total_vector_count</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/vectors/namespaces</span></code> — working with namespaces</p></li>
+<li><p>:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/vectors/bulk-import</span></code> — bulk importing from cloud storage</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.Index</span></code> — full data plane client reference</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.QueryResponse</span></code> — query response model</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.ScoredVector</span></code> — individual match in query results</p></li>
+</ul>
+</section>
 </section>
 
         </article>
@@ -299,7 +495,7 @@
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Bulk Import</div>
+                <div class="title">Bulk Importing Vectors</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -332,8 +528,43 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Upserting and Querying Vectors</a><ul>
+<li><a class="reference internal" href="#upsert-vectors">Upsert vectors</a><ul>
+<li><a class="reference internal" href="#using-vector-objects">Using Vector objects</a></li>
+<li><a class="reference internal" href="#upsert-into-a-namespace">Upsert into a namespace</a></li>
+<li><a class="reference internal" href="#large-datasets">Large datasets</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#query-for-nearest-neighbors">Query for nearest neighbors</a><ul>
+<li><a class="reference internal" href="#include-values-or-metadata-in-results">Include values or metadata in results</a></li>
+<li><a class="reference internal" href="#filter-by-metadata">Filter by metadata</a></li>
+<li><a class="reference internal" href="#using-the-field-filter-builder">Using the Field filter builder</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fetch-vectors-by-id">Fetch vectors by ID</a></li>
+<li><a class="reference internal" href="#update-a-vector">Update a vector</a></li>
+<li><a class="reference internal" href="#delete-vectors">Delete vectors</a></li>
+<li><a class="reference internal" href="#inspect-index-stats">Inspect index stats</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

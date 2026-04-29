@@ -3,10 +3,10 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Backups and Restore" href="backups-and-restore.html"><link rel="prev" title="Serverless Indexes" href="serverless.html">
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Backups and Restore" href="backups-and-restore.html"><link rel="prev" title="Working with Serverless Indexes" href="serverless.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Pod Indexes - Pinecone 9.0.0 documentation</title>
+        <title>Working with Pod-Based Indexes - Pinecone 9.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">How-To</a><input aria-label="Toggle navigation of How-To" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../reference/sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../reference/grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/models.html">Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../reference/exceptions.html">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,183 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="pod-indexes">
-<h1>Pod Indexes<a class="headerlink" href="#pod-indexes" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+          <section id="working-with-pod-based-indexes">
+<h1>Working with Pod-Based Indexes<a class="headerlink" href="#working-with-pod-based-indexes" title="Link to this heading">¶</a></h1>
+<p>Pod-based indexes run on dedicated infrastructure pods. You choose a pod type and size
+based on your throughput and latency requirements.</p>
+<section id="create-a-pod-based-index">
+<h2>Create a pod-based index<a class="headerlink" href="#create-a-pod-based-index" title="Link to this heading">¶</a></h2>
+<p>Pass a :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.PodSpec</span></code> with the environment and pod type:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span><span class="p">,</span> <span class="n">PodSpec</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;product-search&quot;</span><span class="p">,</span>
+    <span class="n">dimension</span><span class="o">=</span><span class="mi">1536</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="n">PodSpec</span><span class="p">(</span>
+        <span class="n">environment</span><span class="o">=</span><span class="s2">&quot;us-east1-gcp&quot;</span><span class="p">,</span>
+        <span class="n">pod_type</span><span class="o">=</span><span class="s2">&quot;p1.x1&quot;</span><span class="p">,</span>
+        <span class="n">pods</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">create</span></code> polls until the index is ready by default. Pass <code class="docutils literal notranslate"><span class="pre">timeout=-1</span></code> to return immediately
+without waiting.</p>
+<section id="supported-pod-types">
+<h3>Supported pod types<a class="headerlink" href="#supported-pod-types" title="Link to this heading">¶</a></h3>
+<p>Use the :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.enums.PodType</span></code> enum for tab-completion and typo safety:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span><span class="p">,</span> <span class="n">PodSpec</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pinecone.models.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">PodType</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;product-search&quot;</span><span class="p">,</span>
+    <span class="n">dimension</span><span class="o">=</span><span class="mi">1536</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="n">PodSpec</span><span class="p">(</span>
+        <span class="n">environment</span><span class="o">=</span><span class="s2">&quot;us-east1-gcp&quot;</span><span class="p">,</span>
+        <span class="n">pod_type</span><span class="o">=</span><span class="n">PodType</span><span class="o">.</span><span class="n">P1_X1</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Pod type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">s1.x1</span></code>, <code class="docutils literal notranslate"><span class="pre">s1.x2</span></code>, <code class="docutils literal notranslate"><span class="pre">s1.x4</span></code>, <code class="docutils literal notranslate"><span class="pre">s1.x8</span></code></p></td>
+<td><p>Storage-optimized, lower query throughput</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">p1.x1</span></code>, <code class="docutils literal notranslate"><span class="pre">p1.x2</span></code>, <code class="docutils literal notranslate"><span class="pre">p1.x4</span></code>, <code class="docutils literal notranslate"><span class="pre">p1.x8</span></code></p></td>
+<td><p>Performance-optimized, balanced storage</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">p2.x1</span></code>, <code class="docutils literal notranslate"><span class="pre">p2.x2</span></code>, <code class="docutils literal notranslate"><span class="pre">p2.x4</span></code>, <code class="docutils literal notranslate"><span class="pre">p2.x8</span></code></p></td>
+<td><p>High-throughput, lower storage capacity</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">x1</span></code>/<code class="docutils literal notranslate"><span class="pre">x2</span></code>/<code class="docutils literal notranslate"><span class="pre">x4</span></code>/<code class="docutils literal notranslate"><span class="pre">x8</span></code> suffix controls the number of compute units per pod.</p>
+</section>
+<section id="supported-environments">
+<h3>Supported environments<a class="headerlink" href="#supported-environments" title="Link to this heading">¶</a></h3>
+<p>Use the :class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.enums.PodIndexEnvironment</span></code> enum:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone.models.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">PodIndexEnvironment</span>
+
+<span class="n">spec</span> <span class="o">=</span> <span class="n">PodSpec</span><span class="p">(</span>
+    <span class="n">environment</span><span class="o">=</span><span class="n">PodIndexEnvironment</span><span class="o">.</span><span class="n">US_EAST1_GCP</span><span class="p">,</span>
+    <span class="n">pod_type</span><span class="o">=</span><span class="s2">&quot;p1.x1&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Common environments: <code class="docutils literal notranslate"><span class="pre">us-east1-gcp</span></code>, <code class="docutils literal notranslate"><span class="pre">us-west1-gcp</span></code>, <code class="docutils literal notranslate"><span class="pre">us-east-1-aws</span></code>,
+<code class="docutils literal notranslate"><span class="pre">eu-west1-gcp</span></code>, <code class="docutils literal notranslate"><span class="pre">eastus-azure</span></code>.</p>
+</section>
+<section id="multiple-replicas-and-pods">
+<h3>Multiple replicas and pods<a class="headerlink" href="#multiple-replicas-and-pods" title="Link to this heading">¶</a></h3>
+<p>Replicas increase availability and query throughput. Pods control total storage capacity:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span><span class="p">,</span> <span class="n">PodSpec</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;product-search-ha&quot;</span><span class="p">,</span>
+    <span class="n">dimension</span><span class="o">=</span><span class="mi">1536</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="n">PodSpec</span><span class="p">(</span>
+        <span class="n">environment</span><span class="o">=</span><span class="s2">&quot;us-east1-gcp&quot;</span><span class="p">,</span>
+        <span class="n">pod_type</span><span class="o">=</span><span class="s2">&quot;p1.x1&quot;</span><span class="p">,</span>
+        <span class="n">pods</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">replicas</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="scale-replicas">
+<h2>Scale replicas<a class="headerlink" href="#scale-replicas" title="Link to this heading">¶</a></h2>
+<p>Increase or decrease replicas on a running index with <code class="docutils literal notranslate"><span class="pre">configure</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">,</span> <span class="n">replicas</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Scaling takes effect within a few minutes. The index remains available during the change.</p>
+<section id="change-pod-type">
+<h3>Change pod type<a class="headerlink" href="#change-pod-type" title="Link to this heading">¶</a></h3>
+<p>Upgrade to a larger pod size in-place:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">,</span> <span class="n">pod_type</span><span class="o">=</span><span class="s2">&quot;p1.x2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="create-an-index-from-a-collection">
+<h2>Create an index from a collection<a class="headerlink" href="#create-an-index-from-a-collection" title="Link to this heading">¶</a></h2>
+<p>A collection is a static snapshot of a pod index. You can create a new index from one
+to restore a point-in-time state or change pod configuration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pinecone</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pinecone</span><span class="p">,</span> <span class="n">PodSpec</span>
+
+<span class="n">pc</span> <span class="o">=</span> <span class="n">Pinecone</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;your-api-key&quot;</span><span class="p">)</span>
+
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;product-search-restored&quot;</span><span class="p">,</span>
+    <span class="n">dimension</span><span class="o">=</span><span class="mi">1536</span><span class="p">,</span>
+    <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+    <span class="n">spec</span><span class="o">=</span><span class="n">PodSpec</span><span class="p">(</span>
+        <span class="n">environment</span><span class="o">=</span><span class="s2">&quot;us-east1-gcp&quot;</span><span class="p">,</span>
+        <span class="n">pod_type</span><span class="o">=</span><span class="s2">&quot;p1.x1&quot;</span><span class="p">,</span>
+        <span class="n">source_collection</span><span class="o">=</span><span class="s2">&quot;product-search-snapshot&quot;</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>See :doc:<code class="docutils literal notranslate"><span class="pre">/how-to/indexes/backups-and-restore</span></code> for creating backups and restoring
+serverless indexes.</p>
+</section>
+<section id="describe-a-pod-index">
+<h2>Describe a pod index<a class="headerlink" href="#describe-a-pod-index" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">spec.pod</span></code> field contains pod-specific details:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">idx</span> <span class="o">=</span> <span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">describe</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">pod</span><span class="o">.</span><span class="n">environment</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">pod</span><span class="o">.</span><span class="n">pod_type</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">pod</span><span class="o">.</span><span class="n">replicas</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">idx</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">pod</span><span class="o">.</span><span class="n">pods</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="delete-a-pod-index">
+<h2>Delete a pod index<a class="headerlink" href="#delete-a-pod-index" title="Link to this heading">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If deletion protection is enabled, disable it first:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">,</span> <span class="n">deletion_protection</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+<span class="n">pc</span><span class="o">.</span><span class="n">indexes</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;product-search&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.IndexModel</span></code> — full index response model</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.indexes.specs.PodSpec</span></code> — request-side pod spec</p></li>
+<li><p>:class:<code class="docutils literal notranslate"><span class="pre">~pinecone.models.indexes.index.PodSpecInfo</span></code> — response-side pod spec</p></li>
+<li><p>:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/indexes/serverless</span></code> — serverless index management</p></li>
+<li><p>:doc:<code class="docutils literal notranslate"><span class="pre">/how-to/indexes/backups-and-restore</span></code> — create and restore backups</p></li>
+</ul>
+</section>
 </section>
 
         </article>
@@ -310,7 +479,7 @@
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Serverless Indexes</div>
+                <div class="title">Working with Serverless Indexes</div>
                 
               </div>
             </a>
@@ -332,8 +501,40 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Working with Pod-Based Indexes</a><ul>
+<li><a class="reference internal" href="#create-a-pod-based-index">Create a pod-based index</a><ul>
+<li><a class="reference internal" href="#supported-pod-types">Supported pod types</a></li>
+<li><a class="reference internal" href="#supported-environments">Supported environments</a></li>
+<li><a class="reference internal" href="#multiple-replicas-and-pods">Multiple replicas and pods</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#scale-replicas">Scale replicas</a><ul>
+<li><a class="reference internal" href="#change-pod-type">Change pod type</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#create-an-index-from-a-collection">Create an index from a collection</a></li>
+<li><a class="reference internal" href="#describe-a-pod-index">Describe a pod index</a></li>
+<li><a class="reference internal" href="#delete-a-pod-index">Delete a pod index</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>

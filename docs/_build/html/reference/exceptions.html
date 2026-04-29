@@ -3,7 +3,7 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="v9 Migration Guide" href="../migration/v9-migration.html"><link rel="prev" title="Models" href="models.html">
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Migrating from v8.x to v9.x" href="../migration/v9-migration.html"><link rel="prev" title="Models" href="models.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Exceptions - Pinecone 9.0.0 documentation</title>
@@ -173,7 +173,7 @@
           <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
         </button>
       </div>
-      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
         <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
@@ -203,9 +203,9 @@
 <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../guides/index.html">Guides</a><input aria-label="Toggle navigation of Guides" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../guides/concepts.html">Concepts</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/sync-vs-async.html">Sync vs Async</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../guides/grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/concepts.html">How Pinecone Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/sync-vs-async.html">Sync vs Async Clients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../guides/grpc.html">Using the gRPC Client</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/error-handling.html">Error Handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/pagination.html">Pagination</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../guides/performance.html">Performance</a></li>
@@ -215,16 +215,16 @@
 <p class="caption" role="heading"><span class="caption-text">How-To</span></p>
 <ul>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../how-to/index.html">How-To</a><input aria-label="Toggle navigation of How-To" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/serverless.html">Serverless Indexes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/pod.html">Pod Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/serverless.html">Working with Serverless Indexes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/pod.html">Working with Pod-Based Indexes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../how-to/indexes/backups-and-restore.html">Backups and Restore</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/upsert-and-query.html">Upsert and Query</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/bulk-import.html">Bulk Import</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/namespaces.html">Namespaces</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/embeddings.html">Embeddings</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/reranking.html">Reranking</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/integrated-records.html">Integrated Records</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../how-to/collections.html">Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/upsert-and-query.html">Upserting and Querying Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/bulk-import.html">Bulk Importing Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/vectors/namespaces.html">Working with Namespaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/embeddings.html">Generating Embeddings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/inference/reranking.html">Reranking Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/integrated-records.html">Integrated Records (Server-Side Embedding)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../how-to/collections.html">Working with Collections</a></li>
 </ul>
 </li>
 </ul>
@@ -236,7 +236,7 @@
 <li class="toctree-l2"><a class="reference internal" href="sync-index.html">Index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="async-index.html">AsyncIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="admin.html">Admin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="grpc.html">gRPC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grpc.html">GrpcIndex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html">Models</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Exceptions</a></li>
 </ul>
@@ -244,7 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Migration &amp; FAQ</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../migration/v9-migration.html">v9 Migration Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../migration/v9-migration.html">Migrating from v8.x to v9.x</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 </ul>
 
@@ -279,14 +279,566 @@
               <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
             </button>
           </div>
-          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
             <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
           <section id="exceptions">
 <h1>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">¶</a></h1>
-<p><em>Coming soon.</em></p>
+<p>All exceptions raised by the Pinecone SDK derive from <a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a>
+so that a single <code class="docutils literal notranslate"><span class="pre">except</span> <span class="pre">PineconeError</span></code> block can catch every SDK error if desired.</p>
+<nav class="contents local" id="sections">
+<p class="topic-title">Sections</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#class-hierarchy" id="id1">Class Hierarchy</a></p></li>
+<li><p><a class="reference internal" href="#base-configuration-errors" id="id2">Base &amp; Configuration Errors</a></p></li>
+<li><p><a class="reference internal" href="#network-errors" id="id3">Network Errors</a></p></li>
+<li><p><a class="reference internal" href="#api-errors" id="id4">API Errors</a></p></li>
+<li><p><a class="reference internal" href="#deprecated-aliases" id="id5">Deprecated Aliases</a></p></li>
+</ul>
+</nav>
+<section id="class-hierarchy">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Class Hierarchy</a><a class="headerlink" href="#class-hierarchy" title="Link to this heading">¶</a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>PineconeError
+├── PineconeValueError  (also ValueError)
+├── PineconeTypeError   (also TypeError)
+├── PineconeConnectionError
+├── PineconeTimeoutError  (also TimeoutError)
+├── ResponseParsingError
+├── IndexInitFailedError
+└── ApiError
+    ├── ConflictError (409)
+    ├── NotFoundError (404)
+    ├── ForbiddenError (403)
+    ├── UnauthorizedError (401)
+    └── ServiceError (5xx)
+</pre></div>
+</div>
+</section>
+<section id="base-configuration-errors">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Base &amp; Configuration Errors</a><a class="headerlink" href="#base-configuration-errors" title="Link to this heading">¶</a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.PineconeError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">PineconeError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#PineconeError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.PineconeError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<p>Base exception for all Pinecone SDK errors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.PineconeError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#PineconeError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.PineconeError.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.PineconeValueError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">PineconeValueError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#PineconeValueError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.PineconeValueError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>Input validation failed — invalid value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.PineconeValueError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#PineconeValueError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.PineconeValueError.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.PineconeTypeError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">PineconeTypeError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#PineconeTypeError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.PineconeTypeError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeError</span></code></a></p>
+<p>Input validation failed — wrong type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.PineconeTypeError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#PineconeTypeError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.PineconeTypeError.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.ResponseParsingError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">ResponseParsingError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cause</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#ResponseParsingError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.ResponseParsingError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a></p>
+<p>Raised when the SDK fails to parse an API response body.</p>
+<p>Wraps the underlying deserialization error (e.g. <code class="docutils literal notranslate"><span class="pre">msgspec.ValidationError</span></code>)
+so that callers’ <code class="docutils literal notranslate"><span class="pre">except</span> <span class="pre">PineconeError</span></code> blocks always catch it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>cause</strong> (<a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.14)"><em>Exception</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.ResponseParsingError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cause</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#ResponseParsingError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.ResponseParsingError.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>cause</strong> (<a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.14)"><em>Exception</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.IndexInitFailedError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">IndexInitFailedError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#IndexInitFailedError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.IndexInitFailedError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a></p>
+<p>Raised when an index fails to initialize.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.IndexInitFailedError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#IndexInitFailedError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.IndexInitFailedError.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="network-errors">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Network Errors</a><a class="headerlink" href="#network-errors" title="Link to this heading">¶</a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.PineconeConnectionError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">PineconeConnectionError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#PineconeConnectionError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.PineconeConnectionError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a></p>
+<p>Raised when a network-level connection fails.</p>
+<p>Covers DNS resolution failures, connection refused, read/write errors,
+and other transport-level problems.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.PineconeTimeoutError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">PineconeTimeoutError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#PineconeTimeoutError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.PineconeTimeoutError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TimeoutError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimeoutError</span></code></a></p>
+<p>Raised when an operation exceeds its timeout.</p>
+<p>Multiply inherits from Python’s built-in <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TimeoutError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TimeoutError</span></code></a> so that
+<code class="docutils literal notranslate"><span class="pre">except</span> <span class="pre">TimeoutError</span></code> blocks in caller code catch SDK timeouts without
+having to import a Pinecone-specific class. This is the same pattern used
+by <a class="reference internal" href="#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeValueError</span></code></a> (extends <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="api-errors">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">API Errors</a><a class="headerlink" href="#api-errors" title="Link to this heading">¶</a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.ApiError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">ApiError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#ApiError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.ApiError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a></p>
+<p>Server returned an error response.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>reason</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.ApiError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#ApiError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.ApiError.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>reason</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.NotFoundError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">NotFoundError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Resource</span> <span class="pre">not</span> <span class="pre">found'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">404</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#NotFoundError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.NotFoundError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ApiError</span></code></a></p>
+<p>404 Not Found.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>reason</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.NotFoundError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Resource</span> <span class="pre">not</span> <span class="pre">found'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">404</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#NotFoundError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.NotFoundError.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>reason</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.ConflictError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">ConflictError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Resource</span> <span class="pre">conflict'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">409</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#ConflictError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.ConflictError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ApiError</span></code></a></p>
+<p>409 Conflict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>reason</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.ConflictError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Resource</span> <span class="pre">conflict'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">409</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#ConflictError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.ConflictError.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>reason</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.UnauthorizedError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">UnauthorizedError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Invalid</span> <span class="pre">or</span> <span class="pre">missing</span> <span class="pre">API</span> <span class="pre">key'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">401</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#UnauthorizedError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.UnauthorizedError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ApiError</span></code></a></p>
+<p>401 Unauthorized.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>reason</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.UnauthorizedError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Invalid</span> <span class="pre">or</span> <span class="pre">missing</span> <span class="pre">API</span> <span class="pre">key'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">401</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#UnauthorizedError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.UnauthorizedError.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>reason</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.ForbiddenError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">ForbiddenError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Forbidden'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">403</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#ForbiddenError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.ForbiddenError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ApiError</span></code></a></p>
+<p>403 Forbidden.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>reason</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.ForbiddenError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Forbidden'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">403</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#ForbiddenError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.ForbiddenError.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>reason</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.ServiceError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pinecone.errors.exceptions.</span></span><span class="sig-name descname"><span class="pre">ServiceError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Internal</span> <span class="pre">server</span> <span class="pre">error'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#ServiceError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.ServiceError" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ApiError</span></code></a></p>
+<p>5xx server error.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>Any</em><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>reason</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pinecone.errors.exceptions.ServiceError.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Internal</span> <span class="pre">server</span> <span class="pre">error'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">500</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pinecone/errors/exceptions.html#ServiceError.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pinecone.errors.exceptions.ServiceError.__init__" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>)</p></li>
+<li><p><strong>status_code</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>)</p></li>
+<li><p><strong>body</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+<li><p><strong>reason</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>headers</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="deprecated-aliases">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Deprecated Aliases</a><a class="headerlink" href="#deprecated-aliases" title="Link to this heading">¶</a></h2>
+<p>The following names are kept for backwards compatibility and will be removed in a future
+major release.  New code should use the canonical names listed above.</p>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 35.0%" />
+<col style="width: 35.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Alias</p></th>
+<th class="head"><p>Canonical class</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PineconeException</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a></p></td>
+<td><p>Legacy base-class name</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PineconeApiException</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.ApiError" title="pinecone.errors.exceptions.ApiError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ApiError</span></code></a></p></td>
+<td><p>Legacy API error name</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PineconeConfigurationError</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeValueError</span></code></a></p></td>
+<td><p>Legacy configuration error</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PineconeProtocolError</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a></p></td>
+<td><p>Legacy protocol error</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PineconeApiTypeError</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.PineconeTypeError" title="pinecone.errors.exceptions.PineconeTypeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeTypeError</span></code></a></p></td>
+<td><p>Legacy type error</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PineconeApiValueError</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeValueError</span></code></a></p></td>
+<td><p>Legacy value error</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PineconeApiAttributeError</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a></p></td>
+<td><p>Legacy attribute error</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PineconeApiKeyError</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a></p></td>
+<td><p>Legacy key error</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NotFoundException</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.NotFoundError" title="pinecone.errors.exceptions.NotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">NotFoundError</span></code></a></p></td>
+<td><p>Legacy 404 error</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">UnauthorizedException</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.UnauthorizedError" title="pinecone.errors.exceptions.UnauthorizedError"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnauthorizedError</span></code></a></p></td>
+<td><p>Legacy 401 error</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ForbiddenException</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.ForbiddenError" title="pinecone.errors.exceptions.ForbiddenError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ForbiddenError</span></code></a></p></td>
+<td><p>Legacy 403 error</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ServiceException</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.ServiceError" title="pinecone.errors.exceptions.ServiceError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceError</span></code></a></p></td>
+<td><p>Legacy 5xx error</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ListConversionException</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.PineconeError" title="pinecone.errors.exceptions.PineconeError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeError</span></code></a></p></td>
+<td><p>Legacy list conversion error</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ValidationError</span></code></p></td>
+<td><p><a class="reference internal" href="#pinecone.errors.exceptions.PineconeValueError" title="pinecone.errors.exceptions.PineconeValueError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PineconeValueError</span></code></a></p></td>
+<td><p>Legacy validation alias</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 </section>
 
         </article>
@@ -299,7 +851,7 @@
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">v9 Migration Guide</div>
+                <div class="title">Migrating from v8.x to v9.x</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -332,8 +884,83 @@
         
       </footer>
     </div>
-    <aside class="toc-drawer no-toc">
+    <aside class="toc-drawer">
       
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Exceptions</a><ul>
+<li><a class="reference internal" href="#class-hierarchy">Class Hierarchy</a></li>
+<li><a class="reference internal" href="#base-configuration-errors">Base &amp; Configuration Errors</a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.PineconeError"><code class="docutils literal notranslate"><span class="pre">PineconeError</span></code></a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.PineconeError.__init__"><code class="docutils literal notranslate"><span class="pre">PineconeError.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.PineconeValueError"><code class="docutils literal notranslate"><span class="pre">PineconeValueError</span></code></a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.PineconeValueError.__init__"><code class="docutils literal notranslate"><span class="pre">PineconeValueError.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.PineconeTypeError"><code class="docutils literal notranslate"><span class="pre">PineconeTypeError</span></code></a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.PineconeTypeError.__init__"><code class="docutils literal notranslate"><span class="pre">PineconeTypeError.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.ResponseParsingError"><code class="docutils literal notranslate"><span class="pre">ResponseParsingError</span></code></a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.ResponseParsingError.__init__"><code class="docutils literal notranslate"><span class="pre">ResponseParsingError.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.IndexInitFailedError"><code class="docutils literal notranslate"><span class="pre">IndexInitFailedError</span></code></a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.IndexInitFailedError.__init__"><code class="docutils literal notranslate"><span class="pre">IndexInitFailedError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#network-errors">Network Errors</a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.PineconeConnectionError"><code class="docutils literal notranslate"><span class="pre">PineconeConnectionError</span></code></a></li>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.PineconeTimeoutError"><code class="docutils literal notranslate"><span class="pre">PineconeTimeoutError</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api-errors">API Errors</a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.ApiError"><code class="docutils literal notranslate"><span class="pre">ApiError</span></code></a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.ApiError.__init__"><code class="docutils literal notranslate"><span class="pre">ApiError.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.NotFoundError"><code class="docutils literal notranslate"><span class="pre">NotFoundError</span></code></a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.NotFoundError.__init__"><code class="docutils literal notranslate"><span class="pre">NotFoundError.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.ConflictError"><code class="docutils literal notranslate"><span class="pre">ConflictError</span></code></a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.ConflictError.__init__"><code class="docutils literal notranslate"><span class="pre">ConflictError.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.UnauthorizedError"><code class="docutils literal notranslate"><span class="pre">UnauthorizedError</span></code></a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.UnauthorizedError.__init__"><code class="docutils literal notranslate"><span class="pre">UnauthorizedError.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.ForbiddenError"><code class="docutils literal notranslate"><span class="pre">ForbiddenError</span></code></a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.ForbiddenError.__init__"><code class="docutils literal notranslate"><span class="pre">ForbiddenError.__init__()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.ServiceError"><code class="docutils literal notranslate"><span class="pre">ServiceError</span></code></a><ul>
+<li><a class="reference internal" href="#pinecone.errors.exceptions.ServiceError.__init__"><code class="docutils literal notranslate"><span class="pre">ServiceError.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#deprecated-aliases">Deprecated Aliases</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
       
       
     </aside>
