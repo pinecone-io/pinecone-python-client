@@ -69,12 +69,6 @@ Pinecone Python SDK
 
    how-to/integrated-records
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Preview (Pre-release)
-
-   reference/preview
-
 .. rubric:: By Client
 
 .. toctree::
