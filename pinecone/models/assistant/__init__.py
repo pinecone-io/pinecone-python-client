@@ -80,6 +80,10 @@ Highlight = ChatHighlight
 MessageDelta = StreamContentDelta
 """Deprecated alias for :class:`StreamContentDelta`. Use the canonical name."""
 
+BaseStreamChatResponseChunk = ChatStreamChunk
+"""Deprecated alias for :class:`ChatStreamChunk` (marker base class from
+legacy ``pinecone_plugins.assistant.models.chat``). Use the canonical name."""
+
 StreamChatResponseMessageStart = StreamMessageStart
 """Deprecated alias for :class:`StreamMessageStart`."""
 
@@ -136,6 +140,7 @@ __all__ = [
     "AssistantModel",
     "AsyncChatCompletionStream",
     "AsyncChatStream",
+    "BaseStreamChatResponseChunk",  # deprecated alias for ChatStreamChunk
     "ChatCitation",
     "ChatCompletionChoice",
     "ChatCompletionResponse",

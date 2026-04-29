@@ -82,6 +82,12 @@ def test_stream_response_aliases_exist() -> None:
     assert StreamingChatCompletionChoice is ChatCompletionStreamChoice
 
 
+def test_base_stream_chat_response_chunk_alias() -> None:
+    from pinecone.models.assistant import BaseStreamChatResponseChunk, ChatStreamChunk
+
+    assert BaseStreamChatResponseChunk is ChatStreamChunk
+
+
 def test_dict_mixin_alias_exists() -> None:
     from pinecone.models.assistant._mixin import DictMixin, StructDictMixin
 
@@ -93,6 +99,7 @@ def test_aliases_in_all() -> None:
 
     expected_aliases = [
         "AlignmentResponse",
+        "BaseStreamChatResponseChunk",
         "Citation",
         "DocxReference",
         "EvaluatedFact",
