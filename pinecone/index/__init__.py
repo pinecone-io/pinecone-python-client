@@ -61,10 +61,11 @@ class Index:
         :exc:`PineconeValueError`: If no API key can be resolved or the host is invalid.
 
     Examples:
+        .. code-block:: python
 
-        from pinecone import Index
+            from pinecone import Index
 
-        idx = Index(host="movie-recs-abc123.svc.pinecone.io", api_key="...")
+            idx = Index(host="movie-recs-abc123.svc.pinecone.io", api_key="...")
     """
 
     def __init__(
@@ -241,10 +242,9 @@ class Index:
             :exc:`PineconeValueError`: If *batch_size* is not a positive integer.
 
         Examples:
-            Upsert article embeddings from a DataFrame:
-
             .. code-block:: python
 
+                # Upsert article embeddings from a DataFrame
                 import pandas as pd
                 from pinecone import Pinecone
 
@@ -257,10 +257,7 @@ class Index:
                 response = index.upsert_from_dataframe(df)
                 response.upserted_count  # 2
 
-            Upsert with metadata, a custom namespace, and a smaller batch size:
-
-            .. code-block:: python
-
+                # Upsert with metadata, a custom namespace, and a smaller batch size
                 df = pd.DataFrame([
                     {
                         "id": "article-101",
@@ -789,15 +786,16 @@ class Index:
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
+            .. code-block:: python
 
-            # Delete by IDs
-            idx.delete(ids=["article-101", "article-102"])
+                # Delete by IDs
+                idx.delete(ids=["article-101", "article-102"])
 
-            # Delete all vectors in a namespace
-            idx.delete(delete_all=True, namespace="articles-deprecated")
+                # Delete all vectors in a namespace
+                idx.delete(delete_all=True, namespace="articles-deprecated")
 
-            # Delete by metadata filter
-            idx.delete(filter={"category": {"$eq": "obsolete"}})
+                # Delete by metadata filter
+                idx.delete(filter={"category": {"$eq": "obsolete"}})
         """
         mode_count = sum([ids is not None, delete_all, filter is not None])
         if mode_count == 0:
@@ -1012,11 +1010,9 @@ class Index:
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
-
-            Basic search:
-
             .. code-block:: python
 
+                # Basic search
                 response = idx.search(
                     namespace="articles-en",
                     top_k=10,
@@ -1025,10 +1021,7 @@ class Index:
                 for hit in response.result.hits:
                     print(hit.id, hit.score)
 
-            Search with reranking:
-
-            .. code-block:: python
-
+                # Search with reranking
                 response = idx.search(
                     namespace="articles-en",
                     top_k=10,
@@ -1191,9 +1184,10 @@ class Index:
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
+            .. code-block:: python
 
-            ns = idx.describe_namespace(name="movies-en")
-            print(ns.name, ns.record_count)
+                ns = idx.describe_namespace(name="movies-en")
+                print(ns.name, ns.record_count)
         """
         if not isinstance(name, str):
             raise ValidationError("namespace name must be a string")
@@ -1226,8 +1220,9 @@ class Index:
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
+            .. code-block:: python
 
-            idx.delete_namespace(name="movies-deprecated")
+                idx.delete_namespace(name="movies-deprecated")
         """
         if not isinstance(name, str):
             raise ValidationError("namespace name must be a string")
@@ -1298,10 +1293,11 @@ class Index:
             :class:`ListNamespacesResponse` for each page of results.
 
         Examples:
+            .. code-block:: python
 
-            for page in idx.list_namespaces(prefix="prod-"):
-                for ns in page.namespaces:
-                    print(ns.name, ns.record_count)
+                for page in idx.list_namespaces(prefix="prod-"):
+                    for ns in page.namespaces:
+                        print(ns.name, ns.record_count)
         """
         pagination_token: str | None = None
         while True:
@@ -1386,10 +1382,11 @@ class Index:
             :class:`ListResponse` for each page of results.
 
         Examples:
+            .. code-block:: python
 
-            for page in idx.list(prefix="doc1#"):
-                for item in page.vectors:
-                    print(item.id)
+                for page in idx.list(prefix="doc1#"):
+                    for item in page.vectors:
+                        print(item.id)
         """
         pagination_token: str | None = None
         while True:
@@ -1466,10 +1463,9 @@ class Index:
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
-            Start an import and poll until complete:
-
             .. code-block:: python
 
+                # Start an import and poll until complete
                 import time
                 response = idx.start_import(uri="s3://my-bucket/vectors/")
                 import_id = response.id
@@ -1481,10 +1477,7 @@ class Index:
                     import_op = idx.describe_import(import_id)
                 print(f"Status: {import_op.status}, records imported: {import_op.records_imported}")
 
-            Abort on first error instead of continuing:
-
-            .. code-block:: python
-
+                # Abort on first error instead of continuing
                 response = idx.start_import(
                     uri="s3://my-bucket/vectors/",
                     error_mode="abort",
@@ -1530,9 +1523,10 @@ class Index:
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
+            .. code-block:: python
 
-            import_op = idx.describe_import("import-123")
-            print(import_op.status, import_op.percent_complete)
+                import_op = idx.describe_import("import-123")
+                print(import_op.status, import_op.percent_complete)
         """
         str_id = self._validate_import_id(id)
         logger.info("Describing import %s", str_id)
@@ -1556,8 +1550,9 @@ class Index:
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
+            .. code-block:: python
 
-            idx.cancel_import("import-123")
+                idx.cancel_import("import-123")
         """
         str_id = self._validate_import_id(id)
         logger.info("Cancelling import %s", str_id)
@@ -1587,9 +1582,10 @@ class Index:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            .. code-block:: python
 
-            for imp in idx.list_imports():
-                print(imp.id, imp.status)
+                for imp in idx.list_imports():
+                    print(imp.id, imp.status)
         """
         params: dict[str, Any] = {}
         if limit is not None:
