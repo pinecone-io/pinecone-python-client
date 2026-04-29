@@ -66,7 +66,7 @@ for match in results.matches:
 ## Async (Non-Blocking) Operations with PineconeFuture
 
 Every data-plane method has an `_async` variant that returns a
-{class}`~pinecone.grpc.PineconeFuture` immediately without blocking:
+{class}`~pinecone.grpc.future.PineconeFuture` immediately without blocking:
 
 ```python
 from concurrent.futures import as_completed
