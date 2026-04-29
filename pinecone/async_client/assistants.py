@@ -516,6 +516,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 Use a positive value to poll with a deadline. Raises
                 :exc:`PineconeTimeoutError` if the assistant is not gone
                 before the deadline.
+            **kwargs (Any): Accepted for backwards compatibility only.
+                Unknown kwargs raise :exc:`PineconeValueError`.
 
         Returns:
             None.
@@ -524,6 +526,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             :exc:`PineconeTimeoutError`: If the assistant still exists after
                 *timeout* seconds.
             :exc:`ApiError`: If the API returns an error response.
+
+        :rtype: None
 
         Examples:
 
@@ -973,22 +977,21 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         propagate immediately.
 
         Args:
-            assistant_name: Name of the assistant that owns the file.
-            file_id: Unique identifier of the file to delete.
-            timeout: Seconds to wait for the file to be deleted. Use ``None``
-                (default) to poll indefinitely. Use ``-1`` to return
+            assistant_name (str): Name of the assistant that owns the file.
+            file_id (str): Unique identifier of the file to delete.
+            timeout (float | None): Seconds to wait for the file to be deleted.
+                Use ``None`` (default) to poll indefinitely. Use ``-1`` to return
                 immediately without polling. Use a positive value to poll with
                 a deadline. Raises :exc:`PineconeTimeoutError` if the file
                 is not gone before the deadline.
-
-        Returns:
-            ``None``
 
         Raises:
             :exc:`PineconeError`: If server-side file deletion fails.
             :exc:`PineconeTimeoutError`: If the file still exists after
                 *timeout* seconds.
             :exc:`ApiError`: If the API returns an error response.
+
+        :rtype: None
 
         Examples:
 

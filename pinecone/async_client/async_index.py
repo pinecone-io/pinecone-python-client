@@ -160,7 +160,10 @@ class AsyncIndex:
                 response = await idx.upsert_records(
                     namespace="articles-en",
                     records=[
-                        {"_id": "article-101", "text": "Vector databases enable similarity search."},
+                        {
+                            "_id": "article-101",
+                            "text": "Vector databases enable similarity search.",
+                        },
                         {"_id": "article-102", "text": "RAG combines search with LLMs."},
                     ],
                 )
