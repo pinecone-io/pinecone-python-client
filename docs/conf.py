@@ -64,7 +64,7 @@ myst_enable_extensions = ["colon_fence", "deflist"]
 
 copybutton_prompt_text = r">>> |\.\.\. "
 
-suppress_warnings = ["myst.header", "intersphinx"]
+suppress_warnings = ["myst.header", "intersphinx", "toc.excluded", "toc.secnum"]
 
 doctest_global_setup = """
 import os
