@@ -58,7 +58,19 @@ napoleon_use_ivar = True
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "msgspec": ("https://jcristharif.com/msgspec/", None),
+    "pandas": ("https://pandas.pydata.org/docs/", None),
 }
+
+nitpick_ignore = [
+    # Private base classes intentionally hidden from public docs
+    ("py:class", "pinecone.models._mixin.StructDictMixin"),
+    ("py:class", "pinecone.models._mixin.DictLikeStruct"),
+    ("py:class", "pinecone._internal.config.PineconeConfig"),
+    ("py:class", "pinecone._internal.config.RetryConfig"),
+    ("py:class", "pinecone._internal.http_client.HTTPClient"),
+    ("py:class", "pinecone._internal.http_client.AsyncHTTPClient"),
+]
 
 myst_enable_extensions = ["colon_fence", "deflist"]
 
