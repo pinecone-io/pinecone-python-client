@@ -5,7 +5,7 @@ infrastructure. Pinecone handles capacity, replication, and availability.
 
 ## Create a serverless index
 
-Pass a :class:`~pinecone.ServerlessSpec` with a cloud provider and region:
+Pass a {class}`~pinecone.ServerlessSpec` with a cloud provider and region:
 
 ```python
 from pinecone import Pinecone, ServerlessSpec
@@ -25,8 +25,8 @@ without waiting.
 
 ### Supported clouds and regions
 
-Use the :class:`~pinecone.CloudProvider`, :class:`~pinecone.AwsRegion`,
-:class:`~pinecone.GcpRegion`, and :class:`~pinecone.AzureRegion` enums for
+Use the {class}`~pinecone.CloudProvider`, {class}`~pinecone.AwsRegion`,
+{class}`~pinecone.GcpRegion`, and {class}`~pinecone.AzureRegion` enums for
 tab-completion and typo safety:
 
 ```python
@@ -74,7 +74,7 @@ pc.indexes.create(
 
 ## Check index status
 
-`describe` returns an :class:`~pinecone.models.IndexModel` with the current state:
+`describe` returns an {class}`~pinecone.models.IndexModel` with the current state:
 
 ```python
 desc = pc.indexes.describe("product-search")
@@ -94,7 +94,7 @@ while not pc.indexes.describe("product-search").status.ready:
 
 ## List indexes
 
-`list` returns an :class:`~pinecone.models.IndexList` you can iterate, slice, or call
+`list` returns an {class}`~pinecone.models.IndexList` you can iterate, slice, or call
 `.names()` on:
 
 ```python
@@ -136,7 +136,7 @@ pc.indexes.delete("product-search")
 
 ## See also
 
-- :class:`~pinecone.models.IndexModel` — full index response model
-- :class:`~pinecone.models.IndexList` — list response model
-- :doc:`/how-to/indexes/pod` — pod-based index management
-- :doc:`/how-to/indexes/backups-and-restore` — create and restore backups
+- {class}`~pinecone.models.IndexModel` — full index response model
+- {class}`~pinecone.models.IndexList` — list response model
+- {doc}`/how-to/indexes/pod` — pod-based index management
+- {doc}`/how-to/indexes/backups-and-restore` — create and restore backups

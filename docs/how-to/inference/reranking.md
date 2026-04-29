@@ -39,14 +39,14 @@ result = pc.inference.rerank(
 
 ## Response: RerankResult
 
-``rerank`` returns a :class:`~pinecone.models.inference.rerank.RerankResult` containing:
+``rerank`` returns a {class}`~pinecone.models.inference.rerank.RerankResult` containing:
 
-- ``.data`` — list of :class:`~pinecone.models.inference.rerank.RankedDocument`, ordered
+- ``.data`` — list of {class}`~pinecone.models.inference.rerank.RankedDocument`, ordered
   by descending score.
 - ``.model`` — model name used.
 - ``.usage.rerank_units`` — rerank units consumed.
 
-Each :class:`~pinecone.models.inference.rerank.RankedDocument` has:
+Each {class}`~pinecone.models.inference.rerank.RankedDocument` has:
 
 - ``.index`` — the original position of the document in the input list.
 - ``.score`` — relevance score (higher is more relevant).
@@ -84,7 +84,7 @@ result = pc.inference.rerank(
 
 ## Using the RerankModel enum
 
-Use the :class:`~pinecone.models.enums.RerankModel` enum for tab-completion and typo
+Use the {class}`~pinecone.models.enums.RerankModel` enum for tab-completion and typo
 safety:
 
 ```python
@@ -137,7 +137,7 @@ for doc in result.data:
 ```
 
 For integrated indexes, pass ``rerank`` directly inside
-:meth:`~pinecone.Index.search` — see :doc:`/how-to/integrated-records`.
+{meth}`~pinecone.Index.search` — see {doc}`/how-to/integrated-records`.
 
 ## List available reranking models
 

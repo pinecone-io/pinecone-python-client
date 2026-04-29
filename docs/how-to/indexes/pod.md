@@ -5,7 +5,7 @@ based on your throughput and latency requirements.
 
 ## Create a pod-based index
 
-Pass a :class:`~pinecone.PodSpec` with the environment and pod type:
+Pass a {class}`~pinecone.PodSpec` with the environment and pod type:
 
 ```python
 from pinecone import Pinecone, PodSpec
@@ -29,7 +29,7 @@ without waiting.
 
 ### Supported pod types
 
-Use the :class:`~pinecone.models.enums.PodType` enum for tab-completion and typo safety:
+Use the {class}`~pinecone.models.enums.PodType` enum for tab-completion and typo safety:
 
 ```python
 from pinecone import Pinecone, PodSpec
@@ -58,7 +58,7 @@ The `x1`/`x2`/`x4`/`x8` suffix controls the number of compute units per pod.
 
 ### Supported environments
 
-Use the :class:`~pinecone.models.enums.PodIndexEnvironment` enum:
+Use the {class}`~pinecone.models.enums.PodIndexEnvironment` enum:
 
 ```python
 from pinecone.models.enums import PodIndexEnvironment
@@ -136,7 +136,7 @@ pc.indexes.create(
 )
 ```
 
-See :doc:`/how-to/indexes/backups-and-restore` for creating backups and restoring
+See {doc}`/how-to/indexes/backups-and-restore` for creating backups and restoring
 serverless indexes.
 
 
@@ -169,8 +169,8 @@ pc.indexes.delete("product-search")
 
 ## See also
 
-- :class:`~pinecone.models.IndexModel` — full index response model
-- :class:`~pinecone.models.indexes.specs.PodSpec` — request-side pod spec
-- :class:`~pinecone.models.indexes.index.PodSpecInfo` — response-side pod spec
-- :doc:`/how-to/indexes/serverless` — serverless index management
-- :doc:`/how-to/indexes/backups-and-restore` — create and restore backups
+- {class}`~pinecone.models.IndexModel` — full index response model
+- {class}`~pinecone.models.indexes.specs.PodSpec` — request-side pod spec
+- {class}`~pinecone.models.indexes.index.PodSpecInfo` — response-side pod spec
+- {doc}`/how-to/indexes/serverless` — serverless index management
+- {doc}`/how-to/indexes/backups-and-restore` — create and restore backups

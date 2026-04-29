@@ -10,7 +10,7 @@ The source must be a directory of Parquet files formatted to the
 
 ## Start an import
 
-:meth:`~pinecone.Index.start_import` initiates the operation and returns immediately with an
+{meth}`~pinecone.Index.start_import` initiates the operation and returns immediately with an
 operation ID:
 
 ```python
@@ -40,7 +40,7 @@ response = index.start_import(
 )
 ```
 
-You can also use the :class:`~pinecone.models.ImportErrorMode` enum:
+You can also use the {class}`~pinecone.models.ImportErrorMode` enum:
 
 ```python
 from pinecone.models.imports.error_mode import ImportErrorMode
@@ -54,7 +54,7 @@ response = index.start_import(
 
 ## Check import status
 
-:meth:`~pinecone.Index.describe_import` returns an :class:`~pinecone.models.ImportModel`
+{meth}`~pinecone.Index.describe_import` returns an {class}`~pinecone.models.ImportModel`
 with the current state:
 
 ```python
@@ -88,7 +88,7 @@ else:
 
 ## List imports
 
-:meth:`~pinecone.Index.list_imports` yields :class:`~pinecone.models.ImportModel` objects
+{meth}`~pinecone.Index.list_imports` yields {class}`~pinecone.models.ImportModel` objects
 for all imports on the index, following pagination automatically:
 
 ```python
@@ -106,7 +106,7 @@ for imp in index.list_imports(limit=20):
 
 ## Cancel an import
 
-:meth:`~pinecone.Index.cancel_import` stops an in-progress import. Already-imported records
+{meth}`~pinecone.Index.cancel_import` stops an in-progress import. Already-imported records
 are not rolled back.
 
 ```python
@@ -116,6 +116,6 @@ index.cancel_import(import_id)
 
 ## See also
 
-- :doc:`/how-to/vectors/upsert-and-query` — upsert vectors directly in batches
-- :class:`~pinecone.Index` — full data plane client reference
-- :class:`~pinecone.models.ImportModel` — import operation model
+- {doc}`/how-to/vectors/upsert-and-query` — upsert vectors directly in batches
+- {class}`~pinecone.Index` — full data plane client reference
+- {class}`~pinecone.models.ImportModel` — import operation model

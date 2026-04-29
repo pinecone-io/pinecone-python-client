@@ -34,10 +34,10 @@ print(info.supported_parameters)
 
 ## Response: EmbeddingsList
 
-``embed`` returns an :class:`~pinecone.models.inference.embed.EmbeddingsList` containing:
+``embed`` returns an {class}`~pinecone.models.inference.embed.EmbeddingsList` containing:
 
-- ``.data`` — list of :class:`~pinecone.models.inference.embed.DenseEmbedding` or
-  :class:`~pinecone.models.inference.embed.SparseEmbedding` objects (one per input).
+- ``.data`` — list of {class}`~pinecone.models.inference.embed.DenseEmbedding` or
+  {class}`~pinecone.models.inference.embed.SparseEmbedding` objects (one per input).
 - ``.model`` — model name used.
 - ``.usage.total_tokens`` — token count consumed.
 
@@ -65,7 +65,7 @@ Some models return hybrid (dense + sparse) embeddings as two separate items per 
 
 ## Using the EmbedModel enum
 
-Use the :class:`~pinecone.models.enums.EmbedModel` enum for tab-completion and typo
+Use the {class}`~pinecone.models.enums.EmbedModel` enum for tab-completion and typo
 safety:
 
 ```python
@@ -112,8 +112,8 @@ index.upsert(vectors=vectors)
 ```
 
 For server-side embedding (no manual embed step), use an integrated index and
-:meth:`~pinecone.Index.upsert_records` instead — see
-:doc:`/how-to/integrated-records`.
+{meth}`~pinecone.Index.upsert_records` instead — see
+{doc}`/how-to/integrated-records`.
 
 ## List available models
 

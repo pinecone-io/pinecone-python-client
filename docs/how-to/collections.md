@@ -22,7 +22,7 @@ complete. ``create`` returns immediately without polling; check status with ``de
 
 ## List collections
 
-``list`` returns a :class:`~pinecone.models.collections.list.CollectionList` you can
+``list`` returns a {class}`~pinecone.models.collections.list.CollectionList` you can
 iterate or call ``.names()`` on:
 
 ```python
@@ -37,7 +37,7 @@ print(names)   # e.g. ["snap-2025-01", "archive-q3"]
 
 ## Describe a collection
 
-``describe`` returns a :class:`~pinecone.models.collections.model.CollectionModel` with
+``describe`` returns a {class}`~pinecone.models.collections.model.CollectionModel` with
 detailed information:
 
 ```python
@@ -68,12 +68,12 @@ while True:
 pc.collections.delete("snap-2025-01")
 ```
 
-``delete`` raises :exc:`~pinecone.exceptions.NotFoundError` if the collection does not
+``delete`` raises {exc}`~pinecone.exceptions.NotFoundError` if the collection does not
 exist.
 
 ## Create an index from a collection
 
-Pass ``source_collection`` inside a :class:`~pinecone.PodSpec` to restore collection
+Pass ``source_collection`` inside a {class}`~pinecone.PodSpec` to restore collection
 data into a new pod index:
 
 ```python

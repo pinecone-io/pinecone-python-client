@@ -12,7 +12,7 @@ parameter default to `""` when `namespace` is omitted.
 
 ## Upsert into a namespace
 
-Pass `namespace` to :meth:`~pinecone.Index.upsert` to write vectors into a specific partition:
+Pass `namespace` to {meth}`~pinecone.Index.upsert` to write vectors into a specific partition:
 
 ```python
 from pinecone import Pinecone, Vector
@@ -34,7 +34,7 @@ Vectors upserted without a `namespace` go into the default namespace `""`.
 
 ## Query within a namespace
 
-Pass `namespace` to :meth:`~pinecone.Index.query` to restrict the search to a single partition:
+Pass `namespace` to {meth}`~pinecone.Index.query` to restrict the search to a single partition:
 
 ```python
 response = index.query(
@@ -50,7 +50,7 @@ Queries return `response.namespace` indicating which namespace was searched.
 
 ### Query across multiple namespaces
 
-:meth:`~pinecone.Index.query_namespaces` fans out queries in parallel and returns merged
+{meth}`~pinecone.Index.query_namespaces` fans out queries in parallel and returns merged
 top results:
 
 ```python
@@ -67,7 +67,7 @@ for match in results.matches:
 
 ## List namespaces
 
-:meth:`~pinecone.Index.list_namespaces` yields one :class:`~pinecone.models.ListNamespacesResponse`
+{meth}`~pinecone.Index.list_namespaces` yields one {class}`~pinecone.models.ListNamespacesResponse`
 per page, following pagination automatically:
 
 ```python
@@ -76,7 +76,7 @@ for page in index.list_namespaces():
         print(ns.name, ns.record_count)
 ```
 
-Each :class:`~pinecone.models.NamespaceDescription` has `name` and `record_count` fields.
+Each {class}`~pinecone.models.NamespaceDescription` has `name` and `record_count` fields.
 
 Filter by prefix to list a subset of namespaces:
 
@@ -87,7 +87,7 @@ for page in index.list_namespaces(prefix="catalog-"):
 ```
 
 For a single page without automatic pagination, use
-:meth:`~pinecone.Index.list_namespaces_paginated`:
+{meth}`~pinecone.Index.list_namespaces_paginated`:
 
 ```python
 page = index.list_namespaces_paginated(limit=50)
@@ -105,14 +105,14 @@ if page.pagination and page.pagination.next:
 
 ## Delete all vectors in a namespace
 
-:meth:`~pinecone.Index.delete` with `delete_all=True` removes every vector in a namespace
+{meth}`~pinecone.Index.delete` with `delete_all=True` removes every vector in a namespace
 without deleting the namespace itself:
 
 ```python
 index.delete(delete_all=True, namespace="catalog-staging")
 ```
 
-Alternatively, :meth:`~pinecone.Index.delete_namespace` removes the namespace and all its
+Alternatively, {meth}`~pinecone.Index.delete_namespace` removes the namespace and all its
 vectors:
 
 ```python
@@ -122,7 +122,7 @@ index.delete_namespace(name="catalog-staging")
 
 ## Describe a namespace
 
-:meth:`~pinecone.Index.describe_namespace` returns metadata for a single namespace:
+{meth}`~pinecone.Index.describe_namespace` returns metadata for a single namespace:
 
 ```python
 ns = index.describe_namespace(name="catalog-us")
@@ -134,7 +134,7 @@ print(ns.record_count)
 ## Create a namespace
 
 Namespaces are created automatically when you first upsert into them. Use
-:meth:`~pinecone.Index.create_namespace` when you need to pre-create one with a custom
+{meth}`~pinecone.Index.create_namespace` when you need to pre-create one with a custom
 schema or when you want to configure indexed metadata fields up front:
 
 ```python
@@ -148,7 +148,7 @@ print(ns.name, ns.record_count)
 
 ## See also
 
-- :doc:`/how-to/vectors/upsert-and-query` — upsert and query operations
-- :class:`~pinecone.Index` — full data plane client reference
-- :class:`~pinecone.models.ListNamespacesResponse` — list namespaces response model
-- :class:`~pinecone.models.NamespaceDescription` — namespace metadata model
+- {doc}`/how-to/vectors/upsert-and-query` — upsert and query operations
+- {class}`~pinecone.Index` — full data plane client reference
+- {class}`~pinecone.models.ListNamespacesResponse` — list namespaces response model
+- {class}`~pinecone.models.NamespaceDescription` — namespace metadata model

@@ -46,7 +46,7 @@ for backup in pc.backups.list(index_name="product-search"):
     print(backup.backup_id, backup.created_at)
 ```
 
-`list` returns a :class:`~pinecone.models.backups.list.BackupList` with cursor-based
+`list` returns a {class}`~pinecone.models.backups.list.BackupList` with cursor-based
 pagination. Pass `limit` to control page size and `pagination_token` to advance pages:
 
 ```python
@@ -131,7 +131,7 @@ print(job.percent_complete)
 print(job.completed_at)
 ```
 
-`describe` returns a :class:`~pinecone.models.backups.model.RestoreJobModel`.
+`describe` returns a {class}`~pinecone.models.backups.model.RestoreJobModel`.
 
 
 ## Delete a backup
@@ -145,9 +145,9 @@ Deleting a backup does not affect the source index or any indexes restored from 
 
 ## See also
 
-- :class:`~pinecone.models.backups.model.BackupModel` — backup response model
-- :class:`~pinecone.models.backups.list.BackupList` — backup list response
-- :class:`~pinecone.models.backups.model.RestoreJobModel` — restore job model
-- :class:`~pinecone.models.backups.list.RestoreJobList` — restore job list response
-- :doc:`/how-to/indexes/serverless` — serverless index management
-- :doc:`/how-to/indexes/pod` — pod-based index management
+- {class}`~pinecone.models.backups.model.BackupModel` — backup response model
+- {class}`~pinecone.models.backups.list.BackupList` — backup list response
+- {class}`~pinecone.models.backups.model.RestoreJobModel` — restore job model
+- {class}`~pinecone.models.backups.list.RestoreJobList` — restore job list response
+- {doc}`/how-to/indexes/serverless` — serverless index management
+- {doc}`/how-to/indexes/pod` — pod-based index management

@@ -90,7 +90,7 @@ pc.assistant.delete_file(
 )
 ```
 
-Raises :exc:`~pinecone.exceptions.NotFoundError` if the file does not exist.
+Raises {exc}`~pinecone.exceptions.NotFoundError` if the file does not exist.
 
 ## Delete an assistant
 
@@ -98,4 +98,4 @@ Raises :exc:`~pinecone.exceptions.NotFoundError` if the file does not exist.
 pc.assistant.delete(name="my-assistant")
 ```
 
-Raises :exc:`~pinecone.exceptions.NotFoundError` if the assistant does not exist.
+Raises {exc}`~pinecone.exceptions.NotFoundError` if the assistant does not exist.

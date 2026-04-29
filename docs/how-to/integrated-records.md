@@ -5,7 +5,7 @@ You write text; Pinecone handles the embedding. No separate ``embed`` step requi
 
 ## Create an integrated index
 
-Use :class:`~pinecone.IntegratedSpec` and provide an :class:`~pinecone.EmbedConfig`
+Use {class}`~pinecone.IntegratedSpec` and provide an {class}`~pinecone.EmbedConfig`
 that maps a document field to the embedding input:
 
 ```python
@@ -38,7 +38,7 @@ index = pc.index("articles")
 
 ## Upsert records
 
-Call :meth:`~pinecone.Index.upsert_records` with a list of record dicts. Each record
+Call {meth}`~pinecone.Index.upsert_records` with a list of record dicts. Each record
 must have an ``_id`` (or ``id``) field. Include any fields you configured in
 ``field_map``:
 
@@ -59,7 +59,7 @@ asynchronously by Pinecone; allow a moment before searching.
 
 ## Search records
 
-Call :meth:`~pinecone.Index.search` with ``inputs`` containing the query text. Pinecone
+Call {meth}`~pinecone.Index.search` with ``inputs`` containing the query text. Pinecone
 embeds the query server-side and returns the nearest records:
 
 ```python
@@ -75,14 +75,14 @@ for hit in results.result.hits:
 
 ### Response: SearchRecordsResponse
 
-``search`` returns a :class:`~pinecone.models.vectors.search.SearchRecordsResponse`:
+``search`` returns a {class}`~pinecone.models.vectors.search.SearchRecordsResponse`:
 
-- ``.result.hits`` — list of :class:`~pinecone.models.vectors.search.Hit` objects, ordered
+- ``.result.hits`` — list of {class}`~pinecone.models.vectors.search.Hit` objects, ordered
   by descending score.
 - ``.usage.read_units`` — read units consumed.
 - ``.usage.embed_total_tokens`` — tokens used for embedding the query.
 
-Each :class:`~pinecone.models.vectors.search.Hit` exposes:
+Each {class}`~pinecone.models.vectors.search.Hit` exposes:
 
 - ``.id`` — the record identifier.
 - ``.score`` — similarity score (higher is more relevant).
@@ -164,5 +164,5 @@ results = index.search(
 
 ## See also
 
-- :doc:`/how-to/inference/embeddings` — generate embeddings manually for non-integrated indexes.
-- :doc:`/how-to/inference/reranking` — rerank results from any source.
+- {doc}`/how-to/inference/embeddings` — generate embeddings manually for non-integrated indexes.
+- {doc}`/how-to/inference/reranking` — rerank results from any source.

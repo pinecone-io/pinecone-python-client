@@ -1,7 +1,7 @@
 # Upserting and Querying Vectors
 
-Use the :class:`~pinecone.Index` client to insert and retrieve vectors from a Pinecone index.
-Get an index client via :meth:`~pinecone.Pinecone.index`:
+Use the {class}`~pinecone.Index` client to insert and retrieve vectors from a Pinecone index.
+Get an index client via {meth}`~pinecone.Pinecone.index`:
 
 ```python
 from pinecone import Pinecone
@@ -13,7 +13,7 @@ index = pc.index("movie-recommendations")
 
 ## Upsert vectors
 
-:meth:`~pinecone.Index.upsert` inserts vectors or overwrites existing ones with the same ID.
+{meth}`~pinecone.Index.upsert` inserts vectors or overwrites existing ones with the same ID.
 
 Pass a list of tuples `(id, values)` or `(id, values, metadata)`:
 
@@ -28,7 +28,7 @@ index.upsert(
 
 ### Using Vector objects
 
-:class:`~pinecone.Vector` objects support metadata and sparse values:
+{class}`~pinecone.Vector` objects support metadata and sparse values:
 
 ```python
 from pinecone import Vector
@@ -46,7 +46,7 @@ response = index.upsert(
 print(response.upserted_count)  # 2
 ```
 
-`upsert` returns a :class:`~pinecone.models.UpsertResponse` with `upserted_count`.
+`upsert` returns a {class}`~pinecone.models.UpsertResponse` with `upserted_count`.
 
 ### Upsert into a namespace
 
@@ -64,14 +64,14 @@ The default namespace is `""`.
 ### Large datasets
 
 `upsert` sends all vectors in a single request. For large datasets, batch your calls
-(100–500 vectors per batch) or use :meth:`~pinecone.Index.upsert_from_dataframe` for
+(100–500 vectors per batch) or use {meth}`~pinecone.Index.upsert_from_dataframe` for
 DataFrame input with automatic batching. For millions of vectors, consider
-:meth:`~pinecone.Index.start_import` to load from cloud storage.
+{meth}`~pinecone.Index.start_import` to load from cloud storage.
 
 
 ## Query for nearest neighbors
 
-:meth:`~pinecone.Index.query` returns the `top_k` closest vectors to a query vector:
+{meth}`~pinecone.Index.query` returns the `top_k` closest vectors to a query vector:
 
 ```python
 response = index.query(
@@ -82,7 +82,7 @@ for match in response.matches:
     print(match.id, match.score)
 ```
 
-Each element of `response.matches` is a :class:`~pinecone.models.ScoredVector` with
+Each element of `response.matches` is a {class}`~pinecone.models.ScoredVector` with
 `id`, `score`, `values`, `metadata`, and `sparse_values` fields. Results are ordered from
 most similar to least similar.
 
@@ -117,9 +117,9 @@ response = index.query(
 
 ### Using the Field filter builder
 
-:class:`~pinecone.Field` provides a Python-native API for building filter expressions.
+{class}`~pinecone.Field` provides a Python-native API for building filter expressions.
 The `==`, `!=`, `&`, and `|` operators and `.gt()` / `.gte()` / `.lt()` / `.lte()` /
-`.is_in()` / `.not_in()` methods return a :class:`~pinecone.utils.filter_builder.Condition`
+`.is_in()` / `.not_in()` methods return a {class}`~pinecone.utils.filter_builder.Condition`
 object. Pass it to `filter` via `.to_dict()`:
 
 ```python
@@ -140,7 +140,7 @@ response = index.query(
 
 ## Fetch vectors by ID
 
-:meth:`~pinecone.Index.fetch` retrieves stored vectors by their IDs:
+{meth}`~pinecone.Index.fetch` retrieves stored vectors by their IDs:
 
 ```python
 response = index.fetch(ids=["movie-001", "movie-002"])
@@ -154,7 +154,7 @@ raising an error.
 
 ## Update a vector
 
-:meth:`~pinecone.Index.update` replaces a vector's dense values, sparse values, or metadata.
+{meth}`~pinecone.Index.update` replaces a vector's dense values, sparse values, or metadata.
 
 Update dense values by ID:
 
@@ -180,7 +180,7 @@ index.update(
 
 ## Delete vectors
 
-:meth:`~pinecone.Index.delete` removes vectors from a namespace. Specify exactly one of
+{meth}`~pinecone.Index.delete` removes vectors from a namespace. Specify exactly one of
 `ids`, `delete_all`, or `filter`.
 
 Delete by ID:
@@ -204,7 +204,7 @@ index.delete(filter={"year": {"$lte": 2000}})
 
 ## Inspect index stats
 
-:meth:`~pinecone.Index.describe_index_stats` returns aggregate counts and
+{meth}`~pinecone.Index.describe_index_stats` returns aggregate counts and
 per-namespace summaries:
 
 ```python
@@ -227,8 +227,8 @@ print(stats.total_vector_count)
 
 ## See also
 
-- :doc:`/how-to/vectors/namespaces` — working with namespaces
-- :doc:`/how-to/vectors/bulk-import` — bulk importing from cloud storage
-- :class:`~pinecone.Index` — full data plane client reference
-- :class:`~pinecone.models.QueryResponse` — query response model
-- :class:`~pinecone.models.ScoredVector` — individual match in query results
+- {doc}`/how-to/vectors/namespaces` — working with namespaces
+- {doc}`/how-to/vectors/bulk-import` — bulk importing from cloud storage
+- {class}`~pinecone.Index` — full data plane client reference
+- {class}`~pinecone.models.QueryResponse` — query response model
+- {class}`~pinecone.models.ScoredVector` — individual match in query results
