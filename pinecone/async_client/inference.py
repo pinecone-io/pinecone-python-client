@@ -36,22 +36,21 @@ class AsyncModelResource:
             handles HTTP requests on behalf of this resource.
 
     Examples:
-        List all available models:
 
         .. code-block:: python
 
+            # List all available models
             from pinecone import AsyncPinecone
             async with AsyncPinecone(api_key="your-api-key") as pc:
                 models = await pc.inference.model.list()
                 models.names()
 
-        Get details about a specific model:
-
         .. code-block:: python
 
+            # Get details about a specific model
             async with AsyncPinecone(api_key="your-api-key") as pc:
                 info = await pc.inference.model.get("multilingual-e5-large")
-                info.type
+                print(info.type)
     """
 
     def __init__(self, inference: AsyncInference) -> None:
@@ -79,10 +78,13 @@ class AsyncModelResource:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            from pinecone import AsyncPinecone
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                models = await pc.inference.model.list()
-                embed_models = await pc.inference.model.list(type="embed")
+
+            .. code-block:: python
+
+                from pinecone import AsyncPinecone
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    models = await pc.inference.model.list()
+                    embed_models = await pc.inference.model.list(type="embed")
         """
         return await self._inference.list_models(type=type, vector_type=vector_type)
 
@@ -102,11 +104,13 @@ class AsyncModelResource:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-            from pinecone import AsyncPinecone
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                info = await pc.inference.model.get("multilingual-e5-large")
-                info.type
-            'embed'
+
+            .. code-block:: python
+
+                from pinecone import AsyncPinecone
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    info = await pc.inference.model.get("multilingual-e5-large")
+                    print(info.type)
         """
         model_name: str | None = kwargs.pop("model_name", None)
         if kwargs:
@@ -322,7 +326,6 @@ class AsyncInference:
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
-            List all models:
 
             .. code-block:: python
 

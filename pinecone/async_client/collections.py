@@ -26,11 +26,13 @@ class AsyncCollections:
 
     Examples:
 
-        from pinecone import AsyncPinecone
+        .. code-block:: python
 
-        async with AsyncPinecone(api_key="your-api-key") as pc:
-            for col in await pc.collections.list():
-                print(col.name)
+            from pinecone import AsyncPinecone
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                for col in await pc.collections.list():
+                    print(col.name)
     """
 
     def __init__(self, http: AsyncHTTPClient) -> None:
@@ -59,8 +61,10 @@ class AsyncCollections:
 
         Examples:
 
-            col = await pc.collections.create(name="my-collection", source="my-index")
-            print(col.status)
+            .. code-block:: python
+
+                col = await pc.collections.create(name="my-collection", source="my-index")
+                print(col.status)
         """
         require_non_empty("name", name)
         require_non_empty("source", source)
@@ -111,8 +115,10 @@ class AsyncCollections:
 
         Examples:
 
-            desc = await pc.collections.describe("my-collection")
-            print(desc.size)
+            .. code-block:: python
+
+                desc = await pc.collections.describe("my-collection")
+                print(desc.size)
         """
         require_non_empty("name", name)
         logger.info("Describing collection %r", name)
@@ -133,7 +139,9 @@ class AsyncCollections:
 
         Examples:
 
-            await pc.collections.delete("my-collection")
+            .. code-block:: python
+
+                await pc.collections.delete("my-collection")
         """
         require_non_empty("name", name)
         logger.info("Deleting collection %r", name)

@@ -26,11 +26,13 @@ class AsyncBackups:
 
     Examples:
 
-        from pinecone import AsyncPinecone
+        .. code-block:: python
 
-        async with AsyncPinecone(api_key="your-api-key") as pc:
-            for backup in await pc.backups.list():
-                print(backup.backup_id)
+            from pinecone import AsyncPinecone
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                for backup in await pc.backups.list():
+                    print(backup.backup_id)
     """
 
     def __init__(self, http: AsyncHTTPClient) -> None:
@@ -63,10 +65,10 @@ class AsyncBackups:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            Create a backup of an index:
 
             .. code-block:: python
 
+                # Create a backup of an index
                 from pinecone import AsyncPinecone
                 async with AsyncPinecone(api_key="your-api-key") as pc:
                     backup = await pc.backups.create(
@@ -74,10 +76,9 @@ class AsyncBackups:
                     )
                     print(backup.backup_id)
 
-            Create a backup with a name and description:
-
             .. code-block:: python
 
+                # Create a backup with a name and description
                 async with AsyncPinecone(api_key="your-api-key") as pc:
                     backup = await pc.backups.create(
                         index_name="product-search",
@@ -120,19 +121,18 @@ class AsyncBackups:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            List all backups in the project:
 
             .. code-block:: python
 
+                # List all backups in the project
                 from pinecone import AsyncPinecone
                 async with AsyncPinecone(api_key="your-api-key") as pc:
                     for backup in await pc.backups.list():
                         print(backup.backup_id, backup.name)
 
-            List backups for a specific index:
-
             .. code-block:: python
 
+                # List backups for a specific index
                 async with AsyncPinecone(api_key="your-api-key") as pc:
                     for backup in await pc.backups.list(
                         index_name="product-search",

@@ -26,11 +26,13 @@ class AsyncRestoreJobs:
 
     Examples:
 
-        from pinecone import AsyncPinecone
+        .. code-block:: python
 
-        async with AsyncPinecone(api_key="your-api-key") as pc:
-            for job in await pc.restore_jobs.list():
-                print(job.restore_job_id)
+            from pinecone import AsyncPinecone
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                for job in await pc.restore_jobs.list():
+                    print(job.restore_job_id)
     """
 
     def __init__(self, http: AsyncHTTPClient) -> None:
@@ -62,19 +64,18 @@ class AsyncRestoreJobs:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            List all restore jobs:
 
             .. code-block:: python
 
+                # List all restore jobs
                 from pinecone import AsyncPinecone
                 async with AsyncPinecone(api_key="your-api-key") as pc:
                     for job in await pc.restore_jobs.list():
                         print(job.restore_job_id, job.status)
 
-            List with a page size limit:
-
             .. code-block:: python
 
+                # List with a page size limit
                 async with AsyncPinecone(api_key="your-api-key") as pc:
                     jobs = await pc.restore_jobs.list(limit=5)
                     print(len(jobs))

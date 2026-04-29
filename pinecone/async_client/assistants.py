@@ -67,10 +67,12 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
     Examples:
 
-        from pinecone import AsyncPinecone
+        .. code-block:: python
 
-        async with AsyncPinecone(api_key="your-api-key") as pc:
-            assistants = pc.assistants
+            from pinecone import AsyncPinecone
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                assistants = pc.assistants
     """
 
     def __init__(self, config: PineconeConfig) -> None:
@@ -272,8 +274,10 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            assistant = await pc.assistants.describe(name="my-assistant")
-            print(assistant.status)
+            .. code-block:: python
+
+                assistant = await pc.assistants.describe(name="my-assistant")
+                print(assistant.status)
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
@@ -328,10 +332,12 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            async for a in pc.assistants.list():
-                print(a.name, a.status)
+            .. code-block:: python
 
-            all_assistants = await pc.assistants.list().to_list()
+                async for a in pc.assistants.list():
+                    print(a.name, a.status)
+
+                all_assistants = await pc.assistants.list().to_list()
         """
         logger.info("Listing assistants")
 
@@ -437,19 +443,18 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 when the assistant does not exist).
 
         Examples:
-            Update an assistant's instructions:
 
             .. code-block:: python
 
+                # Update an assistant's instructions
                 assistant = await pc.assistants.update(
                     name="my-assistant",
                     instructions="You are a helpful research assistant.",
                 )
 
-            Replace an assistant's metadata:
-
             .. code-block:: python
 
+                # Replace an assistant's metadata
                 assistant = await pc.assistants.update(
                     name="my-assistant",
                     metadata={"team": "ml", "version": "2"},
@@ -512,12 +517,16 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 :exc:`PineconeTimeoutError` if the assistant is not gone
                 before the deadline.
 
+        Returns:
+            None.
+
         Raises:
             :exc:`PineconeTimeoutError`: If the assistant still exists after
                 *timeout* seconds.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+
             .. code-block:: python
 
                 await pc.assistants.delete(name="my-assistant")
@@ -717,10 +726,12 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Examples:
 
-            async for f in pc.assistants.list_files(assistant_name="my-assistant"):
-                print(f.name, f.status)
+            .. code-block:: python
 
-            files = await pc.assistants.list_files(assistant_name="my-assistant").to_list()
+                async for f in pc.assistants.list_files(assistant_name="my-assistant"):
+                    print(f.name, f.status)
+
+                files = await pc.assistants.list_files(assistant_name="my-assistant").to_list()
         """
         logger.info("Listing files for assistant %r", assistant_name)
 
@@ -1059,10 +1070,10 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            Retrieve context using a text query:
 
             .. code-block:: python
 
+                # Retrieve context using a text query
                 response = await pc.assistants.context(
                     assistant_name="my-assistant",
                     query="What is Pinecone?",
@@ -1149,10 +1160,10 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            Non-streaming chat:
 
             .. code-block:: python
 
+                # Non-streaming chat
                 import asyncio
                 from pinecone import AsyncPinecone
 
@@ -1165,10 +1176,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                     )
                 asyncio.run(main())
 
-            Streaming chat:
-
             .. code-block:: python
 
+                # Streaming chat
                 async def stream_main() -> None:
                     stream = await pc.assistants.chat(
                         assistant_name="my-assistant",
@@ -1306,10 +1316,10 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            Non-streaming chat completion:
 
             .. code-block:: python
 
+                # Non-streaming chat completion
                 import asyncio
                 from pinecone import AsyncPinecone
 
@@ -1323,10 +1333,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                     print(response.choices[0].message.content)
                 asyncio.run(main())
 
-            Streaming chat completion:
-
             .. code-block:: python
 
+                # Streaming chat completion
                 async def stream_main() -> None:
                     stream = await pc.assistants.chat_completions(
                         assistant_name="research-assistant",

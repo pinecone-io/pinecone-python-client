@@ -50,11 +50,13 @@ class AsyncIndexes:
 
     Examples:
 
-        from pinecone import AsyncPinecone
+        .. code-block:: python
 
-        async with AsyncPinecone(api_key="your-api-key") as pc:
-            for idx in await pc.indexes.list():
-                print(idx.name)
+            from pinecone import AsyncPinecone
+
+            async with AsyncPinecone(api_key="your-api-key") as pc:
+                for idx in await pc.indexes.list():
+                    print(idx.name)
     """
 
     def __init__(self, http: AsyncHTTPClient, host_cache: dict[str, str] | None = None) -> None:
@@ -82,9 +84,11 @@ class AsyncIndexes:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                indexes = await pc.indexes.list()
-                print(indexes.names())
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    indexes = await pc.indexes.list()
+                    print(indexes.names())
         """
         logger.info("Listing indexes")
         response = await self._http.get("/indexes")
@@ -112,9 +116,11 @@ class AsyncIndexes:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                desc = await pc.indexes.describe("my-index")
-                print(desc.host)
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    desc = await pc.indexes.describe("my-index")
+                    print(desc.host)
         """
         require_non_empty("name", name)
         logger.info("Describing index %r", name)
@@ -142,9 +148,11 @@ class AsyncIndexes:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                if await pc.indexes.exists("my-index"):
-                    print("Index found")
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    if await pc.indexes.exists("my-index"):
+                        print("Index found")
         """
         if not name:
             return False
@@ -176,11 +184,13 @@ class AsyncIndexes:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                await pc.indexes.delete("my-index")
+            .. code-block:: python
 
-                # Wait up to 60 seconds for deletion to complete
-                await pc.indexes.delete("my-index", timeout=60)
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    await pc.indexes.delete("my-index")
+
+                    # Wait up to 60 seconds for deletion to complete
+                    await pc.indexes.delete("my-index", timeout=60)
         """
         require_non_empty("name", name)
         logger.info("Deleting index %r", name)
@@ -241,9 +251,11 @@ class AsyncIndexes:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                await pc.indexes.configure("my-index", replicas=4)
-                await pc.indexes.configure("my-index", tags={"env": "prod"})
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    await pc.indexes.configure("my-index", replicas=4)
+                    await pc.indexes.configure("my-index", tags={"env": "prod"})
         """
         require_non_empty("name", name)
         logger.info("Configuring index %r", name)

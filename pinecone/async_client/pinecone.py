@@ -179,9 +179,11 @@ class AsyncPinecone:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                for idx in await pc.indexes.list():
-                    print(idx.name)
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    for idx in await pc.indexes.list():
+                        print(idx.name)
         """
         if self._indexes is None:
             from pinecone.async_client.indexes import AsyncIndexes as _AsyncIndexes
@@ -200,9 +202,11 @@ class AsyncPinecone:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                for col in await pc.collections.list():
-                    print(col.name)
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    for col in await pc.collections.list():
+                        print(col.name)
         """
         if self._collections is None:
             from pinecone.async_client.collections import AsyncCollections as _AsyncCollections
@@ -221,8 +225,10 @@ class AsyncPinecone:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                assistants = await pc.assistants.list()
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    assistants = await pc.assistants.list()
         """
         if self._assistants is None:
             from pinecone.async_client.assistants import AsyncAssistants as _AsyncAssistants
@@ -256,9 +262,11 @@ class AsyncPinecone:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                for backup in await pc.backups.list():
-                    print(backup.backup_id)
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    for backup in await pc.backups.list():
+                        print(backup.backup_id)
         """
         if self._backups is None:
             from pinecone.async_client.backups import AsyncBackups as _AsyncBackups
@@ -277,9 +285,11 @@ class AsyncPinecone:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                for job in await pc.restore_jobs.list():
-                    print(job.restore_job_id)
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    for job in await pc.restore_jobs.list():
+                        print(job.restore_job_id)
         """
         if self._restore_jobs is None:
             from pinecone.async_client.restore_jobs import AsyncRestoreJobs as _AsyncRestoreJobs
@@ -325,8 +335,10 @@ class AsyncPinecone:
 
         Examples:
 
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                await pc.preview.indexes.create(...)  # when a preview area exists
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    await pc.preview.indexes.create(...)  # when a preview area exists
         """
         if self._preview is None:
             from pinecone.preview import AsyncPreview as _AsyncPreview
@@ -366,10 +378,10 @@ class AsyncPinecone:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            Restore an index from a backup:
 
             .. code-block:: python
 
+                # Restore an index from a backup
                 from pinecone import AsyncPinecone
                 async with AsyncPinecone(api_key="your-api-key") as pc:
                     index = await pc.create_index_from_backup(
@@ -377,10 +389,9 @@ class AsyncPinecone:
                         backup_id="bk-daily-20240115",
                     )
 
-            Restore with tags and deletion protection:
-
             .. code-block:: python
 
+                # Restore with tags and deletion protection
                 async with AsyncPinecone(api_key="your-api-key") as pc:
                     index = await pc.create_index_from_backup(
                         name="product-search-restored",
@@ -840,11 +851,13 @@ class AsyncPinecone:
 
         Examples:
 
-            async with AsyncPinecone(api_key="...") as pc:
-                idx = pc.index(host="my-index-abc123.svc.pinecone.io")
-                # or resolve name first, then use cached host:
-                await pc.indexes.describe("my-index")
-                idx = pc.index(name="my-index")
+            .. code-block:: python
+
+                async with AsyncPinecone(api_key="...") as pc:
+                    idx = pc.index(host="my-index-abc123.svc.pinecone.io")
+                    # or resolve name first, then use cached host:
+                    await pc.indexes.describe("my-index")
+                    idx = pc.index(name="my-index")
 
         .. warning::
            The returned :class:`AsyncIndex` manages its own HTTP client.

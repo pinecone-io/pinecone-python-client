@@ -62,10 +62,12 @@ class AsyncIndex:
 
     Examples:
 
-        from pinecone import AsyncIndex
+        .. code-block:: python
 
-        async with AsyncIndex(host="my-index-abc123.svc.pinecone.io", api_key="...") as idx:
-            print(idx.host)
+            from pinecone import AsyncIndex
+
+            async with AsyncIndex(host="my-index-abc123.svc.pinecone.io", api_key="...") as idx:
+                print(idx.host)
     """
 
     def __init__(
@@ -686,14 +688,16 @@ class AsyncIndex:
 
         Examples:
 
-            # Delete by IDs
-            await idx.delete(ids=["article-101", "article-102"])
+            .. code-block:: python
 
-            # Delete all vectors in a namespace
-            await idx.delete(delete_all=True, namespace="articles-deprecated")
+                # Delete by IDs
+                await idx.delete(ids=["article-101", "article-102"])
 
-            # Delete by metadata filter
-            await idx.delete(filter={"category": {"$eq": "obsolete"}})
+                # Delete all vectors in a namespace
+                await idx.delete(delete_all=True, namespace="articles-deprecated")
+
+                # Delete by metadata filter
+                await idx.delete(filter={"category": {"$eq": "obsolete"}})
         """
         mode_count = sum([ids is not None, delete_all, filter is not None])
         if mode_count == 0:
@@ -1002,9 +1006,11 @@ class AsyncIndex:
 
         Examples:
 
-            async for page in idx.list(prefix="doc1#"):
-                for item in page.vectors:
-                    print(item.id)
+            .. code-block:: python
+
+                async for page in idx.list(prefix="doc1#"):
+                    for item in page.vectors:
+                        print(item.id)
         """
         pagination_token: str | None = None
         while True:
@@ -1095,8 +1101,10 @@ class AsyncIndex:
 
         Examples:
 
-            ns = await idx.create_namespace(name="my-ns")
-            print(ns.name, ns.record_count)
+            .. code-block:: python
+
+                ns = await idx.create_namespace(name="my-ns")
+                print(ns.name, ns.record_count)
         """
         if not isinstance(name, str):
             raise ValidationError("namespace name must be a string")
@@ -1134,8 +1142,10 @@ class AsyncIndex:
 
         Examples:
 
-            ns = await idx.describe_namespace(name="my-ns")
-            print(ns.name, ns.record_count)
+            .. code-block:: python
+
+                ns = await idx.describe_namespace(name="my-ns")
+                print(ns.name, ns.record_count)
         """
         if not isinstance(name, str):
             raise ValidationError("namespace name must be a string")
@@ -1169,7 +1179,9 @@ class AsyncIndex:
 
         Examples:
 
-            await idx.delete_namespace(name="old-data")
+            .. code-block:: python
+
+                await idx.delete_namespace(name="old-data")
         """
         if not isinstance(name, str):
             raise ValidationError("namespace name must be a string")
@@ -1241,9 +1253,11 @@ class AsyncIndex:
 
         Examples:
 
-            async for page in idx.list_namespaces(prefix="prod-"):
-                for ns in page.namespaces:
-                    print(ns.name, ns.record_count)
+            .. code-block:: python
+
+                async for page in idx.list_namespaces(prefix="prod-"):
+                    for ns in page.namespaces:
+                        print(ns.name, ns.record_count)
         """
         pagination_token: str | None = None
         while True:
@@ -1318,25 +1332,24 @@ class AsyncIndex:
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
-            Start an import and poll until complete:
 
             .. code-block:: python
 
                 import asyncio
+
+                # Start an import and poll until complete
                 response = await idx.start_import(uri="s3://my-bucket/vectors/")
                 import_id = response.id
 
-                # Poll until the import finishes
                 import_op = await idx.describe_import(import_id)
                 while import_op.status not in ("Completed", "Failed", "Cancelled"):
                     await asyncio.sleep(10)
                     import_op = await idx.describe_import(import_id)
                 print(f"Status: {import_op.status}, records imported: {import_op.records_imported}")
 
-            Abort on first error instead of continuing:
-
             .. code-block:: python
 
+                # Abort on first error instead of continuing
                 response = await idx.start_import(
                     uri="s3://my-bucket/vectors/",
                     error_mode="abort",
@@ -1381,8 +1394,10 @@ class AsyncIndex:
 
         Examples:
 
-            import_op = await idx.describe_import("import-123")
-            print(import_op.status, import_op.percent_complete)
+            .. code-block:: python
+
+                import_op = await idx.describe_import("import-123")
+                print(import_op.status, import_op.percent_complete)
         """
         str_id = self._validate_import_id(id)
         logger.info("Describing import %s", str_id)
@@ -1407,7 +1422,9 @@ class AsyncIndex:
 
         Examples:
 
-            await idx.cancel_import("import-123")
+            .. code-block:: python
+
+                await idx.cancel_import("import-123")
         """
         str_id = self._validate_import_id(id)
         logger.info("Cancelling import %s", str_id)
@@ -1438,8 +1455,10 @@ class AsyncIndex:
 
         Examples:
 
-            async for imp in idx.list_imports():
-                print(imp.id, imp.status)
+            .. code-block:: python
+
+                async for imp in idx.list_imports():
+                    print(imp.id, imp.status)
         """
         params: dict[str, Any] = {}
         if limit is not None:
