@@ -89,8 +89,7 @@ The SDK retries failed requests automatically. The default `RetryConfig` retries
 Customize retry behavior by passing a `RetryConfig` to `Pinecone()`:
 
 ```python
-from pinecone import Pinecone
-from pinecone._internal.config import RetryConfig
+from pinecone import Pinecone, RetryConfig
 
 pc = Pinecone(
     retry_config=RetryConfig(
