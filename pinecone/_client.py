@@ -74,15 +74,17 @@ class Pinecone:
 
     Examples:
 
-        from pinecone import Pinecone
+        .. code-block:: python
 
-        pc = Pinecone(api_key="your-api-key")  # or set PINECONE_API_KEY env var
+            from pinecone import Pinecone
 
-        # Control plane: manage indexes
-        indexes = pc.indexes.list()
+            pc = Pinecone(api_key="your-api-key")  # or set PINECONE_API_KEY env var
 
-        # Data plane: operate on vectors
-        index = pc.index("my-index")
+            # Control plane: manage indexes
+            indexes = pc.indexes.list()
+
+            # Data plane: operate on vectors
+            index = pc.index("my-index")
     """
 
     def __init__(
@@ -154,8 +156,7 @@ class Pinecone:
 
         Examples:
 
-            pc = Pinecone(api_key="your-api-key")
-            names = [idx.name for idx in pc.indexes.list()]
+            >>> names = [idx.name for idx in pc.indexes.list()]  # doctest: +SKIP
         """
         if self._indexes is None:
             from pinecone.client.indexes import Indexes as _Indexes
@@ -174,8 +175,7 @@ class Pinecone:
 
         Examples:
 
-            pc = Pinecone(api_key="your-api-key")
-            names = [col.name for col in pc.collections.list()]
+            >>> names = [col.name for col in pc.collections.list()]  # doctest: +SKIP
         """
         if self._collections is None:
             from pinecone.client.collections import Collections as _Collections
@@ -194,8 +194,7 @@ class Pinecone:
 
         Examples:
 
-            pc = Pinecone(api_key="your-api-key")
-            ids = [b.backup_id for b in pc.backups.list()]
+            >>> ids = [b.backup_id for b in pc.backups.list()]  # doctest: +SKIP
         """
         if self._backups is None:
             from pinecone.client.backups import Backups as _Backups
@@ -214,8 +213,7 @@ class Pinecone:
 
         Examples:
 
-            pc = Pinecone(api_key="your-api-key")
-            ids = [job.restore_job_id for job in pc.restore_jobs.list()]
+            >>> ids = [job.restore_job_id for job in pc.restore_jobs.list()]  # doctest: +SKIP
         """
         if self._restore_jobs is None:
             from pinecone.client.restore_jobs import RestoreJobs as _RestoreJobs
@@ -234,8 +232,9 @@ class Pinecone:
 
         Examples:
 
-            pc = Pinecone(api_key="your-api-key")
-            embeddings = pc.inference.embed(model="multilingual-e5-large", inputs=["Hello, world!"])
+            >>> embeddings = pc.inference.embed(  # doctest: +SKIP
+            ...     model="multilingual-e5-large", inputs=["Hello, world!"]
+            ... )
         """
         if self._inference is None:
             from pinecone.client.inference import Inference as _Inference
@@ -254,8 +253,7 @@ class Pinecone:
 
         Examples:
 
-            pc = Pinecone(api_key="your-api-key")
-            assistants = pc.assistants
+            >>> names = [a.name for a in pc.assistants.list()]  # doctest: +SKIP
         """
         if self._assistants is None:
             from pinecone.client.assistants import Assistants as _Assistants
@@ -291,8 +289,10 @@ class Pinecone:
 
         Examples:
 
-            pc = Pinecone(api_key="your-api-key")
-            pc.preview.indexes.create(...)  # when a preview area exists
+            .. code-block:: python
+
+                pc = Pinecone(api_key="your-api-key")
+                pc.preview.indexes.create(...)  # when a preview area exists
         """
         if self._preview is None:
             from pinecone.preview import Preview as _Preview
@@ -333,12 +333,14 @@ class Pinecone:
 
         Examples:
 
-            pc = Pinecone(api_key="...")
-            idx = pc.index(host="my-index-abc123.svc.pinecone.io")
-            # or
-            idx = pc.index(name="my-index")
-            # gRPC transport
-            idx = pc.index(name="my-index", grpc=True)
+            .. code-block:: python
+
+                pc = Pinecone(api_key="...")
+                idx = pc.index(host="my-index-abc123.svc.pinecone.io")
+                # or
+                idx = pc.index(name="my-index")
+                # gRPC transport
+                idx = pc.index(name="my-index", grpc=True)
         """
         resolved_host = self._resolve_index_host(name=name, host=host)
 
@@ -429,18 +431,14 @@ class Pinecone:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            Restore an index from a backup:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
-            >>> index = pc.create_index_from_backup(
+            >>> index = pc.create_index_from_backup(  # doctest: +SKIP
             ...     name="product-search-restored",
             ...     backup_id="bk-daily-20240115",
             ... )
 
-            Restore with tags and deletion protection:
-
-            >>> index = pc.create_index_from_backup(
+            >>> index = pc.create_index_from_backup(  # doctest: +SKIP
             ...     name="product-search-restored",
             ...     backup_id="bk-daily-20240115",
             ...     deletion_protection="enabled",

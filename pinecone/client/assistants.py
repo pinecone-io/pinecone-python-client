@@ -64,10 +64,12 @@ class Assistants(AssistantsLegacyNamespaceMixin):
 
     Examples:
 
-        from pinecone import Pinecone
+        .. code-block:: python
 
-        pc = Pinecone(api_key="your-api-key")
-        assistants = pc.assistants
+            from pinecone import Pinecone
+
+            pc = Pinecone(api_key="your-api-key")
+            assistants = pc.assistants
     """
 
     def __init__(self, config: PineconeConfig) -> None:
@@ -265,9 +267,12 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`PineconeError`: If server-side processing fails.
 
         Examples:
-
-            file = pc.assistants.upload_file(assistant_name="my-assistant", file_path="report.pdf")
-            print(file.status)
+            >>> file = pc.assistants.upload_file(
+            ...     assistant_name="research-assistant",
+            ...     file_path="/data/report.pdf",
+            ... )
+            >>> file.status  # doctest: +SKIP
+            'Available'
         """
         import json as _json
 
@@ -389,9 +394,12 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-
-            file = pc.assistants.describe_file(assistant_name="my-assistant", file_id="file-abc123")
-            print(file.status)
+            >>> file = pc.assistants.describe_file(
+            ...     assistant_name="my-assistant",
+            ...     file_id="file-abc123",
+            ... )
+            >>> file.status  # doctest: +SKIP
+            'Available'
         """
         data_http = self._data_plane_http(assistant_name)
         params: dict[str, str] = {}
@@ -428,11 +436,12 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            .. code-block:: python
 
-            for f in pc.assistants.list_files(assistant_name="my-assistant"):
-                print(f.name, f.status)
+                for f in pc.assistants.list_files(assistant_name="my-assistant"):
+                    print(f.name, f.status)
 
-            files = pc.assistants.list_files(assistant_name="my-assistant").to_list()
+                files = pc.assistants.list_files(assistant_name="my-assistant").to_list()
         """
         logger.info("Listing files for assistant %r", assistant_name)
 
@@ -473,10 +482,11 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            .. code-block:: python
 
-            page = pc.assistants.list_files_page(assistant_name="my-assistant")
-            names = [f.name for f in page.files]
-            token = page.next  # use as pagination_token for the next call
+                page = pc.assistants.list_files_page(assistant_name="my-assistant")
+                names = [f.name for f in page.files]
+                token = page.next  # use as pagination_token for the next call
         """
         import json as _json
 
@@ -530,8 +540,10 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-
-            pc.assistants.delete_file(assistant_name="my-assistant", file_id="file-abc123")
+            >>> pc.assistants.delete_file(
+            ...     assistant_name="my-assistant",
+            ...     file_id="file-abc123",
+            ... )
         """
         data_http = self._data_plane_http(assistant_name)
         logger.info("Deleting file %r from assistant %r", file_id, assistant_name)
@@ -598,15 +610,11 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            Create an assistant with default settings:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
-            >>> assistant = pc.assistants.create(name="my-assistant")
+            >>> assistant = pc.assistants.create(name="my-assistant")  # doctest: +SKIP
 
-            Create an assistant with instructions and metadata:
-
-            >>> assistant = pc.assistants.create(
+            >>> assistant = pc.assistants.create(  # doctest: +SKIP
             ...     name="research-assistant",
             ...     instructions="You are a helpful research assistant.",
             ...     metadata={"team": "engineering", "version": "1"},
@@ -671,9 +679,9 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                 when the assistant does not exist).
 
         Examples:
-
-            assistant = pc.assistants.describe(name="my-assistant")
-            print(assistant.status)
+            >>> assistant = pc.assistants.describe(name="my-assistant")
+            >>> assistant.status  # doctest: +SKIP
+            'Ready'
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
@@ -726,11 +734,12 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            .. code-block:: python
 
-            for a in pc.assistants.list():
-                print(a.name, a.status)
+                for a in pc.assistants.list():
+                    print(a.name, a.status)
 
-            all_assistants = pc.assistants.list().to_list()
+                all_assistants = pc.assistants.list().to_list()
         """
         logger.info("Listing assistants")
 
@@ -766,10 +775,11 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            .. code-block:: python
 
-            page = pc.assistants.list_page(page_size=10)
-            names = [a.name for a in page.assistants]
-            token = page.next  # use as pagination_token for the next call
+                page = pc.assistants.list_page(page_size=10)
+                names = [a.name for a in page.assistants]
+                token = page.next  # use as pagination_token for the next call
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
@@ -836,16 +846,12 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                 when the assistant does not exist).
 
         Examples:
-            Update an assistant's instructions:
-
-            >>> assistant = pc.assistants.update(
+            >>> assistant = pc.assistants.update(  # doctest: +SKIP
             ...     name="my-assistant",
             ...     instructions="You are a helpful research assistant.",
             ... )
 
-            Replace an assistant's metadata:
-
-            >>> assistant = pc.assistants.update(
+            >>> assistant = pc.assistants.update(  # doctest: +SKIP
             ...     name="my-assistant",
             ...     metadata={"team": "ml", "version": "2"},
             ... )
@@ -906,6 +912,9 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                 Use a positive value to poll with a deadline. Raises
                 :exc:`PineconeTimeoutError` if the assistant is not gone
                 before the deadline.
+
+        Returns:
+            None
 
         Raises:
             :exc:`PineconeTimeoutError`: If the assistant still exists after
@@ -1008,8 +1017,6 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            Retrieve context using a text query:
-
             .. code-block:: python
 
                 response = pc.assistants.context(
@@ -1098,8 +1105,6 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            Non-streaming chat:
-
             .. code-block:: python
 
                 from pinecone import Pinecone
@@ -1108,8 +1113,6 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                     assistant_name="my-assistant",
                     messages=[{"content": "What is Pinecone?"}],
                 )
-
-            Streaming chat:
 
             .. code-block:: python
 
@@ -1206,8 +1209,6 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            Non-streaming chat completion:
-
             .. code-block:: python
 
                 from pinecone import Pinecone
@@ -1217,8 +1218,6 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                     messages=[{"content": "Explain quantum entanglement briefly."}],
                 )
                 response.choices[0].message.content
-
-            Streaming chat completion:
 
             .. code-block:: python
 
@@ -1369,8 +1368,11 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-
-            pc.assistants.evaluate_alignment(question="Q?", answer="A?", ground_truth_answer="B.")
+            >>> result = pc.assistants.evaluate_alignment(
+            ...     question="What is the capital of Spain?",
+            ...     answer="Barcelona.",
+            ...     ground_truth_answer="Madrid.",
+            ... )
         """
         body = {
             "question": question,

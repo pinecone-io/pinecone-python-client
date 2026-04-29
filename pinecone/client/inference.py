@@ -128,10 +128,14 @@ class Inference:
 
     Examples:
 
-        from pinecone import Pinecone
+        .. code-block:: python
 
-        pc = Pinecone(api_key="your-api-key")
-        embeddings = pc.inference.embed(model="multilingual-e5-large", inputs=["Hello, world!"])
+            from pinecone import Pinecone
+
+            pc = Pinecone(api_key="your-api-key")
+            embeddings = pc.inference.embed(
+                model="multilingual-e5-large", inputs=["Hello, world!"]
+            )
     """
 
     EmbedModel = _enums.EmbedModel
@@ -333,17 +337,13 @@ class Inference:
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
 
         Examples:
-            List all models:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
-            >>> models = pc.inference.list_models()
+            >>> models = pc.inference.list_models()  # doctest: +SKIP
             >>> models.names()  # doctest: +SKIP
             ['multilingual-e5-large', 'pinecone-sparse-english-v0']
 
-            List only embedding models:
-
-            >>> embed_models = pc.inference.list_models(type="embed")
+            >>> embed_models = pc.inference.list_models(type="embed")  # doctest: +SKIP
         """
         if type is not None:
             require_one_of("type", type, ("embed", "rerank"))

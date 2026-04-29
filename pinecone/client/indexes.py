@@ -53,10 +53,12 @@ class Indexes:
 
     Examples:
 
-        from pinecone import Pinecone
+        .. code-block:: python
 
-        pc = Pinecone(api_key="your-api-key")
-        names = [idx.name for idx in pc.indexes.list()]
+            from pinecone import Pinecone
+
+            pc = Pinecone(api_key="your-api-key")
+            names = [idx.name for idx in pc.indexes.list()]
     """
 
     def __init__(self, http: HTTPClient, host_cache: dict[str, str] | None = None) -> None:
@@ -83,9 +85,9 @@ class Indexes:
                 failure or server error).
 
         Examples:
-
-            indexes = pc.indexes.list()
-            print(indexes.names())
+            >>> indexes = pc.indexes.list()
+            >>> indexes.names()  # doctest: +SKIP
+            ['my-index']
         """
         logger.info("Listing indexes")
         response = self._http.get("/indexes")
@@ -112,9 +114,9 @@ class Indexes:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-
-            desc = pc.indexes.describe("my-index")
-            print(desc.host)
+            >>> desc = pc.indexes.describe("my-index")
+            >>> desc.host  # doctest: +SKIP
+            'https://my-index.svc.pinecone.io'
         """
         require_non_empty("name", name)
         logger.info("Describing index %r", name)
@@ -141,9 +143,8 @@ class Indexes:
             :exc:`ApiError`: If the API returns an error other than 404.
 
         Examples:
-
-            if pc.indexes.exists("my-index"):
-                print("Index found")
+            >>> pc.indexes.exists("my-index")  # doctest: +SKIP
+            True
         """
         if not name:
             return False
@@ -174,11 +175,12 @@ class Indexes:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
+            .. code-block:: python
 
-            pc.indexes.delete("my-index")
+                pc.indexes.delete("my-index")
 
-            # Wait up to 60 seconds for deletion to complete
-            pc.indexes.delete("my-index", timeout=60)
+                # Wait up to 60 seconds for deletion to complete
+                pc.indexes.delete("my-index", timeout=60)
         """
         require_non_empty("name", name)
         logger.info("Deleting index %r", name)
@@ -236,9 +238,8 @@ class Indexes:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-
-            pc.indexes.configure("my-index", replicas=4)
-            pc.indexes.configure("my-index", tags={"env": "prod"})
+            >>> pc.indexes.configure("my-index", replicas=4)
+            >>> pc.indexes.configure("my-index", tags={"env": "prod"})
         """
         require_non_empty("name", name)
         logger.info("Configuring index %r", name)
@@ -339,21 +340,17 @@ class Indexes:
             :exc:`ApiError`: If the API returns another error response.
 
         Examples:
-            Create a serverless index for storing embeddings:
-
             >>> from pinecone import Pinecone, ServerlessSpec
             >>> pc = Pinecone(api_key="your-api-key")
-            >>> index = pc.indexes.create(
+            >>> index = pc.indexes.create(  # doctest: +SKIP
             ...     name="movie-recommendations",
             ...     dimension=1536,
             ...     spec=ServerlessSpec(cloud="aws", region="us-east-1"),
             ... )
 
-            Create an integrated index with a built-in embedding model:
-
             >>> from pinecone import Pinecone, IntegratedSpec, EmbedConfig
             >>> pc = Pinecone(api_key="your-api-key")
-            >>> index = pc.indexes.create(
+            >>> index = pc.indexes.create(  # doctest: +SKIP
             ...     name="semantic-search",
             ...     spec=IntegratedSpec(
             ...         cloud="aws",

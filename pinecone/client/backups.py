@@ -26,10 +26,12 @@ class Backups:
 
     Examples:
 
-        from pinecone import Pinecone
+        .. code-block:: python
 
-        pc = Pinecone(api_key="your-api-key")
-        ids = [b.backup_id for b in pc.backups.list()]
+            from pinecone import Pinecone
+
+            pc = Pinecone(api_key="your-api-key")
+            ids = [b.backup_id for b in pc.backups.list()]
     """
 
     def __init__(self, http: HTTPClient) -> None:
@@ -62,17 +64,13 @@ class Backups:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            Create a backup of an index:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> backup = pc.backups.create(index_name="product-search")
-            >>> backup.backup_id
+            >>> backup.backup_id  # doctest: +SKIP
             'bk-abc123'
 
-            Create a backup with a name and description:
-
-            >>> backup = pc.backups.create(
+            >>> backup = pc.backups.create(  # doctest: +SKIP
             ...     index_name="product-search",
             ...     name="daily-20240115",
             ...     description="Scheduled daily backup before reindexing",
@@ -113,16 +111,12 @@ class Backups:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            List all backups in the project:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
-            >>> for backup in pc.backups.list():
+            >>> for backup in pc.backups.list():  # doctest: +SKIP
             ...     print(backup.backup_id, backup.name)
 
-            List backups for a specific index:
-
-            >>> for backup in pc.backups.list(index_name="product-search"):
+            >>> for backup in pc.backups.list(index_name="product-search"):  # doctest: +SKIP
             ...     print(backup.name)
         """
         params: dict[str, Any] = {"limit": limit}

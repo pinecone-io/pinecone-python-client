@@ -26,10 +26,12 @@ class Collections:
 
     Examples:
 
-        from pinecone import Pinecone
+        .. code-block:: python
 
-        pc = Pinecone(api_key="your-api-key")
-        names = [col.name for col in pc.collections.list()]
+            from pinecone import Pinecone
+
+            pc = Pinecone(api_key="your-api-key")
+            names = [col.name for col in pc.collections.list()]
     """
 
     def __init__(self, http: HTTPClient) -> None:
@@ -59,9 +61,9 @@ class Collections:
                 failure or server error).
 
         Examples:
-
-            col = pc.collections.create(name="my-collection", source="my-index")
-            print(col.status)
+            >>> col = pc.collections.create(name="my-collection", source="my-index")
+            >>> col.status  # doctest: +SKIP
+            'Initializing'
         """
         require_non_empty("name", name)
         require_non_empty("source", source)
@@ -86,9 +88,9 @@ class Collections:
                 failure or server error).
 
         Examples:
-
-            collections = pc.collections.list()
-            print(collections.names())
+            >>> collections = pc.collections.list()
+            >>> collections.names()  # doctest: +SKIP
+            ['my-collection']
         """
         logger.info("Listing collections")
         response = self._http.get("/collections")
@@ -112,9 +114,9 @@ class Collections:
             ApiError: If the API returns another error response.
 
         Examples:
-
-            desc = pc.collections.describe("my-collection")
-            print(desc.size)
+            >>> desc = pc.collections.describe("my-collection")
+            >>> desc.size  # doctest: +SKIP
+            1024
         """
         require_non_empty("name", name)
         logger.info("Describing collection %r", name)
@@ -135,8 +137,7 @@ class Collections:
             ApiError: If the API returns another error response.
 
         Examples:
-
-            pc.collections.delete("my-collection")
+            >>> pc.collections.delete("my-collection")
         """
         require_non_empty("name", name)
         logger.info("Deleting collection %r", name)

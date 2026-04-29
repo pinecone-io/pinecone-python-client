@@ -26,10 +26,12 @@ class RestoreJobs:
 
     Examples:
 
-        from pinecone import Pinecone
+        .. code-block:: python
 
-        pc = Pinecone(api_key="your-api-key")
-        ids = [job.restore_job_id for job in pc.restore_jobs.list()]
+            from pinecone import Pinecone
+
+            pc = Pinecone(api_key="your-api-key")
+            ids = [job.restore_job_id for job in pc.restore_jobs.list()]
     """
 
     def __init__(self, http: HTTPClient) -> None:
@@ -61,16 +63,12 @@ class RestoreJobs:
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
-            List all restore jobs:
-
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
-            >>> for job in pc.restore_jobs.list():
+            >>> for job in pc.restore_jobs.list():  # doctest: +SKIP
             ...     print(job.restore_job_id, job.status)
 
-            List with a page size limit:
-
-            >>> jobs = pc.restore_jobs.list(limit=5)
+            >>> jobs = pc.restore_jobs.list(limit=5)  # doctest: +SKIP
             >>> len(jobs)  # doctest: +SKIP
             5
         """
