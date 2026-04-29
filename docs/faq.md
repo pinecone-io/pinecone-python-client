@@ -40,11 +40,6 @@ app = FastAPI(lifespan=lifespan)
 of the context, so you get efficient connection reuse without re-establishing the pool
 on every request.
 
-### Does the SDK support HTTP/2?
-
-Yes. The SDK uses `httpx`, which multiplexes requests over a single HTTP/2 connection
-by default when the server supports it. No configuration is required.
-
 ### What is the difference between `Index` and `GrpcIndex`?
 
 `Index` uses the REST/HTTP API. `GrpcIndex` uses gRPC, which has lower per-request
