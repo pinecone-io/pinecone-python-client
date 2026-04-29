@@ -395,6 +395,29 @@ def test_get_model_empty_name_raises(inference: Inference) -> None:
         inference.get_model(model="")
 
 
+@respx.mock
+def test_get_model_legacy_model_name_kwarg(inference: Inference) -> None:
+    route = respx.get(f"{BASE_URL}/models/multilingual-e5-large").mock(
+        return_value=httpx.Response(200, json=make_model_info()),
+    )
+
+    result = inference.get_model(model_name="multilingual-e5-large")
+
+    assert isinstance(result, ModelInfo)
+    assert result.model == "multilingual-e5-large"
+    assert route.called
+
+
+def test_get_model_conflict_raises(inference: Inference) -> None:
+    with pytest.raises(ValidationError, match="model= or model_name="):
+        inference.get_model(model="foo", model_name="bar")
+
+
+def test_get_model_unexpected_kwarg_raises(inference: Inference) -> None:
+    with pytest.raises(TypeError, match="unexpected keyword arguments"):
+        inference.get_model(model_alias="foo")
+
+
 # ---------------------------------------------------------------------------
 # model cached_property / ModelResource
 # ---------------------------------------------------------------------------
@@ -442,3 +465,26 @@ def test_inference_model_get(inference: Inference) -> None:
     assert isinstance(result, ModelInfo)
     assert result.model == "multilingual-e5-large"
     assert route.called
+
+
+@respx.mock
+def test_inference_model_get_legacy_model_name_kwarg(inference: Inference) -> None:
+    route = respx.get(f"{BASE_URL}/models/multilingual-e5-large").mock(
+        return_value=httpx.Response(200, json=make_model_info()),
+    )
+
+    result = inference.model.get(model_name="multilingual-e5-large")
+
+    assert isinstance(result, ModelInfo)
+    assert result.model == "multilingual-e5-large"
+    assert route.called
+
+
+def test_inference_model_get_conflict_raises(inference: Inference) -> None:
+    with pytest.raises(ValidationError, match="model= or model_name="):
+        inference.model.get(model="foo", model_name="bar")
+
+
+def test_inference_model_get_unexpected_kwarg_raises(inference: Inference) -> None:
+    with pytest.raises(TypeError, match="unexpected keyword arguments"):
+        inference.model.get(model_alias="foo")

@@ -13,6 +13,7 @@ from pinecone._internal.adapters.inference_adapter import (
 )
 from pinecone._internal.constants import INFERENCE_API_VERSION
 from pinecone._internal.validation import require_non_empty, require_one_of
+from pinecone.errors.exceptions import ValidationError
 from pinecone.models import enums as _enums
 
 if TYPE_CHECKING:
@@ -84,7 +85,7 @@ class ModelResource:
         """
         return self._inference.list_models(type=type, vector_type=vector_type)
 
-    def get(self, model: str) -> ModelInfo:
+    def get(self, model: str | None = None, **kwargs: str) -> ModelInfo:
         """Get detailed information about a specific model.
 
         Delegates to :meth:`~Inference.get_model`.
@@ -106,7 +107,13 @@ class ModelResource:
             >>> info.type
             'embed'
         """
-        return self._inference.get_model(model=model)
+        model_name: str | None = kwargs.pop("model_name", None)
+        if kwargs:
+            raise TypeError(f"get() got unexpected keyword arguments: {sorted(kwargs)!r}")
+        if model is not None and model_name is not None:
+            raise ValidationError("Provide either model= or model_name=, not both")
+        effective: str = model or model_name or ""
+        return self._inference.get_model(model=effective)
 
 
 class Inference:
@@ -358,7 +365,8 @@ class Inference:
     def get_model(
         self,
         *,
-        model: str,
+        model: str | None = None,
+        **kwargs: str,
     ) -> ModelInfo:
         """Get detailed information about a specific model.
 
@@ -383,9 +391,15 @@ class Inference:
             >>> model_info.type
             'embed'
         """
-        require_non_empty("model", model)
-        logger.info("Describing model %r", model)
-        response = self._http.get(f"/models/{model}")
+        model_name: str | None = kwargs.pop("model_name", None)
+        if kwargs:
+            raise TypeError(f"get_model() got unexpected keyword arguments: {sorted(kwargs)!r}")
+        if model is not None and model_name is not None:
+            raise ValidationError("Provide either model= or model_name=, not both")
+        effective: str = model or model_name or ""
+        require_non_empty("model", effective)
+        logger.info("Describing model %r", effective)
+        response = self._http.get(f"/models/{effective}")
         result = self._adapter.to_model_info(response.content)
-        logger.debug("Described model %r", model)
+        logger.debug("Described model %r", effective)
         return result

@@ -380,6 +380,32 @@ async def test_async_get_model_empty_name_raises(inference: AsyncInference) -> N
         await inference.get_model(model="")
 
 
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_get_model_legacy_model_name_kwarg(inference: AsyncInference) -> None:
+    route = respx.get(f"{BASE_URL}/models/multilingual-e5-large").mock(
+        return_value=httpx.Response(200, json=make_model_info()),
+    )
+
+    result = await inference.get_model(model_name="multilingual-e5-large")
+
+    assert isinstance(result, ModelInfo)
+    assert result.model == "multilingual-e5-large"
+    assert route.called
+
+
+@pytest.mark.asyncio
+async def test_async_get_model_conflict_raises(inference: AsyncInference) -> None:
+    with pytest.raises(ValidationError, match="model= or model_name="):
+        await inference.get_model(model="foo", model_name="bar")
+
+
+@pytest.mark.asyncio
+async def test_async_get_model_unexpected_kwarg_raises(inference: AsyncInference) -> None:
+    with pytest.raises(TypeError, match="unexpected keyword arguments"):
+        await inference.get_model(model_alias="foo")
+
+
 # ---------------------------------------------------------------------------
 # Lazy property on AsyncPinecone
 # ---------------------------------------------------------------------------
@@ -464,3 +490,29 @@ async def test_async_inference_model_get(inference: AsyncInference) -> None:
     assert isinstance(result, ModelInfo)
     assert result.model == "multilingual-e5-large"
     assert route.called
+
+
+@respx.mock
+@pytest.mark.asyncio
+async def test_async_inference_model_get_legacy_model_name_kwarg(inference: AsyncInference) -> None:
+    route = respx.get(f"{BASE_URL}/models/multilingual-e5-large").mock(
+        return_value=httpx.Response(200, json=make_model_info()),
+    )
+
+    result = await inference.model.get(model_name="multilingual-e5-large")
+
+    assert isinstance(result, ModelInfo)
+    assert result.model == "multilingual-e5-large"
+    assert route.called
+
+
+@pytest.mark.asyncio
+async def test_async_inference_model_get_conflict_raises(inference: AsyncInference) -> None:
+    with pytest.raises(ValidationError, match="model= or model_name="):
+        await inference.model.get(model="foo", model_name="bar")
+
+
+@pytest.mark.asyncio
+async def test_async_inference_model_get_unexpected_kwarg_raises(inference: AsyncInference) -> None:
+    with pytest.raises(TypeError, match="unexpected keyword arguments"):
+        await inference.model.get(model_alias="foo")
