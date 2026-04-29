@@ -20,7 +20,7 @@ PineconeError (base)
 └── PineconeTypeError           # Wrong type passed to the SDK
 ```
 
-Full reference: {mod}`pinecone.errors.exceptions`.
+Full reference: {doc}`/reference/exceptions`.
 
 ## Catching Specific Errors
 
