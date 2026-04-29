@@ -196,3 +196,52 @@ def test_index_model_created_at_defaults_to_none() -> None:
     }"""
     model = msgspec.json.decode(payload, type=IndexModel)
     assert model.created_at is None
+
+
+def test_serverless_spec_decodes_read_capacity_on_demand() -> None:
+    import msgspec
+
+    from pinecone.models.indexes.index import ServerlessSpecInfo
+
+    payload = b'{"cloud": "aws", "region": "us-east-1", "read_capacity": {"mode": "OnDemand"}}'
+    spec = msgspec.json.decode(payload, type=ServerlessSpecInfo)
+    assert spec.read_capacity == {"mode": "OnDemand"}
+    assert spec.schema is None
+    assert spec.source_collection is None
+
+
+def test_serverless_spec_decodes_metadata_schema() -> None:
+    import msgspec
+
+    from pinecone.models.indexes.index import ServerlessSpecInfo
+
+    payload = b'{"cloud": "aws", "region": "us-east-1", "schema": {"fields": {"genre": {"filterable": true}}}}'
+    spec = msgspec.json.decode(payload, type=ServerlessSpecInfo)
+    assert spec.schema == {"fields": {"genre": {"filterable": True}}}
+
+
+def test_serverless_spec_optional_fields_default_to_none() -> None:
+    import msgspec
+
+    from pinecone.models.indexes.index import ServerlessSpecInfo
+
+    payload = b'{"cloud": "aws", "region": "us-east-1"}'
+    spec = msgspec.json.decode(payload, type=ServerlessSpecInfo)
+    assert spec.read_capacity is None
+    assert spec.schema is None
+    assert spec.source_collection is None
+
+
+def test_serverless_spec_to_dict_includes_new_fields() -> None:
+    from pinecone.models.indexes.index import ServerlessSpecInfo
+
+    s = ServerlessSpecInfo(
+        cloud="aws",
+        region="us-east-1",
+        read_capacity={"mode": "OnDemand"},
+        schema={"fields": {"g": {"filterable": True}}},
+    )
+    d = s.to_dict()
+    assert d["read_capacity"] == {"mode": "OnDemand"}
+    assert d["schema"] == {"fields": {"g": {"filterable": True}}}
+    assert d["source_collection"] is None

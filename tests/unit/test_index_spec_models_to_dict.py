@@ -25,7 +25,13 @@ def test_index_status_to_dict() -> None:
 
 def test_serverless_spec_info_to_dict() -> None:
     result = ServerlessSpecInfo(cloud="aws", region="us-east-1").to_dict()
-    assert result == {"cloud": "aws", "region": "us-east-1"}
+    assert result == {
+        "cloud": "aws",
+        "region": "us-east-1",
+        "read_capacity": None,
+        "source_collection": None,
+        "schema": None,
+    }
 
 
 def test_pod_spec_info_to_dict_with_optional_none() -> None:

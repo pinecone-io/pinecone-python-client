@@ -28,10 +28,20 @@ class ServerlessSpecInfo(StructDictMixin, Struct, kw_only=True):
     Attributes:
         cloud: Cloud provider (e.g. ``"aws"``, ``"gcp"``, ``"azure"``).
         region: Cloud region (e.g. ``"us-east-1"``).
+        read_capacity: Read capacity configuration (``OnDemand`` or
+            ``Dedicated``), or ``None`` if the server response omits it.
+            When set, contains a ``"mode"`` key plus mode-specific fields.
+        source_collection: Source collection name if the index was
+            created from a collection, or ``None``.
+        schema: Metadata indexing schema, or ``None`` if all metadata
+            fields are indexed (the default).
     """
 
     cloud: str
     region: str
+    read_capacity: dict[str, Any] | None = None
+    source_collection: str | None = None
+    schema: dict[str, Any] | None = None
 
 
 class PodSpecInfo(StructDictMixin, Struct, kw_only=True):
