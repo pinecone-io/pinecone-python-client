@@ -126,7 +126,7 @@ def test_embed_accepts_embed_model_enum(inference: Inference) -> None:
         return_value=httpx.Response(200, json=make_embed_response()),
     )
 
-    result = inference.embed(EmbedModel.MULTILINGUAL_E5_LARGE, ["hello"])
+    result = inference.embed(EmbedModel.Multilingual_E5_Large, ["hello"])
 
     assert isinstance(result, EmbeddingsList)
 
@@ -256,7 +256,7 @@ def test_rerank_accepts_rerank_model_enum(inference: Inference) -> None:
     )
 
     result = inference.rerank(
-        model=RerankModel.BGE_RERANKER_V2_M3,
+        model=RerankModel.Bge_Reranker_V2_M3,
         query="test query",
         documents=["doc1"],
     )

@@ -277,10 +277,10 @@ class TestModelInfoList:
 
 class TestRerankModelEnum:
     def test_rerank_model_enum(self) -> None:
-        assert RerankModel.BGE_RERANKER_V2_M3.value == "bge-reranker-v2-m3"
-        assert RerankModel.COHERE_RERANK_3_5.value == "cohere-rerank-3.5"
-        assert RerankModel.PINECONE_RERANK_V0.value == "pinecone-rerank-v0"
+        assert RerankModel.Bge_Reranker_V2_M3.value == "bge-reranker-v2-m3"
+        assert RerankModel.Cohere_Rerank_3_5.value == "cohere-rerank-3.5"
+        assert RerankModel.Pinecone_Rerank_V0.value == "pinecone-rerank-v0"
 
     def test_rerank_model_is_str(self) -> None:
-        assert isinstance(RerankModel.BGE_RERANKER_V2_M3, str)
-        assert RerankModel.BGE_RERANKER_V2_M3 == "bge-reranker-v2-m3"
+        assert isinstance(RerankModel.Bge_Reranker_V2_M3, str)
+        assert RerankModel.Bge_Reranker_V2_M3 == "bge-reranker-v2-m3"

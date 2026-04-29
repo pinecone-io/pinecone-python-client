@@ -94,7 +94,7 @@ from pinecone.client.inference import Inference
 pc = Pinecone(api_key="your-api-key")
 
 result = pc.inference.rerank(
-    model=Inference.RerankModel.BGE_RERANKER_V2_M3,
+    model=Inference.RerankModel.Bge_Reranker_V2_M3,
     query="machine learning",
     documents=documents,
 )

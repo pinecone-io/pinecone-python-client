@@ -182,7 +182,7 @@ def test_create_integrated_with_embed_model_enum(indexes: Indexes) -> None:
             cloud="aws",
             region="us-east-1",
             embed=EmbedConfig(
-                model=EmbedModel.MULTILINGUAL_E5_LARGE,
+                model=EmbedModel.Multilingual_E5_Large,
                 field_map={"text": "my_text_field"},
             ),
         ),

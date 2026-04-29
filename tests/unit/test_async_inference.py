@@ -130,7 +130,7 @@ async def test_async_embed_accepts_embed_model_enum(inference: AsyncInference) -
         return_value=httpx.Response(200, json=make_embed_response()),
     )
 
-    result = await inference.embed(EmbedModel.MULTILINGUAL_E5_LARGE, ["hello"])
+    result = await inference.embed(EmbedModel.Multilingual_E5_Large, ["hello"])
 
     assert isinstance(result, EmbeddingsList)
 
@@ -272,7 +272,7 @@ async def test_async_rerank_accepts_rerank_model_enum(inference: AsyncInference)
     )
 
     result = await inference.rerank(
-        model=RerankModel.BGE_RERANKER_V2_M3,
+        model=RerankModel.Bge_Reranker_V2_M3,
         query="test query",
         documents=["doc1"],
     )

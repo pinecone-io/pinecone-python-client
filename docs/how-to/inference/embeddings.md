@@ -75,7 +75,7 @@ from pinecone.client.inference import Inference
 pc = Pinecone(api_key="your-api-key")
 
 result = pc.inference.embed(
-    model=Inference.EmbedModel.MULTILINGUAL_E5_LARGE,
+    model=Inference.EmbedModel.Multilingual_E5_Large,
     inputs=["search query"],
     parameters={"input_type": "query"},
 )

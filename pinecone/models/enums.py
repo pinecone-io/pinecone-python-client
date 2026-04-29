@@ -38,16 +38,16 @@ class VectorType(str, Enum):
 class EmbedModel(str, Enum):
     """Known embedding models for integrated indexes."""
 
-    MULTILINGUAL_E5_LARGE = "multilingual-e5-large"
-    PINECONE_SPARSE_ENGLISH_V0 = "pinecone-sparse-english-v0"
+    Multilingual_E5_Large = "multilingual-e5-large"
+    Pinecone_Sparse_English_V0 = "pinecone-sparse-english-v0"
 
 
 class RerankModel(str, Enum):
     """Known reranking models."""
 
-    BGE_RERANKER_V2_M3 = "bge-reranker-v2-m3"
-    COHERE_RERANK_3_5 = "cohere-rerank-3.5"
-    PINECONE_RERANK_V0 = "pinecone-rerank-v0"
+    Bge_Reranker_V2_M3 = "bge-reranker-v2-m3"
+    Cohere_Rerank_3_5 = "cohere-rerank-3.5"
+    Pinecone_Rerank_V0 = "pinecone-rerank-v0"
 
 
 class PodType(str, Enum):

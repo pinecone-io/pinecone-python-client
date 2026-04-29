@@ -90,7 +90,7 @@ pc = Pinecone(api_key="your-api-key")
 pc.indexes.create(
     name="product-catalog",
     spec=IntegratedSpec(cloud="aws", region="us-east-1",
-        embed=EmbedConfig(model=EmbedModel.MULTILINGUAL_E5_LARGE,
+        embed=EmbedConfig(model=EmbedModel.Multilingual_E5_Large,
                           field_map={"text": "description"})),
 )
 index = pc.index("product-catalog")
