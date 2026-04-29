@@ -207,10 +207,11 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            .. code-block:: python
 
-            from pinecone import AsyncPinecone
-            async with AsyncPinecone(api_key="your-api-key") as pc:
-                assistant = await pc.assistants.create(name="my-assistant")
+                from pinecone import AsyncPinecone
+                async with AsyncPinecone(api_key="your-api-key") as pc:
+                    assistant = await pc.assistants.create(name="my-assistant")
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
@@ -517,11 +518,12 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
+            .. code-block:: python
 
-            await pc.assistants.delete(name="my-assistant")
+                await pc.assistants.delete(name="my-assistant")
 
-            # Return immediately without waiting for deletion
-            await pc.assistants.delete(name="my-assistant", timeout=-1)
+                # Return immediately without waiting for deletion
+                await pc.assistants.delete(name="my-assistant", timeout=-1)
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
