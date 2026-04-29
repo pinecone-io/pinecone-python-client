@@ -100,7 +100,7 @@ Most public classes are still importable directly from `pinecone`:
 ```python
 from pinecone import Pinecone, AsyncPinecone, Index, GrpcIndex
 from pinecone import ServerlessSpec, PodSpec
-from pinecone import ConflictError, NotFoundException, ForbiddenException
+from pinecone import ConflictError, NotFoundError, ForbiddenError
 ```
 
 Deep imports (`from pinecone.core.client.api...`) are no longer supported. Use the
@@ -145,8 +145,8 @@ The following aliases remain importable from `pinecone` but are deprecated:
 | Deprecated name | Canonical name |
 |---|---|
 | `PineconeAsyncio` | `AsyncPinecone` |
-| `ForbiddenException` | `ForbiddenException` *(still valid — error class name unchanged)* |
-| `NotFoundException` | `NotFoundException` *(still valid — error class name unchanged)* |
+| `ForbiddenException` | `ForbiddenError` *(`ForbiddenException` still works as a deprecated alias)* |
+| `NotFoundException` | `NotFoundError` *(`NotFoundException` still works as a deprecated alias)* |
 
 These aliases will be removed in a future major release. Update your code to use the
 canonical names.
