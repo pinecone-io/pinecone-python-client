@@ -82,5 +82,8 @@ dev = [
     "pytest>=9.0.3",
     "pytest-anyio>=0.0.0",
     "python-dotenv>=1.2.2",
+    "pytest-benchmark>=5.0.0",
     "respx>=0.22.0",
+    "mypy>=1.20.0",
+    "ruff>=0.15.9",
 ]
