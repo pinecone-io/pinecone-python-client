@@ -146,7 +146,7 @@ def fts_index_state(
     schema = (
         PreviewSchemaBuilder()
         .add_string_field("text", full_text_search={})
-        .add_integer_field("year", filterable=True)
+        .add_float_field("year", filterable=True)
         .build()
     )
 

@@ -836,7 +836,7 @@ async def test_async_filter_integer_gte_and_operator_accepted(
         SchemaBuilder()
         .add_dense_vector_field("embedding", dimension=4, metric="cosine")
         .add_string_field("category", filterable=True)
-        .add_integer_field("year", filterable=True)
+        .add_float_field("year", filterable=True)
         .build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
@@ -1121,7 +1121,7 @@ async def test_async_filter_remaining_operators_accepted(
         SchemaBuilder()
         .add_dense_vector_field("embedding", dimension=4, metric="cosine")
         .add_string_field("category", filterable=True)
-        .add_integer_field("year", filterable=True)
+        .add_float_field("year", filterable=True)
         .build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)
@@ -1276,7 +1276,7 @@ async def test_async_schema_build_idempotency_and_field_collision_replacement(
         SchemaBuilder()
         .add_dense_vector_field("embedding", dimension=4, metric="cosine")
         .add_dense_vector_field("embedding", dimension=8, metric="euclidean")
-        .add_integer_field("count")
+        .add_float_field("count")
     )
 
     schema1 = builder.build()
@@ -1294,7 +1294,7 @@ async def test_async_schema_build_idempotency_and_field_collision_replacement(
 
     # Claim 3: **additional_options merged into field dict (client-side).
     schema_with_extras = (
-        SchemaBuilder().add_integer_field("priority", filterable=True, x_custom_param=42).build()
+        SchemaBuilder().add_float_field("priority", filterable=True, x_custom_param=42).build()
     )
     assert schema_with_extras["fields"]["priority"]["x_custom_param"] == 42
     assert schema_with_extras["fields"]["priority"]["type"] == "float"
@@ -1517,7 +1517,7 @@ async def test_async_describe_returns_typed_schema_fields(
         PreviewSchemaBuilder()
         .add_dense_vector_field("embedding", dimension=4, metric="cosine")
         .add_string_field("category", filterable=True)
-        .add_integer_field("year")
+        .add_float_field("year")
         .build()
     )
     async_cleanup_preview_indexes.append(preview_index_name)

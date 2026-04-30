@@ -35,7 +35,7 @@ class PreviewSchemaBuilder:
         ...     .add_string_field("title", full_text_search={"language": "en"})
         ...     .add_string_field("category", filterable=True)
         ...     .add_string_list_field("tags", filterable=True)
-        ...     .add_integer_field("year", filterable=True)
+        ...     .add_float_field("year", filterable=True)
         ...     .build()
         ... )
     """
@@ -236,7 +236,7 @@ class PreviewSchemaBuilder:
         self._fields[name] = field
         return self
 
-    def add_integer_field(
+    def add_float_field(
         self,
         name: str,
         *,
@@ -254,13 +254,14 @@ class PreviewSchemaBuilder:
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
 
-        Note:
-            The wire type is ``"float"`` — the API normalises both
-            ``"number"`` and ``"float"`` to ``"float"`` in responses.
+        The wire type is ``"float"``. The Pinecone API does not have a
+        separate integer type; integers are stored and filtered as
+        double-precision floats.
 
         Args:
             name: Field name. Replaces any existing field with the same name.
-            filterable: Enable filtering on this field. Defaults to ``False``.
+            filterable: Enable filtering on this field. ``False`` is omitted
+                from the wire payload.
             description: Optional human-readable description.
             **additional_options: Extra parameters merged into the field dict
                 last, for forward compatibility with new API features.

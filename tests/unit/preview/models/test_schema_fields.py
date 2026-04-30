@@ -62,7 +62,7 @@ def test_string_field_stop_words_config() -> None:
     assert field_false.full_text_search.stop_words is False
 
 
-def test_integer_field_wire_type_is_float() -> None:
+def test_float_field_wire_type_is_float() -> None:
     # The msgspec tag for IntegerField is "float" (wire type per API spec)
     raw = b'{"type": "float", "filterable": true}'
     field = msgspec.json.decode(raw, type=PreviewSchemaField)
@@ -132,7 +132,7 @@ def test_string_field_defaults() -> None:
     assert field.full_text_search is None
 
 
-def test_integer_field_defaults() -> None:
+def test_float_field_model_defaults() -> None:
     field = PreviewIntegerField()
     assert field.description is None
     assert field.filterable is False

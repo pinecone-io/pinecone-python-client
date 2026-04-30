@@ -60,7 +60,7 @@ class TestMultiFieldSchema:
             .add_sparse_vector_field("sparse")
             .add_string_field("title", full_text_search={"language": "en"})
             .add_string_field("category", filterable=True)
-            .add_integer_field("year")
+            .add_float_field("year")
             .build()
         )
         cleanup_preview_indexes.append(preview_index_name)
@@ -657,7 +657,7 @@ class TestSchemaBuildBehavior:
             PreviewSchemaBuilder()
             .add_dense_vector_field("embedding", dimension=4, metric="cosine")
             .add_dense_vector_field("embedding", dimension=8, metric="euclidean")
-            .add_integer_field("count")
+            .add_float_field("count")
         )
 
         schema1 = builder.build()
@@ -679,7 +679,7 @@ class TestSchemaBuildBehavior:
         # Claim 3: **additional_options are merged into the field dict (client-side).
         schema_with_extras = (
             PreviewSchemaBuilder()
-            .add_integer_field("priority", filterable=True, x_custom_param=42)
+            .add_float_field("priority", filterable=True, x_custom_param=42)
             .build()
         )
         assert schema_with_extras["fields"]["priority"]["x_custom_param"] == 42, (
@@ -918,7 +918,7 @@ class TestSchemaFieldTypes:
             PreviewSchemaBuilder()
             .add_dense_vector_field("embedding", dimension=4, metric="cosine")
             .add_string_field("category", filterable=True)
-            .add_integer_field("year")
+            .add_float_field("year")
             .build()
         )
         cleanup_preview_indexes.append(preview_index_name)

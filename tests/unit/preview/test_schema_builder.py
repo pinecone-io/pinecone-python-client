@@ -162,29 +162,29 @@ def test_string_field_full_text_and_filterable_together() -> None:
 
 
 # ---------------------------------------------------------------------------
-# add_integer_field
+# add_float_field
 # ---------------------------------------------------------------------------
 
 
-def test_integer_field_defaults() -> None:
-    schema = SchemaBuilder().add_integer_field("year").build()
+def test_float_field_defaults() -> None:
+    schema = SchemaBuilder().add_float_field("year").build()
     field = schema["fields"]["year"]
     assert field["type"] == "float"
     assert "filterable" not in field
 
 
-def test_integer_field_filterable_false_omitted() -> None:
-    schema = SchemaBuilder().add_integer_field("year", filterable=False).build()
+def test_float_field_filterable_false_omitted() -> None:
+    schema = SchemaBuilder().add_float_field("year", filterable=False).build()
     assert "filterable" not in schema["fields"]["year"]
 
 
-def test_integer_field_description() -> None:
-    schema = SchemaBuilder().add_integer_field("year", description="pub year").build()
+def test_float_field_description() -> None:
+    schema = SchemaBuilder().add_float_field("year", description="pub year").build()
     assert schema["fields"]["year"]["description"] == "pub year"
 
 
-def test_integer_field_additional_options() -> None:
-    schema = SchemaBuilder().add_integer_field("year", extra=1).build()
+def test_float_field_additional_options() -> None:
+    schema = SchemaBuilder().add_float_field("year", extra=1).build()
     assert schema["fields"]["year"]["extra"] == 1
 
 
@@ -226,8 +226,8 @@ def test_duplicate_field_name_replaces() -> None:
 def test_duplicate_field_preserves_last_definition() -> None:
     schema = (
         SchemaBuilder()
-        .add_integer_field("score")
-        .add_integer_field("score", filterable=False, description="override")
+        .add_float_field("score")
+        .add_float_field("score", filterable=False, description="override")
         .build()
     )
     assert schema["fields"]["score"]["description"] == "override"
@@ -246,7 +246,7 @@ def test_duplicate_field_preserves_last_definition() -> None:
         ("add_sparse_vector_field", ("sparse",), {}),
         ("add_string_field", ("title",), {}),
         ("add_string_list_field", ("tags",), {}),
-        ("add_integer_field", ("year",), {}),
+        ("add_float_field", ("year",), {}),
         ("add_custom_field", ("custom", {"type": "custom"}), {}),
     ],
 )
