@@ -98,6 +98,17 @@ def test_serverless_dense_smoke(client: Pinecone) -> None:
             up_resp = idx.upsert(vectors=mixed, namespace="alpha")
             assert up_resp.upserted_count == 10
 
+            # ----- upsert: populate beta namespace (plain upsert, no pandas) -----
+            beta_records = [
+                {
+                    "id": f"b{i}",
+                    "values": [0.30 + i * 0.01 + j * 0.001 for j in range(DIM)],
+                }
+                for i in range(5)
+            ]
+            beta_resp = idx.upsert(vectors=beta_records, namespace="beta")
+            assert beta_resp.upserted_count == 5
+
             # upsert_from_dataframe (skip if pandas not installed)
             try:
                 import pandas as pd  # type: ignore[import-untyped]
@@ -128,19 +139,15 @@ def test_serverless_dense_smoke(client: Pinecone) -> None:
             )
             assert len(q_resp.matches) == 3
 
-            # ----- query_namespaces — only run if both namespaces have data -----
-            try:
-                wait_for_vector_count(idx, "beta", expected=5, timeout=60)
-                multi = idx.query_namespaces(
-                    vector=[0.10 + j * 0.01 for j in range(DIM)],
-                    namespaces=["alpha", "beta"],
-                    metric="cosine",
-                    top_k=3,
-                )
-                assert len(multi.matches) > 0
-            except (TimeoutError, ImportError):
-                # beta namespace was never populated (pandas missing) — skip
-                pass
+            # ----- query_namespaces (alpha + beta both populated above) -----
+            wait_for_vector_count(idx, "beta", expected=5, timeout=60)
+            multi = idx.query_namespaces(
+                vector=[0.10 + j * 0.01 for j in range(DIM)],
+                namespaces=["alpha", "beta"],
+                metric="cosine",
+                top_k=3,
+            )
+            assert len(multi.matches) > 0
 
             # ----- fetch -----
             fetch_resp = idx.fetch(ids=["v0", "v1", "v2"], namespace="alpha")

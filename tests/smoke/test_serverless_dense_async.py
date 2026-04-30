@@ -86,6 +86,17 @@ async def test_serverless_dense_smoke_async(api_key: str) -> None:
             up_resp = await idx.upsert(vectors=mixed, namespace="alpha")
             assert up_resp.upserted_count == 10
 
+            # ----- upsert: populate beta namespace (plain upsert, no pandas) -----
+            beta_records = [
+                {
+                    "id": f"b{i}",
+                    "values": [0.30 + i * 0.01 + j * 0.001 for j in range(DIM)],
+                }
+                for i in range(5)
+            ]
+            beta_resp = await idx.upsert(vectors=beta_records, namespace="beta")
+            assert beta_resp.upserted_count == 5
+
             try:
                 import pandas as pd  # type: ignore[import-untyped]
 
@@ -115,17 +126,15 @@ async def test_serverless_dense_smoke_async(api_key: str) -> None:
             )
             assert len(q_resp.matches) == 3
 
-            try:
-                await async_wait_for_vector_count(idx, "beta", expected=5, timeout=60)
-                multi = await idx.query_namespaces(
-                    vector=[0.10 + j * 0.01 for j in range(DIM)],
-                    namespaces=["alpha", "beta"],
-                    metric="cosine",
-                    top_k=3,
-                )
-                assert len(multi.matches) > 0
-            except (TimeoutError, ImportError):
-                pass
+            # ----- query_namespaces (alpha + beta both populated above) -----
+            await async_wait_for_vector_count(idx, "beta", expected=5, timeout=60)
+            multi = await idx.query_namespaces(
+                vector=[0.10 + j * 0.01 for j in range(DIM)],
+                namespaces=["alpha", "beta"],
+                metric="cosine",
+                top_k=3,
+            )
+            assert len(multi.matches) > 0
 
             fetch_resp = await idx.fetch(ids=["v0", "v1", "v2"], namespace="alpha")
             assert set(fetch_resp.vectors.keys()) == {"v0", "v1", "v2"}
