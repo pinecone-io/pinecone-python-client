@@ -220,33 +220,27 @@ jobs:
           manylinux: ${{ matrix.manylinux || 'auto' }}
           before-script-linux: |
             TARGET="${{ matrix.target }}"
-            if [[ "$TARGET" == *-musl ]]; then
-              # musllinux containers are Alpine-based; upstream protoc binaries
-              # are glibc-linked and won't run here. Use the Alpine package.
-              apk add --no-cache protoc protobuf-dev
-            else
-              PROTOC_VERSION="${{ env.PROTOC_VERSION }}"
-              case "$TARGET" in
-                x86_64-*)
-                  PROTOC_ARCH="linux-x86_64"
-                  PROTOC_SHA256="0ad949f04a6a174da83cdcbdb36dee0a4925272a5b6d83f79a6bf9852076d53f"
-                  ;;
-                aarch64-*)
-                  PROTOC_ARCH="linux-aarch_64"
-                  PROTOC_SHA256="1de522032a8b194002fe35cab86d747848238b5e4de4f99648372079f5b46f9a"
-                  ;;
-                *)
-                  echo "Unsupported target: $TARGET" >&2
-                  exit 1
-                  ;;
-              esac
-              PROTOC_ZIP="protoc-${PROTOC_VERSION}-${PROTOC_ARCH}.zip"
-              curl -fsSLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
-              echo "${PROTOC_SHA256}  ${PROTOC_ZIP}" | sha256sum -c -
-              python3 -m zipfile -e "${PROTOC_ZIP}" /usr/local
-              chmod +x /usr/local/bin/protoc
-              rm "${PROTOC_ZIP}"
-            fi
+            PROTOC_VERSION="${{ env.PROTOC_VERSION }}"
+            case "$TARGET" in
+              x86_64-*)
+                PROTOC_ARCH="linux-x86_64"
+                PROTOC_SHA256="0ad949f04a6a174da83cdcbdb36dee0a4925272a5b6d83f79a6bf9852076d53f"
+                ;;
+              aarch64-*)
+                PROTOC_ARCH="linux-aarch_64"
+                PROTOC_SHA256="1de522032a8b194002fe35cab86d747848238b5e4de4f99648372079f5b46f9a"
+                ;;
+              *)
+                echo "Unsupported target: $TARGET" >&2
+                exit 1
+                ;;
+            esac
+            PROTOC_ZIP="protoc-${PROTOC_VERSION}-${PROTOC_ARCH}.zip"
+            curl -fsSLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
+            echo "${PROTOC_SHA256}  ${PROTOC_ZIP}" | sha256sum -c -
+            python3 -m zipfile -e "${PROTOC_ZIP}" /usr/local
+            chmod +x /usr/local/bin/protoc
+            rm "${PROTOC_ZIP}"
 
       - name: Validate wheel platform tags (x86_64 cross-compile)
         if: matrix.target == 'x86_64-apple-darwin'
