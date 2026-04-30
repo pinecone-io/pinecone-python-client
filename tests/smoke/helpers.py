@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from pinecone.async_client.async_index import AsyncIndex
+    from pinecone.grpc import GrpcIndex
     from pinecone.index import Index
 
 
@@ -42,7 +43,7 @@ SAMPLE_PDF_LARGE: Path = _INTEGRATION_DIR / "collin_foods_p8-9.pdf"
 
 
 def wait_for_vector_count(
-    idx: Index,
+    idx: Index | GrpcIndex,
     namespace: str,
     expected: int,
     *,

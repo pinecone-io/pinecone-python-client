@@ -10,7 +10,7 @@ Punchlist coverage (gRPC):
 - upsert / upsert_async
 - query / query_async
 - fetch / fetch_async
-- delete / delete_async
+- delete (ids/delete_all/filter) / delete_async
 - update / update_async
 - list / list_paginated
 - describe_index_stats
@@ -57,8 +57,13 @@ def test_serverless_dense_grpc_smoke(client: Pinecone) -> None:
 
         try:
             # ----- upsert (sync) -----
+            # Two metadata categories so we can later delete by filter.
             base_vectors = [
-                Vector(id=f"v{i}", values=[0.05 * (i + 1) + j * 0.01 for j in range(DIM)])
+                Vector(
+                    id=f"v{i}",
+                    values=[0.05 * (i + 1) + j * 0.01 for j in range(DIM)],
+                    metadata={"category": "keep" if i < 3 else "drop"},
+                )
                 for i in range(5)
             ]
             sync_resp = idx.upsert(vectors=base_vectors, namespace="alpha")
@@ -135,6 +140,21 @@ def test_serverless_dense_grpc_smoke(client: Pinecone) -> None:
             # ----- describe_index_stats -----
             stats = idx.describe_index_stats()
             assert "alpha" in stats.namespaces
+
+            # ----- delete by filter -----
+            # Removes any vector with category=drop. Does not error if zero match.
+            idx.delete(filter={"category": {"$eq": "drop"}}, namespace="alpha")
+
+            # ----- delete_all on a throwaway namespace -----
+            # Populate a separate namespace, then nuke it. Run against gRPC to
+            # exercise the delete_all=True wire path specifically.
+            throwaway = [
+                Vector(id=f"t{i}", values=[0.50 + i * 0.01 + j * 0.001 for j in range(DIM)])
+                for i in range(3)
+            ]
+            idx.upsert(vectors=throwaway, namespace="gamma-grpc")
+            wait_for_vector_count(idx, "gamma-grpc", expected=3, timeout=60)
+            idx.delete(delete_all=True, namespace="gamma-grpc")
 
             # ----- delete (sync) -----
             idx.delete(ids=["v0"], namespace="alpha")
