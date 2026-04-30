@@ -247,6 +247,7 @@ def test_duplicate_field_preserves_last_definition() -> None:
         ("add_string_field", ("title",), {}),
         ("add_string_list_field", ("tags",), {}),
         ("add_float_field", ("year",), {}),
+        ("add_boolean_field", ("is_published",), {}),
         ("add_custom_field", ("custom", {"type": "custom"}), {}),
     ],
 )
@@ -326,6 +327,39 @@ def test_string_list_field_emits_snake_case_tag_not_brackets() -> None:
     schema = SchemaBuilder().add_string_list_field("tags").build()
     assert schema["fields"]["tags"]["type"] == "string_list"
     assert schema["fields"]["tags"]["type"] != "string[]"
+
+
+# ---------------------------------------------------------------------------
+# add_boolean_field
+# ---------------------------------------------------------------------------
+
+
+def test_boolean_field_defaults() -> None:
+    schema = SchemaBuilder().add_boolean_field("is_published").build()
+    field = schema["fields"]["is_published"]
+    assert field == {"type": "boolean"}
+
+
+def test_boolean_field_filterable_true() -> None:
+    schema = SchemaBuilder().add_boolean_field("is_published", filterable=True).build()
+    assert schema["fields"]["is_published"]["filterable"] is True
+
+
+def test_boolean_field_filterable_false_omitted() -> None:
+    schema = SchemaBuilder().add_boolean_field("is_published", filterable=False).build()
+    assert "filterable" not in schema["fields"]["is_published"]
+
+
+def test_boolean_field_description() -> None:
+    schema = (
+        SchemaBuilder().add_boolean_field("is_published", description="visibility flag").build()
+    )
+    assert schema["fields"]["is_published"]["description"] == "visibility flag"
+
+
+def test_boolean_field_additional_options_merged() -> None:
+    schema = SchemaBuilder().add_boolean_field("is_published", future_key="v").build()
+    assert schema["fields"]["is_published"]["future_key"] == "v"
 
 
 # ---------------------------------------------------------------------------

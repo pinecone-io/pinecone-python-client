@@ -36,6 +36,7 @@ class PreviewSchemaBuilder:
         ...     .add_string_field("category", filterable=True)
         ...     .add_string_list_field("tags", filterable=True)
         ...     .add_float_field("year", filterable=True)
+        ...     .add_boolean_field("is_published", filterable=True)
         ...     .build()
         ... )
     """
@@ -229,6 +230,51 @@ class PreviewSchemaBuilder:
                 builder.add_string_list_field("tags", filterable=True)
         """
         field: dict[str, Any] = {"type": "string_list"}
+        if filterable:
+            field["filterable"] = filterable
+        if description is not None:
+            field["description"] = description
+        field.update(additional_options)
+        self._fields[name] = field
+        return self
+
+    def add_boolean_field(
+        self,
+        name: str,
+        *,
+        filterable: bool = False,
+        description: str | None = None,
+        **additional_options: Any,
+    ) -> PreviewSchemaBuilder:
+        """Add a boolean field for metadata filtering.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        The wire type is ``"boolean"``. ``filterable=False`` is omitted from
+        the wire payload; ``None`` description is omitted as well.
+
+        Args:
+            name: Field name. Replaces any existing field with the same name.
+            filterable: Enable metadata-filter support on this field.
+            description: Optional human-readable description.
+            **additional_options: Extra parameters merged into the field dict
+                last, for forward compatibility with new API features.
+
+        Returns:
+            ``self`` for method chaining.
+
+        Examples:
+            .. code-block:: python
+
+                builder.add_boolean_field("is_published", filterable=True)
+        """
+        field: dict[str, Any] = {"type": "boolean"}
         if filterable:
             field["filterable"] = filterable
         if description is not None:
