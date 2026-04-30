@@ -49,6 +49,30 @@ uv run --with python-dotenv python tests/smoke/scripts/cleanup_orphans.py --dry-
 uv run --with python-dotenv python tests/smoke/scripts/cleanup_orphans.py
 ```
 
+## CI integration
+
+Smoke tests run automatically as part of the **Dev Build & Publish**
+workflow (`.github/workflows/dev-publish.yml`) on each successful
+publish. The CI job:
+
+- Runs **after** publish completes, against the just-published dev wheel.
+- Is **informational only** — a smoke failure does not block publish.
+  The workflow job is marked `continue-on-error: true`.
+- Excludes pod-collection scenarios
+  (`test_pod_collections_{sync,async}.py`) for runtime reasons; they
+  run locally on demand.
+- Writes a PASSED / FAILED summary to the GitHub Actions step summary.
+- Uploads a `smoke-results.xml` JUnit artifact for diagnostic review.
+- On failure, opens a labeled GitHub issue
+  (`[smoke regression] …`) via the `notify-smoke-failure` job.
+- Runs orphan cleanup unconditionally after the suite, so a
+  failed/cancelled run does not leak indexes.
+
+> **Secret required.** The `PINECONE_API_KEY` repository secret must
+> exist before the smoke job can authenticate. The user is responsible
+> for adding the secret; the workflow skips with an auth error if it is
+> unset, and that failure is informational.
+
 ## Adding a new env-var-gated scenario
 
 Use the module-level skip pattern so the whole test file is reported

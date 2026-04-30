@@ -410,6 +410,105 @@ jobs:
             dist/*
 
   # ---------------------------------------------------------------------------
+  # Stage 4: Smoke tests against the just-published wheel (informational only)
+  # ---------------------------------------------------------------------------
+  smoke-tests:
+    name: Smoke tests (informational)
+    needs: publish
+    if: success()
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    permissions:
+      contents: read
+    env:
+      PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Download linux x86_64 wheel
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: wheels-x86_64-unknown-linux-gnu
+          path: dist
+
+      - name: Install wheel and test deps
+        run: |
+          set -euo pipefail
+          wheel=$(ls dist/*.whl | head -n1)
+          echo "Installing ${wheel}"
+          pip install --upgrade pip
+          pip install "${wheel}" pytest pytest-asyncio python-dotenv
+
+      - name: Run smoke suite
+        id: smoke
+        continue-on-error: true
+        run: |
+          pytest tests/smoke/ \
+            -v -s -rs \
+            --ignore=tests/smoke/test_pod_collections_sync.py \
+            --ignore=tests/smoke/test_pod_collections_async.py \
+            --junitxml=smoke-results.xml
+
+      - name: Append summary
+        if: always()
+        run: |
+          if [ "${{ steps.smoke.outcome }}" = "success" ]; then
+            echo "## Smoke tests: PASSED" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## Smoke tests: FAILED (informational — does not block publish)" >> "$GITHUB_STEP_SUMMARY"
+            echo "See the 'Run smoke suite' step output and the smoke-results artifact." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Orphan cleanup
+        if: always()
+        continue-on-error: true
+        run: |
+          python tests/smoke/scripts/cleanup_orphans.py || true
+
+      - name: Upload smoke results
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+        with:
+          name: smoke-results
+          path: smoke-results.xml
+
+  notify-smoke-failure:
+    name: Notify on smoke regression
+    runs-on: ubuntu-latest
+    needs: smoke-tests
+    if: needs.smoke-tests.result == 'failure'
+    permissions:
+      issues: write
+    steps:
+      - name: Open smoke-regression issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          body=$(printf '%s\n' \
+            "## Smoke tests regressed (informational — publish succeeded)" \
+            "" \
+            "**Workflow run:** ${run_url}" \
+            "**Triggered by:** \`${{ github.event_name }}\`" \
+            "**Ref:** \`${{ github.ref }}\`" \
+            "**Commit:** \`${{ github.sha }}\`" \
+            "" \
+            "The smoke job ran against the just-published dev wheel and reported FAILED." \
+            "Publish completed normally; this is a follow-up signal, not a build failure." \
+            "" \
+            "Download the \`smoke-results\` artifact from the workflow run for the JUnit report.")
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "[smoke regression] $(date -u +%Y-%m-%d) — dev-publish smoke run failed" \
+            --body "$body"
+
+  # ---------------------------------------------------------------------------
   # Failure notification: open a GitHub issue when any job fails
   # ---------------------------------------------------------------------------
   notify-failure:
