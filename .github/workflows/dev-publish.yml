@@ -117,14 +117,22 @@ jobs:
       fail-fast: true
       matrix:
         include:
-          # Linux x86_64
+          # Linux glibc x86_64
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             manylinux: auto
-          # Linux aarch64 (native ARM64 runner — avoids ring crate cross-compilation issues)
+          # Linux glibc aarch64 (native ARM64 runner — avoids ring crate cross-compilation issues)
           - os: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
             manylinux: auto
+          # Linux musl x86_64 (Alpine Docker images)
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            manylinux: musllinux_1_2
+          # Linux musl aarch64 (Alpine on ARM)
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+            manylinux: musllinux_1_2
           # macOS x86_64 (cross-compiled on arm64 runner)
           - os: macos-14
             target: x86_64-apple-darwin
@@ -208,31 +216,37 @@ jobs:
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad  # v1.50.1
         with:
           target: ${{ matrix.target }}
-          args: --release --interpreter 3.10 3.11 3.12 3.13 --out dist
+          args: --release --out dist
           manylinux: ${{ matrix.manylinux || 'auto' }}
           before-script-linux: |
-            PROTOC_VERSION="${{ env.PROTOC_VERSION }}"
             TARGET="${{ matrix.target }}"
-            case "$TARGET" in
-              x86_64-*)
-                PROTOC_ARCH="linux-x86_64"
-                PROTOC_SHA256="0ad949f04a6a174da83cdcbdb36dee0a4925272a5b6d83f79a6bf9852076d53f"
-                ;;
-              aarch64-*)
-                PROTOC_ARCH="linux-aarch_64"
-                PROTOC_SHA256="1de522032a8b194002fe35cab86d747848238b5e4de4f99648372079f5b46f9a"
-                ;;
-              *)
-                echo "Unsupported target: $TARGET" >&2
-                exit 1
-                ;;
-            esac
-            PROTOC_ZIP="protoc-${PROTOC_VERSION}-${PROTOC_ARCH}.zip"
-            curl -fsSLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
-            echo "${PROTOC_SHA256}  ${PROTOC_ZIP}" | sha256sum -c -
-            python3 -m zipfile -e "${PROTOC_ZIP}" /usr/local
-            chmod +x /usr/local/bin/protoc
-            rm "${PROTOC_ZIP}"
+            if [[ "$TARGET" == *-musl ]]; then
+              # musllinux containers are Alpine-based; upstream protoc binaries
+              # are glibc-linked and won't run here. Use the Alpine package.
+              apk add --no-cache protoc protobuf-dev
+            else
+              PROTOC_VERSION="${{ env.PROTOC_VERSION }}"
+              case "$TARGET" in
+                x86_64-*)
+                  PROTOC_ARCH="linux-x86_64"
+                  PROTOC_SHA256="0ad949f04a6a174da83cdcbdb36dee0a4925272a5b6d83f79a6bf9852076d53f"
+                  ;;
+                aarch64-*)
+                  PROTOC_ARCH="linux-aarch_64"
+                  PROTOC_SHA256="1de522032a8b194002fe35cab86d747848238b5e4de4f99648372079f5b46f9a"
+                  ;;
+                *)
+                  echo "Unsupported target: $TARGET" >&2
+                  exit 1
+                  ;;
+              esac
+              PROTOC_ZIP="protoc-${PROTOC_VERSION}-${PROTOC_ARCH}.zip"
+              curl -fsSLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
+              echo "${PROTOC_SHA256}  ${PROTOC_ZIP}" | sha256sum -c -
+              python3 -m zipfile -e "${PROTOC_ZIP}" /usr/local
+              chmod +x /usr/local/bin/protoc
+              rm "${PROTOC_ZIP}"
+            fi
 
       - name: Validate wheel platform tags (x86_64 cross-compile)
         if: matrix.target == 'x86_64-apple-darwin'
@@ -357,9 +371,9 @@ jobs:
           whl_count=$(ls dist/*.whl 2>/dev/null | wc -l)
           sdist_count=$(ls dist/*.tar.gz 2>/dev/null | wc -l)
           echo "Wheels: $whl_count, Sdists: $sdist_count"
-          # 5 platforms × 4 Python interpreters (3.10, 3.11, 3.12, 3.13) = 20 wheels
-          if [ "$whl_count" -lt 20 ]; then
-            echo "::error::expected at least 20 wheels but got $whl_count — one or more matrix legs may be missing"
+          # 7 platforms × 1 abi3 wheel (cp310-abi3, covers Python 3.10+) = 7 wheels
+          if [ "$whl_count" -lt 7 ]; then
+            echo "::error::expected at least 7 wheels but got $whl_count — one or more matrix legs may be missing"
             exit 1
           fi
           if [ "$sdist_count" -lt 1 ]; then
