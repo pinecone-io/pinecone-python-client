@@ -139,8 +139,8 @@ def test_serverless_dense_smoke(client: Pinecone) -> None:
                 namespace="alpha",
                 limit=10,
             )
-            # We upserted 4 vectors with category=x (v2, v3, v9 with metadata + v2 dupe)
-            # accept any non-zero count — server may paginate
+            # We upserted 3 vectors with category=x (v2, v3, v9). Loose assertion
+            # because fetch_by_metadata may paginate.
             assert len(fbm.vectors) >= 1
 
             # ----- update -----
