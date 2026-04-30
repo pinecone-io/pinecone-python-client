@@ -1,0 +1,199 @@
+"""Priority-3 smoke test — async serverless dense + namespaces + imports.
+
+Mirror of ``test_serverless_dense_sync.py`` against ``AsyncPinecone`` and
+``AsyncIndex``.
+
+Punchlist coverage (async): full AsyncIndexes namespace + AsyncIndex data plane
++ AsyncPinecone top-level surface.
+"""
+
+from __future__ import annotations
+
+import os
+
+import pytest
+
+from pinecone import AsyncPinecone, ServerlessSpec, Vector
+from tests.smoke.conftest import (
+    SMOKE_PREFIX,
+    async_ensure_index_deleted,
+    unique_name,
+)
+from tests.smoke.helpers import async_wait_for_vector_count
+
+CLOUD = "aws"
+REGION = "us-east-1"
+DIM = 8
+
+
+def _vec(i: int, *, category: str | None = None) -> dict[str, object]:
+    base = (i + 1) * 0.05
+    record: dict[str, object] = {
+        "id": f"v{i}",
+        "values": [base + j * 0.01 for j in range(DIM)],
+    }
+    if category is not None:
+        record["metadata"] = {"category": category}
+    return record
+
+
+@pytest.mark.smoke
+@pytest.mark.asyncio
+async def test_serverless_dense_smoke_async(api_key: str) -> None:
+    """End-to-end async serverless dense walkthrough."""
+    pc = AsyncPinecone(api_key=api_key)
+    name = unique_name(f"{SMOKE_PREFIX}-srv-dense-async")
+
+    try:
+        # ----- control plane -----
+        created = await pc.indexes.create(
+            name=name,
+            spec=ServerlessSpec(cloud=CLOUD, region=REGION),
+            dimension=DIM,
+            metric="cosine",
+        )
+        assert created.name == name
+
+        described = await pc.indexes.describe(name)
+        assert described.name == name
+
+        listing = await pc.indexes.list()
+        assert any(i.name == name for i in listing.indexes)
+
+        assert await pc.indexes.exists(name) is True
+        assert await pc.indexes.exists(f"{SMOKE_PREFIX}-does-not-exist-async") is False
+
+        assert pc.config.api_key
+
+        await pc.indexes.configure(name, tags={"env": "smoke-async"})
+
+        # ----- data plane -----
+        idx = pc.index(name=name)
+        assert idx.host
+        try:
+            mixed = [
+                Vector(id="v0", values=[0.05 + j * 0.01 for j in range(DIM)]),
+                ("v1", [0.10 + j * 0.01 for j in range(DIM)]),
+                ("v2", [0.15 + j * 0.01 for j in range(DIM)], {"category": "x"}),
+                _vec(3, category="x"),
+                _vec(4),
+                _vec(5, category="y"),
+                _vec(6),
+                _vec(7),
+                _vec(8),
+                _vec(9, category="x"),
+            ]
+            up_resp = await idx.upsert(vectors=mixed, namespace="alpha")
+            assert up_resp.upserted_count == 10
+
+            try:
+                import pandas as pd  # type: ignore[import-untyped]
+
+                df = pd.DataFrame(
+                    [
+                        {
+                            "id": f"d{i}",
+                            "values": [0.30 + i * 0.01 + j * 0.001 for j in range(DIM)],
+                        }
+                        for i in range(5)
+                    ]
+                )
+                df_resp = await idx.upsert_from_dataframe(
+                    df, namespace="beta", show_progress=False
+                )
+                assert df_resp.upserted_count == 5
+            except ImportError:
+                print("  pandas not installed — skipping upsert_from_dataframe")
+
+            await async_wait_for_vector_count(idx, "alpha", expected=10)
+
+            q_resp = await idx.query(
+                top_k=3,
+                vector=[0.10 + j * 0.01 for j in range(DIM)],
+                namespace="alpha",
+                include_metadata=True,
+            )
+            assert len(q_resp.matches) == 3
+
+            try:
+                await async_wait_for_vector_count(idx, "beta", expected=5, timeout=60)
+                multi = await idx.query_namespaces(
+                    vector=[0.10 + j * 0.01 for j in range(DIM)],
+                    namespaces=["alpha", "beta"],
+                    metric="cosine",
+                    top_k=3,
+                )
+                assert len(multi.matches) > 0
+            except (TimeoutError, ImportError):
+                pass
+
+            fetch_resp = await idx.fetch(ids=["v0", "v1", "v2"], namespace="alpha")
+            assert set(fetch_resp.vectors.keys()) == {"v0", "v1", "v2"}
+
+            fbm = await idx.fetch_by_metadata(
+                filter={"category": {"$eq": "x"}},
+                namespace="alpha",
+                limit=10,
+            )
+            assert len(fbm.vectors) >= 1
+
+            await idx.update(
+                id="v0",
+                set_metadata={"tag": "updated-async"},
+                namespace="alpha",
+            )
+
+            page = await idx.list_paginated(prefix="v", limit=5, namespace="alpha")
+            assert len(page.vectors) > 0
+
+            all_ids: list[str] = []
+            async for p in idx.list(prefix="v", namespace="alpha"):
+                all_ids.extend(item.id for item in p.vectors)
+            assert len(all_ids) >= 10
+
+            stats = await idx.describe_index_stats()
+            assert "alpha" in stats.namespaces
+
+            ns_name = "smoke-gamma-async"
+            created_ns = await idx.create_namespace(name=ns_name)
+            assert created_ns.name == ns_name
+            described_ns = await idx.describe_namespace(name=ns_name)
+            assert described_ns.name == ns_name
+            ns_page = await idx.list_namespaces_paginated(limit=10)
+            ns_names = {ns.name for ns in ns_page.namespaces}
+            assert ns_name in ns_names
+            iter_names: list[str] = []
+            async for ns_response in idx.list_namespaces():
+                iter_names.extend(ns.name for ns in ns_response.namespaces)
+            assert ns_name in iter_names
+            await idx.delete_namespace(name=ns_name)
+
+            await idx.delete(ids=["v0", "v1"], namespace="alpha")
+
+            import_uri = os.getenv("PINECONE_IMPORT_S3_URI")
+            integration_id = os.getenv("PINECONE_IMPORT_INTEGRATION_ID")
+            if import_uri:
+                start_resp = await idx.start_import(
+                    uri=import_uri,
+                    integration_id=integration_id,
+                )
+                import_id = start_resp.id
+                desc = await idx.describe_import(import_id)
+                assert desc.id == import_id
+                imports_collected: list[object] = []
+                async for imp in idx.list_imports(limit=5):
+                    imports_collected.append(imp)
+                page = await idx.list_imports_paginated(limit=5)
+                _ = page  # touch
+                await idx.cancel_import(import_id)
+            else:
+                print("  PINECONE_IMPORT_S3_URI not set — skipping imports sub-block")
+        finally:
+            await idx.close()
+
+        async with pc.index(name=name) as idx2:
+            stats2 = await idx2.describe_index_stats()
+            assert stats2.dimension == DIM
+    finally:
+        await async_ensure_index_deleted(pc, name)
+        await pc.close()

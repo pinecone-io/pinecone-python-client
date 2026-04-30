@@ -58,7 +58,6 @@ class TestMultiFieldSchema:
             PreviewSchemaBuilder()
             .add_dense_vector_field("embedding", dimension=1536, metric="cosine")
             .add_sparse_vector_field("sparse")
-            .add_semantic_text_field("content", model="multilingual-e5-large")
             .add_string_field("title", full_text_search={"language": "en"})
             .add_string_field("category", filterable=True)
             .add_integer_field("year")

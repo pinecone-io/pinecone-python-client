@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import pytest
-
 import httpx
+import pytest
 
 from pinecone._internal.http_client import (
     _TEXT_BODY_MAX_LEN,

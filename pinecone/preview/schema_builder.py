@@ -236,59 +236,6 @@ class PreviewSchemaBuilder:
         self._fields[name] = field
         return self
 
-    def add_semantic_text_field(
-        self,
-        name: str,
-        *,
-        model: str,
-        metric: str = "cosine",
-        read_parameters: dict[str, Any] | None = None,
-        write_parameters: dict[str, Any] | None = None,
-        description: str | None = None,
-        **additional_options: Any,
-    ) -> PreviewSchemaBuilder:
-        """Add a field with server-side embedding (integrated model).
-
-        .. admonition:: Preview
-           :class: warning
-
-           Uses Pinecone API version ``2026-01.alpha``.
-           Preview surface is not covered by SemVer — signatures and behavior
-           may change in any minor SDK release. Pin your SDK version when
-           relying on preview features.
-
-        The server generates embeddings at write time and uses them at query
-        time, so callers do not need to manage embeddings separately.
-
-        Args:
-            name: Field name. Replaces any existing field with the same name.
-            model: Embedding model name (e.g. ``"multilingual-e5-large"``).
-            metric: Distance metric for the generated embeddings. Defaults to
-                ``"cosine"``.
-            read_parameters: Query-time model parameters.
-            write_parameters: Index-time model parameters.
-            description: Optional human-readable description.
-            **additional_options: Extra parameters merged into the field dict
-                last, for forward compatibility with new API features.
-
-        Returns:
-            ``self`` for method chaining.
-        """
-        field: dict[str, Any] = {
-            "type": "semantic_text",
-            "model": model,
-            "metric": metric,
-        }
-        if read_parameters is not None:
-            field["read_parameters"] = read_parameters
-        if write_parameters is not None:
-            field["write_parameters"] = write_parameters
-        if description is not None:
-            field["description"] = description
-        field.update(additional_options)
-        self._fields[name] = field
-        return self
-
     def add_integer_field(
         self,
         name: str,

@@ -36,14 +36,8 @@ def test_canonical_assistant_namespace_still_works() -> None:
     # Sanity check: removing pinecone_plugins must not break the canonical surface.
     from pinecone import Pinecone
     from pinecone.models.assistant import (
-        AlignmentResponse,
         AssistantFileModel,
-        AssistantModel,
-        ChatResponse,
-        ContextOptions,
         FileModel,
-        Message,
-        StreamChatResponseMessageStart,
     )
 
     pc = Pinecone(api_key="dummy-key-for-import-test")

@@ -162,50 +162,6 @@ def test_string_field_full_text_and_filterable_together() -> None:
 
 
 # ---------------------------------------------------------------------------
-# add_semantic_text_field
-# ---------------------------------------------------------------------------
-
-
-def test_semantic_text_field_required_params() -> None:
-    schema = SchemaBuilder().add_semantic_text_field("text", model="multilingual-e5-large").build()
-    field = schema["fields"]["text"]
-    assert field["type"] == "semantic_text"
-    assert field["model"] == "multilingual-e5-large"
-    assert field["metric"] == "cosine"
-
-
-def test_semantic_text_field_custom_metric() -> None:
-    schema = SchemaBuilder().add_semantic_text_field("text", model="m", metric="dotproduct").build()
-    assert schema["fields"]["text"]["metric"] == "dotproduct"
-
-
-def test_semantic_text_field_read_write_parameters() -> None:
-    rp: dict[str, Any] = {"input_type": "query"}
-    wp: dict[str, Any] = {"input_type": "passage"}
-    schema = (
-        SchemaBuilder()
-        .add_semantic_text_field("text", model="m", read_parameters=rp, write_parameters=wp)
-        .build()
-    )
-    field = schema["fields"]["text"]
-    assert field["read_parameters"] == {"input_type": "query"}
-    assert field["write_parameters"] == {"input_type": "passage"}
-
-
-def test_semantic_text_field_omits_none_optional() -> None:
-    schema = SchemaBuilder().add_semantic_text_field("text", model="m").build()
-    field = schema["fields"]["text"]
-    assert "read_parameters" not in field
-    assert "write_parameters" not in field
-    assert "description" not in field
-
-
-def test_semantic_text_field_additional_options() -> None:
-    schema = SchemaBuilder().add_semantic_text_field("text", model="m", extra="v").build()
-    assert schema["fields"]["text"]["extra"] == "v"
-
-
-# ---------------------------------------------------------------------------
 # add_integer_field
 # ---------------------------------------------------------------------------
 
@@ -290,7 +246,6 @@ def test_duplicate_field_preserves_last_definition() -> None:
         ("add_sparse_vector_field", ("sparse",), {}),
         ("add_string_field", ("title",), {}),
         ("add_string_list_field", ("tags",), {}),
-        ("add_semantic_text_field", ("text",), {"model": "multilingual-e5-large"}),
         ("add_integer_field", ("year",), {}),
         ("add_custom_field", ("custom", {"type": "custom"}), {}),
     ],
