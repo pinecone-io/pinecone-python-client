@@ -229,7 +229,7 @@ class PreviewStringListField(Struct, tag="string_list", tag_field="type", kw_onl
 
 
 class PreviewIntegerField(Struct, tag="float", tag_field="type", kw_only=True):
-    """Integer (numeric) field for metadata filtering.
+    """Numeric (float) field for metadata filtering.
 
     .. admonition:: Preview
        :class: warning
@@ -239,8 +239,10 @@ class PreviewIntegerField(Struct, tag="float", tag_field="type", kw_only=True):
        may change in any minor SDK release. Pin your SDK version when
        relying on preview features.
 
-    Integer fields store whole numbers and can be used for range filtering
-    (e.g. ``year >= 2020``).
+    Numeric fields store double-precision floating-point values and can be
+    used for range filtering (e.g. ``year >= 2020``).  There is no separate
+    integer type in the API — integers are stored and filtered as floats.
+    Created via :meth:`~pinecone.preview.PreviewSchemaBuilder.add_float_field`.
 
     Attributes:
         description: Optional human-readable description of the field.
