@@ -1,4 +1,4 @@
-"""Priority-3 smoke test — sync serverless dense + namespaces + imports.
+"""Priority-3 smoke test — sync serverless dense + namespaces.
 
 Walks the full Index data plane on a single dense serverless index, plus the
 control-plane Indexes namespace and Pinecone top-level surface.
@@ -7,19 +7,17 @@ Punchlist coverage (sync):
 
 - pc.indexes.list / describe / exists / create / configure / delete
 - pc.index (factory), pc.config, pc.close, ``with`` ctx mgr
-- Index: upsert, upsert_from_dataframe (if pandas installed), query,
-  query_namespaces, fetch, fetch_by_metadata, delete, update,
-  describe_index_stats, create_namespace, describe_namespace,
+- Index: upsert, query, query_namespaces, fetch, fetch_by_metadata, delete,
+  update, describe_index_stats, create_namespace, describe_namespace,
   delete_namespace, list_namespaces_paginated, list_namespaces,
   list_paginated, list, close, ``with`` ctx mgr, host
-- Imports sub-block (start_import, describe_import, cancel_import,
-  list_imports, list_imports_paginated): runs only if
-  ``PINECONE_IMPORT_S3_URI`` is set.
+
+Note: upsert_from_dataframe is tested in test_upsert_from_dataframe_sync.py
+(pandas-gated). Imports lifecycle is tested in test_imports_sync.py
+(PINECONE_IMPORT_S3_URI-gated).
 """
 
 from __future__ import annotations
-
-import os
 
 import pytest
 
@@ -98,7 +96,7 @@ def test_serverless_dense_smoke(client: Pinecone) -> None:
             up_resp = idx.upsert(vectors=mixed, namespace="alpha")
             assert up_resp.upserted_count == 10
 
-            # ----- upsert: populate beta namespace (plain upsert, no pandas) -----
+            # ----- upsert: populate beta namespace (plain upsert) -----
             beta_records = [
                 {
                     "id": f"b{i}",
@@ -108,24 +106,6 @@ def test_serverless_dense_smoke(client: Pinecone) -> None:
             ]
             beta_resp = idx.upsert(vectors=beta_records, namespace="beta")
             assert beta_resp.upserted_count == 5
-
-            # upsert_from_dataframe (skip if pandas not installed)
-            try:
-                import pandas as pd  # type: ignore[import-untyped]
-
-                df = pd.DataFrame(
-                    [
-                        {
-                            "id": f"d{i}",
-                            "values": [0.30 + i * 0.01 + j * 0.001 for j in range(DIM)],
-                        }
-                        for i in range(5)
-                    ]
-                )
-                df_resp = idx.upsert_from_dataframe(df, namespace="beta", show_progress=False)
-                assert df_resp.upserted_count == 5
-            except ImportError:
-                print("  pandas not installed — skipping upsert_from_dataframe")
 
             # ----- vector freshness -----
             wait_for_vector_count(idx, "alpha", expected=10)
@@ -199,28 +179,6 @@ def test_serverless_dense_smoke(client: Pinecone) -> None:
 
             # ----- delete (by ids) -----
             idx.delete(ids=["v0", "v1"], namespace="alpha")
-
-            # ----- imports sub-block (skip if no env URI) -----
-            import_uri = os.getenv("PINECONE_IMPORT_S3_URI")
-            integration_id = os.getenv("PINECONE_IMPORT_INTEGRATION_ID")
-            if import_uri:
-                start_resp = idx.start_import(
-                    uri=import_uri,
-                    integration_id=integration_id,
-                )
-                import_id = start_resp.id
-                desc = idx.describe_import(import_id)
-                assert desc.id == import_id
-
-                imports_iter = list(idx.list_imports(limit=5))
-                assert any(imp.id == import_id for imp in imports_iter)
-
-                page = idx.list_imports_paginated(limit=5)
-                assert page.data is not None or hasattr(page, "imports")
-
-                idx.cancel_import(import_id)
-            else:
-                print("  PINECONE_IMPORT_S3_URI not set — skipping imports sub-block")
 
             # ----- with-statement context manager on Index -----
         finally:

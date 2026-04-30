@@ -7,7 +7,7 @@ synchronous counterparts.
 
 Punchlist coverage (gRPC):
 
-- upsert / upsert_async / upsert_from_dataframe
+- upsert / upsert_async
 - query / query_async
 - fetch / fetch_async
 - delete / delete_async
@@ -19,6 +19,8 @@ Punchlist coverage (gRPC):
 
 GrpcIndex has no namespace ops, no fetch_by_metadata, no query_namespaces,
 no imports. Those checkboxes only get ticked by the sync/async variants.
+upsert_from_dataframe is tested in test_upsert_from_dataframe_grpc.py
+(pandas-gated).
 ``upsert_records``, ``search``, and ``search_records`` require an integrated
 index — covered by the Priority-4 gRPC test.
 """
@@ -74,28 +76,8 @@ def test_serverless_dense_grpc_smoke(client: Pinecone) -> None:
             up_async_resp = up_future.result(timeout=10.0)
             assert up_async_resp.upserted_count == 5
 
-            # ----- upsert_from_dataframe (skip if pandas missing) -----
-            try:
-                import pandas as pd  # type: ignore[import-untyped]
-
-                df = pd.DataFrame(
-                    [
-                        {
-                            "id": f"d{i}",
-                            "values": [0.50 + 0.01 * i + j * 0.001 for j in range(DIM)],
-                        }
-                        for i in range(3)
-                    ]
-                )
-                df_resp = idx.upsert_from_dataframe(df, namespace="alpha", show_progress=False)
-                assert df_resp.upserted_count == 3
-                expected_count = 13
-            except ImportError:
-                print("  pandas not installed — skipping upsert_from_dataframe (gRPC)")
-                expected_count = 10
-
             # ----- vector freshness -----
-            wait_for_vector_count(idx, "alpha", expected=expected_count, timeout=60)
+            wait_for_vector_count(idx, "alpha", expected=10, timeout=60)
 
             # ----- query (sync) -----
             q_resp = idx.query(

@@ -1,15 +1,17 @@
-"""Priority-3 smoke test — async serverless dense + namespaces + imports.
+"""Priority-3 smoke test — async serverless dense + namespaces.
 
 Mirror of ``test_serverless_dense_sync.py`` against ``AsyncPinecone`` and
 ``AsyncIndex``.
 
 Punchlist coverage (async): full AsyncIndexes namespace + AsyncIndex data plane
 + AsyncPinecone top-level surface.
+
+Note: upsert_from_dataframe is tested in test_upsert_from_dataframe_async.py
+(pandas-gated). Imports lifecycle is tested in test_imports_async.py
+(PINECONE_IMPORT_S3_URI-gated).
 """
 
 from __future__ import annotations
-
-import os
 
 import pytest
 
@@ -86,7 +88,7 @@ async def test_serverless_dense_smoke_async(api_key: str) -> None:
             up_resp = await idx.upsert(vectors=mixed, namespace="alpha")
             assert up_resp.upserted_count == 10
 
-            # ----- upsert: populate beta namespace (plain upsert, no pandas) -----
+            # ----- upsert: populate beta namespace (plain upsert) -----
             beta_records = [
                 {
                     "id": f"b{i}",
@@ -96,25 +98,6 @@ async def test_serverless_dense_smoke_async(api_key: str) -> None:
             ]
             beta_resp = await idx.upsert(vectors=beta_records, namespace="beta")
             assert beta_resp.upserted_count == 5
-
-            try:
-                import pandas as pd  # type: ignore[import-untyped]
-
-                df = pd.DataFrame(
-                    [
-                        {
-                            "id": f"d{i}",
-                            "values": [0.30 + i * 0.01 + j * 0.001 for j in range(DIM)],
-                        }
-                        for i in range(5)
-                    ]
-                )
-                df_resp = await idx.upsert_from_dataframe(
-                    df, namespace="beta", show_progress=False
-                )
-                assert df_resp.upserted_count == 5
-            except ImportError:
-                print("  pandas not installed — skipping upsert_from_dataframe")
 
             await async_wait_for_vector_count(idx, "alpha", expected=10)
 
@@ -178,25 +161,6 @@ async def test_serverless_dense_smoke_async(api_key: str) -> None:
             await idx.delete_namespace(name=ns_name)
 
             await idx.delete(ids=["v0", "v1"], namespace="alpha")
-
-            import_uri = os.getenv("PINECONE_IMPORT_S3_URI")
-            integration_id = os.getenv("PINECONE_IMPORT_INTEGRATION_ID")
-            if import_uri:
-                start_resp = await idx.start_import(
-                    uri=import_uri,
-                    integration_id=integration_id,
-                )
-                import_id = start_resp.id
-                desc = await idx.describe_import(import_id)
-                assert desc.id == import_id
-                imports_collected: list[object] = []
-                async for imp in idx.list_imports(limit=5):
-                    imports_collected.append(imp)
-                page = await idx.list_imports_paginated(limit=5)
-                _ = page  # touch
-                await idx.cancel_import(import_id)
-            else:
-                print("  PINECONE_IMPORT_S3_URI not set — skipping imports sub-block")
         finally:
             await idx.close()
 
