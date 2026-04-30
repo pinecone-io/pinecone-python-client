@@ -52,6 +52,38 @@ _FTS_LANGUAGES_LONG_TO_SHORT: dict[str, str] = {
 }
 
 
+_FIELD_NAME_MAX_BYTES = 64
+_DESCRIPTION_MAX_BYTES = 256
+
+
+def _validate_field_name(name: str) -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    if not name:
+        raise PineconeValueError("Field name must be a non-empty string")
+    if name.startswith("$") or name.startswith("_"):
+        raise PineconeValueError(
+            f"Field name '{name}' is invalid: names cannot begin with '$' or '_'"
+        )
+    byte_len = len(name.encode("utf-8"))
+    if byte_len > _FIELD_NAME_MAX_BYTES:
+        raise PineconeValueError(
+            f"Field name '{name}' is too long: {byte_len} bytes (max {_FIELD_NAME_MAX_BYTES})"
+        )
+
+
+def _validate_description(description: str | None) -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    if description is None:
+        return
+    byte_len = len(description.encode("utf-8"))
+    if byte_len > _DESCRIPTION_MAX_BYTES:
+        raise PineconeValueError(
+            f"Description is too long: {byte_len} bytes (max {_DESCRIPTION_MAX_BYTES})"
+        )
+
+
 def _normalize_fts_language(language: str) -> str:
     """Return the canonical short-code form of a language input.
 
@@ -138,6 +170,8 @@ class PreviewSchemaBuilder:
         Returns:
             ``self`` for method chaining.
         """
+        _validate_field_name(name)
+        _validate_description(description)
         field: dict[str, Any] = {
             "type": "dense_vector",
             "dimension": dimension,
@@ -178,6 +212,8 @@ class PreviewSchemaBuilder:
         Returns:
             ``self`` for method chaining.
         """
+        _validate_field_name(name)
+        _validate_description(description)
         field: dict[str, Any] = {
             "type": "sparse_vector",
             "metric": "dotproduct",
@@ -275,6 +311,8 @@ class PreviewSchemaBuilder:
         """
         from pinecone.errors.exceptions import PineconeValueError
 
+        _validate_field_name(name)
+        _validate_description(description)
         # Determine whether FTS is enabled by ANY of the inputs.
         fts_kwargs_provided = language is not None or stemming is not None or stop_words is not None
         fts_enabled = (
@@ -352,6 +390,8 @@ class PreviewSchemaBuilder:
 
                 builder.add_string_list_field("tags", filterable=True)
         """
+        _validate_field_name(name)
+        _validate_description(description)
         field: dict[str, Any] = {"type": "string_list"}
         if filterable:
             field["filterable"] = filterable
@@ -397,6 +437,8 @@ class PreviewSchemaBuilder:
 
                 builder.add_boolean_field("is_published", filterable=True)
         """
+        _validate_field_name(name)
+        _validate_description(description)
         field: dict[str, Any] = {"type": "boolean"}
         if filterable:
             field["filterable"] = filterable
@@ -439,6 +481,8 @@ class PreviewSchemaBuilder:
         Returns:
             ``self`` for method chaining.
         """
+        _validate_field_name(name)
+        _validate_description(description)
         field: dict[str, Any] = {"type": "float"}
         if filterable:
             field["filterable"] = filterable
@@ -473,6 +517,7 @@ class PreviewSchemaBuilder:
         Returns:
             ``self`` for method chaining.
         """
+        _validate_field_name(name)
         self._fields[name] = field_definition
         return self
 

@@ -460,6 +460,87 @@ def test_boolean_field_additional_options_merged() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Field-name and description validation
+# ---------------------------------------------------------------------------
+
+
+def test_field_name_empty_raises() -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    with pytest.raises(PineconeValueError, match="non-empty"):
+        SchemaBuilder().add_string_field("")
+
+
+def test_field_name_starts_with_dollar_raises() -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    with pytest.raises(PineconeValueError, match=r"\$.*_"):
+        SchemaBuilder().add_string_field("$illegal")
+
+
+def test_field_name_starts_with_underscore_raises() -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    with pytest.raises(PineconeValueError, match=r"\$.*_"):
+        SchemaBuilder().add_string_field("_illegal")
+
+
+def test_field_name_over_64_bytes_raises() -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    long_name = "a" * 65
+    with pytest.raises(PineconeValueError, match="too long"):
+        SchemaBuilder().add_string_field(long_name)
+
+
+def test_field_name_64_bytes_ok() -> None:
+    schema = SchemaBuilder().add_string_field("a" * 64).build()
+    assert "a" * 64 in schema["fields"]
+
+
+def test_field_name_multibyte_counts_bytes_not_chars() -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    multibyte_name = "é" * 33  # "é" is 2 bytes in UTF-8 -> 66 bytes total
+    with pytest.raises(PineconeValueError, match="too long"):
+        SchemaBuilder().add_string_field(multibyte_name)
+
+
+def test_description_over_256_bytes_raises() -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    with pytest.raises(PineconeValueError, match="too long"):
+        SchemaBuilder().add_string_field("title", description="x" * 257)
+
+
+def test_description_256_bytes_ok() -> None:
+    schema = SchemaBuilder().add_string_field("title", description="x" * 256).build()
+    assert schema["fields"]["title"]["description"] == "x" * 256
+
+
+def test_description_none_ok() -> None:
+    schema = SchemaBuilder().add_string_field("title").build()
+    assert "description" not in schema["fields"]["title"]
+
+
+def test_validation_applies_to_every_add_method() -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    builders = [
+        lambda: SchemaBuilder().add_dense_vector_field("$bad", dimension=4, metric="cosine"),
+        lambda: SchemaBuilder().add_sparse_vector_field("$bad"),
+        lambda: SchemaBuilder().add_string_field("$bad"),
+        lambda: SchemaBuilder().add_string_list_field("$bad"),
+        lambda: SchemaBuilder().add_boolean_field("$bad"),
+        lambda: SchemaBuilder().add_float_field("$bad"),
+        lambda: SchemaBuilder().add_custom_field("$bad", {"type": "x"}),
+    ]
+    for build in builders:
+        with pytest.raises(PineconeValueError):
+            build()
+
+
+# ---------------------------------------------------------------------------
 # Re-export from pinecone.preview
 # ---------------------------------------------------------------------------
 
