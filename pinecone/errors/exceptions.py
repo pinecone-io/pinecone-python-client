@@ -237,6 +237,14 @@ class PineconeValueError(PineconeError, ValueError):
         self.path = path
         super().__init__(message)
 
+    def __str__(self) -> str:
+        try:
+            if isinstance(self.path, str) and self.path:
+                return f"at {self.path}: {self.message}"
+            return self.message
+        except Exception:
+            return self.message if isinstance(self.message, str) else super().__str__()
+
 
 class PineconeTypeError(PineconeError, TypeError):
     """Input validation failed — wrong type."""
@@ -244,6 +252,14 @@ class PineconeTypeError(PineconeError, TypeError):
     def __init__(self, message: str, path: str | None = None) -> None:
         self.path = path
         super().__init__(message)
+
+    def __str__(self) -> str:
+        try:
+            if isinstance(self.path, str) and self.path:
+                return f"at {self.path}: {self.message}"
+            return self.message
+        except Exception:
+            return self.message if isinstance(self.message, str) else super().__str__()
 
 
 class ResponseParsingError(PineconeError):

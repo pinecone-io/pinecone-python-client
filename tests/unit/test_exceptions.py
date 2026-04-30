@@ -7,6 +7,8 @@ from pinecone.errors.exceptions import (
     ConflictError,
     ForbiddenError,
     NotFoundError,
+    PineconeTypeError,
+    PineconeValueError,
     ServiceError,
     UnauthorizedError,
 )
@@ -241,3 +243,59 @@ class TestSubclassRepr:
         assert service.reason == "test"
         assert service.headers == headers
         assert service.status_code == 500
+
+
+class TestValidationErrorPath:
+    def test_value_error_with_path(self) -> None:
+        err = PineconeValueError("score must be a number, got str", path="records[3].metadata.score")
+        assert str(err) == "at records[3].metadata.score: score must be a number, got str"
+
+    def test_value_error_without_path(self) -> None:
+        err = PineconeValueError("invalid input")
+        assert str(err) == "invalid input"
+
+    def test_value_error_with_none_path(self) -> None:
+        err = PineconeValueError("invalid", path=None)
+        assert str(err) == "invalid"
+
+    def test_value_error_with_empty_path(self) -> None:
+        err = PineconeValueError("invalid", path="")
+        assert str(err) == "invalid"
+
+    def test_type_error_with_path(self) -> None:
+        err = PineconeTypeError("expected int, got str", path="records[0].values")
+        assert str(err) == "at records[0].values: expected int, got str"
+
+    def test_type_error_without_path(self) -> None:
+        err = PineconeTypeError("expected int, got str")
+        assert str(err) == "expected int, got str"
+
+    def test_str_does_not_raise_on_weird_path(self) -> None:
+        err = PineconeValueError("msg", path="some.path")
+        err.path = 123  # type: ignore[assignment]
+        result = str(err)
+        assert isinstance(result, str)
+
+    def test_caught_as_value_error(self) -> None:
+        caught = False
+        try:
+            raise PineconeValueError("x", path="y")
+        except ValueError:
+            caught = True
+        assert caught
+
+    def test_caught_as_type_error(self) -> None:
+        caught = False
+        try:
+            raise PineconeTypeError("x", path="y")
+        except TypeError:
+            caught = True
+        assert caught
+
+    def test_path_attribute_accessible(self) -> None:
+        err = PineconeValueError("msg", path="a.b.c")
+        assert err.path == "a.b.c"
+
+    def test_path_default_none(self) -> None:
+        err = PineconeValueError("x")
+        assert err.path is None
