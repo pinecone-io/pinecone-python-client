@@ -13,8 +13,8 @@ Optionally pass ``--dry-run`` to print what would be deleted without
 actually deleting it.
 
 The script reads ``PINECONE_API_KEY`` from the environment / ``.env``.
-It does NOT delete any backups (those are out of scope for smoke testing,
-so smoke tests never create them).
+It does NOT delete any backups — backup smoke tests always clean up their
+own backups in-test, so backups are never leaked to this script.
 """
 
 from __future__ import annotations
@@ -43,9 +43,7 @@ def cleanup(*, dry_run: bool = False) -> int:
     #      sourced a collection cannot be deleted while the collection is
     #      still pending) ----
     try:
-        collection_names = sorted(
-            n for n in pc.collections.list().names() if n.startswith(PREFIX)
-        )
+        collection_names = sorted(n for n in pc.collections.list().names() if n.startswith(PREFIX))
     except Exception as exc:
         print(f"ERROR listing collections: {exc}")
         collection_names = []
@@ -68,9 +66,7 @@ def cleanup(*, dry_run: bool = False) -> int:
 
         deadline = time.monotonic() + 300
         while time.monotonic() < deadline:
-            remaining = [
-                n for n in pc.collections.list().names() if n.startswith(PREFIX)
-            ]
+            remaining = [n for n in pc.collections.list().names() if n.startswith(PREFIX)]
             if not remaining:
                 break
             print(f"  waiting for {len(remaining)} collection(s) to fully delete...")
@@ -78,9 +74,7 @@ def cleanup(*, dry_run: bool = False) -> int:
 
     # ---- Indexes ----
     try:
-        index_names = sorted(
-            i.name for i in pc.indexes.list().indexes if i.name.startswith(PREFIX)
-        )
+        index_names = sorted(i.name for i in pc.indexes.list().indexes if i.name.startswith(PREFIX))
     except Exception as exc:
         print(f"ERROR listing indexes: {exc}")
         index_names = []
@@ -100,9 +94,7 @@ def cleanup(*, dry_run: bool = False) -> int:
     # ---- Assistants ----
     try:
         assistant_names = sorted(
-            a.name
-            for a in pc.assistants.list().to_list()
-            if a.name.startswith(PREFIX)
+            a.name for a in pc.assistants.list().to_list() if a.name.startswith(PREFIX)
         )
     except Exception as exc:
         print(f"ERROR listing assistants: {exc}")
