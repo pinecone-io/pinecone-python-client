@@ -47,6 +47,45 @@ class TestSubclassStr:
         err = NotFoundError()
         assert err.message == "Resource not found"
 
+    def test_subclass_accepts_error_code_and_request_id(self) -> None:
+        for cls, default_status in [
+            (NotFoundError, 404),
+            (ConflictError, 409),
+            (UnauthorizedError, 401),
+            (ForbiddenError, 403),
+            (ServiceError, 500),
+        ]:
+            err = cls(error_code="X", request_id="Y")  # type: ignore[call-arg]
+            assert err.error_code == "X"
+            assert err.request_id == "Y"
+            assert err.status_code == default_status
+            assert "X" in str(err)
+            assert "Y" in str(err)
+
+
+class TestApiErrorStrWithMetadata:
+    def test_str_with_error_code(self) -> None:
+        err = ApiError("msg", status_code=400, error_code="INVALID_ARGUMENT")
+        assert str(err) == "[400 INVALID_ARGUMENT] msg"
+
+    def test_str_with_request_id(self) -> None:
+        err = ApiError("msg", status_code=500, request_id="abc-123")
+        assert str(err) == "[500] msg (request_id: abc-123)"
+
+    def test_str_with_both(self) -> None:
+        err = ApiError("msg", status_code=400, error_code="INVALID_ARGUMENT", request_id="abc-123")
+        assert str(err) == "[400 INVALID_ARGUMENT] msg (request_id: abc-123)"
+
+    def test_str_empty_error_code_treated_as_absent(self) -> None:
+        err = ApiError("msg", status_code=400, error_code="", request_id="")
+        assert str(err) == "[400] msg"
+
+    def test_str_does_not_raise_on_weird_attributes(self) -> None:
+        err = ApiError("msg", status_code=400)
+        err.error_code = 123  # type: ignore[assignment]
+        result = str(err)
+        assert isinstance(result, str)
+
 
 class TestApiErrorRepr:
     def test_basic_repr(self) -> None:
@@ -95,6 +134,39 @@ class TestApiErrorRepr:
         result = repr(err)
         assert "headers" not in result
         assert "abc123" not in result
+
+
+class TestApiErrorReprWithMetadata:
+    def test_repr_includes_error_code(self) -> None:
+        err = ApiError("msg", status_code=400, error_code="INVALID_ARGUMENT")
+        result = repr(err)
+        assert "error_code='INVALID_ARGUMENT'" in result
+
+    def test_repr_includes_request_id(self) -> None:
+        err = ApiError("msg", status_code=400, request_id="abc-123")
+        result = repr(err)
+        assert "request_id='abc-123'" in result
+
+    def test_repr_omits_error_code_when_none(self) -> None:
+        err = ApiError("msg", status_code=400)
+        result = repr(err)
+        assert "error_code" not in result
+
+    def test_repr_omits_request_id_when_none(self) -> None:
+        err = ApiError("msg", status_code=400)
+        result = repr(err)
+        assert "request_id" not in result
+
+    def test_repr_does_not_raise_on_weird_body(self) -> None:
+        class BadRepr:
+            def __repr__(self) -> str:
+                raise RuntimeError("repr failed")
+
+        err = ApiError("msg", status_code=400)
+        err.body = BadRepr()  # type: ignore[assignment]
+        result = repr(err)
+        assert isinstance(result, str)
+        assert "unrenderable" in result
 
 
 class TestSubclassRepr:

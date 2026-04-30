@@ -27,26 +27,53 @@ class ApiError(PineconeError):
         *,
         reason: str | None = None,
         headers: dict[str, str] | None = None,
+        error_code: str | None = None,
+        request_id: str | None = None,
     ) -> None:
         self.status_code = status_code
         self.body = body
         self.reason = reason
         self.headers = headers
+        self.error_code = error_code
+        self.request_id = request_id
         super().__init__(message)
 
     def __str__(self) -> str:
-        return f"[{self.status_code}] {self.message}"
+        try:
+            prefix = f"{self.status_code}"
+            if self.error_code:
+                prefix = f"{prefix} {self.error_code}"
+            base = f"[{prefix}] {self.message}"
+            if self.request_id:
+                base = f"{base} (request_id: {self.request_id})"
+            return base
+        except Exception:
+            # Never let __str__ raise — that would mask the original error.
+            try:
+                return f"[{self.status_code}] {self.message}"
+            except Exception:
+                return "<ApiError: unrenderable>"
 
     def __repr__(self) -> str:
-        msg = self.message
-        if len(msg) > 100:
-            msg = msg[:97] + "..."
+        try:
+            msg = self.message
+            if len(msg) > 100:
+                msg = msg[:97] + "..."
+        except Exception:
+            msg = "<unrenderable>"
         parts = [
             f"status_code={self.status_code}",
             f"message={msg!r}",
         ]
+        if self.error_code is not None:
+            parts.append(f"error_code={self.error_code!r}")
+        if self.request_id is not None:
+            parts.append(f"request_id={self.request_id!r}")
         if self.body is not None:
-            parts.append(f"body={self.body!r}")
+            try:
+                parts.append(f"body={self.body!r}")
+            except Exception:
+                parts.append("body=<unrenderable>")
         return f"{type(self).__name__}({', '.join(parts)})"
 
 
@@ -61,9 +88,17 @@ class NotFoundError(ApiError):
         *,
         reason: str | None = None,
         headers: dict[str, str] | None = None,
+        error_code: str | None = None,
+        request_id: str | None = None,
     ) -> None:
         super().__init__(
-            message=message, status_code=status_code, body=body, reason=reason, headers=headers
+            message=message,
+            status_code=status_code,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
         )
 
 
@@ -78,9 +113,17 @@ class ConflictError(ApiError):
         *,
         reason: str | None = None,
         headers: dict[str, str] | None = None,
+        error_code: str | None = None,
+        request_id: str | None = None,
     ) -> None:
         super().__init__(
-            message=message, status_code=status_code, body=body, reason=reason, headers=headers
+            message=message,
+            status_code=status_code,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
         )
 
 
@@ -95,9 +138,17 @@ class UnauthorizedError(ApiError):
         *,
         reason: str | None = None,
         headers: dict[str, str] | None = None,
+        error_code: str | None = None,
+        request_id: str | None = None,
     ) -> None:
         super().__init__(
-            message=message, status_code=status_code, body=body, reason=reason, headers=headers
+            message=message,
+            status_code=status_code,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
         )
 
 
@@ -112,9 +163,17 @@ class ForbiddenError(ApiError):
         *,
         reason: str | None = None,
         headers: dict[str, str] | None = None,
+        error_code: str | None = None,
+        request_id: str | None = None,
     ) -> None:
         super().__init__(
-            message=message, status_code=status_code, body=body, reason=reason, headers=headers
+            message=message,
+            status_code=status_code,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
         )
 
 
@@ -129,9 +188,17 @@ class ServiceError(ApiError):
         *,
         reason: str | None = None,
         headers: dict[str, str] | None = None,
+        error_code: str | None = None,
+        request_id: str | None = None,
     ) -> None:
         super().__init__(
-            message=message, status_code=status_code, body=body, reason=reason, headers=headers
+            message=message,
+            status_code=status_code,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
         )
 
 
