@@ -252,56 +252,124 @@ def _release_response_refs(response: httpx.Response) -> None:
         object.__setattr__(stream, "_response", None)
 
 
+_TEXT_BODY_MAX_LEN = 500
+
+
+def _extract_message_and_error_code(body: Any, response: httpx.Response) -> tuple[str, str | None]:
+    try:
+        if isinstance(body, dict):
+            error_obj = body.get("error")
+            if isinstance(error_obj, dict):
+                msg = error_obj.get("message")
+                code = error_obj.get("code")
+                if isinstance(msg, str) and msg:
+                    return msg, (code if isinstance(code, str) else None)
+            for key in ("message", "detail", "description"):
+                val = body.get(key)
+                if isinstance(val, str) and val:
+                    return val, None
+
+        raw = response.text.strip()
+        if raw:
+            if len(raw) > _TEXT_BODY_MAX_LEN:
+                raw = raw[:_TEXT_BODY_MAX_LEN] + "... (truncated)"
+            return raw, None
+
+        reason = response.reason_phrase
+        if reason:
+            return reason, None
+
+        return "", None
+    except Exception:
+        return "", None
+
+
+def _extract_request_id(headers: httpx.Headers | dict[str, str]) -> str | None:
+    try:
+        for name in ("x-pinecone-request-id", "x-request-id"):
+            val = headers.get(name)
+            if isinstance(val, str) and val:
+                return val
+        return None
+    except Exception:
+        return None
+
+
 def _raise_for_status(response: httpx.Response) -> None:
     if response.is_success:
         return
 
-    body: dict[str, Any] | None = None
+    body: Any = None
     try:
         body = response.json()
     except Exception:
         body = None
 
-    message = ""
-    if body:
-        for key in ("message", "error", "detail", "description"):
-            if isinstance(body.get(key), str):
-                message = body[key]
-                break
-        if not message:
-            message = f"Request failed with status {response.status_code}: {body}"
-    else:
-        raw = response.text.strip()
-        message = (
-            f"Request failed with status {response.status_code}: {raw}"
-            if raw
-            else f"Request failed with status {response.status_code}"
-        )
+    message, error_code = _extract_message_and_error_code(body, response)
+    request_id = _extract_request_id(response.headers)
 
     status = response.status_code
     reason = response.reason_phrase
     headers = dict(response.headers)
     if status == 401:
         raise UnauthorizedError(
-            message=message, status_code=status, body=body, reason=reason, headers=headers
+            message=message,
+            status_code=status,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
         )
     if status == 403:
         raise ForbiddenError(
-            message=message, status_code=status, body=body, reason=reason, headers=headers
+            message=message,
+            status_code=status,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
         )
     if status == 404:
         raise NotFoundError(
-            message=message, status_code=status, body=body, reason=reason, headers=headers
+            message=message,
+            status_code=status,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
         )
     if status == 409:
         raise ConflictError(
-            message=message, status_code=status, body=body, reason=reason, headers=headers
+            message=message,
+            status_code=status,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
         )
     if 500 <= status <= 599:
         raise ServiceError(
-            message=message, status_code=status, body=body, reason=reason, headers=headers
+            message=message,
+            status_code=status,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
         )
-    raise ApiError(message=message, status_code=status, body=body, reason=reason, headers=headers)
+    raise ApiError(
+        message=message,
+        status_code=status,
+        body=body,
+        reason=reason,
+        headers=headers,
+        error_code=error_code,
+        request_id=request_id,
+    )
 
 
 class HTTPClient:
@@ -367,9 +435,7 @@ class HTTPClient:
         host_netloc = urlsplit(config.host or DEFAULT_BASE_URL).netloc
         if host_netloc:
             post_headers_with_host["Host"] = host_netloc
-        self._post_default_headers_obj: httpx.Headers = httpx.Headers(
-            post_headers_with_host
-        )
+        self._post_default_headers_obj: httpx.Headers = httpx.Headers(post_headers_with_host)
         # Cache of parsed httpx.URL by path. ~17 µs/call savings on hit
         # since URL parsing dominates Request construction. Capped to
         # prevent unbounded growth in long-lived clients with many
@@ -404,9 +470,7 @@ class HTTPClient:
         # When uncommon kwargs (params, files, content, headers) are passed,
         # fall back to build_request so its full machinery handles them.
         if kwargs.keys() <= {"json"}:
-            content_bytes: bytes | None = (
-                _encode_json(kwargs["json"]) if "json" in kwargs else None
-            )
+            content_bytes: bytes | None = _encode_json(kwargs["json"]) if "json" in kwargs else None
             if os.environ.get("PINECONE_DEBUG_CURL"):
                 _log_curl(
                     "POST",
@@ -466,9 +530,7 @@ class HTTPClient:
         _log_curl("POST", self._build_url(path), merged_headers, body=body)
         effective_timeout = timeout if timeout is not None else self._config.timeout
         try:
-            request = self._client.build_request(
-                "POST", path, timeout=effective_timeout, **kwargs
-            )
+            request = self._client.build_request("POST", path, timeout=effective_timeout, **kwargs)
             response = self._client._transport.handle_request(request)
             response.request = request
             try:

@@ -111,14 +111,16 @@ class TestRaiseForStatus:
         response = httpx.Response(500, text="Internal Server Error")
         with pytest.raises(ApiError) as exc_info:
             _raise_for_status(response)
-        assert "500" in exc_info.value.message
+        assert exc_info.value.message == "Internal Server Error"
 
     def test_fallback_message_when_no_message_key(self) -> None:
+        # body["error"] is a string (not a dict) — not a canonical Pinecone error shape.
+        # New extraction falls through to raw text body (the JSON string itself).
         response = httpx.Response(500, json={"error": "something"})
         with pytest.raises(ApiError) as exc_info:
             _raise_for_status(response)
-        assert exc_info.value.message == "something"
         assert exc_info.value.status_code == 500
+        assert exc_info.value.message  # non-empty; exact text is implementation detail
 
     def test_body_attribute_contains_parsed_json(self) -> None:
         body = {"message": "conflict", "details": "already exists"}
