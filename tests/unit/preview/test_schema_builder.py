@@ -56,9 +56,9 @@ def test_sparse_vector_field_defaults() -> None:
     assert "description" not in field
 
 
-def test_sparse_vector_field_custom_metric() -> None:
-    schema = SchemaBuilder().add_sparse_vector_field("sparse", metric="custom").build()
-    assert schema["fields"]["sparse"]["metric"] == "custom"
+def test_sparse_vector_field_metric_always_dotproduct() -> None:
+    schema = SchemaBuilder().add_sparse_vector_field("sparse").build()
+    assert schema["fields"]["sparse"]["metric"] == "dotproduct"
 
 
 def test_sparse_vector_field_with_description() -> None:

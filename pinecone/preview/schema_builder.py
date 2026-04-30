@@ -89,7 +89,6 @@ class PreviewSchemaBuilder:
         self,
         name: str,
         *,
-        metric: str = "dotproduct",
         description: str | None = None,
         **additional_options: Any,
     ) -> PreviewSchemaBuilder:
@@ -103,9 +102,11 @@ class PreviewSchemaBuilder:
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
 
+        The wire type is ``"sparse_vector"``. The metric is fixed at
+        ``"dotproduct"`` server-side and is not user-configurable.
+
         Args:
             name: Field name. Replaces any existing field with the same name.
-            metric: Distance metric. Defaults to ``"dotproduct"``.
             description: Optional human-readable description.
             **additional_options: Extra parameters merged into the field dict
                 last, for forward compatibility with new API features.
@@ -115,7 +116,7 @@ class PreviewSchemaBuilder:
         """
         field: dict[str, Any] = {
             "type": "sparse_vector",
-            "metric": metric,
+            "metric": "dotproduct",
         }
         if description is not None:
             field["description"] = description

@@ -2486,7 +2486,7 @@ async def test_async_describe_returns_sparse_vector_field_typed_instance(
     """
     from pinecone.preview.models import PreviewSparseVectorField
 
-    schema = SchemaBuilder().add_sparse_vector_field("data", metric="dotproduct").build()
+    schema = SchemaBuilder().add_sparse_vector_field("data").build()
 
     async_cleanup_preview_indexes.append(preview_index_name)
     await async_client.preview.indexes.create(name=preview_index_name, schema=schema)
