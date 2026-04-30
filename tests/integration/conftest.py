@@ -213,12 +213,18 @@ def client(api_key: str) -> Pinecone:
     return Pinecone(api_key=api_key)
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function", loop_scope="function")
 async def async_client(api_key: str) -> AsyncGenerator[AsyncPinecone, None]:
     """Function-scoped async Pinecone client (REST).
 
-    Function scope avoids event-loop-closed errors when HTTP/2 connections
-    are open at session teardown.
+    Uses an explicit ``await pc.close()`` in ``finally`` rather than
+    ``async with`` because pytest-asyncio's fixture-finalization phase
+    can run the ``async with`` exit handler after the event loop has
+    been closed, producing ``"Event loop is closed"`` errors when
+    HTTP/2 sockets are still open. See IT-0025 for context.
     """
-    async with AsyncPinecone(api_key=api_key) as pc:
+    pc = AsyncPinecone(api_key=api_key)
+    try:
         yield pc
+    finally:
+        await pc.close()
