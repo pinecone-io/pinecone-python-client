@@ -273,6 +273,19 @@ class ResponseParsingError(PineconeError):
         self.cause = cause
         super().__init__(message)
 
+    def __str__(self) -> str:
+        try:
+            if self.cause is None:
+                return self.message
+            cause_name = type(self.cause).__name__
+            try:
+                cause_str = str(self.cause)
+            except Exception:
+                cause_str = "<unrenderable>"
+            return f"{self.message} (caused by {cause_name}: {cause_str})"
+        except Exception:
+            return self.message if isinstance(self.message, str) else super().__str__()
+
 
 # Backwards-compatible alias — most validation is value validation
 ValidationError = PineconeValueError  # Deprecated: use PineconeValueError instead

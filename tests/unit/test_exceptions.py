@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import pytest
+
 from pinecone.errors.exceptions import (
     ApiError,
     ConflictError,
     ForbiddenError,
     NotFoundError,
+    PineconeError,
     PineconeTypeError,
     PineconeValueError,
+    ResponseParsingError,
     ServiceError,
     UnauthorizedError,
 )
@@ -299,3 +303,62 @@ class TestValidationErrorPath:
     def test_path_default_none(self) -> None:
         err = PineconeValueError("x")
         assert err.path is None
+
+
+class TestResponseParsingErrorStr:
+    def test_str_without_cause(self) -> None:
+        err = ResponseParsingError("Failed to parse")
+        assert str(err) == "Failed to parse"
+
+    def test_str_with_cause(self) -> None:
+        err = ResponseParsingError(
+            "Failed to parse describe response",
+            cause=ValueError("missing 'host' field"),
+        )
+        assert str(err) == "Failed to parse describe response (caused by ValueError: missing 'host' field)"
+
+    def test_str_with_msgspec_validation_error(self) -> None:
+        msgspec = pytest.importorskip("msgspec")
+
+        class _Stub(msgspec.Struct):
+            host: str
+
+        try:
+            msgspec.json.decode(b'{"foo": "bar"}', type=_Stub)
+        except msgspec.ValidationError as e:
+            cause = e
+        else:
+            pytest.skip("msgspec did not raise ValidationError as expected")
+
+        err = ResponseParsingError("Failed to parse describe_index response", cause=cause)
+        result = str(err)
+        assert "Failed to parse describe_index response" in result
+        assert "ValidationError" in result
+
+    def test_cause_attribute_accessible(self) -> None:
+        original = ValueError("original cause")
+        err = ResponseParsingError("parse failed", cause=original)
+        assert err.cause is original
+
+    def test_str_does_not_raise_on_weird_cause(self) -> None:
+        class BadStrError(Exception):
+            def __str__(self) -> str:
+                raise RuntimeError("nope")
+
+        err = ResponseParsingError("parse failed", cause=BadStrError())
+        result = str(err)
+        assert result  # does not raise
+        assert "<unrenderable>" in result
+
+    def test_str_does_not_raise_on_none_cause(self) -> None:
+        err = ResponseParsingError("parse failed", cause=None)
+        result = str(err)
+        assert result == "parse failed"
+
+    def test_caught_as_pineconeerror(self) -> None:
+        caught = False
+        try:
+            raise ResponseParsingError("x")
+        except PineconeError:
+            caught = True
+        assert caught
