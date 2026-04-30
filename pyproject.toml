@@ -65,6 +65,9 @@ required-imports = ["from __future__ import annotations"]
 [tool.pytest.ini_options]
 anyio_mode = "auto"
 timeout = 5
+markers = [
+    "smoke: end-to-end smoke tests that hit a real Pinecone backend (see tests/smoke/README.md)",
+]
 
 [dependency-groups]
 dev = [
