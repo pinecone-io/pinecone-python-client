@@ -95,6 +95,7 @@ class GrpcChannelProtocol(Protocol):
         self,
         *,
         filter: dict[str, Any] | None = None,
+        timeout_s: float | None = None,
     ) -> dict[str, Any]:
         """Describe index statistics."""
         ...

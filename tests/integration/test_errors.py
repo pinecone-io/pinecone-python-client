@@ -406,7 +406,7 @@ def test_fetch_empty_ids_list_raises_value_error() -> None:
 def test_query_input_validation_grpc() -> None:
     """query() client-side validation raises PineconeValueError before any gRPC call.
 
-    All validations fire before self._call_channel() so no real server is needed.
+    All validations fire before the gRPC channel call, so no real server is needed.
 
     Verifies:
     - unified-vec-0038: top_k < 1 is rejected
@@ -636,7 +636,7 @@ def test_grpc_query_too_short_timeout_raises(client: Pinecone) -> None:
     1. The per-call timeout knob on GrpcIndex.query() is wired through to the
        Rust transport (timeout_s= parameter on GrpcChannelProtocol.query).
     2. When the deadline fires, the Rust channel raises an exception containing
-       DEADLINE_EXCEEDED, which _call_channel maps to PineconeTimeoutError.
+       DEADLINE_EXCEEDED, which the Rust transport maps to PineconeTimeoutError.
     3. A subsequent query with a generous timeout succeeds — confirming the
        timeout is per-call and does not permanently break the channel.
     """

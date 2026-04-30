@@ -246,6 +246,42 @@ fn pinecone_value_error(py: Python<'_>, msg: &str) -> PyErr {
     }
 }
 
+/// Raise a `pinecone.errors.PineconeError` for internal SDK failures.
+///
+/// Falls back to `PyRuntimeError` if the Python exception class cannot be imported.
+fn pinecone_error(py: Python<'_>, msg: &str) -> PyErr {
+    let errors_mod = match py.import("pinecone.errors") {
+        Ok(m) => m,
+        Err(_) => return PyRuntimeError::new_err(msg.to_string()),
+    };
+    let cls = match errors_mod.getattr("PineconeError") {
+        Ok(c) => c,
+        Err(_) => return PyRuntimeError::new_err(msg.to_string()),
+    };
+    match cls.call1((msg,)) {
+        Ok(inst) => PyErr::from_value(inst.into_any()),
+        Err(_) => PyRuntimeError::new_err(msg.to_string()),
+    }
+}
+
+/// Raise a `pinecone.errors.ResponseParsingError` for upstream contract violations.
+///
+/// Falls back to `PyRuntimeError` if the Python exception class cannot be imported.
+fn response_parsing_error(py: Python<'_>, msg: &str) -> PyErr {
+    let errors_mod = match py.import("pinecone.errors") {
+        Ok(m) => m,
+        Err(_) => return PyRuntimeError::new_err(msg.to_string()),
+    };
+    let cls = match errors_mod.getattr("ResponseParsingError") {
+        Ok(c) => c,
+        Err(_) => return PyRuntimeError::new_err(msg.to_string()),
+    };
+    match cls.call1((msg,)) {
+        Ok(inst) => PyErr::from_value(inst.into_any()),
+        Err(_) => PyRuntimeError::new_err(msg.to_string()),
+    }
+}
+
 /// Convert a seconds-as-f64 value to a `Duration`, returning `PineconeValueError` if the
 /// value is negative, NaN, infinite, or otherwise out of range for `Duration`.
 fn secs_to_duration(py: Python<'_>, secs: f64, field: &str) -> PyResult<Duration> {
@@ -349,10 +385,13 @@ fn py_to_prost_value(obj: &Bound<'_, pyo3::PyAny>) -> PyResult<prost_types::Valu
         });
     }
 
-    Err(PyRuntimeError::new_err(format!(
-        "Unsupported metadata value type: {}",
-        obj.get_type().name()?
-    )))
+    let type_name = obj.get_type().name()?;
+    Python::with_gil(|py| {
+        Err(pinecone_value_error(
+            py,
+            &format!("Unsupported metadata value type: {type_name}"),
+        ))
+    })
 }
 
 /// Convert a Python dict to a `prost_types::Struct`.
@@ -375,13 +414,14 @@ fn sparse_values_to_py_dict(py: Python<'_>, sv: &proto::SparseValues) -> PyResul
 
 /// Extract sparse values from a Python dict.
 fn py_dict_to_sparse_values(dict: &Bound<'_, PyDict>) -> PyResult<proto::SparseValues> {
+    let py = dict.py();
     let indices: Vec<u32> = dict
         .get_item("indices")?
-        .ok_or_else(|| PyRuntimeError::new_err("sparse_values missing 'indices'"))?
+        .ok_or_else(|| response_parsing_error(py, "sparse_values missing 'indices'"))?
         .extract()?;
     let values: Vec<f32> = dict
         .get_item("values")?
-        .ok_or_else(|| PyRuntimeError::new_err("sparse_values missing 'values'"))?
+        .ok_or_else(|| response_parsing_error(py, "sparse_values missing 'values'"))?
         .extract()?;
     Ok(proto::SparseValues { indices, values })
 }
@@ -451,9 +491,10 @@ fn metadata_schema_to_py_dict(
 
 /// Convert a Python dict to a proto `MetadataSchema`.
 fn py_dict_to_metadata_schema(dict: &Bound<'_, PyDict>) -> PyResult<proto::MetadataSchema> {
+    let py = dict.py();
     let fields_obj = dict
         .get_item("fields")?
-        .ok_or_else(|| PyRuntimeError::new_err("schema missing 'fields'"))?;
+        .ok_or_else(|| response_parsing_error(py, "schema missing 'fields'"))?;
     let fields_dict = fields_obj.downcast::<PyDict>()?;
     let mut fields = std::collections::HashMap::new();
     for (key, value) in fields_dict.iter() {
@@ -461,7 +502,7 @@ fn py_dict_to_metadata_schema(dict: &Bound<'_, PyDict>) -> PyResult<proto::Metad
         let props_dict = value.downcast::<PyDict>()?;
         let filterable: bool = props_dict
             .get_item("filterable")?
-            .ok_or_else(|| PyRuntimeError::new_err("field properties missing 'filterable'"))?
+            .ok_or_else(|| response_parsing_error(py, "field properties missing 'filterable'"))?
             .extract()?;
         fields.insert(key_str, proto::MetadataFieldProperties { filterable });
     }
@@ -511,7 +552,7 @@ impl GrpcChannel {
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
             .build()
-            .map_err(|e| PyRuntimeError::new_err(format!("Failed to create tokio runtime: {e}")))?;
+            .map_err(|e| pinecone_error(py, &format!("Failed to create tokio runtime: {e}")))?;
 
         let request_timeout =
             secs_to_duration(py, timeout_s.unwrap_or(20.0), "timeout_s")?;
@@ -523,16 +564,16 @@ impl GrpcChannel {
         let user_agent = build_grpc_user_agent(version, source_tag);
 
         let mut endpoint_builder = Channel::from_shared(endpoint_with_port)
-            .map_err(|e| PyRuntimeError::new_err(format!("Invalid endpoint: {e}")))?
+            .map_err(|e| pinecone_value_error(py, &format!("Invalid endpoint: {e}")))?
             .user_agent(&user_agent)
-            .map_err(|e| PyRuntimeError::new_err(format!("Invalid user agent: {e}")))?
+            .map_err(|e| pinecone_value_error(py, &format!("Invalid user agent: {e}")))?
             .timeout(request_timeout)
             .connect_timeout(connection_timeout);
 
         if secure {
             endpoint_builder = endpoint_builder
                 .tls_config(ClientTlsConfig::new().with_native_roots())
-                .map_err(|e| PyRuntimeError::new_err(format!("Failed to configure TLS: {e}")))?;
+                .map_err(|e| pinecone_value_error(py, &format!("Failed to configure TLS: {e}")))?;
         }
 
         // Use lazy connection — the channel establishes the actual TCP/TLS connection
@@ -547,7 +588,7 @@ impl GrpcChannel {
             let _guard = runtime.enter();
             if let Some(proxy_url_str) = proxy_url {
                 let proxy_dst: http::Uri = proxy_url_str.parse().map_err(|e| {
-                    PyRuntimeError::new_err(format!("Invalid proxy URL '{proxy_url_str}': {e}"))
+                    pinecone_value_error(py, &format!("Invalid proxy URL '{proxy_url_str}': {e}"))
                 })?;
                 let mut http_connector = HttpConnector::new();
                 http_connector.enforce_http(false);
@@ -559,7 +600,7 @@ impl GrpcChannel {
         };
 
         let interceptor = MetadataInterceptor::new(api_key, api_version)
-            .map_err(|e| PyRuntimeError::new_err(format!("Invalid metadata value: {e}")))?;
+            .map_err(|e| pinecone_value_error(py, &format!("Invalid metadata value: {e}")))?;
 
         let retry_config = RetryConfig {
             max_retries: max_retries.unwrap_or(5),
@@ -595,11 +636,11 @@ impl GrpcChannel {
         for v in &vectors {
             let id: String = v
                 .get_item("id")?
-                .ok_or_else(|| PyRuntimeError::new_err("vector missing 'id'"))?
+                .ok_or_else(|| response_parsing_error(py, "vector missing 'id'"))?
                 .extract()?;
             let values: Vec<f32> = v
                 .get_item("values")?
-                .ok_or_else(|| PyRuntimeError::new_err("vector missing 'values'"))?
+                .ok_or_else(|| response_parsing_error(py, "vector missing 'values'"))?
                 .extract()?;
             let sparse_values = match v.get_item("sparse_values")? {
                 Some(sv) => Some(py_dict_to_sparse_values(&sv.downcast_into::<PyDict>()?)?),

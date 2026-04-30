@@ -24,6 +24,7 @@ from pinecone.errors.exceptions import (
     PineconeConnectionError,
     PineconeError,
     PineconeTimeoutError,
+    ResponseParsingError,
     ServiceError,
     UnauthorizedError,
 )
@@ -268,6 +269,67 @@ class TestGrpcErrorHierarchy:
 
 
 # ---------------------------------------------------------------------------
+# Regression tests — P-0214: no double-bracket bug, typed non-RPC exceptions
+# ---------------------------------------------------------------------------
+
+
+class TestDoubleBracketRegression:
+    """Verify the double-bracket bug introduced by the old _call_channel wrapper is gone.
+
+    Previously, _call_channel called str(rust_exc) (which already contained
+    "[404 NOT_FOUND] ...") and passed that string as the message of a *new*
+    NotFoundError, producing "[404 NOT_FOUND] [404 NOT_FOUND] ..." when str()
+    was called on the re-raised exception. Now typed exceptions from Rust
+    propagate unchanged, so there is at most one bracket pair.
+    """
+
+    def test_no_double_bracket_prefix_for_not_found(self) -> None:
+        exc = _make_not_found_error("index 'foo' does not exist")
+        assert str(exc).count("[") <= 1
+
+    def test_no_double_bracket_prefix_for_api_error(self) -> None:
+        exc = _make_api_error("INVALID_ARGUMENT", "bad param", 400)
+        assert str(exc).count("[") <= 1
+
+    @pytest.mark.parametrize(
+        ("cls", "status_code", "code"),
+        [
+            (NotFoundError, 404, "NOT_FOUND"),
+            (ConflictError, 409, "ALREADY_EXISTS"),
+            (UnauthorizedError, 401, "UNAUTHENTICATED"),
+            (ForbiddenError, 403, "PERMISSION_DENIED"),
+            (ServiceError, 500, "INTERNAL"),
+        ],
+    )
+    def test_no_double_bracket_for_all_api_error_subclasses(
+        self, cls: type[ApiError], status_code: int, code: str
+    ) -> None:
+        exc = cls(  # type: ignore[call-arg]
+            message="some error message",
+            status_code=status_code,
+            body={"error": {"code": code, "message": "some error message"}},
+            error_code=code,
+        )
+        assert str(exc).count("[") <= 1
+
+
+class TestResponseParsingErrorConstruction:
+    """ResponseParsingError is raised by Rust for proto-decode failures."""
+
+    def test_isinstance_pinecone_error(self) -> None:
+        exc = ResponseParsingError("vector missing 'id'")
+        assert isinstance(exc, PineconeError)
+
+    def test_message_preserved(self) -> None:
+        exc = ResponseParsingError("schema missing 'fields'")
+        assert "schema missing 'fields'" in str(exc)
+
+    def test_not_an_api_error(self) -> None:
+        exc = ResponseParsingError("vector missing 'values'")
+        assert not isinstance(exc, ApiError)
+
+
+# ---------------------------------------------------------------------------
 # Integration tests — require a live gRPC server with the Rust extension
 # ---------------------------------------------------------------------------
 
@@ -311,3 +373,11 @@ class TestGrpcErrorMappingIntegration:
     def test_pinecone_connection_error_construction_does_not_crash(self) -> None:
         """Unavailable → PineconeConnectionError raised without status_code kwargs."""
         raise NotImplementedError("requires live gRPC server")
+
+    def test_proto_decode_failure_raises_response_parsing_error(self) -> None:
+        """Upsert with a vector dict missing 'id' → ResponseParsingError from Rust."""
+        raise NotImplementedError("requires built Rust extension + GrpcChannel")
+
+    def test_invalid_endpoint_raises_value_error(self) -> None:
+        """Constructing GrpcChannel with an invalid endpoint URL → PineconeValueError."""
+        raise NotImplementedError("requires built Rust extension + GrpcChannel")

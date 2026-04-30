@@ -125,16 +125,23 @@ class TestTimeoutForwarding:
 
 
 class TestDeadlineExceededRaisesPineconeTimeoutError:
-    """DEADLINE_EXCEEDED in any channel exception raises PineconeTimeoutError."""
+    """PineconeTimeoutError from Rust propagates unchanged through GrpcIndex methods.
+
+    The Rust transport raises PineconeTimeoutError directly when a gRPC
+    DEADLINE_EXCEEDED status is received. The Python layer no longer
+    does any exception mapping — it just calls self._channel.method(...)
+    and lets the typed exception propagate.
+    """
 
     def _deadline_channel(self) -> MagicMock:
         ch = MagicMock()
-        ch.query.side_effect = RuntimeError("gRPC DEADLINE_EXCEEDED: timeout expired")
-        ch.fetch.side_effect = RuntimeError("gRPC DEADLINE_EXCEEDED: timeout expired")
-        ch.upsert.side_effect = RuntimeError("gRPC DEADLINE_EXCEEDED: timeout expired")
-        ch.delete.side_effect = RuntimeError("gRPC DEADLINE_EXCEEDED: timeout expired")
-        ch.update.side_effect = RuntimeError("gRPC DEADLINE_EXCEEDED: timeout expired")
-        ch.list.side_effect = RuntimeError("gRPC DEADLINE_EXCEEDED: timeout expired")
+        exc = PineconeTimeoutError("deadline exceeded after 20s")
+        ch.query.side_effect = exc
+        ch.fetch.side_effect = exc
+        ch.upsert.side_effect = exc
+        ch.delete.side_effect = exc
+        ch.update.side_effect = exc
+        ch.list.side_effect = exc
         return ch
 
     def test_query_deadline_raises_timeout_error(self) -> None:

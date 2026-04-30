@@ -18,7 +18,6 @@ from pinecone.errors.exceptions import (
     NotFoundError,
     PineconeConnectionError,
     PineconeTimeoutError,
-    PineconeValueError,
     ServiceError,
     UnauthorizedError,
     ValidationError,
@@ -759,144 +758,173 @@ class TestGrpcFutureReturningMethods:
         assert mock_submit.call_args.kwargs["values"] == [0.1, 0.2]
 
 
-class TestGrpcErrorWrapping:
-    """Tests for GrpcIndex._call_channel error wrapping."""
+class TestGrpcExceptionPropagation:
+    """Tests that typed exceptions from the Rust gRPC layer propagate unchanged.
 
-    def test_channel_exception_wrapped_as_connection_error(
+    The old _call_channel wrapper is gone. Rust's status_to_py_err now raises
+    typed pinecone.errors exceptions directly. Python just calls
+    self._channel.method(...) and the exception propagates unmodified.
+    """
+
+    def test_connection_error_propagates_unchanged(
         self, grpc_index: GrpcIndex, mock_channel: MagicMock
     ) -> None:
-        mock_channel.upsert.side_effect = RuntimeError("connection refused")
+        exc = PineconeConnectionError("gRPC UNAVAILABLE: connection refused")
+        mock_channel.upsert.side_effect = exc
 
-        with pytest.raises(PineconeConnectionError):
+        with pytest.raises(PineconeConnectionError) as exc_info:
             grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1]}])
 
-    def test_original_message_preserved(
+        assert exc_info.value is exc
+
+    def test_not_found_error_propagates_unchanged(
         self, grpc_index: GrpcIndex, mock_channel: MagicMock
     ) -> None:
-        mock_channel.query.side_effect = RuntimeError("transport error: broken pipe")
-
-        with pytest.raises(PineconeConnectionError) as exc_info:
-            grpc_index.query(top_k=1, vector=[0.1])
-
-        assert "transport error: broken pipe" in str(exc_info.value)
-
-    def test_exception_chaining(self, grpc_index: GrpcIndex, mock_channel: MagicMock) -> None:
-        original = RuntimeError("tls handshake failed")
-        mock_channel.fetch.side_effect = original
-
-        with pytest.raises(PineconeConnectionError) as exc_info:
-            grpc_index.fetch(ids=["v1"])
-
-        assert exc_info.value.__cause__ is original
-
-    def test_invalid_argument_raises_api_error_400(
-        self, grpc_index: GrpcIndex, mock_channel: MagicMock
-    ) -> None:
-        """gRPC INVALID_ARGUMENT maps to ApiError(status_code=400) for transport parity."""
-        mock_channel.upsert.side_effect = PineconeValueError(
-            "gRPC INVALID_ARGUMENT: Vector dimension 3 does not match the dimension of the index 2"
+        exc = NotFoundError(
+            message="index 'foo' does not exist",
+            status_code=404,
+            body={"error": {"code": "NOT_FOUND", "message": "index 'foo' does not exist"}},
+            error_code="NOT_FOUND",
         )
-
-        with pytest.raises(ApiError) as exc_info:
-            grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1, 0.2, 0.3]}])
-
-        err = exc_info.value
-        assert err.status_code == 400
-        assert "INVALID_ARGUMENT" in str(err)
-
-    def test_invalid_argument_exception_chained(
-        self, grpc_index: GrpcIndex, mock_channel: MagicMock
-    ) -> None:
-        original = PineconeValueError("gRPC INVALID_ARGUMENT: bad dimension")
-        mock_channel.upsert.side_effect = original
-
-        with pytest.raises(ApiError) as exc_info:
-            grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1]}])
-
-        assert exc_info.value.__cause__ is original
-
-    def test_not_found_raises_not_found_error(
-        self, grpc_index: GrpcIndex, mock_channel: MagicMock
-    ) -> None:
-        """gRPC NOT_FOUND maps to NotFoundError(status_code=404)."""
-        mock_channel.fetch.side_effect = RuntimeError("gRPC NOT_FOUND: index does not exist")
+        mock_channel.fetch.side_effect = exc
 
         with pytest.raises(NotFoundError) as exc_info:
             grpc_index.fetch(ids=["v1"])
 
+        assert exc_info.value is exc
         assert exc_info.value.status_code == 404
 
-    def test_unauthenticated_raises_unauthorized_error(
+    def test_api_error_propagates_unchanged(
         self, grpc_index: GrpcIndex, mock_channel: MagicMock
     ) -> None:
-        """gRPC UNAUTHENTICATED maps to UnauthorizedError(status_code=401)."""
-        mock_channel.query.side_effect = RuntimeError("gRPC UNAUTHENTICATED: invalid api key")
-
-        with pytest.raises(UnauthorizedError) as exc_info:
-            grpc_index.query(top_k=1, vector=[0.1])
-
-        assert exc_info.value.status_code == 401
-
-    def test_permission_denied_raises_forbidden_error(
-        self, grpc_index: GrpcIndex, mock_channel: MagicMock
-    ) -> None:
-        """gRPC PERMISSION_DENIED maps to ForbiddenError(status_code=403)."""
-        mock_channel.describe_index_stats.side_effect = RuntimeError(
-            "gRPC PERMISSION_DENIED: access denied"
+        """gRPC INVALID_ARGUMENT maps to ApiError(status_code=400) at the Rust layer."""
+        exc = ApiError(
+            "Vector dimension 3 does not match the dimension of the index 2",
+            400,
+            {"error": {"code": "INVALID_ARGUMENT", "message": "Vector dimension 3 does not match the dimension of the index 2"}},
+            error_code="INVALID_ARGUMENT",
         )
+        mock_channel.upsert.side_effect = exc
 
-        with pytest.raises(ForbiddenError) as exc_info:
-            grpc_index.describe_index_stats()
+        with pytest.raises(ApiError) as exc_info:
+            grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1, 0.2, 0.3]}])
 
-        assert exc_info.value.status_code == 403
+        assert exc_info.value is exc
+        assert exc_info.value.status_code == 400
 
-    def test_unavailable_raises_connection_error(
+    def test_timeout_error_propagates_unchanged(
         self, grpc_index: GrpcIndex, mock_channel: MagicMock
     ) -> None:
-        """gRPC UNAVAILABLE (transport failure) remains PineconeConnectionError."""
-        mock_channel.upsert.side_effect = RuntimeError("gRPC UNAVAILABLE: connection refused")
-
-        with pytest.raises(PineconeConnectionError):
-            grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1]}])
-
-    def test_deadline_exceeded_raises_timeout_error(
-        self, grpc_index: GrpcIndex, mock_channel: MagicMock
-    ) -> None:
-        """gRPC DEADLINE_EXCEEDED maps to PineconeTimeoutError for transport parity."""
-        original = RuntimeError("gRPC DEADLINE_EXCEEDED: timeout")
-        mock_channel.query.side_effect = original
+        exc = PineconeTimeoutError("deadline exceeded after 20s")
+        mock_channel.query.side_effect = exc
 
         with pytest.raises(PineconeTimeoutError) as exc_info:
             grpc_index.query(top_k=1, vector=[0.1])
 
-        assert "DEADLINE_EXCEEDED" in str(exc_info.value)
-        assert exc_info.value.__cause__ is original
+        assert exc_info.value is exc
 
-    def test_already_exists_raises_conflict_error(
+    def test_unauthorized_error_propagates_unchanged(
         self, grpc_index: GrpcIndex, mock_channel: MagicMock
     ) -> None:
-        """gRPC ALREADY_EXISTS maps to ConflictError(status_code=409) for transport parity."""
-        original = RuntimeError("gRPC ALREADY_EXISTS: resource exists")
-        mock_channel.upsert.side_effect = original
+        exc = UnauthorizedError(
+            message="invalid api key",
+            status_code=401,
+            body={"error": {"code": "UNAUTHENTICATED", "message": "invalid api key"}},
+            error_code="UNAUTHENTICATED",
+        )
+        mock_channel.query.side_effect = exc
+
+        with pytest.raises(UnauthorizedError) as exc_info:
+            grpc_index.query(top_k=1, vector=[0.1])
+
+        assert exc_info.value is exc
+
+    def test_forbidden_error_propagates_unchanged(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        exc = ForbiddenError(
+            message="access denied",
+            status_code=403,
+            body={"error": {"code": "PERMISSION_DENIED", "message": "access denied"}},
+            error_code="PERMISSION_DENIED",
+        )
+        mock_channel.describe_index_stats.side_effect = exc
+
+        with pytest.raises(ForbiddenError) as exc_info:
+            grpc_index.describe_index_stats()
+
+        assert exc_info.value is exc
+
+    def test_conflict_error_propagates_unchanged(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        exc = ConflictError(
+            message="resource already exists",
+            status_code=409,
+            body={"error": {"code": "ALREADY_EXISTS", "message": "resource already exists"}},
+            error_code="ALREADY_EXISTS",
+        )
+        mock_channel.upsert.side_effect = exc
 
         with pytest.raises(ConflictError) as exc_info:
             grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1]}])
 
-        assert exc_info.value.status_code == 409
-        assert exc_info.value.__cause__ is original
+        assert exc_info.value is exc
 
-    def test_internal_raises_service_error(
+    def test_service_error_propagates_unchanged(
         self, grpc_index: GrpcIndex, mock_channel: MagicMock
     ) -> None:
-        """gRPC INTERNAL maps to ServiceError(status_code=500) for transport parity."""
-        original = RuntimeError("gRPC INTERNAL: server error")
-        mock_channel.fetch.side_effect = original
+        exc = ServiceError(
+            message="internal server error",
+            status_code=500,
+            body={"error": {"code": "INTERNAL", "message": "internal server error"}},
+            error_code="INTERNAL",
+        )
+        mock_channel.fetch.side_effect = exc
 
         with pytest.raises(ServiceError) as exc_info:
             grpc_index.fetch(ids=["v1"])
 
-        assert exc_info.value.status_code == 500
-        assert exc_info.value.__cause__ is original
+        assert exc_info.value is exc
+
+    def test_response_parsing_error_propagates_unchanged(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        """ResponseParsingError from Rust proto decode propagates unchanged."""
+        from pinecone.errors.exceptions import ResponseParsingError
+
+        exc = ResponseParsingError("vector missing 'id'")
+        mock_channel.upsert.side_effect = exc
+
+        with pytest.raises(ResponseParsingError) as exc_info:
+            grpc_index.upsert(vectors=[{"id": "v1", "values": [0.1]}])
+
+        assert exc_info.value is exc
+
+    def test_no_double_bracket_in_propagated_not_found_error(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        """Verify the old double-bracket bug is gone.
+
+        Previously, _call_channel would call str(exc) on a Rust-raised
+        NotFoundError (producing "[404 NOT_FOUND] index not found") and use
+        that string as the message for a new NotFoundError, yielding
+        "[404 NOT_FOUND] [404 NOT_FOUND] index not found" in str().
+        Now the typed exception from Rust propagates unchanged, so there is
+        exactly one bracket pair.
+        """
+        exc = NotFoundError(
+            message="index 'foo' does not exist",
+            status_code=404,
+            body={"error": {"code": "NOT_FOUND", "message": "index 'foo' does not exist"}},
+            error_code="NOT_FOUND",
+        )
+        mock_channel.fetch.side_effect = exc
+
+        with pytest.raises(NotFoundError) as exc_info:
+            grpc_index.fetch(ids=["v1"])
+
+        assert str(exc_info.value).count("[") <= 1
 
 
 # ---------------------------------------------------------------------------

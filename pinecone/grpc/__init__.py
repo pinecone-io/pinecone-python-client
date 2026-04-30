@@ -18,15 +18,7 @@ from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import (
-    ApiError,
-    ConflictError,
-    ForbiddenError,
-    NotFoundError,
-    PineconeConnectionError,
-    PineconeTimeoutError,
     PineconeValueError,
-    ServiceError,
-    UnauthorizedError,
     ValidationError,
 )
 from pinecone.grpc._protocol import GrpcChannelProtocol
@@ -206,41 +198,6 @@ class GrpcIndex:
         """The data plane host URL for this index."""
         return self._host
 
-    def _call_channel(self, method_name: str, *args: Any, **kwargs: Any) -> Any:
-        """Invoke a method on the gRPC channel, mapping errors to typed SDK exceptions.
-
-        gRPC application-level errors are mapped to typed SDK exceptions that
-        match the REST transport, providing transport parity for callers:
-
-        - ``INVALID_ARGUMENT`` → :exc:`ApiError` (status_code=400)
-        - ``NOT_FOUND``        → :exc:`NotFoundError` (status_code=404)
-        - ``UNAUTHENTICATED``  → :exc:`UnauthorizedError` (status_code=401)
-        - ``PERMISSION_DENIED`` → :exc:`ForbiddenError` (status_code=403)
-        - All other exceptions → :exc:`PineconeConnectionError`
-
-        Rust/PyO3 exceptions have an unknown hierarchy at import time, so gRPC
-        status code strings are detected by inspecting the exception message.
-        """
-        try:
-            return getattr(self._channel, method_name)(*args, **kwargs)
-        except Exception as exc:
-            msg = str(exc)
-            if "INVALID_ARGUMENT" in msg:
-                raise ApiError(msg, status_code=400) from exc
-            if "NOT_FOUND" in msg:
-                raise NotFoundError(msg) from exc
-            if "UNAUTHENTICATED" in msg:
-                raise UnauthorizedError(msg) from exc
-            if "PERMISSION_DENIED" in msg:
-                raise ForbiddenError(msg) from exc
-            if "DEADLINE_EXCEEDED" in msg or ("CANCELLED" in msg and "Timeout" in msg):
-                raise PineconeTimeoutError(msg) from exc
-            if "ALREADY_EXISTS" in msg:
-                raise ConflictError(msg, status_code=409) from exc
-            if "RESOURCE_EXHAUSTED" in msg or "INTERNAL" in msg:
-                raise ServiceError(msg, status_code=500) from exc
-            raise PineconeConnectionError(msg) from exc
-
     def upsert(
         self,
         *,
@@ -301,7 +258,7 @@ class GrpcIndex:
         grpc_vectors = [_vector_to_grpc_dict(v) for v in built]
 
         logger.info("Upserting %d vectors via gRPC into namespace %r", len(built), namespace)
-        result = self._call_channel("upsert", grpc_vectors, namespace or None, timeout_s=timeout)
+        result = self._channel.upsert(grpc_vectors, namespace or None, timeout_s=timeout)
         return UpsertResponse(upserted_count=result.get("upserted_count", 0))
 
     def query(
@@ -382,8 +339,7 @@ class GrpcIndex:
                 sv_dict = sparse_vector
 
         logger.info("Querying index via gRPC with top_k=%d", top_k)
-        result = self._call_channel(
-            "query",
+        result = self._channel.query(
             top_k,
             vector=vector,
             id=id,
@@ -440,7 +396,7 @@ class GrpcIndex:
             raise ValidationError("ids must be a non-empty list")
 
         logger.info("Fetching %d vectors via gRPC", len(ids))
-        result = self._call_channel("fetch", ids, namespace=namespace or None, timeout_s=timeout)
+        result = self._channel.fetch(ids, namespace=namespace or None, timeout_s=timeout)
 
         vectors: dict[str, Vector] = {}
         for vid, vdata in result.get("vectors", {}).items():
@@ -503,8 +459,7 @@ class GrpcIndex:
             )
 
         logger.info("Deleting vectors via gRPC from namespace %r", namespace)
-        self._call_channel(
-            "delete",
+        self._channel.delete(
             ids=ids,
             delete_all=delete_all,
             namespace=namespace or None,
@@ -580,8 +535,7 @@ class GrpcIndex:
         # The Rust channel's update() requires `id` as a positional string arg.
         # For filter-based updates id is None, so pass "" which the API ignores
         # when a filter is provided.
-        result = self._call_channel(
-            "update",
+        result = self._channel.update(
             id if id is not None else "",
             values=values,
             sparse_values=sv_dict,
@@ -628,8 +582,7 @@ class GrpcIndex:
                     print(item.id)
         """
         logger.info("Listing vectors via gRPC in namespace %r", namespace)
-        result = self._call_channel(
-            "list",
+        result = self._channel.list(
             prefix=prefix,
             limit=limit,
             pagination_token=pagination_token,
@@ -729,7 +682,7 @@ class GrpcIndex:
                 )
         """
         logger.info("Describing index stats via gRPC")
-        result = self._call_channel("describe_index_stats", filter=filter, timeout_s=timeout)
+        result = self._channel.describe_index_stats(filter=filter, timeout_s=timeout)
 
         namespaces: dict[str, NamespaceSummary] = {}
         for ns_name, ns_data in result.get("namespaces", {}).items():
