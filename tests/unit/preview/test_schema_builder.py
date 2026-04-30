@@ -110,6 +110,7 @@ def test_string_field_omits_full_text_search_when_not_provided() -> None:
 
 
 def test_string_field_full_text_search_all_options() -> None:
+    # lowercase and max_term_len are server-managed but still round-trip through dict.
     cfg = {
         "language": "en",
         "stemming": True,
@@ -125,6 +126,102 @@ def test_string_field_full_text_search_all_options() -> None:
     field = schema["fields"]["body"]
     assert field["full_text_search"] == cfg
     assert field["description"] == "article body"
+
+
+def test_string_field_full_text_search_true_emits_empty_dict() -> None:
+    schema = SchemaBuilder().add_string_field("t", full_text_search=True).build()
+    assert schema["fields"]["t"]["full_text_search"] == {}
+
+
+def test_string_field_kwargs_imply_fts_enabled() -> None:
+    schema = SchemaBuilder().add_string_field("t", language="en").build()
+    assert schema["fields"]["t"]["full_text_search"] == {"language": "en"}
+
+
+def test_string_field_kwarg_normalizes_long_alias() -> None:
+    schema = SchemaBuilder().add_string_field("t", language="english").build()
+    assert schema["fields"]["t"]["full_text_search"] == {"language": "en"}
+
+
+def test_string_field_kwarg_normalizes_long_alias_in_dict() -> None:
+    schema = SchemaBuilder().add_string_field("t", full_text_search={"language": "english"}).build()
+    assert schema["fields"]["t"]["full_text_search"] == {"language": "en"}
+
+
+def test_string_field_kwargs_merge_into_dict() -> None:
+    schema = (
+        SchemaBuilder()
+        .add_string_field("t", full_text_search={"language": "fr"}, stemming=True)
+        .build()
+    )
+    fts = schema["fields"]["t"]["full_text_search"]
+    assert fts["language"] == "fr"
+    assert fts["stemming"] is True
+
+
+def test_string_field_kwarg_overrides_dict_for_same_key() -> None:
+    schema = (
+        SchemaBuilder()
+        .add_string_field("t", full_text_search={"language": "fr"}, language="en")
+        .build()
+    )
+    assert schema["fields"]["t"]["full_text_search"]["language"] == "en"
+
+
+def test_string_field_invalid_language_raises_kwarg() -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    with pytest.raises(PineconeValueError, match="Invalid language 'klingon'"):
+        SchemaBuilder().add_string_field("t", language="klingon")
+
+
+def test_string_field_invalid_language_raises_dict() -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    with pytest.raises(PineconeValueError, match="Invalid language 'klingon'"):
+        SchemaBuilder().add_string_field("t", full_text_search={"language": "klingon"})
+
+
+def test_string_field_stop_words_without_stemming_raises() -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    with pytest.raises(PineconeValueError, match="stop_words requires stemming to be enabled"):
+        SchemaBuilder().add_string_field("t", language="en", stop_words=True)
+
+
+def test_string_field_stop_words_with_stemming_passes() -> None:
+    schema = (
+        SchemaBuilder().add_string_field("t", language="en", stemming=True, stop_words=True).build()
+    )
+    fts = schema["fields"]["t"]["full_text_search"]
+    assert fts["language"] == "en"
+    assert fts["stemming"] is True
+    assert fts["stop_words"] is True
+
+
+def test_string_field_stop_words_via_dict_validates() -> None:
+    from pinecone.errors.exceptions import PineconeValueError
+
+    with pytest.raises(PineconeValueError, match="stop_words requires stemming to be enabled"):
+        SchemaBuilder().add_string_field("t", full_text_search={"stop_words": True})
+
+
+def test_string_field_does_not_validate_language_stop_words_compat() -> None:
+    # Arabic does not support stop words, but rule 3 is server-side only.
+    schema = (
+        SchemaBuilder().add_string_field("t", language="ar", stemming=True, stop_words=True).build()
+    )
+    fts = schema["fields"]["t"]["full_text_search"]
+    assert fts["language"] == "ar"
+    assert fts["stop_words"] is True
+
+
+def test_string_field_lowercase_and_max_term_len_pass_through() -> None:
+    cfg = {"lowercase": False, "max_term_len": 40}
+    schema = SchemaBuilder().add_string_field("t", full_text_search=cfg).build()
+    fts = schema["fields"]["t"]["full_text_search"]
+    assert fts["lowercase"] is False
+    assert fts["max_term_len"] == 40
 
 
 def test_string_field_full_text_search_dict_is_copied_not_aliased() -> None:

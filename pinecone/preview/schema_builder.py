@@ -8,6 +8,69 @@ from __future__ import annotations
 
 from typing import Any
 
+_FTS_LANGUAGES_SHORT = frozenset(
+    [
+        "ar",
+        "da",
+        "de",
+        "el",
+        "en",
+        "es",
+        "fi",
+        "fr",
+        "hu",
+        "it",
+        "nl",
+        "no",
+        "pt",
+        "ro",
+        "ru",
+        "sv",
+        "ta",
+        "tr",
+    ]
+)
+_FTS_LANGUAGES_LONG_TO_SHORT: dict[str, str] = {
+    "arabic": "ar",
+    "danish": "da",
+    "german": "de",
+    "greek": "el",
+    "english": "en",
+    "spanish": "es",
+    "finnish": "fi",
+    "french": "fr",
+    "hungarian": "hu",
+    "italian": "it",
+    "dutch": "nl",
+    "norwegian": "no",
+    "portuguese": "pt",
+    "romanian": "ro",
+    "russian": "ru",
+    "swedish": "sv",
+    "tamil": "ta",
+    "turkish": "tr",
+}
+
+
+def _normalize_fts_language(language: str) -> str:
+    """Return the canonical short-code form of a language input.
+
+    Accepts ISO short codes (e.g. ``"en"``) and long-form aliases
+    (e.g. ``"english"``). Raises PineconeValueError if neither matches.
+    """
+    from pinecone.errors.exceptions import PineconeValueError
+
+    if language in _FTS_LANGUAGES_SHORT:
+        return language
+    lowered = language.lower()
+    if lowered in _FTS_LANGUAGES_LONG_TO_SHORT:
+        return _FTS_LANGUAGES_LONG_TO_SHORT[lowered]
+    if lowered in _FTS_LANGUAGES_SHORT:
+        return lowered
+    raise PineconeValueError(
+        f"Invalid language '{language}' provided as language for full_text_search field"
+    )
+
 
 class PreviewSchemaBuilder:
     """Fluent builder for preview index schema dicts.
@@ -129,7 +192,10 @@ class PreviewSchemaBuilder:
         self,
         name: str,
         *,
-        full_text_search: dict[str, Any] | None = None,
+        full_text_search: bool | dict[str, Any] | None = None,
+        language: str | None = None,
+        stemming: bool | None = None,
+        stop_words: bool | None = None,
         filterable: bool = False,
         description: str | None = None,
         **additional_options: Any,
@@ -144,18 +210,41 @@ class PreviewSchemaBuilder:
            may change in any minor SDK release. Pin your SDK version when
            relying on preview features.
 
-        Full-text search is enabled by passing a ``full_text_search`` dict —
-        even an empty dict ``{}`` is a valid value and requests server
-        defaults for all options. Omit (or pass ``None``) to indicate the
-        field is not full-text searchable.
+        Full-text search is enabled by passing ``full_text_search=True``, a
+        ``full_text_search`` dict, or any of the typed FTS keyword arguments
+        (``language``, ``stemming``, ``stop_words``).  Omit all of these (or
+        pass ``full_text_search=None``) to indicate the field is not
+        full-text searchable.
+
+        When both ``full_text_search`` dict and keyword arguments are provided,
+        the keyword arguments take precedence for the same key.
+
+        ``lowercase`` and ``max_term_len`` are server-managed and cannot be
+        configured via the SDK.
 
         Args:
             name: Field name. Replaces any existing field with the same name.
-            full_text_search: Full-text search configuration. Pass ``{}`` for
-                server defaults, or a dict with any of ``language``,
-                ``stemming``, ``lowercase``, ``max_term_len``, ``stop_words``.
-                ``None`` (default) means the field is not full-text
-                searchable.
+            full_text_search: ``True`` or ``{}`` to enable FTS with server
+                defaults, a ``dict`` of FTS-config keys (``language``,
+                ``stemming``, ``stop_words``), or ``None`` (default) to
+                leave FTS disabled.  ``lowercase`` and ``max_term_len`` are
+                server-managed and not user-configurable.
+            language: Language for FTS tokenisation and analysis. Accepts
+                ISO short codes or long-form aliases. Both ``"en"`` and
+                ``"english"`` are valid; the SDK normalises to the short-code
+                form on the wire. Supported codes: ``ar``, ``da``, ``de``,
+                ``el``, ``en``, ``es``, ``fi``, ``fr``, ``hu``, ``it``,
+                ``nl``, ``no``, ``pt``, ``ro``, ``ru``, ``sv``, ``ta``,
+                ``tr`` (and their long-form aliases: ``arabic``, ``danish``,
+                ``german``, ``greek``, ``english``, ``spanish``,
+                ``finnish``, ``french``, ``hungarian``, ``italian``,
+                ``dutch``, ``norwegian``, ``portuguese``, ``romanian``,
+                ``russian``, ``swedish``, ``tamil``, ``turkish``).
+            stemming: Enable word stemming. Required when ``stop_words=True``.
+            stop_words: Enable stop-word filtering. Requires
+                ``stemming=True``. Not all languages support stop words;
+                the server will reject unsupported combinations — the SDK
+                does not pre-validate that rule.
             filterable: Enable metadata-filter support. ``False`` values are
                 omitted from the wire payload.
             description: Optional human-readable description.
@@ -165,22 +254,56 @@ class PreviewSchemaBuilder:
         Returns:
             ``self`` for method chaining.
 
+        Raises:
+            PineconeValueError: If ``language`` is not one of the 18 supported
+                codes (or their long-form aliases), or if ``stop_words=True``
+                is requested without ``stemming=True``.
+
         Examples:
             .. code-block:: python
 
-                builder.add_string_field("title", full_text_search={})
+                # Enable FTS with server defaults:
+                builder.add_string_field("title", full_text_search=True)
 
-            Enable FTS with an English language config::
+                # Enable FTS with explicit kwargs:
+                builder.add_string_field(
+                    "title", language="en", stemming=True, stop_words=True
+                )
 
-                builder.add_string_field("title", full_text_search={"language": "en"})
-
-            Filterable metadata field without FTS::
-
-                builder.add_string_field("category", filterable=True)
+                # FTS and filterable together:
+                builder.add_string_field("title", language="en", filterable=True)
         """
+        from pinecone.errors.exceptions import PineconeValueError
+
+        # Determine whether FTS is enabled by ANY of the inputs.
+        fts_kwargs_provided = language is not None or stemming is not None or stop_words is not None
+        fts_enabled = (
+            full_text_search is True or isinstance(full_text_search, dict) or fts_kwargs_provided
+        )
+
+        fts_config: dict[str, Any] = {}
+        if isinstance(full_text_search, dict):
+            fts_config.update(full_text_search)
+        if language is not None:
+            fts_config["language"] = _normalize_fts_language(language)
+        if stemming is not None:
+            fts_config["stemming"] = stemming
+        if stop_words is not None:
+            fts_config["stop_words"] = stop_words
+
+        # Pre-validate cross-field rule. Run this AFTER merging so we see the
+        # final value users intended (whether it came from the dict or a kwarg).
+        if fts_config.get("stop_words") is True and fts_config.get("stemming") is not True:
+            raise PineconeValueError("stop_words requires stemming to be enabled")
+
+        # If the dict supplied a language string, normalize it too (kwarg path
+        # already normalized above; the dict path may not have).
+        if "language" in fts_config and isinstance(fts_config["language"], str):
+            fts_config["language"] = _normalize_fts_language(fts_config["language"])
+
         field: dict[str, Any] = {"type": "string"}
-        if full_text_search is not None:
-            field["full_text_search"] = dict(full_text_search)
+        if fts_enabled:
+            field["full_text_search"] = fts_config
         if filterable:
             field["filterable"] = filterable
         if description is not None:
