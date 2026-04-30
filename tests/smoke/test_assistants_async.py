@@ -154,7 +154,7 @@ async def test_assistants_smoke_async(api_key: str) -> None:
         )
         assert align.scores is not None
 
-        # ----- pc.assistant proxy (no warning currently emitted) -----
+        # ----- pc.assistant proxy (permanent alias — no DeprecationWarning expected) -----
         via_proxy = await pc.assistant.describe(name=name)
         assert via_proxy.name == name
         via_call = await pc.assistant(name)

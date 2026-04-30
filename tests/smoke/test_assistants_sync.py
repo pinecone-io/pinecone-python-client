@@ -155,9 +155,8 @@ def test_assistants_smoke(client: Pinecone) -> None:
         )
         assert align.scores is not None
 
-        # ----- pc.assistant proxy (docstring says deprecated, but no
-        #       DeprecationWarning is currently emitted — flagged in
-        #       FOR_HUMAN_REVIEW.md). Just confirm both access forms work. -----
+        # ----- pc.assistant proxy (permanent alias for pc.assistants —
+        #       confirm both access forms work; no DeprecationWarning expected). -----
         via_proxy = client.assistant.describe(name=name)
         assert via_proxy.name == name
         via_call = client.assistant(name)  # callable form

@@ -263,14 +263,16 @@ class Pinecone:
 
     @property
     def assistant(self) -> _AssistantNamespaceProxy:
-        """Deprecated alias for :attr:`Pinecone.assistants`.
+        """Convenience alias for :attr:`Pinecone.assistants`.
 
         Returns a proxy that supports both namespace-style access
-        (``pc.assistant.create_assistant(...)``) and the convenience call form
-        (``pc.assistant("my-name")`` — shortcut for
+        (``pc.assistant.create_assistant(...)``) and the convenience call
+        form (``pc.assistant("my-name")`` — shortcut for
         ``pc.assistants.describe(name="my-name")``).
 
-        Prefer :attr:`Pinecone.assistants` in new code.
+        The canonical entry point is :attr:`Pinecone.assistants`; this
+        alias is provided for ergonomic singular-form access and is not
+        deprecated.
         """
         from pinecone.client._assistant_namespace_proxy import _AssistantNamespaceProxy
 
