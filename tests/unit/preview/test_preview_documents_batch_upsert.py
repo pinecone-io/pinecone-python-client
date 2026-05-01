@@ -130,11 +130,6 @@ def test_batch_upsert_batch_size_zero_raises(docs: PreviewDocuments) -> None:
         docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], batch_size=0)
 
 
-def test_batch_upsert_batch_size_101_raises(docs: PreviewDocuments) -> None:
-    with pytest.raises(ValidationError):
-        docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], batch_size=101)
-
-
 def test_batch_upsert_max_workers_zero_raises(docs: PreviewDocuments) -> None:
     with pytest.raises(ValidationError):
         docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_workers=0)
@@ -241,14 +236,6 @@ async def test_async_batch_upsert_empty_documents_raises(
 ) -> None:
     with pytest.raises(ValidationError, match="documents"):
         await async_docs.batch_upsert(namespace="ns", documents=[])
-
-
-@pytest.mark.asyncio
-async def test_async_batch_upsert_batch_size_101_raises(
-    async_docs: AsyncPreviewDocuments,
-) -> None:
-    with pytest.raises(ValidationError):
-        await async_docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], batch_size=101)
 
 
 @pytest.mark.asyncio

@@ -9,7 +9,7 @@ import msgspec
 
 from pinecone._internal.adapters.vectors_adapter import extract_response_info
 from pinecone._internal.batch import batch_execute
-from pinecone._internal.validation import require_in_range, require_non_empty
+from pinecone._internal.validation import require_in_range, require_non_empty, require_positive
 from pinecone.errors.exceptions import PineconeValueError
 from pinecone.models.batch import (
     BatchResult,  # SDK utility result, not wire-shape — see preview-channel.md § Type isolation
@@ -35,8 +35,6 @@ _UPSERT_DECODER: msgspec.json.Decoder[PreviewDocumentUpsertResponse] = msgspec.j
 
 def _validate_documents(documents: list[dict[str, Any]]) -> None:
     require_non_empty("documents", documents)
-    if len(documents) > 100:
-        raise PineconeValueError("documents must contain at most 100 items")
     seen_ids: set[str] = set()
     for i, doc in enumerate(documents):
         if "_id" not in doc:
@@ -150,7 +148,7 @@ class PreviewDocuments:
 
         Args:
             namespace: Target namespace. Must be a non-empty string.
-            documents: 1–100 documents to upsert. Each must contain a non-empty,
+            documents: One or more documents to upsert. Each must contain a non-empty,
                 unique ``_id`` string field.
 
         Returns:
@@ -159,9 +157,9 @@ class PreviewDocuments:
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is empty,
-                documents is empty, more than 100 documents, any document is missing
-                ``_id``, ``_id`` is not a string, ``_id`` is empty, or ``_id``
-                values are not unique within the batch.
+                documents is empty, any document is missing ``_id``, ``_id`` is not a
+                string, ``_id`` is empty, or ``_id`` values are not unique within the
+                batch.
 
         Examples:
             >>> from pinecone import Pinecone
@@ -232,7 +230,7 @@ class PreviewDocuments:
             namespace: Target namespace. Must be a non-empty string.
             documents: Documents to upsert. Each must contain a non-empty,
                 unique ``_id`` string field.
-            batch_size: Maximum documents per request (1–100, default 100).
+            batch_size: Maximum documents per request (positive integer, default 50).
             max_workers: Thread pool size for concurrent requests (1–64, default 4).
             show_progress: Display a tqdm progress bar when installed.
 
@@ -243,7 +241,7 @@ class PreviewDocuments:
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is
-                empty, documents is empty, batch_size is outside [1, 100], or
+                empty, documents is empty, batch_size is not a positive integer, or
                 max_workers is outside [1, 64].
 
         Examples:
@@ -267,7 +265,7 @@ class PreviewDocuments:
         """
         require_non_empty("namespace", namespace)
         require_non_empty("documents", documents)
-        require_in_range("batch_size", batch_size, 1, 100)
+        require_positive("batch_size", batch_size)
         require_in_range("max_workers", max_workers, 1, 64)
 
         return batch_execute(

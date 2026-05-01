@@ -95,12 +95,6 @@ def test_upsert_empty_documents_raises(docs: PreviewDocuments) -> None:
         docs.upsert(namespace="ns", documents=[])
 
 
-def test_upsert_101_documents_raises(docs: PreviewDocuments) -> None:
-    many = [{"_id": str(i)} for i in range(101)]
-    with pytest.raises(ValidationError, match="100"):
-        docs.upsert(namespace="ns", documents=many)
-
-
 def test_upsert_100_documents_accepted(docs: PreviewDocuments) -> None:
     hundred = [{"_id": str(i)} for i in range(100)]
     with respx.mock:
@@ -198,15 +192,6 @@ async def test_async_upsert_empty_documents_raises(
 
 
 @pytest.mark.asyncio
-async def test_async_upsert_101_documents_raises(
-    async_docs: AsyncPreviewDocuments,
-) -> None:
-    many = [{"_id": str(i)} for i in range(101)]
-    with pytest.raises(ValidationError, match="100"):
-        await async_docs.upsert(namespace="ns", documents=many)
-
-
-@pytest.mark.asyncio
 async def test_async_upsert_missing_id_raises(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
@@ -271,9 +256,7 @@ def test_upsert_response_carries_response_info(docs: PreviewDocuments) -> None:
 
 @respx.mock
 def test_upsert_response_info_is_none_when_headers_absent(docs: PreviewDocuments) -> None:
-    respx.post(UPSERT_URL).mock(
-        return_value=httpx.Response(200, json={"upserted_count": 1})
-    )
+    respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json={"upserted_count": 1}))
     result = docs.upsert(
         namespace="my-ns",
         documents=[{"_id": "a", "text": "hello"}],
@@ -320,9 +303,7 @@ async def test_async_upsert_response_carries_response_info(
 async def test_async_upsert_response_info_is_none_when_headers_absent(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
-    respx.post(UPSERT_URL).mock(
-        return_value=httpx.Response(200, json={"upserted_count": 1})
-    )
+    respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json={"upserted_count": 1}))
     result = await async_docs.upsert(
         namespace="my-ns",
         documents=[{"_id": "a", "text": "hello"}],
