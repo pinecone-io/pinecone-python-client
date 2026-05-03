@@ -51,9 +51,27 @@ jobs:
   typecheck:
     name: mypy --strict
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Install protoc
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
+        with:
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8  # stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo build artifacts
+        uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc  # v2.9.1
+        with:
+          workspaces: rust
+          shared-key: typecheck
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
@@ -63,8 +81,8 @@ jobs:
       - name: Set up Python
         run: uv python install 3.12
 
-      - name: Install dev deps (no project build)
-        run: uv sync --group dev --no-install-project
+      - name: Install deps + build Rust extension
+        run: uv sync --group dev
 
       - name: mypy --strict
         run: uv run --no-sync mypy --strict pinecone/
