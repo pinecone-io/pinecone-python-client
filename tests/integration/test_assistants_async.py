@@ -3162,9 +3162,9 @@ async def test_describe_file_preserves_uploaded_metadata(
 async def test_multimodal_pdf_context_image_text_and_errors(
     async_client: AsyncPinecone,
 ) -> None:
-    """Full multimodal surface for the async client against collin_foods_p8-9.pdf."""
+    """Full multimodal surface for the async client against multimodal_sample.pdf."""
     name = unique_name("asst")
-    pdf_path = os.path.join(_FIXTURES_DIR, "collin_foods_p8-9.pdf")
+    pdf_path = os.path.join(_FIXTURES_DIR, "multimodal_sample.pdf")
     docx_path = os.path.join(_FIXTURES_DIR, "test_doc.docx")
     assert os.path.isfile(pdf_path), f"fixture missing: {pdf_path}"
     assert os.path.isfile(docx_path), f"fixture missing: {docx_path}"
@@ -3189,7 +3189,7 @@ async def test_multimodal_pdf_context_image_text_and_errors(
         assert isinstance(file_model, AssistantFileModel)
         assert file_model.multimodal is True
 
-        query = "If someone at Taco Bell gets a promotion, how old is he/she probably?"
+        query = "What does this document show in its diagrams?"
 
         # 2. Default multimodal context
         res = await async_client.assistants.context(

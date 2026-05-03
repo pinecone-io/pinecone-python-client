@@ -3225,8 +3225,8 @@ def test_describe_file_preserves_uploaded_metadata(client: Pinecone) -> None:
 def test_multimodal_pdf_context_image_text_and_errors(client: Pinecone) -> None:
     """multimodal PDF upload and context() retrieval verifies image + text modes.
 
-    Exercises the full multimodal surface against the collin_foods_p8-9.pdf
-    fixture (a PDF with images):
+    Exercises the full multimodal surface against the multimodal_sample.pdf
+    fixture (a synthetic PDF with embedded images):
 
     1. Upload with ``multimodal=True`` and verify the returned AssistantFileModel
        has ``multimodal=True``.
@@ -3243,7 +3243,7 @@ def test_multimodal_pdf_context_image_text_and_errors(client: Pinecone) -> None:
     All seven checks run against a single assistant to bound test runtime.
     """
     name = unique_name("asst")
-    pdf_path = os.path.join(_FIXTURES_DIR, "collin_foods_p8-9.pdf")
+    pdf_path = os.path.join(_FIXTURES_DIR, "multimodal_sample.pdf")
     docx_path = os.path.join(_FIXTURES_DIR, "test_doc.docx")
     assert os.path.isfile(pdf_path), f"fixture missing: {pdf_path}"
     assert os.path.isfile(docx_path), f"fixture missing: {docx_path}"
@@ -3269,7 +3269,7 @@ def test_multimodal_pdf_context_image_text_and_errors(client: Pinecone) -> None:
             f"expected file_model.multimodal=True, got {file_model.multimodal!r}"
         )
 
-        query = "If someone at Taco Bell gets a promotion, how old is he/she probably?"
+        query = "What does this document show in its diagrams?"
 
         # --- 2. Default multimodal context → MultimodalSnippet with image data ---
         res = client.assistants.context(

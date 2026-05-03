@@ -34,7 +34,6 @@ if TYPE_CHECKING:
 _INTEGRATION_DIR = Path(__file__).resolve().parent.parent / "integration"
 SAMPLE_TEXT_FILE: Path = _INTEGRATION_DIR / "tiny_file.txt"
 SAMPLE_PDF_SMALL: Path = _INTEGRATION_DIR / "tiny_file.pdf"
-SAMPLE_PDF_LARGE: Path = _INTEGRATION_DIR / "collin_foods_p8-9.pdf"
 
 
 # ---------------------------------------------------------------------------
