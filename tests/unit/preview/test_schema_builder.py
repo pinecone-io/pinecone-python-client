@@ -168,18 +168,16 @@ def test_string_field_kwarg_overrides_dict_for_same_key() -> None:
     assert schema["fields"]["t"]["full_text_search"]["language"] == "en"
 
 
-def test_string_field_invalid_language_raises_kwarg() -> None:
-    from pinecone.errors.exceptions import PineconeValueError
-
-    with pytest.raises(PineconeValueError, match="Invalid language 'klingon'"):
-        SchemaBuilder().add_string_field("t", language="klingon")
+def test_string_field_unknown_language_passes_through_kwarg() -> None:
+    schema = SchemaBuilder().add_string_field("t", language="klingon").build()
+    assert schema["fields"]["t"]["full_text_search"] == {"language": "klingon"}
 
 
-def test_string_field_invalid_language_raises_dict() -> None:
-    from pinecone.errors.exceptions import PineconeValueError
-
-    with pytest.raises(PineconeValueError, match="Invalid language 'klingon'"):
-        SchemaBuilder().add_string_field("t", full_text_search={"language": "klingon"})
+def test_string_field_unknown_language_passes_through_dict() -> None:
+    schema = (
+        SchemaBuilder().add_string_field("t", full_text_search={"language": "klingon"}).build()
+    )
+    assert schema["fields"]["t"]["full_text_search"] == {"language": "klingon"}
 
 
 def test_string_field_stop_words_without_stemming_raises() -> None:

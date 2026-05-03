@@ -87,11 +87,12 @@ def _validate_description(description: str | None) -> None:
 def _normalize_fts_language(language: str) -> str:
     """Return the canonical short-code form of a language input.
 
-    Accepts ISO short codes (e.g. ``"en"``) and long-form aliases
-    (e.g. ``"english"``). Raises PineconeValueError if neither matches.
+    Maps known long-form aliases (e.g. ``"english"``) and known short
+    codes (e.g. ``"EN"``) to their canonical short-code form. Any value
+    that does not match a known alias is returned unchanged so unknown
+    or future languages pass through to the server unmodified — the
+    server is the source of truth for which languages are supported.
     """
-    from pinecone.errors.exceptions import PineconeValueError
-
     if language in _FTS_LANGUAGES_SHORT:
         return language
     lowered = language.lower()
@@ -99,9 +100,7 @@ def _normalize_fts_language(language: str) -> str:
         return _FTS_LANGUAGES_LONG_TO_SHORT[lowered]
     if lowered in _FTS_LANGUAGES_SHORT:
         return lowered
-    raise PineconeValueError(
-        f"Invalid language '{language}' provided as language for full_text_search field"
-    )
+    return language
 
 
 class PreviewSchemaBuilder:
@@ -267,15 +266,20 @@ class PreviewSchemaBuilder:
                 server-managed and not user-configurable.
             language: Language for FTS tokenisation and analysis. Accepts
                 ISO short codes or long-form aliases. Both ``"en"`` and
-                ``"english"`` are valid; the SDK normalises to the short-code
-                form on the wire. Supported codes: ``ar``, ``da``, ``de``,
-                ``el``, ``en``, ``es``, ``fi``, ``fr``, ``hu``, ``it``,
-                ``nl``, ``no``, ``pt``, ``ro``, ``ru``, ``sv``, ``ta``,
-                ``tr`` (and their long-form aliases: ``arabic``, ``danish``,
-                ``german``, ``greek``, ``english``, ``spanish``,
-                ``finnish``, ``french``, ``hungarian``, ``italian``,
-                ``dutch``, ``norwegian``, ``portuguese``, ``romanian``,
-                ``russian``, ``swedish``, ``tamil``, ``turkish``).
+                ``"english"`` are valid; the SDK normalises known
+                long-form aliases to the short-code form on the wire.
+                Codes known to the SDK at this version: ``ar``, ``da``,
+                ``de``, ``el``, ``en``, ``es``, ``fi``, ``fr``, ``hu``,
+                ``it``, ``nl``, ``no``, ``pt``, ``ro``, ``ru``, ``sv``,
+                ``ta``, ``tr`` (and their long-form aliases: ``arabic``,
+                ``danish``, ``german``, ``greek``, ``english``,
+                ``spanish``, ``finnish``, ``french``, ``hungarian``,
+                ``italian``, ``dutch``, ``norwegian``, ``portuguese``,
+                ``romanian``, ``russian``, ``swedish``, ``tamil``,
+                ``turkish``). The SDK does not validate this value
+                against that list — unknown codes are passed through
+                unchanged so newly-supported languages work without an
+                SDK upgrade. The server is the source of truth.
             stemming: Enable word stemming. Required when ``stop_words=True``.
             stop_words: Enable stop-word filtering. Requires
                 ``stemming=True``. Not all languages support stop words;
@@ -291,9 +295,8 @@ class PreviewSchemaBuilder:
             ``self`` for method chaining.
 
         Raises:
-            PineconeValueError: If ``language`` is not one of the 18 supported
-                codes (or their long-form aliases), or if ``stop_words=True``
-                is requested without ``stemming=True``.
+            PineconeValueError: If ``stop_words=True`` is requested without
+                ``stemming=True``.
 
         Examples:
             .. code-block:: python
