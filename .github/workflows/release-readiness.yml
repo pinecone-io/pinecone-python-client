@@ -9,6 +9,11 @@ name: Release Readiness
 
 on:
   workflow_dispatch:
+    inputs:
+      skip_integration:
+        description: "Skip the integration-tests job (use while iterating on other jobs; tracked in CI-0019)"
+        type: boolean
+        default: false
   schedule:
     - cron: '0 6 * * 1'   # Mondays 06:00 UTC
 
@@ -30,6 +35,9 @@ jobs:
   # ---------------------------------------------------------------------------
   integration-tests:
     name: Integration tests (real backend)
+    # Allow opting out via workflow_dispatch input while iterating on other
+    # jobs. Schedule and default dispatch still run integration tests.
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_integration }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
