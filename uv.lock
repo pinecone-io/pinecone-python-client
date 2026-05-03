@@ -1241,6 +1241,7 @@ dev = [
     { name = "mypy" },
     { name = "pytest" },
     { name = "pytest-anyio" },
+    { name = "pytest-asyncio" },
     { name = "pytest-benchmark" },
     { name = "python-dotenv" },
     { name = "respx" },
@@ -1250,7 +1251,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "furo", marker = "extra == 'docs'" },
-    { name = "httpx", extras = ["http2"] },
+    { name = "httpx", extras = ["http2"], specifier = ">=0.27,<1.0" },
     { name = "msgspec" },
     { name = "mypy", marker = "extra == 'dev'" },
     { name = "myst-parser", marker = "extra == 'docs'", specifier = ">=4.0" },
@@ -1274,6 +1275,7 @@ dev = [
     { name = "mypy", specifier = ">=1.20.0" },
     { name = "pytest", specifier = ">=9.0.3" },
     { name = "pytest-anyio", specifier = ">=0.0.0" },
+    { name = "pytest-asyncio", specifier = ">=0.23" },
     { name = "pytest-benchmark", specifier = ">=5.0.0" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "respx", specifier = ">=0.22.0" },

@@ -10,7 +10,10 @@ readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 dependencies = [
-    "httpx[http2]",
+    # Upper-bound httpx to exclude the 1.0 pre-release line (1.0.devN), which
+    # drops symbols (e.g. httpx.BaseTransport) the SDK relies on. Without this
+    # cap, `pip install --pre pinecone` resolves httpx to a broken pre-release.
+    "httpx[http2]>=0.27,<1.0",
     "msgspec",
     "orjson",
 ]
@@ -97,6 +100,7 @@ dev = [
     "ipykernel>=7.2.0",
     "pytest>=9.0.3",
     "pytest-anyio>=0.0.0",
+    "pytest-asyncio>=0.23",
     "python-dotenv>=1.2.2",
     "pytest-benchmark>=5.0.0",
     "respx>=0.22.0",
