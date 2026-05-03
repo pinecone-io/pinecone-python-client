@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from pinecone import Pinecone
 from pinecone.inference.models.index_embed import IndexEmbed
 from pinecone.models.enums import CloudProvider
@@ -40,14 +38,13 @@ def _make_pc_with_mock_indexes() -> tuple[Pinecone, MagicMock]:
     return pc, mock_indexes
 
 
-def test_pinecone_create_index_delegate_emits_deprecation_warning_and_forwards() -> None:
+def test_pinecone_create_index_delegate_forwards() -> None:
     pc, mock_indexes = _make_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match=r"create_index\(\) is deprecated"):
-        pc.create_index(
-            name="x",
-            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-            dimension=4,
-        )
+    pc.create_index(
+        name="x",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        dimension=4,
+    )
     mock_indexes.create.assert_called_once()
     _, kwargs = mock_indexes.create.call_args
     assert kwargs["metric"] == "cosine"
@@ -59,14 +56,13 @@ def test_pinecone_create_index_delegate_with_explicit_metric_and_vector_type_for
     None
 ):
     pc, mock_indexes = _make_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match="create_index"):
-        pc.create_index(
-            name="x",
-            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-            dimension=4,
-            metric="euclidean",
-            vector_type="sparse",
-        )
+    pc.create_index(
+        name="x",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        dimension=4,
+        metric="euclidean",
+        vector_type="sparse",
+    )
     _, kwargs = mock_indexes.create.call_args
     assert kwargs["metric"] == "euclidean"
     assert kwargs["vector_type"] == "sparse"
@@ -76,12 +72,11 @@ def test_pinecone_create_index_delegate_with_none_deletion_protection_defaults_t
     None
 ):
     pc, mock_indexes = _make_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match="create_index"):
-        pc.create_index(
-            name="x",
-            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-            deletion_protection=None,
-        )
+    pc.create_index(
+        name="x",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        deletion_protection=None,
+    )
     _, kwargs = mock_indexes.create.call_args
     assert kwargs["deletion_protection"] == "disabled"
 
@@ -94,13 +89,12 @@ def test_pinecone_create_index_for_model_delegate_with_index_embed_converts_to_e
         model="multilingual-e5-large",
         field_map={"text": "my_field"},
     )
-    with pytest.warns(DeprecationWarning, match="create_index_for_model"):
-        pc.create_index_for_model(
-            name="my-index",
-            cloud=CloudProvider.AWS,
-            region="us-east-1",
-            embed=index_embed,
-        )
+    pc.create_index_for_model(
+        name="my-index",
+        cloud=CloudProvider.AWS,
+        region="us-east-1",
+        embed=index_embed,
+    )
     _, kwargs = mock_indexes.create.call_args
     spec = kwargs["spec"]
     assert isinstance(spec, IntegratedSpec)
@@ -116,13 +110,12 @@ def test_pinecone_create_index_for_model_delegate_with_embed_config_passes_throu
         model="multilingual-e5-large",
         field_map={"text": "my_field"},
     )
-    with pytest.warns(DeprecationWarning, match="create_index_for_model"):
-        pc.create_index_for_model(
-            name="my-index",
-            cloud=CloudProvider.AWS,
-            region="us-east-1",
-            embed=embed_config,
-        )
+    pc.create_index_for_model(
+        name="my-index",
+        cloud=CloudProvider.AWS,
+        region="us-east-1",
+        embed=embed_config,
+    )
     _, kwargs = mock_indexes.create.call_args
     spec = kwargs["spec"]
     assert isinstance(spec, IntegratedSpec)
@@ -132,13 +125,12 @@ def test_pinecone_create_index_for_model_delegate_with_embed_config_passes_throu
 
 def test_pinecone_create_index_for_model_delegate_with_dict_constructs_embed_config() -> None:
     pc, mock_indexes = _make_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match="create_index_for_model"):
-        pc.create_index_for_model(
-            name="my-index",
-            cloud=CloudProvider.AWS,
-            region="us-east-1",
-            embed={"model": "m", "field_map": {"text": "a"}},
-        )
+    pc.create_index_for_model(
+        name="my-index",
+        cloud=CloudProvider.AWS,
+        region="us-east-1",
+        embed={"model": "m", "field_map": {"text": "a"}},
+    )
     _, kwargs = mock_indexes.create.call_args
     spec = kwargs["spec"]
     assert isinstance(spec, IntegratedSpec)
@@ -187,13 +179,9 @@ def _make_pc_with_mock_restore_jobs() -> tuple[Pinecone, MagicMock]:
 
 
 class TestDescribeIndex:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_indexes = _make_pc_with_mock_indexes_delegates()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.describe_index\(\) is deprecated",
-        ):
-            pc.describe_index("my-index")
+        pc.describe_index("my-index")
         mock_indexes.describe.assert_called_once_with("my-index")
 
 
@@ -203,13 +191,9 @@ class TestDescribeIndex:
 
 
 class TestListIndexes:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_indexes = _make_pc_with_mock_indexes_delegates()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.list_indexes\(\) is deprecated",
-        ):
-            pc.list_indexes()
+        pc.list_indexes()
         mock_indexes.list.assert_called_once()
 
 
@@ -219,14 +203,10 @@ class TestListIndexes:
 
 
 class TestHasIndex:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_indexes = _make_pc_with_mock_indexes_delegates()
         mock_indexes.exists.return_value = True
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.has_index\(\) is deprecated",
-        ):
-            result = pc.has_index("my-index")
+        result = pc.has_index("my-index")
         mock_indexes.exists.assert_called_once_with("my-index")
         assert result is True
 
@@ -237,29 +217,24 @@ class TestHasIndex:
 
 
 class TestConfigureIndex:
-    def test_minimal_emits_deprecation_and_forwards(self) -> None:
+    def test_minimal_forwards(self) -> None:
         pc, mock_indexes = _make_pc_with_mock_indexes_delegates()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.configure_index\(\) is deprecated",
-        ):
-            pc.configure_index("my-index", deletion_protection="enabled")
+        pc.configure_index("my-index", deletion_protection="enabled")
         mock_indexes.configure.assert_called_once()
         _, kwargs = mock_indexes.configure.call_args
         assert kwargs["deletion_protection"] == "enabled"
 
     def test_all_kwargs_forwarded(self) -> None:
         pc, mock_indexes = _make_pc_with_mock_indexes_delegates()
-        with pytest.warns(DeprecationWarning, match=r"configure_index"):
-            pc.configure_index(
-                "my-index",
-                replicas=3,
-                pod_type="p2.x2",
-                deletion_protection="enabled",
-                tags={"env": "prod"},
-                embed={"model": "m"},
-                read_capacity={"read_units": 5},
-            )
+        pc.configure_index(
+            "my-index",
+            replicas=3,
+            pod_type="p2.x2",
+            deletion_protection="enabled",
+            tags={"env": "prod"},
+            embed={"model": "m"},
+            read_capacity={"read_units": 5},
+        )
         mock_indexes.configure.assert_called_once_with(
             name="my-index",
             replicas=3,
@@ -277,19 +252,14 @@ class TestConfigureIndex:
 
 
 class TestDeleteIndex:
-    def test_without_timeout_emits_deprecation_and_forwards(self) -> None:
+    def test_without_timeout_forwards(self) -> None:
         pc, mock_indexes = _make_pc_with_mock_indexes_delegates()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.delete_index\(\) is deprecated",
-        ):
-            pc.delete_index("my-index")
+        pc.delete_index("my-index")
         mock_indexes.delete.assert_called_once_with("my-index", timeout=None)
 
     def test_with_timeout_forwards_timeout(self) -> None:
         pc, mock_indexes = _make_pc_with_mock_indexes_delegates()
-        with pytest.warns(DeprecationWarning, match=r"delete_index"):
-            pc.delete_index("my-index", timeout=30)
+        pc.delete_index("my-index", timeout=30)
         mock_indexes.delete.assert_called_once_with("my-index", timeout=30)
 
 
@@ -299,13 +269,9 @@ class TestDeleteIndex:
 
 
 class TestCreateCollection:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_collections = _make_pc_with_mock_collections()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.create_collection\(\) is deprecated",
-        ):
-            pc.create_collection(name="my-coll", source="my-index")
+        pc.create_collection(name="my-coll", source="my-index")
         mock_collections.create.assert_called_once_with(name="my-coll", source="my-index")
 
 
@@ -315,13 +281,9 @@ class TestCreateCollection:
 
 
 class TestListCollections:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_collections = _make_pc_with_mock_collections()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.list_collections\(\) is deprecated",
-        ):
-            pc.list_collections()
+        pc.list_collections()
         mock_collections.list.assert_called_once()
 
 
@@ -331,13 +293,9 @@ class TestListCollections:
 
 
 class TestDescribeCollection:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_collections = _make_pc_with_mock_collections()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.describe_collection\(\) is deprecated",
-        ):
-            pc.describe_collection("my-coll")
+        pc.describe_collection("my-coll")
         mock_collections.describe.assert_called_once_with("my-coll")
 
 
@@ -347,13 +305,9 @@ class TestDescribeCollection:
 
 
 class TestDeleteCollection:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_collections = _make_pc_with_mock_collections()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.delete_collection\(\) is deprecated",
-        ):
-            pc.delete_collection("my-coll")
+        pc.delete_collection("my-coll")
         mock_collections.delete.assert_called_once_with("my-coll")
 
 
@@ -363,13 +317,9 @@ class TestDeleteCollection:
 
 
 class TestCreateBackup:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_backups = _make_pc_with_mock_backups()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.create_backup\(\) is deprecated",
-        ):
-            pc.create_backup(index_name="my-index", backup_name="my-backup")
+        pc.create_backup(index_name="my-index", backup_name="my-backup")
         mock_backups.create.assert_called_once_with(
             index_name="my-index", name="my-backup", description=""
         )
@@ -381,21 +331,16 @@ class TestCreateBackup:
 
 
 class TestListBackups:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_backups = _make_pc_with_mock_backups()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.list_backups\(\) is deprecated",
-        ):
-            pc.list_backups(index_name="my-index")
+        pc.list_backups(index_name="my-index")
         mock_backups.list.assert_called_once_with(
             index_name="my-index", limit=10, pagination_token=None
         )
 
     def test_limit_none_coerces_to_ten(self) -> None:
         pc, mock_backups = _make_pc_with_mock_backups()
-        with pytest.warns(DeprecationWarning, match=r"list_backups"):
-            pc.list_backups(limit=None)
+        pc.list_backups(limit=None)
         mock_backups.list.assert_called_once_with(index_name=None, limit=10, pagination_token=None)
 
 
@@ -405,13 +350,9 @@ class TestListBackups:
 
 
 class TestDescribeBackup:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_backups = _make_pc_with_mock_backups()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.describe_backup\(\) is deprecated",
-        ):
-            pc.describe_backup(backup_id="bkp-123")
+        pc.describe_backup(backup_id="bkp-123")
         mock_backups.describe.assert_called_once_with(backup_id="bkp-123")
 
 
@@ -421,13 +362,9 @@ class TestDescribeBackup:
 
 
 class TestDeleteBackup:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_backups = _make_pc_with_mock_backups()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.delete_backup\(\) is deprecated",
-        ):
-            pc.delete_backup(backup_id="bkp-123")
+        pc.delete_backup(backup_id="bkp-123")
         mock_backups.delete.assert_called_once_with(backup_id="bkp-123")
 
 
@@ -437,19 +374,14 @@ class TestDeleteBackup:
 
 
 class TestListRestoreJobs:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_restore_jobs = _make_pc_with_mock_restore_jobs()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.list_restore_jobs\(\) is deprecated",
-        ):
-            pc.list_restore_jobs()
+        pc.list_restore_jobs()
         mock_restore_jobs.list.assert_called_once_with(limit=10, pagination_token=None)
 
     def test_limit_none_coerces_to_ten(self) -> None:
         pc, mock_restore_jobs = _make_pc_with_mock_restore_jobs()
-        with pytest.warns(DeprecationWarning, match=r"list_restore_jobs"):
-            pc.list_restore_jobs(limit=None)
+        pc.list_restore_jobs(limit=None)
         mock_restore_jobs.list.assert_called_once_with(limit=10, pagination_token=None)
 
 
@@ -459,13 +391,9 @@ class TestListRestoreJobs:
 
 
 class TestDescribeRestoreJob:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc, mock_restore_jobs = _make_pc_with_mock_restore_jobs()
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.describe_restore_job\(\) is deprecated",
-        ):
-            pc.describe_restore_job(job_id="job-456")
+        pc.describe_restore_job(job_id="job-456")
         mock_restore_jobs.describe.assert_called_once_with(job_id="job-456")
 
 
@@ -475,15 +403,11 @@ class TestDescribeRestoreJob:
 
 
 class TestPineconeIndexDelegate:
-    def test_emits_deprecation_warning_and_forwards(self) -> None:
+    def test_forwards(self) -> None:
         pc = Pinecone(api_key="test-key")
         mock_index = MagicMock()
         pc.index = mock_index  # type: ignore[method-assign]
-        with pytest.warns(
-            DeprecationWarning,
-            match=r"Pinecone\.Index\(\) is deprecated",
-        ):
-            pc.Index(name="x", host="h")
+        pc.Index(name="x", host="h")
         mock_index.assert_called_once_with(name="x", host="h")
 
 
@@ -493,14 +417,10 @@ class TestPineconeIndexDelegate:
 
 
 class TestPineconeIndexAsyncioDelegate:
-    def test_emits_deprecation_warning_and_constructs_async_index(self) -> None:
+    def test_constructs_async_index(self) -> None:
         pc = Pinecone(api_key="test-key")
         with patch("pinecone.async_client.async_index.AsyncIndex") as mock_async_index:
-            with pytest.warns(
-                DeprecationWarning,
-                match=r"Pinecone\.IndexAsyncio\(\) is deprecated",
-            ):
-                pc.IndexAsyncio(host="my-index.svc.pinecone.io")
+            pc.IndexAsyncio(host="my-index.svc.pinecone.io")
         mock_async_index.assert_called_once()
         _, kwargs = mock_async_index.call_args
         assert kwargs["host"] == "my-index.svc.pinecone.io"

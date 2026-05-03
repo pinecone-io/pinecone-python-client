@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any, cast
 
@@ -490,15 +489,11 @@ class Pinecone:
         vector_type: VectorType | str = "dense",
         tags: dict[str, str] | None = None,
     ) -> IndexModel:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.indexes.create`.
+        """Backwards-compatibility shim for :meth:`Pinecone.indexes.create`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.indexes.create()`` instead of ``pc.create_index()``.
         """
-        warnings.warn(
-            "Pinecone.create_index() is deprecated; use pc.indexes.create() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         resolved_dp = deletion_protection if deletion_protection is not None else "disabled"
         return self.indexes.create(
             name=name,
@@ -523,16 +518,13 @@ class Pinecone:
         schema: dict[str, Any] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
-        """Backwards-compatibility delegate for creating an integrated (model-backed) index.
+        """Backwards-compatibility shim for creating an integrated (model-backed) index.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New
+        code should use ``pc.indexes.create()`` with an ``IntegratedSpec``
+        (``IntegratedSpec(cloud=..., region=..., embed=EmbedConfig(...))``)
+        instead of ``pc.create_index_for_model()``.
         """
-        warnings.warn(
-            "Pinecone.create_index_for_model() is deprecated;"
-            " use pc.indexes.create() with IntegratedSpec instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         from pinecone.inference.models.index_embed import IndexEmbed as _IndexEmbed
         from pinecone.models.indexes.specs import EmbedConfig as _EmbedConfig
         from pinecone.models.indexes.specs import IntegratedSpec as _IntegratedSpec
@@ -564,39 +556,27 @@ class Pinecone:
         )
 
     def describe_index(self, name: str) -> IndexModel:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.indexes.describe`.
+        """Backwards-compatibility shim for :meth:`Pinecone.indexes.describe`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.indexes.describe()`` instead of ``pc.describe_index()``.
         """
-        warnings.warn(
-            "Pinecone.describe_index() is deprecated; use pc.indexes.describe() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.indexes.describe(name)
 
     def list_indexes(self) -> IndexList:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.indexes.list`.
+        """Backwards-compatibility shim for :meth:`Pinecone.indexes.list`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New
+        code should use ``pc.indexes.list()`` instead of ``pc.list_indexes()``.
         """
-        warnings.warn(
-            "Pinecone.list_indexes() is deprecated; use pc.indexes.list() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.indexes.list()
 
     def has_index(self, name: str) -> bool:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.indexes.exists`.
+        """Backwards-compatibility shim for :meth:`Pinecone.indexes.exists`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.indexes.exists()`` instead of ``pc.has_index()``.
         """
-        warnings.warn(
-            "Pinecone.has_index() is deprecated; use pc.indexes.exists() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.indexes.exists(name)
 
     def configure_index(
@@ -609,15 +589,11 @@ class Pinecone:
         embed: dict[str, Any] | None = None,
         read_capacity: dict[str, Any] | None = None,
     ) -> None:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.indexes.configure`.
+        """Backwards-compatibility shim for :meth:`Pinecone.indexes.configure`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.indexes.configure()`` instead of ``pc.configure_index()``.
         """
-        warnings.warn(
-            "Pinecone.configure_index() is deprecated; use pc.indexes.configure() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         self.indexes.configure(
             name=name,
             replicas=replicas,
@@ -629,63 +605,43 @@ class Pinecone:
         )
 
     def delete_index(self, name: str, timeout: int | None = None) -> None:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.indexes.delete`.
+        """Backwards-compatibility shim for :meth:`Pinecone.indexes.delete`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.indexes.delete()`` instead of ``pc.delete_index()``.
         """
-        warnings.warn(
-            "Pinecone.delete_index() is deprecated; use pc.indexes.delete() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         self.indexes.delete(name, timeout=timeout)
 
     def create_collection(self, name: str, source: str) -> CollectionModel:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.collections.create`.
+        """Backwards-compatibility shim for :meth:`Pinecone.collections.create`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.collections.create()`` instead of ``pc.create_collection()``.
         """
-        warnings.warn(
-            "Pinecone.create_collection() is deprecated; use pc.collections.create() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.collections.create(name=name, source=source)
 
     def list_collections(self) -> CollectionList:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.collections.list`.
+        """Backwards-compatibility shim for :meth:`Pinecone.collections.list`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.collections.list()`` instead of ``pc.list_collections()``.
         """
-        warnings.warn(
-            "Pinecone.list_collections() is deprecated; use pc.collections.list() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.collections.list()
 
     def describe_collection(self, name: str) -> CollectionModel:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.collections.describe`.
+        """Backwards-compatibility shim for :meth:`Pinecone.collections.describe`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.collections.describe()`` instead of ``pc.describe_collection()``.
         """
-        warnings.warn(
-            "Pinecone.describe_collection() is deprecated; use pc.collections.describe() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.collections.describe(name)
 
     def delete_collection(self, name: str) -> None:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.collections.delete`.
+        """Backwards-compatibility shim for :meth:`Pinecone.collections.delete`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.collections.delete()`` instead of ``pc.delete_collection()``.
         """
-        warnings.warn(
-            "Pinecone.delete_collection() is deprecated; use pc.collections.delete() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         self.collections.delete(name)
 
     def create_backup(
@@ -695,15 +651,11 @@ class Pinecone:
         backup_name: str | None = None,
         description: str = "",
     ) -> BackupModel:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.backups.create`.
+        """Backwards-compatibility shim for :meth:`Pinecone.backups.create`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.backups.create()`` instead of ``pc.create_backup()``.
         """
-        warnings.warn(
-            "Pinecone.create_backup() is deprecated; use pc.backups.create() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.backups.create(
             index_name=index_name,
             name=backup_name,
@@ -717,15 +669,11 @@ class Pinecone:
         limit: int | None = 10,
         pagination_token: str | None = None,
     ) -> BackupList:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.backups.list`.
+        """Backwards-compatibility shim for :meth:`Pinecone.backups.list`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.backups.list()`` instead of ``pc.list_backups()``.
         """
-        warnings.warn(
-            "Pinecone.list_backups() is deprecated; use pc.backups.list() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.backups.list(
             index_name=index_name,
             limit=limit if limit is not None else 10,
@@ -733,27 +681,19 @@ class Pinecone:
         )
 
     def describe_backup(self, *, backup_id: str) -> BackupModel:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.backups.describe`.
+        """Backwards-compatibility shim for :meth:`Pinecone.backups.describe`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.backups.describe()`` instead of ``pc.describe_backup()``.
         """
-        warnings.warn(
-            "Pinecone.describe_backup() is deprecated; use pc.backups.describe() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.backups.describe(backup_id=backup_id)
 
     def delete_backup(self, *, backup_id: str) -> None:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.backups.delete`.
+        """Backwards-compatibility shim for :meth:`Pinecone.backups.delete`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.backups.delete()`` instead of ``pc.delete_backup()``.
         """
-        warnings.warn(
-            "Pinecone.delete_backup() is deprecated; use pc.backups.delete() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         self.backups.delete(backup_id=backup_id)
 
     def list_restore_jobs(
@@ -762,57 +702,42 @@ class Pinecone:
         limit: int | None = 10,
         pagination_token: str | None = None,
     ) -> RestoreJobList:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.restore_jobs.list`.
+        """Backwards-compatibility shim for :meth:`Pinecone.restore_jobs.list`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.restore_jobs.list()`` instead of ``pc.list_restore_jobs()``.
         """
-        warnings.warn(
-            "Pinecone.list_restore_jobs() is deprecated; use pc.restore_jobs.list() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.restore_jobs.list(
             limit=limit if limit is not None else 10,
             pagination_token=pagination_token,
         )
 
     def describe_restore_job(self, *, job_id: str) -> RestoreJobModel:
-        """Backwards-compatibility delegate. See :meth:`Pinecone.restore_jobs.describe`.
+        """Backwards-compatibility shim for :meth:`Pinecone.restore_jobs.describe`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.restore_jobs.describe()`` instead of ``pc.describe_restore_job()``.
         """
-        warnings.warn(
-            "Pinecone.describe_restore_job() is deprecated;"
-            " use pc.restore_jobs.describe() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return self.restore_jobs.describe(job_id=job_id)
 
     def Index(self, name: str = "", host: str = "", **kwargs: Any) -> Index:  # noqa: N802
-        """Backwards-compatibility factory. See :meth:`Pinecone.index`.
+        """Backwards-compatibility shim for :meth:`Pinecone.index`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``pc.index(name=..., host=...)`` instead of ``pc.Index(...)``.
         """
-        warnings.warn(
-            "Pinecone.Index() is deprecated; use pc.index() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         from pinecone.index import Index as _Index
 
         return cast(_Index, self.index(name=name, host=host))
 
     def IndexAsyncio(self, host: str, **kwargs: Any) -> Any:  # noqa: N802
-        """Backwards-compatibility async index factory. See ``AsyncIndex``.
+        """Backwards-compatibility shim that returns an :class:`AsyncIndex`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New
+        code should construct an :class:`AsyncPinecone` and call ``.index(host=...)``
+        on it (or instantiate :class:`AsyncIndex` directly) instead of
+        ``Pinecone.IndexAsyncio(...)``.
         """
-        warnings.warn(
-            "Pinecone.IndexAsyncio() is deprecated; use AsyncIndex directly instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
 
         return _AsyncIndex(
