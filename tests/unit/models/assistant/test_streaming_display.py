@@ -5,6 +5,7 @@ from collections.abc import AsyncIterator, Iterator
 from pinecone.models.assistant.chat import ChatCitation, ChatReference, ChatUsage
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.streaming import (
+    AsyncChatCompletionStream,
     AsyncChatStream,
     ChatCompletionStream,
     ChatCompletionStreamChoice,
@@ -433,9 +434,6 @@ class TestChatCompletionStreamDisplay:
         object.__setattr__(s, "_stream", object())
         assert isinstance(repr(s), str)
         assert isinstance(s._repr_html_(), str)
-
-
-from pinecone.models.assistant.streaming import AsyncChatCompletionStream
 
 
 class TestAsyncChatCompletionStreamDisplay:

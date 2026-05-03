@@ -208,9 +208,7 @@ class TestUpsert:
     ) -> None:
         mock_channel.upsert.return_value = {"upserted_count": 1}
 
-        grpc_index.upsert(
-            vectors=[Vector(id="v1", values=[0.1], metadata={"topic": "ai"})]
-        )
+        grpc_index.upsert(vectors=[Vector(id="v1", values=[0.1], metadata={"topic": "ai"})])
 
         call_args = mock_channel.upsert.call_args
         vec_dict = call_args[0][0][0]
@@ -801,7 +799,12 @@ class TestGrpcExceptionPropagation:
         exc = ApiError(
             "Vector dimension 3 does not match the dimension of the index 2",
             400,
-            {"error": {"code": "INVALID_ARGUMENT", "message": "Vector dimension 3 does not match the dimension of the index 2"}},
+            {
+                "error": {
+                    "code": "INVALID_ARGUMENT",
+                    "message": "Vector dimension 3 does not match the dimension of the index 2",
+                }
+            },
             error_code="INVALID_ARGUMENT",
         )
         mock_channel.upsert.side_effect = exc
@@ -1156,9 +1159,7 @@ class TestGrpcIndexSearch:
         )
         idx = _make_grpc_index(mock_channel, host=_INDEX_HOST)
         match_terms = {"strategy": "all", "terms": ["ai"]}
-        idx.search(
-            namespace="test-ns", top_k=5, inputs={"text": "q"}, match_terms=match_terms
-        )
+        idx.search(namespace="test-ns", top_k=5, inputs={"text": "q"}, match_terms=match_terms)
 
         body = orjson.loads(route.calls.last.request.content)
         assert body["query"]["match_terms"] == match_terms

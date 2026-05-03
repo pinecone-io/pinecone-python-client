@@ -93,9 +93,7 @@ def test_assistants_smoke(client: Pinecone) -> None:
         assert multimodal_file.status == "Available"
 
         # ----- describe_file / list_files / list_files_page -----
-        d_file = client.assistants.describe_file(
-            assistant_name=name, file_id=text_file.id
-        )
+        d_file = client.assistants.describe_file(assistant_name=name, file_id=text_file.id)
         assert d_file.id == text_file.id
 
         all_files = client.assistants.list_files(assistant_name=name).to_list()
@@ -163,9 +161,7 @@ def test_assistants_smoke(client: Pinecone) -> None:
         assert via_call.name == name
 
         # ----- delete_file (one of them) -----
-        client.assistants.delete_file(
-            assistant_name=name, file_id=text_file.id
-        )
+        client.assistants.delete_file(assistant_name=name, file_id=text_file.id)
     finally:
         # delete assistant first (tears down files server-side too)
         cleanup_resource(

@@ -44,7 +44,13 @@ def _make_response(
 
 class TestMessageExtraction:
     def test_pinecone_canonical_shape(self) -> None:
-        body = {"error": {"code": "INVALID_ARGUMENT", "message": "$match_phras is not a valid operator"}, "status": 400}
+        body = {
+            "error": {
+                "code": "INVALID_ARGUMENT",
+                "message": "$match_phras is not a valid operator",
+            },
+            "status": 400,
+        }
         response = _make_response(400, json=body)
         msg, error_code = _extract_message_and_error_code(body, response)
         assert msg == "$match_phras is not a valid operator"
@@ -87,7 +93,7 @@ class TestMessageExtraction:
     def test_long_text_body_truncated(self) -> None:
         long_text = "x" * 1000
         response = _make_response(503, body=long_text.encode())
-        msg, error_code = _extract_message_and_error_code(None, response)
+        msg, _error_code = _extract_message_and_error_code(None, response)
         assert msg.endswith("... (truncated)")
         assert len(msg) <= _TEXT_BODY_MAX_LEN + len("... (truncated)")
 
@@ -116,7 +122,7 @@ class TestMessageExtraction:
         html = b"<html><body><h1>502 Bad Gateway</h1></body></html>"
         response = _make_response(502, body=html)
         msg, error_code = _extract_message_and_error_code(None, response)
-        assert not msg == ""  # does not crash; returns something
+        assert msg != ""  # does not crash; returns something
         assert error_code is None
 
 
@@ -130,7 +136,9 @@ class TestRequestIdExtraction:
         assert _extract_request_id(headers) == "xyz"
 
     def test_pinecone_header_wins_when_both_present(self) -> None:
-        headers = httpx.Headers({"x-pinecone-request-id": "pinecone-id", "x-request-id": "generic-id"})
+        headers = httpx.Headers(
+            {"x-pinecone-request-id": "pinecone-id", "x-request-id": "generic-id"}
+        )
         assert _extract_request_id(headers) == "pinecone-id"
 
     def test_no_headers(self) -> None:
@@ -146,7 +154,10 @@ class TestRaiseForStatus:
     def test_404_with_canonical_body(self) -> None:
         response = _make_response(
             404,
-            json={"error": {"code": "NOT_FOUND", "message": "index 'foo' does not exist"}, "status": 404},
+            json={
+                "error": {"code": "NOT_FOUND", "message": "index 'foo' does not exist"},
+                "status": 404,
+            },
             headers={"x-pinecone-request-id": "req-abc"},
         )
         with pytest.raises(NotFoundError) as exc_info:
@@ -191,7 +202,7 @@ class TestExtractionResilience:
     def test_body_error_message_is_not_a_string(self) -> None:
         body = {"error": {"code": "X", "message": 12345}}
         response = _make_response(400, json=body)
-        msg, code = _extract_message_and_error_code(body, response)
+        msg, _code = _extract_message_and_error_code(body, response)
         assert isinstance(msg, str)
         # error_code may still be extracted; should not crash regardless
 
@@ -205,7 +216,7 @@ class TestExtractionResilience:
     def test_unicode_in_message(self) -> None:
         body = {"error": {"code": "X", "message": "エラー 🚨 données"}}
         response = _make_response(400, json=body)
-        msg, code = _extract_message_and_error_code(body, response)
+        msg, _code = _extract_message_and_error_code(body, response)
         assert "エラー" in msg
         assert "🚨" in msg
 

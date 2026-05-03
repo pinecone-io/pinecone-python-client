@@ -318,7 +318,6 @@ _UPSERT_RESPONSE = b'{"upserted_count": 3}'
 
 
 def test_sync_batch_upsert_returns_batch_result() -> None:
-    config = _make_config()
     mock_response = MagicMock()
     mock_response.content = _UPSERT_RESPONSE
 

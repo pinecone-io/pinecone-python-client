@@ -10,8 +10,7 @@ from pinecone.grpc import GrpcIndex
 
 QUERY_RESPONSE = {
     "matches": [
-        {"id": f"v{i}", "score": 0.9 - i * 0.01, "values": [], "metadata": None}
-        for i in range(100)
+        {"id": f"v{i}", "score": 0.9 - i * 0.01, "values": [], "metadata": None} for i in range(100)
     ],
     "namespace": "ns",
     "usage": {"read_units": 1},

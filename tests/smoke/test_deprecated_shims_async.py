@@ -76,9 +76,7 @@ async def test_deprecated_shims_smoke_async(api_key: str) -> None:
         assert exists is True
 
         with capture_deprecation_warning("configure_index"):
-            await async_client.configure_index(
-                serverless_name, tags={"env": "smoke-async"}
-            )
+            await async_client.configure_index(serverless_name, tags={"env": "smoke-async"})
 
         # ----- IndexAsyncio() factory (constructor only) -----
         with capture_deprecation_warning("IndexAsyncio"):
@@ -109,9 +107,7 @@ async def test_deprecated_shims_smoke_async(api_key: str) -> None:
             jobs = await async_client.list_restore_jobs(limit=10)
         if jobs.data:
             with capture_deprecation_warning("describe_restore_job"):
-                await async_client.describe_restore_job(
-                    job_id=jobs.data[0].restore_job_id
-                )
+                await async_client.describe_restore_job(job_id=jobs.data[0].restore_job_id)
         else:
             with capture_deprecation_warning("describe_restore_job"):
                 with pytest.raises((NotFoundError, PineconeApiException)):

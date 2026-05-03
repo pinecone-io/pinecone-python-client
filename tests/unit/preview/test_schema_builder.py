@@ -174,9 +174,7 @@ def test_string_field_unknown_language_passes_through_kwarg() -> None:
 
 
 def test_string_field_unknown_language_passes_through_dict() -> None:
-    schema = (
-        SchemaBuilder().add_string_field("t", full_text_search={"language": "klingon"}).build()
-    )
+    schema = SchemaBuilder().add_string_field("t", full_text_search={"language": "klingon"}).build()
     assert schema["fields"]["t"]["full_text_search"] == {"language": "klingon"}
 
 

@@ -34,7 +34,9 @@ class TestQueryResponseInfo:
         assert result.response_info is None
 
     def test_query_response_accepts_response_info(self) -> None:
-        info = ResponseInfo(raw_headers={"x-pinecone-request-id": "req-2", "x-pinecone-lsn-reconciled": "42"})
+        info = ResponseInfo(
+            raw_headers={"x-pinecone-request-id": "req-2", "x-pinecone-lsn-reconciled": "42"}
+        )
         result = QueryResponse(response_info=info)
         assert result.response_info is not None
         assert result.response_info.request_id == "req-2"

@@ -72,9 +72,7 @@ _REEXPORT_TRIPLES = [
 
 
 @pytest.mark.parametrize("legacy_path,symbol_name,canonical_path", _REEXPORT_TRIPLES)
-def test_shim_reexports_canonical(
-    legacy_path: str, symbol_name: str, canonical_path: str
-) -> None:
+def test_shim_reexports_canonical(legacy_path: str, symbol_name: str, canonical_path: str) -> None:
     legacy_module = importlib.import_module(legacy_path)
     canonical_module = importlib.import_module(canonical_path)
     assert getattr(legacy_module, symbol_name) is getattr(canonical_module, symbol_name)

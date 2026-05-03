@@ -1160,7 +1160,7 @@ async def test_context_retrieval_validation_async(async_client: AsyncPinecone) -
         raise AssertionError(
             "context() raised PineconeValueError when query='' and messages is non-empty — "
             "empty string should be treated as not provided, leaving messages as the sole input"
-        )
+        ) from None
     except Exception:
         # Any other exception (ApiError, NotFoundError, etc.) is acceptable here —
         # the assistant does not exist and the API will reject the request.

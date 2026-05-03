@@ -33,6 +33,7 @@ from pinecone.errors.exceptions import (
 # Helpers that mirror what the new status_to_py_err constructs
 # ---------------------------------------------------------------------------
 
+
 def _make_api_error(
     grpc_code_name: str,
     message: str,
@@ -121,9 +122,7 @@ class TestNotFoundMapsToNotFoundError:
 
     def test_body_shape(self) -> None:
         exc = _make_not_found_error("index 'foo' does not exist")
-        assert exc.body == {
-            "error": {"code": "NOT_FOUND", "message": "index 'foo' does not exist"}
-        }
+        assert exc.body == {"error": {"code": "NOT_FOUND", "message": "index 'foo' does not exist"}}
 
     def test_str_format(self) -> None:
         exc = _make_not_found_error("index 'foo' does not exist")

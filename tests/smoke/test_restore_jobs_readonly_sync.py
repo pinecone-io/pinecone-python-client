@@ -26,8 +26,6 @@ def test_restore_jobs_readonly_smoke(client: Pinecone) -> None:
             assert described.restore_job_id == sample.restore_job_id
         else:
             with pytest.raises((NotFoundError, PineconeApiException)):
-                client.restore_jobs.describe(
-                    job_id="smoke-no-such-restore-job-id"
-                )
+                client.restore_jobs.describe(job_id="smoke-no-such-restore-job-id")
     finally:
         client.close()

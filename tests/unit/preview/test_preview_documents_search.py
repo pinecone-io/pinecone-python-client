@@ -309,7 +309,12 @@ def test_search_omits_include_fields_from_body_when_not_specified(docs: PreviewD
 @respx.mock
 def test_search_sends_include_fields_when_explicitly_specified(docs: PreviewDocuments) -> None:
     route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
-    docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1, 0.2]}], include_fields=["title", "category"])
+    docs.search(
+        namespace="my-ns",
+        top_k=5,
+        score_by=[{"field": "embedding", "query": [0.1, 0.2]}],
+        include_fields=["title", "category"],
+    )
     body = orjson.loads(route.calls.last.request.content)
     assert body["include_fields"] == ["title", "category"]
 
@@ -585,7 +590,9 @@ async def test_async_search_omits_include_fields_from_body_when_not_specified(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
     route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
-    await async_docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1, 0.2]}])
+    await async_docs.search(
+        namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1, 0.2]}]
+    )
     body = orjson.loads(route.calls.last.request.content)
     assert "include_fields" not in body
 
@@ -596,7 +603,12 @@ async def test_async_search_sends_include_fields_when_explicitly_specified(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
     route = respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
-    await async_docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1, 0.2]}], include_fields=["title", "category"])
+    await async_docs.search(
+        namespace="my-ns",
+        top_k=5,
+        score_by=[{"field": "embedding", "query": [0.1, 0.2]}],
+        include_fields=["title", "category"],
+    )
     body = orjson.loads(route.calls.last.request.content)
     assert body["include_fields"] == ["title", "category"]
 
@@ -619,7 +631,9 @@ def test_search_response_exposes_response_info_from_headers(docs: PreviewDocumen
             },
         )
     )
-    result = docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1]}])
+    result = docs.search(
+        namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1]}]
+    )
     assert result.response_info is not None
     assert result.response_info.lsn_reconciled == 42
     assert result.response_info.lsn_committed == 50
@@ -629,7 +643,9 @@ def test_search_response_exposes_response_info_from_headers(docs: PreviewDocumen
 @respx.mock
 def test_search_response_info_is_none_when_headers_absent(docs: PreviewDocuments) -> None:
     respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
-    result = docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1]}])
+    result = docs.search(
+        namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1]}]
+    )
     assert result.response_info is not None
     assert result.response_info.lsn_reconciled is None
     assert result.response_info.lsn_committed is None
@@ -657,7 +673,9 @@ async def test_async_search_response_exposes_response_info_from_headers(
             },
         )
     )
-    result = await async_docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1]}])
+    result = await async_docs.search(
+        namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1]}]
+    )
     assert result.response_info is not None
     assert result.response_info.lsn_reconciled == 42
     assert result.response_info.lsn_committed == 50
@@ -670,7 +688,9 @@ async def test_async_search_response_info_is_none_when_headers_absent(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
     respx.post(SEARCH_URL).mock(return_value=httpx.Response(200, json=_SEARCH_RESPONSE))
-    result = await async_docs.search(namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1]}])
+    result = await async_docs.search(
+        namespace="my-ns", top_k=5, score_by=[{"field": "embedding", "query": [0.1]}]
+    )
     assert result.response_info is not None
     assert result.response_info.lsn_reconciled is None
     assert result.response_info.lsn_committed is None

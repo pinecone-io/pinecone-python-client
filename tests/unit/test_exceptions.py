@@ -251,7 +251,9 @@ class TestSubclassRepr:
 
 class TestValidationErrorPath:
     def test_value_error_with_path(self) -> None:
-        err = PineconeValueError("score must be a number, got str", path="records[3].metadata.score")
+        err = PineconeValueError(
+            "score must be a number, got str", path="records[3].metadata.score"
+        )
         assert str(err) == "at records[3].metadata.score: score must be a number, got str"
 
     def test_value_error_without_path(self) -> None:
@@ -315,7 +317,10 @@ class TestResponseParsingErrorStr:
             "Failed to parse describe response",
             cause=ValueError("missing 'host' field"),
         )
-        assert str(err) == "Failed to parse describe response (caused by ValueError: missing 'host' field)"
+        assert (
+            str(err)
+            == "Failed to parse describe response (caused by ValueError: missing 'host' field)"
+        )
 
     def test_str_with_msgspec_validation_error(self) -> None:
         msgspec = pytest.importorskip("msgspec")

@@ -114,9 +114,7 @@ def validate_create_inputs(
         raise ValidationError("spec dict must contain a 'serverless', 'pod', or 'byoc' key")
 
     if dimension is not None and not isinstance(dimension, int):
-        raise PineconeTypeError(
-            f"dimension must be an integer, got {type(dimension).__name__!r}"
-        )
+        raise PineconeTypeError(f"dimension must be an integer, got {type(dimension).__name__!r}")
 
     resolved_vt = resolve_enum_value(vector_type)
     if resolved_vt == "sparse" and dimension is not None:

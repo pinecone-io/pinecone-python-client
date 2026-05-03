@@ -40,6 +40,7 @@ async def _async_wait_for_collection_deletion(
         await asyncio.sleep(interval)
     print(f"  WARNING: collection {name} still present after {timeout}s")
 
+
 POD_ENV = "us-east-1-aws"
 DIM = 8
 NAMESPACE = "smoke-pod-ns-async"
@@ -72,8 +73,7 @@ async def _async_wait_for_pod_warmup(
             last_exc = exc
         await asyncio.sleep(interval)
     raise TimeoutError(
-        f"Pod index did not warm up within {timeout}s "
-        f"(last fetch error: {last_exc!r})"
+        f"Pod index did not warm up within {timeout}s (last fetch error: {last_exc!r})"
     )
 
 
@@ -97,13 +97,9 @@ async def test_pod_collections_smoke_async(api_key: str) -> None:
         idx1 = pc.index(name=pod1_name)
         try:
             await idx1.upsert(vectors=[_vec(0)], namespace=NAMESPACE)
-            await _async_wait_for_pod_warmup(
-                idx1, "p0", namespace=NAMESPACE, timeout=600
-            )
+            await _async_wait_for_pod_warmup(idx1, "p0", namespace=NAMESPACE, timeout=600)
 
-            await idx1.upsert(
-                vectors=[_vec(i) for i in range(1, 6)], namespace=NAMESPACE
-            )
+            await idx1.upsert(vectors=[_vec(i) for i in range(1, 6)], namespace=NAMESPACE)
             await async_wait_for_vector_count(idx1, NAMESPACE, expected=6, timeout=120)
 
             q = await idx1.query(
@@ -148,9 +144,7 @@ async def test_pod_collections_smoke_async(api_key: str) -> None:
 
         idx2 = pc.index(name=pod2_name)
         try:
-            await _async_wait_for_pod_warmup(
-                idx2, "p0", namespace=NAMESPACE, timeout=300
-            )
+            await _async_wait_for_pod_warmup(idx2, "p0", namespace=NAMESPACE, timeout=300)
             stats = await idx2.describe_index_stats()
             ns = stats.namespaces.get(NAMESPACE)
             assert ns is not None

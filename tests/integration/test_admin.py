@@ -94,7 +94,9 @@ def test_admin_init_validation_whitespace_only_client_id(monkeypatch: pytest.Mon
 
 
 @pytest.mark.integration
-def test_admin_init_validation_whitespace_only_client_secret(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_admin_init_validation_whitespace_only_client_secret(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Admin() raises PineconeValueError for a whitespace-only client_secret.
 
     Env vars are cleared to prevent the fallback from masking the kwarg value.

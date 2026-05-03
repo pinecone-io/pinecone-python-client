@@ -396,9 +396,7 @@ class TestListBackups:
         pc, mock_backups = _make_pc_with_mock_backups()
         with pytest.warns(DeprecationWarning, match=r"list_backups"):
             pc.list_backups(limit=None)
-        mock_backups.list.assert_called_once_with(
-            index_name=None, limit=10, pagination_token=None
-        )
+        mock_backups.list.assert_called_once_with(index_name=None, limit=10, pagination_token=None)
 
 
 # ---------------------------------------------------------------------------

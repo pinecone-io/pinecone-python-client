@@ -126,9 +126,7 @@ class TestVector:
         assert v.sparse_values is None
 
     def test_from_dict_missing_values_key(self) -> None:
-        v = Vector.from_dict(
-            {"id": "v4", "sparse_values": {"indices": [0], "values": [1.0]}}
-        )
+        v = Vector.from_dict({"id": "v4", "sparse_values": {"indices": [0], "values": [1.0]}})
         assert v.values == []
 
 

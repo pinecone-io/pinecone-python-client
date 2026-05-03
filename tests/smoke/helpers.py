@@ -128,8 +128,7 @@ def wait_for_pod_warmup(
             last_exc = exc
         time.sleep(interval)
     raise TimeoutError(
-        f"Pod index did not warm up within {timeout}s "
-        f"(last fetch error: {last_exc!r})"
+        f"Pod index did not warm up within {timeout}s (last fetch error: {last_exc!r})"
     )
 
 
@@ -157,11 +156,8 @@ def capture_deprecation_warning(expected_substring: str = "") -> Iterator[list[A
     relevant = [r for r in records if issubclass(r.category, DeprecationWarning)]
     if not relevant:
         raise AssertionError("Expected at least one DeprecationWarning, got none")
-    if expected_substring and not any(
-        expected_substring in str(r.message) for r in relevant
-    ):
+    if expected_substring and not any(expected_substring in str(r.message) for r in relevant):
         messages = [str(r.message) for r in relevant]
         raise AssertionError(
-            f"No captured DeprecationWarning contained {expected_substring!r}. "
-            f"Got: {messages}"
+            f"No captured DeprecationWarning contained {expected_substring!r}. Got: {messages}"
         )

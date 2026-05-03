@@ -46,6 +46,7 @@ def _wait_for_collection_deletion(
         time.sleep(interval)
     print(f"  WARNING: collection {name} still present after {timeout}s")
 
+
 POD_ENV = "us-east-1-aws"
 DIM = 8
 NAMESPACE = "smoke-pod-ns"

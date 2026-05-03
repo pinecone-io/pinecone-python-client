@@ -1,4 +1,5 @@
 """Tests for _raise_for_status error message extraction."""
+
 from __future__ import annotations
 
 import httpx

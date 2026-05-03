@@ -89,9 +89,7 @@ async def test_assistants_smoke_async(api_key: str) -> None:
         assert multimodal_file.status == "Available"
 
         # ----- describe_file / list_files / list_files_page -----
-        d_file = await pc.assistants.describe_file(
-            assistant_name=name, file_id=text_file.id
-        )
+        d_file = await pc.assistants.describe_file(assistant_name=name, file_id=text_file.id)
         assert d_file.id == text_file.id
 
         all_files = await pc.assistants.list_files(assistant_name=name).to_list()
@@ -161,9 +159,7 @@ async def test_assistants_smoke_async(api_key: str) -> None:
         assert via_call.name == name
 
         # ----- delete_file -----
-        await pc.assistants.delete_file(
-            assistant_name=name, file_id=text_file.id
-        )
+        await pc.assistants.delete_file(assistant_name=name, file_id=text_file.id)
     finally:
         await async_cleanup_resource(
             lambda: pc.assistants.delete(name=name),

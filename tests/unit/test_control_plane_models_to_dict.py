@@ -96,7 +96,9 @@ class TestCreateIndexFromBackupResponseToDict:
 
 class TestResponseInfoToDict:
     def test_response_info_to_dict(self) -> None:
-        info = ResponseInfo(raw_headers={"x-pinecone-request-id": "req-123", "x-pinecone-lsn-reconciled": "42"})
+        info = ResponseInfo(
+            raw_headers={"x-pinecone-request-id": "req-123", "x-pinecone-lsn-reconciled": "42"}
+        )
         result = info.to_dict()
         assert isinstance(result, dict)
         assert result["raw_headers"]["x-pinecone-request-id"] == "req-123"

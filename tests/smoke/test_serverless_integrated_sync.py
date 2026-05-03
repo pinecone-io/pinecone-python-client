@@ -50,7 +50,10 @@ def test_serverless_integrated_smoke(client: Pinecone) -> None:
                 {"_id": "d1", "chunk_text": "Vector databases enable similarity search at scale."},
                 {"_id": "d2", "chunk_text": "RAG combines retrieval with large language models."},
                 {"_id": "d3", "chunk_text": "Cooking pasta requires boiling water properly."},
-                {"_id": "d4", "chunk_text": "Embeddings represent text as high-dimensional vectors."},
+                {
+                    "_id": "d4",
+                    "chunk_text": "Embeddings represent text as high-dimensional vectors.",
+                },
             ]
             r = idx.upsert_records(namespace=NS, records=records)
             assert r.record_count == 4

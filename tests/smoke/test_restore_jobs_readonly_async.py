@@ -21,6 +21,4 @@ async def test_restore_jobs_readonly_smoke_async(async_client: AsyncPinecone) ->
         assert described.restore_job_id == sample.restore_job_id
     else:
         with pytest.raises((NotFoundError, PineconeApiException)):
-            await async_client.restore_jobs.describe(
-                job_id="smoke-no-such-restore-job-id-async"
-            )
+            await async_client.restore_jobs.describe(job_id="smoke-no-such-restore-job-id-async")
