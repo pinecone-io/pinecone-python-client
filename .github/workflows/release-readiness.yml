@@ -1,0 +1,317 @@
+name: Release Readiness
+
+# Heavy, optional checks that signal "are we in a state where a real release
+# would be safe?". Decoupled from dev-publish so flakes here never block a
+# publish, and from release-prod so heavy checks never run mid-release.
+#
+# A green run within the last 7 days is the manual go/no-go signal for a
+# real release.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+
+concurrency:
+  group: release-readiness
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  PROTOC_VERSION: "28.3"
+  # arduino/setup-protoc@v3.0.0 has no Node.js 24 release yet; remove once a node24 version ships
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Integration tests against a real Pinecone backend.
+  # ---------------------------------------------------------------------------
+  integration-tests:
+    name: Integration tests (real backend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Install protoc
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
+        with:
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8  # stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo build artifacts
+        uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc  # v2.9.1
+        with:
+          workspaces: rust
+          shared-key: integration-tests
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install deps + build Rust extension
+        run: uv sync --group dev
+
+      - name: pytest tests/integration
+        run: uv run --no-sync pytest tests/integration -v --junitxml=integration-results.xml
+
+      - name: Upload integration results
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+        with:
+          name: integration-results
+          path: integration-results.xml
+
+  # ---------------------------------------------------------------------------
+  # Install the latest dev wheel from GCP Artifact Registry and smoke-test it.
+  # Validates the publish/install path end-to-end (not just that the wheel was
+  # built — the smoke job in dev-publish already covers that).
+  # ---------------------------------------------------------------------------
+  install-tests:
+    name: Install from Artifact Registry + smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      GCP_REGION: ${{ vars.GCP_REGION }}
+      GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+      GCP_REPO_NAME: ${{ vars.GCP_REPO_NAME }}
+      PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093  # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install Artifact Registry keyring backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install keyring==25.6.0 keyrings.google-artifactregistry-auth==1.1.2
+
+      - name: Install latest dev wheel from Artifact Registry
+        run: |
+          set -euo pipefail
+          INDEX_URL="https://${GCP_REGION}-python.pkg.dev/${GCP_PROJECT_ID}/${GCP_REPO_NAME}/simple/"
+          echo "Installing from ${INDEX_URL}"
+          # --pre to include dev versions; --extra-index-url so PyPI deps resolve normally
+          pip install --pre --extra-index-url "${INDEX_URL}" pinecone pytest pytest-asyncio python-dotenv
+
+      - name: Show installed version
+        run: pip show pinecone | grep -E '^(Name|Version|Location):'
+
+      - name: Run smoke suite
+        id: smoke
+        run: |
+          pytest tests/smoke/ \
+            -v -s -rs \
+            --ignore=tests/smoke/test_pod_collections_sync.py \
+            --ignore=tests/smoke/test_pod_collections_async.py \
+            --junitxml=install-smoke-results.xml
+
+      - name: Orphan cleanup
+        if: always()
+        continue-on-error: true
+        run: python tests/smoke/scripts/cleanup_orphans.py || true
+
+      - name: Upload install-smoke results
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+        with:
+          name: install-smoke-results
+          path: install-smoke-results.xml
+
+  # ---------------------------------------------------------------------------
+  # Cross-platform wheel build matrix without injecting dev versions or
+  # publishing. Independent signal that release-builds work on every target.
+  # ---------------------------------------------------------------------------
+  cross-platform-build:
+    name: Wheel build (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            manylinux: auto
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            manylinux: auto
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            manylinux: musllinux_1_2
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+            manylinux: musllinux_1_2
+          - os: macos-14
+            target: x86_64-apple-darwin
+          - os: macos-14
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Install protoc
+        if: runner.os != 'Linux'
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
+        with:
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build wheels
+        uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad  # v1.50.1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist
+          manylinux: ${{ matrix.manylinux || 'auto' }}
+          before-script-linux: |
+            TARGET="${{ matrix.target }}"
+            PROTOC_VERSION="${{ env.PROTOC_VERSION }}"
+            case "$TARGET" in
+              x86_64-*)
+                PROTOC_ARCH="linux-x86_64"
+                PROTOC_SHA256="0ad949f04a6a174da83cdcbdb36dee0a4925272a5b6d83f79a6bf9852076d53f"
+                ;;
+              aarch64-*)
+                PROTOC_ARCH="linux-aarch_64"
+                PROTOC_SHA256="1de522032a8b194002fe35cab86d747848238b5e4de4f99648372079f5b46f9a"
+                ;;
+              *)
+                echo "Unsupported target: $TARGET" >&2
+                exit 1
+                ;;
+            esac
+            PROTOC_ZIP="protoc-${PROTOC_VERSION}-${PROTOC_ARCH}.zip"
+            curl -fsSLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
+            echo "${PROTOC_SHA256}  ${PROTOC_ZIP}" | sha256sum -c -
+            python3 -m zipfile -e "${PROTOC_ZIP}" /usr/local
+            chmod +x /usr/local/bin/protoc
+            rm "${PROTOC_ZIP}"
+
+      - name: Validate wheel built
+        shell: bash
+        run: |
+          count=$(ls dist/*.whl 2>/dev/null | wc -l)
+          echo "Built ${count} wheel(s) for ${{ matrix.target }}"
+          ls -la dist/
+          if [ "$count" -lt 1 ]; then
+            echo "::error::no wheels produced for ${{ matrix.target }}"
+            exit 1
+          fi
+
+  # ---------------------------------------------------------------------------
+  # Sphinx docs build (warnings are errors).
+  # ---------------------------------------------------------------------------
+  doc-build:
+    name: Sphinx docs build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Install protoc
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
+        with:
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8  # stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo build artifacts
+        uses: Swatinem/rust-cache@23869a5bd66c73db3c0ac40331f3206eb23791dc  # v2.9.1
+        with:
+          workspaces: rust
+          shared-key: doc-build
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install deps (incl. docs extra) + build Rust extension
+        run: uv sync --group dev --extra docs
+
+      - name: Build HTML docs
+        run: uv run --no-sync make -C docs html SPHINXOPTS="-W"
+
+      - name: Upload docs artifact
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+        with:
+          name: docs-html
+          path: docs/_build/html
+
+  # ---------------------------------------------------------------------------
+  # Failure notification: open a GitHub issue when any job fails.
+  # ---------------------------------------------------------------------------
+  notify-failure:
+    name: Notify on release-readiness regression
+    runs-on: ubuntu-latest
+    needs: [integration-tests, install-tests, cross-platform-build, doc-build]
+    if: >-
+      always() &&
+      (needs.integration-tests.result == 'failure' ||
+       needs.install-tests.result == 'failure' ||
+       needs.cross-platform-build.result == 'failure' ||
+       needs.doc-build.result == 'failure')
+    permissions:
+      issues: write
+    steps:
+      - name: Open release-readiness issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          body=$(printf '%s\n' \
+            "## Release Readiness regressed" \
+            "" \
+            "**Workflow run:** ${run_url}" \
+            "**Triggered by:** \`${{ github.event_name }}\`" \
+            "**Ref:** \`${{ github.ref }}\`" \
+            "**Commit:** \`${{ github.sha }}\`" \
+            "" \
+            "| Job | Result |" \
+            "|-----|--------|" \
+            "| integration-tests | ${{ needs.integration-tests.result }} |" \
+            "| install-tests | ${{ needs.install-tests.result }} |" \
+            "| cross-platform-build | ${{ needs.cross-platform-build.result }} |" \
+            "| doc-build | ${{ needs.doc-build.result }} |" \
+            "" \
+            "Release-readiness is the manual go/no-go gate for releases — investigate before cutting one.")
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "[release-readiness] regression — $(date -u +%Y-%m-%d)" \
+            --body "$body"
