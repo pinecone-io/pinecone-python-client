@@ -225,6 +225,84 @@ jobs:
             exit 1
           fi
 
+      # Install verification: prove the wheel installs cleanly on its target
+      # platform and the Rust extension loads + is callable. The GrpcChannel
+      # constructor is lazy (no network), so this is a fast purely-local check.
+      #
+      # Skipped for x86_64-apple-darwin: it's cross-compiled on an arm64 runner
+      # and can't be exercised in-place. Tracked as a known gap.
+      - name: Set up Python for install verification
+        if: matrix.target != 'x86_64-apple-darwin' && !endsWith(matrix.target, '-musl')
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Write install-verification script
+        if: matrix.target != 'x86_64-apple-darwin'
+        shell: bash
+        run: |
+          mkdir -p .ci
+          cat > .ci/verify_install.py <<'PY'
+          """Smoke-check that the just-installed pinecone wheel works.
+
+          Exercises the platform-specific Rust extension by importing
+          pinecone._grpc and constructing a GrpcChannel (lazy, no network).
+          """
+          import sys
+
+          import pinecone  # noqa: F401  — top-level import must succeed
+          print("OK: import pinecone")
+
+          import pinecone._grpc  # native dylib must load on this platform
+          print("OK: import pinecone._grpc")
+
+          ch = pinecone._grpc.GrpcChannel(
+              endpoint="https://example.invalid:443",
+              api_key="test-key",
+              api_version="2025-10",
+              version="0.0.0-install-test",
+          )
+          print("OK: GrpcChannel constructed:", type(ch).__name__)
+          sys.exit(0)
+          PY
+
+      - name: Install wheel + run verification (native host)
+        if: matrix.target != 'x86_64-apple-darwin' && !endsWith(matrix.target, '-musl')
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel=$(ls dist/*.whl | head -n1)
+          echo "Installing ${wheel} on $(uname -sm) with Python $(python -V)"
+          python -m pip install --upgrade pip
+          python -m pip install "${wheel}"
+          python .ci/verify_install.py
+
+      - name: Install wheel + run verification (musl, alpine container)
+        if: endsWith(matrix.target, '-musl')
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ matrix.target }}" == aarch64-* ]]; then
+            IMAGE="arm64v8/python:3.12-alpine"
+          else
+            IMAGE="python:3.12-alpine"
+          fi
+          echo "Verifying musl wheel inside ${IMAGE}"
+          docker run --rm \
+            -v "$PWD/dist:/dist:ro" \
+            -v "$PWD/.ci/verify_install.py:/verify_install.py:ro" \
+            "$IMAGE" sh -c '
+              set -e
+              ls /dist/*.whl
+              pip install --quiet /dist/*.whl
+              python /verify_install.py
+            '
+
+      - name: Note skipped install verification (x86_64-apple-darwin)
+        if: matrix.target == 'x86_64-apple-darwin'
+        run: |
+          echo "::notice::install verification skipped for x86_64-apple-darwin: cross-compiled on arm64 runner, cannot run in place. Real users on Intel macs are the first to exercise this wheel."
+
   # ---------------------------------------------------------------------------
   # Sphinx docs build (warnings are errors).
   # ---------------------------------------------------------------------------
