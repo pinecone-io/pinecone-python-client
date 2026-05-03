@@ -15,9 +15,6 @@ dependencies = [
     "orjson",
 ]
 
-[project.scripts]
-repl = "scripts.repl:main"
-
 [project.optional-dependencies]
 dev = [
     "pytest",

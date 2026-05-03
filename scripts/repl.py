@@ -95,14 +95,6 @@ def main() -> None:
         delete_all_collections(pc)
         delete_all_backups(pc)
 
-    # We want to route through preprod by default
-    if os.environ.get("PINECONE_ADDITIONAL_HEADERS") is None:
-        logger.warning(
-            'You have not set a value for PINECONE_ADDITIONAL_HEADERS in your .env file '
-            'so the default value of {"x-environment": "preprod-aws-0"} will be used.'
-        )
-        os.environ["PINECONE_ADDITIONAL_HEADERS"] = '{"x-environment": "preprod-aws-0"}'
-
     namespace: dict[str, object] = {
         "__name__": "__main__",
         "__doc__": None,
