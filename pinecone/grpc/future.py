@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from concurrent.futures import Future
+from concurrent.futures import TimeoutError as _FuturesTimeoutError
 from typing import Any, TypeVar
 
 from pinecone.errors.exceptions import PineconeTimeoutError
@@ -122,7 +123,7 @@ class PineconeFuture(Future["_T"]):
         """
         try:
             return self._underlying.result(timeout=timeout)
-        except TimeoutError:
+        except _FuturesTimeoutError:
             raise PineconeTimeoutError("deadline exceeded") from None
 
     def exception(self, timeout: float | None = _DEFAULT_TIMEOUT) -> BaseException | None:
@@ -136,7 +137,7 @@ class PineconeFuture(Future["_T"]):
         """
         try:
             return self._underlying.exception(timeout=timeout)
-        except TimeoutError:
+        except _FuturesTimeoutError:
             raise PineconeTimeoutError("deadline exceeded") from None
 
     def cancel(self) -> bool:
