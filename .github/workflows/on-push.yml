@@ -40,10 +40,10 @@ jobs:
         run: uv sync --group dev --no-install-project
 
       - name: ruff check
-        run: uv run ruff check
+        run: uv run --no-sync ruff check
 
       - name: ruff format --check
-        run: uv run ruff format --check
+        run: uv run --no-sync ruff format --check
 
   # ---------------------------------------------------------------------------
   # Python type check
@@ -67,7 +67,7 @@ jobs:
         run: uv sync --group dev --no-install-project
 
       - name: mypy --strict
-        run: uv run mypy --strict pinecone/
+        run: uv run --no-sync mypy --strict pinecone/
 
   # ---------------------------------------------------------------------------
   # Python unit tests (matrix across supported versions)
