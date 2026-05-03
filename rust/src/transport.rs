@@ -193,15 +193,16 @@ fn status_to_py_err(status: tonic::Status) -> PyErr {
         let exc_instance = if let Some(http_status) = grpc_code_to_http_status(code) {
             // ApiError subclass: synthesize body and pass structured kwargs.
             // Body construction is best-effort; if it fails we still raise the typed exception.
-            let body_opt: Option<pyo3::Bound<'_, PyDict>> = (|| -> pyo3::PyResult<pyo3::Bound<'_, PyDict>> {
-                let inner = PyDict::new(py);
-                inner.set_item("code", error_code)?;
-                inner.set_item("message", &msg)?;
-                let outer = PyDict::new(py);
-                outer.set_item("error", inner)?;
-                Ok(outer)
-            })()
-            .ok();
+            let body_opt: Option<pyo3::Bound<'_, PyDict>> =
+                (|| -> pyo3::PyResult<pyo3::Bound<'_, PyDict>> {
+                    let inner = PyDict::new(py);
+                    inner.set_item("code", error_code)?;
+                    inner.set_item("message", &msg)?;
+                    let outer = PyDict::new(py);
+                    outer.set_item("error", inner)?;
+                    Ok(outer)
+                })()
+                .ok();
 
             let kwargs = PyDict::new(py);
             let _ = kwargs.set_item("status_code", http_status);
@@ -554,8 +555,7 @@ impl GrpcChannel {
             .build()
             .map_err(|e| pinecone_error(py, &format!("Failed to create tokio runtime: {e}")))?;
 
-        let request_timeout =
-            secs_to_duration(py, timeout_s.unwrap_or(20.0), "timeout_s")?;
+        let request_timeout = secs_to_duration(py, timeout_s.unwrap_or(20.0), "timeout_s")?;
         let connection_timeout =
             secs_to_duration(py, connect_timeout_s.unwrap_or(1.0), "connect_timeout_s")?;
 
@@ -1621,10 +1621,19 @@ mod tests {
     fn grpc_code_name_is_used_as_error_code() {
         // Verify grpc_code_name returns the string that becomes error_code in exceptions.
         assert_eq!(grpc_code_name(tonic::Code::NotFound), "NOT_FOUND");
-        assert_eq!(grpc_code_name(tonic::Code::InvalidArgument), "INVALID_ARGUMENT");
+        assert_eq!(
+            grpc_code_name(tonic::Code::InvalidArgument),
+            "INVALID_ARGUMENT"
+        );
         assert_eq!(grpc_code_name(tonic::Code::Unavailable), "UNAVAILABLE");
-        assert_eq!(grpc_code_name(tonic::Code::DeadlineExceeded), "DEADLINE_EXCEEDED");
-        assert_eq!(grpc_code_name(tonic::Code::ResourceExhausted), "RESOURCE_EXHAUSTED");
+        assert_eq!(
+            grpc_code_name(tonic::Code::DeadlineExceeded),
+            "DEADLINE_EXCEEDED"
+        );
+        assert_eq!(
+            grpc_code_name(tonic::Code::ResourceExhausted),
+            "RESOURCE_EXHAUSTED"
+        );
     }
 
     #[test]
