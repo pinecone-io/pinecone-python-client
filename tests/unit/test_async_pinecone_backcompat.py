@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
 
-import pytest
-
 from pinecone.async_client.pinecone import AsyncPinecone
 from pinecone.inference.models.index_embed import IndexEmbed
 from pinecone.models.enums import CloudProvider
@@ -61,14 +59,13 @@ def _make_async_pc_with_mock_restore_jobs() -> tuple[AsyncPinecone, MagicMock]:
 # ---------------------------------------------------------------------------
 
 
-async def test_async_create_index_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_create_index_delegate_forwards() -> None:
     pc, mock_indexes = _make_async_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match=r"create_index\(\) is deprecated"):
-        await pc.create_index(
-            name="x",
-            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-            dimension=4,
-        )
+    await pc.create_index(
+        name="x",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        dimension=4,
+    )
     mock_indexes.create.assert_called_once()
     _, kwargs = mock_indexes.create.call_args
     assert kwargs["metric"] == "cosine"
@@ -80,25 +77,23 @@ async def test_async_create_index_delegate_with_none_deletion_protection_default
     None
 ):
     pc, mock_indexes = _make_async_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match="create_index"):
-        await pc.create_index(
-            name="x",
-            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-            deletion_protection=None,
-        )
+    await pc.create_index(
+        name="x",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        deletion_protection=None,
+    )
     _, kwargs = mock_indexes.create.call_args
     assert kwargs["deletion_protection"] == "disabled"
 
 
 async def test_async_create_index_delegate_with_explicit_metric_forwards_verbatim() -> None:
     pc, mock_indexes = _make_async_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match="create_index"):
-        await pc.create_index(
-            name="x",
-            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-            metric="euclidean",
-            vector_type="sparse",
-        )
+    await pc.create_index(
+        name="x",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        metric="euclidean",
+        vector_type="sparse",
+    )
     _, kwargs = mock_indexes.create.call_args
     assert kwargs["metric"] == "euclidean"
     assert kwargs["vector_type"] == "sparse"
@@ -115,13 +110,12 @@ async def test_async_create_index_for_model_delegate_with_index_embed_converts()
         model="multilingual-e5-large",
         field_map={"text": "my_field"},
     )
-    with pytest.warns(DeprecationWarning, match="create_index_for_model"):
-        await pc.create_index_for_model(
-            name="my-index",
-            cloud=CloudProvider.AWS,
-            region="us-east-1",
-            embed=index_embed,
-        )
+    await pc.create_index_for_model(
+        name="my-index",
+        cloud=CloudProvider.AWS,
+        region="us-east-1",
+        embed=index_embed,
+    )
     _, kwargs = mock_indexes.create.call_args
     spec = kwargs["spec"]
     assert isinstance(spec, IntegratedSpec)
@@ -137,13 +131,12 @@ async def test_async_create_index_for_model_delegate_with_embed_config_passes_th
         model="multilingual-e5-large",
         field_map={"text": "my_field"},
     )
-    with pytest.warns(DeprecationWarning, match="create_index_for_model"):
-        await pc.create_index_for_model(
-            name="my-index",
-            cloud=CloudProvider.AWS,
-            region="us-east-1",
-            embed=embed_config,
-        )
+    await pc.create_index_for_model(
+        name="my-index",
+        cloud=CloudProvider.AWS,
+        region="us-east-1",
+        embed=embed_config,
+    )
     _, kwargs = mock_indexes.create.call_args
     spec = kwargs["spec"]
     assert isinstance(spec, IntegratedSpec)
@@ -153,13 +146,12 @@ async def test_async_create_index_for_model_delegate_with_embed_config_passes_th
 
 async def test_async_create_index_for_model_delegate_with_dict_constructs_embed_config() -> None:
     pc, mock_indexes = _make_async_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match="create_index_for_model"):
-        await pc.create_index_for_model(
-            name="my-index",
-            cloud=CloudProvider.AWS,
-            region="us-east-1",
-            embed={"model": "m", "field_map": {"text": "a"}},
-        )
+    await pc.create_index_for_model(
+        name="my-index",
+        cloud=CloudProvider.AWS,
+        region="us-east-1",
+        embed={"model": "m", "field_map": {"text": "a"}},
+    )
     _, kwargs = mock_indexes.create.call_args
     spec = kwargs["spec"]
     assert isinstance(spec, IntegratedSpec)
@@ -174,17 +166,15 @@ async def test_async_create_index_for_model_delegate_with_dict_constructs_embed_
 # ---------------------------------------------------------------------------
 
 
-async def test_async_describe_index_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_describe_index_delegate_forwards() -> None:
     pc, mock_indexes = _make_async_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match=r"describe_index\(\) is deprecated"):
-        await pc.describe_index("my-index")
+    await pc.describe_index("my-index")
     mock_indexes.describe.assert_called_once_with("my-index")
 
 
-async def test_async_list_indexes_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_list_indexes_delegate_forwards() -> None:
     pc, mock_indexes = _make_async_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match=r"list_indexes\(\) is deprecated"):
-        await pc.list_indexes()
+    await pc.list_indexes()
     mock_indexes.list.assert_called_once()
 
 
@@ -193,10 +183,9 @@ async def test_async_list_indexes_delegate_emits_deprecation_and_forwards() -> N
 # ---------------------------------------------------------------------------
 
 
-async def test_async_configure_index_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_configure_index_delegate_forwards() -> None:
     pc, mock_indexes = _make_async_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match=r"configure_index\(\) is deprecated"):
-        await pc.configure_index("my-index", deletion_protection="enabled")
+    await pc.configure_index("my-index", deletion_protection="enabled")
     mock_indexes.configure.assert_called_once()
     _, kwargs = mock_indexes.configure.call_args
     assert kwargs["deletion_protection"] == "enabled"
@@ -207,24 +196,21 @@ async def test_async_configure_index_delegate_emits_deprecation_and_forwards() -
 # ---------------------------------------------------------------------------
 
 
-async def test_async_create_collection_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_create_collection_delegate_forwards() -> None:
     pc, mock_collections = _make_async_pc_with_mock_collections()
-    with pytest.warns(DeprecationWarning, match=r"create_collection\(\) is deprecated"):
-        await pc.create_collection(name="my-coll", source="my-index")
+    await pc.create_collection(name="my-coll", source="my-index")
     mock_collections.create.assert_called_once_with(name="my-coll", source="my-index")
 
 
-async def test_async_list_collections_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_list_collections_delegate_forwards() -> None:
     pc, mock_collections = _make_async_pc_with_mock_collections()
-    with pytest.warns(DeprecationWarning, match=r"list_collections\(\) is deprecated"):
-        await pc.list_collections()
+    await pc.list_collections()
     mock_collections.list.assert_called_once()
 
 
-async def test_async_describe_collection_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_describe_collection_delegate_forwards() -> None:
     pc, mock_collections = _make_async_pc_with_mock_collections()
-    with pytest.warns(DeprecationWarning, match=r"describe_collection\(\) is deprecated"):
-        await pc.describe_collection("my-coll")
+    await pc.describe_collection("my-coll")
     mock_collections.describe.assert_called_once_with("my-coll")
 
 
@@ -233,28 +219,25 @@ async def test_async_describe_collection_delegate_emits_deprecation_and_forwards
 # ---------------------------------------------------------------------------
 
 
-async def test_async_create_backup_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_create_backup_delegate_forwards() -> None:
     pc, mock_backups = _make_async_pc_with_mock_backups()
-    with pytest.warns(DeprecationWarning, match=r"create_backup\(\) is deprecated"):
-        await pc.create_backup(index_name="my-index", backup_name="my-backup")
+    await pc.create_backup(index_name="my-index", backup_name="my-backup")
     mock_backups.create.assert_called_once_with(
         index_name="my-index", name="my-backup", description=""
     )
 
 
-async def test_async_list_backups_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_list_backups_delegate_forwards() -> None:
     pc, mock_backups = _make_async_pc_with_mock_backups()
-    with pytest.warns(DeprecationWarning, match=r"list_backups\(\) is deprecated"):
-        await pc.list_backups(index_name="my-index")
+    await pc.list_backups(index_name="my-index")
     mock_backups.list.assert_called_once_with(
         index_name="my-index", limit=10, pagination_token=None
     )
 
 
-async def test_async_describe_backup_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_describe_backup_delegate_forwards() -> None:
     pc, mock_backups = _make_async_pc_with_mock_backups()
-    with pytest.warns(DeprecationWarning, match=r"describe_backup\(\) is deprecated"):
-        await pc.describe_backup(backup_id="bkp-123")
+    await pc.describe_backup(backup_id="bkp-123")
     mock_backups.describe.assert_called_once_with(backup_id="bkp-123")
 
 
@@ -263,17 +246,15 @@ async def test_async_describe_backup_delegate_emits_deprecation_and_forwards() -
 # ---------------------------------------------------------------------------
 
 
-async def test_async_list_restore_jobs_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_list_restore_jobs_delegate_forwards() -> None:
     pc, mock_restore_jobs = _make_async_pc_with_mock_restore_jobs()
-    with pytest.warns(DeprecationWarning, match=r"list_restore_jobs\(\) is deprecated"):
-        await pc.list_restore_jobs()
+    await pc.list_restore_jobs()
     mock_restore_jobs.list.assert_called_once_with(limit=10, pagination_token=None)
 
 
-async def test_async_describe_restore_job_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_describe_restore_job_delegate_forwards() -> None:
     pc, mock_restore_jobs = _make_async_pc_with_mock_restore_jobs()
-    with pytest.warns(DeprecationWarning, match=r"describe_restore_job\(\) is deprecated"):
-        await pc.describe_restore_job(job_id="job-456")
+    await pc.describe_restore_job(job_id="job-456")
     mock_restore_jobs.describe.assert_called_once_with(job_id="job-456")
 
 
@@ -282,12 +263,11 @@ async def test_async_describe_restore_job_delegate_emits_deprecation_and_forward
 # ---------------------------------------------------------------------------
 
 
-def test_async_index_asyncio_delegate_emits_deprecation_and_returns_async_index() -> None:
+def test_async_index_asyncio_delegate_returns_async_index() -> None:
     from pinecone.async_client.async_index import AsyncIndex
 
     pc = AsyncPinecone(api_key="test-key")
-    with pytest.warns(DeprecationWarning, match=r"IndexAsyncio\(\) is deprecated"):
-        idx = pc.IndexAsyncio(host="my-index.svc.pinecone.io")
+    idx = pc.IndexAsyncio(host="my-index.svc.pinecone.io")
     assert isinstance(idx, AsyncIndex)
 
 
@@ -323,23 +303,20 @@ def test_async_pinecone_repr_exactly_four_char_key_shows_last_four() -> None:
 # ---------------------------------------------------------------------------
 
 
-async def test_async_has_index_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_has_index_delegate_forwards() -> None:
     pc, mock_indexes = _make_async_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match=r"has_index\(\) is deprecated"):
-        result = await pc.has_index("my-index")
+    result = await pc.has_index("my-index")
     assert result is True
     mock_indexes.exists.assert_awaited_once_with("my-index")
 
 
-async def test_async_delete_index_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_delete_index_delegate_forwards() -> None:
     pc, mock_indexes = _make_async_pc_with_mock_indexes()
-    with pytest.warns(DeprecationWarning, match=r"delete_index\(\) is deprecated"):
-        await pc.delete_index("my-index", timeout=30)
+    await pc.delete_index("my-index", timeout=30)
     mock_indexes.delete.assert_awaited_once_with("my-index", timeout=30)
 
     mock_indexes.delete.reset_mock()
-    with pytest.warns(DeprecationWarning, match=r"delete_index\(\) is deprecated"):
-        await pc.delete_index("my-index")
+    await pc.delete_index("my-index")
     mock_indexes.delete.assert_awaited_once_with("my-index", timeout=None)
 
 
@@ -348,10 +325,9 @@ async def test_async_delete_index_delegate_emits_deprecation_and_forwards() -> N
 # ---------------------------------------------------------------------------
 
 
-async def test_async_delete_collection_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_delete_collection_delegate_forwards() -> None:
     pc, mock_collections = _make_async_pc_with_mock_collections()
-    with pytest.warns(DeprecationWarning, match=r"delete_collection\(\) is deprecated"):
-        await pc.delete_collection("my-coll")
+    await pc.delete_collection("my-coll")
     mock_collections.delete.assert_awaited_once_with("my-coll")
 
 
@@ -360,8 +336,7 @@ async def test_async_delete_collection_delegate_emits_deprecation_and_forwards()
 # ---------------------------------------------------------------------------
 
 
-async def test_async_delete_backup_delegate_emits_deprecation_and_forwards() -> None:
+async def test_async_delete_backup_delegate_forwards() -> None:
     pc, mock_backups = _make_async_pc_with_mock_backups()
-    with pytest.warns(DeprecationWarning, match=r"delete_backup\(\) is deprecated"):
-        await pc.delete_backup(backup_id="bkp-123")
+    await pc.delete_backup(backup_id="bkp-123")
     mock_backups.delete.assert_awaited_once_with(backup_id="bkp-123")
