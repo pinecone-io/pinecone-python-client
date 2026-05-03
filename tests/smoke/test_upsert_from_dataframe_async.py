@@ -38,7 +38,7 @@ async def test_upsert_from_dataframe_async(api_key: str) -> None:
             dimension=DIM,
             metric="cosine",
         )
-        idx = pc.index(name=name)
+        idx = await pc.index(name=name)
         try:
             df = pd.DataFrame(
                 [

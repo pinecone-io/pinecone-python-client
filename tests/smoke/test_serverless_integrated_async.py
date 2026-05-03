@@ -41,7 +41,7 @@ async def test_serverless_integrated_smoke_async(api_key: str) -> None:
             ),
         )
 
-        idx = pc.index(name=name)
+        idx = await pc.index(name=name)
         try:
             records = [
                 {"_id": "d1", "chunk_text": "Vector databases enable similarity search at scale."},

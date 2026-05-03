@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from pinecone.async_client.async_index import AsyncIndex
 from pinecone.async_client.pinecone import AsyncPinecone
 from pinecone.errors.exceptions import ValidationError
 
@@ -130,7 +131,7 @@ class TestAsyncIndexFactory:
 
     @patch("pinecone._internal.http_client.AsyncHTTPClient")
     @patch("pinecone.async_client.async_index.AsyncIndex")
-    def test_index_by_host_propagates_config(
+    async def test_index_by_host_propagates_config(
         self, mock_cls: MagicMock, _mock_http: MagicMock
     ) -> None:
         pc = AsyncPinecone(
@@ -143,7 +144,7 @@ class TestAsyncIndexFactory:
         )
         mock_cls.return_value = MagicMock()
 
-        pc.index(host="foo.svc.pinecone.io")
+        await pc.index(host="foo.svc.pinecone.io")
 
         mock_cls.assert_called_once_with(
             host="foo.svc.pinecone.io",
@@ -160,7 +161,7 @@ class TestAsyncIndexFactory:
 
     @patch("pinecone._internal.http_client.AsyncHTTPClient")
     @patch("pinecone.async_client.async_index.AsyncIndex")
-    def test_index_by_name_cached_propagates_config(
+    async def test_index_by_name_cached_propagates_config(
         self, mock_cls: MagicMock, _mock_http: MagicMock
     ) -> None:
         pc = AsyncPinecone(
@@ -174,7 +175,7 @@ class TestAsyncIndexFactory:
         pc._host_cache["my-index"] = "cached.host.pinecone.io"
         mock_cls.return_value = MagicMock()
 
-        pc.index(name="my-index")
+        await pc.index(name="my-index")
 
         mock_cls.assert_called_once_with(
             host="cached.host.pinecone.io",
@@ -190,11 +191,11 @@ class TestAsyncIndexFactory:
         )
 
     @patch("pinecone.async_client.async_index.AsyncIndex")
-    def test_index_defaults_propagated(self, mock_cls: MagicMock) -> None:
+    async def test_index_defaults_propagated(self, mock_cls: MagicMock) -> None:
         pc = AsyncPinecone(api_key="test-key")
         mock_cls.return_value = MagicMock()
 
-        pc.index(host="foo.svc.pinecone.io")
+        await pc.index(host="foo.svc.pinecone.io")
 
         mock_cls.assert_called_once_with(
             host="foo.svc.pinecone.io",
@@ -208,6 +209,54 @@ class TestAsyncIndexFactory:
             source_tag="",
             connection_pool_maxsize=0,
         )
+
+
+class TestAsyncIndexAutoResolve:
+    """Test that AsyncPinecone.index() auto-resolves hosts via describe."""
+
+    async def test_index_by_host_skips_describe(self) -> None:
+        """Providing host= returns AsyncIndex without calling describe."""
+        pc = AsyncPinecone(api_key="test-key")
+        pc.indexes.describe = AsyncMock()  # type: ignore[method-assign]
+
+        result = await pc.index(host="abc.svc.pinecone.io")
+
+        assert isinstance(result, AsyncIndex)
+        pc.indexes.describe.assert_not_called()
+        await result.close()
+
+    async def test_index_by_name_resolves_via_describe(self) -> None:
+        """Providing name= on cache miss triggers describe and caches the host."""
+        pc = AsyncPinecone(api_key="test-key")
+        index_model = MagicMock()
+        index_model.host = "resolved.svc.pinecone.io"
+        pc.indexes.describe = AsyncMock(return_value=index_model)  # type: ignore[method-assign]
+
+        result = await pc.index(name="my-index")
+
+        pc.indexes.describe.assert_awaited_once_with("my-index")
+        assert isinstance(result, AsyncIndex)
+        assert pc._host_cache["my-index"] == "resolved.svc.pinecone.io"
+        await result.close()
+
+    async def test_index_by_name_uses_cache(self) -> None:
+        """Providing name= on cache hit does not call describe."""
+        pc = AsyncPinecone(api_key="test-key")
+        pc._host_cache["cached-idx"] = "cached.svc.pinecone.io"
+        pc.indexes.describe = AsyncMock()  # type: ignore[method-assign]
+
+        result = await pc.index(name="cached-idx")
+
+        pc.indexes.describe.assert_not_called()
+        assert isinstance(result, AsyncIndex)
+        await result.close()
+
+    async def test_index_no_args_raises_validation_error(self) -> None:
+        """Calling index() with neither name nor host raises ValidationError."""
+        pc = AsyncPinecone(api_key="test-key")
+
+        with pytest.raises(ValidationError, match="Either name or host must be provided"):
+            await pc.index()
 
 
 class TestAsyncClientLifecycle:

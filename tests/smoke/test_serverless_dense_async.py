@@ -70,7 +70,7 @@ async def test_serverless_dense_smoke_async(api_key: str) -> None:
         await pc.indexes.configure(name, tags={"env": "smoke-async"})
 
         # ----- data plane -----
-        idx = pc.index(name=name)
+        idx = await pc.index(name=name)
         assert idx.host
         try:
             mixed = [
@@ -164,7 +164,7 @@ async def test_serverless_dense_smoke_async(api_key: str) -> None:
         finally:
             await idx.close()
 
-        async with pc.index(name=name) as idx2:
+        async with await pc.index(name=name) as idx2:
             stats2 = await idx2.describe_index_stats()
             assert stats2.dimension == DIM
     finally:

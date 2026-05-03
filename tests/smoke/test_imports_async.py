@@ -52,7 +52,7 @@ async def test_imports_lifecycle_async(api_key: str) -> None:
             dimension=DIM,
             metric="cosine",
         )
-        idx = pc.index(name=name)
+        idx = await pc.index(name=name)
         try:
             start_resp = await idx.start_import(
                 uri=_IMPORT_URI,

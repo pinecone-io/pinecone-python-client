@@ -94,7 +94,7 @@ async def test_pod_collections_smoke_async(api_key: str) -> None:
             timeout=600,
         )
 
-        idx1 = pc.index(name=pod1_name)
+        idx1 = await pc.index(name=pod1_name)
         try:
             await idx1.upsert(vectors=[_vec(0)], namespace=NAMESPACE)
             await _async_wait_for_pod_warmup(idx1, "p0", namespace=NAMESPACE, timeout=600)
@@ -142,7 +142,7 @@ async def test_pod_collections_smoke_async(api_key: str) -> None:
             timeout=600,
         )
 
-        idx2 = pc.index(name=pod2_name)
+        idx2 = await pc.index(name=pod2_name)
         try:
             await _async_wait_for_pod_warmup(idx2, "p0", namespace=NAMESPACE, timeout=300)
             stats = await idx2.describe_index_stats()

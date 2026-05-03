@@ -78,8 +78,7 @@ class AsyncPinecone:
             from pinecone import AsyncPinecone
 
             async with AsyncPinecone(api_key="your-api-key") as pc:
-                desc = await pc.indexes.describe("my-index")
-                index = pc.index(host=desc.host)
+                index = await pc.index(name="my-index")
                 async with index:
                     results = await index.query(
                         vector=[0.012, -0.087, 0.153, ...],  # 1536-dim embedding
@@ -88,16 +87,10 @@ class AsyncPinecone:
 
     .. note:: **Differences from sync Pinecone**
 
-        1. **index(name=...) requires a cached host.** Unlike the sync
-           ``Pinecone`` client, ``AsyncPinecone.index()`` is a synchronous
-           factory and cannot auto-resolve an index host from its name.
-           Call ``await pc.indexes.describe(name)`` first to populate the
-           cache, then create the data-plane client::
-
-               desc = await pc.indexes.describe("my-index")
-               idx = pc.index("my-index")          # uses cached host
-               # — or —
-               idx = pc.index(host=desc.host)       # explicit host
+        1. **index() is a coroutine.** Unlike the sync ``Pinecone`` client,
+           ``AsyncPinecone.index()`` must be awaited: ``idx = await pc.index(name="my-index")``.
+           On cache miss it performs a non-blocking describe call to resolve
+           the host — no manual two-step dance needed.
 
         2. **upsert_from_dataframe() is not supported.** ``AsyncIndex``
            raises ``NotImplementedError`` for this method. Use batched
@@ -729,7 +722,38 @@ class AsyncPinecone:
             connection_pool_maxsize=self._config.connection_pool_maxsize,
         )
 
-    def index(
+    async def _resolve_index_host(self, *, name: str, host: str) -> str:
+        """Resolve the data plane host from explicit host, cache, or describe call.
+
+        Async parallel of ``Pinecone._resolve_index_host``. Performs a
+        non-blocking describe-index lookup when *name* is given and the host is
+        not yet cached.
+
+        Args:
+            name: Index name (triggers describe if not cached).
+            host: Direct host URL (returned as-is if provided).
+
+        Returns:
+            The resolved host string.
+
+        Raises:
+            ValidationError: If neither *name* nor *host* is provided.
+        """
+        if host:
+            return host
+
+        if name:
+            cached_host = self._host_cache.get(name)
+            if cached_host:
+                return cached_host
+
+            desc = await self.indexes.describe(name)
+            self._host_cache[name] = desc.host
+            return desc.host
+
+        raise ValidationError("Either name or host must be provided to create an Index client.")
+
+    async def index(
         self,
         name: str = "",
         *,
@@ -737,35 +761,34 @@ class AsyncPinecone:
     ) -> AsyncIndex:
         """Create an async data plane client targeting a specific index.
 
-        This is a synchronous factory method (not a coroutine). It can target
-        an index by host URL directly, or by name if the host has already been
-        cached from a prior call or an explicit describe lookup.
+        Can target by host URL directly (skips the describe call) or by
+        index name (triggers an async describe-index lookup to resolve the host
+        on cache miss).
 
-        To resolve an index host from its name, use
-        ``await pc.indexes.describe(name)`` first, then pass the ``host``.
+        .. seealso::
+           Use ``pc.indexes`` for control-plane operations (create, list,
+           describe, delete, configure).
 
         Args:
-            name (str): Name of the index. Uses cached host from a prior
-                describe call; raises if the host is not yet cached.
-            host (str): Direct host URL of the index. Preferred path — no
-                describe call needed.
+            name (str): Name of the index. Triggers an async describe call to
+                resolve host on cache miss.
+            host (str): Direct host URL of the index. Skips the describe call.
 
         Returns:
             An async :class:`AsyncIndex` data plane client.
 
         Raises:
-            :exc:`PineconeValueError`: If neither *name* nor *host* is provided, or if
-                *name* is given but the host has not been cached yet.
+            :exc:`ValidationError`: If neither *name* nor *host* is provided.
+            :exc:`NotFoundError`: If *name* is given but no such index exists.
 
         Examples:
 
             .. code-block:: python
 
                 async with AsyncPinecone(api_key="...") as pc:
-                    idx = pc.index(host="my-index-abc123.svc.pinecone.io")
-                    # or resolve name first, then use cached host:
-                    await pc.indexes.describe("my-index")
-                    idx = pc.index(name="my-index")
+                    idx = await pc.index(host="my-index-abc123.svc.pinecone.io")
+                    # or
+                    idx = await pc.index(name="my-index")  # triggers describe on cache miss
 
         .. warning::
            The returned :class:`AsyncIndex` manages its own HTTP client.
@@ -775,22 +798,8 @@ class AsyncPinecone:
         """
         from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
 
-        if host:
-            return _AsyncIndex(**self._build_index_kwargs(host))
-
-        if name:
-            # Check cache first
-            cached_host = self._host_cache.get(name)
-            if cached_host:
-                return _AsyncIndex(**self._build_index_kwargs(cached_host))
-
-            raise ValidationError(
-                f"Host for index '{name}' is not cached. Resolve the host first with "
-                "'desc = await pc.indexes.describe(name)', then call "
-                "'pc.index(host=desc.host)' or 'pc.index(name=name)' (cached after describe)."
-            )
-
-        raise ValidationError("Either name or host must be provided to create an Index client.")
+        resolved_host = await self._resolve_index_host(name=name, host=host)
+        return _AsyncIndex(**self._build_index_kwargs(resolved_host))
 
     async def close(self) -> None:
         """Close the underlying HTTP client."""
