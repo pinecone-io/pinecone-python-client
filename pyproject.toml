@@ -58,7 +58,29 @@ ignore = ["ASYNC109", "SIM108", "PERF203", "RUF002"]
 required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["E501", "B905", "S101", "S105", "S106", "S107", "S110", "T20", "PT018", "PT019"]
+"tests/**" = [
+    "E501",
+    "B905",
+    "S101",
+    "S105",
+    "S106",
+    "S107",
+    "S110",
+    "T20",
+    "PT018",
+    "PT019",
+    # Stylistic rules whose suggestions don't fit common test patterns:
+    "B017",     # pytest.raises(Exception) is sometimes legitimately broad in tests
+    "B018",     # "useless" attribute access used to trigger AttributeError
+    "PT006",    # parametrize tuple/list form — both readable
+    "PT011",    # pytest.raises(Exception) too broad — duplicate of B017 stylistically
+    "PT017",    # assertion on exception in `except` block — common test pattern
+    "SIM117",   # nested `with` — often clearer than combined when scopes differ
+    "SIM105",   # try/except/pass — fine in test cleanup paths
+    "PERF401",  # list-comprehension perf doesn't matter in tests
+    "ASYNC240", # os.path in async functions — fine in tests; not real async I/O
+]
+"docs/**" = ["E501"]
 "pinecone/_internal/http_client.py" = ["S311"]
 "pinecone/grpc/future.py" = ["S110", "SIM105"]
 
