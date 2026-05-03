@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from pinecone.async_client.async_index import AsyncIndex
     from pinecone.grpc import GrpcIndex
     from pinecone.index import Index
+    from pinecone.models.namespaces.models import NamespaceDescription
 
 
 # ---------------------------------------------------------------------------
@@ -96,6 +97,64 @@ async def async_wait_for_vector_count(
     raise TimeoutError(
         f"Namespace {namespace!r} only contained {last_count} vectors after "
         f"{timeout}s (expected ≥{expected})"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Namespace visibility polling
+# ---------------------------------------------------------------------------
+#
+# create_namespace returns synchronously, but describe/list calls against the
+# new namespace can briefly return 404 while the metadata propagates to the
+# read path. These helpers retry describe_namespace until it succeeds or a
+# bounded timeout expires — never block the suite indefinitely.
+
+
+def wait_for_namespace_visible(
+    idx: Index,
+    name: str,
+    *,
+    timeout: int = 30,
+    interval: int = 1,
+) -> NamespaceDescription:
+    """Poll ``describe_namespace`` until it returns successfully.
+
+    Returns the ``NamespaceDescription`` from the first successful call. Raises
+    :class:`TimeoutError` if the namespace is not visible within ``timeout``.
+    """
+    start = time.monotonic()
+    last_exc: Exception | None = None
+    while time.monotonic() - start < timeout:
+        try:
+            return idx.describe_namespace(name=name)
+        except Exception as exc:
+            last_exc = exc
+        time.sleep(interval)
+    raise TimeoutError(
+        f"Namespace {name!r} not visible to describe_namespace within "
+        f"{timeout}s (last error: {last_exc!r})"
+    )
+
+
+async def async_wait_for_namespace_visible(
+    idx: AsyncIndex,
+    name: str,
+    *,
+    timeout: int = 30,
+    interval: int = 1,
+) -> NamespaceDescription:
+    """Async version of :func:`wait_for_namespace_visible`."""
+    start = time.monotonic()
+    last_exc: Exception | None = None
+    while time.monotonic() - start < timeout:
+        try:
+            return await idx.describe_namespace(name=name)
+        except Exception as exc:
+            last_exc = exc
+        await asyncio.sleep(interval)
+    raise TimeoutError(
+        f"Namespace {name!r} not visible to describe_namespace within "
+        f"{timeout}s (last error: {last_exc!r})"
     )
 
 

@@ -27,7 +27,7 @@ from tests.smoke.conftest import (
     ensure_index_deleted,
     unique_name,
 )
-from tests.smoke.helpers import wait_for_vector_count
+from tests.smoke.helpers import wait_for_namespace_visible, wait_for_vector_count
 
 CLOUD = "aws"
 REGION = "us-east-1"
@@ -166,7 +166,9 @@ def test_serverless_dense_smoke(client: Pinecone) -> None:
             ns_name = "smoke-gamma"
             created_ns = idx.create_namespace(name=ns_name)
             assert created_ns.name == ns_name
-            described_ns = idx.describe_namespace(name=ns_name)
+            # describe/list briefly return 404 after create_namespace returns
+            # 200 — wait for visibility before asserting.
+            described_ns = wait_for_namespace_visible(idx, ns_name)
             assert described_ns.name == ns_name
             ns_page = idx.list_namespaces_paginated(limit=10)
             ns_names = {ns.name for ns in ns_page.namespaces}
