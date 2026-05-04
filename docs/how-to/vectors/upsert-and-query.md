@@ -157,8 +157,8 @@ reading.
 
 #### Batches fail atomically
 
-A 4xx response fails the **entire batch**, even if only one
-of its 200 vectors was the actual problem. So
+Any per-batch error fails the **entire batch** — even if only
+one of its 200 vectors was the actual problem. So
 `response.failed_items` may contain 199 items that would have
 succeeded on their own, plus the one bad row that triggered
 the rejection. The server doesn't surface per-item rejection
@@ -173,11 +173,6 @@ if response.has_errors:
     narrow = index.upsert(vectors=response.failed_items, batch_size=1)
     # narrow.failed_items now contains only the actually-bad rows
 ```
-
-Network-level errors and 5xx responses are retried
-automatically by the HTTP client per batch (see
-{class}`~pinecone.RetryConfig`); only failures that exceed
-the retry budget surface in `response.errors`.
 
 
 ## Query for nearest neighbors
