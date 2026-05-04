@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import re
 import time
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from typing import TYPE_CHECKING, Any, TypedDict
 
 import msgspec
@@ -138,7 +138,7 @@ def build_create_body(
     metric: Metric | str,
     vector_type: VectorType | str,
     deletion_protection: DeletionProtection | str,
-    tags: dict[str, str] | None,
+    tags: Mapping[str, str] | None,
     schema: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build the JSON body for POST /indexes."""
@@ -197,7 +197,7 @@ def build_byoc_body(
     metric: Metric | str,
     vector_type: VectorType | str,
     deletion_protection: DeletionProtection | str,
-    tags: dict[str, str] | None,
+    tags: Mapping[str, str] | None,
 ) -> dict[str, Any]:
     """Build the JSON body for POST /indexes (BYOC)."""
     body: dict[str, Any] = {
@@ -245,7 +245,7 @@ def build_integrated_body(
     name: str,
     spec: IntegratedSpec,
     deletion_protection: DeletionProtection | str,
-    tags: dict[str, str] | None,
+    tags: Mapping[str, str] | None,
 ) -> dict[str, Any]:
     """Build the JSON body for POST /indexes (integrated/model-backed)."""
     embed_body: dict[str, Any] = {

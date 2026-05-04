@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.indexes_adapter import IndexesAdapter
@@ -211,7 +212,7 @@ class Indexes:
         replicas: int | None = None,
         pod_type: str | None = None,
         deletion_protection: DeletionProtection | str | None = None,
-        tags: dict[str, str] | None = None,
+        tags: Mapping[str, str] | None = None,
         embed: dict[str, Any] | None = None,
         read_capacity: dict[str, Any] | None = None,
     ) -> None:
@@ -295,7 +296,7 @@ class Indexes:
         metric: Metric | str = "cosine",
         vector_type: VectorType | str = "dense",
         deletion_protection: DeletionProtection | str = "disabled",
-        tags: dict[str, str] | None = None,
+        tags: Mapping[str, str] | None = None,
         schema: dict[str, Any] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:

@@ -52,7 +52,7 @@ class AsyncIndex:
     Args:
         host (str): The index-specific data plane host URL.
         api_key (str | None): Pinecone API key. Falls back to ``PINECONE_API_KEY`` env var.
-        additional_headers (dict[str, str] | None): Extra headers included in every request.
+        additional_headers (Mapping[str, str] | None): Extra headers included in every request.
         timeout (float): Request timeout in seconds. Defaults to ``30.0``.
         proxy_url (str | None): HTTP proxy URL for outgoing requests.
         ssl_ca_certs (str | None): Path to a CA certificate bundle for SSL verification.
@@ -79,10 +79,10 @@ class AsyncIndex:
         *,
         host: str,
         api_key: str | None = None,
-        additional_headers: dict[str, str] | None = None,
+        additional_headers: Mapping[str, str] | None = None,
         timeout: float = 30.0,
         proxy_url: str | None = None,
-        proxy_headers: dict[str, str] | None = None,
+        proxy_headers: Mapping[str, str] | None = None,
         ssl_ca_certs: str | None = None,
         ssl_verify: bool = True,
         source_tag: str | None = None,
@@ -103,9 +103,9 @@ class AsyncIndex:
             api_key=resolved_key,
             host=self._host,
             timeout=timeout,
-            additional_headers=additional_headers or {},
+            additional_headers=dict(additional_headers or {}),
             proxy_url=proxy_url or "",
-            proxy_headers=proxy_headers or {},
+            proxy_headers=dict(proxy_headers or {}),
             ssl_ca_certs=ssl_ca_certs,
             ssl_verify=ssl_verify,
             source_tag=source_tag or "",

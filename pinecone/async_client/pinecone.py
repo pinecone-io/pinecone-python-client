@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
@@ -53,10 +54,10 @@ class AsyncPinecone:
         api_key (str | None): Pinecone API key. Falls back to ``PINECONE_API_KEY`` env var.
         host (str | None): Control-plane API host. Falls back to ``PINECONE_CONTROLLER_HOST``
             env var, then defaults to ``https://api.pinecone.io``.
-        additional_headers (dict[str, str] | None): Extra headers included in every request.
+        additional_headers (Mapping[str, str] | None): Extra headers included in every request.
         source_tag (str | None): Tag appended to the User-Agent string for request attribution.
         proxy_url (str | None): HTTP proxy URL for outgoing requests.
-        proxy_headers (dict[str, str] | None): Not yet supported. Raises
+        proxy_headers (Mapping[str, str] | None): Not yet supported. Raises
             ``NotImplementedError`` if provided.
         ssl_ca_certs (str | None): Path to a CA certificate bundle for SSL verification.
         ssl_verify (bool): Whether to verify SSL certificates. Defaults to ``True``.
@@ -106,10 +107,10 @@ class AsyncPinecone:
         api_key: str | None = None,
         *,
         host: str | None = None,
-        additional_headers: dict[str, str] | None = None,
+        additional_headers: Mapping[str, str] | None = None,
         source_tag: str | None = None,
         proxy_url: str | None = None,
-        proxy_headers: dict[str, str] | None = None,
+        proxy_headers: Mapping[str, str] | None = None,
         ssl_ca_certs: str | None = None,
         ssl_verify: bool = True,
         timeout: float = 30.0,
@@ -123,7 +124,7 @@ class AsyncPinecone:
             api_key=api_key or "",
             host=host or "",
             timeout=timeout,
-            additional_headers=additional_headers or {},
+            additional_headers=dict(additional_headers or {}),
             source_tag=source_tag or "",
             proxy_url=proxy_url or "",
             ssl_ca_certs=ssl_ca_certs,
@@ -347,7 +348,7 @@ class AsyncPinecone:
         name: str,
         backup_id: str,
         deletion_protection: DeletionProtection | str | None = None,
-        tags: dict[str, str] | None = None,
+        tags: Mapping[str, str] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
         """Create a new index by restoring from a backup.
@@ -436,7 +437,7 @@ class AsyncPinecone:
         timeout: int | None = None,
         deletion_protection: DeletionProtection | str | None = "disabled",
         vector_type: VectorType | str = "dense",
-        tags: dict[str, str] | None = None,
+        tags: Mapping[str, str] | None = None,
     ) -> IndexModel:
         """Backwards-compatibility shim for :meth:`AsyncPinecone.indexes.create`.
 
@@ -462,7 +463,7 @@ class AsyncPinecone:
         cloud: CloudProvider | str,
         region: AwsRegion | GcpRegion | AzureRegion | str,
         embed: IndexEmbed | EmbedConfig | dict[str, Any],
-        tags: dict[str, str] | None = None,
+        tags: Mapping[str, str] | None = None,
         deletion_protection: DeletionProtection | str | None = "disabled",
         read_capacity: dict[str, Any] | None = None,
         schema: dict[str, Any] | None = None,
@@ -538,7 +539,7 @@ class AsyncPinecone:
         replicas: int | None = None,
         pod_type: str | None = None,
         deletion_protection: DeletionProtection | str | None = None,
-        tags: dict[str, str] | None = None,
+        tags: Mapping[str, str] | None = None,
         embed: dict[str, Any] | None = None,
         read_capacity: dict[str, Any] | None = None,
     ) -> None:
