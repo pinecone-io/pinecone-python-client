@@ -9,8 +9,7 @@ The SDK ships three client variants, with two different application-protocol
 stacks underneath:
 
 - `Index` and `AsyncIndex` (REST): [httpx](https://www.python-httpx.org/) over
-  HTTP/1.1 with connection keepalive. HTTP/2 is currently disabled while we
-  investigate server-side issues.
+  HTTP/1.1 with connection keepalive.
 - `GrpcIndex`: a native (Rust-backed) gRPC channel over HTTP/2 with binary
   protobuf framing.
 
