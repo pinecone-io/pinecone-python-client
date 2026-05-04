@@ -1,0 +1,791 @@
+name: 'Release: Final (PyPI prod)'
+
+# Manually-triggered final-release publish to prod PyPI (e.g. 9.0.0).
+#
+# This is the production counterpart to release-rc.yaml. Differences:
+#   - no prereleaseSuffix input (final releases have no a/b/rc segment)
+#   - publish job runs in the `pypi-prod` Environment (separate reviewers
+#     gate from `pypi-rc`)
+#   - preflight refuses any computed version that still carries a
+#     prerelease suffix
+#   - the release commit is built once in `prepare-tree` and shared via
+#     artifact, so the tag's tree is byte-identical to the published wheels
+#   - publish emits SLSA build provenance attestations
+#   - a GitHub Release is created from the tag with auto-generated notes
+#     and the wheels + sdist attached
+#
+# Pipeline
+# --------
+#   validate (reusable on-push gate; skippable)
+#       v
+#   preflight (compute version, PyPI + tag collision checks)
+#       v
+#   prepare-tree (run bump_version.py --write ONCE; upload patched files
+#                 as the `release-tree` artifact — single source of truth
+#                 for every downstream job that needs the bumped tree)
+#       v
+#   build (matrix; downloads release-tree) + build-sdist (downloads
+#                                                         release-tree)
+#       v
+#   collect (aggregate + validate dist/)
+#       v
+#   publish (Trusted Publisher OIDC + SLSA attestation; pypi-prod env)
+#       v
+#   push-tag (no toolchain — pure git: download release-tree, commit,
+#             tag, push tag, fast-forward main)
+#       v
+#   github-release (create GH Release from tag; attach wheels + sdist)
+#
+# Why the prepare-tree job: bump_version.py runs `cargo update --workspace`,
+# which is timestamp-sensitive (transitive dep updates can land mid-run).
+# Running it once and sharing the result via artifact guarantees every
+# build job + the tag commit see byte-identical pyproject.toml, Cargo.toml,
+# Cargo.lock, etc.
+#
+# Tag + main advance
+# ------------------
+# - main holds the "next final" version (e.g. 9.0.0) for the entire RC
+#   cycle. release-prod with releaseLevel=none publishes that version
+#   as-is and produces both a tag (vX.Y.Z) and a fast-forward update of
+#   main to that same commit, so main's pyproject.toml etc. reflect the
+#   released version.
+# - The push to main is fast-forward only — if main moved during the run
+#   or branch protection blocks the push, the step soft-fails with a
+#   notice. The PyPI publish + tag have already succeeded, so the release
+#   itself is durable; the operator just opens a manual bump PR.
+# - For the *next* release cycle the operator picks releaseLevel=patch /
+#   minor / major to advance past what's now on main.
+#
+# Iteration safety rails
+# ----------------------
+# 1. `skipTests`  (default false)  -> skip the on-push validation gate.
+# 2. `dryRun`     (default false)  -> prepare-tree + build + smoke-install
+#                                     wheels, then stop before publish +
+#                                     push-tag + github-release.
+# 3. The `publish` job runs in the `pypi-prod` GitHub Environment, which
+#    gates on a manual approval click before any artifact reaches PyPI.
+#
+# One-time setup (outside this file)
+# ----------------------------------
+# - PyPI Trusted Publisher pointed at this repo + workflow filename
+#   `release-prod.yaml` + environment `pypi-prod`.
+# - GitHub Environment `pypi-prod` configured with required-reviewers gate.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to build (branch name or SHA)'
+        required: true
+        type: string
+        default: 'main'
+      releaseLevel:
+        description: 'Bump level applied to pyproject.toml version'
+        required: true
+        type: choice
+        default: 'none'
+        options:
+          - 'none'   # use pyproject.toml version as-is (e.g. 9.0.0 -> 9.0.0)
+          - 'patch'  # X.Y.Z -> X.Y.(Z+1)
+          - 'minor'  # X.Y.Z -> X.(Y+1).0
+          - 'major'  # X.Y.Z -> (X+1).0.0
+      skipTests:
+        description: 'Skip the on-push validation gate (lint/typecheck/unit/rust)'
+        type: boolean
+        default: false
+      dryRun:
+        description: 'Build + smoke-install wheels but skip publish + push-tag'
+        type: boolean
+        default: false
+
+concurrency:
+  group: release-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  PROTOC_VERSION: "28.3"
+  # arduino/setup-protoc@v3.0.0 has no Node.js 24 release yet
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Validation gate (reuses on-push.yml so we have one source of truth for
+  # "fast checks"). Skippable via `skipTests` while iterating.
+  # ---------------------------------------------------------------------------
+  validate:
+    name: Validate (on-push reuse)
+    if: ${{ !inputs.skipTests }}
+    uses: ./.github/workflows/on-push.yml
+    permissions:
+      contents: read
+
+  # ---------------------------------------------------------------------------
+  # Pre-flight: compute the target version, confirm it is a final release,
+  # confirm it isn't already on PyPI, confirm the tag isn't already taken,
+  # and resolve the input ref to a SHA so every downstream job builds the
+  # exact same tree.
+  # ---------------------------------------------------------------------------
+  preflight:
+    name: Pre-flight (version + PyPI check)
+    needs: validate
+    if: |
+      always() &&
+      (needs.validate.result == 'success' || needs.validate.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      pep440_version: ${{ steps.bump.outputs.pep440_version }}
+      cargo_version:  ${{ steps.bump.outputs.cargo_version }}
+      tag_name:       ${{ steps.bump.outputs.tag_name }}
+      resolved_sha:   ${{ steps.resolve.outputs.sha }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0   # need history + tags for the tag-collision check
+
+      - name: Resolve ref -> SHA
+        id: resolve
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Compute target version
+        id: bump
+        run: |
+          python scripts/bump_version.py \
+            --level "${{ inputs.releaseLevel }}" \
+            --suffix ""
+
+      - name: Confirm computed version is a final release (no a/b/rc)
+        run: |
+          set -euo pipefail
+          version="${{ steps.bump.outputs.pep440_version }}"
+          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::computed version '${version}' is not a final release (X.Y.Z)."
+            echo "::error::release-prod is final-only — use release-rc.yaml for prereleases."
+            exit 1
+          fi
+          echo "version ${version} is a final release"
+
+      - name: Confirm version is not already on PyPI
+        run: |
+          set -euo pipefail
+          version="${{ steps.bump.outputs.pep440_version }}"
+          url="https://pypi.org/pypi/pinecone/${version}/json"
+          status=$(curl -s -o /dev/null -w "%{http_code}" "${url}")
+          echo "PyPI lookup ${url} -> HTTP ${status}"
+          case "${status}" in
+            404) echo "::notice::pinecone==${version} is unpublished — clear to release" ;;
+            200) echo "::error::pinecone==${version} is already on PyPI; bump releaseLevel and retry"; exit 1 ;;
+              *) echo "::error::unexpected HTTP ${status} from PyPI lookup"; exit 1 ;;
+          esac
+
+      - name: Confirm tag does not already exist
+        run: |
+          set -euo pipefail
+          tag="${{ steps.bump.outputs.tag_name }}"
+          if git rev-parse --verify "refs/tags/${tag}" >/dev/null 2>&1; then
+            echo "::error::tag ${tag} already exists locally"
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "${tag}" >/dev/null 2>&1; then
+            echo "::error::tag ${tag} already exists on remote"
+            exit 1
+          fi
+          echo "tag ${tag} is free"
+
+      - name: Render plan summary
+        run: |
+          {
+            echo "## Release plan"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| ref (input)      | \`${{ inputs.ref }}\` |"
+            echo "| ref (resolved)   | \`${{ steps.resolve.outputs.sha }}\` |"
+            echo "| releaseLevel     | \`${{ inputs.releaseLevel }}\` |"
+            echo "| target version   | **\`${{ steps.bump.outputs.pep440_version }}\`** |"
+            echo "| cargo version    | \`${{ steps.bump.outputs.cargo_version }}\` |"
+            echo "| git tag          | \`${{ steps.bump.outputs.tag_name }}\` |"
+            echo "| dryRun           | \`${{ inputs.dryRun }}\` |"
+            echo "| skipTests        | \`${{ inputs.skipTests }}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------------------
+  # Prepare the patched tree once. bump_version.py --write runs `cargo update
+  # --workspace` to refresh Cargo.lock, which is timestamp-sensitive — running
+  # it independently in every build job risks transitive-dep drift between
+  # jobs. We run it here exactly once and ship the patched files as an
+  # artifact every other job consumes, guaranteeing the tag's tree is byte-
+  # identical to what each wheel was built from.
+  # ---------------------------------------------------------------------------
+  prepare-tree:
+    name: Prepare release tree
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: ${{ needs.preflight.outputs.resolved_sha }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8  # stable
+        with:
+          toolchain: stable
+
+      - name: Install protoc
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
+        with:
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Apply version bump (write)
+        run: |
+          set -euo pipefail
+          python scripts/bump_version.py \
+            --level "${{ inputs.releaseLevel }}" \
+            --suffix "" \
+            --write
+          grep '^version' pyproject.toml rust/Cargo.toml
+
+      - name: Verify version injection
+        env:
+          EXPECTED: ${{ needs.preflight.outputs.pep440_version }}
+        run: |
+          python -c "
+          import os, tomllib
+          with open('pyproject.toml', 'rb') as f:
+              v = tomllib.load(f)['project']['version']
+          expected = os.environ['EXPECTED']
+          assert v == expected, f'pyproject.toml version mismatch: expected {expected!r}, got {v!r}'
+          print(f'pyproject.toml version OK: {v}')
+          "
+
+      - name: Upload release-tree artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+        with:
+          name: release-tree
+          path: |
+            pyproject.toml
+            rust/Cargo.toml
+            Cargo.lock
+            pinecone/__init__.py
+            docs/conf.py
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # Build wheels (matrix mirrors dev-publish.yml) + verify each wheel installs
+  # cleanly on its target platform (skipping the cross-compiled x86_64 mac).
+  # ---------------------------------------------------------------------------
+  build:
+    name: Build + verify (${{ matrix.target }})
+    needs: [preflight, prepare-tree]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            manylinux: auto
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            manylinux: auto
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            manylinux: musllinux_1_2
+          - os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+            manylinux: musllinux_1_2
+          - os: macos-14
+            target: x86_64-apple-darwin
+          - os: macos-14
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: ${{ needs.preflight.outputs.resolved_sha }}
+
+      - name: Apply release-tree (overwrite version-stamped files)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: release-tree
+          path: .
+          # download-artifact@v8 defaults to overwrite: false; we need to
+          # replace the post-checkout pyproject.toml etc. with the bumped
+          # versions from prepare-tree.
+          overwrite: true
+
+      - name: Install protoc (non-Linux)
+        if: runner.os != 'Linux'
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
+        with:
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Verify version injection
+        shell: bash
+        env:
+          EXPECTED: ${{ needs.preflight.outputs.pep440_version }}
+        run: |
+          grep '^version' pyproject.toml rust/Cargo.toml
+          python -c "
+          import os, tomllib
+          with open('pyproject.toml', 'rb') as f:
+              v = tomllib.load(f)['project']['version']
+          expected = os.environ['EXPECTED']
+          assert v == expected, f'pyproject.toml version mismatch: expected {expected!r}, got {v!r}'
+          print(f'pyproject.toml version OK: {v}')
+          "
+
+      - name: Build wheel (maturin)
+        uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad  # v1.50.1
+        with:
+          target: ${{ matrix.target }}
+          args: --release --out dist
+          manylinux: ${{ matrix.manylinux || 'auto' }}
+          before-script-linux: |
+            TARGET="${{ matrix.target }}"
+            PROTOC_VERSION="${{ env.PROTOC_VERSION }}"
+            case "$TARGET" in
+              x86_64-*)
+                PROTOC_ARCH="linux-x86_64"
+                PROTOC_SHA256="0ad949f04a6a174da83cdcbdb36dee0a4925272a5b6d83f79a6bf9852076d53f"
+                ;;
+              aarch64-*)
+                PROTOC_ARCH="linux-aarch_64"
+                PROTOC_SHA256="1de522032a8b194002fe35cab86d747848238b5e4de4f99648372079f5b46f9a"
+                ;;
+              *)
+                echo "Unsupported target: $TARGET" >&2
+                exit 1
+                ;;
+            esac
+            PROTOC_ZIP="protoc-${PROTOC_VERSION}-${PROTOC_ARCH}.zip"
+            curl -fsSLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${PROTOC_ZIP}"
+            echo "${PROTOC_SHA256}  ${PROTOC_ZIP}" | sha256sum -c -
+            python3 -m zipfile -e "${PROTOC_ZIP}" /usr/local
+            chmod +x /usr/local/bin/protoc
+            rm "${PROTOC_ZIP}"
+
+      - name: Validate wheel platform tags (x86_64 macOS cross-compile)
+        if: matrix.target == 'x86_64-apple-darwin'
+        shell: bash
+        run: |
+          bad=0
+          for wheel in dist/*.whl; do
+            echo "  $wheel"
+            [[ "$wheel" == *"x86_64"* ]] || { echo "ERROR: missing x86_64 tag in $wheel"; bad=1; }
+          done
+          [ "$bad" -eq 0 ] || exit 1
+
+      - name: Write install-verification script
+        if: matrix.target != 'x86_64-apple-darwin'
+        shell: bash
+        run: |
+          mkdir -p .ci
+          cat > .ci/verify_install.py <<'PY'
+          """Smoke-check the just-built wheel: import + Rust-extension load."""
+          import sys
+          import pinecone  # noqa: F401  (top-level import must succeed)
+          print("OK: import pinecone")
+          import pinecone._grpc  # native dylib must load on this platform
+          print("OK: import pinecone._grpc")
+          ch = pinecone._grpc.GrpcChannel(
+              endpoint="https://example.invalid:443",
+              api_key="test-key",
+              api_version="2025-10",
+              version="0.0.0-prod-test",
+          )
+          print("OK: GrpcChannel constructed:", type(ch).__name__)
+          sys.exit(0)
+          PY
+
+      - name: Install wheel + verify (native host)
+        if: matrix.target != 'x86_64-apple-darwin' && !endsWith(matrix.target, '-musl')
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel=$(ls dist/*.whl | head -n1)
+          echo "Installing ${wheel} on $(uname -sm) with Python $(python -V)"
+          python -m pip install --upgrade pip
+          python -m pip install "${wheel}"
+          python .ci/verify_install.py
+
+      - name: Install wheel + verify (musl, alpine container)
+        if: endsWith(matrix.target, '-musl')
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ matrix.target }}" == aarch64-* ]]; then
+            IMAGE="arm64v8/python:3.12-alpine"
+          else
+            IMAGE="python:3.12-alpine"
+          fi
+          docker run --rm \
+            -v "$PWD/dist:/dist:ro" \
+            -v "$PWD/.ci/verify_install.py:/verify_install.py:ro" \
+            "$IMAGE" sh -c '
+              set -e
+              ls /dist/*.whl
+              pip install --quiet /dist/*.whl
+              python /verify_install.py
+            '
+
+      - name: Note skipped install verification (x86_64-apple-darwin)
+        if: matrix.target == 'x86_64-apple-darwin'
+        run: |
+          echo "::notice::install verification skipped for x86_64-apple-darwin: cross-compiled on arm64 runner."
+
+      - name: Upload wheel
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+        with:
+          name: wheels-${{ matrix.target }}
+          path: dist/*.whl
+
+  # ---------------------------------------------------------------------------
+  # Build sdist (one job; serves as the canonical source distribution).
+  # ---------------------------------------------------------------------------
+  build-sdist:
+    name: Build sdist
+    needs: [preflight, prepare-tree]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: ${{ needs.preflight.outputs.resolved_sha }}
+
+      - name: Apply release-tree (overwrite version-stamped files)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: release-tree
+          path: .
+          # download-artifact@v8 defaults to overwrite: false; we need to
+          # replace the post-checkout pyproject.toml etc. with the bumped
+          # versions from prepare-tree.
+          overwrite: true
+
+      - name: Show injected version
+        run: grep '^version' pyproject.toml rust/Cargo.toml
+
+      - name: Build sdist
+        uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad  # v1.50.1
+        with:
+          command: sdist
+          args: --out dist
+
+      - name: Upload sdist
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  # ---------------------------------------------------------------------------
+  # Aggregate every wheel + sdist into a single dist/ artifact and validate it
+  # before any push/publish happens.
+  # ---------------------------------------------------------------------------
+  collect:
+    name: Collect + validate artifacts
+    needs: [preflight, build, build-sdist]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Download wheels + sdist
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          path: dist
+          pattern: '{wheels-*,sdist}'
+          merge-multiple: true
+
+      - name: Validate artifact counts + version stamp
+        env:
+          VERSION: ${{ needs.preflight.outputs.pep440_version }}
+        run: |
+          set -euo pipefail
+          ls -la dist/
+          whl_count=$(ls dist/*.whl 2>/dev/null | wc -l)
+          sdist_count=$(ls dist/*.tar.gz 2>/dev/null | wc -l)
+          echo "Wheels: ${whl_count}, sdist: ${sdist_count}"
+          # 7 platforms × 1 abi3 wheel = 7
+          if [ "$whl_count" -lt 7 ]; then
+            echo "::error::expected at least 7 wheels, got ${whl_count}"
+            exit 1
+          fi
+          if [ "$sdist_count" -lt 1 ]; then
+            echo "::error::sdist missing"
+            exit 1
+          fi
+          bad=0
+          for f in dist/*; do
+            base=$(basename "$f")
+            if [[ "$base" != *"${VERSION}"* ]]; then
+              echo "::error::artifact ${base} does not carry expected version ${VERSION}"
+              bad=1
+            fi
+          done
+          [ "$bad" -eq 0 ] || exit 1
+
+      - name: Upload aggregated dist/
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+        with:
+          name: dist-all
+          path: dist
+
+  # ---------------------------------------------------------------------------
+  # Publish to PyPI (Trusted Publisher OIDC). Behind the `pypi-prod` GitHub
+  # Environment so a human must approve before anything reaches PyPI.
+  # ---------------------------------------------------------------------------
+  publish:
+    name: Publish to PyPI
+    needs: [preflight, collect]
+    if: ${{ !inputs.dryRun }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: pypi-prod
+      url: https://pypi.org/project/pinecone/${{ needs.preflight.outputs.pep440_version }}/
+    permissions:
+      id-token: write     # required for Trusted Publisher OIDC
+      attestations: write # required to emit SLSA build provenance
+    steps:
+      - name: Download dist/
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: dist-all
+          path: dist
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: twine check
+        run: |
+          pip install twine==6.1.0
+          twine check dist/*
+
+      # NOTE: pin to a SHA before merging. release/v1 is the maintained branch
+      # of pypa/gh-action-pypi-publish; replace with `@<sha>  # v1.X.Y`.
+      #
+      # `attestations: true` emits SLSA build provenance attestations that
+      # PyPI displays on the project page. Requires `attestations: write`
+      # permission above (in addition to `id-token: write` for OIDC).
+      - name: Publish to PyPI (Trusted Publisher OIDC + SLSA attestation)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          attestations: true
+          # No `password:` — OIDC via Trusted Publisher.
+          # No `repository-url:` — defaults to prod PyPI.
+
+  # ---------------------------------------------------------------------------
+  # Push the release tag and fast-forward main to the release commit.
+  #
+  # Pure git: this job has no toolchain installs, no network outside GitHub,
+  # and no version recomputation. It downloads the release-tree artifact
+  # (the same patched files every build job consumed) and commits exactly
+  # that tree. Result: the tag's tree is byte-identical to what was
+  # published. Main is then fast-forwarded to that commit; the push is
+  # fast-forward only and soft-fails if blocked.
+  # ---------------------------------------------------------------------------
+  push-tag:
+    name: Push release tag + advance main
+    needs: [preflight, publish]
+    if: ${{ !inputs.dryRun }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write   # required to push the tag ref + fast-forward main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: ${{ needs.preflight.outputs.resolved_sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply release-tree (overwrite version-stamped files)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: release-tree
+          path: .
+          # download-artifact@v8 defaults to overwrite: false; we need to
+          # replace the post-checkout pyproject.toml etc. with the bumped
+          # versions from prepare-tree.
+          overwrite: true
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create release commit + tag
+        id: commit
+        env:
+          TAG: ${{ needs.preflight.outputs.tag_name }}
+          VERSION: ${{ needs.preflight.outputs.pep440_version }}
+        run: |
+          set -euo pipefail
+          # Cargo.lock lives at the workspace root, not under rust/.
+          git add pyproject.toml rust/Cargo.toml Cargo.lock pinecone/__init__.py docs/conf.py
+          git status
+          git commit -m "release: ${VERSION}"
+          git tag -a "${TAG}" -m "Release ${VERSION}"
+          echo "release_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Push release tag
+        env:
+          TAG: ${{ needs.preflight.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+          git push origin "refs/tags/${TAG}"
+
+      # Fast-forward main to the release commit so main's pyproject.toml
+      # reflects the released version. Soft-fail: if main has advanced past
+      # `resolved_sha` since the run started, or branch protection blocks
+      # the push, we surface a warning but don't fail the workflow — the
+      # PyPI publish + tag push have already succeeded, so the release is
+      # durable and the operator can fix main with a manual PR.
+      - name: Fast-forward main to release commit
+        id: push_main
+        env:
+          RESOLVED_SHA: ${{ needs.preflight.outputs.resolved_sha }}
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          remote_main=$(git rev-parse origin/main)
+          if [ "${remote_main}" != "${RESOLVED_SHA}" ]; then
+            echo "::warning::main has moved since this run started (was ${RESOLVED_SHA:0:8}, now ${remote_main:0:8}); skipping main push"
+            echo "main_pushed=false" >> "$GITHUB_OUTPUT"
+            echo "main_skip_reason=main moved during run" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if git push origin "HEAD:main"; then
+            echo "main_pushed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::push to main failed (likely branch protection); release succeeded but main was not advanced"
+            echo "main_pushed=false" >> "$GITHUB_OUTPUT"
+            echo "main_skip_reason=push rejected (branch protection?)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Render tag summary
+        env:
+          TAG: ${{ needs.preflight.outputs.tag_name }}
+          RELEASE_SHA: ${{ steps.commit.outputs.release_sha }}
+          MAIN_PUSHED: ${{ steps.push_main.outputs.main_pushed }}
+          MAIN_SKIP_REASON: ${{ steps.push_main.outputs.main_skip_reason }}
+        run: |
+          {
+            echo "## Tag pushed"
+            echo ""
+            echo "- **${TAG}** -> \`${RELEASE_SHA}\`"
+            echo "- Reachable via \`git fetch --tags && git checkout ${TAG}\`"
+            if [ "${MAIN_PUSHED}" = "true" ]; then
+              echo "- main fast-forwarded to \`${RELEASE_SHA}\`"
+            else
+              echo "- :warning: main was **not** advanced (${MAIN_SKIP_REASON})"
+              echo ""
+              echo "### Manual follow-up"
+              echo "Open a PR to set \`pyproject.toml\` on main to the released version (or the next planned version)."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------------------
+  # Create the GitHub Release from the tag, with auto-generated notes
+  # (PRs/commits since the previous release tag) and the wheels + sdist
+  # attached. Independent from PyPI — gives users a release page that
+  # doesn't depend on PyPI uptime.
+  # ---------------------------------------------------------------------------
+  github-release:
+    name: Create GitHub Release
+    needs: [preflight, push-tag]
+    if: ${{ !inputs.dryRun }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write   # required to create the Release object
+    steps:
+      - name: Download dist/
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: dist-all
+          path: dist
+
+      - name: Create GitHub Release with auto-generated notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ needs.preflight.outputs.tag_name }}
+          VERSION: ${{ needs.preflight.outputs.pep440_version }}
+        run: |
+          set -euo pipefail
+          gh -R "${REPO}" release create "${TAG}" \
+            --title "${VERSION}" \
+            --generate-notes \
+            --verify-tag \
+            dist/*
+
+      - name: Render release summary
+        env:
+          REPO: ${{ github.repository }}
+          TAG: ${{ needs.preflight.outputs.tag_name }}
+        run: |
+          {
+            echo "## GitHub Release created"
+            echo ""
+            echo "- [${TAG}](${{ github.server_url }}/${REPO}/releases/tag/${TAG})"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ---------------------------------------------------------------------------
+  # Run-summary (always runs so dryRun + skip outcomes are visible).
+  # ---------------------------------------------------------------------------
+  summary:
+    name: Run summary
+    needs: [validate, preflight, prepare-tree, build, build-sdist, collect, publish, push-tag, github-release]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Render summary
+        run: |
+          {
+            echo "## Final release run"
+            echo ""
+            echo "| Stage          | Result |"
+            echo "|----------------|--------|"
+            echo "| validate       | ${{ needs.validate.result }} |"
+            echo "| preflight      | ${{ needs.preflight.result }} |"
+            echo "| prepare-tree   | ${{ needs.prepare-tree.result }} |"
+            echo "| build          | ${{ needs.build.result }} |"
+            echo "| build-sdist    | ${{ needs.build-sdist.result }} |"
+            echo "| collect        | ${{ needs.collect.result }} |"
+            echo "| publish        | ${{ needs.publish.result }} |"
+            echo "| push-tag       | ${{ needs.push-tag.result }} |"
+            echo "| github-release | ${{ needs.github-release.result }} |"
+            echo ""
+            if [ "${{ inputs.dryRun }}" = "true" ]; then
+              echo "**dryRun=true** — publish, push-tag, and github-release were skipped on purpose."
+            fi
+            if [ "${{ inputs.skipTests }}" = "true" ]; then
+              echo "**skipTests=true** — on-push validation gate was skipped on purpose."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
