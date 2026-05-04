@@ -90,13 +90,6 @@ class Index:
         legacy_pool_threads = kwargs.pop("pool_threads", None)
         if kwargs:
             raise TypeError(f"Index() got unexpected keyword arguments: {sorted(kwargs)!r}")
-        if legacy_pool_threads is not None:
-            logger.debug(
-                "Index(pool_threads=%r) is accepted for backcompat but no "
-                "longer used; the new client uses httpx connection pooling. "
-                "Tune connection_pool_maxsize= instead.",
-                legacy_pool_threads,
-            )
         # Resolve API key: explicit arg > env var (check BEFORE host per unified-ord-0001)
         resolved_key = api_key or os.environ.get("PINECONE_API_KEY", "")
         if not resolved_key:
@@ -129,6 +122,12 @@ class Index:
         self._imports_adapter = ImportsAdapter()
         self._batch_executor: ThreadPoolExecutor | None = None
         self._batch_executor_workers: int = 0
+
+        if legacy_pool_threads is not None:
+            # Lazy import — only loaded when caller opts in.
+            from pinecone._legacy.async_req import install_async_req_support
+
+            install_async_req_support(self, legacy_pool_threads)
 
         logger.info("Index client created for host %s", self._host)
 
@@ -1778,6 +1777,9 @@ class Index:
         self._http.close()
         if self._batch_executor is not None:
             self._batch_executor.shutdown(wait=False)
+        legacy_pool = getattr(self, "_legacy_async_pool", None)
+        if legacy_pool is not None:
+            legacy_pool.close()
 
     def __enter__(self) -> Index:
         return self
