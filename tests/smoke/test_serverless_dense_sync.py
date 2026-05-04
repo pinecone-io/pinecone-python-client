@@ -210,6 +210,24 @@ def test_serverless_dense_smoke(client: Pinecone) -> None:
                 stats = async_stats.get(timeout=60)
                 assert stats.dimension == DIM
 
+            # BC-0113: async_req=True works without an explicit pool_threads=
+            # opt-in. The default 10-thread pool is installed lazily on first
+            # async_req call, no upfront configuration needed.
+            default_async_upsert: Any = idx2.upsert(  # type: ignore[call-arg]
+                vectors=[_vec(102), _vec(103)],
+                async_req=True,
+            )
+            assert isinstance(default_async_upsert, ApplyResult)
+            default_async_upsert.get(timeout=60)
+
+            default_async_query: Any = idx2.query(  # type: ignore[call-arg]
+                vector=[0.1] * DIM,
+                top_k=1,
+                async_req=True,
+            )
+            assert isinstance(default_async_query, ApplyResult)
+            default_async_query.get(timeout=60)
+
     finally:
         ensure_index_deleted(client, name)
         client.close()
