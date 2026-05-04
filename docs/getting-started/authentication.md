@@ -31,16 +31,6 @@ from pinecone import Pinecone
 pc = Pinecone(api_key="your-key-here")
 ```
 
-## Custom host
-
-Point the client at a proxy or private deployment with the `host` parameter:
-
-```python
-from pinecone import Pinecone
-
-pc = Pinecone(host="https://custom-host.example.com")
-```
-
 ## Missing key error
 
 If no API key can be resolved — neither from the argument nor from the environment

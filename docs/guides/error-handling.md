@@ -80,6 +80,48 @@ except ApiError as exc:
         print(exc.body.get("error", {}).get("message"))
 ```
 
+## ConflictError when creating an index
+
+If you call `pc.indexes.create()` and an index with that name already exists, the server
+returns a 409 and the SDK raises `ConflictError`.  The idiomatic fix is to guard the
+create call with `pc.indexes.exists()`:
+
+```python
+from pinecone import Pinecone
+
+pc = Pinecone()
+
+if not pc.indexes.exists("my-index"):
+    pc.indexes.create(
+        name="my-index",
+        spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
+        dimension=1536,
+        metric="cosine",
+    )
+```
+
+`exists()` returns `True` if an index with that name is present, `False` otherwise.
+
+If you genuinely cannot check first (e.g. concurrent callers), catch `ConflictError`
+and treat it as a no-op:
+
+```python
+from pinecone import Pinecone
+from pinecone.errors import ConflictError
+
+pc = Pinecone()
+
+try:
+    pc.indexes.create(
+        name="my-index",
+        spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
+        dimension=1536,
+        metric="cosine",
+    )
+except ConflictError:
+    pass  # index already exists, nothing to do
+```
+
 ## Retries
 
 The SDK retries failed requests automatically. The default `RetryConfig` retries up to
