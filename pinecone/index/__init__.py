@@ -142,6 +142,8 @@ class Index:
             | dict[str, Any]
         ],
         namespace: str = "",
+        batch_size: int | None = None,
+        show_progress: bool = True,
         timeout: float | None = None,
     ) -> UpsertResponse:
         """Upsert a batch of vectors into a namespace.
@@ -156,13 +158,27 @@ class Index:
                 and optional ``sparse_values`` / ``metadata`` keys.
             namespace (str): Target namespace. Defaults to the default
                 (empty-string) namespace.
+            batch_size (int | None): Split *vectors* into chunks of this size
+                and send one request per chunk. Default ``None`` sends a single
+                request (current behaviour). Must be a positive integer if
+                provided.
+            show_progress (bool): When ``True`` and ``tqdm`` is installed,
+                display a progress bar across batches. Has no effect when
+                ``batch_size`` is ``None`` or ``tqdm`` is not installed.
+                Defaults to ``True``.
+            timeout (float | None): Per-request timeout in seconds. Overrides
+                the client-level default for this call only.
 
         Returns:
             :class:`UpsertResponse` with the count of vectors upserted.
+            When ``batch_size`` triggers multiple requests, ``response_info``
+            on the aggregated response is ``None`` — there is no single
+            response to attribute it to.
 
         Raises:
             :exc:`PineconeTypeError`: If a vector element is not a recognized format.
             :exc:`PineconeValueError`: If a vector element is malformed.
+            :exc:`PineconeValueError`: If *batch_size* is not a positive integer.
             :exc:`ApiError`: If the API returns an error response (e.g. authentication
                 failure or server error).
             :exc:`PineconeConnectionError`: If a network-level connection
@@ -191,12 +207,13 @@ class Index:
                 )
                 print(response.upserted_count)
 
-        .. note::
-           All vectors are sent in a single request. For large datasets,
-           batch your calls (recommended batch size: 100–500 vectors) or use
-           :meth:`upsert_from_dataframe` which handles batching automatically.
-           For very large datasets (millions of vectors), consider
-           :meth:`start_import` for bulk import from cloud storage.
+                # Upsert 1000 vectors in batches of 100
+                response = idx.upsert(
+                    vectors=large_vector_list,
+                    batch_size=100,
+                    show_progress=True,
+                )
+                print(response.upserted_count)
 
         .. seealso::
            - :meth:`upsert_records` — for indexes with integrated inference
@@ -206,13 +223,33 @@ class Index:
            - :meth:`start_import` — for bulk loading millions of vectors
              from cloud storage (S3, GCS).
         """
+        if batch_size is None:
+            return self._upsert_one_batch(vectors=vectors, namespace=namespace, timeout=timeout)
+        validate_batch_size(batch_size)
+        built = list(vectors)
+        batches = chunked(built, batch_size)
+        total_count = 0
+        for batch in with_progress(batches, show_progress=show_progress):
+            result = self._upsert_one_batch(vectors=batch, namespace=namespace, timeout=timeout)
+            total_count += result.upserted_count
+        return UpsertResponse(upserted_count=total_count)
+
+    def _upsert_one_batch(
+        self,
+        *,
+        vectors: Sequence[
+            Vector
+            | tuple[str, list[float]]
+            | tuple[str, list[float], dict[str, Any]]
+            | dict[str, Any]
+        ],
+        namespace: str,
+        timeout: float | None,
+    ) -> UpsertResponse:
         built = [VectorFactory.build(v) for v in vectors]
-        body: dict[str, Any] = {
-            "vectors": [_vector_to_dict(v) for v in built],
-        }
+        body: dict[str, Any] = {"vectors": [_vector_to_dict(v) for v in built]}
         if namespace:
             body["namespace"] = namespace
-
         logger.info("Upserting %d vectors into namespace %r", len(built), namespace)
         response = self._http.post("/vectors/upsert", timeout=timeout, json=body)
         result = self._adapter.to_upsert_response(response.content)
@@ -289,8 +326,8 @@ class Index:
                 )
 
         .. seealso::
-           - :meth:`upsert` — for upserting vectors directly (single batch,
-             no DataFrame dependency).
+           - :meth:`upsert` — for upserting vectors directly (accepts optional
+             ``batch_size``; no DataFrame dependency).
            - :meth:`upsert_records` — for indexes with integrated inference
              (text in, server-side embedding).
            - :meth:`start_import` — for bulk loading millions of vectors
@@ -306,8 +343,6 @@ class Index:
         if not isinstance(df, pd.DataFrame):
             raise PineconeValueError("df must be a pandas DataFrame")
 
-        validate_batch_size(batch_size)
-
         has_sparse = "sparse_values" in df.columns
         has_metadata = "metadata" in df.columns
 
@@ -320,14 +355,14 @@ class Index:
                 record["metadata"] = row["metadata"]
             records.append(record)
 
-        batches = chunked(records, batch_size)
-        total_count = 0
         ns = namespace or ""
-        for batch in with_progress(batches, show_progress=show_progress):
-            result = self.upsert(vectors=batch, namespace=ns, timeout=timeout)
-            total_count += result.upserted_count
-
-        return UpsertResponse(upserted_count=total_count)
+        return self.upsert(
+            vectors=records,
+            namespace=ns,
+            batch_size=batch_size,
+            show_progress=show_progress,
+            timeout=timeout,
+        )
 
     def upsert_records(
         self,
