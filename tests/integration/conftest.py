@@ -213,6 +213,17 @@ def client(api_key: str) -> Pinecone:
 
 
 @pytest.fixture
+def client_pool() -> Pinecone:
+    """Pinecone client with pool_threads set, opting into legacy
+    async_req=True execution.
+    """
+    api_key = os.environ.get("PINECONE_API_KEY")
+    if not api_key:
+        pytest.skip("PINECONE_API_KEY not set")
+    return Pinecone(api_key=api_key, pool_threads=4)
+
+
+@pytest.fixture
 async def async_client(api_key: str) -> AsyncGenerator[AsyncPinecone, None]:
     """Function-scoped async Pinecone client (REST).
 

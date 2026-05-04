@@ -19,6 +19,8 @@ Note: upsert_from_dataframe is tested in test_upsert_from_dataframe_sync.py
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from pinecone import Pinecone, ServerlessSpec, Vector
@@ -190,6 +192,23 @@ def test_serverless_dense_smoke(client: Pinecone) -> None:
         with client.index(name=name) as idx2:
             stats2 = idx2.describe_index_stats()
             assert stats2.dimension == DIM
+
+            # async_req=True opt-in walkthrough (legacy execution model)
+            from multiprocessing.pool import ApplyResult
+
+            pool_client = Pinecone(api_key=client.config.api_key, pool_threads=2)
+            with pool_client.index(name=name) as pool_idx:
+                async_upsert: Any = pool_idx.upsert(  # type: ignore[call-arg]
+                    vectors=[_vec(100), _vec(101)],
+                    async_req=True,
+                )
+                assert isinstance(async_upsert, ApplyResult)
+                async_upsert.get(timeout=60)
+
+                async_stats: Any = pool_idx.describe_index_stats(async_req=True)  # type: ignore[call-arg]
+                assert isinstance(async_stats, ApplyResult)
+                stats = async_stats.get(timeout=60)
+                assert stats.dimension == DIM
 
     finally:
         ensure_index_deleted(client, name)

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from concurrent.futures import as_completed
+from typing import Any
 
 import pytest
 
@@ -1978,3 +1979,175 @@ def test_list_namespaces_multi_page_pagination_rest(client: Pinecone) -> None:
         )
     finally:
         cleanup_resource(lambda: client.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# Legacy async_req=True opt-in (sync REST)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_upsert_async_req_rest(client_pool: Pinecone) -> None:
+    """async_req=True on upsert returns ApplyResult; .get() yields UpsertResponse."""
+    from multiprocessing.pool import ApplyResult
+
+    name = unique_name("idx")
+    try:
+        client_pool.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        with client_pool.index(name=name) as index:
+            result: Any = index.upsert(  # type: ignore[call-arg]
+                vectors=[
+                    {"id": "asy-v1", "values": [0.1, 0.2]},
+                    {"id": "asy-v2", "values": [0.3, 0.4]},
+                ],
+                async_req=True,
+            )
+            assert isinstance(result, ApplyResult)
+            resolved = result.get(timeout=60)
+            assert isinstance(resolved, UpsertResponse)
+            assert resolved.upserted_count == 2
+    finally:
+        cleanup_resource(lambda: client_pool.indexes.delete(name), name, "index")
+
+
+@pytest.mark.integration
+def test_query_async_req_rest(client_pool: Pinecone) -> None:
+    """async_req=True on query returns ApplyResult; .get() yields QueryResponse."""
+    from multiprocessing.pool import ApplyResult
+
+    name = unique_name("idx")
+    try:
+        client_pool.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        with client_pool.index(name=name) as index:
+            index.upsert(
+                vectors=[
+                    {"id": "qry-v1", "values": [0.1, 0.2]},
+                    {"id": "qry-v2", "values": [0.3, 0.4]},
+                ]
+            )
+            poll_until(
+                query_fn=lambda: index.fetch(ids=["qry-v1", "qry-v2"]),
+                check_fn=lambda r: len(r.vectors) == 2,
+                timeout=120,
+                description="2 vectors fetchable before async query",
+            )
+            result: Any = index.query(top_k=2, vector=[0.1, 0.2], async_req=True)  # type: ignore[call-arg]
+            assert isinstance(result, ApplyResult)
+            resolved = result.get(timeout=60)
+            assert isinstance(resolved, QueryResponse)
+            assert len(resolved.matches) == 2
+    finally:
+        cleanup_resource(lambda: client_pool.indexes.delete(name), name, "index")
+
+
+@pytest.mark.integration
+def test_describe_index_stats_async_req_rest(client_pool: Pinecone) -> None:
+    """async_req=True on describe_index_stats returns ApplyResult."""
+    from multiprocessing.pool import ApplyResult
+
+    name = unique_name("idx")
+    try:
+        client_pool.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        with client_pool.index(name=name) as index:
+            result: Any = index.describe_index_stats(async_req=True)  # type: ignore[call-arg]
+            assert isinstance(result, ApplyResult)
+            resolved = result.get(timeout=60)
+            assert isinstance(resolved, DescribeIndexStatsResponse)
+            assert resolved.dimension == 2
+    finally:
+        cleanup_resource(lambda: client_pool.indexes.delete(name), name, "index")
+
+
+@pytest.mark.integration
+def test_list_paginated_async_req_rest(client_pool: Pinecone) -> None:
+    """async_req=True on list_paginated returns ApplyResult."""
+    from multiprocessing.pool import ApplyResult
+
+    name = unique_name("idx")
+    try:
+        client_pool.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        with client_pool.index(name=name) as index:
+            index.upsert(
+                vectors=[
+                    {"id": "lst-v1", "values": [0.1, 0.2]},
+                    {"id": "lst-v2", "values": [0.3, 0.4]},
+                    {"id": "lst-v3", "values": [0.5, 0.6]},
+                ]
+            )
+            poll_until(
+                query_fn=lambda: index.fetch(ids=["lst-v1", "lst-v2", "lst-v3"]),
+                check_fn=lambda r: len(r.vectors) == 3,
+                timeout=120,
+                description="3 vectors fetchable before async list",
+            )
+            result: Any = index.list_paginated(async_req=True)  # type: ignore[call-arg]
+            assert isinstance(result, ApplyResult)
+            resolved = result.get(timeout=60)
+            assert isinstance(resolved, ListResponse)
+            assert len(resolved.vectors) == 3
+    finally:
+        cleanup_resource(lambda: client_pool.indexes.delete(name), name, "index")
+
+
+@pytest.mark.integration
+def test_async_req_concurrent_fanout_rest(client_pool: Pinecone) -> None:
+    """Multiple in-flight async_req=True calls all resolve successfully."""
+    from multiprocessing.pool import ApplyResult
+
+    name = unique_name("idx")
+    try:
+        client_pool.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        with client_pool.index(name=name) as index:
+            index.upsert(
+                vectors=[{"id": f"con-v{i}", "values": [i * 0.1, i * 0.2]} for i in range(8)]
+            )
+            poll_until(
+                query_fn=lambda: index.fetch(ids=[f"con-v{i}" for i in range(8)]),
+                check_fn=lambda r: len(r.vectors) == 8,
+                timeout=120,
+                description="8 vectors fetchable before concurrent fan-out",
+            )
+
+            # Fan out 4 simultaneous queries. With pool_threads=4, all
+            # four should be in flight at once.
+            results: list[Any] = [
+                index.query(top_k=2, vector=[i * 0.1, i * 0.2], async_req=True)  # type: ignore[call-arg]
+                for i in range(4)
+            ]
+            for r in results:
+                assert isinstance(r, ApplyResult)
+            resolved: list[Any] = [r.get(timeout=60) for r in results]
+            assert all(isinstance(q, QueryResponse) for q in resolved)
+            assert all(len(q.matches) > 0 for q in resolved)
+    finally:
+        cleanup_resource(lambda: client_pool.indexes.delete(name), name, "index")
