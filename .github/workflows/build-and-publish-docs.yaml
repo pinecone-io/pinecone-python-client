@@ -1,0 +1,49 @@
+name: "Build and publish documentation to sdk-docs"
+
+on:
+  workflow_dispatch: {}
+  workflow_call:
+    secrets:
+      SSH_DEPLOY_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy-documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Install docs dependencies
+        # --no-install-project skips the maturin/Rust build; pinecone._grpc is
+        # mocked via autodoc_mock_imports in conf.py, and conf.py adds ".." to
+        # sys.path so the pure-Python package is importable from source.
+        run: uv sync --extra docs --no-install-project
+
+      - name: Build Sphinx documentation
+        working-directory: docs
+        run: uv run --no-sync sphinx-build -M html . _build -W
+
+      - name: Push documentation artifacts to sdk-docs
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+        with:
+          source-directory: docs/_build/html
+          destination-github-username: pinecone-io
+          destination-repository-name: sdk-docs
+          user-email: clients@pinecone.io
+          target-branch: main
+          target-directory: python
+          commit-message: "Python: automated documentation build - pinecone-python-client merge SHA: ${{ github.sha }}"

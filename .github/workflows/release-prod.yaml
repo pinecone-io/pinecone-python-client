@@ -757,11 +757,23 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
+  # Publish documentation to sdk-docs repo after the release tag is pushed.
+  # ---------------------------------------------------------------------------
+  publish-docs:
+    name: Publish documentation
+    needs: [push-tag]
+    if: ${{ !inputs.dryRun }}
+    uses: ./.github/workflows/build-and-publish-docs.yaml
+    secrets: inherit
+    permissions:
+      contents: read
+
+  # ---------------------------------------------------------------------------
   # Run-summary (always runs so dryRun + skip outcomes are visible).
   # ---------------------------------------------------------------------------
   summary:
     name: Run summary
-    needs: [validate, preflight, prepare-tree, build, build-sdist, collect, publish, push-tag, github-release]
+    needs: [validate, preflight, prepare-tree, build, build-sdist, collect, publish, push-tag, github-release, publish-docs]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -781,9 +793,10 @@ jobs:
             echo "| publish        | ${{ needs.publish.result }} |"
             echo "| push-tag       | ${{ needs.push-tag.result }} |"
             echo "| github-release | ${{ needs.github-release.result }} |"
+            echo "| publish-docs   | ${{ needs.publish-docs.result }} |"
             echo ""
             if [ "${{ inputs.dryRun }}" = "true" ]; then
-              echo "**dryRun=true** — publish, push-tag, and github-release were skipped on purpose."
+              echo "**dryRun=true** — publish, push-tag, github-release, and publish-docs were skipped on purpose."
             fi
             if [ "${{ inputs.skipTests }}" = "true" ]; then
               echo "**skipTests=true** — on-push validation gate was skipped on purpose."
