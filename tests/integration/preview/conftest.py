@@ -25,7 +25,6 @@ import uuid
 from collections.abc import AsyncGenerator, Generator
 
 import pytest
-import pytest_asyncio
 
 from pinecone import AsyncPinecone, Pinecone
 from tests.integration.conftest import (
@@ -95,7 +94,7 @@ def cleanup_preview_indexes(client: Pinecone) -> Generator[list[str], None, None
         )
 
 
-@pytest_asyncio.fixture
+@pytest.fixture
 async def async_cleanup_preview_indexes(
     async_client: AsyncPinecone,
 ) -> AsyncGenerator[list[str], None]:

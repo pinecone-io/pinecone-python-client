@@ -17,7 +17,6 @@ from collections.abc import AsyncGenerator
 from pathlib import Path
 
 import pytest
-import pytest_asyncio
 from dotenv import load_dotenv
 
 from pinecone import AsyncPinecone, Pinecone
@@ -213,15 +212,16 @@ def client(api_key: str) -> Pinecone:
     return Pinecone(api_key=api_key)
 
 
-@pytest_asyncio.fixture(scope="function", loop_scope="function")
+@pytest.fixture
 async def async_client(api_key: str) -> AsyncGenerator[AsyncPinecone, None]:
     """Function-scoped async Pinecone client (REST).
 
-    Uses an explicit ``await pc.close()`` in ``finally`` rather than
-    ``async with`` because pytest-asyncio's fixture-finalization phase
-    can run the ``async with`` exit handler after the event loop has
-    been closed, producing ``"Event loop is closed"`` errors when
-    HTTP/2 sockets are still open. See IT-0025 for context.
+    Decorated with plain ``@pytest.fixture`` (not ``@pytest_asyncio.fixture``)
+    so that pytest-anyio owns both the test and fixture event-loop lifecycle.
+    Using ``@pytest_asyncio.fixture`` while ``anyio_mode = "auto"`` is set
+    causes teardown ERRORs: anyio runs the test body (PASSED) then
+    pytest-asyncio tries its own teardown in the wrong loop (ERROR).
+    See IT-0025 and CI-0019 for context.
     """
     pc = AsyncPinecone(api_key=api_key)
     try:

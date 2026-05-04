@@ -247,7 +247,7 @@ async with AsyncPinecone(api_key="your-api-key") as pc:
             print(hit.id, hit.score)
 ```
 
-**Note:** Unlike the sync client, `AsyncPinecone.index(name=...)` does not auto-resolve the host. Call `await pc.indexes.describe(name)` first, then pass `host=desc.host`.
+**Note:** `AsyncPinecone.index(name=...)` is a coroutine — use `await pc.index(name="my-index")`. On cache miss it performs a non-blocking `await pc.indexes.describe(name)` to resolve the host automatically, matching sync `Pinecone.index(name=...)` behavior.
 
 ## Error Handling
 

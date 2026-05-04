@@ -61,6 +61,7 @@ class TestMultiFieldSchema:
             .add_string_field("title", full_text_search={"language": "en"})
             .add_string_field("category", filterable=True)
             .add_float_field("year")
+            .add_string_list_field("tags", filterable=True)
             .build()
         )
         cleanup_preview_indexes.append(preview_index_name)

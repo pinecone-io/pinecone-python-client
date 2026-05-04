@@ -4,9 +4,15 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Allow other workflows (e.g. release-rc.yaml) to reuse this file as a
+  # validation gate. Reusable invocations inherit the caller's permissions
+  # and ref, so no extra inputs/secrets are required.
+  workflow_call:
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Scoping by event_name as well as ref keeps reusable invocations from
+  # release workflows in a different group than push/PR runs on the same ref.
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
