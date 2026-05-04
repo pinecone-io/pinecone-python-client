@@ -6,7 +6,6 @@ notebook-style smoke scenarios:
 
 - Polling vector visibility after upsert (freshness window).
 - Defeating the pod-index "Ready-but-not-ready" race.
-- Capturing DeprecationWarnings from shim methods.
 - Locating the sample files reused from ``tests/integration/``.
 """
 
@@ -14,14 +13,10 @@ from __future__ import annotations
 
 import asyncio
 import time
-import warnings
-from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
-
     from pinecone.async_client.async_index import AsyncIndex
     from pinecone.grpc import GrpcIndex
     from pinecone.index import Index
@@ -189,34 +184,3 @@ def wait_for_pod_warmup(
     raise TimeoutError(
         f"Pod index did not warm up within {timeout}s (last fetch error: {last_exc!r})"
     )
-
-
-# ---------------------------------------------------------------------------
-# Deprecation warning capture
-# ---------------------------------------------------------------------------
-
-
-@contextmanager
-def capture_deprecation_warning(expected_substring: str = "") -> Iterator[list[Any]]:
-    """Context manager that captures DeprecationWarning emissions.
-
-    Usage::
-
-        with capture_deprecation_warning("create_index") as records:
-            pc.create_index(...)
-        assert records, "expected a DeprecationWarning"
-
-    If ``expected_substring`` is provided, asserts that at least one captured
-    warning's message contains it.
-    """
-    with warnings.catch_warnings(record=True) as records:
-        warnings.simplefilter("always", DeprecationWarning)
-        yield records
-    relevant = [r for r in records if issubclass(r.category, DeprecationWarning)]
-    if not relevant:
-        raise AssertionError("Expected at least one DeprecationWarning, got none")
-    if expected_substring and not any(expected_substring in str(r.message) for r in relevant):
-        messages = [str(r.message) for r in relevant]
-        raise AssertionError(
-            f"No captured DeprecationWarning contained {expected_substring!r}. Got: {messages}"
-        )
