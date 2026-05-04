@@ -9,6 +9,27 @@ description = "Pinecone Python SDK"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
+authors = [
+    { name = "Pinecone Systems, Inc.", email = "support@pinecone.io" },
+]
+keywords = ["Pinecone", "vector", "database", "cloud", "RAG", "AI"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     # Upper-bound httpx to exclude the 1.0 pre-release line (1.0.devN), which
     # drops symbols (e.g. httpx.BaseTransport) the SDK relies on. Without this
@@ -35,6 +56,12 @@ docs = [
     "sphinx-copybutton",
     "sphinx-tabs",
 ]
+
+[project.urls]
+Homepage = "https://www.pinecone.io"
+Documentation = "https://docs.pinecone.io"
+Source = "https://github.com/pinecone-io/python-sdk"
+Issues = "https://github.com/pinecone-io/python-sdk/issues"
 
 [tool.maturin]
 manifest-path = "rust/Cargo.toml"
