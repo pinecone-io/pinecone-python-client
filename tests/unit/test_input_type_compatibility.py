@@ -8,7 +8,9 @@ doesn't silently regress the DX win.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
+from types import MappingProxyType
+from typing import TypedDict
 
 
 def test_sequence_protocol_accepts_tuple() -> None:
@@ -20,3 +22,26 @@ def test_sequence_protocol_accepts_tuple() -> None:
 
     ids: Sequence[str] = ("a", "b")
     assert ids[0] == "a"
+
+
+def test_mapping_protocol_accepts_mappingproxy() -> None:
+    """Read-only mapping types must satisfy public Mapping[str, Any] params.
+
+    MappingProxyType (returned by e.g. dict.values() in some idioms,
+    cls.__dict__) is the common case. If a future change tightens
+    a public param back to dict[str, Any], this fails under mypy.
+    """
+    d = {"key": "value"}
+    m: Mapping[str, str] = MappingProxyType(d)
+    assert m["key"] == "value"
+
+
+def test_mapping_typeddict_compatibility() -> None:
+    """TypedDict instances are structural Mapping[str, Any]."""
+
+    class Filter(TypedDict):
+        genre: str
+
+    filter_typed: Filter = {"genre": "comedy"}
+    filter_as_mapping: Mapping[str, str] = filter_typed
+    assert filter_as_mapping["genre"] == "comedy"
