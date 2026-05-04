@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
 import pytest
-import tomllib
 
 from pinecone import __version__
 from pinecone._internal.config import PineconeConfig
@@ -30,8 +30,11 @@ from pinecone.errors.exceptions import (
 def test_version() -> None:
     # Catch the "pyproject.toml and pinecone/__init__.py drifted" bug, but stay
     # version-agnostic so a release bump doesn't have to edit this test.
-    pyproject = tomllib.loads(Path(__file__).parents[2].joinpath("pyproject.toml").read_text())
-    assert __version__ == pyproject["project"]["version"]
+    # Use regex over tomllib so this test runs on Python 3.10 (tomllib is 3.11+).
+    text = Path(__file__).parents[2].joinpath("pyproject.toml").read_text()
+    match = re.search(r'^version\s*=\s*"([^"]+)"', text, re.MULTILINE)
+    assert match is not None, "could not find version line in pyproject.toml"
+    assert __version__ == match.group(1)
 
 
 def test_config_defaults() -> None:
