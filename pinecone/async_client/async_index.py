@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator, Mapping, Sequence
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -220,9 +220,9 @@ class AsyncIndex:
         *,
         vectors: Sequence[
             Vector
-            | tuple[str, list[float]]
-            | tuple[str, list[float], dict[str, Any]]
-            | dict[str, Any]
+            | tuple[str, Sequence[float]]
+            | tuple[str, Sequence[float], Mapping[str, Any]]
+            | Mapping[str, Any]
         ],
         namespace: str = "",
         batch_size: int | None = None,
@@ -365,9 +365,9 @@ class AsyncIndex:
         *,
         vectors: Sequence[
             Vector
-            | tuple[str, list[float]]
-            | tuple[str, list[float], dict[str, Any]]
-            | dict[str, Any]
+            | tuple[str, Sequence[float]]
+            | tuple[str, Sequence[float], Mapping[str, Any]]
+            | Mapping[str, Any]
         ],
         namespace: str,
         timeout: float | None,
@@ -431,7 +431,7 @@ class AsyncIndex:
         self,
         *,
         top_k: int,
-        vector: list[float] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
         namespace: str = "",
         filter: dict[str, Any] | None = None,
@@ -541,8 +541,8 @@ class AsyncIndex:
     async def query_namespaces(
         self,
         *,
-        vector: list[float] | None = None,
-        namespaces: list[str],
+        vector: Sequence[float] | None = None,
+        namespaces: Sequence[str],
         metric: str,
         top_k: int | None = None,
         filter: dict[str, Any] | None = None,
@@ -656,7 +656,7 @@ class AsyncIndex:
     async def fetch(
         self,
         *,
-        ids: list[str],
+        ids: Sequence[str],
         namespace: str = "",
         timeout: float | None = None,
     ) -> FetchResponse:
@@ -770,7 +770,7 @@ class AsyncIndex:
     async def delete(
         self,
         *,
-        ids: list[str] | None = None,
+        ids: Sequence[str] | None = None,
         delete_all: bool = False,
         filter: dict[str, Any] | None = None,
         namespace: str = "",
@@ -833,7 +833,7 @@ class AsyncIndex:
         self,
         *,
         id: str | None = None,
-        values: list[float] | None = None,
+        values: Sequence[float] | None = None,
         sparse_values: SparseValues | dict[str, Any] | None = None,
         set_metadata: dict[str, Any] | None = None,
         namespace: str = "",
@@ -918,10 +918,10 @@ class AsyncIndex:
         namespace: str,
         top_k: int,
         inputs: SearchInputs | dict[str, Any] | None = None,
-        vector: list[float] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
         filter: dict[str, Any] | None = None,
-        fields: list[str] | None = None,
+        fields: Sequence[str] | None = None,
         rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
         timeout: float | None = None,
@@ -1024,10 +1024,10 @@ class AsyncIndex:
         namespace: str,
         top_k: int,
         inputs: SearchInputs | dict[str, Any] | None = None,
-        vector: list[float] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
         filter: dict[str, Any] | None = None,
-        fields: list[str] | None = None,
+        fields: Sequence[str] | None = None,
         rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
         timeout: float | None = None,

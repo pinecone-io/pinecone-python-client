@@ -7,6 +7,7 @@ built.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any, Protocol, runtime_checkable
 
 
@@ -28,7 +29,7 @@ class GrpcChannelProtocol(Protocol):
         self,
         top_k: int,
         *,
-        vector: list[float] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
         namespace: str | None = None,
         filter: dict[str, Any] | None = None,
@@ -44,7 +45,7 @@ class GrpcChannelProtocol(Protocol):
 
     def fetch(
         self,
-        ids: list[str],
+        ids: Sequence[str],
         *,
         namespace: str | None = None,
         timeout_s: float | None = None,
@@ -55,7 +56,7 @@ class GrpcChannelProtocol(Protocol):
     def delete(
         self,
         *,
-        ids: list[str] | None = None,
+        ids: Sequence[str] | None = None,
         delete_all: bool = False,
         namespace: str | None = None,
         filter: dict[str, Any] | None = None,
@@ -68,7 +69,7 @@ class GrpcChannelProtocol(Protocol):
         self,
         id: str | None,
         *,
-        values: list[float] | None = None,
+        values: Sequence[float] | None = None,
         sparse_values: dict[str, Any] | None = None,
         set_metadata: dict[str, Any] | None = None,
         namespace: str | None = None,

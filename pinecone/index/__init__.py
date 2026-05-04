@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING, Any
 
@@ -165,9 +165,9 @@ class Index:
         *,
         vectors: Sequence[
             Vector
-            | tuple[str, list[float]]
-            | tuple[str, list[float], dict[str, Any]]
-            | dict[str, Any]
+            | tuple[str, Sequence[float]]
+            | tuple[str, Sequence[float], Mapping[str, Any]]
+            | Mapping[str, Any]
         ],
         namespace: str = "",
         batch_size: int | None = None,
@@ -316,9 +316,9 @@ class Index:
         *,
         vectors: Sequence[
             Vector
-            | tuple[str, list[float]]
-            | tuple[str, list[float], dict[str, Any]]
-            | dict[str, Any]
+            | tuple[str, Sequence[float]]
+            | tuple[str, Sequence[float], Mapping[str, Any]]
+            | Mapping[str, Any]
         ],
         namespace: str,
         timeout: float | None,
@@ -548,7 +548,7 @@ class Index:
         self,
         *,
         top_k: int,
-        vector: list[float] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
         namespace: str = "",
         filter: dict[str, Any] | None = None,
@@ -653,8 +653,8 @@ class Index:
     def query_namespaces(
         self,
         *,
-        vector: list[float] | None = None,
-        namespaces: list[str],
+        vector: Sequence[float] | None = None,
+        namespaces: Sequence[str],
         metric: str,
         top_k: int | None = None,
         filter: dict[str, Any] | None = None,
@@ -768,7 +768,7 @@ class Index:
     def fetch(
         self,
         *,
-        ids: list[str],
+        ids: Sequence[str],
         namespace: str = "",
         timeout: float | None = None,
     ) -> FetchResponse:
@@ -883,7 +883,7 @@ class Index:
     def delete(
         self,
         *,
-        ids: list[str] | None = None,
+        ids: Sequence[str] | None = None,
         delete_all: bool = False,
         filter: dict[str, Any] | None = None,
         namespace: str = "",
@@ -946,7 +946,7 @@ class Index:
         self,
         *,
         id: str | None = None,
-        values: list[float] | None = None,
+        values: Sequence[float] | None = None,
         sparse_values: SparseValues | dict[str, Any] | None = None,
         set_metadata: dict[str, Any] | None = None,
         namespace: str = "",
@@ -1085,10 +1085,10 @@ class Index:
         namespace: str,
         top_k: int,
         inputs: SearchInputs | dict[str, Any] | None = None,
-        vector: list[float] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
         filter: dict[str, Any] | None = None,
-        fields: list[str] | None = None,
+        fields: Sequence[str] | None = None,
         rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
         timeout: float | None = None,
@@ -1214,10 +1214,10 @@ class Index:
         namespace: str,
         top_k: int,
         inputs: SearchInputs | dict[str, Any] | None = None,
-        vector: list[float] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
         filter: dict[str, Any] | None = None,
-        fields: list[str] | None = None,
+        fields: Sequence[str] | None = None,
         rerank: RerankConfig | dict[str, Any] | None = None,
         match_terms: dict[str, Any] | None = None,
         timeout: float | None = None,
