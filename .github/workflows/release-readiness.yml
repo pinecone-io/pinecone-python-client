@@ -209,6 +209,13 @@ jobs:
         run: |
           python -V
           pip show pinecone | grep -E '^(Name|Version|Location):'
+      # The repo's `pinecone/` source dir would shadow the installed wheel
+      # because Python prepends CWD to sys.path. The source tree has no
+      # compiled `_grpc.abi3.so`, so the import below fails with
+      # `ModuleNotFoundError: No module named 'pinecone._grpc'`.
+      # Move the source aside so `import pinecone` resolves to site-packages.
+      - name: Move source pinecone/ aside (avoid shadowing installed wheel)
+        run: mv pinecone _pinecone_source
       - name: Verify import + Rust extension on this Python version
         run: |
           python -c "
