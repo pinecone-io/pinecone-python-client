@@ -23,6 +23,9 @@ extensions = [
 ]
 
 html_theme = "furo"
+html_logo = "_static/pinecone-logo.svg"
+html_favicon = "_static/favicon-32x32.png"
+html_static_path = ["_static"]
 
 exclude_patterns = [
     "_build",
