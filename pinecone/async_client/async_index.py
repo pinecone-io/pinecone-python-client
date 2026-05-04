@@ -1171,8 +1171,9 @@ class AsyncIndex:
     async def delete_namespace(
         self,
         *,
-        name: str,
+        name: str | None = None,
         timeout: float | None = None,
+        **kwargs: str,
     ) -> None:
         """Delete a namespace by name, removing all its vectors.
 
@@ -1195,13 +1196,21 @@ class AsyncIndex:
 
                 await idx.delete_namespace(name="old-data")
         """
-        if not isinstance(name, str):
+        legacy_namespace: str | None = kwargs.pop("namespace", None)
+        if kwargs:
+            raise TypeError(
+                f"delete_namespace() got unexpected keyword arguments: {sorted(kwargs)!r}"
+            )
+        if name is not None and legacy_namespace is not None:
+            raise ValidationError("Provide either name= or namespace=, not both")
+        effective: str = name if name is not None else (legacy_namespace or "")
+        if not isinstance(effective, str):
             raise ValidationError("namespace name must be a string")
-        if not name or not name.strip():
+        if not effective or not effective.strip():
             raise ValidationError("namespace name must be a non-empty string")
 
-        logger.info("Deleting namespace %r", name)
-        await self._http.delete(f"/namespaces/{name}", timeout=timeout)
+        logger.info("Deleting namespace %r", effective)
+        await self._http.delete(f"/namespaces/{effective}", timeout=timeout)
 
     async def list_namespaces_paginated(
         self,

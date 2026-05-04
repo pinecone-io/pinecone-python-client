@@ -194,6 +194,42 @@ class TestDeleteNamespace:
         with pytest.raises(ValidationError, match="non-empty string"):
             idx.delete_namespace(name="")
 
+    @respx.mock
+    def test_delete_namespace_accepts_legacy_namespace_kwarg(self) -> None:
+        route = respx.delete(f"{NS_URL}/movies").mock(
+            return_value=httpx.Response(200, json={}),
+        )
+        idx = _make_index()
+        result = idx.delete_namespace(namespace="movies")  # type: ignore[call-arg]
+
+        assert result is None
+        assert route.called
+
+    def test_delete_namespace_rejects_both_kwargs(self) -> None:
+        idx = _make_index()
+        with pytest.raises(ValidationError, match="either name= or namespace="):
+            idx.delete_namespace(name="a", namespace="b")  # type: ignore[call-arg]
+
+    def test_delete_namespace_rejects_neither_kwarg(self) -> None:
+        idx = _make_index()
+        with pytest.raises(ValidationError, match="non-empty string"):
+            idx.delete_namespace()  # type: ignore[call-arg]
+
+    def test_delete_namespace_rejects_unknown_kwargs(self) -> None:
+        idx = _make_index()
+        with pytest.raises(TypeError, match="unexpected keyword arguments"):
+            idx.delete_namespace(name="x", bogus="y")  # type: ignore[call-arg]
+
+    @respx.mock
+    def test_delete_namespace_legacy_kwarg_with_timeout(self) -> None:
+        route = respx.delete(f"{NS_URL}/x").mock(
+            return_value=httpx.Response(200, json={}),
+        )
+        idx = _make_index()
+        idx.delete_namespace(namespace="x", timeout=5.0)  # type: ignore[call-arg]
+
+        assert route.called
+
 
 # ---------------------------------------------------------------------------
 # Keyword-only enforcement
