@@ -52,7 +52,7 @@ def test_batch_upsert_250_calls_upsert_three_times(docs: PreviewDocuments) -> No
             namespace="ns",
             documents=documents,
             batch_size=100,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
 
@@ -96,7 +96,7 @@ def test_batch_upsert_partial_failure_captured(docs: PreviewDocuments) -> None:
             namespace="ns",
             documents=documents,
             batch_size=10,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
 
@@ -130,14 +130,14 @@ def test_batch_upsert_batch_size_zero_raises(docs: PreviewDocuments) -> None:
         docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], batch_size=0)
 
 
-def test_batch_upsert_max_workers_zero_raises(docs: PreviewDocuments) -> None:
+def test_batch_upsert_max_concurrency_zero_raises(docs: PreviewDocuments) -> None:
     with pytest.raises(ValidationError):
-        docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_workers=0)
+        docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_concurrency=0)
 
 
-def test_batch_upsert_max_workers_65_raises(docs: PreviewDocuments) -> None:
+def test_batch_upsert_max_concurrency_65_raises(docs: PreviewDocuments) -> None:
     with pytest.raises(ValidationError):
-        docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_workers=65)
+        docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_concurrency=65)
 
 
 # ---------------------------------------------------------------------------
@@ -158,7 +158,7 @@ async def test_async_batch_upsert_250_calls_upsert_three_times(
             namespace="ns",
             documents=documents,
             batch_size=100,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
 
@@ -208,7 +208,7 @@ async def test_async_batch_upsert_partial_failure_captured(
             namespace="ns",
             documents=documents,
             batch_size=10,
-            max_workers=1,
+            max_concurrency=1,
             show_progress=False,
         )
 
@@ -239,11 +239,11 @@ async def test_async_batch_upsert_empty_documents_raises(
 
 
 @pytest.mark.asyncio
-async def test_async_batch_upsert_max_workers_zero_raises(
+async def test_async_batch_upsert_max_concurrency_zero_raises(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
     with pytest.raises(ValidationError):
-        await async_docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_workers=0)
+        await async_docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_concurrency=0)
 
 
 # ---------------------------------------------------------------------------
@@ -270,7 +270,7 @@ class TestBatchUpsertResponseInfo:
                 namespace="ns",
                 documents=_make_docs(30),
                 batch_size=10,
-                max_workers=1,
+                max_concurrency=1,
                 show_progress=False,
             )
 
@@ -295,7 +295,7 @@ class TestBatchUpsertResponseInfo:
                 namespace="ns",
                 documents=_make_docs(20),
                 batch_size=10,
-                max_workers=1,
+                max_concurrency=1,
                 show_progress=False,
             )
 
@@ -329,7 +329,7 @@ class TestAsyncBatchUpsertResponseInfo:
                 namespace="ns",
                 documents=_make_docs(30),
                 batch_size=10,
-                max_workers=1,
+                max_concurrency=1,
                 show_progress=False,
             )
 
@@ -355,7 +355,7 @@ class TestAsyncBatchUpsertResponseInfo:
                 namespace="ns",
                 documents=_make_docs(20),
                 batch_size=10,
-                max_workers=1,
+                max_concurrency=1,
                 show_progress=False,
             )
 

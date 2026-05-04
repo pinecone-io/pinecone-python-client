@@ -102,15 +102,15 @@ class PreviewDocuments:
         self._batch_executor: ThreadPoolExecutor | None = None
         self._batch_executor_workers: int = 0
 
-    def _get_batch_executor(self, max_workers: int) -> ThreadPoolExecutor:
-        if self._batch_executor is None or self._batch_executor_workers != max_workers:
+    def _get_batch_executor(self, max_concurrency: int) -> ThreadPoolExecutor:
+        if self._batch_executor is None or self._batch_executor_workers != max_concurrency:
             if self._batch_executor is not None:
                 self._batch_executor.shutdown(wait=False)
             self._batch_executor = ThreadPoolExecutor(
-                max_workers=max_workers,
+                max_concurrency,
                 thread_name_prefix="pinecone-batch-upsert",
             )
-            self._batch_executor_workers = max_workers
+            self._batch_executor_workers = max_concurrency
         return self._batch_executor
 
     def close(self) -> None:
@@ -213,7 +213,7 @@ class PreviewDocuments:
         namespace: str,
         documents: list[dict[str, Any]],
         batch_size: int = 50,
-        max_workers: int = 4,
+        max_concurrency: int = 4,
         show_progress: bool = True,
     ) -> BatchResult:
         """Upsert a large list of documents in parallel batches.
@@ -231,7 +231,7 @@ class PreviewDocuments:
             documents: Documents to upsert. Each must contain a non-empty,
                 unique ``_id`` string field.
             batch_size: Maximum documents per request (positive integer, default 50).
-            max_workers: Thread pool size for concurrent requests (1–64, default 4).
+            max_concurrency: Thread pool size for concurrent requests (1–64, default 4).
             show_progress: Display a tqdm progress bar when installed.
 
         Returns:
@@ -242,7 +242,7 @@ class PreviewDocuments:
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is
                 empty, documents is empty, batch_size is not a positive integer, or
-                max_workers is outside [1, 64].
+                max_concurrency is outside [1, 64].
 
         Examples:
             >>> from pinecone import Pinecone
@@ -256,7 +256,7 @@ class PreviewDocuments:
             ...     namespace="articles-en",
             ...     documents=documents,
             ...     batch_size=50,
-            ...     max_workers=8,
+            ...     max_concurrency=8,
             ... )
             >>> result.success_count
             500
@@ -266,16 +266,16 @@ class PreviewDocuments:
         require_non_empty("namespace", namespace)
         require_non_empty("documents", documents)
         require_positive("batch_size", batch_size)
-        require_in_range("max_workers", max_workers, 1, 64)
+        require_in_range("max_concurrency", max_concurrency, 1, 64)
 
         return batch_execute(
             items=documents,
             operation=lambda chunk: self.upsert(namespace=namespace, documents=chunk),
             batch_size=batch_size,
-            max_concurrency=max_workers,
+            max_concurrency=max_concurrency,
             show_progress=show_progress,
             desc="Upserting",
-            executor=self._get_batch_executor(max_workers),
+            executor=self._get_batch_executor(max_concurrency),
         )
 
     def search(

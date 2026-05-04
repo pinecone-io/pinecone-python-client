@@ -113,7 +113,7 @@ def test_full_text_search_only_flow(
         namespace=preview_namespace,
         documents=documents,
         batch_size=2,
-        max_workers=2,
+        max_concurrency=2,
     )
 
     score_by: list[object] = [PreviewTextQuery(field="text", query="ancient")]

@@ -72,7 +72,7 @@ async def test_async_end_to_end_flow(
         namespace=preview_namespace,
         documents=documents,
         batch_size=10,
-        max_workers=4,
+        max_concurrency=4,
     )
     assert isinstance(result, BatchResult)
     assert result.successful_item_count == 50
@@ -334,7 +334,7 @@ async def test_async_batch_upsert_result_fields(
         namespace=preview_namespace,
         documents=documents,
         batch_size=5,
-        max_workers=2,
+        max_concurrency=2,
         show_progress=False,
     )
 
@@ -1882,7 +1882,7 @@ async def test_async_batch_upsert_result_display_methods(
         namespace=preview_namespace,
         documents=documents,
         batch_size=5,
-        max_workers=2,
+        max_concurrency=2,
         show_progress=False,
     )
 
@@ -2003,7 +2003,7 @@ async def test_async_batch_upsert_with_batch_size_one_per_document(
 ) -> None:
     """Async parity: batch_upsert(batch_size=1) creates one batch per document (§5).
 
-    Async variant uses asyncio.gather() instead of threads; max_workers controls
+    Async variant uses asyncio.gather() instead of threads; max_concurrency controls
     concurrency limit. batch_size=1 means each document is its own HTTP request,
     so total_batch_count equals the document count.
     """
@@ -2034,7 +2034,7 @@ async def test_async_batch_upsert_with_batch_size_one_per_document(
         namespace=preview_namespace,
         documents=documents,
         batch_size=1,  # minimum: each document is its own HTTP request
-        max_workers=2,
+        max_concurrency=2,
         show_progress=False,
     )
 
@@ -2208,7 +2208,7 @@ async def test_async_batch_upsert_partial_failure_collects_failed_items(
         namespace=preview_namespace,
         documents=all_docs,
         batch_size=1,
-        max_workers=2,
+        max_concurrency=2,
         show_progress=False,
     )
 

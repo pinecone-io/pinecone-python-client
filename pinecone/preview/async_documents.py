@@ -231,7 +231,7 @@ class AsyncPreviewDocuments:
         namespace: str,
         documents: list[dict[str, Any]],
         batch_size: int = 50,
-        max_workers: int = 4,
+        max_concurrency: int = 4,
         show_progress: bool = True,
     ) -> BatchResult:
         """Upsert a large list of documents in parallel batches (async).
@@ -249,7 +249,7 @@ class AsyncPreviewDocuments:
             documents: Documents to upsert. Each must contain a non-empty,
                 unique ``_id`` string field.
             batch_size: Maximum documents per request (positive integer, default 50).
-            max_workers: Asyncio concurrency limit (1–64, default 4).
+            max_concurrency: Asyncio concurrency limit (1–64, default 4).
             show_progress: Display a tqdm progress bar when installed.
 
         Returns:
@@ -260,7 +260,7 @@ class AsyncPreviewDocuments:
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is
                 empty, documents is empty, batch_size is not a positive integer, or
-                max_workers is outside [1, 64].
+                max_concurrency is outside [1, 64].
 
         Examples:
             >>> import asyncio
@@ -276,7 +276,7 @@ class AsyncPreviewDocuments:
             ...             namespace="articles-en",
             ...             documents=documents,
             ...             batch_size=50,
-            ...             max_workers=8,
+            ...             max_concurrency=8,
             ...         )
             ...         print(result.success_count, result.error_count)
             >>> asyncio.run(main())
@@ -285,13 +285,13 @@ class AsyncPreviewDocuments:
         require_non_empty("namespace", namespace)
         require_non_empty("documents", documents)
         require_positive("batch_size", batch_size)
-        require_in_range("max_workers", max_workers, 1, 64)
+        require_in_range("max_concurrency", max_concurrency, 1, 64)
 
         return await async_batch_execute(
             items=documents,
             operation=lambda chunk: self.upsert(namespace=namespace, documents=chunk),
             batch_size=batch_size,
-            max_concurrency=max_workers,
+            max_concurrency=max_concurrency,
             show_progress=show_progress,
             desc="Upserting",
         )

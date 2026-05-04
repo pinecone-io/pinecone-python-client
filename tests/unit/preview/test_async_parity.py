@@ -297,13 +297,13 @@ async def test_batch_upsert_batch_size_range_parity() -> None:
     assert sync_msg == async_msg
 
 
-async def test_batch_upsert_max_workers_range_parity() -> None:
+async def test_batch_upsert_max_concurrency_range_parity() -> None:
     sync = _make_sync_docs()
     async_d = _make_async_docs()
     docs = [{"_id": "d1"}]
-    sync_msg = _sync_error(sync.batch_upsert, namespace="ns", documents=docs, max_workers=0)
+    sync_msg = _sync_error(sync.batch_upsert, namespace="ns", documents=docs, max_concurrency=0)
     async_msg = await _async_error(
-        async_d.batch_upsert, namespace="ns", documents=docs, max_workers=0
+        async_d.batch_upsert, namespace="ns", documents=docs, max_concurrency=0
     )
     assert sync_msg == async_msg
 
@@ -329,7 +329,7 @@ def test_sync_batch_upsert_returns_batch_result() -> None:
         namespace="ns",
         documents=_DOCS_FIXTURE,
         batch_size=10,
-        max_workers=1,
+        max_concurrency=1,
         show_progress=False,
     )
 
@@ -355,7 +355,7 @@ async def test_async_batch_upsert_returns_batch_result() -> None:
         namespace="ns",
         documents=_DOCS_FIXTURE,
         batch_size=10,
-        max_workers=1,
+        max_concurrency=1,
         show_progress=False,
     )
 
@@ -381,7 +381,7 @@ async def test_batch_upsert_same_fields_both_variants() -> None:
         namespace="ns",
         documents=_DOCS_FIXTURE,
         batch_size=10,
-        max_workers=1,
+        max_concurrency=1,
         show_progress=False,
     )
 
@@ -392,7 +392,7 @@ async def test_batch_upsert_same_fields_both_variants() -> None:
         namespace="ns",
         documents=_DOCS_FIXTURE,
         batch_size=10,
-        max_workers=1,
+        max_concurrency=1,
         show_progress=False,
     )
 
