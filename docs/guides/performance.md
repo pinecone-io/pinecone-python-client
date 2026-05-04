@@ -106,23 +106,34 @@ information instead of raising on the first failed batch — see
 ### How much faster is parallel batching?
 
 Measured on 10k vectors / 1536-d / batch=100 against an aws-us-east-1 serverless
-index, sync REST `Index`:
+index ([Methodology](#methodology)) — wall time, p50:
 
-| Client | Path | Wall time | Speedup |
-|---|---|---:|---:|
-| v8 | sequential loop (baseline) | 112 s | 1.0× |
-| v9 | `max_concurrency=4` (default) | 9.6 s | **11.7×** |
-| v9 | `max_concurrency=8` | 5.7 s | 19.7× |
-| v9 | `max_concurrency=16` | 5.0 s | 22.3× |
-| v9 | `max_concurrency=32` | 4.4 s | 25.5× |
+| Client | `max_concurrency` | REST sync | REST async | gRPC |
+|---|---:|---:|---:|---:|
+| v8 | sequential (baseline) | 112 s | 67 s | 34 s |
+| v9 | 1 | 31.5 s | 32.7 s | 35.0 s |
+| v9 | 4 (default) | **9.6 s** | **10.2 s** | **10.0 s** |
+| v9 | 8 | 5.7 s | 5.9 s | 5.7 s |
+| v9 | 16 | 5.0 s | 6.6 s | 4.0 s |
+| v9 | 32 | 4.4 s | 5.0 s | 2.7 s |
 
 The v8 row is the published `pinecone==8.x` client running its sequential
 `batch_size=` loop; the v9 rows are this client using native parallel batched
-upsert. Async REST follows the same shape with somewhat smaller speedups,
-since v8 async sequential was already faster than v8 sync sequential. gRPC is
-faster than REST at high concurrency — see
-[When to Use gRPC](#when-to-use-grpc). Numbers come from a controlled
-benchmark; see [Methodology](#methodology).
+upsert. The headline win for the typical caller — v8 REST sync sequential vs v9
+REST sync at the default `max_concurrency=4` — is ~12×. Async REST shows a
+similar shape with a smaller multiplier because v8 async sequential was
+already faster than v8 sync sequential. gRPC is faster than REST at high
+concurrency — see [When to Use gRPC](#when-to-use-grpc).
+
+The `max_concurrency=1` row isn't a setting you'd reach for in practice — at
+`c=1` you've opted out of the main reason to pass `batch_size=` in the first
+place — but it's a useful diagnostic. It isolates how much of the v8 → v9
+speedup comes from non-parallelism improvements in the client (request
+building, serialization, response decoding, retry layer) versus the explicit
+fan-out parallel batching adds on top. For REST sync, ~3.6× of the 11.7×
+default-settings win comes from those raw client improvements alone; the
+remaining ~3.3× is parallelism. For gRPC, almost the entire win comes from
+parallelism — v8 gRPC was already efficient at the request level.
 
 ### Tuning `max_concurrency`
 
@@ -201,19 +212,8 @@ differences are HTTP/2 framing (vs HTTP/1.1 + keepalive on REST) and binary
 protobuf encoding (vs JSON). The gRPC channel ships with the package — no
 separate install step.
 
-The numbers, on the same 10k-vector / 1536-d / batch=100 benchmark
-([Methodology](#methodology)) — wall time, p50:
-
-| Client | `max_concurrency` | REST sync | REST async | gRPC |
-|---|---:|---:|---:|---:|
-| v8 | sequential | 112 s | 67 s | 34 s |
-| v9 | 1 | 31.5 s | 32.7 s | 35.0 s |
-| v9 | 4 (default) | 9.6 s | 10.2 s | 10.0 s |
-| v9 | 8 | 5.7 s | 5.9 s | 5.7 s |
-| v9 | 16 | 5.0 s | 6.6 s | 4.0 s |
-| v9 | 32 | 4.4 s | 5.0 s | 2.7 s |
-
-A few things stand out:
+Reading off the [throughput table above](#how-much-faster-is-parallel-batching),
+a few things about gRPC stand out:
 
 - **Even sequential, v8 gRPC was ~3× faster than v8 REST sync** (34 s vs 112 s).
   HTTP/2 multiplexing and protobuf encoding buy a lot before any parallelism
