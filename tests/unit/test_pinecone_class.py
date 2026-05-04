@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import warnings
 from unittest.mock import MagicMock, patch
 
@@ -489,13 +488,9 @@ class TestPoolThreadsBackcompat:
         pc = Pinecone(api_key="x", pool_threads=4)
         assert pc is not None
 
-    def test_pool_threads_kwarg_emits_debug_log(self, caplog: pytest.LogCaptureFixture) -> None:
-        with caplog.at_level(logging.DEBUG, logger="pinecone._client"):
-            Pinecone(api_key="x", pool_threads=4)
-        assert any(
-            "pool_threads" in r.message and "connection_pool_maxsize" in r.message
-            for r in caplog.records
-        )
+    def test_pool_threads_kwarg_stored_as_attribute(self) -> None:
+        pc = Pinecone(api_key="x", pool_threads=4)
+        assert pc._legacy_pool_threads == 4  # type: ignore[attr-defined]
 
     def test_pool_threads_kwarg_does_not_warn(self) -> None:
         with warnings.catch_warnings(record=True) as record:

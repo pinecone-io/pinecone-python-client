@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import logging
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any, cast
 
 from pinecone._internal.config import PineconeConfig, RetryConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
-from pinecone._internal.indexes_helpers import IndexKwargs, poll_index_until_ready
+from pinecone._internal.indexes_helpers import _LegacyIndexKwargs, poll_index_until_ready
 from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import ValidationError
 
@@ -46,8 +45,6 @@ if TYPE_CHECKING:
         ServerlessSpec,
     )
     from pinecone.preview import Preview
-
-logger = logging.getLogger(__name__)
 
 
 class Pinecone:
@@ -108,13 +105,6 @@ class Pinecone:
         legacy_pool_threads = kwargs.pop("pool_threads", None)
         if kwargs:
             raise TypeError(f"Pinecone() got unexpected keyword arguments: {sorted(kwargs)!r}")
-        if legacy_pool_threads is not None:
-            logger.debug(
-                "Pinecone(pool_threads=%r) is accepted for backcompat but no "
-                "longer used; the new client uses httpx connection pooling. "
-                "Tune connection_pool_maxsize= instead.",
-                legacy_pool_threads,
-            )
         config = PineconeConfig(
             api_key=api_key or "",
             host=host or "",
@@ -153,6 +143,7 @@ class Pinecone:
         self._assistants: Assistants | None = None
         self._host_cache: dict[str, str] = {}
         self._preview: Preview | None = None
+        self._legacy_pool_threads: int | None = legacy_pool_threads
 
     def __repr__(self) -> str:
         masked = f"...{self._config.api_key[-4:]}" if len(self._config.api_key) >= 4 else "***"
@@ -372,9 +363,9 @@ class Pinecone:
 
         return _Index(**self._build_index_kwargs(resolved_host))
 
-    def _build_index_kwargs(self, host: str) -> IndexKwargs:
-        """Return the kwargs dict for constructing an Index or AsyncIndex."""
-        return IndexKwargs(
+    def _build_index_kwargs(self, host: str) -> _LegacyIndexKwargs:
+        """Return the kwargs dict for constructing an Index."""
+        kwargs: _LegacyIndexKwargs = _LegacyIndexKwargs(
             host=host,
             api_key=self._config.api_key,
             additional_headers=dict(self._config.additional_headers),
@@ -386,6 +377,9 @@ class Pinecone:
             source_tag=self._config.source_tag,
             connection_pool_maxsize=self._config.connection_pool_maxsize,
         )
+        if self._legacy_pool_threads is not None:
+            kwargs["pool_threads"] = self._legacy_pool_threads
+        return kwargs
 
     def _resolve_index_host(self, *, name: str, host: str) -> str:
         """Resolve the data plane host from explicit host, cache, or describe call.
