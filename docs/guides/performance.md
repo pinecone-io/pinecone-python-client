@@ -284,7 +284,8 @@ Each cell is the median of 3 timed iterations after 1 warmup. That's a small
 sample by benchmarking standards, so the table is best read as a directional
 guide: the large speedup factors (≥3×) are well above run-to-run noise, but
 small differences between adjacent rows in the same column should not be
-over-interpreted.
+over-interpreted. We plan to re-run at higher iteration counts to firm up
+the finer-grained claims; this page will be refreshed at that time.
 
 Your numbers will vary with client region, RTT, vector dimension, batch size,
 payload metadata, and concurrent traffic from other clients. When in doubt,
