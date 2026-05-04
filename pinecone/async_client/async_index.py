@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 from pinecone._internal.adapters.imports_adapter import ImportsAdapter
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter, extract_response_info
+from pinecone._internal.batching import chunked, validate_batch_size, with_progress
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host, _vector_to_dict
@@ -221,6 +222,8 @@ class AsyncIndex:
             | dict[str, Any]
         ],
         namespace: str = "",
+        batch_size: int | None = None,
+        show_progress: bool = True,
         timeout: float | None = None,
     ) -> UpsertResponse:
         """Upsert a batch of vectors into a namespace.
@@ -235,13 +238,27 @@ class AsyncIndex:
                 and optional ``sparse_values`` / ``metadata`` keys.
             namespace (str): Target namespace. Defaults to the default
                 (empty-string) namespace.
+            batch_size (int | None): Split *vectors* into chunks of this size
+                and send one request per chunk. Default ``None`` sends a single
+                request (current behaviour). Must be a positive integer if
+                provided.
+            show_progress (bool): When ``True`` and ``tqdm`` is installed,
+                display a progress bar across batches. Has no effect when
+                ``batch_size`` is ``None`` or ``tqdm`` is not installed.
+                Defaults to ``True``.
+            timeout (float | None): Per-request timeout in seconds. Overrides
+                the client-level default for this call only.
 
         Returns:
             :class:`UpsertResponse` with the count of vectors upserted.
+            When ``batch_size`` triggers multiple requests, ``response_info``
+            on the aggregated response is ``None`` — there is no single
+            response to attribute it to.
 
         Raises:
             :exc:`PineconeTypeError`: If a vector element is not a recognized format.
             :exc:`PineconeValueError`: If a vector element is malformed.
+            :exc:`PineconeValueError`: If *batch_size* is not a positive integer.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -266,10 +283,18 @@ class AsyncIndex:
                 )
                 print(response.upserted_count)
 
+                # Upsert 1000 vectors in batches of 100
+                response = await idx.upsert(
+                    vectors=large_vector_list,
+                    batch_size=100,
+                    show_progress=True,
+                )
+                print(response.upserted_count)
+
         .. note::
-           All vectors are sent in a single request. For large datasets,
-           batch your calls (recommended batch size: 100–500 vectors).
-           For sync clients, use :meth:`upsert_from_dataframe` for automatic batching.
+           Batches are sent **sequentially** (one ``await`` at a time). For
+           parallel emission, fan out at the call site with
+           ``asyncio.gather(*[idx.upsert(vectors=b) for b in batches])``.
            For very large datasets (millions of vectors), consider
            :meth:`start_import` for bulk import from cloud storage.
 
@@ -279,6 +304,33 @@ class AsyncIndex:
            - :meth:`start_import` — for bulk loading millions of vectors
              from cloud storage (S3, GCS).
         """
+        if batch_size is None:
+            return await self._upsert_one_batch(
+                vectors=vectors, namespace=namespace, timeout=timeout
+            )
+        validate_batch_size(batch_size)
+        built = list(vectors)
+        batches = chunked(built, batch_size)
+        total_count = 0
+        for batch in with_progress(batches, show_progress=show_progress):
+            result = await self._upsert_one_batch(
+                vectors=batch, namespace=namespace, timeout=timeout
+            )
+            total_count += result.upserted_count
+        return UpsertResponse(upserted_count=total_count)
+
+    async def _upsert_one_batch(
+        self,
+        *,
+        vectors: Sequence[
+            Vector
+            | tuple[str, list[float]]
+            | tuple[str, list[float], dict[str, Any]]
+            | dict[str, Any]
+        ],
+        namespace: str,
+        timeout: float | None,
+    ) -> UpsertResponse:
         built = [VectorFactory.build(v) for v in vectors]
         body: dict[str, Any] = {
             "vectors": [_vector_to_dict(v) for v in built],
