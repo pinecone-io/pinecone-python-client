@@ -66,6 +66,13 @@ class Pinecone:
         retry_config (RetryConfig | None): Custom retry configuration. When ``None``
             (default), uses built-in defaults (5 attempts, exponential backoff, retries
             on 500/502/503/504 for GET/HEAD).
+        pool_threads (int | None): Opt-in for the legacy ``async_req=True`` execution
+            model on data-plane methods. When set, indexes created via
+            :meth:`index` accept ``async_req=True`` on ``upsert``, ``query``,
+            ``describe_index_stats``, and ``list_paginated``. **For new code, prefer**
+            :class:`~pinecone.async_client.AsyncPinecone` **or**
+            :class:`concurrent.futures.ThreadPoolExecutor`. This kwarg exists for
+            backcompat with pre-rewrite callers.
 
     Raises:
         :exc:`PineconeValueError`: If no API key can be resolved from arguments or

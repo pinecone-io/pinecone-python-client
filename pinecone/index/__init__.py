@@ -60,6 +60,14 @@ class Index:
         source_tag (str | None): Tag appended to the User-Agent string for request attribution.
         connection_pool_maxsize (int): Maximum number of connections to keep in the pool.
             ``0`` (default) uses httpx defaults.
+        pool_threads (int | None): Opt-in for the legacy ``async_req=True`` execution
+            model. When set, ``upsert``, ``query``, ``describe_index_stats``, and
+            ``list_paginated`` accept an ``async_req=True`` kwarg and return a
+            :class:`multiprocessing.pool.ApplyResult`. The thread pool is lazy-constructed
+            on first use and shut down by :meth:`close`. **For new code, prefer**
+            :class:`~pinecone.async_client.async_index.AsyncIndex` **or**
+            :class:`concurrent.futures.ThreadPoolExecutor`. This kwarg exists for
+            backcompat with pre-rewrite callers.
 
     Raises:
         :exc:`PineconeValueError`: If no API key can be resolved or the host is invalid.
