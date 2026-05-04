@@ -353,11 +353,15 @@ def make_assistant_file_response(**overrides: Any) -> dict[str, Any]:
 
 
 def make_operation_response(**overrides: Any) -> dict[str, Any]:
-    """Return an OperationModel dict (assistant_data ``PUT /files/{name}/{id}`` 2026-04)."""
+    """Return an OperationModel dict (assistant_data ``PUT /files/{name}/{id}`` 2026-04).
+
+    Uses actual API wire-format field names: ``id`` (not ``operation_id``) and
+    ``created_on`` (not ``created_at``).  OperationModel.rename maps these on decode.
+    """
     base: dict[str, Any] = {
-        "operation_id": "op-abc123",
+        "id": "op-abc123",
         "status": "Succeeded",
-        "created_at": "2025-01-15T12:00:00Z",
+        "created_on": "2025-01-15T12:00:00Z",
         "error": None,
     }
     base.update(overrides)

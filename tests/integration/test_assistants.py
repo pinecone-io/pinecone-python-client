@@ -2267,9 +2267,6 @@ def test_pagination_next_token_populated(client: Pinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.skip(
-    reason="tracked in CI-0020: caller-specified file_id upsert endpoint failed in CI; quarantined pending investigation"
-)
 def test_upload_file_with_caller_specified_file_id_rest(client: Pinecone) -> None:
     """upload_file(file_id=...) assigns the caller-specified ID; re-uploading with the same
     file_id replaces the file (upsert semantics).

@@ -2228,9 +2228,6 @@ async def test_assistants_list_page_response_structure_async(
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-@pytest.mark.skip(
-    reason="tracked in CI-0020: caller-specified file_id upsert endpoint failed in CI; quarantined pending investigation"
-)
 async def test_upload_file_with_caller_specified_file_id_async(
     async_client: AsyncPinecone,
 ) -> None:
