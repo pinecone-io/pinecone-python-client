@@ -272,12 +272,20 @@ with pc.index(name="product-search", grpc=True) as index:
 
 The numbers in this guide come from a controlled benchmark — 10,000 random
 1536-dimensional vectors, `batch_size=100`, single client, fresh namespace per
-run, against an aws-us-east-1 serverless index. The "v8 sequential" rows use
-`pinecone==8.1.2` from PyPI (sequential `batch_size=` loop, fail-fast on first
-batch error). The `max_concurrency=N` rows use this version of the SDK with
-native parallel batched upsert. Each row is the p50 of 3 measured iterations
-after 1 warmup.
+run, against an aws-us-east-1 serverless index. The client ran on a GCP
+`n2-standard-2` VM (2 vCPU, 8 GB) in `us-central1-a` running Ubuntu 24.04, so
+every request crosses GCP → AWS — RTT and inter-cloud bandwidth are real
+factors in the absolute numbers. The "v8 sequential" rows use
+`pinecone==8.1.2` from PyPI (sequential `batch_size=` loop, fail-fast on
+first batch error). The `max_concurrency=N` rows use this version of the SDK
+with native parallel batched upsert.
 
-Your numbers will vary with region, RTT, vector dimension, batch size, payload
-metadata, and concurrent traffic from other clients. When in doubt, measure
-on your own workload.
+Each cell is the median of 3 timed iterations after 1 warmup. That's a small
+sample by benchmarking standards, so the table is best read as a directional
+guide: the large speedup factors (≥3×) are well above run-to-run noise, but
+small differences between adjacent rows in the same column should not be
+over-interpreted.
+
+Your numbers will vary with client region, RTT, vector dimension, batch size,
+payload metadata, and concurrent traffic from other clients. When in doubt,
+measure on your own workload.
