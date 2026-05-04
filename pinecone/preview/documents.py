@@ -213,8 +213,9 @@ class PreviewDocuments:
         namespace: str,
         documents: list[dict[str, Any]],
         batch_size: int = 50,
-        max_concurrency: int = 4,
+        max_concurrency: int | None = None,
         show_progress: bool = True,
+        **kwargs: Any,
     ) -> BatchResult:
         """Upsert a large list of documents in parallel batches.
 
@@ -263,19 +264,35 @@ class PreviewDocuments:
             >>> result.error_count
             0
         """
+        # P-0230 pre-launch safety hatch: silently alias deprecated `max_workers` to
+        # `max_concurrency` so internal demos/docs written before the P-0229 rename
+        # keep working. Undocumented; remove once stakeholders have migrated.
+        deprecated_max_workers = kwargs.pop("max_workers", None)
+        if kwargs:
+            raise PineconeValueError(
+                f"batch_upsert() got unexpected keyword argument(s): {sorted(kwargs)!r}"
+            )
+        if max_concurrency is not None and deprecated_max_workers is not None:
+            raise PineconeValueError("Pass either max_concurrency or max_workers, not both.")
+        effective_max_concurrency = (
+            max_concurrency
+            if max_concurrency is not None
+            else (deprecated_max_workers if deprecated_max_workers is not None else 4)
+        )
+
         require_non_empty("namespace", namespace)
         require_non_empty("documents", documents)
         require_positive("batch_size", batch_size)
-        require_in_range("max_concurrency", max_concurrency, 1, 64)
+        require_in_range("max_concurrency", effective_max_concurrency, 1, 64)
 
         return batch_execute(
             items=documents,
             operation=lambda chunk: self.upsert(namespace=namespace, documents=chunk),
             batch_size=batch_size,
-            max_concurrency=max_concurrency,
+            max_concurrency=effective_max_concurrency,
             show_progress=show_progress,
             desc="Upserting",
-            executor=self._get_batch_executor(max_concurrency),
+            executor=self._get_batch_executor(effective_max_concurrency),
         )
 
     def search(

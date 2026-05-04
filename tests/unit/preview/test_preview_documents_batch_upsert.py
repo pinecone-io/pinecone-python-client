@@ -247,6 +247,104 @@ async def test_async_batch_upsert_max_concurrency_zero_raises(
 
 
 # ---------------------------------------------------------------------------
+# max_workers alias — sync
+# ---------------------------------------------------------------------------
+
+
+def test_batch_upsert_max_workers_alias_accepted_sync(docs: PreviewDocuments) -> None:
+    with patch("pinecone.preview.documents.batch_execute") as mock_execute:
+        mock_execute.return_value = BatchResult(
+            total_item_count=1,
+            successful_item_count=1,
+            failed_item_count=0,
+            total_batch_count=1,
+            successful_batch_count=1,
+            failed_batch_count=0,
+            errors=[],
+            response_info=None,
+        )
+        docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_workers=8)
+    mock_execute.assert_called_once()
+    assert mock_execute.call_args.kwargs["max_concurrency"] == 8
+
+
+def test_batch_upsert_max_workers_and_max_concurrency_raises(docs: PreviewDocuments) -> None:
+    with pytest.raises(ValidationError, match="both"):
+        docs.batch_upsert(
+            namespace="ns",
+            documents=[{"_id": "a"}],
+            max_concurrency=4,
+            max_workers=8,
+        )
+
+
+def test_batch_upsert_unknown_kwarg_raises(docs: PreviewDocuments) -> None:
+    with pytest.raises(ValidationError, match="max_workerz"):
+        docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_workerz=8)
+
+
+def test_batch_upsert_max_workers_alias_zero_raises(docs: PreviewDocuments) -> None:
+    with pytest.raises(ValidationError, match="max_concurrency"):
+        docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_workers=0)
+
+
+# ---------------------------------------------------------------------------
+# max_workers alias — async
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_async_batch_upsert_max_workers_alias_accepted(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    with patch(
+        "pinecone.preview.async_documents.async_batch_execute", new_callable=AsyncMock
+    ) as mock_execute:
+        mock_execute.return_value = BatchResult(
+            total_item_count=1,
+            successful_item_count=1,
+            failed_item_count=0,
+            total_batch_count=1,
+            successful_batch_count=1,
+            failed_batch_count=0,
+            errors=[],
+            response_info=None,
+        )
+        await async_docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_workers=8)
+    mock_execute.assert_called_once()
+    assert mock_execute.call_args.kwargs["max_concurrency"] == 8
+
+
+@pytest.mark.asyncio
+async def test_async_batch_upsert_max_workers_and_max_concurrency_raises(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    with pytest.raises(ValidationError, match="both"):
+        await async_docs.batch_upsert(
+            namespace="ns",
+            documents=[{"_id": "a"}],
+            max_concurrency=4,
+            max_workers=8,
+        )
+
+
+@pytest.mark.asyncio
+async def test_async_batch_upsert_unknown_kwarg_raises(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    with pytest.raises(ValidationError, match="max_workerz"):
+        await async_docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_workerz=8)
+
+
+@pytest.mark.asyncio
+async def test_async_batch_upsert_max_workers_alias_zero_raises(
+    async_docs: AsyncPreviewDocuments,
+) -> None:
+    with pytest.raises(ValidationError, match="max_concurrency"):
+        await async_docs.batch_upsert(namespace="ns", documents=[{"_id": "a"}], max_workers=0)
+
+
+# ---------------------------------------------------------------------------
 # response_info aggregation — sync
 # ---------------------------------------------------------------------------
 

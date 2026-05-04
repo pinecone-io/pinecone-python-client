@@ -308,6 +308,19 @@ async def test_batch_upsert_max_concurrency_range_parity() -> None:
     assert sync_msg == async_msg
 
 
+async def test_batch_upsert_max_workers_alias_parity() -> None:
+    sync = _make_sync_docs()
+    async_d = _make_async_docs()
+    docs = [{"_id": "d1"}]
+    sync_msg = _sync_error(sync.batch_upsert, namespace="ns", documents=docs, max_workers=0)
+    async_msg = await _async_error(
+        async_d.batch_upsert, namespace="ns", documents=docs, max_workers=0
+    )
+    assert sync_msg == async_msg, (
+        f"Error messages for max_workers=0 via alias differ: sync={sync_msg!r}, async={async_msg!r}"
+    )
+
+
 # ---------------------------------------------------------------------------
 # batch_upsert returns BatchResult with the same populated fields
 # ---------------------------------------------------------------------------
