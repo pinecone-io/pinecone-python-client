@@ -27,7 +27,7 @@ from tests.integration.conftest import async_cleanup_resource, async_poll_until,
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_backup_get_alias_and_default_description_async(async_client: AsyncPinecone) -> None:
     """Verify unified-bak-0007 (default description is empty/null when omitted)
     and unified-bak-0012 (get() and describe() are aliases returning identical results).
@@ -101,7 +101,7 @@ async def test_backup_get_alias_and_default_description_async(async_client: Asyn
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_backup_lifecycle_async(async_client: AsyncPinecone) -> None:
     """Full backup lifecycle via async REST: create a serverless index,
     create a backup, poll until Ready, verify BackupModel fields, list
@@ -194,7 +194,7 @@ async def test_backup_lifecycle_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_index_from_backup_async(async_client: AsyncPinecone) -> None:
     """Create a serverless index, create a backup, then restore a new index
     from the backup via async REST.  Verify the restored IndexModel has the
@@ -301,7 +301,7 @@ async def test_create_index_from_backup_async(async_client: AsyncPinecone) -> No
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_backup_and_restore_job_error_paths_async(async_client: AsyncPinecone) -> None:
     """Keyword-only enforcement and not-found errors for backups and restore jobs (async).
 
@@ -345,7 +345,7 @@ async def test_backup_and_restore_job_error_paths_async(async_client: AsyncPinec
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_restore_jobs_list_and_describe_async(async_client: AsyncPinecone) -> None:
     """Verify async pc.restore_jobs.list() and pc.restore_jobs.describe() structure.
 

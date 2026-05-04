@@ -106,7 +106,7 @@ def _create_integrated_sparse_index(api_key: str, name: str) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_search_records_rest_async(
     async_client: AsyncPinecone, client: Pinecone, api_key: str
 ) -> None:
@@ -184,7 +184,7 @@ async def test_search_records_rest_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_search_with_rerank_rest_async(
     async_client: AsyncPinecone, client: Pinecone, api_key: str
 ) -> None:
@@ -277,7 +277,7 @@ async def test_search_with_rerank_rest_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_search_by_id_rest_async(
     async_client: AsyncPinecone, client: Pinecone, api_key: str
 ) -> None:
@@ -354,7 +354,7 @@ async def test_search_by_id_rest_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_search_with_filter_rest_async(
     async_client: AsyncPinecone, client: Pinecone, api_key: str
 ) -> None:
@@ -471,7 +471,7 @@ async def test_search_with_filter_rest_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_search_input_validation_rest_async(async_client: AsyncPinecone) -> None:
     """search() client-side validation raises PineconeValueError before any API call (async).
 
@@ -533,7 +533,7 @@ async def test_search_input_validation_rest_async(async_client: AsyncPinecone) -
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_search_records_alias_with_typed_inputs_async(
     async_client: AsyncPinecone, client: Pinecone, api_key: str
 ) -> None:
@@ -616,7 +616,7 @@ async def test_search_records_alias_with_typed_inputs_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_search_with_match_terms_async(
     async_client: AsyncPinecone, client: Pinecone, api_key: str
 ) -> None:
@@ -715,7 +715,7 @@ async def test_search_with_match_terms_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_search_all_fields_default_and_restricted_async(
     async_client: AsyncPinecone, client: Pinecone, api_key: str
 ) -> None:

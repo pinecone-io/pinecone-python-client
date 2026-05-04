@@ -955,7 +955,7 @@ async def test_async_list_limit_caps_results(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.integration
 @pytest.mark.timeout(300)
 async def test_async_search_client_side_validation_rejects_invalid_parameters(
@@ -1001,7 +1001,7 @@ async def test_async_search_client_side_validation_rejects_invalid_parameters(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.integration
 @pytest.mark.timeout(300)
 async def test_async_upsert_client_side_validation_rejects_invalid_documents(
@@ -1059,7 +1059,7 @@ async def test_async_upsert_client_side_validation_rejects_invalid_documents(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.integration
 @pytest.mark.timeout(300)
 async def test_async_delete_client_side_validation_rejects_invalid_arguments(
@@ -1100,7 +1100,7 @@ async def test_async_delete_client_side_validation_rejects_invalid_arguments(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.integration
 @pytest.mark.timeout(300)
 async def test_async_filter_remaining_operators_accepted(
@@ -2240,7 +2240,7 @@ async def test_async_batch_upsert_partial_failure_collects_failed_items(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.integration
 @pytest.mark.timeout(300)
 async def test_async_configure_read_capacity_validation_and_api_acceptance(
@@ -2307,7 +2307,7 @@ async def test_async_configure_read_capacity_validation_and_api_acceptance(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.integration
 @pytest.mark.timeout(300)
 async def test_async_describe_dedicated_index_read_capacity_response_fields(

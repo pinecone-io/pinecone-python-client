@@ -17,7 +17,7 @@ from tests.integration.conftest import async_cleanup_resource, unique_name
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_list_indexes_returns_index_list(async_client: AsyncPinecone) -> None:
     """async pc.indexes.list() returns an IndexList that is iterable and supports len()."""
     result = await async_client.indexes.list()
@@ -46,7 +46,7 @@ async def test_list_indexes_returns_index_list(async_client: AsyncPinecone) -> N
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_serverless_index_becomes_ready(async_client: AsyncPinecone) -> None:
     """Create a serverless index asynchronously, wait for ready state, verify fields, then delete."""
     name = unique_name("idx")
@@ -79,7 +79,7 @@ async def test_create_serverless_index_becomes_ready(async_client: AsyncPinecone
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(400)
 async def test_create_integrated_dense_index_becomes_ready_async(
     async_client: AsyncPinecone,
@@ -135,7 +135,7 @@ async def test_create_integrated_dense_index_becomes_ready_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_describe_index_returns_full_model(async_client: AsyncPinecone) -> None:
     """Create a serverless index asynchronously, describe it, verify all IndexModel fields."""
     name = unique_name("idx")
@@ -187,7 +187,7 @@ async def test_describe_index_returns_full_model(async_client: AsyncPinecone) ->
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_index_handle_rest_async(async_client: AsyncPinecone) -> None:
     """async pc.index(name=...) returns an AsyncIndex with the correct host.
 
@@ -235,7 +235,7 @@ async def test_index_handle_rest_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_index_with_tags(async_client: AsyncPinecone) -> None:
     """Create a serverless index with tags asynchronously and verify they are returned by describe."""
     name = unique_name("idx")
@@ -274,7 +274,7 @@ async def test_create_index_with_tags(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_index_exists_returns_correct_bool(async_client: AsyncPinecone) -> None:
     """async indexes.exists() returns False before creation, True after, and False after deletion."""
     name = unique_name("idx")
@@ -308,7 +308,7 @@ async def test_index_exists_returns_correct_bool(async_client: AsyncPinecone) ->
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_index_exists_with_empty_name_returns_false(async_client: AsyncPinecone) -> None:
     """Empty/whitespace names must short-circuit to False without a network call."""
     assert await async_client.indexes.exists("") is False
@@ -321,7 +321,7 @@ async def test_index_exists_with_empty_name_returns_false(async_client: AsyncPin
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_configure_index_updates_tags(async_client: AsyncPinecone) -> None:
     """async configure() merges tags — add new tags, update existing, remove via empty string."""
     name = unique_name("idx")
@@ -367,7 +367,7 @@ async def test_configure_index_updates_tags(async_client: AsyncPinecone) -> None
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_configure_deletion_protection_toggle_async(async_client: AsyncPinecone) -> None:
     """async configure() can enable/disable deletion protection; delete raises ForbiddenError when enabled."""
     name = unique_name("idx")
@@ -415,7 +415,7 @@ async def test_configure_deletion_protection_toggle_async(async_client: AsyncPin
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_delete_index_timeout_minus1_returns_immediately_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -470,7 +470,7 @@ async def test_delete_index_timeout_minus1_returns_immediately_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_configure_returns_none_and_preserves_deletion_protection_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -532,7 +532,7 @@ async def test_configure_returns_none_and_preserves_deletion_protection_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_async_index_factory_requires_prior_describe_rest_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -608,7 +608,7 @@ async def test_async_index_factory_requires_prior_describe_rest_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.skip(
     reason=(
         "IT-0017: same root cause as sync variant — _normalize_schema() strips 'fields' wrapper, "
@@ -675,7 +675,7 @@ async def test_create_index_with_schema_normalization_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_index_model_bracket_access_on_real_describe_async(
     async_client: AsyncPinecone,

@@ -227,12 +227,11 @@ def client_pool() -> Pinecone:
 async def async_client(api_key: str) -> AsyncGenerator[AsyncPinecone, None]:
     """Function-scoped async Pinecone client (REST).
 
-    Decorated with plain ``@pytest.fixture`` (not ``@pytest_asyncio.fixture``)
-    so that pytest-anyio owns both the test and fixture event-loop lifecycle.
-    Using ``@pytest_asyncio.fixture`` while ``anyio_mode = "auto"`` is set
-    causes teardown ERRORs: anyio runs the test body (PASSED) then
-    pytest-asyncio tries its own teardown in the wrong loop (ERROR).
-    See IT-0025 and CI-0019 for context.
+    Plain ``@pytest.fixture`` so pytest-anyio (anyio_mode="auto") owns both
+    the test and fixture event-loop lifecycle. Integration tests use
+    ``@pytest.mark.anyio`` (not ``@pytest.mark.asyncio``) so pytest-asyncio
+    does not double-collect them, which would cause each test to run twice and
+    exhaust index quota. See CI-0019 for context.
     """
     pc = AsyncPinecone(api_key=api_key)
     try:

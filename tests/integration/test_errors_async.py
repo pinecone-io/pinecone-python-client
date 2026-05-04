@@ -19,7 +19,7 @@ from tests.integration.conftest import async_cleanup_resource, unique_name
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_bad_api_key_raises_typed_exception_async() -> None:
     """AsyncPinecone(api_key="invalid") + indexes.list() raises UnauthorizedError (not raw HTTP error)."""
     async with AsyncPinecone(api_key="invalid-key-12345") as bad_client:
@@ -34,7 +34,7 @@ async def test_bad_api_key_raises_typed_exception_async() -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_bad_api_key_error_message_is_human_readable_async() -> None:
     """UnauthorizedError from a bad API key has a non-empty, informative message."""
     async with AsyncPinecone(api_key="totally-wrong-key-xyz") as bad_client:
@@ -53,7 +53,7 @@ async def test_bad_api_key_error_message_is_human_readable_async() -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_describe_nonexistent_index_raises_not_found_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -71,7 +71,7 @@ async def test_describe_nonexistent_index_raises_not_found_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_delete_nonexistent_index_raises_not_found_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -90,7 +90,7 @@ async def test_delete_nonexistent_index_raises_not_found_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_dimension_mismatch_raises_typed_error_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -126,7 +126,7 @@ async def test_dimension_mismatch_raises_typed_error_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_duplicate_index_raises_conflict_error_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -166,7 +166,7 @@ async def test_duplicate_index_raises_conflict_error_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_invalid_index_host_raises_value_error_async() -> None:
     """AsyncIndex raises PineconeValueError for hosts without a dot or 'localhost'.
 
@@ -195,7 +195,7 @@ async def test_invalid_index_host_raises_value_error_async() -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_index_invalid_name_async(async_client: AsyncPinecone) -> None:
     """async indexes.create() rejects invalid index names before any API call.
 
@@ -260,7 +260,7 @@ async def test_create_index_invalid_name_async(async_client: AsyncPinecone) -> N
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_index_invalid_spec_dict_key_async(async_client: AsyncPinecone) -> None:
     """async indexes.create() with a spec dict missing a recognized key raises PineconeValueError.
 
@@ -298,7 +298,7 @@ async def test_create_index_invalid_spec_dict_key_async(async_client: AsyncPinec
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_input_validation_async() -> None:
     """async query() client-side validation raises PineconeValueError before any API call.
 
@@ -337,7 +337,7 @@ async def test_query_input_validation_async() -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_update_input_validation_async() -> None:
     """update() client-side validation raises PineconeValueError before any API call (async REST).
 
@@ -369,7 +369,7 @@ async def test_update_input_validation_async() -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_fetch_empty_ids_list_raises_value_error_async() -> None:
     """fetch(ids=[]) raises PineconeValueError before any API call (async REST).
 
@@ -390,7 +390,7 @@ async def test_fetch_empty_ids_list_raises_value_error_async() -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_namespace_name_must_be_string_async() -> None:
     """create_namespace(), describe_namespace(), and delete_namespace() raise
     PineconeValueError when the name parameter is not a string (async REST).
@@ -427,7 +427,7 @@ async def test_namespace_name_must_be_string_async() -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_api_error_exposes_status_reason_headers_body_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -484,7 +484,7 @@ async def test_api_error_exposes_status_reason_headers_body_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_exception_catch_hierarchy_async(async_client: AsyncPinecone) -> None:
     """SDK exceptions are catchable via their base class hierarchy (async REST).
 

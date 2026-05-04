@@ -31,7 +31,7 @@ _TEST_URI = "s3://pinecone-test-public/"
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_import_lifecycle_async(async_client: AsyncPinecone) -> None:
     """Full import lifecycle via async REST: create a serverless index, call
     start_import(), describe_import(), list_imports(), list_imports_paginated(),
@@ -128,7 +128,7 @@ async def test_import_lifecycle_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_import_input_validation_async(async_client: AsyncPinecone) -> None:
     """Client-side validation for async start_import(), describe_import(), cancel_import()
     fires synchronously before any await, so a fake host is sufficient.

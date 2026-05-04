@@ -24,7 +24,7 @@ from tests.integration.conftest import async_cleanup_resource, async_poll_until,
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_collection_lifecycle_async(async_client: AsyncPinecone) -> None:
     """Full collection CRUD lifecycle via async REST: create a pod index,
     seed vectors, create a collection, verify CollectionModel fields, list,
@@ -129,7 +129,7 @@ async def test_collection_lifecycle_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_collection_from_serverless_raises_error_async(async_client: AsyncPinecone) -> None:
     """Creating a collection from a serverless index raises ApiError(400) — async REST.
 

@@ -35,7 +35,7 @@ from tests.integration.conftest import (
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_upsert_formats_async(async_client: AsyncPinecone) -> None:
     """Upsert using all accepted input formats in a single call via async REST.
 
@@ -142,7 +142,7 @@ async def test_upsert_formats_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_upsert_batch_async(async_client: AsyncPinecone) -> None:
     """Upsert 200 vectors in a single call via async REST.
 
@@ -190,7 +190,7 @@ async def test_upsert_batch_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_upsert_overwrite_async(async_client: AsyncPinecone) -> None:
     """Second upsert of the same ID fully replaces values AND metadata (async REST).
 
@@ -279,7 +279,7 @@ async def test_upsert_overwrite_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_upsert_records_batch_async(async_client: AsyncPinecone) -> None:
     """Upsert 50 records in one call to an integrated-inference index via async REST.
 
@@ -357,7 +357,7 @@ async def test_upsert_records_batch_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_upsert_records_async(async_client: AsyncPinecone) -> None:
     """Upsert records into an integrated-inference index via async REST.
 
@@ -433,7 +433,7 @@ async def test_upsert_records_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_update_metadata_async(async_client: AsyncPinecone) -> None:
     """index.update(id=..., set_metadata=...) merges metadata, not replaces (async REST).
 
@@ -515,7 +515,7 @@ async def test_update_metadata_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_update_sparse_async(async_client: AsyncPinecone) -> None:
     """index.update(id=..., sparse_values=...) replaces sparse component while preserving dense values (async REST).
 
@@ -607,7 +607,7 @@ async def test_update_sparse_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_update_by_filter_async(async_client: AsyncPinecone) -> None:
     """Filter-based bulk metadata update via async REST.
 
@@ -728,7 +728,7 @@ async def test_update_by_filter_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_delete_by_filter_async(async_client: AsyncPinecone) -> None:
     """index.delete(filter=...) removes only vectors matching the filter (async REST).
 
@@ -812,7 +812,7 @@ async def test_delete_by_filter_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_delete_all_namespace_async(async_client: AsyncPinecone) -> None:
     """index.delete(delete_all=True, namespace=...) deletes all vectors in a named
     namespace (async REST) while leaving other namespaces untouched.
@@ -910,7 +910,7 @@ async def test_delete_all_namespace_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_upsert_records_validation_async(async_client: AsyncPinecone) -> None:
     """upsert_records raises PineconeValueError before any API call for invalid inputs.
 
@@ -954,7 +954,7 @@ async def test_upsert_records_validation_async(async_client: AsyncPinecone) -> N
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_delete_mode_validation_async(async_client: AsyncPinecone) -> None:
     """delete() raises PineconeValueError for conflicting or absent mode selection (async).
 
@@ -994,7 +994,7 @@ async def test_delete_mode_validation_async(async_client: AsyncPinecone) -> None
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_upsert_from_dataframe_not_supported_async(async_client: AsyncPinecone) -> None:
     """AsyncIndex raises NotImplementedError for upsert_from_dataframe.
 
@@ -1020,7 +1020,7 @@ async def test_upsert_from_dataframe_not_supported_async(async_client: AsyncPine
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_upsert_records_id_field_normalization_async(async_client: AsyncPinecone) -> None:
     """upsert_records normalizes "id" key → "_id" before sending to the API (async).
 
@@ -1106,7 +1106,7 @@ async def test_upsert_records_id_field_normalization_async(async_client: AsyncPi
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_upsert_duplicate_ids_in_batch_async(async_client: AsyncPinecone) -> None:
     """Duplicate vector IDs within a single upsert batch: last entry wins (async REST).
 

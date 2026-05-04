@@ -34,7 +34,7 @@ from tests.integration.conftest import async_cleanup_resource, async_poll_until,
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_metadata_filter_rest_async(async_client: AsyncPinecone) -> None:
     """Query with metadata filters ($eq, $in) returns only matching vectors (REST async)."""
     name = unique_name("idx")
@@ -128,7 +128,7 @@ async def test_metadata_filter_rest_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_sparse_vectors_rest_async(async_client: AsyncPinecone) -> None:
     """Upsert hybrid (dense+sparse) vectors; fetch returns sparse_values; query with sparse_vector works (REST async)."""
     name = unique_name("idx")
@@ -218,7 +218,7 @@ async def test_sparse_vectors_rest_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_by_id_rest_async(async_client: AsyncPinecone) -> None:
     """Query by stored vector ID returns a QueryResponse with same structure as query-by-vector (REST async)."""
     name = unique_name("idx")
@@ -281,7 +281,7 @@ async def test_query_by_id_rest_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_fetch_missing_ids_rest_async(async_client: AsyncPinecone) -> None:
     """fetch() with a mix of existing and non-existent IDs returns only existing vectors, no error (REST async)."""
     name = unique_name("idx")
@@ -346,7 +346,7 @@ async def test_fetch_missing_ids_rest_async(async_client: AsyncPinecone) -> None
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_include_values_metadata_rest_async(async_client: AsyncPinecone) -> None:
     """Query with include_values=True/include_metadata=True returns values and metadata on matches;
     query with defaults returns empty values and None metadata (REST async)."""
@@ -441,7 +441,7 @@ async def test_include_values_metadata_rest_async(async_client: AsyncPinecone) -
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_namespaces_rest_async(async_client: AsyncPinecone) -> None:
     """query_namespaces() fans out queries across multiple namespaces and merges results (REST async)."""
     name = unique_name("idx")
@@ -544,7 +544,7 @@ async def test_query_namespaces_rest_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_metadata_filter_numeric_operators_rest_async(async_client: AsyncPinecone) -> None:
     """Numeric comparison operators ($gt, $gte, $lt, $lte, $ne) filter vectors correctly (REST async).
 
@@ -666,7 +666,7 @@ async def test_metadata_filter_numeric_operators_rest_async(async_client: AsyncP
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_metadata_filter_logical_operators_rest_async(async_client: AsyncPinecone) -> None:
     """$nin, logical AND (&), and logical OR (|) via the Field builder filter correctly (REST async).
 
@@ -782,7 +782,7 @@ async def test_metadata_filter_logical_operators_rest_async(async_client: AsyncP
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_fetch_by_metadata_rest_async(async_client: AsyncPinecone) -> None:
     """fetch_by_metadata() returns vectors matching a filter, with correct response shape (REST async).
 
@@ -869,7 +869,7 @@ async def test_fetch_by_metadata_rest_async(async_client: AsyncPinecone) -> None
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_metadata_filter_exists_operator_rest_async(async_client: AsyncPinecone) -> None:
     """Field.exists() filter ($exists: True) returns only vectors that have the field (REST async).
 
@@ -959,7 +959,7 @@ async def test_metadata_filter_exists_operator_rest_async(async_client: AsyncPin
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_fetch_by_metadata_pagination_rest_async(async_client: AsyncPinecone) -> None:
     """fetch_by_metadata() with limit and pagination_token iterates across pages (REST async).
 
@@ -1058,7 +1058,7 @@ async def test_fetch_by_metadata_pagination_rest_async(async_client: AsyncPineco
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_filter_reflects_metadata_update_rest_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -1181,7 +1181,7 @@ async def test_query_filter_reflects_metadata_update_rest_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_unusual_ascii_ids_round_trip_rest_async(async_client: AsyncPinecone) -> None:
     """Vectors with unusual but valid ASCII IDs survive upsert→fetch→query→list (REST async).
 
@@ -1364,7 +1364,7 @@ async def test_metadata_filter_boolean_values_rest_async(async_client: AsyncPine
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_response_info_populated_on_data_plane_responses_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -1555,7 +1555,7 @@ async def test_unicode_metadata_round_trip_rest_async(async_client: AsyncPinecon
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_sparse_index_lifecycle_rest_async(async_client: AsyncPinecone) -> None:
     """Create sparse index (vector_type='sparse', no dimension), describe to verify properties, upsert sparse-only vectors, fetch back (REST async).
 
@@ -1682,7 +1682,7 @@ async def test_sparse_index_lifecycle_rest_async(async_client: AsyncPinecone) ->
 
 @pytest.mark.integration
 @pytest.mark.timeout(300)
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_fetch_list_usage_read_units_async(async_client: AsyncPinecone) -> None:
     """query(), fetch(), and list_paginated() responses include read-unit usage info (async REST).
 
@@ -1763,7 +1763,7 @@ async def test_query_fetch_list_usage_read_units_async(async_client: AsyncPineco
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_after_delete_reflects_deletion_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -1963,7 +1963,7 @@ async def test_delete_and_re_upsert_same_ids_async(async_client: AsyncPinecone) 
 
 @pytest.mark.integration
 @pytest.mark.timeout(300)
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_with_sparse_values_object_async(async_client: AsyncPinecone) -> None:
     """AsyncIndex.query() accepts a SparseValues typed object for sparse_vector (REST async).
 
@@ -2047,7 +2047,7 @@ async def test_query_with_sparse_values_object_async(async_client: AsyncPinecone
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_update_values_preserves_metadata_rest_async(
     async_client: AsyncPinecone,
 ) -> None:

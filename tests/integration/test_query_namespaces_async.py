@@ -31,7 +31,7 @@ from tests.integration.conftest import (
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_namespaces_filter_rest_async(async_client: AsyncPinecone) -> None:
     """query_namespaces() with filter applies it per-namespace and returns metadata (REST async)."""
     name = unique_name("idx")
@@ -144,7 +144,7 @@ async def test_query_namespaces_filter_rest_async(async_client: AsyncPinecone) -
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_namespaces_dedup_rest_async(async_client: AsyncPinecone) -> None:
     """query_namespaces() deduplicates repeated namespaces: no vector appears twice, ns_usage has one key per unique namespace (REST async).
 
@@ -246,7 +246,7 @@ async def test_query_namespaces_dedup_rest_async(async_client: AsyncPinecone) ->
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_namespaces_many_rest_async(async_client: AsyncPinecone) -> None:
     """query_namespaces() across 5+ namespaces merges and sorts results; ns_usage has entry per namespace (REST async)."""
     name = unique_name("idx")
@@ -337,7 +337,7 @@ async def test_query_namespaces_many_rest_async(async_client: AsyncPinecone) -> 
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_namespaces_default_top_k_rest_async(async_client: AsyncPinecone) -> None:
     """query_namespaces() defaults top_k to 10 when not specified (REST async).
 
@@ -428,7 +428,7 @@ async def test_query_namespaces_default_top_k_rest_async(async_client: AsyncPine
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_namespaces_euclidean_scores_ascending_rest_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -547,7 +547,7 @@ async def test_query_namespaces_euclidean_scores_ascending_rest_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_namespaces_include_values_rest_async(async_client: AsyncPinecone) -> None:
     """query_namespaces(include_values=True) returns vector values on each match;
     omitting include_values leaves match.values as None (REST async).
@@ -672,7 +672,7 @@ async def test_query_namespaces_include_values_rest_async(async_client: AsyncPin
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_namespaces_sparse_rest_async(async_client: AsyncPinecone) -> None:
     """query_namespaces() with sparse_vector on a sparse dotproduct index returns merged results (REST async).
 
@@ -787,7 +787,7 @@ async def test_query_namespaces_sparse_rest_async(async_client: AsyncPinecone) -
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_namespaces_parallel_faster_than_serial_rest_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -883,7 +883,7 @@ async def test_query_namespaces_parallel_faster_than_serial_rest_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(600)
 async def test_query_namespaces_validation_errors_rest_async(
     async_client: AsyncPinecone,
@@ -960,7 +960,7 @@ async def test_query_namespaces_validation_errors_rest_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_namespaces_tie_breaking_rest_async(async_client: AsyncPinecone) -> None:
     """query_namespaces() preserves deterministic order for tied scores (REST async).
 
@@ -1044,7 +1044,7 @@ async def test_query_namespaces_tie_breaking_rest_async(async_client: AsyncPinec
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_namespaces_large_top_k_merge_rest_async(async_client: AsyncPinecone) -> None:
     """query_namespaces() merges large per-namespace result sets into a correct top-k (REST async).
 
@@ -1127,7 +1127,7 @@ async def test_query_namespaces_large_top_k_merge_rest_async(async_client: Async
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_namespaces_dense_dotproduct_scores_descending_rest_async(
     async_client: AsyncPinecone,
 ) -> None:

@@ -27,7 +27,7 @@ from tests.integration.conftest import async_cleanup_resource, async_poll_until,
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_delete_vectors_rest_async(async_client: AsyncPinecone) -> None:
     """Delete vectors by IDs via AsyncIndex (REST) and verify they are gone."""
     name = unique_name("idx")
@@ -94,7 +94,7 @@ async def test_delete_vectors_rest_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_upsert_vectors_rest_async(async_client: AsyncPinecone) -> None:
     """Upsert vectors via AsyncIndex (REST) and verify upserted_count."""
     name = unique_name("idx")
@@ -138,7 +138,7 @@ async def test_upsert_vectors_rest_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_query_by_vector_rest_async(async_client: AsyncPinecone) -> None:
     """Query by vector via AsyncIndex (REST) and verify matches structure."""
     name = unique_name("idx")
@@ -198,7 +198,7 @@ async def test_query_by_vector_rest_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_fetch_vectors_rest_async(async_client: AsyncPinecone) -> None:
     """Fetch vectors by ID via AsyncIndex (REST) and verify returned vector data."""
     name = unique_name("idx")
@@ -262,7 +262,7 @@ async def test_fetch_vectors_rest_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_list_vectors_rest_async(async_client: AsyncPinecone) -> None:
     """List vectors via AsyncIndex (REST) and verify pagination structure and IDs."""
     name = unique_name("idx")
@@ -335,7 +335,7 @@ async def test_list_vectors_rest_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_update_vectors_rest_async(async_client: AsyncPinecone) -> None:
     """Update a vector's values via AsyncIndex (REST) and verify the change is reflected."""
     name = unique_name("idx")
@@ -405,7 +405,7 @@ async def test_update_vectors_rest_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_describe_index_stats_rest_async(async_client: AsyncPinecone) -> None:
     """Call describe_index_stats() via AsyncIndex (REST) and verify response structure."""
     name = unique_name("idx")
@@ -472,7 +472,7 @@ async def test_describe_index_stats_rest_async(async_client: AsyncPinecone) -> N
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_namespaces_rest_async(async_client: AsyncPinecone) -> None:
     """Upsert to named namespace via AsyncIndex (REST) and query within it."""
     name = unique_name("idx")
@@ -554,7 +554,7 @@ async def test_namespaces_rest_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_list_paginated_returns_single_page_rest_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -631,7 +631,7 @@ async def test_list_paginated_returns_single_page_rest_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_describe_index_stats_filter_unsupported_on_serverless_rest_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -675,7 +675,7 @@ async def test_describe_index_stats_filter_unsupported_on_serverless_rest_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_namespace_crud_lifecycle_rest_async(async_client: AsyncPinecone) -> None:
     """Async create_namespace / describe_namespace / list_namespaces_paginated / delete_namespace.
 
@@ -753,7 +753,7 @@ async def test_namespace_crud_lifecycle_rest_async(async_client: AsyncPinecone) 
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_list_namespaces_generator_rest_async(async_client: AsyncPinecone) -> None:
     """list_namespaces() async generator yields ListNamespacesResponse pages with
     NamespaceDescription items; generator follows pagination tokens automatically.
@@ -826,7 +826,7 @@ async def test_list_namespaces_generator_rest_async(async_client: AsyncPinecone)
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_list_paginated_multi_page_rest_async(async_client: AsyncPinecone) -> None:
     """list_paginated() with limit=2 returns a token when more pages exist; following the token
     reaches the next page; the final page has no token (async variant).
@@ -972,7 +972,7 @@ async def test_delete_nonexistent_ids_returns_none_async(async_client: AsyncPine
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_index_context_manager_async(async_client: AsyncPinecone) -> None:
     """AsyncIndex supports the async context manager protocol.
 
@@ -1024,7 +1024,7 @@ async def test_index_context_manager_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_fetch_nonexistent_ids_returns_empty_vectors_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -1082,7 +1082,7 @@ async def test_fetch_nonexistent_ids_returns_empty_vectors_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_namespace_error_paths_async(async_client: AsyncPinecone) -> None:
     """create_namespace() rejects invalid names client-side and raises ConflictError for duplicates.
 
@@ -1142,7 +1142,7 @@ async def test_create_namespace_error_paths_async(async_client: AsyncPinecone) -
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_create_namespace_with_schema_async(async_client: AsyncPinecone) -> None:
     """create_namespace() accepts an optional schema dict and creates the namespace successfully (async).
 
@@ -1202,7 +1202,7 @@ async def test_create_namespace_with_schema_async(async_client: AsyncPinecone) -
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_describe_namespace_record_count_updates_after_upsert_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -1288,7 +1288,7 @@ async def test_describe_namespace_record_count_updates_after_upsert_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_list_namespaces_multi_page_pagination_async(async_client: AsyncPinecone) -> None:
     """list_namespaces_paginated() with limit=1 forces multi-page results; intermediate
     pages carry a non-None pagination token; the final page has no token (async variant).

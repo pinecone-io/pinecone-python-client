@@ -57,7 +57,7 @@ from tests.integration.conftest import async_cleanup_resource, async_poll_until,
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_assistant_lifecycle_create_describe_list_update_delete(
     async_client: AsyncPinecone,
 ) -> None:
@@ -125,7 +125,7 @@ async def test_assistant_lifecycle_create_describe_list_update_delete(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_assistant_files_upload_list_describe_delete(
     async_client: AsyncPinecone,
 ) -> None:
@@ -214,7 +214,7 @@ async def test_assistant_files_upload_list_describe_delete(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_assistant_chat_non_streaming_response(
     async_client: AsyncPinecone,
 ) -> None:
@@ -286,7 +286,7 @@ async def test_assistant_chat_non_streaming_response(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_assistant_context_retrieval(
     async_client: AsyncPinecone,
 ) -> None:
@@ -352,7 +352,7 @@ async def test_assistant_context_retrieval(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_assistant_chat_streaming_returns_content_chunks(
     async_client: AsyncPinecone,
 ) -> None:
@@ -426,7 +426,7 @@ async def test_assistant_chat_streaming_returns_content_chunks(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_assistant_chat_completions_openai_compatible_response(
     async_client: AsyncPinecone,
 ) -> None:
@@ -498,7 +498,7 @@ async def test_assistant_chat_completions_openai_compatible_response(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_assistant_chat_typed_message_objects(
     async_client: AsyncPinecone,
 ) -> None:
@@ -585,7 +585,7 @@ async def test_assistant_chat_typed_message_objects(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_assistant_evaluate_alignment_scores(
     async_client: AsyncPinecone,
 ) -> None:
@@ -628,7 +628,7 @@ async def test_assistant_evaluate_alignment_scores(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_assistant_create_region_validation_and_chat_stream_json_conflict_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -675,7 +675,7 @@ async def test_assistant_create_region_validation_and_chat_stream_json_conflict_
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_upload_file_from_byte_stream_with_metadata_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -763,7 +763,7 @@ async def test_upload_file_from_byte_stream_with_metadata_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_upload_file_input_validation_and_delete_returns_none_async(
     async_client: AsyncPinecone,
@@ -852,7 +852,7 @@ async def test_upload_file_input_validation_and_delete_returns_none_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_describe_file_signed_url_async(async_client: AsyncPinecone) -> None:
     """describe_file(include_url=True) returns a non-None signed_url string;
@@ -953,7 +953,7 @@ async def test_describe_file_signed_url_async(async_client: AsyncPinecone) -> No
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_chat_message_dict_role_default_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -1028,7 +1028,7 @@ async def test_chat_message_dict_role_default_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_assistant_update_metadata_replaces_not_merges_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -1105,7 +1105,7 @@ async def test_assistant_update_metadata_replaces_not_merges_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_context_retrieval_validation_async(async_client: AsyncPinecone) -> None:
     """async context() raises PineconeValueError for invalid query/messages combos.
 
@@ -1173,7 +1173,7 @@ async def test_context_retrieval_validation_async(async_client: AsyncPinecone) -
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_context_retrieval_with_query_param_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -1281,7 +1281,7 @@ async def test_context_retrieval_with_query_param_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_chat_completions_streaming_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -1386,7 +1386,7 @@ async def test_chat_completions_streaming_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_list_files_page_with_page_size_and_pagination_token_async(
     async_client: AsyncPinecone,
@@ -1481,7 +1481,7 @@ async def test_list_files_page_with_page_size_and_pagination_token_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_chat_stream_message_start_and_end_structure_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -1582,7 +1582,7 @@ async def test_chat_stream_message_start_and_end_structure_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_chat_json_response_mode_returns_valid_json_async(
     async_client: AsyncPinecone,
@@ -1783,7 +1783,7 @@ async def test_chat_include_highlights_async(async_client: AsyncPinecone) -> Non
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_chat_context_options_typed_and_dict_async(async_client: AsyncPinecone) -> None:
     """chat() accepts context_options as both a typed ContextOptions object and a plain dict (async).
 
@@ -1878,7 +1878,7 @@ async def test_chat_context_options_typed_and_dict_async(async_client: AsyncPine
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_chat_completions_full_response_structure_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -2000,7 +2000,7 @@ async def test_chat_completions_full_response_structure_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_evaluate_alignment_per_fact_structure_and_usage_tokens_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -2075,7 +2075,7 @@ async def test_evaluate_alignment_per_fact_structure_and_usage_tokens_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_chat_with_model_and_temperature_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -2149,7 +2149,7 @@ async def test_chat_with_model_and_temperature_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_assistants_list_page_response_structure_async(
     async_client: AsyncPinecone,
@@ -2227,7 +2227,7 @@ async def test_assistants_list_page_response_structure_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_upload_file_with_caller_specified_file_id_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -2350,7 +2350,7 @@ async def test_upload_file_with_caller_specified_file_id_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_assistant_model_dict_mixin_operations_async(
     async_client: AsyncPinecone,
@@ -2451,7 +2451,7 @@ async def test_assistant_model_dict_mixin_operations_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_chat_completions_streaming_finish_reason_async(
     async_client: AsyncPinecone,
@@ -2571,7 +2571,7 @@ def _padded_name(length: int) -> str:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(180)
 async def test_assistant_create_accepts_max_length_name(async_client: AsyncPinecone) -> None:
     """create() accepts a name at the documented max length of 63 characters (async)."""
@@ -2590,7 +2590,7 @@ async def test_assistant_create_accepts_max_length_name(async_client: AsyncPinec
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(60)
 async def test_assistant_create_rejects_name_over_max_length(
     async_client: AsyncPinecone,
@@ -2619,7 +2619,7 @@ async def test_assistant_create_rejects_name_over_max_length(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_chat_context_options_boundary_validation(
     async_client: AsyncPinecone,
@@ -2681,7 +2681,7 @@ async def test_chat_context_options_boundary_validation(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_upload_file_rejects_malformed_pdf(async_client: AsyncPinecone) -> None:
     """upload_file() surfaces a processing-failed error when the PDF is malformed (async)."""
@@ -2720,7 +2720,7 @@ async def test_upload_file_rejects_malformed_pdf(async_client: AsyncPinecone) ->
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(600)
 async def test_chat_across_all_supported_models_and_rejects_invalid(
     async_client: AsyncPinecone,
@@ -2790,7 +2790,7 @@ async def test_chat_across_all_supported_models_and_rejects_invalid(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_chat_rejects_out_of_range_temperature(
     async_client: AsyncPinecone,
@@ -2844,7 +2844,7 @@ async def test_chat_rejects_out_of_range_temperature(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_context_filter_metadata_excludes_matching_files(
     async_client: AsyncPinecone,
@@ -2924,7 +2924,7 @@ async def test_context_filter_metadata_excludes_matching_files(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_assistant_lifecycle_status_transitions_explicit(
     async_client: AsyncPinecone,
@@ -2978,7 +2978,7 @@ async def test_assistant_lifecycle_status_transitions_explicit(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(180)
 async def test_assistant_update_instructions_and_metadata_together(
     async_client: AsyncPinecone,
@@ -3028,7 +3028,7 @@ async def test_assistant_update_instructions_and_metadata_together(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_describe_file_docx_with_signed_url(async_client: AsyncPinecone) -> None:
     """describe_file(include_url=True) returns a usable signed_url for a DOCX file (async)."""
@@ -3087,7 +3087,7 @@ async def test_describe_file_docx_with_signed_url(async_client: AsyncPinecone) -
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(300)
 async def test_describe_file_preserves_uploaded_metadata(
     async_client: AsyncPinecone,
@@ -3157,7 +3157,7 @@ async def test_describe_file_preserves_uploaded_metadata(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 @pytest.mark.timeout(600)
 async def test_multimodal_pdf_context_image_text_and_errors(
     async_client: AsyncPinecone,

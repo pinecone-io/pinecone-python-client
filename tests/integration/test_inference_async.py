@@ -14,7 +14,7 @@ from pinecone.models.inference.embed import SparseEmbedding
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_embed_single_string_async(async_client: AsyncPinecone) -> None:
     """async embed() with a single string input returns a 1-item EmbeddingsList."""
     result = await async_client.inference.embed(
@@ -35,7 +35,7 @@ async def test_embed_single_string_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_embed_sparse_model_returns_sparse_embeddings_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -73,7 +73,7 @@ async def test_embed_sparse_model_returns_sparse_embeddings_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_embed_list_of_dict_inputs_async(async_client: AsyncPinecone) -> None:
     """async embed() accepts a list of dicts as inputs and returns one embedding per dict.
 
@@ -104,7 +104,7 @@ async def test_embed_list_of_dict_inputs_async(async_client: AsyncPinecone) -> N
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_embed_multiple_inputs_async(async_client: AsyncPinecone) -> None:
     """async embed() with multiple inputs returns one embedding per input."""
     inputs = [
@@ -132,7 +132,7 @@ async def test_embed_multiple_inputs_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_embed_iterable_and_indexable_async(async_client: AsyncPinecone) -> None:
     """async: EmbeddingsList supports len(), iteration, and integer indexing."""
     result = await async_client.inference.embed(
@@ -157,7 +157,7 @@ async def test_embed_iterable_and_indexable_async(async_client: AsyncPinecone) -
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_embed_bare_string_auto_wrapped_async(async_client: AsyncPinecone) -> None:
     """async embed() with a single bare string is auto-wrapped and returns 1 embedding.
 
@@ -200,7 +200,7 @@ async def test_embed_bare_string_auto_wrapped_async(async_client: AsyncPinecone)
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_rerank_basic_async(async_client: AsyncPinecone) -> None:
     """async rerank() returns a RerankResult with ranked documents sorted by score."""
     query = "What is machine learning?"
@@ -236,7 +236,7 @@ async def test_rerank_basic_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_rerank_with_top_n_async(async_client: AsyncPinecone) -> None:
     """async rerank() with top_n limits the number of returned results."""
     documents = [
@@ -261,7 +261,7 @@ async def test_rerank_with_top_n_async(async_client: AsyncPinecone) -> None:
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_rerank_return_documents_false_async(async_client: AsyncPinecone) -> None:
     """async rerank() with return_documents=False omits document text from results."""
     documents = [
@@ -281,7 +281,7 @@ async def test_rerank_return_documents_false_async(async_client: AsyncPinecone) 
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_rerank_string_inputs_auto_wrapped_async(async_client: AsyncPinecone) -> None:
     """async rerank() with plain string documents auto-wraps them as {text: ...}.
 
@@ -312,7 +312,7 @@ async def test_rerank_string_inputs_auto_wrapped_async(async_client: AsyncPineco
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_list_models_returns_nonempty_list_async(async_client: AsyncPinecone) -> None:
     """async list_models() returns a ModelInfoList with at least one known model."""
     result = await async_client.inference.list_models()
@@ -324,7 +324,7 @@ async def test_list_models_returns_nonempty_list_async(async_client: AsyncPineco
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_list_models_supports_iteration_and_indexing_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -348,7 +348,7 @@ async def test_list_models_supports_iteration_and_indexing_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_list_models_filter_by_type_embed_async(async_client: AsyncPinecone) -> None:
     """async list_models(type='embed') returns only embed models."""
     result = await async_client.inference.list_models(type="embed")
@@ -359,7 +359,7 @@ async def test_list_models_filter_by_type_embed_async(async_client: AsyncPinecon
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_list_models_filter_by_type_rerank_async(async_client: AsyncPinecone) -> None:
     """async list_models(type='rerank') returns only rerank models."""
     result = await async_client.inference.list_models(type="rerank")
@@ -370,7 +370,7 @@ async def test_list_models_filter_by_type_rerank_async(async_client: AsyncPineco
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_get_model_returns_model_info_async(async_client: AsyncPinecone) -> None:
     """async get_model() returns a ModelInfo with name, vector_type, and default_dimension."""
     model_info = await async_client.inference.get_model(model_name="multilingual-e5-large")
@@ -396,7 +396,7 @@ async def test_get_model_returns_model_info_async(async_client: AsyncPinecone) -
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_get_model_rerank_model_async(async_client: AsyncPinecone) -> None:
     """async get_model() works for rerank models; vector_type and default_dimension are None."""
     model_info = await async_client.inference.get_model(model_name="bge-reranker-v2-m3")
@@ -414,7 +414,7 @@ async def test_get_model_rerank_model_async(async_client: AsyncPinecone) -> None
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_embed_inputs_validation_rest_async(async_client: AsyncPinecone) -> None:
     """async embed() raises PineconeValueError for empty inputs and PineconeTypeError for wrong type.
 
@@ -447,7 +447,7 @@ async def test_embed_inputs_validation_rest_async(async_client: AsyncPinecone) -
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_rerank_documents_validation_rest_async(async_client: AsyncPinecone) -> None:
     """async rerank() raises PineconeValueError for empty docs, PineconeTypeError for non-list.
 
@@ -480,7 +480,7 @@ async def test_rerank_documents_validation_rest_async(async_client: AsyncPinecon
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_rerank_dict_documents_with_rank_fields_async(async_client: AsyncPinecone) -> None:
     """async rerank() with list-of-dict documents and custom rank_fields passes dicts through.
 
@@ -540,7 +540,7 @@ async def test_rerank_dict_documents_with_rank_fields_async(async_client: AsyncP
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_list_models_filter_by_vector_type_and_invalid_values_async(
     async_client: AsyncPinecone,
 ) -> None:
@@ -581,7 +581,7 @@ async def test_list_models_filter_by_vector_type_and_invalid_values_async(
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_get_model_full_structure_async(async_client: AsyncPinecone) -> None:
     """async get_model() populates ALL ModelInfo fields including description,
     supported_parameters, modality, max_sequence_length, max_batch_size,
@@ -663,7 +663,7 @@ async def test_get_model_full_structure_async(async_client: AsyncPinecone) -> No
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_model_dict_keyerror_and_readonly_async(async_client: AsyncPinecone) -> None:
     """Dict-like access on model objects from real async API responses raises correct errors.
 
@@ -704,7 +704,7 @@ async def test_model_dict_keyerror_and_readonly_async(async_client: AsyncPinecon
 
 
 @pytest.mark.integration
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_embed_query_vs_passage_async(async_client: AsyncPinecone) -> None:
     """async embed() with input_type='query' vs 'passage' produces different embeddings.
 
