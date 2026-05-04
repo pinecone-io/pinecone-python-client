@@ -1,5 +1,5 @@
-Preview Namespace
-=================
+Preview
+=======
 
 .. admonition:: Preview — not covered by SemVer
    :class: warning

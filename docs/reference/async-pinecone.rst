@@ -3,7 +3,7 @@ AsyncPinecone
 
 :class:`AsyncPinecone` is the asynchronous control-plane client — use it inside an
 ``async with`` block to manage indexes, collections, backups, and related resources.
-Sub-clients for each resource type are accessed as namespace properties (e.g.
+Sub-clients for each resource type are accessed as properties (e.g.
 ``pc.indexes``, ``pc.collections``) and are lazily initialised on first access.
 
 .. code-block:: python
@@ -37,8 +37,8 @@ Sub-clients for each resource type are accessed as namespace properties (e.g.
    :special-members: __init__, __aenter__, __aexit__
 
 
-AsyncIndexes Namespace
-----------------------
+AsyncIndexes
+------------
 
 .. autoclass:: pinecone.async_client.indexes.AsyncIndexes
    :members:
@@ -46,8 +46,8 @@ AsyncIndexes Namespace
    :show-inheritance:
 
 
-AsyncCollections Namespace
---------------------------
+AsyncCollections
+----------------
 
 .. autoclass:: pinecone.async_client.collections.AsyncCollections
    :members:
@@ -55,8 +55,8 @@ AsyncCollections Namespace
    :show-inheritance:
 
 
-AsyncBackups Namespace
-----------------------
+AsyncBackups
+------------
 
 .. autoclass:: pinecone.async_client.backups.AsyncBackups
    :members:
@@ -64,8 +64,8 @@ AsyncBackups Namespace
    :show-inheritance:
 
 
-AsyncRestoreJobs Namespace
---------------------------
+AsyncRestoreJobs
+----------------
 
 .. autoclass:: pinecone.async_client.restore_jobs.AsyncRestoreJobs
    :members:
@@ -73,8 +73,8 @@ AsyncRestoreJobs Namespace
    :show-inheritance:
 
 
-AsyncInference Namespace
-------------------------
+AsyncInference
+--------------
 
 .. autoclass:: pinecone.async_client.inference.AsyncInference
    :members:
@@ -82,8 +82,8 @@ AsyncInference Namespace
    :show-inheritance:
 
 
-AsyncAssistants Namespace
--------------------------
+AsyncAssistants
+---------------
 
 .. autoclass:: pinecone.async_client.assistants.AsyncAssistants
    :members:

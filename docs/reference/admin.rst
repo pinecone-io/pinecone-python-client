@@ -12,8 +12,8 @@ for control-plane operations such as creating projects and rotating keys.
    :special-members: __init__
 
 
-Organizations Namespace
------------------------
+Organizations
+-------------
 
 .. autoclass:: pinecone.admin.organizations.Organizations
    :members:
@@ -21,8 +21,8 @@ Organizations Namespace
    :show-inheritance:
 
 
-Projects Namespace
-------------------
+Projects
+--------
 
 .. autoclass:: pinecone.admin.projects.Projects
    :members:
@@ -30,8 +30,8 @@ Projects Namespace
    :show-inheritance:
 
 
-API Keys Namespace
-------------------
+API Keys
+--------
 
 .. autoclass:: pinecone.admin.api_keys.ApiKeys
    :members:

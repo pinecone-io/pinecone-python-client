@@ -3,7 +3,7 @@ Pinecone
 
 :class:`Pinecone` is the synchronous control-plane client — use it to manage indexes,
 collections, backups, and related resources. Sub-clients for each resource type are
-accessed as namespace properties (e.g. ``pc.indexes``, ``pc.collections``) and are
+accessed as properties (e.g. ``pc.indexes``, ``pc.collections``) and are
 lazily initialized on first access.
 
 .. autoclass:: pinecone.Pinecone
@@ -13,8 +13,8 @@ lazily initialized on first access.
    :special-members: __init__
 
 
-Indexes Namespace
------------------
+Indexes
+-------
 
 .. autoclass:: pinecone.client.indexes.Indexes
    :members:
@@ -22,8 +22,8 @@ Indexes Namespace
    :show-inheritance:
 
 
-Collections Namespace
----------------------
+Collections
+-----------
 
 .. autoclass:: pinecone.client.collections.Collections
    :members:
@@ -31,8 +31,8 @@ Collections Namespace
    :show-inheritance:
 
 
-Backups Namespace
------------------
+Backups
+-------
 
 .. autoclass:: pinecone.client.backups.Backups
    :members:
@@ -40,8 +40,8 @@ Backups Namespace
    :show-inheritance:
 
 
-RestoreJobs Namespace
----------------------
+RestoreJobs
+-----------
 
 .. autoclass:: pinecone.client.restore_jobs.RestoreJobs
    :members:
@@ -49,8 +49,8 @@ RestoreJobs Namespace
    :show-inheritance:
 
 
-Inference Namespace
--------------------
+Inference
+---------
 
 .. autoclass:: pinecone.client.inference.Inference
    :members:
@@ -58,8 +58,8 @@ Inference Namespace
    :show-inheritance:
 
 
-Assistants Namespace
---------------------
+Assistants
+----------
 
 .. autoclass:: pinecone.client.assistants.Assistants
    :members:
