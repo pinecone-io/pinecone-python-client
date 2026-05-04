@@ -734,7 +734,7 @@ class Pinecone:
         """
         return self.restore_jobs.describe(job_id=job_id)
 
-    def Index(self, name: str = "", host: str = "", **kwargs: Any) -> Index:  # noqa: N802
+    def Index(self, name: str = "", host: str = "", **kwargs: Any) -> Index | GrpcIndex:  # noqa: N802
         """Backwards-compatibility shim for :meth:`Pinecone.index`.
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code

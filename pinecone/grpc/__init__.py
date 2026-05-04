@@ -1269,3 +1269,8 @@ class GrpcIndex:
 
     def __exit__(self, *args: Any) -> None:
         self.close()
+
+
+from pinecone.grpc.pinecone_grpc import PineconeGRPC  # noqa: E402
+
+__all__ = ["GrpcIndex", "PineconeGRPC"]
