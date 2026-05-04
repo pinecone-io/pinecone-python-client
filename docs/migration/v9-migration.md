@@ -175,12 +175,6 @@ equivalent — the plugin discovery system was retired and
 `pc.assistant` is now a property on the `Pinecone` client. Such
 code must be rewritten to use `pc.assistants` directly.
 
-**Environment variables** `PINECONE_PLUGIN_ASSISTANT_CONTROL_HOST`
-and `PINECONE_PLUGIN_ASSISTANT_DATA_HOST` are no longer consulted.
-To target a non-prod control plane, pass `host=` to the `Pinecone`
-constructor or set `PINECONE_HOST`. The data-plane host is
-discovered automatically from the `host` field of the
-`describe_assistant` response.
 
 ### 9. Partial-success contract for batched upsert
 

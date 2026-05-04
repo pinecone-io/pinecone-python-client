@@ -80,7 +80,11 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         from pinecone._internal.http_client import AsyncHTTPClient as _AsyncHTTPClient
 
         self._config = config
-        cp_host = (config.host or DEFAULT_BASE_URL).rstrip("/")
+        # Internal env-var escape hatches (undocumented, used by Pinecone CI
+        # to redirect to non-prod KE clusters). Precedence: explicit
+        # config.host (user) > env var > hardcoded default.
+        env_control_host = os.getenv("PINECONE_PLUGIN_ASSISTANT_CONTROL_HOST")
+        cp_host = (config.host or env_control_host or DEFAULT_BASE_URL).rstrip("/")
         cp_config = _PineconeConfig(
             api_key=config.api_key,
             host=f"{cp_host}/assistant",
@@ -98,9 +102,15 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         self._adapter = AssistantsAdapter()
         self._data_plane_clients: dict[str, AsyncHTTPClient] = {}
 
+        env_data_host = os.getenv("PINECONE_PLUGIN_ASSISTANT_DATA_HOST")
+        eval_host = (
+            f"{env_data_host.rstrip('/')}/assistant"
+            if env_data_host
+            else ASSISTANT_EVALUATION_BASE_URL
+        )
         eval_config = _PineconeConfig(
             api_key=config.api_key,
-            host=ASSISTANT_EVALUATION_BASE_URL,
+            host=eval_host,
             timeout=config.timeout,
             additional_headers=config.additional_headers,
             source_tag=config.source_tag or "",

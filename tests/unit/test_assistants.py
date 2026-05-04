@@ -56,6 +56,56 @@ def assistants() -> Assistants:
     return Assistants(config=config)
 
 
+def test_init_uses_data_host_env_var(monkeypatch: pytest.MonkeyPatch) -> None:
+    """When PINECONE_PLUGIN_ASSISTANT_DATA_HOST is set, eval client targets it."""
+    monkeypatch.setenv(
+        "PINECONE_PLUGIN_ASSISTANT_DATA_HOST",
+        "https://staging-data.ke.pinecone.io",
+    )
+    config = PineconeConfig(api_key="test-key", host=BASE_URL)
+    assistants = Assistants(config=config)
+    assert assistants._eval_http._config.host == "https://staging-data.ke.pinecone.io/assistant"
+
+
+def test_init_data_host_env_var_strips_trailing_slash(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Trailing slash on the env var is normalized."""
+    monkeypatch.setenv(
+        "PINECONE_PLUGIN_ASSISTANT_DATA_HOST",
+        "https://staging-data.ke.pinecone.io/",
+    )
+    config = PineconeConfig(api_key="test-key", host=BASE_URL)
+    assistants = Assistants(config=config)
+    assert assistants._eval_http._config.host == "https://staging-data.ke.pinecone.io/assistant"
+
+
+def test_init_uses_control_host_env_var(monkeypatch: pytest.MonkeyPatch) -> None:
+    """When config.host is empty, PINECONE_PLUGIN_ASSISTANT_CONTROL_HOST is used."""
+    monkeypatch.setenv(
+        "PINECONE_PLUGIN_ASSISTANT_CONTROL_HOST",
+        "https://api-staging.pinecone.io",
+    )
+    # Must NOT also set PINECONE_HOST or pass host= — empty host triggers fallback.
+    monkeypatch.delenv("PINECONE_HOST", raising=False)
+    config = PineconeConfig(api_key="test-key", host="")
+    assistants = Assistants(config=config)
+    assert assistants._http._config.host == "https://api-staging.pinecone.io/assistant"
+
+
+def test_init_explicit_host_overrides_control_env_var(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Explicit config.host wins over PINECONE_PLUGIN_ASSISTANT_CONTROL_HOST."""
+    monkeypatch.setenv(
+        "PINECONE_PLUGIN_ASSISTANT_CONTROL_HOST",
+        "https://api-staging.pinecone.io",
+    )
+    config = PineconeConfig(api_key="test-key", host="https://custom.example.com")
+    assistants = Assistants(config=config)
+    assert assistants._http._config.host == "https://custom.example.com/assistant"
+
+
 # ---------------------------------------------------------------------------
 # create() — validation
 # ---------------------------------------------------------------------------

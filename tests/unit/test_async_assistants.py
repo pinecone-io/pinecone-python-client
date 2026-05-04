@@ -1021,6 +1021,58 @@ def test_init_creates_eval_http(async_assistants: AsyncAssistants) -> None:
     assert async_assistants._eval_http._config.host == ASSISTANT_EVALUATION_BASE_URL
 
 
+def test_init_uses_data_host_env_var(monkeypatch: pytest.MonkeyPatch) -> None:
+    """When PINECONE_PLUGIN_ASSISTANT_DATA_HOST is set, async eval client targets it."""
+    from pinecone import AsyncPinecone
+
+    monkeypatch.setenv(
+        "PINECONE_PLUGIN_ASSISTANT_DATA_HOST",
+        "https://staging-data.ke.pinecone.io",
+    )
+    pc = AsyncPinecone(api_key="test-key", host="https://api.test.pinecone.io")
+    assert pc.assistants._eval_http._config.host == "https://staging-data.ke.pinecone.io/assistant"
+
+
+def test_init_data_host_env_var_strips_trailing_slash(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Trailing slash on the async env var is normalized."""
+    from pinecone import AsyncPinecone
+
+    monkeypatch.setenv(
+        "PINECONE_PLUGIN_ASSISTANT_DATA_HOST",
+        "https://staging-data.ke.pinecone.io/",
+    )
+    pc = AsyncPinecone(api_key="test-key", host="https://api.test.pinecone.io")
+    assert pc.assistants._eval_http._config.host == "https://staging-data.ke.pinecone.io/assistant"
+
+
+def test_init_uses_control_host_env_var(monkeypatch: pytest.MonkeyPatch) -> None:
+    """When config.host is empty, async PINECONE_PLUGIN_ASSISTANT_CONTROL_HOST is used."""
+    monkeypatch.setenv(
+        "PINECONE_PLUGIN_ASSISTANT_CONTROL_HOST",
+        "https://api-staging.pinecone.io",
+    )
+    monkeypatch.delenv("PINECONE_HOST", raising=False)
+    config = PineconeConfig(api_key="test-key", host="")
+    assistants = AsyncAssistants(config=config)
+    assert assistants._http._config.host == "https://api-staging.pinecone.io/assistant"
+
+
+def test_init_explicit_host_overrides_control_env_var(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Explicit config.host wins over PINECONE_PLUGIN_ASSISTANT_CONTROL_HOST in async."""
+    from pinecone import AsyncPinecone
+
+    monkeypatch.setenv(
+        "PINECONE_PLUGIN_ASSISTANT_CONTROL_HOST",
+        "https://api-staging.pinecone.io",
+    )
+    pc = AsyncPinecone(api_key="test-key", host="https://custom.example.com")
+    assert pc.assistants._http._config.host == "https://custom.example.com/assistant"
+
+
 def test_init_creates_empty_data_plane_clients(async_assistants: AsyncAssistants) -> None:
     """Constructor initializes _data_plane_clients as an empty dict."""
     assert hasattr(async_assistants, "_data_plane_clients")
