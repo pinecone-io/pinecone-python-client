@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 from pinecone._internal.adapters.imports_adapter import ImportsAdapter
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter, extract_response_info
+from pinecone._internal.batching import chunked, validate_batch_size, with_progress
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host, _vector_to_dict
@@ -305,8 +306,7 @@ class Index:
         if not isinstance(df, pd.DataFrame):
             raise PineconeValueError("df must be a pandas DataFrame")
 
-        if not isinstance(batch_size, int) or batch_size <= 0:
-            raise PineconeValueError("batch_size must be a positive integer")
+        validate_batch_size(batch_size)
 
         has_sparse = "sparse_values" in df.columns
         has_metadata = "metadata" in df.columns
@@ -320,22 +320,10 @@ class Index:
                 record["metadata"] = row["metadata"]
             records.append(record)
 
-        batches: list[list[dict[str, Any]]] = [
-            records[i : i + batch_size] for i in range(0, len(records), batch_size)
-        ]
-
-        batch_iter: Any = batches
-        if show_progress:
-            try:
-                from tqdm.auto import tqdm  # type: ignore[import-untyped]
-
-                batch_iter = tqdm(batches, desc="Upserting")
-            except ImportError:
-                pass
-
+        batches = chunked(records, batch_size)
         total_count = 0
         ns = namespace or ""
-        for batch in batch_iter:
+        for batch in with_progress(batches, show_progress=show_progress):
             result = self.upsert(vectors=batch, namespace=ns, timeout=timeout)
             total_count += result.upserted_count
 
