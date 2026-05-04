@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import pytest
+import tomllib
 
 from pinecone import __version__
 from pinecone._internal.config import PineconeConfig
@@ -26,7 +28,10 @@ from pinecone.errors.exceptions import (
 
 
 def test_version() -> None:
-    assert __version__ == "9.0.0"
+    # Catch the "pyproject.toml and pinecone/__init__.py drifted" bug, but stay
+    # version-agnostic so a release bump doesn't have to edit this test.
+    pyproject = tomllib.loads(Path(__file__).parents[2].joinpath("pyproject.toml").read_text())
+    assert __version__ == pyproject["project"]["version"]
 
 
 def test_config_defaults() -> None:
