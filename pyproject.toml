@@ -40,6 +40,10 @@ docs = [
 manifest-path = "rust/Cargo.toml"
 module-name = "pinecone._grpc"
 python-source = "."
+# maturin 1.7.x doesn't auto-include the LICENSE file in the sdist even though
+# it adds `License-File: LICENSE` to PKG-INFO from the SPDX license expression.
+# The mismatch makes PyPI reject the sdist. Explicit include fixes both forms.
+include = ["LICENSE"]
 
 [tool.mypy]
 strict = true
