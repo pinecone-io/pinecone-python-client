@@ -16,7 +16,6 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.doctest",
     "sphinx.ext.coverage",
-    "sphinx_autodoc_typehints",
     "sphinx_copybutton",
     "sphinx_tabs.tabs",
     "myst_parser",
