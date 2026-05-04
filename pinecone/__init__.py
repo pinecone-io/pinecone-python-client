@@ -545,6 +545,137 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 }
 
 
+_REMOVED_TOPLEVEL_FUNCTIONS: tuple[str, ...] = (
+    "init",
+    "create_index",
+    "delete_index",
+    "list_indexes",
+    "describe_index",
+    "configure_index",
+    "scale_index",
+    "create_collection",
+    "delete_collection",
+    "describe_collection",
+    "list_collections",
+)
+
+_REMOVED_FUNCTION_EXAMPLES: dict[str, str] = {
+    "init": """
+    import os
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(
+        api_key=os.environ.get("PINECONE_API_KEY")
+    )
+
+    # Now do stuff
+    if 'my_index' not in pc.list_indexes().names():
+        pc.create_index(
+            name='my_index',
+            dimension=1536,
+            metric='euclidean',
+            spec=ServerlessSpec(
+                cloud='aws',
+                region='us-west-2'
+            )
+        )
+""",
+    "list_indexes": """
+    from pinecone import Pinecone
+
+    pc = Pinecone(api_key='YOUR_API_KEY')
+
+    index_name = "quickstart" # or your index name
+
+    if index_name not in pc.list_indexes().names():
+        # do something
+""",
+    "describe_index": """
+    from pinecone import Pinecone
+
+    pc = Pinecone(api_key='YOUR_API_KEY')
+    pc.describe_index('my_index')
+""",
+    "create_index": """
+    from pinecone import Pinecone, ServerlessSpec
+
+    pc = Pinecone(api_key='YOUR_API_KEY')
+    pc.create_index(
+        name='my-index',
+        dimension=1536,
+        metric='euclidean',
+        spec=ServerlessSpec(
+            cloud='aws',
+            region='us-west-2'
+        )
+    )
+""",
+    "delete_index": """
+    from pinecone import Pinecone
+
+    pc = Pinecone(api_key='YOUR_API_KEY')
+    pc.delete_index('my_index')
+""",
+    "scale_index": """
+    from pinecone import Pinecone
+
+    pc = Pinecone(api_key='YOUR_API_KEY')
+    pc.configure_index('my_index', replicas=2)
+""",
+    "create_collection": """
+    from pinecone import Pinecone
+
+    pc = Pinecone(api_key='YOUR_API_KEY')
+    pc.create_collection(name='my_collection', source='my_index')
+""",
+    "list_collections": """
+    from pinecone import Pinecone
+
+    pc = Pinecone(api_key='YOUR_API_KEY')
+    pc.list_collections()
+""",
+    "delete_collection": """
+    from pinecone import Pinecone
+
+    pc = Pinecone(api_key='YOUR_API_KEY')
+    pc.delete_collection('my_collection')
+""",
+    "describe_collection": """
+    from pinecone import Pinecone
+
+    pc = Pinecone(api_key='YOUR_API_KEY')
+    pc.describe_collection('my_collection')
+""",
+    "configure_index": """
+    from pinecone import Pinecone
+
+    pc = Pinecone(api_key='YOUR_API_KEY')
+    pc.configure_index('my_index', replicas=2)
+""",
+}
+
+
+def _removed_function_message(name: str) -> str:
+    example = _REMOVED_FUNCTION_EXAMPLES[name]
+    if name == "init":
+        return (
+            "init is no longer a top-level attribute of the pinecone package.\n\n"
+            "Please create an instance of the Pinecone class instead.\n\n"
+            f"Example:\n{example}\n"
+        )
+    if name == "scale_index":
+        return (
+            "scale_index is no longer a top-level attribute of the pinecone package.\n\n"
+            "Please create a client instance and call the configure_index method instead.\n\n"
+            f"Example:\n{example}\n"
+        )
+    return (
+        f"{name} is no longer a top-level attribute of the pinecone package.\n\n"
+        f"To use {name}, please create a client instance and call the method there instead.\n\n"
+        f"Example:\n{example}\n"
+    )
+
+
 def __getattr__(name: str) -> Any:
     if name == "ValidationError":
         import warnings
@@ -558,6 +689,8 @@ def __getattr__(name: str) -> Any:
 
         globals()["ValidationError"] = ValidationError
         return ValidationError
+    if name in _REMOVED_TOPLEVEL_FUNCTIONS:
+        raise AttributeError(_removed_function_message(name))
     if name in _LAZY_IMPORTS:
         module_path, attr = _LAZY_IMPORTS[name]
         import importlib
