@@ -3,13 +3,21 @@
 The SDK is designed for low overhead. This page describes the key design choices and
 the patterns that keep your application fast.
 
-## HTTP/2 Multiplexing
+## Transport
 
-The SDK uses [httpx](https://www.python-httpx.org/) with the `httpx[http2]` transport.
-HTTP/2 multiplexes multiple requests over a single TCP connection, eliminating the
-per-request connection setup cost that HTTP/1.1 incurs under concurrency.
+The SDK ships three client variants, with two different application-protocol
+stacks underneath:
 
-This is enabled by default — no configuration required.
+- `Index` and `AsyncIndex` (REST): [httpx](https://www.python-httpx.org/) over
+  HTTP/1.1 with connection keepalive. HTTP/2 is currently disabled while we
+  investigate server-side issues.
+- `GrpcIndex`: a native (Rust-backed) gRPC channel over HTTP/2 with binary
+  protobuf framing.
+
+This protocol gap is part of why gRPC has a measurable throughput edge on
+bulk upsert workloads — see [When to Use gRPC](#when-to-use-grpc). For the
+REST clients, parallel batched upsert (below) is what you reach for to drive
+concurrency.
 
 ## Connection Pooling
 
@@ -55,10 +63,11 @@ These libraries are always active — no configuration is needed.
 
 ## Cold Import Cost
 
-The SDK uses lazy imports to keep its cold-start time under 10 ms. Top-level SDK symbols
-(`Pinecone`, `AsyncPinecone`, etc.) are available as soon as you import `pinecone`, but
-heavy optional dependencies (gRPC, pandas, tqdm) are only imported when you actually use
-them.
+The SDK uses lazy imports to keep its cold-start time under 10 ms. Top-level SDK
+symbols (`Pinecone`, `AsyncPinecone`, etc.) are available as soon as you import
+`pinecone`, but heavy modules — the gRPC channel, pandas (for
+`upsert_from_dataframe`), tqdm (for progress bars) — are only loaded when you
+actually use them.
 
 If your application is latency-sensitive at startup, avoid importing `pinecone` in
 module-level code that runs before it is needed:
@@ -100,18 +109,21 @@ information instead of raising on the first failed batch — see
 Measured on 10k vectors / 1536-d / batch=100 against an aws-us-east-1 serverless
 index, sync REST `Index`:
 
-| Path | Wall time | Speedup |
-|---|---:|---:|
-| `pinecone` v8 sequential loop (baseline) | 112 s | 1.0× |
-| `max_concurrency=4` (default) | 9.6 s | **11.7×** |
-| `max_concurrency=8` | 5.7 s | 19.7× |
-| `max_concurrency=16` | 5.0 s | 22.3× |
-| `max_concurrency=32` | 4.4 s | 25.5× |
+| Client | Path | Wall time | Speedup |
+|---|---|---:|---:|
+| v8 | sequential loop (baseline) | 112 s | 1.0× |
+| v9 | `max_concurrency=4` (default) | 9.6 s | **11.7×** |
+| v9 | `max_concurrency=8` | 5.7 s | 19.7× |
+| v9 | `max_concurrency=16` | 5.0 s | 22.3× |
+| v9 | `max_concurrency=32` | 4.4 s | 25.5× |
 
-Async REST follows the same shape with somewhat smaller speedups, since v8 async
-sequential was already faster than v8 sync sequential. gRPC is faster than REST
-at high concurrency — see [When to Use gRPC](#when-to-use-grpc). Numbers are
-from a controlled benchmark; see [Methodology](#methodology).
+The v8 row is the published `pinecone==8.x` client running its sequential
+`batch_size=` loop; the v9 rows are this client using native parallel batched
+upsert. Async REST follows the same shape with somewhat smaller speedups,
+since v8 async sequential was already faster than v8 sync sequential. gRPC is
+faster than REST at high concurrency — see
+[When to Use gRPC](#when-to-use-grpc). Numbers come from a controlled
+benchmark; see [Methodology](#methodology).
 
 ### Tuning `max_concurrency`
 
@@ -137,9 +149,17 @@ over batched upsert — it avoids per-batch HTTP overhead entirely.
 
 ## Async Concurrency
 
-The async client (`AsyncPinecone` / `AsyncIndex`) is the right choice when your
-application is already async (FastAPI, Starlette, aiohttp) or when you are mixing
-reads and writes that should overlap.
+Pick the async client (`AsyncPinecone` / `AsyncIndex`) when your code is already
+inside an `async def` — most often because you're conforming to the interface of
+an async web framework like **FastAPI**, **Starlette**, or **aiohttp**, where
+request handlers are coroutines. In that setting, calling a blocking sync method
+either stalls the event loop (degrading throughput for every concurrent request)
+or forces you to offload to a thread; the async client lets you `await` Pinecone
+calls inline without either workaround.
+
+The async client is also natural when you want concurrent reads and writes that
+should overlap — multiple queries in flight, or a query running while an upsert
+finishes — though sync code can achieve the same with threads.
 
 For **pure bulk upsert**, prefer native batched upsert over a hand-rolled
 `asyncio.gather` — same parallelism, less code, automatic retries, and partial-failure
@@ -178,45 +198,48 @@ is similar at the saturation point.
 
 `pinecone.grpc.GrpcIndex` accepts the same `batch_size=` and `max_concurrency=`
 kwargs as the REST `Index`, so the call site looks identical. The wire-level
-difference is binary protobuf and HTTP/2 framing optimised for streaming.
+differences are HTTP/2 framing (vs HTTP/1.1 + keepalive on REST) and binary
+protobuf encoding (vs JSON). The gRPC channel ships with the package — no
+separate install step.
 
 The numbers, on the same 10k-vector / 1536-d / batch=100 benchmark
 ([Methodology](#methodology)) — wall time, p50:
 
-| `max_concurrency` | REST sync | REST async | gRPC |
-|---:|---:|---:|---:|
-| `pinecone` v8 sequential | 112 s | 67 s | 34 s |
-| 1 | 31.5 s | 32.7 s | 35.0 s |
-| 4 (default) | 9.6 s | 10.2 s | 10.0 s |
-| 8 | 5.7 s | 5.9 s | 5.7 s |
-| 16 | 5.0 s | 6.6 s | 4.0 s |
-| 32 | 4.4 s | 5.0 s | 2.7 s |
+| Client | `max_concurrency` | REST sync | REST async | gRPC |
+|---|---:|---:|---:|---:|
+| v8 | sequential | 112 s | 67 s | 34 s |
+| v9 | 1 | 31.5 s | 32.7 s | 35.0 s |
+| v9 | 4 (default) | 9.6 s | 10.2 s | 10.0 s |
+| v9 | 8 | 5.7 s | 5.9 s | 5.7 s |
+| v9 | 16 | 5.0 s | 6.6 s | 4.0 s |
+| v9 | 32 | 4.4 s | 5.0 s | 2.7 s |
 
 A few things stand out:
 
-- **Even sequential, gRPC was already ~3× faster than REST sync** — `pinecone` v8
-  baseline: 34 s gRPC vs 112 s REST. Protobuf encoding and HTTP/2 framing buy a
-  lot before any parallelism enters the picture.
+- **Even sequential, v8 gRPC was ~3× faster than v8 REST sync** (34 s vs 112 s).
+  HTTP/2 multiplexing and protobuf encoding buy a lot before any parallelism
+  enters the picture — and that gap is structural to the protocols, not
+  something parallel batching alone closes.
 - **At default settings, the three transports are essentially tied** (~10 s).
-  For typical workloads, the choice is about API style and dependencies, not
-  throughput.
+  For typical workloads, the choice is about API style, not throughput.
 - **gRPC pulls ahead as concurrency rises** — at `max_concurrency=32`, gRPC
   finishes the same work 1.5–1.9× faster than REST.
-- **`max_concurrency=1` doesn't help gRPC** — `pinecone` v8's gRPC was already
-  pipelining requests internally, so the new code path's win comes from explicit
-  fan-out at higher concurrency, not from the protocol switch.
+- **`max_concurrency=1` doesn't help gRPC** — v8 gRPC was already pipelining
+  requests over its HTTP/2 channel, so the new code path's win at gRPC comes
+  from explicit fan-out at higher concurrency, not from the new partial-success
+  machinery.
 
 Pick gRPC when:
 
-- You're doing **sustained bulk upserts at `max_concurrency` ≥ 16** and the
-  extra throughput is worth the extra dependency (`pinecone[grpc]`).
+- You're doing **sustained bulk upserts at `max_concurrency` ≥ 16** — gRPC
+  finishes the same work 1.5–1.9× faster than REST at that concurrency.
 - You want the **lowest absolute write latency floor** on a single client
   (~2.7 s for 10k vectors at `c=32` on the reference workload).
 
 Stay on REST when:
 
 - You're at default settings or low concurrency — there is no measurable
-  benefit, and REST has fewer transitive dependencies.
+  throughput benefit at `max_concurrency` ≤ 8.
 - You need async — `GrpcIndex` is sync-only; for async workloads use
   `AsyncIndex` over REST.
 
@@ -236,7 +259,7 @@ with pc.index(name="product-search", grpc=True) as index:
 
 | Technique | Where it helps |
 |-----------|---------------|
-| HTTP/2 + httpx | All transports, always active |
+| HTTP keepalive (REST) / HTTP/2 (gRPC) | Reused TCP connections, lower per-call setup cost |
 | Reuse `Index` instance | Eliminate per-call TLS/connection overhead |
 | msgspec structs | Response deserialization — faster than Pydantic |
 | orjson | Request serialization — faster than stdlib `json` |
