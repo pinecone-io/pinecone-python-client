@@ -117,6 +117,29 @@ class TestLegacyListResponse:
         assert lr.pagination.next == "t"
 
 
+class TestScoredVectorTopLevelExport:
+    def test_importable(self) -> None:
+        from pinecone import ScoredVector
+
+        assert ScoredVector.__name__ == "ScoredVector"
+
+    def test_is_canonical_class(self) -> None:
+        import pinecone
+        import pinecone.models.vectors.vector as canonical
+
+        assert pinecone.ScoredVector is canonical.ScoredVector
+
+    def test_in_all(self) -> None:
+        import pinecone
+
+        assert "ScoredVector" in pinecone.__all__
+
+    def test_in_dir(self) -> None:
+        import pinecone
+
+        assert "ScoredVector" in dir(pinecone)
+
+
 class TestDbDataDataclassesPackage:
     def test_package_exports_all_symbols(self) -> None:
         import pinecone.db_data.dataclasses as pkg

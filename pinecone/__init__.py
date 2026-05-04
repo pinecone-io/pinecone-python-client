@@ -198,7 +198,7 @@ if TYPE_CHECKING:
         SearchUsage,
     )
     from pinecone.models.vectors.sparse import SparseValues
-    from pinecone.models.vectors.vector import Vector
+    from pinecone.models.vectors.vector import ScoredVector, Vector
     from pinecone.utils.filter_builder import Field, FilterBuilder
 
 __version__ = "8.1.2"
@@ -322,6 +322,7 @@ __all__ = [
     "RestoreJobList",
     "RestoreJobModel",
     "RetryConfig",
+    "ScoredVector",
     "SearchInputs",
     "SearchQuery",
     "SearchRecordsResponse",
@@ -514,6 +515,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "SearchRerank": ("pinecone.db_data.dataclasses.search_rerank", "SearchRerank"),
     "SearchResult": ("pinecone.models.vectors.search", "SearchResult"),
     "SearchUsage": ("pinecone.models.vectors.search", "SearchUsage"),
+    "ScoredVector": ("pinecone.models.vectors.vector", "ScoredVector"),
     "ServerlessSpec": ("pinecone.models.indexes.specs", "ServerlessSpec"),
     "ServerlessSpecInfo": ("pinecone.models.indexes.index", "ServerlessSpecInfo"),
     "SparseEmbedding": ("pinecone.models.inference.embed", "SparseEmbedding"),
