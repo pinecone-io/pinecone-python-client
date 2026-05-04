@@ -244,17 +244,19 @@ UPSERT_URL = f"{INDEX_HOST_HTTPS}/vectors/upsert"
 
 
 class TestAsyncReqOptIn:
-    def test_index_without_pool_threads_does_not_import_legacy_async(
+    def test_index_construction_does_not_import_multiprocessing(
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        monkeypatch.delitem(sys.modules, "pinecone._legacy.async_req", raising=False)
         monkeypatch.delitem(sys.modules, "multiprocessing.pool", raising=False)
         Index(host=INDEX_HOST, api_key="test-key")
-        assert "pinecone._legacy.async_req" not in sys.modules
+        # The legacy wrappers install at construction (BC-0113) — that's
+        # cheap and pulls only `pinecone._legacy.async_req` (no
+        # multiprocessing). The actual ThreadPool construction is deferred
+        # to first ``async_req=True`` submit.
         assert "multiprocessing.pool" not in sys.modules
 
-    def test_index_with_pool_threads_imports_legacy_module_only(
+    def test_index_with_pool_threads_does_not_import_multiprocessing(
         self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
@@ -264,10 +266,18 @@ class TestAsyncReqOptIn:
         # multiprocessing.pool is NOT yet imported — pool is lazy, constructed on first submit
         assert "multiprocessing.pool" not in sys.modules
 
-    def test_async_req_true_without_pool_threads_raises_typeerror(self) -> None:
+    def test_default_pool_threads_is_10(self) -> None:
         idx = Index(host=INDEX_HOST, api_key="test-key")
-        with pytest.raises(TypeError, match="async_req"):
-            idx.upsert(vectors=[("a", [0.1])], async_req=True)  # type: ignore[call-arg]
+        assert idx._legacy_async_pool_threads == 10  # type: ignore[attr-defined]
+
+    @respx.mock
+    def test_async_req_true_without_pool_threads_uses_default_pool(self) -> None:
+        respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json={"upsertedCount": 1}))
+        idx = Index(host=INDEX_HOST, api_key="test-key")
+        result = idx.upsert(vectors=[("a", [0.1, 0.2])], async_req=True)  # type: ignore[call-arg]
+        assert isinstance(result, ApplyResult)
+        upsert_response = result.get(timeout=5)
+        assert upsert_response.upserted_count == 1
 
     @respx.mock
     def test_async_req_true_with_pool_threads_returns_apply_result(self) -> None:

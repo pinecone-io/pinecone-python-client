@@ -60,11 +60,12 @@ class Index:
         source_tag (str | None): Tag appended to the User-Agent string for request attribution.
         connection_pool_maxsize (int): Maximum number of connections to keep in the pool.
             ``0`` (default) uses httpx defaults.
-        pool_threads (int | None): Opt-in for the legacy ``async_req=True`` execution
-            model. When set, ``upsert``, ``query``, ``describe_index_stats``, and
-            ``list_paginated`` accept an ``async_req=True`` kwarg and return a
-            :class:`multiprocessing.pool.ApplyResult`. The thread pool is lazy-constructed
-            on first use and shut down by :meth:`close`. **For new code, prefer**
+        pool_threads (int | None): Tune the thread pool used by the legacy
+            ``async_req=True`` execution model on ``upsert``, ``query``,
+            ``describe_index_stats``, and ``list_paginated``. Defaults to ``10``.
+            The pool is lazy-constructed on first ``async_req=True`` call and shut
+            down by :meth:`close`; ``multiprocessing.pool`` is not imported until
+            then. **For new code, prefer**
             :class:`~pinecone.async_client.async_index.AsyncIndex` **or**
             :class:`concurrent.futures.ThreadPoolExecutor`. This kwarg exists for
             backcompat with pre-rewrite callers.
@@ -131,11 +132,15 @@ class Index:
         self._batch_executor: ThreadPoolExecutor | None = None
         self._batch_executor_workers: int = 0
 
-        if legacy_pool_threads is not None:
-            # Lazy import — only loaded when caller opts in.
-            from pinecone._legacy.async_req import install_async_req_support
+        from pinecone._legacy.async_req import (
+            _DEFAULT_POOL_THREADS,
+            install_async_req_support,
+        )
 
-            install_async_req_support(self, legacy_pool_threads)
+        install_async_req_support(
+            self,
+            legacy_pool_threads if legacy_pool_threads is not None else _DEFAULT_POOL_THREADS,
+        )
 
         logger.info("Index client created for host %s", self._host)
 

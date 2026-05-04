@@ -20,6 +20,13 @@ logger = logging.getLogger(__name__)
 
 _METHODS_TO_WRAP = ("upsert", "query", "describe_index_stats", "list_paginated")
 
+# Default thread-pool size when the caller uses ``async_req=True`` without
+# having passed ``pool_threads=N``. Sized to match typical HTTP connection-pool
+# defaults (urllib3=10, httpx max_keepalive=20) — meaningful parallelism for
+# I/O-bound work without being aggressive enough to trip rate limits on a
+# fresh client.
+_DEFAULT_POOL_THREADS = 10
+
 
 class _LegacyAsyncPool:
     """Owns a lazy ``multiprocessing.pool.ThreadPool``.

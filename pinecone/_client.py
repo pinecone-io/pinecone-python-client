@@ -319,6 +319,7 @@ class Pinecone:
         *,
         host: str = "",
         grpc: bool = False,
+        pool_threads: int | None = None,
     ) -> Index | GrpcIndex:
         """Create a data plane client targeting a specific index.
 
@@ -368,9 +369,14 @@ class Pinecone:
 
         from pinecone.index import Index as _Index
 
-        return _Index(**self._build_index_kwargs(resolved_host))
+        return _Index(**self._build_index_kwargs(resolved_host, pool_threads=pool_threads))
 
-    def _build_index_kwargs(self, host: str) -> _LegacyIndexKwargs:
+    def _build_index_kwargs(
+        self,
+        host: str,
+        *,
+        pool_threads: int | None = None,
+    ) -> _LegacyIndexKwargs:
         """Return the kwargs dict for constructing an Index."""
         kwargs: _LegacyIndexKwargs = _LegacyIndexKwargs(
             host=host,
@@ -384,8 +390,9 @@ class Pinecone:
             source_tag=self._config.source_tag,
             connection_pool_maxsize=self._config.connection_pool_maxsize,
         )
-        if self._legacy_pool_threads is not None:
-            kwargs["pool_threads"] = self._legacy_pool_threads
+        effective = pool_threads if pool_threads is not None else self._legacy_pool_threads
+        if effective is not None:
+            kwargs["pool_threads"] = effective
         return kwargs
 
     def _resolve_index_host(self, *, name: str, host: str) -> str:
@@ -740,10 +747,17 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.index(name=..., host=...)`` instead of ``pc.Index(...)``.
+        Accepts a legacy ``pool_threads=`` kwarg and forwards it to size the
+        ``async_req=True`` thread pool; other unknown kwargs raise ``TypeError``.
         """
+        pool_threads = kwargs.pop("pool_threads", None)
+        if kwargs:
+            raise TypeError(
+                f"Pinecone.Index() got unexpected keyword arguments: {sorted(kwargs)!r}"
+            )
         from pinecone.index import Index as _Index
 
-        return cast(_Index, self.index(name=name, host=host))
+        return cast(_Index, self.index(name=name, host=host, pool_threads=pool_threads))
 
     def IndexAsyncio(self, host: str, **kwargs: Any) -> Any:  # noqa: N802
         """Backwards-compatibility shim that returns an :class:`AsyncIndex`.
