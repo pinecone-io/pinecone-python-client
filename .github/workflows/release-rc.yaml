@@ -2,6 +2,32 @@ name: 'Release: RC (PyPI prod)'
 
 # Manually-triggered release-candidate publish to prod PyPI (e.g. 9.0.0rc1).
 #
+# Pipeline
+# --------
+#   validate (reusable on-push gate; skippable)
+#       v
+#   preflight (compute version, PyPI + tag collision checks)
+#       v
+#   prepare-tree (run bump_version.py --write ONCE; upload patched files
+#                 as the `release-tree` artifact — single source of truth
+#                 for every downstream job that needs the bumped tree)
+#       v
+#   build (matrix; downloads release-tree) + build-sdist (downloads
+#                                                         release-tree)
+#       v
+#   collect (aggregate + validate dist/)
+#       v
+#   publish (Trusted Publisher OIDC + SLSA attestation; pypi-rc env)
+#       v
+#   push-tag (no toolchain — pure git: download release-tree, commit,
+#             tag, push tag; main is NOT advanced — orphan-tag model)
+#
+# Why the prepare-tree job: bump_version.py runs `cargo update --workspace`,
+# which is timestamp-sensitive (transitive dep updates can land mid-run).
+# Running it once and sharing the result via artifact guarantees every
+# build job + the tag commit see byte-identical pyproject.toml, Cargo.toml,
+# Cargo.lock, etc.
+#
 # Orphan-tag model
 # ----------------
 # - main is never bumped to an rcN version; pyproject.toml on main keeps the
@@ -10,12 +36,16 @@ name: 'Release: RC (PyPI prod)'
 #   release commit not present on any branch. The commit holds the bumped
 #   pyproject.toml + rust/Cargo.toml + rust/Cargo.lock, so
 #   `git checkout vX.Y.ZrcN` reproduces the exact tree we published.
+# - main is NOT advanced. Final releases (release-prod.yaml) DO fast-forward
+#   main; RCs deliberately don't, so multiple RCs can iterate without
+#   touching main.
 #
 # Iteration safety rails
 # ----------------------
 # 1. `skipTests`  (default false)  -> skip the on-push validation gate.
-# 2. `dryRun`     (default false)  -> build + smoke-install every wheel,
-#                                     then stop before publish + push-tag.
+# 2. `dryRun`     (default false)  -> prepare-tree + build + smoke-install
+#                                     wheels, then stop before publish +
+#                                     push-tag.
 # 3. The `publish` job runs in the `pypi-rc` GitHub Environment, which
 #    gates on a manual approval click before any artifact reaches PyPI.
 #
@@ -178,12 +208,80 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
+  # Prepare the patched tree once. bump_version.py --write runs `cargo update
+  # --workspace` to refresh Cargo.lock, which is timestamp-sensitive — running
+  # it independently in every build job risks transitive-dep drift between
+  # jobs. We run it here exactly once and ship the patched files as an
+  # artifact every other job consumes, guaranteeing the tag's tree is byte-
+  # identical to what each wheel was built from.
+  # ---------------------------------------------------------------------------
+  prepare-tree:
+    name: Prepare release tree
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: ${{ needs.preflight.outputs.resolved_sha }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8  # stable
+        with:
+          toolchain: stable
+
+      - name: Install protoc
+        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
+        with:
+          version: ${{ env.PROTOC_VERSION }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Apply version bump (write)
+        run: |
+          set -euo pipefail
+          python scripts/bump_version.py \
+            --level "${{ inputs.releaseLevel }}" \
+            --suffix "${{ inputs.prereleaseSuffix }}" \
+            --write
+          grep '^version' pyproject.toml rust/Cargo.toml
+
+      - name: Verify version injection
+        env:
+          EXPECTED: ${{ needs.preflight.outputs.pep440_version }}
+        run: |
+          python -c "
+          import os, tomllib
+          with open('pyproject.toml', 'rb') as f:
+              v = tomllib.load(f)['project']['version']
+          expected = os.environ['EXPECTED']
+          assert v == expected, f'pyproject.toml version mismatch: expected {expected!r}, got {v!r}'
+          print(f'pyproject.toml version OK: {v}')
+          "
+
+      - name: Upload release-tree artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+        with:
+          name: release-tree
+          path: |
+            pyproject.toml
+            rust/Cargo.toml
+            Cargo.lock
+            pinecone/__init__.py
+            docs/conf.py
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
   # Build wheels (matrix mirrors dev-publish.yml) + verify each wheel installs
   # cleanly on its target platform (skipping the cross-compiled x86_64 mac).
   # ---------------------------------------------------------------------------
   build:
     name: Build + verify (${{ matrix.target }})
-    needs: preflight
+    needs: [preflight, prepare-tree]
     strategy:
       fail-fast: false
       matrix:
@@ -213,6 +311,16 @@ jobs:
         with:
           ref: ${{ needs.preflight.outputs.resolved_sha }}
 
+      - name: Apply release-tree (overwrite version-stamped files)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: release-tree
+          path: .
+          # download-artifact@v8 defaults to overwrite: false; we need to
+          # replace the post-checkout pyproject.toml etc. with the bumped
+          # versions from prepare-tree.
+          overwrite: true
+
       - name: Install protoc (non-Linux)
         if: runner.os != 'Linux'
         uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
@@ -225,20 +333,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Inject release version
-        shell: bash
-        run: |
-          python scripts/bump_version.py \
-            --level "${{ inputs.releaseLevel }}" \
-            --suffix "${{ inputs.prereleaseSuffix }}" \
-            --write
-          grep '^version' pyproject.toml rust/Cargo.toml
-
       - name: Verify version injection
         shell: bash
         env:
           EXPECTED: ${{ needs.preflight.outputs.pep440_version }}
         run: |
+          grep '^version' pyproject.toml rust/Cargo.toml
           python -c "
           import os, tomllib
           with open('pyproject.toml', 'rb') as f:
@@ -358,7 +458,7 @@ jobs:
   # ---------------------------------------------------------------------------
   build-sdist:
     name: Build sdist
-    needs: preflight
+    needs: [preflight, prepare-tree]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -366,18 +466,15 @@ jobs:
         with:
           ref: ${{ needs.preflight.outputs.resolved_sha }}
 
-      - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+      - name: Apply release-tree (overwrite version-stamped files)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
         with:
-          python-version: "3.12"
+          name: release-tree
+          path: .
+          overwrite: true
 
-      - name: Inject release version
-        run: |
-          python scripts/bump_version.py \
-            --level "${{ inputs.releaseLevel }}" \
-            --suffix "${{ inputs.prereleaseSuffix }}" \
-            --write
-          grep '^version' pyproject.toml rust/Cargo.toml
+      - name: Show injected version
+        run: grep '^version' pyproject.toml rust/Cargo.toml
 
       - name: Build sdist
         uses: PyO3/maturin-action@04ac600d27cdf7a9a280dadf7147097c42b757ad  # v1.50.1
@@ -456,7 +553,8 @@ jobs:
       name: pypi-rc
       url: https://pypi.org/project/pinecone/${{ needs.preflight.outputs.pep440_version }}/
     permissions:
-      id-token: write   # required for Trusted Publisher OIDC
+      id-token: write     # required for Trusted Publisher OIDC
+      attestations: write # required to emit SLSA build provenance
     steps:
       - name: Download dist/
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
@@ -476,19 +574,27 @@ jobs:
 
       # NOTE: pin to a SHA before merging. release/v1 is the maintained branch
       # of pypa/gh-action-pypi-publish; replace with `@<sha>  # v1.X.Y`.
-      - name: Publish to PyPI (Trusted Publisher OIDC)
+      #
+      # `attestations: true` emits SLSA build provenance attestations that
+      # PyPI displays on the project page. Requires `attestations: write`
+      # permission above (in addition to `id-token: write` for OIDC).
+      - name: Publish to PyPI (Trusted Publisher OIDC + SLSA attestation)
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist
+          attestations: true
           # No `password:` — OIDC via Trusted Publisher.
           # No `repository-url:` — defaults to prod PyPI.
 
   # ---------------------------------------------------------------------------
   # Push the orphan release tag (the tag, never a branch).
   #
-  # The tag commit is built fresh here from `resolved_sha`, with the version
-  # bumped exactly the way every build job did it — so the tag's tree is
-  # byte-identical to what we just published. main is left untouched.
+  # Pure git: this job has no toolchain installs, no network outside GitHub,
+  # and no version recomputation. It downloads the release-tree artifact
+  # (the same patched files every build job consumed) and commits exactly
+  # that tree. Result: the tag's tree is byte-identical to what was
+  # published. main is left untouched (orphan-tag model — RCs never bump
+  # main; final releases use release-prod.yaml which DOES advance main).
   # ---------------------------------------------------------------------------
   push-tag:
     name: Push orphan release tag
@@ -502,32 +608,14 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           ref: ${{ needs.preflight.outputs.resolved_sha }}
-          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8  # stable
+      - name: Apply release-tree (overwrite version-stamped files)
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
         with:
-          toolchain: stable
-
-      - name: Install protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b  # v3.0.0
-        with:
-          version: ${{ env.PROTOC_VERSION }}
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
-        with:
-          python-version: "3.12"
-
-      - name: Apply version bump (write)
-        run: |
-          python scripts/bump_version.py \
-            --level "${{ inputs.releaseLevel }}" \
-            --suffix "${{ inputs.prereleaseSuffix }}" \
-            --write
-          grep '^version' pyproject.toml rust/Cargo.toml
+          name: release-tree
+          path: .
+          overwrite: true
 
       - name: Configure git identity
         run: |
@@ -563,7 +651,7 @@ jobs:
   # ---------------------------------------------------------------------------
   summary:
     name: Run summary
-    needs: [validate, preflight, build, build-sdist, collect, publish, push-tag]
+    needs: [validate, preflight, prepare-tree, build, build-sdist, collect, publish, push-tag]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -572,15 +660,16 @@ jobs:
           {
             echo "## RC release run"
             echo ""
-            echo "| Stage       | Result |"
-            echo "|-------------|--------|"
-            echo "| validate    | ${{ needs.validate.result }} |"
-            echo "| preflight   | ${{ needs.preflight.result }} |"
-            echo "| build       | ${{ needs.build.result }} |"
-            echo "| build-sdist | ${{ needs.build-sdist.result }} |"
-            echo "| collect     | ${{ needs.collect.result }} |"
-            echo "| publish     | ${{ needs.publish.result }} |"
-            echo "| push-tag    | ${{ needs.push-tag.result }} |"
+            echo "| Stage        | Result |"
+            echo "|--------------|--------|"
+            echo "| validate     | ${{ needs.validate.result }} |"
+            echo "| preflight    | ${{ needs.preflight.result }} |"
+            echo "| prepare-tree | ${{ needs.prepare-tree.result }} |"
+            echo "| build        | ${{ needs.build.result }} |"
+            echo "| build-sdist  | ${{ needs.build-sdist.result }} |"
+            echo "| collect      | ${{ needs.collect.result }} |"
+            echo "| publish      | ${{ needs.publish.result }} |"
+            echo "| push-tag     | ${{ needs.push-tag.result }} |"
             echo ""
             if [ "${{ inputs.dryRun }}" = "true" ]; then
               echo "**dryRun=true** — publish + push-tag were skipped on purpose."
