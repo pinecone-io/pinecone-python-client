@@ -225,7 +225,7 @@ class AssistantModelLegacyMethodsMixin:
         ns = self._resolve_assistants()
         return ns.chat_completions(
             assistant_name=self.name,  # type: ignore[attr-defined]
-            messages=messages,  # type: ignore[arg-type]
+            messages=messages,
             filter=filter,
             stream=stream,
             model=model,  # type: ignore[arg-type]
@@ -298,7 +298,7 @@ class AssistantModelLegacyMethodsMixin:
         ns = self._resolve_assistants()
         return ns.chat(
             assistant_name=self.name,  # type: ignore[attr-defined]
-            messages=messages,  # type: ignore[arg-type]
+            messages=messages,
             filter=filter,
             stream=stream,
             model=model,  # type: ignore[arg-type]
