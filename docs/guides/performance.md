@@ -157,6 +157,44 @@ raising `max_concurrency` further on one client.
 For multi-million-vector loads from cloud storage, prefer `index.start_import()`
 over batched upsert — it avoids per-batch HTTP overhead entirely.
 
+## Query Latency
+
+Queries don't benefit from parallel batching the way bulk upserts do — each
+query is a single round trip — but the v9 client decodes responses
+substantially faster than v8 on REST for any query that returns more than a
+trivial payload. The wins come from `msgspec.Struct` response models and
+`orjson` for JSON decoding (see [Fast Serialization](#fast-serialization-with-msgspec-and-orjson)),
+neither of which the v8 client uses.
+
+Measured on the same 1536-d serverless index ([Methodology](#methodology)),
+median latency:
+
+| Client | Scenario | REST sync | REST async | gRPC |
+|---|---|---:|---:|---:|
+| v8 | `query_k10` | 35.8 ms | 34.3 ms | 32.5 ms |
+| v9 | `query_k10` | 33.4 ms | 35.2 ms | 31.1 ms |
+| v8 | `query_k100` + values + metadata | 800 ms | 708 ms | 133 ms |
+| v9 | `query_k100` + values + metadata | **279 ms** | **260 ms** | 120 ms |
+| v8 | `query_k1000` + values | 7.01 s | 7.12 s | 534 ms |
+| v9 | `query_k1000` + values | **2.18 s** | **2.16 s** | 493 ms |
+
+Two patterns stand out:
+
+- **The REST win scales with response size.** Small `top_k=10` queries are
+  near-parity (~1.05×); `top_k=100` with values + metadata is ~2.8× sync /
+  ~2.7× async; `top_k=1000` with values is ~3.2× sync / ~3.3× async. The
+  bottleneck on v8 REST queries was decoding large JSON payloads — exactly
+  the failure mode `msgspec` + `orjson` were chosen to fix.
+- **gRPC is at parity throughout** (~1.05–1.13× across scenarios). gRPC
+  responses are protobuf, so they bypass the JSON decoding path entirely;
+  there's no msgspec/orjson dividend to collect. If you're already on gRPC
+  for queries, upgrading doesn't change much on the query side. If you're on
+  REST and run heavy queries, the upgrade is a substantial win.
+
+Filter complexity (`eq`, `in_50`, `nested`) on `top_k=100` adds modest extra
+wins on REST (~1.15–1.22×) and stays at parity on gRPC. Filter overhead is
+small relative to network and decoding.
+
 ## Async Concurrency
 
 Pick the async client (`AsyncPinecone` / `AsyncIndex`) when your code is already
@@ -280,12 +318,15 @@ factors in the absolute numbers. The "v8 sequential" rows use
 first batch error). The `max_concurrency=N` rows use this version of the SDK
 with native parallel batched upsert.
 
-Each cell is the median of 3 timed iterations after 1 warmup. That's a small
-sample by benchmarking standards, so the table is best read as a directional
+Iteration counts vary by scenario. Batched-upsert cells use n=3 measured
+iterations after 1 warmup — each iteration writes 10k vectors, so increasing
+n trades wall time for precision. That table is best read as a directional
 guide: the large speedup factors (≥3×) are well above run-to-run noise, but
 small differences between adjacent rows in the same column should not be
-over-interpreted. We plan to re-run at higher iteration counts to firm up
-the finer-grained claims; this page will be refreshed at that time.
+over-interpreted. Query cells use n=25 (n=10 for `query_k1000_values`); the
+query numbers are statistically firm. We plan to re-run the batched-upsert
+sweep at higher iteration counts too; this page will be refreshed at that
+time.
 
 Your numbers will vary with client region, RTT, vector dimension, batch size,
 payload metadata, and concurrent traffic from other clients. When in doubt,
