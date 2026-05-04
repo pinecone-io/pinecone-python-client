@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import logging
+import warnings
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from pinecone import Pinecone
 from pinecone.inference.models.index_embed import IndexEmbed
@@ -473,3 +477,32 @@ class TestLazyNamespaces:
         pc = Pinecone(api_key="test-key")
         first_access = pc.restore_jobs
         assert pc.restore_jobs is first_access
+
+
+# ---------------------------------------------------------------------------
+# pool_threads= backcompat shim (BCG-020)
+# ---------------------------------------------------------------------------
+
+
+class TestPoolThreadsBackcompat:
+    def test_pool_threads_kwarg_accepted_silently(self) -> None:
+        pc = Pinecone(api_key="x", pool_threads=4)
+        assert pc is not None
+
+    def test_pool_threads_kwarg_emits_debug_log(self, caplog: pytest.LogCaptureFixture) -> None:
+        with caplog.at_level(logging.DEBUG, logger="pinecone._client"):
+            Pinecone(api_key="x", pool_threads=4)
+        assert any(
+            "pool_threads" in r.message and "connection_pool_maxsize" in r.message
+            for r in caplog.records
+        )
+
+    def test_pool_threads_kwarg_does_not_warn(self) -> None:
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter("always")
+            Pinecone(api_key="x", pool_threads=4)
+        assert len(record) == 0
+
+    def test_unknown_kwarg_still_rejected(self) -> None:
+        with pytest.raises(TypeError, match="unexpected keyword arguments"):
+            Pinecone(api_key="x", bogus_kwarg=True)

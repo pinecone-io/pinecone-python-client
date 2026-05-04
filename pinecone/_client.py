@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any, cast
 
@@ -45,6 +46,8 @@ if TYPE_CHECKING:
         ServerlessSpec,
     )
     from pinecone.preview import Preview
+
+logger = logging.getLogger(__name__)
 
 
 class Pinecone:
@@ -100,7 +103,18 @@ class Pinecone:
         timeout: float = 30.0,
         connection_pool_maxsize: int = 0,
         retry_config: RetryConfig | None = None,
+        **kwargs: Any,
     ) -> None:
+        legacy_pool_threads = kwargs.pop("pool_threads", None)
+        if kwargs:
+            raise TypeError(f"Pinecone() got unexpected keyword arguments: {sorted(kwargs)!r}")
+        if legacy_pool_threads is not None:
+            logger.debug(
+                "Pinecone(pool_threads=%r) is accepted for backcompat but no "
+                "longer used; the new client uses httpx connection pooling. "
+                "Tune connection_pool_maxsize= instead.",
+                legacy_pool_threads,
+            )
         config = PineconeConfig(
             api_key=api_key or "",
             host=host or "",
