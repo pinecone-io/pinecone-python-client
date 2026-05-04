@@ -42,6 +42,7 @@ index.upsert(
         ("movie-87", [0.045, 0.021, -0.064]),  # 1536-dim embedding
     ],
     namespace="movies-en",
+    batch_size=100,  # split larger inputs into parallel batches automatically
 )
 
 # Query for similar vectors
