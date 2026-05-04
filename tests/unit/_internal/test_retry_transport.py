@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
@@ -104,3 +104,113 @@ async def test_async_non_retryable_status_returns_immediately() -> None:
     result = await rt.handle_async_request(_req())
     assert result.status_code == 400
     assert inner.handle_async_request.call_count == 1
+
+
+# --- POST-specific named tests (sync) ---
+
+
+def test_post_upsert_retried_on_transport_error() -> None:
+    rt, inner = _transport(max_retries=3)
+    inner.handle_request.side_effect = [
+        httpx.ConnectError("boom"),
+        httpx.Response(200),
+    ]
+    result = rt.handle_request(httpx.Request("POST", "https://example.com/vectors/upsert"))
+    assert result.status_code == 200
+    assert inner.handle_request.call_count == 2
+
+
+def test_post_query_retried_on_503() -> None:
+    rt, inner = _transport(max_retries=3)
+    inner.handle_request.side_effect = [httpx.Response(503), httpx.Response(200)]
+    result = rt.handle_request(httpx.Request("POST", "https://example.com/query"))
+    assert result.status_code == 200
+    assert inner.handle_request.call_count == 2
+
+
+def test_post_retried_on_408() -> None:
+    rt, inner = _transport(max_retries=3)
+    inner.handle_request.side_effect = [httpx.Response(408), httpx.Response(200)]
+    result = rt.handle_request(httpx.Request("POST", "https://example.com/query"))
+    assert result.status_code == 200
+    assert inner.handle_request.call_count == 2
+
+
+def test_post_retried_on_429_with_retry_after() -> None:
+    rt, inner = _transport(max_retries=3)
+    inner.handle_request.side_effect = [
+        httpx.Response(429, headers={"Retry-After": "0"}),
+        httpx.Response(200),
+    ]
+    with patch("pinecone._internal.http_client.time.sleep") as mock_sleep:
+        result = rt.handle_request(httpx.Request("POST", "https://example.com/query"))
+    assert result.status_code == 200
+    assert inner.handle_request.call_count == 2
+    mock_sleep.assert_called_once_with(0.0)
+
+
+def test_post_not_retried_on_400() -> None:
+    rt, inner = _transport(max_retries=3)
+    inner.handle_request.return_value = httpx.Response(400)
+    result = rt.handle_request(httpx.Request("POST", "https://example.com/query"))
+    assert result.status_code == 400
+    assert inner.handle_request.call_count == 1
+
+
+def test_post_exhausts_retries_then_returns_503() -> None:
+    rt, inner = _transport(max_retries=3)
+    inner.handle_request.side_effect = [
+        httpx.Response(503),
+        httpx.Response(503),
+        httpx.Response(503),
+    ]
+    result = rt.handle_request(httpx.Request("POST", "https://example.com/query"))
+    assert result.status_code == 503
+    assert inner.handle_request.call_count == 3
+
+
+def test_post_exhausts_retries_then_raises_transport_error() -> None:
+    rt, inner = _transport(max_retries=3)
+    inner.handle_request.side_effect = [
+        httpx.ConnectError("fail"),
+        httpx.ConnectError("fail"),
+        httpx.ConnectError("fail"),
+    ]
+    with pytest.raises(httpx.ConnectError):
+        rt.handle_request(httpx.Request("POST", "https://example.com/query"))
+    assert inner.handle_request.call_count == 3
+
+
+# --- POST-specific named tests (async) ---
+
+
+@pytest.mark.asyncio
+async def test_async_post_upsert_retried_on_transport_error() -> None:
+    rt, inner = _async_transport(max_retries=3)
+    inner.handle_async_request.side_effect = [
+        httpx.ConnectError("boom"),
+        httpx.Response(200),
+    ]
+    result = await rt.handle_async_request(
+        httpx.Request("POST", "https://example.com/vectors/upsert")
+    )
+    assert result.status_code == 200
+    assert inner.handle_async_request.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_async_post_query_retried_on_503() -> None:
+    rt, inner = _async_transport(max_retries=3)
+    inner.handle_async_request.side_effect = [httpx.Response(503), httpx.Response(200)]
+    result = await rt.handle_async_request(httpx.Request("POST", "https://example.com/query"))
+    assert result.status_code == 200
+    assert inner.handle_async_request.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_async_post_retried_on_408() -> None:
+    rt, inner = _async_transport(max_retries=3)
+    inner.handle_async_request.side_effect = [httpx.Response(408), httpx.Response(200)]
+    result = await rt.handle_async_request(httpx.Request("POST", "https://example.com/query"))
+    assert result.status_code == 200
+    assert inner.handle_async_request.call_count == 2

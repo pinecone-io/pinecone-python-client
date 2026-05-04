@@ -80,14 +80,14 @@ class RetryConfig:
         backoff_factor: Exponential backoff base multiplier in seconds. Defaults to 2.0.
         max_wait: Maximum backoff delay in seconds. Defaults to 60.0.
         retryable_status_codes: HTTP status codes that trigger a retry. Defaults to
-            ``{429, 500, 502, 503, 504}``.
+            ``{408, 429, 500, 502, 503, 504}``.
     """
 
     max_retries: int = 3
     backoff_factor: float = 2.0
     max_wait: float = 60.0
     retryable_status_codes: frozenset[int] = field(
-        default_factory=lambda: frozenset({429, 500, 502, 503, 504})
+        default_factory=lambda: frozenset({408, 429, 500, 502, 503, 504})
     )
 
 

@@ -283,7 +283,7 @@ except PineconeError as e:
     print(e)  # Validation, timeout, or connection error
 ```
 
-**Retry behavior:** Only GET/HEAD requests are automatically retried (on 500/502/503/504). POST operations (upsert, query, search) are not retried — implement your own retry logic for transient errors. Configure via `RetryConfig`.
+**Retry behavior:** All HTTP methods (GET, HEAD, POST, PUT, PATCH, DELETE) are automatically retried on transient failures: connection errors (`httpx.TransportError`), 408 Request Timeout, 429 Too Many Requests (honoring `Retry-After`), and 5xx (500, 502, 503, 504). Pinecone's data-plane writes are idempotent at the server (upsert overwrites by ID, delete-by-ID is idempotent, update-by-ID is idempotent), so retrying upsert/query/fetch/delete/update on transient errors is safe. Backoff is floored full jitter: `uniform(0.1 * base, base)` where `base = min(backoff_factor**attempt, max_wait)`. Configure via `RetryConfig`.
 
 ## Response Objects
 

@@ -74,7 +74,7 @@ class TestRetryConfigDefaults:
         assert cfg.max_retries == 3
         assert cfg.backoff_factor == 2.0
         assert cfg.max_wait == 60.0
-        assert cfg.retryable_status_codes == frozenset({429, 500, 502, 503, 504})
+        assert cfg.retryable_status_codes == frozenset({408, 429, 500, 502, 503, 504})
 
     def test_retry_config_has_no_retryable_methods(self) -> None:
         cfg = RetryConfig()
