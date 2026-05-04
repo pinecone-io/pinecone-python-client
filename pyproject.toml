@@ -84,6 +84,11 @@ required-imports = ["from __future__ import annotations"]
     "ASYNC240", # os.path in async functions — fine in tests; not real async I/O
 ]
 "docs/**" = ["E501"]
+"scripts/**" = [
+    "T201",   # print() is fine in CLI utilities
+    "S603",   # subprocess.run with hardcoded args is trusted in our scripts
+    "S607",   # invoking `cargo` / `git` by partial path is intentional
+]
 "pinecone/_internal/http_client.py" = ["S311"]
 "pinecone/grpc/future.py" = ["S110", "SIM105"]
 
