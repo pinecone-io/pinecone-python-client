@@ -302,6 +302,30 @@ def test_data_shim_all_matches_module_attrs() -> None:
         assert hasattr(pinecone.data, name), f"pinecone.data missing attribute {name!r}"
 
 
+class TestPineconeModuleShim:
+    def test_import_works(self) -> None:
+        from pinecone.pinecone import Pinecone
+
+        assert Pinecone.__name__ == "Pinecone"
+
+    def test_class_identity(self) -> None:
+        import pinecone._client as canonical
+        import pinecone.pinecone as shim
+
+        assert shim.Pinecone is canonical.Pinecone
+
+    def test_top_level_identity(self) -> None:
+        import pinecone
+        import pinecone.pinecone as shim
+
+        assert shim.Pinecone is pinecone.Pinecone
+
+    def test_all_matches(self) -> None:
+        import pinecone.pinecone as shim
+
+        assert shim.__all__ == ["Pinecone"]
+
+
 def test_data_shim_omits_removed_vector_errors() -> None:
     import pinecone.data as data_shim
 
