@@ -238,3 +238,83 @@ def test_control_shim_omits_renamed_symbols() -> None:
         assert not hasattr(ctrl, name), (
             f"`from pinecone.control import {name}` should raise ImportError"
         )
+
+
+# (legacy_path, symbol_name, canonical_path)
+_DATA_SHIM_TRIPLES = [
+    ("pinecone.data", "DescribeIndexStatsResponse", "pinecone.models.vectors.responses"),
+    ("pinecone.data", "FetchResponse", "pinecone.models.vectors.responses"),
+    ("pinecone.data", "ImportErrorMode", "pinecone.models.imports.error_mode"),
+    ("pinecone.data", "Index", "pinecone.index"),
+    ("pinecone.data", "QueryResponse", "pinecone.models.vectors.responses"),
+    ("pinecone.data", "SearchQuery", "pinecone.models.vectors.search"),
+    ("pinecone.data", "SearchRerank", "pinecone.models.vectors.search"),
+    ("pinecone.data", "SparseValues", "pinecone.models.vectors.sparse"),
+    ("pinecone.data", "UpsertResponse", "pinecone.models.vectors.responses"),
+    ("pinecone.data", "Vector", "pinecone.models.vectors.vector"),
+]
+
+
+@pytest.mark.parametrize("legacy_path,symbol_name,canonical_path", _DATA_SHIM_TRIPLES)
+def test_data_shim_reexports_canonical(
+    legacy_path: str, symbol_name: str, canonical_path: str
+) -> None:
+    legacy_module = importlib.import_module(legacy_path)
+    canonical_module = importlib.import_module(canonical_path)
+    assert getattr(legacy_module, symbol_name) is getattr(canonical_module, symbol_name)
+
+
+@pytest.mark.parametrize("legacy_path,symbol_name,canonical_path", _DATA_SHIM_TRIPLES)
+def test_data_shim_module_has_all_matching_reexport(
+    legacy_path: str, symbol_name: str, canonical_path: str
+) -> None:
+    legacy_module = importlib.import_module(legacy_path)
+    assert symbol_name in legacy_module.__all__
+    assert all(hasattr(legacy_module, name) for name in legacy_module.__all__)
+
+
+def test_data_shim_index_asyncio_alias() -> None:
+    import pinecone.async_client.async_index as canonical
+    import pinecone.data as data_shim
+
+    assert data_shim.IndexAsyncio is canonical.AsyncIndex
+    assert "IndexAsyncio" in data_shim.__all__
+
+
+def test_data_shim_all_matches_module_attrs() -> None:
+    import pinecone.data
+
+    expected = {
+        "DescribeIndexStatsResponse",
+        "FetchResponse",
+        "ImportErrorMode",
+        "Index",
+        "IndexAsyncio",
+        "QueryResponse",
+        "SearchQuery",
+        "SearchRerank",
+        "SparseValues",
+        "UpsertResponse",
+        "Vector",
+    }
+    assert set(pinecone.data.__all__) == expected
+    for name in expected:
+        assert hasattr(pinecone.data, name), f"pinecone.data missing attribute {name!r}"
+
+
+def test_data_shim_omits_removed_vector_errors() -> None:
+    import pinecone.data as data_shim
+
+    removed = [
+        "VectorDictionaryMissingKeysError",
+        "VectorDictionaryExcessKeysError",
+        "VectorTupleLengthError",
+        "SparseValuesTypeError",
+        "SparseValuesMissingKeysError",
+        "SparseValuesDictionaryExpectedError",
+        "MetadataDictionaryExpectedError",
+    ]
+    for name in removed:
+        assert not hasattr(data_shim, name), (
+            f"`from pinecone.data import {name}` should raise ImportError"
+        )
