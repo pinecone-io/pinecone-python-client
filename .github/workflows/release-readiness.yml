@@ -131,6 +131,9 @@ jobs:
       - name: Show installed version
         run: pip show pinecone | grep -E '^(Name|Version|Location):'
 
+      - name: Verify dependency compatibility (pip check)
+        run: pip check
+
       # The repo's `pinecone/` source dir would shadow the installed wheel
       # because Python prepends CWD to sys.path. The source tree has no
       # compiled `_grpc.abi3.so`, so any test that touches the gRPC path
@@ -200,6 +203,8 @@ jobs:
           set -euo pipefail
           INDEX_URL="https://${GCP_REGION}-python.pkg.dev/${GCP_PROJECT_ID}/${GCP_REPO_NAME}/simple/"
           pip install --pre --extra-index-url "${INDEX_URL}" pinecone
+      - name: Verify dependency compatibility (pip check)
+        run: pip check
       - name: Show installed version + Python
         run: |
           python -V
@@ -351,6 +356,7 @@ jobs:
           echo "Installing ${wheel} on $(uname -sm) with Python $(python -V)"
           python -m pip install --upgrade pip
           python -m pip install "${wheel}"
+          python -m pip check
           python .ci/verify_install.py
 
       - name: Install wheel + run verification (musl, alpine container)
@@ -371,6 +377,7 @@ jobs:
               set -e
               ls /dist/*.whl
               pip install --quiet /dist/*.whl
+              pip check
               python /verify_install.py
             '
 
