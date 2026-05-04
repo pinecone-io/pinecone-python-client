@@ -150,7 +150,7 @@ over batched upsert — it avoids per-batch HTTP overhead entirely.
 
 Pick the async client (`AsyncPinecone` / `AsyncIndex`) when your code is already
 inside an `async def` — most often because you're conforming to the interface of
-an async web framework like **FastAPI**, **Starlette**, or **aiohttp**, where
+an async web framework like **FastAPI**, **Starlette**, or **Litestar**, where
 request handlers are coroutines. In that setting, calling a blocking sync method
 either stalls the event loop (degrading throughput for every concurrent request)
 or forces you to offload to a thread; the async client lets you `await` Pinecone
