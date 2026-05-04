@@ -182,6 +182,54 @@ constructor or set `PINECONE_HOST`. The data-plane host is
 discovered automatically from the `host` field of the
 `describe_assistant` response.
 
+### 9. Partial-success contract for batched upsert
+
+`index.upsert(...)` gains `batch_size`, `max_concurrency`, and
+`show_progress` kwargs that match v8's signature on the
+surface — but the failure behaviour changed.
+
+**v8 behaviour.** `idx.upsert(vectors=[...], batch_size=N)`
+raised on the first batch failure. Successful batches were
+lost; subsequent batches were not attempted.
+
+**v9 behaviour.** Batches are submitted concurrently
+(`max_concurrency=4` default; range 1–64). Per-batch HTTP
+retries happen automatically via
+{class}`~pinecone.RetryConfig`. Failures that exceed the
+retry budget are captured on the returned
+{class}`~pinecone.models.UpsertResponse` rather than raised.
+The response now carries `total_item_count`,
+`failed_item_count`, `total_batch_count`,
+`successful_batch_count`, `failed_batch_count`,
+`errors: list[BatchError]`, plus convenience properties
+`has_errors`, `error_count`, `success_count`, and
+`failed_items`.
+
+Code that wraps a batched upsert in `try/except` will silently
+undercount in v9 unless updated:
+
+```python
+# v8 — relied on exception to roll back
+try:
+    idx.upsert(vectors=batch, batch_size=100)
+except Exception:
+    rollback()
+
+# v9 — inspect response.has_errors instead
+response = idx.upsert(vectors=batch, batch_size=100)
+if response.has_errors:
+    # Optionally retry only the failures:
+    idx.upsert(vectors=response.failed_items, batch_size=100)
+    # …or roll back if any failure is unacceptable
+```
+
+Single-request upsert (`batch_size=None`, the default) keeps
+its v8 raise-on-failure semantics. The contract change applies
+only when `batch_size` is set.
+
+The same partial-success contract applies to
+`AsyncIndex.upsert(...)` and `GrpcIndex.upsert(...)`.
+
 ---
 
 ## v8 → v9 migration table
@@ -199,7 +247,7 @@ discovered automatically from the `host` field of the
 | Create collection | `pc.create_collection(name=..., source=...)` | `pc.collections.create(name=..., source=...)` |
 | List collections | `pc.list_collections()` | `pc.collections.list()` |
 | Delete collection | `pc.delete_collection("name")` | `pc.collections.delete("name")` |
-| Upsert vectors | `index.upsert(vectors=[...])` | `index.upsert(vectors=[...])` *(unchanged)* |
+| Upsert vectors | `index.upsert(vectors=[...])` | `index.upsert(vectors=[...])` *(unchanged for single-request; batched form gains `max_concurrency` + partial-success contract — see §9)* |
 | Query vectors | `index.query(vector=[...], top_k=10)` | `index.query(vector=[...], top_k=10)` *(unchanged)* |
 | Fetch vectors | `index.fetch(ids=[...])` | `index.fetch(ids=[...])` *(unchanged)* |
 | Delete vectors | `index.delete(ids=[...])` | `index.delete(ids=[...])` *(unchanged)* |

@@ -46,7 +46,10 @@ response = index.upsert(
 print(response.upserted_count)  # 2
 ```
 
-`upsert` returns a {class}`~pinecone.models.UpsertResponse` with `upserted_count`.
+`upsert` returns an {class}`~pinecone.models.UpsertResponse`. For a
+single-request upsert, only `upserted_count` is meaningful; for a
+batched upsert (see "Large datasets" below), the response also
+carries per-batch counters and a `failed_items` list for retry.
 
 ### Upsert into a namespace
 
@@ -63,10 +66,65 @@ The default namespace is `""`.
 
 ### Large datasets
 
-`upsert` sends all vectors in a single request. For large datasets, batch your calls
-(100–500 vectors per batch) or use {meth}`~pinecone.Index.upsert_from_dataframe` for
-DataFrame input with automatic batching. For millions of vectors, consider
+For datasets larger than a single payload, pass `batch_size` to
+split the upload into chunks. Batches are sent **in parallel**
+via a `ThreadPoolExecutor` (sync) or `asyncio.Semaphore`
+(async) of `max_concurrency` workers. HTTP-level retries
+happen automatically per batch via the configured
+{class}`~pinecone.RetryConfig`.
+
+```python
+response = index.upsert(
+    vectors=large_list,
+    batch_size=200,        # vectors per request
+    max_concurrency=8,     # parallel in-flight requests (1–64)
+    show_progress=True,    # tqdm progress bar (auto-skipped if tqdm not installed)
+)
+print(response.upserted_count)         # successful items
+print(response.total_item_count)       # total submitted
+print(response.successful_batch_count) # batches that succeeded
+```
+
+Defaults: `batch_size=None` keeps the single-request behaviour
+(no batching). When `batch_size` is set, `max_concurrency`
+defaults to `4` and `show_progress` defaults to `True`.
+
+For DataFrame input, {meth}`~pinecone.Index.upsert_from_dataframe`
+provides the same parallel batching with column extraction.
+For millions of vectors, consider
 {meth}`~pinecone.Index.start_import` to load from cloud storage.
+
+### Handling partial failures
+
+Unlike a single-request upsert (which raises on failure), a
+batched upsert never raises for per-batch errors. Instead, the
+returned {class}`~pinecone.models.UpsertResponse` carries each
+failed batch's exception and items, so you can retry only the
+failures.
+
+```python
+response = index.upsert(vectors=huge_list, batch_size=200)
+
+if response.has_errors:
+    print(f"{response.failed_item_count} of {response.total_item_count} items failed")
+    for err in response.errors:
+        print(f"  batch {err.batch_index}: {err.error_message}")
+
+    # Retry only the failures:
+    retry = index.upsert(
+        vectors=response.failed_items,
+        batch_size=200,
+    )
+```
+
+`response.failed_items` is a flat `list[dict]` of every item
+from every failed batch, in original order. Pass it directly
+back to `upsert(...)` for retry.
+
+Network-level errors and 5xx responses are retried
+automatically by the HTTP client per batch (see
+{class}`~pinecone.RetryConfig`); only failures that exceed
+the retry budget surface in `response.errors`.
 
 
 ## Query for nearest neighbors
