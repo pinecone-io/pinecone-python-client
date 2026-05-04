@@ -52,8 +52,8 @@ async with AsyncPinecone(api_key="...") as pc:
 
 ### 3. Response models
 
-v8 returned a mix of plain dicts and Pydantic models. v9 returns `msgspec.Struct` instances.
-Field access is identical—`idx.name`, `idx.dimension`—but the objects are immutable.
+v8 returned a mix of plain dicts, dataclass models, and bespoke objects. v9 returns `msgspec.Struct` instances.
+Field access is straightforward—`idx.name`, `idx.dimension`—but the objects are immutable.
 `dict()` no longer works; use `msgspec.structs.asdict(idx)` if you need a dict.
 
 ```python
@@ -66,7 +66,7 @@ print(dict(idx))       # TypeError — structs are not dict-convertible
 
 ### 4. HTTP transport: httpx replaces urllib3
 
-The SDK uses `httpx` with HTTP/2 instead of `urllib3`. Retry behavior is now configured
+The SDK uses `httpx` instead of `urllib3`. Retry behavior is now configured
 with `RetryConfig` passed at client construction:
 
 ```python
