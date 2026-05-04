@@ -326,6 +326,36 @@ class TestPineconeModuleShim:
         assert shim.__all__ == ["Pinecone"]
 
 
+class TestPineconeAsyncioModuleShim:
+    def test_import_works(self) -> None:
+        from pinecone.pinecone_asyncio import AsyncPinecone, PineconeAsyncio
+
+        assert PineconeAsyncio.__name__ == "AsyncPinecone"
+        assert AsyncPinecone.__name__ == "AsyncPinecone"
+
+    def test_alias_identity(self) -> None:
+        import pinecone.pinecone_asyncio as shim
+
+        assert shim.PineconeAsyncio is shim.AsyncPinecone
+
+    def test_canonical_identity(self) -> None:
+        import pinecone.async_client.pinecone as canonical
+        import pinecone.pinecone_asyncio as shim
+
+        assert shim.AsyncPinecone is canonical.AsyncPinecone
+
+    def test_top_level_identity(self) -> None:
+        import pinecone
+        import pinecone.pinecone_asyncio as shim
+
+        assert shim.AsyncPinecone is pinecone.AsyncPinecone
+
+    def test_all_matches(self) -> None:
+        import pinecone.pinecone_asyncio as shim
+
+        assert set(shim.__all__) == {"AsyncPinecone", "PineconeAsyncio"}
+
+
 def test_data_shim_omits_removed_vector_errors() -> None:
     import pinecone.data as data_shim
 
