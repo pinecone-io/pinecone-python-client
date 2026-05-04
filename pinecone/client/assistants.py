@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import builtins
 import logging
 import os
 import time
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping, Sequence
 from typing import IO, TYPE_CHECKING, Any
 
 import msgspec
@@ -986,7 +985,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         *,
         assistant_name: str,
         query: str | None = None,
-        messages: builtins.list[Message | dict[str, str]] | None = None,
+        messages: Sequence[Message | Mapping[str, str]] | None = None,
         filter: dict[str, Any] | None = None,
         top_k: int | None = None,
         snippet_size: int | None = None,
@@ -1075,7 +1074,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         self,
         *,
         assistant_name: str,
-        messages: builtins.list[Message | dict[str, str]],
+        messages: Sequence[Message | Mapping[str, str]],
         model: str = "gpt-4o",
         stream: bool = False,
         temperature: float | None = None,
@@ -1178,7 +1177,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         self,
         *,
         assistant_name: str,
-        messages: builtins.list[Message | dict[str, str]],
+        messages: Sequence[Message | Mapping[str, str]],
         model: str = "gpt-4o",
         stream: bool = False,
         temperature: float | None = None,

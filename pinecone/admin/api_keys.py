@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import builtins
 import logging
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.admin_adapter import AdminAdapter
@@ -19,9 +19,9 @@ logger = logging.getLogger(__name__)
 _VALID_ROLES = {r.value for r in APIKeyRole}
 
 
-def _validate_roles(roles: builtins.list[APIKeyRole | str]) -> builtins.list[APIKeyRole]:
+def _validate_roles(roles: Sequence[APIKeyRole | str]) -> list[APIKeyRole]:
     """Validate each role and return typed enum values."""
-    result: builtins.list[APIKeyRole] = []
+    result: list[APIKeyRole] = []
     for role in roles:
         role_str = role.value if isinstance(role, APIKeyRole) else role
         if role_str not in _VALID_ROLES:
@@ -87,7 +87,7 @@ class ApiKeys:
         project_id: str,
         name: str,
         description: str | None = None,
-        roles: builtins.list[APIKeyRole | str] | None = None,
+        roles: Sequence[APIKeyRole | str] | None = None,
     ) -> APIKeyWithSecret:
         """Create a new API key for a project.
 
@@ -171,7 +171,7 @@ class ApiKeys:
         *,
         api_key_id: str,
         name: str | None = None,
-        roles: builtins.list[APIKeyRole | str] | None = None,
+        roles: Sequence[APIKeyRole | str] | None = None,
     ) -> APIKeyModel:
         """Update an API key's settings.
 

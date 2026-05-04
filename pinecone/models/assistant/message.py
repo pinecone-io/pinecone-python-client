@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from msgspec import Struct
@@ -41,7 +42,7 @@ class Message(StructDictMixin, Struct, kw_only=True):
         )
 
     @classmethod
-    def from_dict(cls, d: dict[str, Any]) -> Message:
+    def from_dict(cls, d: Mapping[str, Any]) -> Message:
         """Create a ``Message`` from a dictionary.
 
         Extracts ``"content"`` and ``"role"`` keys, defaulting role to

@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-import builtins
 import io
 import logging
 import os
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping, Sequence
 from typing import IO, TYPE_CHECKING, Any
 
 import anyio
@@ -1042,7 +1041,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         *,
         assistant_name: str,
         query: str | None = None,
-        messages: builtins.list[Message | dict[str, str]] | None = None,
+        messages: Sequence[Message | Mapping[str, str]] | None = None,
         filter: dict[str, Any] | None = None,
         top_k: int | None = None,
         snippet_size: int | None = None,
@@ -1133,7 +1132,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         self,
         *,
         assistant_name: str,
-        messages: builtins.list[Message | dict[str, str]],
+        messages: Sequence[Message | Mapping[str, str]],
         model: str = "gpt-4o",
         stream: bool = False,
         temperature: float | None = None,
@@ -1293,7 +1292,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         self,
         *,
         assistant_name: str,
-        messages: builtins.list[Message | dict[str, str]],
+        messages: Sequence[Message | Mapping[str, str]],
         model: str = "gpt-4o",
         stream: bool = False,
         temperature: float | None = None,
