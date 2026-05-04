@@ -1271,6 +1271,9 @@ class GrpcIndex:
         self.close()
 
 
+# Legacy capitalisation alias (BCG-141).
+GRPCIndex = GrpcIndex
+
 from pinecone.grpc.pinecone_grpc import PineconeGRPC  # noqa: E402
 
-__all__ = ["GrpcIndex", "PineconeGRPC"]
+__all__ = ["GRPCIndex", "GrpcIndex", "PineconeGRPC"]
