@@ -399,6 +399,19 @@ jobs:
             exit 1
           fi
 
+      # abi3audit parses the compiled extension inside the wheel and flags any CPython
+      # symbols that aren't part of the stable ABI (PEP 384). A cp310-abi3-tagged wheel
+      # that pulls in a non-stable-ABI symbol imports fine on the build Python but breaks
+      # at runtime on other 3.x versions. This is the static complement to multi-python
+      # smoke tests: the smoke tests exercise the wheel; abi3audit proves it is valid by
+      # inspection. Runs on every OS and reads any wheel format (ELF/Mach-O/PE).
+      - name: abi3audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet abi3audit
+          python -m abi3audit --strict --report dist/*.whl
+
       # auditwheel show inspects ELF binaries inside each manylinux wheel and reports
       # the actual minimum glibc version. A wheel tagged manylinux_2_17 but linking
       # newer symbols would silently break users on older systems; this catches that
