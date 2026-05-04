@@ -13,15 +13,18 @@ if TYPE_CHECKING:
 
 from pinecone._internal.adapters.imports_adapter import ImportsAdapter
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter, extract_response_info
-from pinecone._internal.batching import chunked, validate_batch_size, with_progress
+from pinecone._internal.batch import async_batch_execute
+from pinecone._internal.batching import validate_batch_size
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host, _vector_to_dict
+from pinecone._internal.validation import require_in_range
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import PineconeValueError, ValidationError
 from pinecone.models.imports.list import ImportList
 from pinecone.models.imports.model import ImportModel, StartImportResponse
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
+from pinecone.models.response_info import ResponseInfo
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults, QueryResultsAggregator
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
@@ -224,6 +227,7 @@ class AsyncIndex:
         namespace: str = "",
         batch_size: int | None = None,
         show_progress: bool = True,
+        max_concurrency: int = 4,
         timeout: float | None = None,
     ) -> UpsertResponse:
         """Upsert a batch of vectors into a namespace.
@@ -246,19 +250,23 @@ class AsyncIndex:
                 display a progress bar across batches. Has no effect when
                 ``batch_size`` is ``None`` or ``tqdm`` is not installed.
                 Defaults to ``True``.
+            max_concurrency (int): Asyncio concurrency limit for concurrent batch
+                requests (range 1–64, default 4). Only used when ``batch_size``
+                is set.
             timeout (float | None): Per-request timeout in seconds. Overrides
                 the client-level default for this call only.
 
         Returns:
             :class:`UpsertResponse` with the count of vectors upserted.
             When ``batch_size`` triggers multiple requests, ``response_info``
-            on the aggregated response is ``None`` — there is no single
-            response to attribute it to.
+            carries the aggregate LSN from all successful batches (or ``None``
+            if no LSN headers were returned).
 
         Raises:
             :exc:`PineconeTypeError`: If a vector element is not a recognized format.
             :exc:`PineconeValueError`: If a vector element is malformed.
             :exc:`PineconeValueError`: If *batch_size* is not a positive integer.
+            :exc:`PineconeValueError`: If *max_concurrency* is outside [1, 64].
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -292,11 +300,14 @@ class AsyncIndex:
                 print(response.upserted_count)
 
         .. note::
-           Batches are sent **sequentially** (one ``await`` at a time). For
-           parallel emission, fan out at the call site with
-           ``asyncio.gather(*[idx.upsert(vectors=b) for b in batches])``.
-           For very large datasets (millions of vectors), consider
-           :meth:`start_import` for bulk import from cloud storage.
+           When ``batch_size`` is set, batches are submitted **concurrently** via an
+           ``asyncio.Semaphore`` of ``max_concurrency`` slots (default 4, range 1–64).
+           Per-batch HTTP retries are handled by the client's configured
+           ``RetryConfig``. **Partial failures do not raise** — per-batch errors are
+           captured on the returned :class:`UpsertResponse` (see
+           ``response.has_errors``, ``response.errors``, ``response.failed_items``).
+           To retry only the failures, pass ``response.failed_items`` back to
+           ``upsert(...)``.
 
         .. seealso::
            - :meth:`upsert_records` — for indexes with integrated inference
@@ -308,16 +319,46 @@ class AsyncIndex:
             return await self._upsert_one_batch(
                 vectors=vectors, namespace=namespace, timeout=timeout
             )
+
         validate_batch_size(batch_size)
-        built = list(vectors)
-        batches = chunked(built, batch_size)
-        total_count = 0
-        for batch in with_progress(batches, show_progress=show_progress):
-            result = await self._upsert_one_batch(
-                vectors=batch, namespace=namespace, timeout=timeout
-            )
-            total_count += result.upserted_count
-        return UpsertResponse(upserted_count=total_count)
+        require_in_range("max_concurrency", max_concurrency, 1, 64)
+
+        built = [VectorFactory.build(v) for v in vectors]
+        items: list[dict[str, Any]] = [_vector_to_dict(v) for v in built]
+
+        async def _operation(chunk: list[dict[str, Any]]) -> UpsertResponse:
+            return await self._upsert_dict_batch(items=chunk, namespace=namespace, timeout=timeout)
+
+        batch_result = await async_batch_execute(
+            items=items,
+            operation=_operation,
+            batch_size=batch_size,
+            max_concurrency=max_concurrency,
+            show_progress=show_progress,
+            desc="Upserting",
+        )
+
+        synth_headers: dict[str, str] = {}
+        if batch_result.response_info is not None:
+            if batch_result.response_info.lsn_reconciled is not None:
+                synth_headers["x-pinecone-lsn-reconciled"] = str(
+                    batch_result.response_info.lsn_reconciled
+                )
+            if batch_result.response_info.lsn_committed is not None:
+                synth_headers["x-pinecone-lsn-committed"] = str(
+                    batch_result.response_info.lsn_committed
+                )
+        synth_response_info = ResponseInfo(raw_headers=synth_headers) if synth_headers else None
+        return UpsertResponse(
+            upserted_count=batch_result.successful_item_count,
+            response_info=synth_response_info,
+            total_item_count=batch_result.total_item_count,
+            failed_item_count=batch_result.failed_item_count,
+            total_batch_count=batch_result.total_batch_count,
+            successful_batch_count=batch_result.successful_batch_count,
+            failed_batch_count=batch_result.failed_batch_count,
+            errors=batch_result.errors,
+        )
 
     async def _upsert_one_batch(
         self,
@@ -343,6 +384,21 @@ class AsyncIndex:
         result = self._adapter.to_upsert_response(response.content)
         result.response_info = extract_response_info(response)
         logger.debug("Upserted %d vectors", result.upserted_count)
+        return result
+
+    async def _upsert_dict_batch(
+        self,
+        *,
+        items: list[dict[str, Any]],
+        namespace: str,
+        timeout: float | None,
+    ) -> UpsertResponse:
+        body: dict[str, Any] = {"vectors": items}
+        if namespace:
+            body["namespace"] = namespace
+        response = await self._http.post("/vectors/upsert", timeout=timeout, json=body)
+        result = self._adapter.to_upsert_response(response.content)
+        result.response_info = extract_response_info(response)
         return result
 
     async def upsert_from_dataframe(
