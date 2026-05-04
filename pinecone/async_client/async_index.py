@@ -1125,7 +1125,8 @@ class AsyncIndex:
     async def describe_namespace(
         self,
         *,
-        name: str,
+        name: str | None = None,
+        **kwargs: str,
     ) -> NamespaceDescription:
         """Describe a namespace by name.
 
@@ -1150,13 +1151,21 @@ class AsyncIndex:
                 ns = await idx.describe_namespace(name="my-ns")
                 print(ns.name, ns.record_count)
         """
-        if not isinstance(name, str):
+        legacy_namespace: str | None = kwargs.pop("namespace", None)
+        if kwargs:
+            raise TypeError(
+                f"describe_namespace() got unexpected keyword arguments: {sorted(kwargs)!r}"
+            )
+        if name is not None and legacy_namespace is not None:
+            raise ValidationError("Provide either name= or namespace=, not both")
+        effective: str = name if name is not None else (legacy_namespace or "")
+        if not isinstance(effective, str):
             raise ValidationError("namespace name must be a string")
-        if not name or not name.strip():
+        if not effective or not effective.strip():
             raise ValidationError("namespace name must be a non-empty string")
 
-        logger.info("Describing namespace %r", name)
-        response = await self._http.get(f"/namespaces/{name}")
+        logger.info("Describing namespace %r", effective)
+        response = await self._http.get(f"/namespaces/{effective}")
         return self._adapter.to_namespace_description(response.content)
 
     async def delete_namespace(
