@@ -11,8 +11,8 @@ name: 'Release: Final (PyPI prod)'
 #   - the release commit is built once in `prepare-tree` and shared via
 #     artifact, so the tag's tree is byte-identical to the published wheels
 #   - publish emits SLSA build provenance attestations
-#   - a GitHub Release is created from the tag with auto-generated notes
-#     and the wheels + sdist attached
+#   - a draft GitHub Release is created from the tag with auto-generated
+#     notes and the wheels + sdist attached (operator publishes manually)
 #
 # Pipeline
 # --------
@@ -714,7 +714,8 @@ jobs:
   # Create the GitHub Release from the tag, with auto-generated notes
   # (PRs/commits since the previous release tag) and the wheels + sdist
   # attached. Independent from PyPI — gives users a release page that
-  # doesn't depend on PyPI uptime.
+  # doesn't depend on PyPI uptime. Created as a draft so the operator can
+  # review the auto-generated notes and publish manually.
   # ---------------------------------------------------------------------------
   github-release:
     name: Create GitHub Release
@@ -743,6 +744,7 @@ jobs:
             --title "${VERSION}" \
             --generate-notes \
             --verify-tag \
+            --draft \
             dist/*
 
       - name: Render release summary
@@ -751,9 +753,9 @@ jobs:
           TAG: ${{ needs.preflight.outputs.tag_name }}
         run: |
           {
-            echo "## GitHub Release created"
+            echo "## GitHub Release created (draft)"
             echo ""
-            echo "- [${TAG}](${{ github.server_url }}/${REPO}/releases/tag/${TAG})"
+            echo "- [${TAG}](${{ github.server_url }}/${REPO}/releases/tag/${TAG}) — review notes and publish manually"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # ---------------------------------------------------------------------------
