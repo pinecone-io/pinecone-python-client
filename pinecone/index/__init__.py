@@ -81,7 +81,18 @@ class Index:
         ssl_verify: bool = True,
         source_tag: str | None = None,
         connection_pool_maxsize: int = 0,
+        **kwargs: Any,
     ) -> None:
+        legacy_pool_threads = kwargs.pop("pool_threads", None)
+        if kwargs:
+            raise TypeError(f"Index() got unexpected keyword arguments: {sorted(kwargs)!r}")
+        if legacy_pool_threads is not None:
+            logger.debug(
+                "Index(pool_threads=%r) is accepted for backcompat but no "
+                "longer used; the new client uses httpx connection pooling. "
+                "Tune connection_pool_maxsize= instead.",
+                legacy_pool_threads,
+            )
         # Resolve API key: explicit arg > env var (check BEFORE host per unified-ord-0001)
         resolved_key = api_key or os.environ.get("PINECONE_API_KEY", "")
         if not resolved_key:

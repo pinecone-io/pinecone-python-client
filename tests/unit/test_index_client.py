@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import logging
+import warnings
+
 import httpx
 import pytest
 import respx
@@ -205,3 +208,32 @@ class TestFactoryValidation:
         pc = Pinecone(api_key="test-key")
         with pytest.raises(ValidationError, match="Either name or host must be provided"):
             pc.index(name="", host="")
+
+
+# ---------------------------------------------------------------------------
+# pool_threads= backcompat shim (BCG-072)
+# ---------------------------------------------------------------------------
+
+
+class TestPoolThreadsBackcompat:
+    def test_pool_threads_kwarg_accepted_silently(self) -> None:
+        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
+        assert idx is not None
+
+    def test_pool_threads_kwarg_emits_debug_log(self, caplog: pytest.LogCaptureFixture) -> None:
+        with caplog.at_level(logging.DEBUG, logger="pinecone.index"):
+            Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
+        assert any(
+            "pool_threads" in r.message and "connection_pool_maxsize" in r.message
+            for r in caplog.records
+        )
+
+    def test_pool_threads_kwarg_does_not_warn(self) -> None:
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter("always")
+            Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
+        assert len(record) == 0
+
+    def test_unknown_kwarg_still_rejected(self) -> None:
+        with pytest.raises(TypeError, match="unexpected keyword arguments"):
+            Index(host=INDEX_HOST, api_key="test-key", bogus=True)  # type: ignore[call-arg]
