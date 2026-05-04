@@ -96,8 +96,10 @@ print(response.upserted_count)         # successful items
 print(response.failed_item_count)      # 0 if everything succeeded
 ```
 
-The same kwargs are accepted on `AsyncIndex.upsert()`, `Index.upsert_from_dataframe()`,
-and `Index.upsert_records()`.
+The same kwargs are accepted on `AsyncIndex.upsert()` and `Index.upsert_from_dataframe()`.
+`Index.upsert_records()` does **not** accept `batch_size` or `max_concurrency` — it
+sends a single NDJSON request per call, so chunk the record list yourself and call
+`upsert_records()` once per chunk.
 
 When `batch_size` is set, `upsert()` returns an `UpsertResponse` with partial-failure
 information instead of raising on the first failed batch — see
