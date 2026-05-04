@@ -67,7 +67,7 @@ from pinecone import AsyncPinecone
 async def main():
     async with AsyncPinecone(api_key="your-api-key") as pc:
         desc = await pc.indexes.describe("movie-recommendations")
-        index = pc.index(host=desc.host)
+        index = await pc.index(host=desc.host)
         async with index:
             results = await index.query(
                 vector=[0.012, -0.087, 0.153],  # 1536-dim vector

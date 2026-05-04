@@ -53,7 +53,7 @@ from pinecone import AsyncPinecone
 async def main() -> None:
     async with AsyncPinecone() as pc:
         desc = await pc.indexes.describe("product-search")
-        index = pc.index(host=desc.host)
+        index = await pc.index(host=desc.host)
 
         await index.upsert(vectors=[("product-42", [0.1, 0.2, ...])])
         results = await index.query(vector=[0.1, 0.2, ...], top_k=5)
@@ -61,14 +61,15 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-`pc.index()` is a synchronous factory method — it does not need to be awaited. It
-returns an `AsyncIndex` that you use with `await`. The `AsyncIndex` itself manages its
-own HTTP session; close it with `async with index:` or `await index.close()`.
+`pc.index()` on `AsyncPinecone` is itself a coroutine — `await` it to get back an
+`AsyncIndex`. The returned `AsyncIndex` manages its own HTTP session; close it
+with `async with index:` or `await index.close()`.
 
 ```python
 async with AsyncPinecone() as pc:
     # Preferred: pass the host directly to skip a describe call
-    async with pc.index(host="product-search-abc123.svc.pinecone.io") as index:
+    index = await pc.index(host="product-search-abc123.svc.pinecone.io")
+    async with index:
         results = await index.query(vector=[0.1, 0.2, ...], top_k=5)
 ```
 
@@ -108,7 +109,8 @@ async def main() -> None:
     async with AsyncPinecone() as pc:
         # Resolve the host first, then create the index client
         desc = await pc.indexes.describe("movie-recommendations")
-        async with pc.index(host=desc.host) as index:
+        index = await pc.index(host=desc.host)
+        async with index:
             await index.upsert(vectors=[
                 ("movie-42", [0.012, -0.087, 0.153, ...]),
                 ("movie-99", [0.045,  0.021, -0.064, ...]),
@@ -151,7 +153,8 @@ import asyncio
 from pinecone import AsyncPinecone
 
 async def upsert_batch(pc: AsyncPinecone, batch: list[tuple[str, list[float]]]) -> None:
-    async with pc.index(host="product-search-abc123.svc.pinecone.io") as index:
+    index = await pc.index(host="product-search-abc123.svc.pinecone.io")
+    async with index:
         await index.upsert(vectors=batch)
 
 async def main() -> None:
@@ -191,7 +194,8 @@ each `AsyncIndex` separately:
 
 ```python
 async with AsyncPinecone() as pc:
-    async with pc.index(host="...") as index:
+    index = await pc.index(host="...")
+    async with index:
         await index.query(...)
     # index is closed here; pc is closed at the outer block exit
 ```
