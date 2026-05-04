@@ -236,7 +236,7 @@ async def test_async_rerank_empty_query_raises(inference: AsyncInference) -> Non
 
 @pytest.mark.asyncio
 async def test_async_rerank_mixed_types_raises(inference: AsyncInference) -> None:
-    with pytest.raises(TypeError, match="string or dictionary"):
+    with pytest.raises(TypeError, match="string or mapping"):
         await inference.rerank(
             model="bge-reranker-v2-m3",
             query="test query",
@@ -246,7 +246,7 @@ async def test_async_rerank_mixed_types_raises(inference: AsyncInference) -> Non
 
 @pytest.mark.asyncio
 async def test_async_rerank_non_list_documents_raises(inference: AsyncInference) -> None:
-    with pytest.raises(TypeError, match="list of strings or list of dictionaries"):
+    with pytest.raises(TypeError, match="Sequence"):
         await inference.rerank(
             model="bge-reranker-v2-m3",
             query="test query",
@@ -254,14 +254,19 @@ async def test_async_rerank_non_list_documents_raises(inference: AsyncInference)
         )
 
 
+@respx.mock
 @pytest.mark.asyncio
-async def test_async_rerank_tuple_documents_raises(inference: AsyncInference) -> None:
-    with pytest.raises(TypeError, match="list of strings or list of dictionaries"):
-        await inference.rerank(
-            model="bge-reranker-v2-m3",
-            query="test query",
-            documents=("a", "b"),  # type: ignore[arg-type]
-        )
+async def test_async_rerank_tuple_documents_accepted(inference: AsyncInference) -> None:
+    respx.post(f"{BASE_URL}/rerank").mock(
+        return_value=httpx.Response(200, json=make_rerank_response()),
+    )
+
+    result = await inference.rerank(
+        model="bge-reranker-v2-m3",
+        query="test query",
+        documents=("a", "b"),  # type: ignore[arg-type]
+    )
+    assert isinstance(result, RerankResult)
 
 
 @respx.mock

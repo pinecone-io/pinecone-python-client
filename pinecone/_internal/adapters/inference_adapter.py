@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from msgspec import Struct
@@ -83,68 +84,75 @@ class InferenceAdapter:
 
 
 def normalize_embed_inputs(
-    inputs: str | list[str] | list[dict[str, Any]],
+    inputs: str | Sequence[str] | Sequence[Mapping[str, Any]],
 ) -> list[dict[str, Any]]:
     """Normalize embed inputs into the API's expected format.
 
+    Accepts a single string, any Sequence of strings, or any Sequence of
+    Mappings. Tuples and other Sequence-conforming types all work.
+
     Args:
-        inputs: A single string, list of strings, or list of dicts.
+        inputs: A single string, Sequence of strings, or Sequence of Mappings.
 
     Returns:
         A list of dicts with ``"text"`` keys.
 
     Raises:
-        ValidationError: If inputs is an empty list.
+        ValidationError: If inputs is an empty Sequence.
         PineconeTypeError: If inputs is not a recognized type or contains mixed types.
     """
     if isinstance(inputs, str):
         return [{"text": inputs}]
-    if isinstance(inputs, list):
-        if len(inputs) == 0:
-            raise ValidationError("inputs must not be empty")
-        if not all(isinstance(item, (str, dict)) for item in inputs):
-            raise PineconeTypeError("each input must be a string or dictionary")
-        first = inputs[0]
-        if isinstance(first, str):
-            if not all(isinstance(item, str) for item in inputs):
-                raise PineconeTypeError("each input must be a string or dictionary")
-            str_inputs: list[str] = inputs  # type: ignore[assignment]
-            return [{"text": s} for s in str_inputs]
-        if isinstance(first, dict):
-            if not all(isinstance(item, dict) for item in inputs):
-                raise PineconeTypeError("each input must be a string or dictionary")
-            return inputs  # type: ignore[return-value]
+    if not isinstance(inputs, Sequence):
         raise PineconeTypeError(
-            f"Expected list of str or list of dict, got list of {type(first).__name__}"
+            f"Expected str, Sequence[str], or Sequence[Mapping[str, Any]], "
+            f"got {type(inputs).__name__}"
         )
-    raise PineconeTypeError(f"Expected str, list[str], or list[dict], got {type(inputs).__name__}")
+    items = list(inputs)
+    if len(items) == 0:
+        raise ValidationError("inputs must not be empty")
+    if not all(isinstance(item, (str, Mapping)) for item in items):
+        raise PineconeTypeError("each input must be a string or mapping")
+    first = items[0]
+    if isinstance(first, str):
+        if not all(isinstance(item, str) for item in items):
+            raise PineconeTypeError("each input must be a string or mapping")
+        return [{"text": s} for s in items]
+    if not all(isinstance(item, Mapping) for item in items):
+        raise PineconeTypeError("each input must be a string or mapping")
+    return [dict(item) for item in items]  # type: ignore[arg-type]
 
 
 def normalize_rerank_documents(
-    documents: list[str] | list[dict[str, Any]],
+    documents: Sequence[str] | Sequence[Mapping[str, Any]],
 ) -> list[dict[str, Any]]:
     """Normalize rerank documents into the API's expected format.
 
+    Accepts any Sequence of strings or Sequence of Mappings.
+
     Args:
-        documents: A list of strings or list of dicts.
+        documents: A Sequence of strings or Sequence of Mappings.
 
     Returns:
         A list of dicts with ``"text"`` keys.
 
     Raises:
-        PineconeTypeError: If documents is not a list or contains invalid element types.
+        PineconeTypeError: If documents is not a Sequence (or is a string)
+            or contains invalid element types.
         ValidationError: If documents is empty.
     """
-    if not isinstance(documents, list):
-        raise PineconeTypeError("documents must be a list of strings or list of dictionaries")
-    if len(documents) == 0:
+    if isinstance(documents, str) or not isinstance(documents, Sequence):
+        raise PineconeTypeError("documents must be a Sequence of strings or Sequence of mappings")
+    items = list(documents)
+    if len(items) == 0:
         raise ValidationError("documents must not be empty")
-    if not all(isinstance(d, (str, dict)) for d in documents):
-        raise PineconeTypeError("each document must be a string or dictionary")
-    if isinstance(documents[0], str):
-        if not all(isinstance(d, str) for d in documents):
-            raise PineconeTypeError("each document must be a string or dictionary")
-        return [{"text": s} for s in documents]
-    if isinstance(documents[0], dict) and not all(isinstance(d, dict) for d in documents):
-        raise PineconeTypeError("each document must be a string or dictionary")
-    return documents  # type: ignore[return-value]
+    if not all(isinstance(d, (str, Mapping)) for d in items):
+        raise PineconeTypeError("each document must be a string or mapping")
+    first = items[0]
+    if isinstance(first, str):
+        if not all(isinstance(d, str) for d in items):
+            raise PineconeTypeError("each document must be a string or mapping")
+        return [{"text": s} for s in items]
+    if not all(isinstance(d, Mapping) for d in items):
+        raise PineconeTypeError("each document must be a string or mapping")
+    return [dict(d) for d in items]  # type: ignore[arg-type]

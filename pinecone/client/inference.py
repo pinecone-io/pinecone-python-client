@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping, Sequence
 from functools import cached_property
 from typing import TYPE_CHECKING, Any
 
@@ -173,16 +174,17 @@ class Inference:
     def embed(
         self,
         model: _enums.EmbedModel | str,
-        inputs: str | list[str] | list[dict[str, Any]],
-        parameters: dict[str, Any] | None = None,
+        inputs: str | Sequence[str] | Sequence[Mapping[str, Any]],
+        parameters: Mapping[str, Any] | None = None,
     ) -> EmbeddingsList:
         """Generate embeddings for the provided inputs.
 
         Args:
             model (EmbedModel | str): Embedding model name.
-            inputs (str | list[str] | list[dict[str, Any]]): Text inputs.
-                A single string is automatically wrapped.
-            parameters (dict[str, Any] | None): Model-specific parameters
+            inputs (str | Sequence[str] | Sequence[Mapping[str, Any]]): Text inputs.
+                A single string is automatically wrapped. Any Sequence type
+                (list, tuple, etc.) of strings or Mappings is accepted.
+            parameters (Mapping[str, Any] | None): Model-specific parameters
                 (e.g., ``{"input_type": "passage", "truncate": "END"}``).
                 To discover valid parameters for a model, call
                 :meth:`get_model`::
@@ -243,26 +245,27 @@ class Inference:
         self,
         model: _enums.RerankModel | str,
         query: str,
-        documents: list[str] | list[dict[str, Any]],
-        rank_fields: list[str] = _DEFAULT_RANK_FIELDS,
+        documents: Sequence[str] | Sequence[Mapping[str, Any]],
+        rank_fields: Sequence[str] = _DEFAULT_RANK_FIELDS,
         return_documents: bool = True,
         top_n: int | None = None,
-        parameters: dict[str, Any] | None = None,
+        parameters: Mapping[str, Any] | None = None,
     ) -> RerankResult:
         """Rerank documents by relevance to a query.
 
         Args:
             model (RerankModel | str): Reranking model name.
             query (str): Query text to rank against.
-            documents (list[str] | list[dict[str, Any]]): Documents to rank.
-                Strings are auto-wrapped as ``{"text": ...}``.
-            rank_fields (list[str]): Document fields to rank on.
+            documents (Sequence[str] | Sequence[Mapping[str, Any]]): Documents to rank.
+                Strings are auto-wrapped as ``{"text": ...}``. Any Sequence
+                type (list, tuple, etc.) is accepted.
+            rank_fields (Sequence[str]): Document fields to rank on.
                 Defaults to ``["text"]``.
             return_documents (bool): Include document text in response.
                 Defaults to ``True``.
             top_n (int | None): Number of top documents to return.
                 ``None`` returns all.
-            parameters (dict[str, Any] | None): Model-specific parameters.
+            parameters (Mapping[str, Any] | None): Model-specific parameters.
                 To discover valid parameters for a model, call
                 :meth:`get_model`::
 

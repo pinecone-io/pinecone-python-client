@@ -185,23 +185,23 @@ class TestNormalizeEmbedInputs:
             normalize_embed_inputs([])
 
     def test_normalize_embed_inputs_invalid_type_raises(self) -> None:
-        with pytest.raises(PineconeTypeError, match="Expected str, list"):
+        with pytest.raises(PineconeTypeError, match="Expected str, Sequence"):
             normalize_embed_inputs(42)  # type: ignore[arg-type]
 
     def test_normalize_embed_inputs_list_of_invalid_type_raises(self) -> None:
-        with pytest.raises(PineconeTypeError, match="each input must be a string or dictionary"):
+        with pytest.raises(PineconeTypeError, match="each input must be a string or mapping"):
             normalize_embed_inputs([42, 43])  # type: ignore[list-item]
 
     def test_normalize_embed_inputs_mixed_str_int_raises(self) -> None:
-        with pytest.raises(PineconeTypeError, match="each input must be a string or dictionary"):
+        with pytest.raises(PineconeTypeError, match="each input must be a string or mapping"):
             normalize_embed_inputs(["hello", 42])  # type: ignore[list-item]
 
     def test_normalize_embed_inputs_mixed_str_none_raises(self) -> None:
-        with pytest.raises(PineconeTypeError, match="each input must be a string or dictionary"):
+        with pytest.raises(PineconeTypeError, match="each input must be a string or mapping"):
             normalize_embed_inputs(["hello", None])  # type: ignore[list-item]
 
     def test_normalize_embed_inputs_mixed_dict_str_raises(self) -> None:
-        with pytest.raises(PineconeTypeError, match="each input must be a string or dictionary"):
+        with pytest.raises(PineconeTypeError, match="each input must be a string or mapping"):
             normalize_embed_inputs([{"text": "a"}, "b"])  # type: ignore[list-item]
 
     def test_normalize_embed_inputs_empty_raises_is_also_valueerror(self) -> None:
@@ -211,7 +211,7 @@ class TestNormalizeEmbedInputs:
 
     def test_normalize_embed_inputs_invalid_type_is_also_typeerror(self) -> None:
         """PineconeTypeError inherits from TypeError for backwards compatibility."""
-        with pytest.raises(TypeError, match="Expected str, list"):
+        with pytest.raises(TypeError, match="Expected str, Sequence"):
             normalize_embed_inputs(42)  # type: ignore[arg-type]
 
 
@@ -230,15 +230,15 @@ class TestNormalizeRerankDocuments:
             normalize_rerank_documents([])
 
     def test_normalize_rerank_mixed_str_dict_raises(self) -> None:
-        with pytest.raises(PineconeTypeError, match="each document must be a string or dictionary"):
+        with pytest.raises(PineconeTypeError, match="each document must be a string or mapping"):
             normalize_rerank_documents(["hello", {"text": "world"}])  # type: ignore[list-item]
 
     def test_normalize_rerank_mixed_dict_str_raises(self) -> None:
-        with pytest.raises(PineconeTypeError, match="each document must be a string or dictionary"):
+        with pytest.raises(PineconeTypeError, match="each document must be a string or mapping"):
             normalize_rerank_documents([{"text": "a"}, "b"])  # type: ignore[list-item]
 
     def test_normalize_rerank_not_list_raises(self) -> None:
-        with pytest.raises(PineconeTypeError, match="documents must be a list"):
+        with pytest.raises(PineconeTypeError, match="documents must be a Sequence"):
             normalize_rerank_documents("not a list")  # type: ignore[arg-type]
 
     def test_normalize_rerank_documents_empty_raises_is_also_valueerror(self) -> None:
@@ -248,5 +248,54 @@ class TestNormalizeRerankDocuments:
 
     def test_normalize_rerank_not_list_is_also_typeerror(self) -> None:
         """PineconeTypeError inherits from TypeError for backwards compatibility."""
-        with pytest.raises(TypeError, match="documents must be a list"):
+        with pytest.raises(TypeError, match="documents must be a Sequence"):
             normalize_rerank_documents("not a list")  # type: ignore[arg-type]
+
+
+class TestNormalizeEmbedInputsAcceptsSequences:
+    """DX-0143: embed inputs accept any Sequence, not just list."""
+
+    def test_string_unchanged(self) -> None:
+        assert normalize_embed_inputs("hello") == [{"text": "hello"}]
+
+    def test_list_of_strings(self) -> None:
+        assert normalize_embed_inputs(["a", "b"]) == [{"text": "a"}, {"text": "b"}]
+
+    def test_tuple_of_strings(self) -> None:
+        assert normalize_embed_inputs(("a", "b")) == [{"text": "a"}, {"text": "b"}]
+
+    def test_tuple_of_dicts(self) -> None:
+        out = normalize_embed_inputs(({"text": "a"}, {"text": "b"}))
+        assert out == [{"text": "a"}, {"text": "b"}]
+
+    def test_mappingproxy_elements(self) -> None:
+        from types import MappingProxyType
+
+        d1 = MappingProxyType({"text": "a"})
+        d2 = MappingProxyType({"text": "b"})
+        out = normalize_embed_inputs([d1, d2])
+        assert out == [{"text": "a"}, {"text": "b"}]
+        assert isinstance(out[0], dict) and not isinstance(out[0], MappingProxyType)
+
+    def test_int_rejected(self) -> None:
+        with pytest.raises(PineconeTypeError):
+            normalize_embed_inputs(123)  # type: ignore[arg-type]
+
+    def test_mixed_types_rejected(self) -> None:
+        with pytest.raises(PineconeTypeError):
+            normalize_embed_inputs(["a", {"text": "b"}])
+
+
+class TestNormalizeRerankDocumentsAcceptsSequences:
+    """DX-0143: rerank documents accept any Sequence, not just list."""
+
+    def test_tuple_of_strings(self) -> None:
+        assert normalize_rerank_documents(("a", "b")) == [{"text": "a"}, {"text": "b"}]
+
+    def test_tuple_of_dicts(self) -> None:
+        out = normalize_rerank_documents(({"text": "a"},))
+        assert out == [{"text": "a"}]
+
+    def test_string_argument_rejected(self) -> None:
+        with pytest.raises(PineconeTypeError):
+            normalize_rerank_documents("hello")  # type: ignore[arg-type]

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping, Sequence
 from functools import cached_property
 from typing import TYPE_CHECKING, Any
 
@@ -24,6 +25,8 @@ if TYPE_CHECKING:
     from pinecone.models.inference.rerank import RerankResult
 
 logger = logging.getLogger(__name__)
+
+_DEFAULT_RANK_FIELDS: list[str] = ["text"]
 
 
 class AsyncModelResource:
@@ -181,16 +184,17 @@ class AsyncInference:
     async def embed(
         self,
         model: _enums.EmbedModel | str,
-        inputs: str | list[str] | list[dict[str, Any]],
-        parameters: dict[str, Any] | None = None,
+        inputs: str | Sequence[str] | Sequence[Mapping[str, Any]],
+        parameters: Mapping[str, Any] | None = None,
     ) -> EmbeddingsList:
         """Generate embeddings for the provided inputs.
 
         Args:
             model (EmbedModel | str): Embedding model name.
-            inputs (str | list[str] | list[dict[str, Any]]): Text inputs.
-                A single string is automatically wrapped.
-            parameters (dict[str, Any] | None): Model-specific parameters
+            inputs (str | Sequence[str] | Sequence[Mapping[str, Any]]): Text inputs.
+                A single string is automatically wrapped. Any Sequence type
+                (list, tuple, etc.) of strings or Mappings is accepted.
+            parameters (Mapping[str, Any] | None): Model-specific parameters
                 (e.g., ``{"input_type": "passage", "truncate": "END"}``).
 
         Returns:
@@ -235,20 +239,21 @@ class AsyncInference:
         self,
         model: _enums.RerankModel | str,
         query: str,
-        documents: list[str] | list[dict[str, Any]],
-        rank_fields: list[str] | None = None,
+        documents: Sequence[str] | Sequence[Mapping[str, Any]],
+        rank_fields: Sequence[str] = _DEFAULT_RANK_FIELDS,
         return_documents: bool = True,
         top_n: int | None = None,
-        parameters: dict[str, Any] | None = None,
+        parameters: Mapping[str, Any] | None = None,
     ) -> RerankResult:
         """Rerank documents by relevance to a query.
 
         Args:
             model (RerankModel | str): Reranking model name.
             query (str): Query text to rank against.
-            documents (list[str] | list[dict[str, Any]]): Documents to rank.
-                Strings are auto-wrapped as ``{"text": ...}``.
-            rank_fields (list[str] | None): Document fields to rank on.
+            documents (Sequence[str] | Sequence[Mapping[str, Any]]): Documents to rank.
+                Strings are auto-wrapped as ``{"text": ...}``. Any Sequence
+                type (list, tuple, etc.) is accepted.
+            rank_fields (Sequence[str]): Document fields to rank on.
                 Defaults to ``["text"]``.
             return_documents (bool): Include document text in response.
                 Defaults to ``True``.
@@ -282,7 +287,6 @@ class AsyncInference:
         require_non_empty("model", str(model))
         require_non_empty("query", query)
         normalized_docs = normalize_rerank_documents(documents)
-        rank_fields = rank_fields if rank_fields is not None else ["text"]
 
         body: dict[str, Any] = {
             "model": str(model),

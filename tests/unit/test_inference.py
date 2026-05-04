@@ -223,7 +223,7 @@ def test_rerank_empty_query_raises(inference: Inference) -> None:
 
 
 def test_rerank_non_list_documents_raises(inference: Inference) -> None:
-    with pytest.raises(TypeError, match="list of strings or list of dictionaries"):
+    with pytest.raises(TypeError, match="Sequence"):
         inference.rerank(
             model="bge-reranker-v2-m3",
             query="test query",
@@ -231,17 +231,22 @@ def test_rerank_non_list_documents_raises(inference: Inference) -> None:
         )
 
 
-def test_rerank_tuple_documents_raises(inference: Inference) -> None:
-    with pytest.raises(TypeError, match="list of strings or list of dictionaries"):
-        inference.rerank(
-            model="bge-reranker-v2-m3",
-            query="test query",
-            documents=("a", "b"),  # type: ignore[arg-type]
-        )
+@respx.mock
+def test_rerank_tuple_documents_accepted(inference: Inference) -> None:
+    respx.post(f"{BASE_URL}/rerank").mock(
+        return_value=httpx.Response(200, json=make_rerank_response()),
+    )
+
+    result = inference.rerank(
+        model="bge-reranker-v2-m3",
+        query="test query",
+        documents=("a", "b"),  # type: ignore[arg-type]
+    )
+    assert isinstance(result, RerankResult)
 
 
 def test_rerank_mixed_types_raises(inference: Inference) -> None:
-    with pytest.raises(TypeError, match="string or dictionary"):
+    with pytest.raises(TypeError, match="string or mapping"):
         inference.rerank(
             model="bge-reranker-v2-m3",
             query="test query",
