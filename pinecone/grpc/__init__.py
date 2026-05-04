@@ -204,11 +204,13 @@ class GrpcIndex:
         *,
         vectors: Sequence[
             Vector
-            | tuple[str, list[float]]
-            | tuple[str, list[float], dict[str, Any]]
+            | tuple[str, builtins.list[float]]
+            | tuple[str, builtins.list[float], dict[str, Any]]
             | dict[str, Any]
         ],
         namespace: str = "",
+        batch_size: int | None = None,
+        show_progress: bool = True,
         timeout: float | None = None,
     ) -> UpsertResponse:
         """Upsert a batch of vectors into a namespace.
@@ -223,7 +225,15 @@ class GrpcIndex:
                 and optional ``sparse_values`` / ``metadata`` keys.
             namespace (str): Target namespace. Defaults to the default
                 (empty-string) namespace.
-            timeout (float | None): Per-call timeout in seconds. None uses the client-level default.
+            batch_size (int | None): If set, splits ``vectors`` into batches of
+                this size and submits them in **parallel** via :meth:`upsert_async`,
+                then aggregates the results. ``None`` (default) sends all vectors
+                in a single channel call. Must be a positive integer when set.
+            show_progress (bool): If ``True`` and ``tqdm`` is installed, display a
+                progress bar while submitting batches. Ignored when ``batch_size``
+                is ``None``. Defaults to ``True``.
+            timeout (float | None): Per-call timeout in seconds. Applied per batch
+                when batching. None uses the client-level default.
 
         Returns:
             :class:`UpsertResponse` with the count of vectors upserted.
@@ -231,8 +241,14 @@ class GrpcIndex:
         Raises:
             :exc:`TypeError`: If a vector element is not a recognized format.
             :exc:`ValueError`: If a vector element is malformed.
+            :exc:`PineconeValueError`: If batch_size is not a positive integer.
             :exc:`PineconeTimeoutError`: If the call exceeds *timeout* or the server
                 returns CANCELLED with a timeout cause.
+
+        Notes:
+            Batches are submitted in **parallel** via `upsert_async` and awaited
+            together. This differs from the HTTP `Index.upsert` and
+            `AsyncIndex.upsert`, which emit batches sequentially.
 
         Examples:
 
@@ -255,12 +271,24 @@ class GrpcIndex:
                 )
                 print(response.upserted_count)
         """
-        built = [VectorFactory.build(v) for v in vectors]
-        grpc_vectors = [_vector_to_grpc_dict(v) for v in built]
-
-        logger.info("Upserting %d vectors via gRPC into namespace %r", len(built), namespace)
-        result = self._channel.upsert(grpc_vectors, namespace or None, timeout_s=timeout)
-        return UpsertResponse(upserted_count=result.get("upserted_count", 0))
+        if batch_size is None:
+            built = [VectorFactory.build(v) for v in vectors]
+            grpc_vectors = [_vector_to_grpc_dict(v) for v in built]
+            logger.info("Upserting %d vectors via gRPC into namespace %r", len(built), namespace)
+            result = self._channel.upsert(grpc_vectors, namespace or None, timeout_s=timeout)
+            return UpsertResponse(upserted_count=result.get("upserted_count", 0))
+        validate_batch_size(batch_size)
+        built_vectors = list(vectors)
+        batches = chunked(built_vectors, batch_size)
+        futures: builtins.list[PineconeFuture[UpsertResponse]] = [
+            self.upsert_async(vectors=batch, namespace=namespace, timeout=timeout)
+            for batch in with_progress(batches, show_progress=show_progress)
+        ]
+        total_count = 0
+        for future in futures:
+            result_async = future.result()
+            total_count += result_async.upserted_count
+        return UpsertResponse(upserted_count=total_count)
 
     def query(
         self,
