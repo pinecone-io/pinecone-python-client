@@ -3506,9 +3506,6 @@ def test_upload_file_content_hash_populated(client: Pinecone) -> None:
 
 @pytest.mark.integration
 @pytest.mark.timeout(300)
-@pytest.mark.skip(
-    reason="tracked in CI-0021: API did not emit 'model' field on streaming chunks; quarantined pending investigation"
-)
 def test_streaming_chunks_model_field(client: Pinecone) -> None:
     """Verify whether the API emits a ``model`` field on each Pinecone-native stream chunk type.
 
@@ -3564,7 +3561,7 @@ def test_streaming_chunks_model_field(client: Pinecone) -> None:
 
         with httpx.stream(
             "POST",
-            f"{host}/chat/{name}",
+            f"{host}/assistant/chat/{name}",
             headers={
                 "Api-Key": api_key,
                 "X-Pinecone-API-Version": "2025-10",
