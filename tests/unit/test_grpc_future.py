@@ -212,3 +212,22 @@ class TestConcurrentFuturesCompatibility:
 
         done, _not_done = wait([pf1, pf2], timeout=0.1, return_when=FIRST_EXCEPTION)
         assert pf1 in done
+
+
+# ---------------------------------------------------------------------------
+# (g) PineconeGrpcFuture legacy alias (BCG-143)
+# ---------------------------------------------------------------------------
+
+
+class TestLegacyPineconeGrpcFutureAlias:
+    def test_legacy_pineconegrpcfuture_alias_imports(self) -> None:
+        from pinecone.grpc import PineconeGrpcFuture
+
+        assert PineconeGrpcFuture is not None
+
+    def test_legacy_pineconegrpcfuture_alias_is_canonical(self) -> None:
+        import pinecone.grpc
+        import pinecone.grpc.future
+
+        assert pinecone.grpc.PineconeGrpcFuture is pinecone.grpc.PineconeFuture
+        assert pinecone.grpc.PineconeGrpcFuture is pinecone.grpc.future.PineconeFuture

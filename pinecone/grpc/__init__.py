@@ -1335,6 +1335,9 @@ class GrpcIndex:
 # Legacy capitalisation alias (BCG-141).
 GRPCIndex = GrpcIndex
 
+# Legacy name (renamed from PineconeGrpcFuture in the rewrite — BCG-143).
+PineconeGrpcFuture = PineconeFuture
+
 from pinecone.grpc.pinecone_grpc import PineconeGRPC  # noqa: E402
 
-__all__ = ["GRPCIndex", "GrpcIndex", "PineconeGRPC"]
+__all__ = ["GRPCIndex", "GrpcIndex", "PineconeGRPC", "PineconeGrpcFuture"]
