@@ -8,6 +8,7 @@ from typing import Any
 from msgspec import Struct
 
 from pinecone.models._mixin import DictLikeStruct, StructDictMixin
+from pinecone.models.batch import BatchError
 from pinecone.models.response_info import ResponseInfo as ResponseInfo  # re-export
 from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector, Vector
@@ -17,17 +18,86 @@ class UpsertResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=Fa
     """Response from an upsert operation.
 
     Attributes:
-        upserted_count (int): Number of vectors successfully upserted.
+        upserted_count (int): Number of vectors successfully upserted. For non-batched calls
+            this equals ``total_item_count``.
         response_info (ResponseInfo | None): HTTP response metadata (request ID, LSN values), or
             ``None`` if not populated.
+        total_item_count (int): Total number of items submitted. Defaults to ``0`` for
+            non-batched calls.
+        failed_item_count (int): Number of items in failed batches. Defaults to ``0``.
+        total_batch_count (int): Total number of batches executed. Defaults to ``0`` for
+            non-batched calls.
+        successful_batch_count (int): Number of batches that succeeded. Defaults to ``0``.
+        failed_batch_count (int): Number of batches that failed. Defaults to ``0``.
+        errors (list[BatchError]): Per-batch error details. Empty for non-batched calls
+            or when all batches succeed.
+
+    For non-batched calls, all counter fields default to ``0`` and ``errors`` defaults to
+    ``[]``; the only meaningful field is ``upserted_count``.
+
+    For batched calls (``batch_size`` set on the upsert method), the caller can use the
+    partial-success API::
+
+        >>> response = idx.upsert(vectors=[...], batch_size=100)
+        >>> response.upserted_count
+        900
+        >>> response.has_errors
+        True
+        >>> response.failed_item_count
+        100
+        >>> retry = idx.upsert(vectors=response.failed_items, batch_size=100)
     """
 
     upserted_count: int
     response_info: ResponseInfo | None = None
+    total_item_count: int = 0
+    failed_item_count: int = 0
+    total_batch_count: int = 0
+    successful_batch_count: int = 0
+    failed_batch_count: int = 0
+    errors: list[BatchError] = []
 
     @property
     def _response_info(self) -> ResponseInfo | None:
         return self.response_info
+
+    @property
+    def has_errors(self) -> bool:
+        """Whether any batches failed."""
+        return len(self.errors) > 0
+
+    @property
+    def error_count(self) -> int:
+        """Alias for failed_item_count (matches BatchResult)."""
+        return self.failed_item_count
+
+    @property
+    def success_count(self) -> int:
+        """Alias for upserted_count (matches BatchResult.successful_item_count)."""
+        return self.upserted_count
+
+    @property
+    def successful_item_count(self) -> int:
+        """Alias for upserted_count (matches BatchResult field name)."""
+        return self.upserted_count
+
+    @property
+    def failed_items(self) -> list[dict[str, Any]]:
+        """All items from failed batches, flattened for retry."""
+        items: list[dict[str, Any]] = []
+        for error in self.errors:
+            items.extend(error.items)
+        return items
+
+    def __repr__(self) -> str:
+        if not self.has_errors and self.total_batch_count == 0:
+            return f"UpsertResponse(upserted_count={self.upserted_count})"
+        status = "PARTIAL FAILURE" if self.has_errors else "SUCCESS"
+        return (
+            f"UpsertResponse({status}: "
+            f"{self.upserted_count}/{self.total_item_count} items, "
+            f"{self.successful_batch_count}/{self.total_batch_count} batches)"
+        )
 
 
 class QueryResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=False):
