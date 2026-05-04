@@ -399,19 +399,31 @@ jobs:
             exit 1
           fi
 
-      # auditwheel show inspects ELF binaries inside each Linux wheel and reports
-      # the actual minimum glibc/musl version. A wheel tagged manylinux_2_17 or
-      # musllinux_1_2 but linking newer symbols would silently break users on older
-      # systems; this catches that before we ever publish.
-      - name: auditwheel show (linux only)
-        if: startsWith(matrix.target, 'x86_64-unknown-linux') || startsWith(matrix.target, 'aarch64-unknown-linux')
+      # auditwheel show inspects ELF binaries inside each manylinux wheel and reports
+      # the actual minimum glibc version. A wheel tagged manylinux_2_17 but linking
+      # newer symbols would silently break users on older systems; this catches that
+      # before we ever publish.
+      #
+      # Restricted to glibc: auditwheel resolves library dependencies via the host's
+      # ldd, so analyzing a musllinux wheel on a glibc runner blows up with
+      # "ELFError: Magic number does not match" when it follows links into musl libc
+      # paths that don't exist. Musl ABI is exercised by the in-alpine install step.
+      #
+      # Isolated in its own venv: pip-installing auditwheel into the runner's host
+      # Python leaves auditwheel + packaging in user site-packages, which then makes
+      # the verify step's `pip check` fail ("auditwheel requires packaging") because
+      # PEP-668 fallbacks and pip self-upgrade can desync those installs. The venv
+      # keeps auditwheel fully out of the verify Python's view.
+      - name: auditwheel show (manylinux only)
+        if: endsWith(matrix.target, '-unknown-linux-gnu')
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m pip install --quiet auditwheel
+          python3 -m venv /tmp/auditwheel-venv
+          /tmp/auditwheel-venv/bin/pip install --quiet auditwheel
           for wheel in dist/*.whl; do
             echo "=== auditwheel show: $wheel ==="
-            python3 -m auditwheel show "$wheel"
+            /tmp/auditwheel-venv/bin/python -m auditwheel show "$wheel"
           done
 
       # Install verification: prove the wheel installs cleanly on its target
