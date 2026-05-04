@@ -121,6 +121,59 @@ if response.has_errors:
 from every failed batch, in original order. Pass it directly
 back to `upsert(...)` for retry.
 
+#### Inspect errors before retrying
+
+Before retrying `failed_items`, look at why batches failed:
+
+```python
+if response.has_errors:
+    first = response.errors[0]
+    print(f"first failure: {first.error_message}")
+```
+
+If every error has the same HTTP status — especially a 4xx
+like 400 (Bad Request), 401 (Unauthorized), 403 (Forbidden),
+or 422 (Unprocessable Entity) — the failures are about your
+data or your credentials, not transient infrastructure.
+Retrying with the same input will fail the same way. Fix the
+data or the credentials and retry the corrected items, or
+stop.
+
+#### Why surfaced errors are usually persistent
+
+The HTTP transport retries `{408, 429, 500, 502, 503, 504}`
+automatically up to three times with exponential backoff (see
+{class}`~pinecone.RetryConfig`). That layer absorbs nearly
+all transient infrastructure issues. By the time an error
+reaches `response.errors`, it has either:
+
+- exhausted the retry budget (sustained 5xx, persistent 429), or
+- wasn't retryable in the first place (4xx — bad input, auth,
+  validation).
+
+Either way, naive retries usually re-create the same problem.
+Treat each entry in `response.errors` as a real signal worth
+reading.
+
+#### Batches fail atomically
+
+A 4xx response fails the **entire batch**, even if only one
+of its 200 vectors was the actual problem. So
+`response.failed_items` may contain 199 items that would have
+succeeded on their own, plus the one bad row that triggered
+the rejection. The server doesn't surface per-item rejection
+details on the upsert path.
+
+To isolate the bad row, re-batch the failures with a smaller
+`batch_size` (down to `batch_size=1` if needed) — successful
+single-item batches narrow the problem to the rejected ones:
+
+```python
+if response.has_errors:
+    narrow = index.upsert(vectors=response.failed_items, batch_size=1)
+    # narrow.failed_items now contains only the actually-bad rows
+```
+
 Network-level errors and 5xx responses are retried
 automatically by the HTTP client per batch (see
 {class}`~pinecone.RetryConfig`); only failures that exceed
