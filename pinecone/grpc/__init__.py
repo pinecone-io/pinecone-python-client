@@ -702,6 +702,7 @@ class GrpcIndex:
                 server returns CANCELLED with a timeout cause.
 
         Examples:
+
             .. code-block:: python
 
                 for page in idx.list(prefix="doc1#"):
