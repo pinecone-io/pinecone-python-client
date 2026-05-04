@@ -306,6 +306,21 @@ jobs:
             exit 1
           fi
 
+      # auditwheel show inspects ELF binaries inside each Linux wheel and reports
+      # the actual minimum glibc/musl version. A wheel tagged manylinux_2_17 or
+      # musllinux_1_2 but linking newer symbols would silently break users on older
+      # systems; this catches that before we ever publish.
+      - name: auditwheel show (linux only)
+        if: startsWith(matrix.target, 'x86_64-unknown-linux') || startsWith(matrix.target, 'aarch64-unknown-linux')
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet auditwheel
+          for wheel in dist/*.whl; do
+            echo "=== auditwheel show: $wheel ==="
+            python3 -m auditwheel show "$wheel"
+          done
+
       # Install verification: prove the wheel installs cleanly on its target
       # platform and the Rust extension loads + is callable. The GrpcChannel
       # constructor is lazy (no network), so this is a fast purely-local check.
