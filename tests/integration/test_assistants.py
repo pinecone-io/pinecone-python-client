@@ -24,6 +24,7 @@ import pytest
 from pinecone import ApiError, Pinecone, PineconeError, PineconeValueError
 from pinecone.models.assistant.chat import (
     ChatCompletionChoice,
+    ChatCompletionMessage,
     ChatCompletionResponse,
     ChatHighlight,
     ChatMessage,
@@ -446,7 +447,8 @@ def test_assistant_chat_completions_openai_compatible_response(client: Pinecone)
 
         choice = response.choices[0]
         assert hasattr(choice, "message")
-        assert isinstance(choice.message.content, str)
+        assert isinstance(choice.message, ChatCompletionMessage)
+        assert choice.message.content is not None
         assert len(choice.message.content) > 0, "Expected non-empty message content"
         assert hasattr(choice, "finish_reason")
 
@@ -1908,10 +1910,10 @@ def test_chat_completions_full_response_structure_rest(client: Pinecone) -> None
             assert isinstance(choice.index, int), (
                 f"choice.index must be int, got {type(choice.index)}"
             )
-            assert isinstance(choice.message, ChatMessage), (
-                f"choice.message must be ChatMessage, got {type(choice.message)}"
+            assert isinstance(choice.message, ChatCompletionMessage), (
+                f"choice.message must be ChatCompletionMessage, got {type(choice.message)}"
             )
-            assert isinstance(choice.message.content, str) and len(choice.message.content) > 0, (
+            assert choice.message.content is not None and len(choice.message.content) > 0, (
                 "choice.message.content must be a non-empty str"
             )
             assert isinstance(choice.finish_reason, str) and len(choice.finish_reason) > 0, (

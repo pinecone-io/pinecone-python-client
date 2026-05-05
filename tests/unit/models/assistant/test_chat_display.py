@@ -5,6 +5,7 @@ from __future__ import annotations
 from pinecone.models.assistant.chat import (
     ChatCitation,
     ChatCompletionChoice,
+    ChatCompletionMessage,
     ChatCompletionResponse,
     ChatHighlight,
     ChatMessage,
@@ -257,7 +258,9 @@ class TestChatResponse:
 class TestChatCompletionChoice:
     def test_repr(self) -> None:
         c = ChatCompletionChoice(
-            index=0, message=ChatMessage(role="assistant", content="Hi"), finish_reason="stop"
+            index=0,
+            message=ChatCompletionMessage(role="assistant", content="Hi"),
+            finish_reason="stop",
         )
         r = repr(c)
         assert "0" in r
@@ -266,14 +269,16 @@ class TestChatCompletionChoice:
     def test_repr_long_message_bounded(self) -> None:
         c = ChatCompletionChoice(
             index=0,
-            message=ChatMessage(role="assistant", content="x" * 10_000),
+            message=ChatCompletionMessage(role="assistant", content="x" * 10_000),
             finish_reason="stop",
         )
         assert len(repr(c)) < 500
 
     def test_repr_html(self) -> None:
         c = ChatCompletionChoice(
-            index=0, message=ChatMessage(role="assistant", content="Hi"), finish_reason="stop"
+            index=0,
+            message=ChatCompletionMessage(role="assistant", content="Hi"),
+            finish_reason="stop",
         )
         assert "Hi" in c._repr_html_()
 
@@ -281,7 +286,9 @@ class TestChatCompletionChoice:
         from IPython.lib.pretty import pretty
 
         c = ChatCompletionChoice(
-            index=0, message=ChatMessage(role="assistant", content="Hi"), finish_reason="stop"
+            index=0,
+            message=ChatCompletionMessage(role="assistant", content="Hi"),
+            finish_reason="stop",
         )
         r = pretty(c)
         assert "0" in r
@@ -295,14 +302,16 @@ class TestChatCompletionChoice:
         buf = io.StringIO()
         printer = RepresentationPrinter(buf)
         ChatCompletionChoice(
-            index=0, message=ChatMessage(role="assistant", content="Hi"), finish_reason="stop"
+            index=0,
+            message=ChatCompletionMessage(role="assistant", content="Hi"),
+            finish_reason="stop",
         )._repr_pretty_(printer, cycle=True)
         printer.flush()
         assert "ChatCompletionChoice(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
         c = ChatCompletionChoice(
-            index=0, message=ChatMessage(role="a", content="b"), finish_reason="stop"
+            index=0, message=ChatCompletionMessage(role="a", content="b"), finish_reason="stop"
         )
         c.message = object()  # type: ignore[assignment]
         assert isinstance(repr(c), str)
@@ -317,7 +326,7 @@ def _ccr(n_choices: int = 1, content: str = "Hi") -> ChatCompletionResponse:
         choices=[
             ChatCompletionChoice(
                 index=i,
-                message=ChatMessage(role="assistant", content=content),
+                message=ChatCompletionMessage(role="assistant", content=content),
                 finish_reason="stop",
             )
             for i in range(n_choices)

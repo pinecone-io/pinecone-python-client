@@ -3505,3 +3505,35 @@ class TestAssistantsClose:
 
         assistants.close()
         assistants.close()
+
+
+# ---------------------------------------------------------------------------
+# ChatCompletionMessage optional fields
+# ---------------------------------------------------------------------------
+
+
+def test_chat_completion_choice_message_optional_fields() -> None:
+    """ChatCompletionMessage decodes successfully when role and content are absent."""
+    import msgspec
+
+    from pinecone.models.assistant.chat import ChatCompletionMessage, ChatCompletionResponse
+
+    payload = msgspec.json.encode(
+        {
+            "id": "chatcmpl-empty",
+            "model": "gpt-4o",
+            "usage": {"prompt_tokens": 5, "completion_tokens": 0, "total_tokens": 5},
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {},
+                    "finish_reason": "stop",
+                }
+            ],
+        }
+    )
+
+    response = msgspec.json.decode(payload, type=ChatCompletionResponse)
+    assert response.choices[0].message.role is None
+    assert response.choices[0].message.content is None
+    assert isinstance(response.choices[0].message, ChatCompletionMessage)

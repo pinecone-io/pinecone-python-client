@@ -5,6 +5,7 @@ from __future__ import annotations
 from pinecone.models.assistant.chat import (
     ChatCitation,
     ChatCompletionChoice,
+    ChatCompletionMessage,
     ChatCompletionResponse,
     ChatHighlight,
     ChatMessage,
@@ -143,6 +144,7 @@ __all__ = [
     "BaseStreamChatResponseChunk",  # deprecated alias for ChatStreamChunk
     "ChatCitation",
     "ChatCompletionChoice",
+    "ChatCompletionMessage",
     "ChatCompletionResponse",
     "ChatCompletionStream",
     "ChatCompletionStreamChoice",

@@ -289,6 +289,37 @@ class ChatResponse(StructDictMixin, Struct, kw_only=True):
         return builder.build()
 
 
+class ChatCompletionMessage(StructDictMixin, Struct, kw_only=True):
+    """A message in a chat completion response.
+
+    Attributes:
+        role: The role of the message author, or ``None`` if not provided.
+        content: The text content of the message, or ``None`` if not provided.
+    """
+
+    role: str | None = None
+    content: str | None = None
+
+    @safe_display
+    def __repr__(self) -> str:
+        truncated = truncate_text(self.content or "", max_chars=80) if self.content else None
+        return f"ChatCompletionMessage(role={self.role!r}, content={truncated!r})"
+
+    @safe_display
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        truncated = truncate_text(self.content or "", max_chars=200) if self.content else None
+        p.text(f"ChatCompletionMessage(role={self.role!r}, content={truncated!r})")
+
+    @safe_display
+    def _repr_html_(self) -> str:
+        return (
+            HtmlBuilder("ChatCompletionMessage")
+            .row("Role", self.role if self.role is not None else "—")
+            .row("Content", truncate_text(self.content, max_chars=500) if self.content else "—")
+            .build()
+        )
+
+
 class ChatCompletionChoice(StructDictMixin, Struct, kw_only=True):
     """A single choice in a chat completion response.
 
@@ -299,7 +330,7 @@ class ChatCompletionChoice(StructDictMixin, Struct, kw_only=True):
     """
 
     index: int
-    message: ChatMessage
+    message: ChatCompletionMessage
     finish_reason: str
 
     @safe_display
@@ -328,8 +359,13 @@ class ChatCompletionChoice(StructDictMixin, Struct, kw_only=True):
         builder = HtmlBuilder("ChatCompletionChoice")
         builder.row("Index", self.index)
         builder.row("Finish reason", self.finish_reason)
-        builder.row("Role", self.message.role)
-        builder.row("Content", truncate_text(self.message.content, max_chars=500))
+        builder.row("Role", self.message.role if self.message.role is not None else "—")
+        builder.row(
+            "Content",
+            truncate_text(self.message.content, max_chars=500)
+            if self.message.content is not None
+            else "—",
+        )
         return builder.build()
 
 
@@ -361,7 +397,7 @@ class ChatCompletionResponse(StructDictMixin, Struct, kw_only=True):
             p.text("ChatCompletionResponse(...)")
             return
         first_content: str | None = None
-        if self.choices:
+        if self.choices and self.choices[0].message.content is not None:
             first_content = truncate_text(self.choices[0].message.content, max_chars=200)
         with p.group(2, "ChatCompletionResponse(", ")"):
             p.breakable()
@@ -390,8 +426,13 @@ class ChatCompletionResponse(StructDictMixin, Struct, kw_only=True):
                 [
                     ("Index", first.index),
                     ("Finish reason", first.finish_reason),
-                    ("Role", first.message.role),
-                    ("Content", truncate_text(first.message.content, max_chars=500)),
+                    ("Role", first.message.role if first.message.role is not None else "—"),
+                    (
+                        "Content",
+                        truncate_text(first.message.content, max_chars=500)
+                        if first.message.content is not None
+                        else "—",
+                    ),
                 ],
             )
         return builder.build()
