@@ -29,8 +29,9 @@ import time
 import pytest
 
 from pinecone import Admin, PineconeValueError
-from pinecone.errors import ApiError
+from pinecone.errors import ApiError, NotFoundError
 from pinecone.models.admin.organization import OrganizationList, OrganizationModel
+from pinecone.models.admin.project import ProjectList, ProjectModel
 
 
 @pytest.fixture(scope="module")
@@ -216,3 +217,81 @@ def test_organizations_update_roundtrips_name(admin: Admin) -> None:
         assert described.name == new_name
     finally:
         admin.organizations.update(organization_id=first.id, name=original_name)
+
+
+# ---------------------------------------------------------------------------
+# projects — full CRUD lifecycle
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_project_lifecycle_create_describe_update_delete(admin: Admin) -> None:
+    """Full CRUD lifecycle for admin.projects.
+
+    Creates an ephemeral project with a timestamped unique name, exercises
+    every read/write operation, then deletes it.  The project is cleaned up
+    in a finally block so a mid-test failure does not leave orphaned resources.
+
+    Operations verified:
+    - create → ProjectModel with correct name, non-empty id and organization_id
+    - list → created project appears in the result set
+    - describe (by id) → returns consistent id and name
+    - describe_by_name → positive match; NotFoundError for unknown name
+    - update → returned model and re-described model both reflect new name
+    - delete → project no longer reachable via describe after deletion
+    """
+    name = f"inttest-proj-{int(time.time())}"
+    created: ProjectModel | None = None
+    _test_passed = False
+
+    try:
+        # create
+        created = admin.projects.create(name=name)
+        assert isinstance(created, ProjectModel)
+        assert created.name == name
+        assert created.id
+        assert created.organization_id
+
+        # list — created project appears
+        listed = admin.projects.list()
+        assert isinstance(listed, ProjectList)
+        assert any(p.id == created.id for p in listed)
+
+        # describe by ID
+        described = admin.projects.describe(project_id=created.id)
+        assert isinstance(described, ProjectModel)
+        assert described.id == created.id
+        assert described.name == name
+
+        # describe_by_name — positive path
+        by_name = admin.projects.describe_by_name(name=name)
+        assert isinstance(by_name, ProjectModel)
+        assert by_name.id == created.id
+
+        # describe_by_name — negative path
+        with pytest.raises(NotFoundError):
+            admin.projects.describe_by_name(name="this-project-definitely-does-not-exist-zzzz")
+
+        # update name
+        renamed = f"{name}-renamed"
+        updated = admin.projects.update(project_id=created.id, name=renamed)
+        assert isinstance(updated, ProjectModel)
+        assert updated.name == renamed
+
+        # re-describe to confirm update persisted on the server
+        re_described = admin.projects.describe(project_id=created.id)
+        assert re_described.name == renamed
+
+        _test_passed = True
+    finally:
+        if created is not None:
+            try:
+                admin.projects.delete(project_id=created.id)
+            except Exception as e:
+                print(f"Cleanup failed for project {created.id!r}: {e}")
+
+    # Post-delete verification: only run when the main test succeeded so a
+    # cleanup failure does not shadow the real assertion error.
+    if _test_passed and created is not None:
+        with pytest.raises(NotFoundError):
+            admin.projects.describe(project_id=created.id)
