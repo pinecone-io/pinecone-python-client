@@ -420,6 +420,7 @@ class AsyncIndexes:
                 vector_type=vector_type,
                 deletion_protection=deletion_protection,
                 tags=tags,
+                schema=schema,
             )
         else:
             validate_create_inputs(

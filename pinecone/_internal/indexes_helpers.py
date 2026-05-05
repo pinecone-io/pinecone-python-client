@@ -195,6 +195,7 @@ def build_byoc_body(
     vector_type: VectorType | str,
     deletion_protection: DeletionProtection | str,
     tags: Mapping[str, str] | None,
+    schema: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build the JSON body for POST /indexes (BYOC)."""
     body: dict[str, Any] = {
@@ -211,6 +212,10 @@ def build_byoc_body(
     byoc_dict: dict[str, Any] = {"environment": spec.environment}
     if spec.read_capacity is not None:
         byoc_dict["read_capacity"] = spec.read_capacity
+    if spec.schema is not None:
+        byoc_dict["schema"] = spec.schema
+    if schema is not None:
+        byoc_dict["schema"] = _normalize_schema(schema)
     body["spec"] = {"byoc": byoc_dict}
 
     return body
