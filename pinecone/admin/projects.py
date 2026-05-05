@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.admin_adapter import AdminAdapter
 from pinecone._internal.validation import require_non_empty
-from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationError
+from pinecone.errors.exceptions import NotFoundError, PineconeError, PineconeValueError, ValidationError
 from pinecone.models.admin.api_key import APIKeyRole
 from pinecone.models.admin.project import ProjectList, ProjectModel
 
@@ -247,6 +247,8 @@ class Projects:
             'new-name'
         """
         require_non_empty("project_id", project_id)
+        if max_pods is not None and max_pods < 0:
+            raise PineconeValueError("max_pods must be a non-negative integer")
         body: dict[str, Any] = {}
         if name is not None:
             body["name"] = name

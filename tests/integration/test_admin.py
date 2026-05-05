@@ -322,6 +322,25 @@ def test_create_project_max_pods_negative() -> None:
         projects.create(name="my-project", max_pods=-1)
 
 
+@pytest.mark.integration
+def test_update_project_max_pods_negative() -> None:
+    """Projects.update() raises PineconeValueError for negative max_pods client-side.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="max_pods"):
+        projects.update(project_id="proj-abc123", max_pods=-1)
+
+
 # ---------------------------------------------------------------------------
 # api_keys — validation (no credentials required)
 # ---------------------------------------------------------------------------
