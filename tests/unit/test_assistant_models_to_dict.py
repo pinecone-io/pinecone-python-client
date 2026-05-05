@@ -14,7 +14,7 @@ from pinecone.models.assistant.evaluation import (
     EntailmentResult,
 )
 from pinecone.models.assistant.file_model import AssistantFileModel
-from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
+from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse, _Pagination
 from pinecone.models.assistant.model import AssistantModel
 
 
@@ -152,20 +152,21 @@ class TestListAssistantsResponseToDict:
 
 class TestListFilesResponseToDict:
     def test_list_files_response_to_dict(self) -> None:
-        resp = ListFilesResponse(files=[], next=None)
+        resp = ListFilesResponse(files=[])
         result = resp.to_dict()
         assert isinstance(result, dict)
         assert "files" in result
-        assert "next" in result
+        assert "pagination" in result
         assert result["files"] == []
+        assert result["pagination"] is None
 
     def test_list_files_response_nested_files(self) -> None:
-        resp = ListFilesResponse(files=[_file()], next="page2")
+        resp = ListFilesResponse(files=[_file()], pagination=_Pagination(next="page2"))
         result = resp.to_dict()
         assert isinstance(result["files"][0], dict)
         assert not isinstance(result["files"][0], AssistantFileModel)
         assert result["files"][0]["name"] == "doc.txt"
-        assert result["next"] == "page2"
+        assert result["pagination"]["next"] == "page2"
 
 
 class TestToDictIsPureRead:

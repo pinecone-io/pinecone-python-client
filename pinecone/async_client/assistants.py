@@ -691,7 +691,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         import json as _json
 
-        data_http = await self._data_plane_http(assistant_name)
+        list_http = await self._list_files_http(assistant_name)
         params: dict[str, str | int] = {}
         if page_size is not None:
             params["limit"] = page_size
@@ -701,7 +701,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             params["filter"] = _json.dumps(filter)
 
         logger.info("Listing files page for assistant %r", assistant_name)
-        response = await data_http.get(f"/files/{assistant_name}", params=params)
+        response = await list_http.get(f"/files/{assistant_name}", params=params)
         result = self._adapter.to_file_list(response.content)
         logger.debug(
             "Listed %d files for assistant %r (has_next=%s)",
@@ -784,6 +784,29 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                         f"File processing timed out after {timeout}s (operation_id={file_id})"
                     )
             await asyncio.sleep(_UPLOAD_POLL_INTERVAL_SECONDS)
+
+    async def _list_files_http(self, assistant_name: str) -> AsyncHTTPClient:
+        """Return an AsyncHTTPClient for the assistant's data-plane host using v202604."""
+        from pinecone._internal.config import PineconeConfig as _PineconeConfig
+        from pinecone._internal.http_client import AsyncHTTPClient as _AsyncHTTPClient
+
+        assistant = await self.describe(name=assistant_name)
+        if not assistant.host:
+            raise PineconeValueError(f"Assistant '{assistant_name}' has no data-plane host")
+        data_config = _PineconeConfig(
+            api_key=self._config.api_key,
+            host=f"{assistant.host.rstrip('/')}/assistant",
+            timeout=self._config.timeout,
+            additional_headers=self._config.additional_headers,
+            source_tag=self._config.source_tag or "",
+            proxy_url=self._config.proxy_url or "",
+            proxy_headers=self._config.proxy_headers,
+            ssl_ca_certs=self._config.ssl_ca_certs,
+            ssl_verify=self._config.ssl_verify,
+            connection_pool_maxsize=self._config.connection_pool_maxsize,
+            retry_config=self._config.retry_config,
+        )
+        return _AsyncHTTPClient(data_config, ASSISTANT_API_VERSION_2026_04)
 
     async def _upsert_http(self, assistant_name: str) -> AsyncHTTPClient:
         """Return an AsyncHTTPClient for the assistant's data-plane host using API 2026-04."""

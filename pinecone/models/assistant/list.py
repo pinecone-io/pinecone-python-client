@@ -61,17 +61,28 @@ class ListAssistantsResponse(StructDictMixin, Struct, kw_only=True):
         return builder.build()
 
 
+class _Pagination(Struct, kw_only=True):
+    """Wire-format pagination object returned by the v202604 file-listing endpoint."""
+
+    next: str
+
+
 class ListFilesResponse(StructDictMixin, Struct, kw_only=True):
     """Paginated response for listing assistant files.
 
     Attributes:
         files: The files returned in this page.
-        next: Token for fetching the next page of results, or ``None``
+        pagination: Nested pagination object from the v202604 API, or ``None``
             when no more pages exist.
     """
 
     files: list[AssistantFileModel]
-    next: str | None = None
+    pagination: _Pagination | None = None
+
+    @property
+    def next(self) -> str | None:
+        """Continuation token for the next page, or ``None`` when exhausted."""
+        return self.pagination.next if self.pagination is not None else None
 
     @property
     def next_token(self) -> str | None:

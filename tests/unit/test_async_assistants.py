@@ -1315,7 +1315,7 @@ async def test_async_list_files_page_success(async_assistants: AsyncAssistants) 
             200,
             json={
                 "files": [make_assistant_file_response()],
-                "next": "token-next",
+                "pagination": {"next": "token-next"},
             },
         ),
     )
@@ -1508,14 +1508,14 @@ async def test_async_list_files_multi_page(async_assistants: AsyncAssistants) ->
                 200,
                 json={
                     "files": [make_assistant_file_response(id="f1", name="file1.pdf")],
-                    "next": "token-page2",
+                    "pagination": {"next": "token-page2"},
                 },
             ),
             httpx.Response(
                 200,
                 json={
                     "files": [make_assistant_file_response(id="f2", name="file2.pdf")],
-                    "next": "token-page3",
+                    "pagination": {"next": "token-page3"},
                 },
             ),
             httpx.Response(
@@ -1573,7 +1573,7 @@ async def test_async_list_files_limit_accepted(async_assistants: AsyncAssistants
                     make_assistant_file_response(id="f2", name="file2.pdf"),
                     make_assistant_file_response(id="f3", name="file3.pdf"),
                 ],
-                "next": "token-page2",
+                "pagination": {"next": "token-page2"},
             },
         ),
     )

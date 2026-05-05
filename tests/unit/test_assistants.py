@@ -1629,7 +1629,7 @@ def test_list_files_page_success(assistants: Assistants) -> None:
             200,
             json={
                 "files": [make_assistant_file_response()],
-                "next": "token-next",
+                "pagination": {"next": "token-next"},
             },
         ),
     )
@@ -1802,14 +1802,14 @@ def test_list_files_multi_page(assistants: Assistants) -> None:
                 200,
                 json={
                     "files": [make_assistant_file_response(id="f1", name="file1.pdf")],
-                    "next": "token-page2",
+                    "pagination": {"next": "token-page2"},
                 },
             ),
             httpx.Response(
                 200,
                 json={
                     "files": [make_assistant_file_response(id="f2", name="file2.pdf")],
-                    "next": "token-page3",
+                    "pagination": {"next": "token-page3"},
                 },
             ),
             httpx.Response(
@@ -1889,7 +1889,7 @@ def test_list_files_with_limit(assistants: Assistants) -> None:
                     make_assistant_file_response(id="f2", name="file2.pdf"),
                     make_assistant_file_response(id="f3", name="file3.pdf"),
                 ],
-                "next": "more",
+                "pagination": {"next": "more"},
             },
         ),
     )
@@ -1913,7 +1913,7 @@ def test_list_files_pages(assistants: Assistants) -> None:
                 200,
                 json={
                     "files": [make_assistant_file_response(id="f1", name="file1.pdf")],
-                    "next": "token-next",
+                    "pagination": {"next": "token-next"},
                 },
             ),
             httpx.Response(
@@ -1971,7 +1971,7 @@ def test_list_files_propagates_filter_through_pages(assistants: Assistants) -> N
                 200,
                 json={
                     "files": [make_assistant_file_response(id="f1", name="file1.pdf")],
-                    "next": "token-p2",
+                    "pagination": {"next": "token-p2"},
                 },
             ),
             httpx.Response(
