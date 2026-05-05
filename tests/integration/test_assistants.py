@@ -2386,6 +2386,85 @@ def test_upload_file_with_caller_specified_file_id_rest(client: Pinecone) -> Non
 
 
 # ---------------------------------------------------------------------------
+# upload_file upsert — metadata sent as multipart form field — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_upload_file_upsert_with_metadata(client: Pinecone) -> None:
+    """upload_file(file_id=..., metadata=...) sends metadata as a multipart form field.
+
+    v202604 rejects metadata as a query parameter; this test verifies that the
+    SDK sends it as a multipart body field so the upsert succeeds and the metadata
+    is preserved in the returned AssistantFileModel.
+
+    Verifies:
+    - unified-file-0003: Can upload a file with optional user-provided metadata
+    - unified-file-0005: Can upload a file with a caller-specified file identifier for upsert behavior
+    """
+    name = unique_name("asst")
+    custom_file_id = unique_name("fid")
+    file_id: str | None = None
+
+    try:
+        assistant = client.assistants.create(name=name, instructions="Upsert metadata test.")
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        content = b"Metadata upsert test content for Pinecone assistant SDK."
+        file_model = client.assistants.upload_file(
+            assistant_name=name,
+            file_stream=io.BytesIO(content),
+            file_name="upsert-metadata-test.txt",
+            file_id=custom_file_id,
+            metadata={"key": "value"},
+            timeout=120,
+        )
+        assert isinstance(file_model, AssistantFileModel)
+        assert file_model.id == custom_file_id, (
+            f"Expected file_id {custom_file_id!r} to be preserved; got {file_model.id!r}"
+        )
+        file_id = file_model.id
+
+        wait_for_ready(
+            lambda: (
+                client.assistants.describe_file(assistant_name=name, file_id=file_id).status
+                in ("Available", "Processed")
+            ),
+            timeout=120,
+            interval=5,
+            description=f"file {file_id}",
+        )
+
+        described = client.assistants.describe_file(assistant_name=name, file_id=file_id)
+        assert isinstance(described, AssistantFileModel)
+        assert described.metadata is not None, "Expected metadata to be preserved, got None"
+        assert described.metadata.get("key") == "value", (
+            f"Expected metadata key='value'; got {described.metadata!r}"
+        )
+
+        client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
+        file_id = None
+
+    finally:
+        if file_id is not None:
+            with contextlib.suppress(Exception):
+                client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
 # upload_file upsert — operation error_message surfaced — REST sync
 # ---------------------------------------------------------------------------
 

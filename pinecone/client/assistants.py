@@ -319,10 +319,17 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                     file_id,
                     assistant_name,
                 )
+                # v202604 rejects metadata as a query param; send it as a multipart field instead.
+                upsert_files: dict[str, Any] = {"file": (upload_name, handle)}
+                if metadata is not None:
+                    upsert_files["metadata"] = (None, _json.dumps(metadata))
+                upsert_query: dict[str, str] = {}
+                if multimodal is not None:
+                    upsert_query["multimodal"] = str(multimodal).lower()
                 upsert_response = upsert_http.put(
                     f"/files/{assistant_name}/{file_id}",
-                    files={"file": (upload_name, handle)},
-                    params=params,
+                    files=upsert_files,
+                    params=upsert_query,
                 )
                 op_model = self._adapter.to_operation(upsert_response.content)
                 operation_id = op_model.operation_id

@@ -1332,8 +1332,10 @@ def test_upload_file_with_metadata_and_file_id(mock_sleep: object, assistants: A
     # file_id is in the path, not a query param
     assert "/files/test-assistant/custom-file-id" in url_str
     assert "file_id=" not in url_str
-    # Metadata is still sent as a query param
-    assert "metadata=" in url_str
+    # v202604 rejects metadata as a query param; it must be in the multipart body
+    assert "metadata=" not in url_str
+    body = request.content.decode("latin-1")
+    assert "genre" in body and "comedy" in body
     # Returned model has the caller-specified file id
     assert isinstance(result, AssistantFileModel)
     assert result.id == "custom-file-id"
