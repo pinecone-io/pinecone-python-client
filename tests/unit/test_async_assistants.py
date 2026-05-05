@@ -1882,6 +1882,41 @@ async def test_async_upload_file_processing_failed(
 
 
 # ---------------------------------------------------------------------------
+# upload_file() — upsert operation failure (error_message field name)
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_upload_file_upsert_error_message(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """Upsert polling surfaces backend error_message, not the fallback 'Unknown operation error'."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.put(f"{DATA_PLANE_URL}/files/test-assistant/custom-file-id").mock(
+        return_value=httpx.Response(202, json=make_operation_response(status="Processing")),
+    )
+    respx.get(f"{DATA_PLANE_URL}/operations/test-assistant/op-abc123").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_operation_response(
+                status="Failed", error_message="Conflict: file already being processed"
+            ),
+        ),
+    )
+
+    stream = io.BytesIO(b"data")
+    with pytest.raises(PineconeError, match="Conflict: file already being processed"):
+        await async_assistants.upload_file(
+            assistant_name="test-assistant",
+            file_stream=stream,
+            file_id="custom-file-id",
+        )
+
+
+# ---------------------------------------------------------------------------
 # upload_file() — timeout
 # ---------------------------------------------------------------------------
 

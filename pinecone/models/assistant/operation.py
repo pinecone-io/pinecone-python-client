@@ -16,7 +16,7 @@ class OperationModel(
     StructDictMixin,
     Struct,
     kw_only=True,
-    rename={"operation_id": "id", "created_at": "created_on"},
+    rename={"operation_id": "id", "created_at": "created_on", "error": "error_message"},
 ):
     """Response model for a long-running assistant operation.
 

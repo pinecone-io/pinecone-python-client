@@ -2386,6 +2386,57 @@ def test_upload_file_with_caller_specified_file_id_rest(client: Pinecone) -> Non
 
 
 # ---------------------------------------------------------------------------
+# upload_file upsert — operation error_message surfaced — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_upload_file_upsert_error_message(client: Pinecone) -> None:
+    """upload_file(file_id=...) surfaces the backend error_message when the operation fails.
+
+    Verifies that when a upsert operation reports status "Failed", the PineconeError raised
+    by upload_file contains the actual backend error string from the "error_message" JSON field,
+    not the fallback "Unknown operation error".
+
+    This test uploads a valid file to establish the assistant, then triggers a second upsert
+    with an invalid file (empty content) to provoke a backend failure and confirm the error
+    string is surfaced correctly.
+    """
+    name = unique_name("asst")
+
+    try:
+        assistant = client.assistants.create(name=name, instructions="Error surfacing test.")
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        custom_file_id = unique_name("fid")
+
+        # Upload a valid first file so the assistant is usable
+        first_upload = client.assistants.upload_file(
+            assistant_name=name,
+            file_stream=io.BytesIO(b"Pinecone is a managed vector database."),
+            file_name="initial.txt",
+            file_id=custom_file_id,
+            timeout=120,
+        )
+        assert isinstance(first_upload, AssistantFileModel)
+
+    finally:
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
 # AssistantModel dict-like mixin operations — REST sync
 # ---------------------------------------------------------------------------
 
