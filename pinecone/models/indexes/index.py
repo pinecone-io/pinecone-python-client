@@ -138,6 +138,9 @@ class IndexModel(Struct, kw_only=True):
             ``"euclidean"``, ``"dotproduct"``).
         host: The hostname where this index is served, or ``None`` if the index
             is still initializing and has not yet been assigned a host.
+        private_host: The private-endpoint hostname for this index when the project
+            has Private Endpoints configured, or ``None`` otherwise. Clients inside
+            a VPC should connect to this host instead of ``host``.
         status: Current status of the index.
         spec: Deployment specification containing either ``serverless``,
             ``pod``, or ``byoc`` configuration.
@@ -162,6 +165,7 @@ class IndexModel(Struct, kw_only=True):
     status: IndexStatus
     spec: IndexSpec
     host: str | None = None
+    private_host: str | None = None
     vector_type: str = "dense"
     dimension: int | None = None
     deletion_protection: str = "disabled"
@@ -170,9 +174,11 @@ class IndexModel(Struct, kw_only=True):
     created_at: str | None = None
 
     def __post_init__(self) -> None:
-        """Normalize host to always include https:// scheme."""
+        """Normalize host and private_host to always include https:// scheme."""
         if self.host is not None:
             self.host = normalize_host(self.host)
+        if self.private_host is not None:
+            self.private_host = normalize_host(self.private_host)
         if isinstance(self.tags, dict) and not isinstance(self.tags, IndexTags):
             self.tags = IndexTags(self.tags)
 
@@ -196,8 +202,8 @@ class IndexModel(Struct, kw_only=True):
         Returns:
             Dictionary with all top-level fields, where nested ``spec``, ``status``,
             and ``embed`` structs are also converted to plain dicts recursively.
-            Optional fields (``dimension``, ``tags``, ``embed``) that are ``None``
-            are included in the output with their ``None`` values.
+            Optional fields (``dimension``, ``tags``, ``embed``, ``private_host``) that
+            are ``None`` are included in the output with their ``None`` values.
 
         Examples:
             >>> from pinecone.models.indexes.index import (

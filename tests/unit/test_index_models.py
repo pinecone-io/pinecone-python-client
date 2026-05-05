@@ -208,6 +208,31 @@ class TestIndexModel:
         assert model.spec.pod.shards == 1
         assert model.spec.pod.pods == 2
 
+    def test_index_model_private_host_decoded(self) -> None:
+        """IndexModel must expose private_host when returned by backend."""
+        raw = (
+            b'{"name":"test","metric":"cosine",'
+            b'"host":"test.svc.pinecone.io",'
+            b'"private_host":"test.svc.private.pinecone.io",'
+            b'"status":{"ready":true,"state":"Ready"},'
+            b'"spec":{"serverless":{"cloud":"aws","region":"us-east-1"}},'
+            b'"deletion_protection":"disabled","vector_type":"dense"}'
+        )
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.private_host == "https://test.svc.private.pinecone.io"
+        assert model.host == "https://test.svc.pinecone.io"
+
+    def test_index_model_private_host_absent(self) -> None:
+        """IndexModel.private_host is None when backend omits the field."""
+        raw = (
+            b'{"name":"test","metric":"cosine","host":"test.svc.pinecone.io",'
+            b'"status":{"ready":true,"state":"Ready"},'
+            b'"spec":{"serverless":{"cloud":"aws","region":"us-east-1"}},'
+            b'"deletion_protection":"disabled","vector_type":"dense"}'
+        )
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.private_host is None
+
 
 class TestIndexList:
     def _make_list(self) -> IndexList:
