@@ -1438,7 +1438,7 @@ class AsyncIndex:
         self,
         uri: str,
         *,
-        error_mode: str = "continue",
+        error_mode: str | None = None,
         integration_id: str | None = None,
     ) -> StartImportResponse:
         """Start a bulk import operation from an external data source.
@@ -1457,8 +1457,9 @@ class AsyncIndex:
         Args:
             uri (str): Source URI for the import data (e.g.
                 ``"s3://my-bucket/vectors/"`` or ``"gs://my-bucket/vectors/"``).
-            error_mode (str): How to handle errors during import. Must be
-                ``"continue"`` (default) or ``"abort"``. Case-insensitive.
+            error_mode (str | None): How to handle errors during import. Must be
+                ``"continue"`` or ``"abort"`` when supplied. Case-insensitive.
+                Optional; when omitted the backend default (abort) applies.
             integration_id (str | None): Optional integration ID for the import.
 
         Returns:
@@ -1466,7 +1467,8 @@ class AsyncIndex:
             operation.
 
         Raises:
-            :exc:`PineconeValueError`: If ``error_mode`` is not ``"continue"`` or ``"abort"``.
+            :exc:`PineconeValueError`: If ``error_mode`` is supplied but not
+                ``"continue"`` or ``"abort"``.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -1502,14 +1504,16 @@ class AsyncIndex:
            - :meth:`upsert_records` — for indexes with integrated inference
              (text in, server-side embedding).
         """
-        error_mode = error_mode.lower()
-        if error_mode not in ("continue", "abort"):
-            raise ValidationError(f"error_mode must be 'continue' or 'abort', got {error_mode!r}")
+        if error_mode is not None:
+            error_mode = error_mode.lower()
+            if error_mode not in ("continue", "abort"):
+                raise ValidationError(
+                    f"error_mode must be 'continue' or 'abort', got {error_mode!r}"
+                )
 
-        body: dict[str, Any] = {
-            "uri": uri,
-            "errorMode": {"onError": error_mode},
-        }
+        body: dict[str, Any] = {"uri": uri}
+        if error_mode is not None:
+            body["errorMode"] = {"onError": error_mode}
         if integration_id is not None:
             body["integrationId"] = integration_id
 

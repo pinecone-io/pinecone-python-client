@@ -2294,3 +2294,56 @@ def test_upsert_records_both_id_fields_rejected() -> None:
     idx = Index(host="my-index.svc.pinecone.io", api_key="test-key")
     with pytest.raises(ValidationError, match="cannot have both '_id' and 'id'"):
         idx.upsert_records(namespace="ns", records=[{"_id": "a", "id": "b", "text": "hello"}])
+
+
+# ---------------------------------------------------------------------------
+# start_import — error_mode default behavior (mock HTTP)
+# ---------------------------------------------------------------------------
+
+_IMPORTS_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
+_IMPORTS_URL = f"https://{_IMPORTS_HOST}/bulk/imports"
+
+
+@respx.mock
+def test_start_import_error_mode_default() -> None:
+    """Calling start_import without error_mode omits errorMode from request body."""
+    from pinecone.models.imports.model import StartImportResponse
+
+    route = respx.post(_IMPORTS_URL).mock(
+        return_value=httpx.Response(200, json={"id": "import-default"}),
+    )
+    idx = Index(host=_IMPORTS_HOST, api_key="test-key")
+    result = idx.start_import(uri="s3://my-bucket/vectors/")
+
+    assert isinstance(result, StartImportResponse)
+    assert result.id == "import-default"
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["uri"] == "s3://my-bucket/vectors/"
+    assert "errorMode" not in body
+
+
+@respx.mock
+def test_start_import_error_mode_abort_in_body() -> None:
+    """Calling start_import(error_mode='abort') sends errorMode.onError='abort'."""
+    route = respx.post(_IMPORTS_URL).mock(
+        return_value=httpx.Response(200, json={"id": "import-abort"}),
+    )
+    idx = Index(host=_IMPORTS_HOST, api_key="test-key")
+    idx.start_import(uri="s3://my-bucket/vectors/", error_mode="abort")
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["errorMode"] == {"onError": "abort"}
+
+
+@respx.mock
+def test_start_import_error_mode_continue_in_body() -> None:
+    """Calling start_import(error_mode='continue') sends errorMode.onError='continue'."""
+    route = respx.post(_IMPORTS_URL).mock(
+        return_value=httpx.Response(200, json={"id": "import-continue"}),
+    )
+    idx = Index(host=_IMPORTS_HOST, api_key="test-key")
+    idx.start_import(uri="s3://my-bucket/vectors/", error_mode="continue")
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["errorMode"] == {"onError": "continue"}

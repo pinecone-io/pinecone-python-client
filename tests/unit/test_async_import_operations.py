@@ -75,7 +75,7 @@ class TestAsyncStartImport:
     @respx.mock
     @pytest.mark.asyncio
     async def test_async_start_import(self) -> None:
-        """Mock POST, verify body and return type."""
+        """Mock POST, verify body omits errorMode when error_mode is not supplied."""
         route = respx.post(IMPORTS_URL).mock(
             return_value=httpx.Response(200, json={"id": "import-001"}),
         )
@@ -88,6 +88,42 @@ class TestAsyncStartImport:
         request = route.calls.last.request
         body = json.loads(request.content)
         assert body["uri"] == "s3://bucket/data/"
+        assert "errorMode" not in body
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_start_import_error_mode_default(self) -> None:
+        """Verify errorMode absent by default and present when explicitly supplied."""
+        route_none = respx.post(IMPORTS_URL).mock(
+            return_value=httpx.Response(200, json={"id": "import-none"}),
+        )
+        idx = _make_async_index()
+        await idx.start_import(uri="s3://bucket/data/")
+        body_none = json.loads(route_none.calls.last.request.content)
+        assert "errorMode" not in body_none
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_start_import_error_mode_abort_explicit(self) -> None:
+        """Verify errorMode present and correct when error_mode='abort'."""
+        route = respx.post(IMPORTS_URL).mock(
+            return_value=httpx.Response(200, json={"id": "import-abort"}),
+        )
+        idx = _make_async_index()
+        await idx.start_import(uri="s3://bucket/data/", error_mode="abort")
+        body = json.loads(route.calls.last.request.content)
+        assert body["errorMode"] == {"onError": "abort"}
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_start_import_error_mode_continue_explicit(self) -> None:
+        """Verify errorMode present and correct when error_mode='continue'."""
+        route = respx.post(IMPORTS_URL).mock(
+            return_value=httpx.Response(200, json={"id": "import-continue"}),
+        )
+        idx = _make_async_index()
+        await idx.start_import(uri="s3://bucket/data/", error_mode="continue")
+        body = json.loads(route.calls.last.request.content)
         assert body["errorMode"] == {"onError": "continue"}
 
     @respx.mock
