@@ -256,6 +256,8 @@ def build_integrated_body(
         "model": resolve_enum_value(spec.embed.model),
         "field_map": spec.embed.field_map,
     }
+    if spec.embed.dimension is not None:
+        embed_body["dimension"] = spec.embed.dimension
     if spec.embed.metric is not None:
         embed_body["metric"] = resolve_enum_value(spec.embed.metric)
     if spec.embed.read_parameters is not None:

@@ -215,3 +215,39 @@ def test_build_byoc_body_schema_absent_when_none() -> None:
     """schema should not appear in the body when neither spec.schema nor schema= is set."""
     body = _make_byoc_body()
     assert "schema" not in body["spec"]["byoc"]
+
+
+def test_build_integrated_body_embed_dimension_included() -> None:
+    """EmbedConfig.dimension must be sent when set."""
+    spec = IntegratedSpec(
+        cloud="aws",
+        region="us-east-1",
+        embed=EmbedConfig(
+            model="multilingual-e5-large",
+            field_map={"text": "body"},
+            dimension=768,
+        ),
+    )
+    body = build_integrated_body(
+        name="test-integrated",
+        spec=spec,
+        deletion_protection="disabled",
+        tags=None,
+    )
+    assert body["embed"]["dimension"] == 768
+
+
+def test_build_integrated_body_embed_dimension_absent_when_none() -> None:
+    """embed.dimension must be absent when not set."""
+    spec = IntegratedSpec(
+        cloud="aws",
+        region="us-east-1",
+        embed=EmbedConfig(model="multilingual-e5-large", field_map={"text": "body"}),
+    )
+    body = build_integrated_body(
+        name="test-integrated",
+        spec=spec,
+        deletion_protection="disabled",
+        tags=None,
+    )
+    assert "dimension" not in body["embed"]

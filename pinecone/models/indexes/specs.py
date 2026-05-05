@@ -16,6 +16,8 @@ class EmbedConfig(Struct, frozen=True, kw_only=True):
         model: Name of the embedding model (e.g. ``"multilingual-e5-large"``).
         field_map: Maps document field names to embedding inputs
             (e.g. ``{"text": "my_text_field"}``).
+        dimension: Optional dimension hint or override for the embedding model.
+            When absent the backend infers the dimension from the model.
         metric: Similarity metric override, or ``None`` to use the model default.
         read_parameters: Optional read-time model parameters.
         write_parameters: Optional write-time model parameters.
@@ -23,6 +25,7 @@ class EmbedConfig(Struct, frozen=True, kw_only=True):
 
     model: str
     field_map: dict[str, str]
+    dimension: int | None = None
     metric: str | None = None
     read_parameters: dict[str, Any] | None = None
     write_parameters: dict[str, Any] | None = None
