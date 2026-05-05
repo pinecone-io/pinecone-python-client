@@ -1625,7 +1625,7 @@ def test_list_files_page_last_page(assistants: Assistants) -> None:
 
 @respx.mock
 def test_list_files_page_no_page_size_param(assistants: Assistants) -> None:
-    """list_files_page() does not send a pageSize query param (API does not support it)."""
+    """list_files_page() does not send a pageSize query param when page_size is omitted."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
@@ -1637,6 +1637,22 @@ def test_list_files_page_no_page_size_param(assistants: Assistants) -> None:
 
     request = route.calls.last.request
     assert "pageSize" not in str(request.url)
+
+
+@respx.mock
+def test_list_files_page_sends_page_size(assistants: Assistants) -> None:
+    """list_files_page() sends pageSize query param when page_size is provided."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    route = respx.get(f"{DATA_PLANE_URL}/files/test-assistant").mock(
+        return_value=httpx.Response(200, json={"files": []}),
+    )
+
+    assistants.list_files_page(assistant_name="test-assistant", page_size=20)
+
+    request = route.calls.last.request
+    assert "pageSize=20" in str(request.url)
 
 
 @respx.mock
