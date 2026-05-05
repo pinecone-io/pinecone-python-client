@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import AsyncGenerator
 
 import httpx
@@ -49,10 +50,10 @@ async def test_async_create_backup(async_backups: AsyncBackups) -> None:
     assert isinstance(result, BackupModel)
     assert result.backup_id == "670e8400-e29b-41d4-a716-446655440001"
 
-    # Verify body contains empty description when no optional params
+    # Verify description is absent from body when not provided
     request = route.calls[0].request
-    expected_body = httpx.Request("POST", "/", json={"description": ""})
-    assert request.content == expected_body.content
+    body = json.loads(request.content)
+    assert "description" not in body
 
 
 @respx.mock

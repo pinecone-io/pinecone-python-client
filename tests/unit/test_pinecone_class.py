@@ -342,7 +342,7 @@ class TestCreateBackup:
         pc, mock_backups = _make_pc_with_mock_backups()
         pc.create_backup(index_name="my-index", backup_name="my-backup")
         mock_backups.create.assert_called_once_with(
-            index_name="my-index", name="my-backup", description=""
+            index_name="my-index", name="my-backup", description=None
         )
 
 

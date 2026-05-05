@@ -223,7 +223,7 @@ async def test_async_create_backup_delegate_forwards() -> None:
     pc, mock_backups = _make_async_pc_with_mock_backups()
     await pc.create_backup(index_name="my-index", backup_name="my-backup")
     mock_backups.create.assert_called_once_with(
-        index_name="my-index", name="my-backup", description=""
+        index_name="my-index", name="my-backup", description=None
     )
 
 

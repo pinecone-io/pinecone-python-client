@@ -690,7 +690,7 @@ class Pinecone:
         *,
         index_name: str,
         backup_name: str | None = None,
-        description: str = "",
+        description: str | None = None,
     ) -> BackupModel:
         """Backwards-compatibility shim for :meth:`Pinecone.backups.create`.
 
