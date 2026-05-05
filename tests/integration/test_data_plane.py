@@ -2304,6 +2304,30 @@ _IMPORTS_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
 _IMPORTS_URL = f"https://{_IMPORTS_HOST}/bulk/imports"
 
 
+# ---------------------------------------------------------------------------
+# fetch_by_metadata — client-side limit validation
+# ---------------------------------------------------------------------------
+
+
+def test_fetch_by_metadata_limit_validation() -> None:
+    """fetch_by_metadata raises when limit=0 (minimum is 1 per OAS spec)."""
+    idx = Index(host="my-index.svc.pinecone.io", api_key="test-key")
+    with pytest.raises((PineconeValueError, ValidationError), match="limit"):
+        idx.fetch_by_metadata(filter={"a": "b"}, limit=0)
+
+
+def test_fetch_by_metadata_limit_validation_negative() -> None:
+    """fetch_by_metadata raises when limit is negative."""
+    idx = Index(host="my-index.svc.pinecone.io", api_key="test-key")
+    with pytest.raises((PineconeValueError, ValidationError), match="limit"):
+        idx.fetch_by_metadata(filter={"a": "b"}, limit=-5)
+
+
+# ---------------------------------------------------------------------------
+# start_import — error_mode default behavior (mock HTTP)
+# ---------------------------------------------------------------------------
+
+
 @respx.mock
 def test_start_import_error_mode_default() -> None:
     """Calling start_import without error_mode omits errorMode from request body."""

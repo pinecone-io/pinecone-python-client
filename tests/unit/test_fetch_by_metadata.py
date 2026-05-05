@@ -192,3 +192,30 @@ class TestFetchByMetadataResponsePagination:
         idx = _make_index()
         with pytest.raises(TypeError):
             idx.fetch_by_metadata({"a": 1})  # type: ignore[misc]
+
+
+# ---------------------------------------------------------------------------
+# Limit validation
+# ---------------------------------------------------------------------------
+
+
+class TestFetchByMetadataLimitValidation:
+    """limit must be >= 1; limit=0 or negative raises before any HTTP call."""
+
+    def test_fetch_by_metadata_limit_validation_zero(self) -> None:
+        idx = _make_index()
+        with pytest.raises(Exception, match="limit"):
+            idx.fetch_by_metadata(filter={"a": "b"}, limit=0)
+
+    def test_fetch_by_metadata_limit_validation_negative(self) -> None:
+        idx = _make_index()
+        with pytest.raises(Exception, match="limit"):
+            idx.fetch_by_metadata(filter={"a": "b"}, limit=-1)
+
+    @respx.mock
+    def test_fetch_by_metadata_limit_validation_one_passes(self) -> None:
+        respx.post(FETCH_BY_META_URL).mock(
+            return_value=httpx.Response(200, json=_make_response()),
+        )
+        idx = _make_index()
+        idx.fetch_by_metadata(filter={"a": "b"}, limit=1)

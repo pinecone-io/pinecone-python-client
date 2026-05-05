@@ -1420,6 +1420,29 @@ async def test_search_with_dense_vector() -> None:
 
 
 # ---------------------------------------------------------------------------
+# fetch_by_metadata — client-side limit validation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_fetch_by_metadata_limit_validation() -> None:
+    """fetch_by_metadata raises when limit=0 (minimum is 1 per OAS spec)."""
+    idx = AsyncIndex(host="my-index.svc.pinecone.io", api_key="test-key")
+    with pytest.raises((PineconeValueError, ValueError), match="limit"):
+        await idx.fetch_by_metadata(filter={"a": "b"}, limit=0)
+    await idx.close()
+
+
+@pytest.mark.anyio
+async def test_fetch_by_metadata_limit_validation_negative() -> None:
+    """fetch_by_metadata raises when limit is negative."""
+    idx = AsyncIndex(host="my-index.svc.pinecone.io", api_key="test-key")
+    with pytest.raises((PineconeValueError, ValueError), match="limit"):
+        await idx.fetch_by_metadata(filter={"a": "b"}, limit=-5)
+    await idx.close()
+
+
+# ---------------------------------------------------------------------------
 # start_import — error_mode default behavior (mock HTTP)
 # ---------------------------------------------------------------------------
 

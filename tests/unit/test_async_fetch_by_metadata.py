@@ -144,3 +144,38 @@ class TestAsyncFetchByMetadataRequestBody:
         assert "namespace" not in body
         assert "limit" not in body
         assert "paginationToken" not in body
+
+
+# ---------------------------------------------------------------------------
+# Limit validation
+# ---------------------------------------------------------------------------
+
+
+class TestAsyncFetchByMetadataLimitValidation:
+    """limit must be >= 1; limit=0 or negative raises before any HTTP call."""
+
+    @pytest.mark.anyio
+    async def test_fetch_by_metadata_limit_validation_zero(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(Exception, match="limit"):
+            await idx.fetch_by_metadata(filter={"a": "b"}, limit=0)
+        await idx.close()
+
+    @pytest.mark.anyio
+    async def test_fetch_by_metadata_limit_validation_negative(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(Exception, match="limit"):
+            await idx.fetch_by_metadata(filter={"a": "b"}, limit=-1)
+        await idx.close()
+
+    @respx.mock
+    @pytest.mark.anyio
+    async def test_fetch_by_metadata_limit_validation_one_passes(self) -> None:
+        respx.post(FETCH_BY_META_URL).mock(
+            return_value=httpx.Response(200, json=_make_response()),
+        )
+        idx = _make_async_index()
+        try:
+            await idx.fetch_by_metadata(filter={"a": "b"}, limit=1)
+        finally:
+            await idx.close()

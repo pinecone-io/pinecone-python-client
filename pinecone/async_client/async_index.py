@@ -18,7 +18,7 @@ from pinecone._internal.batching import validate_batch_size
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host, _vector_to_dict
-from pinecone._internal.validation import require_in_range
+from pinecone._internal.validation import require_in_range, require_positive
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import PineconeValueError, ValidationError
 from pinecone.models.imports.list import ImportList
@@ -757,6 +757,8 @@ class AsyncIndex:
                     )
                     token = response.pagination.next if response.pagination else None
         """
+        if limit is not None:
+            require_positive("limit", limit)
         body: dict[str, Any] = {"filter": filter}
         if namespace:
             body["namespace"] = namespace
