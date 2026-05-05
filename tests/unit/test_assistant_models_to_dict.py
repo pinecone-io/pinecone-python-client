@@ -132,22 +132,22 @@ class TestAlignmentResultToDict:
 
 class TestListAssistantsResponseToDict:
     def test_list_assistants_response_to_dict(self) -> None:
-        resp = ListAssistantsResponse(assistants=[], next=None)
+        resp = ListAssistantsResponse(assistants=[])
         result = resp.to_dict()
         assert isinstance(result, dict)
         assert "assistants" in result
-        assert "next" in result
+        assert "pagination" in result
         assert result["assistants"] == []
-        assert result["next"] is None
+        assert result["pagination"] is None
 
     def test_list_assistants_response_nested_models(self) -> None:
         asst = AssistantModel(name="my-asst", status="Ready")
-        resp = ListAssistantsResponse(assistants=[asst], next="tok")
+        resp = ListAssistantsResponse(assistants=[asst], pagination=_Pagination(next="tok"))
         result = resp.to_dict()
         assert isinstance(result["assistants"][0], dict)
         assert not isinstance(result["assistants"][0], AssistantModel)
         assert result["assistants"][0]["name"] == "my-asst"
-        assert result["next"] == "tok"
+        assert result["pagination"]["next"] == "tok"
 
 
 class TestListFilesResponseToDict:

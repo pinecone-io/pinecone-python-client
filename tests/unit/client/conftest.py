@@ -34,14 +34,15 @@ def mock_assistants() -> Assistants:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     obj = Assistants(config=config)
 
-    # Stub the HTTP client so no real requests go out.
+    # Stub the HTTP clients so no real requests go out.
     obj._http = MagicMock()  # type: ignore[attr-defined]
+    obj._http_v202604 = MagicMock()  # type: ignore[attr-defined]
 
     # Stub the adapter so it returns canned responses.
     mock_adapter = MagicMock()
     mock_adapter.to_assistant.return_value = _CANNED_ASSISTANT
     mock_adapter.to_assistant_list.return_value = ListAssistantsResponse(
-        assistants=[_CANNED_ASSISTANT], next=None
+        assistants=[_CANNED_ASSISTANT]
     )
     obj._adapter = mock_adapter  # type: ignore[attr-defined]
 

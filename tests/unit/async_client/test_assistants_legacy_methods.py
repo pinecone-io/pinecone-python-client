@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from pinecone.async_client.assistants import AsyncAssistants
-from pinecone.models.assistant.list import ListAssistantsResponse
+from pinecone.models.assistant.list import ListAssistantsResponse, _Pagination
 from pinecone.models.assistant.model import AssistantModel
 
 _CANNED_ASSISTANT = AssistantModel(
@@ -35,7 +35,7 @@ async def test_async_list_assistants_returns_list(
 ) -> None:
     """list_assistants() materializes the async paginator and returns a plain list."""
     mock_async_assistants._adapter.to_assistant_list.return_value = ListAssistantsResponse(  # type: ignore[attr-defined]
-        assistants=[_CANNED_ASSISTANT], next=None
+        assistants=[_CANNED_ASSISTANT]
     )
     result = await mock_async_assistants.list_assistants()
     assert isinstance(result, list)
@@ -47,7 +47,7 @@ async def test_async_list_assistants_paginated_returns_response_shape(
 ) -> None:
     """list_assistants_paginated() returns a ListAssistantsResponse."""
     mock_async_assistants._adapter.to_assistant_list.return_value = ListAssistantsResponse(  # type: ignore[attr-defined]
-        assistants=[_CANNED_ASSISTANT], next=None
+        assistants=[_CANNED_ASSISTANT]
     )
     resp = await mock_async_assistants.list_assistants_paginated(limit=2)
     assert isinstance(resp, ListAssistantsResponse)
@@ -59,7 +59,7 @@ async def test_async_list_assistants_paginated_legacy_limit_alias(
     mock_async_assistants: AsyncAssistants,
 ) -> None:
     """list_assistants_paginated(limit=...) passes page_size= to list_page."""
-    canned_response = ListAssistantsResponse(assistants=[], next=None)
+    canned_response = ListAssistantsResponse(assistants=[])
     spy_list_page = AsyncMock(return_value=canned_response)
     mock_async_assistants.list_page = spy_list_page  # type: ignore[method-assign]
 
@@ -260,8 +260,10 @@ async def test_async_list_assistants_returns_all_pages(
     mock_async_assistants: AsyncAssistants,
 ) -> None:
     """list_assistants() follows pagination and returns items from all pages."""
-    page1 = ListAssistantsResponse(assistants=[_CANNED_ASSISTANT], next="token-1")
-    page2 = ListAssistantsResponse(assistants=[_CANNED_ASSISTANT], next=None)
+    page1 = ListAssistantsResponse(
+        assistants=[_CANNED_ASSISTANT], pagination=_Pagination(next="token-1")
+    )
+    page2 = ListAssistantsResponse(assistants=[_CANNED_ASSISTANT])
     mock_async_assistants._adapter.to_assistant_list.side_effect = [page1, page2]  # type: ignore[attr-defined]
     result = await mock_async_assistants.list_assistants()
     assert len(result) == 2
@@ -271,7 +273,7 @@ async def test_async_list_assistants_paginated_page_size_kwarg(
     mock_async_assistants: AsyncAssistants,
 ) -> None:
     """list_assistants_paginated(page_size=...) also passes page_size= to list_page."""
-    canned_response = ListAssistantsResponse(assistants=[], next=None)
+    canned_response = ListAssistantsResponse(assistants=[])
     spy_list_page = AsyncMock(return_value=canned_response)
     mock_async_assistants.list_page = spy_list_page  # type: ignore[method-assign]
 
@@ -284,7 +286,7 @@ async def test_async_list_assistants_paginated_with_pagination_token(
     mock_async_assistants: AsyncAssistants,
 ) -> None:
     """list_assistants_paginated() forwards pagination_token to list_page."""
-    canned_response = ListAssistantsResponse(assistants=[], next=None)
+    canned_response = ListAssistantsResponse(assistants=[])
     spy_list_page = AsyncMock(return_value=canned_response)
     mock_async_assistants.list_page = spy_list_page  # type: ignore[method-assign]
 

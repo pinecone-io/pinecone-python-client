@@ -609,14 +609,14 @@ def test_list_assistants_multi_page(assistants: Assistants) -> None:
                 200,
                 json={
                     "assistants": [make_assistant_response(name="a1")],
-                    "next": "token-page2",
+                    "pagination": {"next": "token-page2"},
                 },
             ),
             httpx.Response(
                 200,
                 json={
                     "assistants": [make_assistant_response(name="a2")],
-                    "next": "token-page3",
+                    "pagination": {"next": "token-page3"},
                 },
             ),
             httpx.Response(
@@ -708,7 +708,7 @@ def test_list_assistants_pages(assistants: Assistants) -> None:
                 200,
                 json={
                     "assistants": [make_assistant_response(name="a1")],
-                    "next": "token-next",
+                    "pagination": {"next": "token-next"},
                 },
             ),
             httpx.Response(
@@ -746,7 +746,7 @@ def test_list_assistants_with_pagination_token(assistants: Assistants) -> None:
     assert len(result) == 1
     assert result[0].name == "a2"
     request = route.calls.last.request
-    assert "paginationToken=tok-page2" in str(request.url)
+    assert "pagination_token=tok-page2" in str(request.url)
 
 
 # ---------------------------------------------------------------------------
@@ -762,7 +762,7 @@ def test_list_assistants_page(assistants: Assistants) -> None:
             200,
             json={
                 "assistants": [make_assistant_response(name="a1")],
-                "next": "token-next",
+                "pagination": {"next": "token-next"},
             },
         ),
     )
@@ -795,7 +795,7 @@ def test_list_assistants_page_last_page(assistants: Assistants) -> None:
 
 @respx.mock
 def test_list_assistants_page_with_page_size(assistants: Assistants) -> None:
-    """list_page() sends pageSize query param when provided."""
+    """list_page() sends limit query param when provided."""
     route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
@@ -803,12 +803,12 @@ def test_list_assistants_page_with_page_size(assistants: Assistants) -> None:
     assistants.list_page(page_size=5)
 
     request = route.calls.last.request
-    assert "pageSize=5" in str(request.url)
+    assert "limit=5" in str(request.url)
 
 
 @respx.mock
 def test_list_assistants_page_with_pagination_token(assistants: Assistants) -> None:
-    """list_page() sends paginationToken query param when provided."""
+    """list_page() sends pagination_token query param when provided."""
     route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
@@ -816,7 +816,7 @@ def test_list_assistants_page_with_pagination_token(assistants: Assistants) -> N
     assistants.list_page(pagination_token="abc123")
 
     request = route.calls.last.request
-    assert "paginationToken=abc123" in str(request.url)
+    assert "pagination_token=abc123" in str(request.url)
 
 
 # ---------------------------------------------------------------------------
@@ -1137,8 +1137,8 @@ def test_list_assistants_page_omits_none_params(assistants: Assistants) -> None:
     assistants.list_page()
 
     request = route.calls.last.request
-    assert "pageSize" not in str(request.url)
-    assert "paginationToken" not in str(request.url)
+    assert "limit" not in str(request.url)
+    assert "pagination_token" not in str(request.url)
 
 
 CONTROL_PLANE_URL = "https://api.pinecone.io"
@@ -3155,7 +3155,7 @@ def test_model_to_dict_recursive() -> None:
     from pinecone.models.assistant.list import ListAssistantsResponse
 
     assistant = _make_assistant_model(metadata=None)
-    response = ListAssistantsResponse(assistants=[assistant], next=None)
+    response = ListAssistantsResponse(assistants=[assistant])
 
     # Attribute access still works; nested entity models still have to_dict()
     assert len(response.assistants) == 1

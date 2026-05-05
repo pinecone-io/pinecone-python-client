@@ -33,13 +33,17 @@ def mock_async_assistants() -> AsyncAssistants:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     obj = AsyncAssistants(config=config)
 
-    # Stub the HTTP client so no real requests go out.
+    # Stub the HTTP clients so no real requests go out.
     mock_http = AsyncMock()
     mock_response = MagicMock()
     mock_response.content = b"{}"
     mock_http.post.return_value = mock_response
     mock_http.get.return_value = mock_response
     obj._http = mock_http  # type: ignore[attr-defined]
+
+    mock_http_v202604 = AsyncMock()
+    mock_http_v202604.get.return_value = mock_response
+    obj._http_v202604 = mock_http_v202604  # type: ignore[attr-defined]
 
     # Stub the adapter so it returns canned responses.
     mock_adapter = MagicMock()

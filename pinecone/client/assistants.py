@@ -95,6 +95,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             retry_config=config.retry_config,
         )
         self._http = _HTTPClient(cp_config, ASSISTANT_API_VERSION)
+        self._http_v202604 = _HTTPClient(cp_config, ASSISTANT_API_VERSION_2026_04)
         self._adapter = AssistantsAdapter()
         self._data_plane_clients: dict[str, HTTPClient] = {}
 
@@ -137,6 +138,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
     def close(self) -> None:
         """Close the underlying HTTP client and any cached data-plane clients."""
         self._http.close()
+        self._http_v202604.close()
         self._eval_http.close()
         for client in self._data_plane_clients.values():
             client.close()
@@ -867,12 +869,12 @@ class Assistants(AssistantsLegacyNamespaceMixin):
 
         params: dict[str, str | int] = {}
         if page_size is not None:
-            params["pageSize"] = page_size
+            params["limit"] = page_size
         if pagination_token is not None:
-            params["paginationToken"] = pagination_token
+            params["pagination_token"] = pagination_token
 
         logger.info("Listing assistants page")
-        response = self._http.get("/assistants", params=params)
+        response = self._http_v202604.get("/assistants", params=params)
         result = self._adapter.to_assistant_list(response.content)
         for item in result.assistants:
             self._attach_ref(item)

@@ -27,7 +27,9 @@ class TestListAssistantsRepr:
         assert "count=500" in r
 
     def test_with_next_token(self) -> None:
-        assert "tok" in repr(ListAssistantsResponse(assistants=[], next="tok"))
+        assert "tok" in repr(
+            ListAssistantsResponse(assistants=[], pagination=_Pagination(next="tok"))
+        )
 
     def test_safe_on_malformed(self) -> None:
         m = ListAssistantsResponse(assistants=mk_assist(1))

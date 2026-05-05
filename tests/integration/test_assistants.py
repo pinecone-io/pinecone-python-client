@@ -2206,45 +2206,23 @@ def test_pagination_next_token_populated(client: Pinecone) -> None:
         page = client.assistants.list_page(page_size=2)
         assert isinstance(page, ListAssistantsResponse)
 
-        # --- Raw HTTP inspection to verify wire-format key ---
-        raw_response = client.assistants._http.get("/assistants", params={"pageSize": 2})
+        # --- Raw HTTP inspection to verify wire-format key (v202604 endpoint) ---
+        raw_response = client.assistants._http_v202604.get("/assistants", params={"limit": 2})
         raw_body = _json.loads(raw_response.content)
 
-        has_flat_next = "next" in raw_body
-        has_flat_next_token = "next_token" in raw_body
         has_nested_pagination = "pagination" in raw_body and isinstance(
             raw_body.get("pagination"), dict
         )
 
-        # Log findings — the raw_body keys reveal the wire-format shape
-        # Expected shapes: {"assistants": [...], "next": "..."}
-        #                  {"assistants": [...], "next_token": "..."}
-        #                  {"assistants": [...], "pagination": {"next": "..."}}
-        _ = (has_flat_next, has_flat_next_token, has_nested_pagination)  # prevent unused-var lint
-
-        # If there are enough assistants for a second page, next must be populated
-        if len(page.assistants) == 2:
-            # A second page likely exists — verify that the SDK reads it correctly
-            if has_flat_next and raw_body.get("next"):
-                assert page.next == raw_body["next"], (
-                    f"SDK next={page.next!r} does not match raw next={raw_body['next']!r}"
+        # v202604 wire format: {"assistants": [...], "pagination": {"next": "token"}}
+        if len(page.assistants) == 2 and has_nested_pagination:
+            raw_next = raw_body["pagination"].get("next")
+            if raw_next:
+                assert page.next == raw_next, (
+                    f"SDK next={page.next!r} does not match raw pagination.next={raw_next!r}"
                 )
                 assert isinstance(page.next, str)
                 assert len(page.next) > 0, "page.next must be non-empty when more pages exist"
-            elif has_flat_next_token and raw_body.get("next_token"):
-                # Wire format uses next_token — the rename mapping is needed
-                raise AssertionError(
-                    f"Wire format uses 'next_token' (value={raw_body['next_token']!r}), "
-                    'but the SDK model reads \'next\'. Add rename={{"next": "next_token"}} '
-                    "to ListAssistantsResponse to fix pagination."
-                )
-            elif has_nested_pagination and raw_body["pagination"].get("next"):
-                raise AssertionError(
-                    "Wire format uses nested 'pagination.next' "
-                    f"(value={raw_body['pagination']['next']!r}), "
-                    "but the SDK model has a flat 'next' field. "
-                    "Update ListAssistantsResponse to decode the nested structure."
-                )
 
         # backwards-compat alias must mirror next regardless of pagination state
         assert page.next_token == page.next, (

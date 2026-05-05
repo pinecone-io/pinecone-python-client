@@ -98,6 +98,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             retry_config=config.retry_config,
         )
         self._http = _AsyncHTTPClient(cp_config, ASSISTANT_API_VERSION)
+        self._http_v202604 = _AsyncHTTPClient(cp_config, ASSISTANT_API_VERSION_2026_04)
         self._adapter = AssistantsAdapter()
         self._data_plane_clients: dict[str, AsyncHTTPClient] = {}
 
@@ -125,6 +126,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
     async def close(self) -> None:
         """Close the underlying HTTP client and any cached data-plane clients."""
         await self._http.close()
+        await self._http_v202604.close()
         await self._eval_http.close()
         for client in self._data_plane_clients.values():
             await client.close()
@@ -410,12 +412,12 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         params: dict[str, str | int] = {}
         if page_size is not None:
-            params["pageSize"] = page_size
+            params["limit"] = page_size
         if pagination_token is not None:
-            params["paginationToken"] = pagination_token
+            params["pagination_token"] = pagination_token
 
         logger.info("Listing assistants page")
-        response = await self._http.get("/assistants", params=params)
+        response = await self._http_v202604.get("/assistants", params=params)
         result = self._adapter.to_assistant_list(response.content)
         for item in result.assistants:
             self._attach_ref(item)

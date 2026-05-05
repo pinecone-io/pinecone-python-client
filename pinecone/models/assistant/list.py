@@ -12,17 +12,28 @@ from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.model import AssistantModel
 
 
+class _Pagination(Struct, kw_only=True):
+    """Wire-format pagination object returned by the v202604 list endpoints."""
+
+    next: str
+
+
 class ListAssistantsResponse(StructDictMixin, Struct, kw_only=True):
     """Paginated response for listing assistants.
 
     Attributes:
         assistants: The assistants returned in this page.
-        next: Token for fetching the next page of results, or ``None``
+        pagination: Nested pagination object from the v202604 API, or ``None``
             when no more pages exist.
     """
 
     assistants: list[AssistantModel]
-    next: str | None = None
+    pagination: _Pagination | None = None
+
+    @property
+    def next(self) -> str | None:
+        """Continuation token for the next page, or ``None`` when exhausted."""
+        return self.pagination.next if self.pagination is not None else None
 
     @property
     def next_token(self) -> str | None:
@@ -59,12 +70,6 @@ class ListAssistantsResponse(StructDictMixin, Struct, kw_only=True):
             section_rows.append(("...", f"{len(self.assistants) - 5} more"))
         builder.section("Assistants", section_rows)
         return builder.build()
-
-
-class _Pagination(Struct, kw_only=True):
-    """Wire-format pagination object returned by the v202604 file-listing endpoint."""
-
-    next: str
 
 
 class ListFilesResponse(StructDictMixin, Struct, kw_only=True):

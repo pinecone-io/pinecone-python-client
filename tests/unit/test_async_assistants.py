@@ -524,14 +524,14 @@ async def test_list_assistants_multi_page(async_assistants: AsyncAssistants) -> 
                 200,
                 json={
                     "assistants": [make_assistant_response(name="a1")],
-                    "next": "token-page2",
+                    "pagination": {"next": "token-page2"},
                 },
             ),
             httpx.Response(
                 200,
                 json={
                     "assistants": [make_assistant_response(name="a2")],
-                    "next": "token-page3",
+                    "pagination": {"next": "token-page3"},
                 },
             ),
             httpx.Response(
@@ -623,7 +623,7 @@ async def test_list_assistants_pages(async_assistants: AsyncAssistants) -> None:
                 200,
                 json={
                     "assistants": [make_assistant_response(name="a1")],
-                    "next": "token-next",
+                    "pagination": {"next": "token-next"},
                 },
             ),
             httpx.Response(
@@ -661,7 +661,7 @@ async def test_list_assistants_with_pagination_token(async_assistants: AsyncAssi
     assert len(result) == 1
     assert result[0].name == "a2"
     request = route.calls.last.request
-    assert "paginationToken=tok-page2" in str(request.url)
+    assert "pagination_token=tok-page2" in str(request.url)
 
 
 # ---------------------------------------------------------------------------
@@ -677,7 +677,7 @@ async def test_list_assistants_page(async_assistants: AsyncAssistants) -> None:
             200,
             json={
                 "assistants": [make_assistant_response(name="a1")],
-                "next": "token-next",
+                "pagination": {"next": "token-next"},
             },
         ),
     )
@@ -710,7 +710,7 @@ async def test_list_assistants_page_last_page(async_assistants: AsyncAssistants)
 
 @respx.mock
 async def test_list_assistants_page_with_page_size(async_assistants: AsyncAssistants) -> None:
-    """list_page() sends pageSize query param when provided."""
+    """list_page() sends limit query param when provided."""
     route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
@@ -718,14 +718,14 @@ async def test_list_assistants_page_with_page_size(async_assistants: AsyncAssist
     await async_assistants.list_page(page_size=5)
 
     request = route.calls.last.request
-    assert "pageSize=5" in str(request.url)
+    assert "limit=5" in str(request.url)
 
 
 @respx.mock
 async def test_list_assistants_page_with_pagination_token(
     async_assistants: AsyncAssistants,
 ) -> None:
-    """list_page() sends paginationToken query param when provided."""
+    """list_page() sends pagination_token query param when provided."""
     route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
@@ -733,7 +733,7 @@ async def test_list_assistants_page_with_pagination_token(
     await async_assistants.list_page(pagination_token="abc123")
 
     request = route.calls.last.request
-    assert "paginationToken=abc123" in str(request.url)
+    assert "pagination_token=abc123" in str(request.url)
 
 
 @respx.mock
@@ -748,8 +748,8 @@ async def test_list_assistants_page_omits_none_params(
     await async_assistants.list_page()
 
     request = route.calls.last.request
-    assert "pageSize" not in str(request.url)
-    assert "paginationToken" not in str(request.url)
+    assert "limit" not in str(request.url)
+    assert "pagination_token" not in str(request.url)
 
 
 # ---------------------------------------------------------------------------

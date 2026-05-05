@@ -133,11 +133,11 @@ def test_list_page_accepts_legacy_limit(mock_assistants: Assistants) -> None:
     from pinecone.models.assistant.list import ListAssistantsResponse
 
     mock_assistants._adapter.to_assistant_list.return_value = ListAssistantsResponse(  # type: ignore[attr-defined]
-        assistants=[], next=None
+        assistants=[]
     )
     mock_assistants.list_page(limit=5)
-    mock_assistants._http.get.assert_called_once_with(  # type: ignore[attr-defined]
-        "/assistants", params={"pageSize": 5}
+    mock_assistants._http_v202604.get.assert_called_once_with(  # type: ignore[attr-defined]
+        "/assistants", params={"limit": 5}
     )
 
 

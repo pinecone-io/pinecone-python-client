@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from pinecone.client.assistants import Assistants
-from pinecone.models.assistant.list import ListAssistantsResponse
+from pinecone.models.assistant.list import ListAssistantsResponse, _Pagination
 from pinecone.models.assistant.model import AssistantModel
 
 _CANNED_ASSISTANT = AssistantModel(
@@ -28,7 +28,7 @@ _CANNED_ASSISTANT = AssistantModel(
 def test_list_assistants_returns_list(mock_assistants: Assistants) -> None:
     """list_assistants() materializes the paginator and returns a plain list."""
     mock_assistants._adapter.to_assistant_list.return_value = ListAssistantsResponse(  # type: ignore[attr-defined]
-        assistants=[_CANNED_ASSISTANT], next=None
+        assistants=[_CANNED_ASSISTANT]
     )
     result = mock_assistants.list_assistants()
     assert isinstance(result, list)
@@ -37,8 +37,10 @@ def test_list_assistants_returns_list(mock_assistants: Assistants) -> None:
 
 def test_list_assistants_returns_all_pages(mock_assistants: Assistants) -> None:
     """list_assistants() follows pagination and returns items from all pages."""
-    page1 = ListAssistantsResponse(assistants=[_CANNED_ASSISTANT], next="token-1")
-    page2 = ListAssistantsResponse(assistants=[_CANNED_ASSISTANT], next=None)
+    page1 = ListAssistantsResponse(
+        assistants=[_CANNED_ASSISTANT], pagination=_Pagination(next="token-1")
+    )
+    page2 = ListAssistantsResponse(assistants=[_CANNED_ASSISTANT])
     mock_assistants._adapter.to_assistant_list.side_effect = [page1, page2]  # type: ignore[attr-defined]
     result = mock_assistants.list_assistants()
     assert len(result) == 2
@@ -54,7 +56,7 @@ def test_list_assistants_paginated_returns_response_shape(
 ) -> None:
     """list_assistants_paginated() returns a ListAssistantsResponse."""
     mock_assistants._adapter.to_assistant_list.return_value = ListAssistantsResponse(  # type: ignore[attr-defined]
-        assistants=[_CANNED_ASSISTANT], next=None
+        assistants=[_CANNED_ASSISTANT]
     )
     resp = mock_assistants.list_assistants_paginated(limit=2)
     assert isinstance(resp, ListAssistantsResponse)
@@ -66,7 +68,7 @@ def test_list_assistants_paginated_legacy_limit_alias(
     mock_assistants: Assistants,
 ) -> None:
     """list_assistants_paginated(limit=...) passes page_size= to list_page."""
-    canned_response = ListAssistantsResponse(assistants=[], next=None)
+    canned_response = ListAssistantsResponse(assistants=[])
     original_list_page = mock_assistants.list_page
     spy_list_page = MagicMock(side_effect=original_list_page)
     mock_assistants.list_page = spy_list_page  # type: ignore[method-assign]
@@ -81,7 +83,7 @@ def test_list_assistants_paginated_page_size_kwarg(
     mock_assistants: Assistants,
 ) -> None:
     """list_assistants_paginated(page_size=...) also passes page_size= to list_page."""
-    canned_response = ListAssistantsResponse(assistants=[], next=None)
+    canned_response = ListAssistantsResponse(assistants=[])
     original_list_page = mock_assistants.list_page
     spy_list_page = MagicMock(side_effect=original_list_page)
     mock_assistants.list_page = spy_list_page  # type: ignore[method-assign]
@@ -96,7 +98,7 @@ def test_list_assistants_paginated_with_pagination_token(
     mock_assistants: Assistants,
 ) -> None:
     """list_assistants_paginated() forwards pagination_token to list_page."""
-    canned_response = ListAssistantsResponse(assistants=[], next=None)
+    canned_response = ListAssistantsResponse(assistants=[])
     original_list_page = mock_assistants.list_page
     spy_list_page = MagicMock(side_effect=original_list_page)
     mock_assistants.list_page = spy_list_page  # type: ignore[method-assign]
