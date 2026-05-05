@@ -18,7 +18,7 @@ class TestAPIKeyModelToDict:
         assert "name" in result
         assert "project_id" in result
         assert "roles" in result
-        assert "description" in result
+        assert "description" not in result
         assert result["id"] == "k1"
         assert result["name"] == "prod-key"
         assert result["project_id"] == "p1"
@@ -31,21 +31,10 @@ class TestAPIKeyModelToDict:
         assert result["roles"] == ["ProjectEditor"]
         assert all(isinstance(r, str) for r in result["roles"])
 
-    def test_api_key_model_to_dict_description_none(self) -> None:
-        key = APIKeyModel(id="k1", name="prod-key", project_id="p1", roles=[])
+    def test_api_key_model_to_dict_name_none(self) -> None:
+        key = APIKeyModel(id="k1", project_id="p1", roles=[])
         result = key.to_dict()
-        assert result["description"] is None
-
-    def test_api_key_model_to_dict_with_description(self) -> None:
-        key = APIKeyModel(
-            id="k1",
-            name="prod-key",
-            project_id="p1",
-            roles=[APIKeyRole.DATA_PLANE_VIEWER],
-            description="Used by search service",
-        )
-        result = key.to_dict()
-        assert result["description"] == "Used by search service"
+        assert result["name"] is None
 
 
 class TestAPIKeyWithSecretToDict:

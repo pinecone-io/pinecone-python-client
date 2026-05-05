@@ -160,23 +160,31 @@ def test_create_api_key_with_roles(api_keys: ApiKeys) -> None:
 
 
 @respx.mock
-def test_create_with_description(api_keys: ApiKeys) -> None:
-    route = respx.post(f"{BASE_URL}/admin/projects/p1/api-keys").mock(
+def test_api_key_list_name_optional(api_keys: ApiKeys) -> None:
+    respx.get(f"{BASE_URL}/admin/projects/p1/api-keys").mock(
         return_value=httpx.Response(
-            201,
-            json=_api_key_with_secret_response(
-                key=_api_key_response(id="k1", name="key", project_id="p1"),
-            ),
+            200,
+            json={
+                "data": [
+                    _api_key_response(id="k1", name="has-name", project_id="p1"),
+                    {
+                        "id": "k2",
+                        "name": None,
+                        "project_id": "p1",
+                        "roles": ["ProjectEditor"],
+                    },
+                ]
+            },
         ),
     )
 
-    api_keys.create(project_id="p1", name="key", description="My key description")
+    result = api_keys.list(project_id="p1")
 
-    request = route.calls[0].request
-    expected_body = httpx.Request(
-        "POST", "/", json={"name": "key", "description": "My key description"}
-    )
-    assert request.content == expected_body.content
+    assert len(result) == 2
+    assert result[0].name == "has-name"
+    assert result[1].name is None
+    for key in result:
+        assert isinstance(key.name, (str, type(None)))
 
 
 @respx.mock

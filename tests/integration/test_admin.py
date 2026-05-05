@@ -30,6 +30,7 @@ import pytest
 
 from pinecone import Admin, PineconeValueError
 from pinecone.errors import ApiError, NotFoundError
+from pinecone.models.admin.api_key import APIKeyList, APIKeyModel
 from pinecone.models.admin.organization import OrganizationList, OrganizationModel
 from pinecone.models.admin.project import ProjectList, ProjectModel
 
@@ -295,3 +296,38 @@ def test_project_lifecycle_create_describe_update_delete(admin: Admin) -> None:
     if _test_passed and created is not None:
         with pytest.raises(NotFoundError):
             admin.projects.describe(project_id=created.id)
+
+
+# ---------------------------------------------------------------------------
+# api_keys — name-nullability
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_api_key_list_name_optional(admin: Admin) -> None:
+    """api_keys.list() accepts keys whose name field may be None.
+
+    Creates an ephemeral API key, lists keys for the project, and verifies
+    that every returned key's name field is str | None.  Cleans up in a
+    finally block.
+    """
+    projects = admin.projects.list()
+    assert len(projects) >= 1, "need at least one project for this test"
+    project = projects[0]
+    key_id: str | None = None
+
+    try:
+        created = admin.api_keys.create(project_id=project.id, name="inttest-name-optional")
+        key_id = created.key.id
+
+        keys = admin.api_keys.list(project_id=project.id)
+        assert isinstance(keys, APIKeyList)
+        for key in keys:
+            assert isinstance(key, APIKeyModel)
+            assert isinstance(key.name, (str, type(None)))
+    finally:
+        if key_id is not None:
+            try:
+                admin.api_keys.delete(api_key_id=key_id)
+            except Exception as e:
+                print(f"Cleanup failed for api key {key_id!r}: {e}")

@@ -53,12 +53,11 @@ class APIKeyModel(StructDictMixin, Struct, kw_only=True):
 
     Attributes:
         id (str): Unique identifier for the API key.
-        name (str): Name of the API key.
+        name (str | None): Name of the API key, or ``None`` when the backend
+            has no display label set for this key.
         project_id (str): Identifier of the project the key belongs to.
         roles (list[APIKeyRole]): List of roles assigned to the key
             (see :class:`APIKeyRole`).
-        description (str | None): Optional description for the API key.
-            ``None`` if no description was set.
 
     Examples:
         >>> from pinecone import Admin
@@ -70,16 +69,13 @@ class APIKeyModel(StructDictMixin, Struct, kw_only=True):
         'prod-search-key'
         >>> key.roles
         [<APIKeyRole.DATA_PLANE_EDITOR: 'DataPlaneEditor'>]
-        >>> key.description
-        'Used by the search service'
 
     """
 
     id: str
-    name: str
+    name: str | None = None
     project_id: str
     roles: list[APIKeyRole]
-    description: str | None = None
 
     @property
     def role(self) -> APIKeyRole:
@@ -195,11 +191,12 @@ class APIKeyList:
         """
         return {"data": [k.to_dict() for k in self._api_keys]}
 
-    def names(self) -> list[str]:
+    def names(self) -> list[str | None]:
         """Return a list of API key names.
 
         Returns:
-            list[str]: API key names in the same order as the list.
+            list[str | None]: API key names in the same order as the list.
+                Elements are ``None`` for keys whose backend display label is unset.
 
         Examples:
             >>> from pinecone import Admin

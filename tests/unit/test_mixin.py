@@ -34,7 +34,7 @@ class TestMixinRepr:
         assert not r.startswith("{'"), f"repr must not be dict form, got: {r!r}"
 
     def test_api_key_model_repr_starts_with_class_name(self) -> None:
-        obj = APIKeyModel(id="k1", name="n", project_id="p", roles=[], description=None)
+        obj = APIKeyModel(id="k1", name="n", project_id="p", roles=[])
         r = repr(obj)
         assert r.startswith("APIKeyModel("), f"Expected 'APIKeyModel(' prefix, got: {r!r}"
         assert not r.startswith("{'"), f"repr must not be dict form, got: {r!r}"
