@@ -187,6 +187,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         instructions: str | None = None,
         metadata: dict[str, Any] | None = None,
         region: str = "us",
+        environment: str | None = None,
         timeout: float | None = None,
         **kwargs: Any,
     ) -> AssistantModel:
@@ -206,6 +207,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 is created without metadata (``None``).
             region (str): Region to deploy the assistant in. Must be ``"us"``
                 or ``"eu"`` (case-sensitive). Defaults to ``"us"``.
+            environment (str | None): Optional environment override. Restricted
+                to Pinecone-internal org plans; passing this on a non-internal
+                plan raises a 403 error from the backend.
             timeout (float | None): Seconds to wait for the assistant to become
                 ready. Use ``None`` (default) to poll indefinitely. Use ``-1``
                 to return immediately without polling. Use ``0`` or a positive
@@ -260,6 +264,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         }
         if metadata is not None:
             body["metadata"] = metadata
+        if environment is not None:
+            body["environment"] = environment
 
         logger.info("Creating assistant %r", name)
         response = await self._http.post("/assistants", json=body)

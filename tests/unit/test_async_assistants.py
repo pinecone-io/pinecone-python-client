@@ -450,6 +450,56 @@ async def test_create_assistant_metadata_explicit_dict_included(
     assert body["metadata"] == {"key": "value"}
 
 
+@respx.mock
+async def test_create_assistant_environment_omitted_by_default(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """When environment is not provided, the 'environment' key is absent from the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    await async_assistants.create(name="test-assistant", timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert "environment" not in body
+
+
+@respx.mock
+async def test_create_assistant_environment_included_when_provided(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """When environment is provided, it is sent in the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    await async_assistants.create(name="test-assistant", environment="prod-us", timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["environment"] == "prod-us"
+
+
+@respx.mock
+async def test_create_assistant_environment_403_propagates(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """A 403 from the backend when environment is set propagates as ApiError."""
+    from pinecone.errors.exceptions import ApiError
+
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(
+            403, json={"error": {"code": "FORBIDDEN", "message": "Not authorized"}}
+        ),
+    )
+
+    with pytest.raises(ApiError) as exc_info:
+        await async_assistants.create(name="test-assistant", environment="prod-us", timeout=-1)
+    assert exc_info.value.status_code == 403
+
+
 # ---------------------------------------------------------------------------
 # describe() — success
 # ---------------------------------------------------------------------------

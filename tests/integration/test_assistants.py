@@ -2794,6 +2794,25 @@ def test_assistant_create_rejects_name_over_max_length(client: Pinecone) -> None
 
 
 # ---------------------------------------------------------------------------
+# environment parameter
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(30)
+def test_create_assistant_environment_rejected(client: Pinecone) -> None:
+    """create() with environment= raises ApiError 403 on non-internal plans.
+
+    Confirms the environment parameter is wired through to the backend:
+    the backend returns 403 when the calling org is not an internal plan.
+    """
+    name = unique_name("env-test")
+    with pytest.raises(ApiError) as exc_info:
+        client.assistants.create(name=name, environment="prod-us", timeout=-1)
+    assert exc_info.value.status_code == 403
+
+
+# ---------------------------------------------------------------------------
 # chat-context-options boundary validation (snippet_size / top_k)
 # ---------------------------------------------------------------------------
 
