@@ -156,6 +156,22 @@ def test_create_project_requires_name(projects: Projects) -> None:
         projects.create(name="")
 
 
+def test_create_project_max_pods_negative(projects: Projects) -> None:
+    with pytest.raises(ValidationError, match="max_pods"):
+        projects.create(name="my-project", max_pods=-1)
+
+
+def test_create_project_max_pods_zero_is_valid(projects: Projects) -> None:
+    """max_pods=0 is the boundary of u32 — must not raise client-side."""
+    # zero is a valid u32; only negative values are rejected
+    with respx.mock:
+        respx.post(f"{BASE_URL}/admin/projects").mock(
+            return_value=httpx.Response(200, json=_project_response(max_pods=0)),
+        )
+        result = projects.create(name="my-project", max_pods=0)
+    assert result.max_pods == 0
+
+
 # ---------------------------------------------------------------------------
 # describe()
 # ---------------------------------------------------------------------------

@@ -94,6 +94,8 @@ class Projects:
             'my-project'
         """
         require_non_empty("name", name)
+        if max_pods is not None and max_pods < 0:
+            raise ValidationError("max_pods must be a non-negative integer")
         body: dict[str, Any] = {"name": name}
         if max_pods is not None:
             body["max_pods"] = max_pods
