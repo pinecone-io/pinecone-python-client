@@ -16,7 +16,7 @@ from pinecone.async_client.pinecone import AsyncPinecone
 from pinecone.async_client.restore_jobs import AsyncRestoreJobs
 from pinecone.errors.exceptions import ValidationError
 from pinecone.models.backups.list import RestoreJobList
-from pinecone.models.backups.model import RestoreJobModel
+from pinecone.models.backups.model import CreateIndexFromBackupResponse, RestoreJobModel
 from pinecone.models.indexes.index import IndexModel
 from tests.factories import make_index_response, make_restore_job_response
 
@@ -205,29 +205,19 @@ async def test_async_create_index_from_backup_with_tags_and_protection(pc: Async
 
 @respx.mock
 async def test_async_create_index_from_backup_no_poll(pc: AsyncPinecone) -> None:
-    """When timeout=-1, describe is called once without polling."""
+    """When timeout=-1, returns CreateIndexFromBackupResponse immediately without polling."""
     respx.post(f"{DEFAULT_BASE_URL}/backups/bk-789/create-index").mock(
         return_value=httpx.Response(
             202,
             json={"restore_job_id": "rj-3", "index_id": "idx-3"},
         ),
     )
-    describe_route = respx.get(f"{DEFAULT_BASE_URL}/indexes/quick-restore").mock(
-        return_value=httpx.Response(
-            200,
-            json=make_index_response(
-                name="quick-restore",
-                status={"ready": False, "state": "Initializing"},
-            ),
-        ),
-    )
 
     result = await pc.create_index_from_backup(name="quick-restore", backup_id="bk-789", timeout=-1)
 
-    assert isinstance(result, IndexModel)
-    assert result.name == "quick-restore"
-    # Describe should only be called once (no polling)
-    assert describe_route.call_count == 1
+    assert isinstance(result, CreateIndexFromBackupResponse)
+    assert result.restore_job_id == "rj-3"
+    assert result.index_id == "idx-3"
 
 
 # ---------------------------------------------------------------------------

@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import os
 
+import httpx
 import pytest
+import respx
 
 from pinecone import Pinecone
+from pinecone.models.backups.model import CreateIndexFromBackupResponse
 
 
 @pytest.mark.integration
@@ -55,6 +58,31 @@ def test_validation_error_import_triggers_deprecation_warning() -> None:
         pass  # Expected — the alias catches PineconeValueError
     else:
         pytest.fail("ValidationError alias failed to catch a PineconeValueError instance")
+
+
+BASE_URL = "https://api.pinecone.io"
+
+
+@respx.mock
+def test_create_index_from_backup_no_wait_returns_restore_job_id() -> None:
+    """timeout=-1 returns CreateIndexFromBackupResponse with restore_job_id and index_id."""
+    respx.post(f"{BASE_URL}/backups/bk-test/create-index").mock(
+        return_value=httpx.Response(
+            202,
+            json={"restore_job_id": "rj-test-123", "index_id": "idx-test-456"},
+        ),
+    )
+
+    pc = Pinecone(api_key="test-key")
+    result = pc.create_index_from_backup(
+        name="test-restore-nowait",
+        backup_id="bk-test",
+        timeout=-1,
+    )
+
+    assert isinstance(result, CreateIndexFromBackupResponse)
+    assert result.restore_job_id == "rj-test-123"
+    assert result.index_id == "idx-test-456"
 
 
 @pytest.mark.integration
