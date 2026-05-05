@@ -154,6 +154,22 @@ def test_create_backup_all_required_fields_present(
 # ---------------------------------------------------------------------------
 
 
+def test_describe_backup_returns_preview_backup_model(
+    client: Pinecone,
+    ready_dense_preview_index: str,
+) -> None:
+    """describe_backup() returns a PreviewBackupModel with expected fields."""
+    backup = client.preview.indexes.create_backup(
+        ready_dense_preview_index,
+        name="describe-test",
+    )
+    described = client.preview.indexes.describe_backup(backup.backup_id)
+    assert isinstance(described, PreviewBackupModel)
+    assert described.backup_id == backup.backup_id
+    assert isinstance(described.status, str) and len(described.status) > 0
+    assert described.source_index_name == ready_dense_preview_index
+
+
 def test_create_backup_optional_fields_are_correctly_typed(
     client: Pinecone,
     ready_dense_preview_index: str,

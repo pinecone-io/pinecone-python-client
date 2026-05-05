@@ -660,3 +660,42 @@ class AsyncPreviewIndexes:
             return Page(items=items, pagination_token=next_token)
 
         return AsyncPaginator(fetch_page=fetch_page, initial_token=pagination_token, limit=limit)
+
+    async def describe_backup(self, backup_id: str) -> PreviewBackupModel:
+        """Describe a backup by its ID.
+
+        .. admonition:: Preview
+           :class: warning
+
+           Uses Pinecone API version ``2026-01.alpha``.
+           Preview surface is not covered by SemVer — signatures and behavior
+           may change in any minor SDK release. Pin your SDK version when
+           relying on preview features.
+
+        Args:
+            backup_id: The unique identifier of the backup to describe.
+
+        Returns:
+            :class:`~pinecone.preview.models.backups.PreviewBackupModel`
+            with the current state of the backup.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If
+                *backup_id* is empty.
+            :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an
+                error response.
+
+        Examples:
+            .. code-block:: python
+
+                backup = await pc.preview.indexes.create_backup("my-index", name="nightly")
+                # Poll until ready
+                import asyncio
+                while backup.status != "Ready":
+                    await asyncio.sleep(5)
+                    backup = await pc.preview.indexes.describe_backup(backup.backup_id)
+        """
+        require_non_empty("backup_id", backup_id)
+        logger.info("Describing backup backup_id=%r", backup_id)
+        response = await self._http.get(f"/backups/{backup_id}")
+        return PreviewDescribeBackupAdapter.from_response(response.content)

@@ -222,3 +222,87 @@ async def test_async_list_backups_empty_index_name_raises(
     with pytest.raises(PineconeValueError):
         async_indexes.list_backups("")
     assert not respx.calls
+
+
+# ── sync describe_backup ──────────────────────────────────────────────────────
+
+
+@respx.mock
+def test_describe_backup_returns_model(indexes: PreviewIndexes) -> None:
+    respx.get(f"{BASE_URL}/backups/bkp-001").mock(return_value=httpx.Response(200, json=_BACKUP_1))
+    result = indexes.describe_backup("bkp-001")
+    assert isinstance(result, PreviewBackupModel)
+    assert result.backup_id == "bkp-001"
+    assert result.status == "Ready"
+    assert result.source_index_name == "my-index"
+
+
+@respx.mock
+def test_describe_backup_sends_correct_api_version(indexes: PreviewIndexes) -> None:
+    route = respx.get(f"{BASE_URL}/backups/bkp-001").mock(
+        return_value=httpx.Response(200, json=_BACKUP_1)
+    )
+    indexes.describe_backup("bkp-001")
+    assert route.calls.last.request.headers["X-Pinecone-Api-Version"] == INDEXES_API_VERSION
+
+
+@respx.mock
+def test_describe_backup_empty_id_raises(indexes: PreviewIndexes) -> None:
+    with pytest.raises(PineconeValueError):
+        indexes.describe_backup("")
+    assert not respx.calls
+
+
+@respx.mock
+def test_describe_backup_minimal_response(indexes: PreviewIndexes) -> None:
+    respx.get(f"{BASE_URL}/backups/bkp-002").mock(return_value=httpx.Response(200, json=_BACKUP_2))
+    result = indexes.describe_backup("bkp-002")
+    assert isinstance(result, PreviewBackupModel)
+    assert result.backup_id == "bkp-002"
+    assert result.name is None
+    assert result.description is None
+
+
+# ── async describe_backup ─────────────────────────────────────────────────────
+
+
+@respx.mock
+async def test_async_describe_backup_returns_model(
+    async_indexes: AsyncPreviewIndexes,
+) -> None:
+    respx.get(f"{BASE_URL}/backups/bkp-001").mock(return_value=httpx.Response(200, json=_BACKUP_1))
+    result = await async_indexes.describe_backup("bkp-001")
+    assert isinstance(result, PreviewBackupModel)
+    assert result.backup_id == "bkp-001"
+    assert result.status == "Ready"
+
+
+@respx.mock
+async def test_async_describe_backup_sends_correct_api_version(
+    async_indexes: AsyncPreviewIndexes,
+) -> None:
+    route = respx.get(f"{BASE_URL}/backups/bkp-001").mock(
+        return_value=httpx.Response(200, json=_BACKUP_1)
+    )
+    await async_indexes.describe_backup("bkp-001")
+    assert route.calls.last.request.headers["X-Pinecone-Api-Version"] == INDEXES_API_VERSION
+
+
+@respx.mock
+async def test_async_describe_backup_empty_id_raises(
+    async_indexes: AsyncPreviewIndexes,
+) -> None:
+    with pytest.raises(PineconeValueError):
+        await async_indexes.describe_backup("")
+    assert not respx.calls
+
+
+@respx.mock
+async def test_async_describe_backup_minimal_response(
+    async_indexes: AsyncPreviewIndexes,
+) -> None:
+    respx.get(f"{BASE_URL}/backups/bkp-002").mock(return_value=httpx.Response(200, json=_BACKUP_2))
+    result = await async_indexes.describe_backup("bkp-002")
+    assert isinstance(result, PreviewBackupModel)
+    assert result.backup_id == "bkp-002"
+    assert result.name is None
