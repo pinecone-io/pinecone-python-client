@@ -4,8 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from pinecone._internal.indexes_helpers import build_create_body, validate_read_capacity
+from pinecone._internal.indexes_helpers import (
+    build_create_body,
+    build_integrated_body,
+    validate_read_capacity,
+)
 from pinecone.errors.exceptions import ValidationError
+from pinecone.models.indexes.specs import EmbedConfig, IntegratedSpec
 
 
 def test_build_create_body_dict_spec_not_mutated_by_schema() -> None:
@@ -66,3 +71,56 @@ def test_validate_read_capacity_missing_only_shards() -> None:
     }
     with pytest.raises(ValidationError, match="shards"):
         validate_read_capacity(read_capacity)
+
+
+def _make_integrated_spec() -> IntegratedSpec:
+    return IntegratedSpec(
+        cloud="aws",
+        region="us-east-1",
+        embed=EmbedConfig(model="multilingual-e5-large", field_map={"text": "body"}),
+    )
+
+
+def test_build_integrated_body_includes_schema() -> None:
+    body = build_integrated_body(
+        name="my-index",
+        spec=_make_integrated_spec(),
+        deletion_protection="disabled",
+        tags=None,
+        schema={"body": {"type": "str"}},
+    )
+    assert body["schema"] == {"body": {"type": "str"}}
+
+
+def test_build_integrated_body_schema_absent_when_none() -> None:
+    body = build_integrated_body(
+        name="my-index",
+        spec=_make_integrated_spec(),
+        deletion_protection="disabled",
+        tags=None,
+        schema=None,
+    )
+    assert "schema" not in body
+
+
+def test_build_integrated_body_includes_read_capacity() -> None:
+    rc = {"mode": "OnDemand"}
+    body = build_integrated_body(
+        name="my-index",
+        spec=_make_integrated_spec(),
+        deletion_protection="disabled",
+        tags=None,
+        read_capacity=rc,
+    )
+    assert body["read_capacity"] == rc
+
+
+def test_build_integrated_body_read_capacity_absent_when_none() -> None:
+    body = build_integrated_body(
+        name="my-index",
+        spec=_make_integrated_spec(),
+        deletion_protection="disabled",
+        tags=None,
+        read_capacity=None,
+    )
+    assert "read_capacity" not in body

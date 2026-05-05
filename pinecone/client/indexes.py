@@ -299,6 +299,7 @@ class Indexes:
         deletion_protection: DeletionProtection | str = "disabled",
         tags: Mapping[str, str] | None = None,
         schema: dict[str, Any] | None = None,
+        read_capacity: dict[str, Any] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
         """Create a new Pinecone index.
@@ -373,6 +374,8 @@ class Indexes:
                 spec=spec,
                 deletion_protection=deletion_protection,
                 tags=tags,
+                schema=schema,
+                read_capacity=read_capacity,
             )
         elif isinstance(spec, ByocSpec):
             validate_byoc_inputs(

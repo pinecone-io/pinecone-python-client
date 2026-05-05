@@ -246,6 +246,8 @@ def build_integrated_body(
     spec: IntegratedSpec,
     deletion_protection: DeletionProtection | str,
     tags: Mapping[str, str] | None,
+    schema: dict[str, Any] | None = None,
+    read_capacity: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build the JSON body for POST /indexes (integrated/model-backed)."""
     embed_body: dict[str, Any] = {
@@ -271,6 +273,10 @@ def build_integrated_body(
         body["deletion_protection"] = resolved_dp
     if tags is not None:
         body["tags"] = tags
+    if schema is not None:
+        body["schema"] = schema
+    if read_capacity is not None:
+        body["read_capacity"] = read_capacity
 
     return body
 

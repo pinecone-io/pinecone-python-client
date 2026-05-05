@@ -581,6 +581,7 @@ class Pinecone:
             tags=tags,
             deletion_protection=resolved_dp,
             schema=schema,
+            read_capacity=read_capacity,
             timeout=timeout,
         )
 
