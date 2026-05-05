@@ -178,6 +178,36 @@ class TestIndexModel:
         model = msgspec.json.decode(raw, type=IndexModel)
         assert model.host == "https://index-host.pinecone.io"
 
+    def test_index_model_pod_spec_null_replicas(self) -> None:
+        """PodSpecInfo must decode null replicas/shards/pods from backend."""
+        raw = (
+            b'{"name":"test","metric":"cosine","host":null,'
+            b'"status":{"ready":false,"state":"Initializing"},'
+            b'"spec":{"pod":{"environment":"us-east1-gcp","pod_type":"p1",'
+            b'"replicas":null,"shards":null,"pods":1}},'
+            b'"deletion_protection":"disabled","vector_type":"dense"}'
+        )
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.spec.pod is not None
+        assert model.spec.pod.replicas is None
+        assert model.spec.pod.shards is None
+        assert model.spec.pod.pods == 1
+
+    def test_index_model_pod_spec_explicit_replicas(self) -> None:
+        """PodSpecInfo still decodes explicit replicas/shards correctly."""
+        raw = (
+            b'{"name":"test","metric":"cosine","host":null,'
+            b'"status":{"ready":false,"state":"Initializing"},'
+            b'"spec":{"pod":{"environment":"us-east1-gcp","pod_type":"p1",'
+            b'"replicas":2,"shards":1,"pods":2}},'
+            b'"deletion_protection":"disabled","vector_type":"dense"}'
+        )
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.spec.pod is not None
+        assert model.spec.pod.replicas == 2
+        assert model.spec.pod.shards == 1
+        assert model.spec.pod.pods == 2
+
 
 class TestIndexList:
     def _make_list(self) -> IndexList:

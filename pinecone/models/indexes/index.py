@@ -50,18 +50,18 @@ class PodSpecInfo(StructDictMixin, Struct, kw_only=True):
     Attributes:
         environment: Deployment environment (e.g. ``"us-east1-gcp"``).
         pod_type: Pod type (e.g. ``"p1.x1"``).
-        replicas: Number of replicas.
-        shards: Number of shards.
-        pods: Total number of pods.
+        replicas: Number of replicas, or ``None`` if not set by the user.
+        shards: Number of shards, or ``None`` if not set by the user.
+        pods: Total number of pods, or ``None`` if not set by the user.
         metadata_config: Metadata indexing configuration, or ``None``.
         source_collection: Source collection name, or ``None``.
     """
 
     environment: str
     pod_type: str
-    replicas: int
-    shards: int
-    pods: int
+    replicas: int | None = None
+    shards: int | None = None
+    pods: int | None = None
     metadata_config: dict[str, list[str]] | None = None
     source_collection: str | None = None
 
