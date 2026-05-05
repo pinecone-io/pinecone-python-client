@@ -243,7 +243,8 @@ class Projects:
             A :class:`ProjectModel` with the updated project details.
 
         Raises:
-            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *project_id* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *project_id* is empty,
+                or if *name* is empty, exceeds 512 characters, or contains null bytes.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -260,6 +261,12 @@ class Projects:
             raise PineconeValueError("max_pods must be a non-negative integer")
         body: dict[str, Any] = {}
         if name is not None:
+            if len(name) == 0:
+                raise PineconeValueError("name cannot be empty")
+            if len(name) > 512:
+                raise PineconeValueError("name cannot be longer than 512 characters")
+            if "\x00" in name:
+                raise PineconeValueError("name cannot contain null characters")
             body["name"] = name
         if max_pods is not None:
             body["max_pods"] = max_pods

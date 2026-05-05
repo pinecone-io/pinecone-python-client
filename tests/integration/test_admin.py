@@ -342,6 +342,63 @@ def test_update_project_max_pods_negative() -> None:
 
 
 @pytest.mark.integration
+def test_update_project_name_empty() -> None:
+    """Projects.update() raises PineconeValueError when name is empty string client-side.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="name cannot be empty"):
+        projects.update(project_id="proj-abc123", name="")
+
+
+@pytest.mark.integration
+def test_update_project_name_too_long() -> None:
+    """Projects.update() raises PineconeValueError when name exceeds 512 characters client-side.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="name cannot be longer than 512 characters"):
+        projects.update(project_id="proj-abc123", name="x" * 513)
+
+
+@pytest.mark.integration
+def test_update_project_name_null_byte() -> None:
+    """Projects.update() raises PineconeValueError when name contains a null byte client-side.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="name cannot contain null characters"):
+        projects.update(project_id="proj-abc123", name="valid\x00name")
+
+
+@pytest.mark.integration
 def test_create_project_name_too_long() -> None:
     """Projects.create() raises PineconeValueError when name exceeds 512 characters.
 
