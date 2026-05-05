@@ -231,6 +231,40 @@ def test_rerank_non_list_documents_raises(inference: Inference) -> None:
         )
 
 
+def test_rerank_top_n_negative_raises(inference: Inference) -> None:
+    with pytest.raises(ValidationError, match="top_n must be >= 1"):
+        inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="test query",
+            documents=["doc"],
+            top_n=-1,
+        )
+
+
+def test_rerank_top_n_zero_raises(inference: Inference) -> None:
+    with pytest.raises(ValidationError, match="top_n must be >= 1"):
+        inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="test query",
+            documents=["doc"],
+            top_n=0,
+        )
+
+
+@respx.mock
+def test_rerank_top_n_one_accepted(inference: Inference) -> None:
+    respx.post(f"{BASE_URL}/rerank").mock(
+        return_value=httpx.Response(200, json=make_rerank_response()),
+    )
+    result = inference.rerank(
+        model="bge-reranker-v2-m3",
+        query="test query",
+        documents=["doc"],
+        top_n=1,
+    )
+    assert isinstance(result, RerankResult)
+
+
 @respx.mock
 def test_rerank_tuple_documents_accepted(inference: Inference) -> None:
     respx.post(f"{BASE_URL}/rerank").mock(

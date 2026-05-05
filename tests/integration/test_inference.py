@@ -6,6 +6,7 @@ import pytest
 
 from pinecone import Pinecone
 from pinecone.errors import PineconeTypeError, PineconeValueError
+from pinecone.errors.exceptions import ValidationError
 from pinecone.models.inference.embed import SparseEmbedding
 from tests.integration.conftest import (  # noqa: F401 — re-exported for type use
     cleanup_resource,
@@ -469,6 +470,30 @@ def test_rerank_documents_validation_rest(client: Pinecone) -> None:
             model="bge-reranker-v2-m3",
             query="test query",
             documents=42,  # type: ignore[arg-type]
+        )
+
+
+@pytest.mark.integration
+def test_rerank_top_n_validation(client: Pinecone) -> None:
+    """rerank() raises ValidationError for top_n < 1; top_n=1 is accepted.
+
+    Verifies D6: the SDK must validate top_n client-side before the backend
+    rejects it with a confusing serde error on negative usize values.
+    """
+    with pytest.raises(ValidationError, match="top_n must be >= 1"):
+        client.inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="test query",
+            documents=["doc"],
+            top_n=-1,
+        )
+
+    with pytest.raises(ValidationError, match="top_n must be >= 1"):
+        client.inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="test query",
+            documents=["doc"],
+            top_n=0,
         )
 
 

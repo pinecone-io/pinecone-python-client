@@ -297,6 +297,8 @@ class Inference:
         require_non_empty("model", str(model))
         require_non_empty("query", query)
         normalized_docs = normalize_rerank_documents(documents)
+        if top_n is not None and top_n < 1:
+            raise ValidationError("top_n must be >= 1")
 
         body: dict[str, Any] = {
             "model": str(model),
