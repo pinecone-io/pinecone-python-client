@@ -22,7 +22,6 @@ class BackupModel(Struct, kw_only=True):
         name: User-provided name for the backup.
         description: User-provided description for the backup.
         dimension: Dimensionality of vectors in the backup.
-        metric: Distance metric of the backed-up index.
         record_count: Number of records in the backup.
         namespace_count: Number of namespaces in the backup.
         size_bytes: Size of the backup in bytes.
@@ -40,7 +39,6 @@ class BackupModel(Struct, kw_only=True):
     name: str | None = None
     description: str | None = None
     dimension: int | None = None
-    metric: str | None = None
     record_count: int | None = None
     namespace_count: int | None = None
     size_bytes: int | None = None
@@ -67,7 +65,7 @@ class BackupModel(Struct, kw_only=True):
 
         Returns:
             Dictionary with all fields, including optional ones that are ``None``
-            (e.g. ``name``, ``description``, ``dimension``, ``metric``,
+            (e.g. ``name``, ``description``, ``dimension``,
             ``record_count``, ``namespace_count``, ``size_bytes``, ``tags``,
             ``created_at``). Values are not recursively converted.
 

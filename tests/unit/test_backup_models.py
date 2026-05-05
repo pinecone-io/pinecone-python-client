@@ -51,7 +51,6 @@ class TestBackupModelRequiredFields:
         assert backup.name is None
         assert backup.description is None
         assert backup.dimension is None
-        assert backup.metric is None
         assert backup.record_count is None
         assert backup.namespace_count is None
         assert backup.size_bytes is None
@@ -65,7 +64,6 @@ class TestBackupModelAllFields:
             name="daily-backup",
             description="Daily backup of production index",
             dimension=1536,
-            metric="cosine",
             record_count=100000,
             namespace_count=5,
             size_bytes=52428800,
@@ -75,7 +73,6 @@ class TestBackupModelAllFields:
         assert backup.name == "daily-backup"
         assert backup.description == "Daily backup of production index"
         assert backup.dimension == 1536
-        assert backup.metric == "cosine"
         assert backup.record_count == 100000
         assert backup.namespace_count == 5
         assert backup.size_bytes == 52428800
@@ -119,6 +116,19 @@ class TestBackupModelSchema:
         assert model.schema is None
 
 
+class TestBackupModelNoMetricField:
+    def test_backup_model_has_no_metric_field(self) -> None:
+        """BackupModel must not expose a metric field (backend never sends it)."""
+        raw = (
+            b'{"backup_id":"bkp-1","source_index_name":"my-index",'
+            b'"source_index_id":"idx-abc","status":"Ready","cloud":"aws",'
+            b'"region":"us-east-1"}'
+        )
+        model = msgspec.json.decode(raw, type=BackupModel)
+        with pytest.raises(AttributeError):
+            _ = model.metric  # type: ignore[attr-defined]
+
+
 class TestBackupModelJsonDecode:
     def test_backup_model_json_decode(self) -> None:
         payload = b"""{
@@ -131,7 +141,6 @@ class TestBackupModelJsonDecode:
             "name": "my-backup",
             "description": "Test backup",
             "dimension": 768,
-            "metric": "dotproduct",
             "record_count": 5000,
             "namespace_count": 2,
             "size_bytes": 1048576,
