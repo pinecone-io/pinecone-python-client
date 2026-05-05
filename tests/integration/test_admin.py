@@ -341,6 +341,44 @@ def test_update_project_max_pods_negative() -> None:
         projects.update(project_id="proj-abc123", max_pods=-1)
 
 
+@pytest.mark.integration
+def test_create_project_name_too_long() -> None:
+    """Projects.create() raises PineconeValueError when name exceeds 512 characters.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="name cannot be longer than 512 characters"):
+        projects.create(name="x" * 513)
+
+
+@pytest.mark.integration
+def test_create_project_name_null_byte() -> None:
+    """Projects.create() raises PineconeValueError when name contains a null byte.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="name cannot contain null characters"):
+        projects.create(name="valid\x00name")
+
+
 # ---------------------------------------------------------------------------
 # api_keys — validation (no credentials required)
 # ---------------------------------------------------------------------------
