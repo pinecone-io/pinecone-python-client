@@ -115,7 +115,7 @@ jobs:
     # jobs. Schedule and default dispatch still run integration tests.
     if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_integration }}
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     env:
       PINECONE_API_KEY: ${{ secrets.PINECONE_API_KEY }}
     steps:
