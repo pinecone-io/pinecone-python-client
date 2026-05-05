@@ -28,6 +28,7 @@ class BackupModel(Struct, kw_only=True):
         size_bytes: Size of the backup in bytes.
         tags: User-defined key-value tags.
         created_at: Timestamp when the backup was created.
+        schema: Metadata schema of the backed-up index, or ``None`` if not returned.
     """
 
     backup_id: str
@@ -45,11 +46,7 @@ class BackupModel(Struct, kw_only=True):
     size_bytes: int | None = None
     tags: dict[str, str] | None = None
     created_at: str | None = None
-
-    @property
-    def schema(self) -> None:
-        """Metadata schema associated with this backup (not populated in the rewrite)."""
-        return None
+    schema: dict[str, Any] | None = None
 
     def __getattr__(self, name: str) -> Any:
         """Raise AttributeError for unknown attributes (legacy dict-style delegation)."""

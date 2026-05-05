@@ -95,6 +95,30 @@ class TestBackupModelBracketAccess:
             backup["nonexistent"]
 
 
+class TestBackupModelSchema:
+    def test_backup_model_schema_decoded(self) -> None:
+        """BackupModel must expose schema when returned by backend."""
+        raw = (
+            b'{"backup_id":"bkp-1","source_index_name":"my-index",'
+            b'"source_index_id":"idx-abc","status":"Ready","cloud":"aws",'
+            b'"region":"us-east-1",'
+            b'"schema":{"fields":{"genre":{"filterable":true}}}}'
+        )
+        model = msgspec.json.decode(raw, type=BackupModel)
+        assert model.schema is not None
+        assert model.schema["fields"]["genre"]["filterable"] is True
+
+    def test_backup_model_schema_absent(self) -> None:
+        """BackupModel.schema is None when backend omits the field."""
+        raw = (
+            b'{"backup_id":"bkp-1","source_index_name":"my-index",'
+            b'"source_index_id":"idx-abc","status":"Ready","cloud":"aws",'
+            b'"region":"us-east-1"}'
+        )
+        model = msgspec.json.decode(raw, type=BackupModel)
+        assert model.schema is None
+
+
 class TestBackupModelJsonDecode:
     def test_backup_model_json_decode(self) -> None:
         payload = b"""{

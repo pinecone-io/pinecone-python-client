@@ -70,6 +70,8 @@ def test_backup_get_alias_and_default_description_rest(client: Pinecone) -> None
         described = client.backups.describe(backup_id=backup_id)
         assert isinstance(described, BackupModel)
         assert described.backup_id == backup_id
+        # schema field must be accessible (either None or a dict, never raises)
+        assert described.schema is None or isinstance(described.schema, dict)
 
         # 4. Call get() — unified-bak-0012: must return identical result to describe()
         gotten = client.backups.get(backup_id=backup_id)
@@ -83,6 +85,8 @@ def test_backup_get_alias_and_default_description_rest(client: Pinecone) -> None
             f"get().description={gotten.description!r} != "
             f"describe().description={described.description!r}"
         )
+        # schema must be accessible on both
+        assert gotten.schema is None or isinstance(gotten.schema, dict)
 
     finally:
         if backup_id is not None:
