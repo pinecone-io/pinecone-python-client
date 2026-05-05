@@ -1160,6 +1160,15 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                 Dicts are converted to :class:`Message` objects; role defaults
                 to ``"user"`` when not present.
             model (str): Large language model to use. Defaults to ``"gpt-4o"``.
+                Must be one of the backend's accepted values: ``"gpt-4o"``,
+                ``"gpt-4o-mini"``, ``"gpt-4.1"``, ``"gpt-4.1-mini"``,
+                ``"gpt-4.1-nano"``, ``"o3-mini"``, ``"o4-mini"``, ``"gpt-5"``,
+                ``"claude-sonnet-4"``, ``"claude-sonnet-4-5"``,
+                ``"gemini-2.5-pro"``, ``"gemini-2.5-flash"``. The aliases
+                ``"claude-3-5-sonnet"`` and ``"claude-3-7-sonnet"`` are
+                accepted but deprecated (silently remapped to
+                ``"claude-sonnet-4-5"`` by the backend). Unknown model names
+                are rejected by the backend with a 400 error.
             stream (bool): If ``True``, return a :class:`ChatStream`. Defaults
                 to ``False``.
             temperature (float | None): Controls randomness. Lower values produce
@@ -1260,18 +1269,21 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         not support ``include_highlights``, ``context_options``, or
         ``json_response`` parameters.
 
-        The model parameter accepts any string value and is not validated
-        client-side. Known models include ``"gpt-4o"``, ``"gpt-4.1"``,
-        ``"o4-mini"``, ``"claude-3-5-sonnet"``, ``"claude-3-7-sonnet"``,
-        and ``"gemini-2.5-pro"``.
-
         Args:
             assistant_name (str): Name of the assistant to chat with.
             messages (list[Message | dict[str, str]]): Conversation messages.
                 Dicts are converted to :class:`Message` objects; role defaults
                 to ``"user"`` when not present.
             model (str): Large language model to use. Defaults to ``"gpt-4o"``.
-                Not validated client-side — any string is accepted.
+                Must be one of the backend's accepted values: ``"gpt-4o"``,
+                ``"gpt-4o-mini"``, ``"gpt-4.1"``, ``"gpt-4.1-mini"``,
+                ``"gpt-4.1-nano"``, ``"o3-mini"``, ``"o4-mini"``, ``"gpt-5"``,
+                ``"claude-sonnet-4"``, ``"claude-sonnet-4-5"``,
+                ``"gemini-2.5-pro"``, ``"gemini-2.5-flash"``. The aliases
+                ``"claude-3-5-sonnet"`` and ``"claude-3-7-sonnet"`` are
+                accepted but deprecated (silently remapped to
+                ``"claude-sonnet-4-5"`` by the backend). Unknown model names
+                are rejected by the backend with a 400 error.
             stream (bool): If ``True``, return a :class:`ChatCompletionStream`.
                 Defaults to ``False``.
             temperature (float | None): Controls randomness. Lower values produce

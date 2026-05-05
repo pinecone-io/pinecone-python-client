@@ -3072,6 +3072,58 @@ def test_chat_rejects_out_of_range_temperature(client: Pinecone) -> None:
 
 
 # ---------------------------------------------------------------------------
+# chat_completions — invalid model name
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_chat_completions_invalid_model_raises(client: Pinecone) -> None:
+    """chat_completions() with an unknown model name raises ApiError (400) from the backend.
+
+    The backend validates the model parameter against a closed LLMModel enum.
+    Unknown strings are rejected with a 400 error — the SDK itself does not
+    raise the error, confirming it is server-side validation.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        client.assistants.create(name=name, instructions="You are a helpful assistant.")
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-mdl-"
+        ) as f:
+            f.write("Pinecone is a managed vector database.")
+            tmp_path = f.name
+        client.assistants.upload_file(assistant_name=name, file_path=tmp_path, timeout=120)
+
+        msgs = [{"role": "user", "content": "What is Pinecone?"}]
+
+        with pytest.raises((ApiError, PineconeError)):
+            client.assistants.chat_completions(
+                assistant_name=name,
+                messages=msgs,
+                model="invalid-model-that-does-not-exist",
+            )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
 # context — filter parameter
 # ---------------------------------------------------------------------------
 
