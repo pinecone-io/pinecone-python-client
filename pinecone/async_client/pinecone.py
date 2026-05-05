@@ -636,7 +636,7 @@ class AsyncPinecone:
         self,
         *,
         index_name: str | None = None,
-        limit: int | None = 10,
+        limit: int | None = None,
         pagination_token: str | None = None,
     ) -> BackupList:
         """Backwards-compatibility shim for :meth:`AsyncPinecone.backups.list`.
@@ -647,7 +647,7 @@ class AsyncPinecone:
         """
         return await self.backups.list(
             index_name=index_name,
-            limit=limit if limit is not None else 10,
+            limit=limit,
             pagination_token=pagination_token,
         )
 
@@ -672,7 +672,7 @@ class AsyncPinecone:
     async def list_restore_jobs(
         self,
         *,
-        limit: int | None = 10,
+        limit: int | None = None,
         pagination_token: str | None = None,
     ) -> RestoreJobList:
         """Backwards-compatibility shim for :meth:`AsyncPinecone.restore_jobs.list`.
@@ -682,7 +682,7 @@ class AsyncPinecone:
         ``await pc.list_restore_jobs(...)``.
         """
         return await self.restore_jobs.list(
-            limit=limit if limit is not None else 10,
+            limit=limit,
             pagination_token=pagination_token,
         )
 

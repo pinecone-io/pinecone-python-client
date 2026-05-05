@@ -707,7 +707,7 @@ class Pinecone:
         self,
         *,
         index_name: str | None = None,
-        limit: int | None = 10,
+        limit: int | None = None,
         pagination_token: str | None = None,
     ) -> BackupList:
         """Backwards-compatibility shim for :meth:`Pinecone.backups.list`.
@@ -717,7 +717,7 @@ class Pinecone:
         """
         return self.backups.list(
             index_name=index_name,
-            limit=limit if limit is not None else 10,
+            limit=limit,
             pagination_token=pagination_token,
         )
 
@@ -740,7 +740,7 @@ class Pinecone:
     def list_restore_jobs(
         self,
         *,
-        limit: int | None = 10,
+        limit: int | None = None,
         pagination_token: str | None = None,
     ) -> RestoreJobList:
         """Backwards-compatibility shim for :meth:`Pinecone.restore_jobs.list`.
@@ -749,7 +749,7 @@ class Pinecone:
         should use ``pc.restore_jobs.list()`` instead of ``pc.list_restore_jobs()``.
         """
         return self.restore_jobs.list(
-            limit=limit if limit is not None else 10,
+            limit=limit,
             pagination_token=pagination_token,
         )
 

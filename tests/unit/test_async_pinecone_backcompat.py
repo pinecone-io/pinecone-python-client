@@ -231,7 +231,7 @@ async def test_async_list_backups_delegate_forwards() -> None:
     pc, mock_backups = _make_async_pc_with_mock_backups()
     await pc.list_backups(index_name="my-index")
     mock_backups.list.assert_called_once_with(
-        index_name="my-index", limit=10, pagination_token=None
+        index_name="my-index", limit=None, pagination_token=None
     )
 
 
@@ -249,7 +249,7 @@ async def test_async_describe_backup_delegate_forwards() -> None:
 async def test_async_list_restore_jobs_delegate_forwards() -> None:
     pc, mock_restore_jobs = _make_async_pc_with_mock_restore_jobs()
     await pc.list_restore_jobs()
-    mock_restore_jobs.list.assert_called_once_with(limit=10, pagination_token=None)
+    mock_restore_jobs.list.assert_called_once_with(limit=None, pagination_token=None)
 
 
 async def test_async_describe_restore_job_delegate_forwards() -> None:

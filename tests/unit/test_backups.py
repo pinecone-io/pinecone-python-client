@@ -181,7 +181,7 @@ def test_list_backups_no_pagination(backups: Backups) -> None:
 
 
 @respx.mock
-def test_list_backups_default_limit_sent(backups: Backups) -> None:
+def test_list_backups_no_limit_param_when_default(backups: Backups) -> None:
     route = respx.get(f"{BASE_URL}/backups").mock(
         return_value=httpx.Response(200, json={"data": []}),
     )
@@ -189,11 +189,11 @@ def test_list_backups_default_limit_sent(backups: Backups) -> None:
     backups.list()
 
     request = route.calls[0].request
-    assert request.url.params["limit"] == "10"
+    assert "limit" not in request.url.params
 
 
 @respx.mock
-def test_list_backups_for_index_default_limit_sent(backups: Backups) -> None:
+def test_list_backups_for_index_no_limit_param_when_default(backups: Backups) -> None:
     route = respx.get(f"{BASE_URL}/indexes/my-index/backups").mock(
         return_value=httpx.Response(200, json={"data": []}),
     )
@@ -201,7 +201,19 @@ def test_list_backups_for_index_default_limit_sent(backups: Backups) -> None:
     backups.list(index_name="my-index")
 
     request = route.calls[0].request
-    assert request.url.params["limit"] == "10"
+    assert "limit" not in request.url.params
+
+
+@respx.mock
+def test_list_backups_explicit_limit_sent(backups: Backups) -> None:
+    route = respx.get(f"{BASE_URL}/backups").mock(
+        return_value=httpx.Response(200, json={"data": []}),
+    )
+
+    backups.list(limit=25)
+
+    request = route.calls[0].request
+    assert request.url.params["limit"] == "25"
 
 
 # ---------------------------------------------------------------------------

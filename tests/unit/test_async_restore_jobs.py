@@ -68,7 +68,7 @@ async def test_async_list_restore_jobs(async_restore_jobs: AsyncRestoreJobs) -> 
 
 
 @respx.mock
-async def test_async_list_restore_jobs_default_limit_sent(
+async def test_async_list_restore_jobs_no_limit_param_when_default(
     async_restore_jobs: AsyncRestoreJobs,
 ) -> None:
     route = respx.get(f"{BASE_URL}/restore-jobs").mock(
@@ -78,7 +78,7 @@ async def test_async_list_restore_jobs_default_limit_sent(
     await async_restore_jobs.list()
 
     request = route.calls[0].request
-    assert request.url.params["limit"] == "10"
+    assert "limit" not in request.url.params
 
 
 @respx.mock

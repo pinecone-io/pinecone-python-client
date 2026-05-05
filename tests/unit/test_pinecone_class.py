@@ -356,13 +356,20 @@ class TestListBackups:
         pc, mock_backups = _make_pc_with_mock_backups()
         pc.list_backups(index_name="my-index")
         mock_backups.list.assert_called_once_with(
-            index_name="my-index", limit=10, pagination_token=None
+            index_name="my-index", limit=None, pagination_token=None
         )
 
-    def test_limit_none_coerces_to_ten(self) -> None:
+    def test_limit_none_forwarded_as_none(self) -> None:
         pc, mock_backups = _make_pc_with_mock_backups()
         pc.list_backups(limit=None)
-        mock_backups.list.assert_called_once_with(index_name=None, limit=10, pagination_token=None)
+        mock_backups.list.assert_called_once_with(
+            index_name=None, limit=None, pagination_token=None
+        )
+
+    def test_explicit_limit_forwarded(self) -> None:
+        pc, mock_backups = _make_pc_with_mock_backups()
+        pc.list_backups(limit=25)
+        mock_backups.list.assert_called_once_with(index_name=None, limit=25, pagination_token=None)
 
 
 # ---------------------------------------------------------------------------
@@ -398,12 +405,17 @@ class TestListRestoreJobs:
     def test_forwards(self) -> None:
         pc, mock_restore_jobs = _make_pc_with_mock_restore_jobs()
         pc.list_restore_jobs()
-        mock_restore_jobs.list.assert_called_once_with(limit=10, pagination_token=None)
+        mock_restore_jobs.list.assert_called_once_with(limit=None, pagination_token=None)
 
-    def test_limit_none_coerces_to_ten(self) -> None:
+    def test_limit_none_forwarded_as_none(self) -> None:
         pc, mock_restore_jobs = _make_pc_with_mock_restore_jobs()
         pc.list_restore_jobs(limit=None)
-        mock_restore_jobs.list.assert_called_once_with(limit=10, pagination_token=None)
+        mock_restore_jobs.list.assert_called_once_with(limit=None, pagination_token=None)
+
+    def test_explicit_limit_forwarded(self) -> None:
+        pc, mock_restore_jobs = _make_pc_with_mock_restore_jobs()
+        pc.list_restore_jobs(limit=25)
+        mock_restore_jobs.list.assert_called_once_with(limit=25, pagination_token=None)
 
 
 # ---------------------------------------------------------------------------

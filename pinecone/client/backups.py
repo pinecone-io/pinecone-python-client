@@ -91,7 +91,7 @@ class Backups:
         self,
         *,
         index_name: str | None = None,
-        limit: int = 10,
+        limit: int | None = None,
         pagination_token: str | None = None,
     ) -> BackupList:
         """List backups.
@@ -101,7 +101,8 @@ class Backups:
 
         Args:
             index_name (str | None): Index name to filter by, or ``None`` for all.
-            limit (int): Maximum number of results per page. Defaults to 10.
+            limit (int | None): Maximum number of results per page. When ``None``,
+                the backend applies its own default (100).
             pagination_token (str | None): Token for cursor-based pagination.
 
         Returns:
@@ -119,7 +120,9 @@ class Backups:
             >>> for backup in pc.backups.list(index_name="product-search"):  # doctest: +SKIP
             ...     print(backup.name)
         """
-        params: dict[str, Any] = {"limit": limit}
+        params: dict[str, Any] = {}
+        if limit is not None:
+            params["limit"] = limit
         if pagination_token is not None:
             params["paginationToken"] = pagination_token
 
