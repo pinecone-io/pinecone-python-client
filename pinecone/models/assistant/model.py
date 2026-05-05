@@ -24,7 +24,7 @@ class AssistantModel(
     Attributes:
         name: The name of the assistant.
         status: Current status of the assistant (e.g. ``"Initializing"``,
-            ``"Ready"``, ``"Terminating"``, ``"Failed"``,
+            ``"Ready"``, ``"Terminating"``, ``"Terminated"``,
             ``"InitializationFailed"``).
         created_at: ISO 8601 timestamp when the assistant was created, or
             ``None`` if not returned by the API.

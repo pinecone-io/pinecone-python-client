@@ -1516,7 +1516,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             model = self._attach_ref(self._adapter.to_assistant(response.content))
             if model.status == "Ready":
                 return model
-            if model.status in ("Failed", "InitializationFailed"):
+            if model.status in ("Failed", "InitializationFailed", "Terminated", "Terminating"):
                 raise PineconeError(
                     f"Assistant '{name}' entered terminal state '{model.status}'. "
                     f"Check status with pc.assistants.describe(name='{name}')."

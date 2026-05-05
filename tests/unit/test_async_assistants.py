@@ -342,6 +342,46 @@ async def test_async_create_assistant_initialization_failed_status(
     assert "InitializationFailed" in str(exc_info.value)
 
 
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_create_assistant_poll_terminal_terminated(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """'Terminated' status raises PineconeError immediately instead of looping."""
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Terminated")),
+    )
+
+    with pytest.raises(PineconeError, match="terminal state") as exc_info:
+        await async_assistants.create(name="test-assistant", timeout=None)
+
+    assert "Terminated" in str(exc_info.value)
+    assert "pc.assistants.describe" in str(exc_info.value)
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_create_assistant_poll_terminal_terminating(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """'Terminating' status raises PineconeError immediately instead of looping."""
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Terminating")),
+    )
+
+    with pytest.raises(PineconeError, match="terminal state") as exc_info:
+        await async_assistants.create(name="test-assistant", timeout=None)
+
+    assert "Terminating" in str(exc_info.value)
+    assert "pc.assistants.describe" in str(exc_info.value)
+
+
 # ---------------------------------------------------------------------------
 # create() — valid regions accepted
 # ---------------------------------------------------------------------------

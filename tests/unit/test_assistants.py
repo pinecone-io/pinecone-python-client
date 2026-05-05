@@ -431,6 +431,46 @@ def test_create_assistant_initialization_failed_status(
     assert "InitializationFailed" in str(exc_info.value)
 
 
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_assistant_poll_terminal_terminated(
+    mock_sleep: object, assistants: Assistants
+) -> None:
+    """'Terminated' status raises PineconeError immediately instead of looping."""
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Terminated")),
+    )
+
+    with pytest.raises(PineconeError, match="terminal state") as exc_info:
+        assistants.create(name="test-assistant", timeout=None)
+
+    assert "Terminated" in str(exc_info.value)
+    assert "pc.assistants.describe" in str(exc_info.value)
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_assistant_poll_terminal_terminating(
+    mock_sleep: object, assistants: Assistants
+) -> None:
+    """'Terminating' status raises PineconeError immediately instead of looping."""
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Terminating")),
+    )
+
+    with pytest.raises(PineconeError, match="terminal state") as exc_info:
+        assistants.create(name="test-assistant", timeout=None)
+
+    assert "Terminating" in str(exc_info.value)
+    assert "pc.assistants.describe" in str(exc_info.value)
+
+
 # ---------------------------------------------------------------------------
 # create() — valid regions accepted
 # ---------------------------------------------------------------------------
