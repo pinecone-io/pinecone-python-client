@@ -404,6 +404,7 @@ def make_alignment_response(**overrides: Any) -> dict[str, Any]:
                 {
                     "fact": {"content": "Madrid is the capital of Spain."},
                     "entailment": "entailed",
+                    "reasoning": "The answer states Barcelona but Madrid is the capital.",
                 }
             ]
         },

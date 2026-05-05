@@ -3315,6 +3315,7 @@ def test_evaluate_alignment(assistants: Assistants) -> None:
     assert len(result.facts) == 1
     assert result.facts[0].fact == "Madrid is the capital of Spain."
     assert result.facts[0].entailment == "entailed"
+    assert result.facts[0].reasoning == "The answer states Barcelona but Madrid is the capital."
     assert result.usage.prompt_tokens == 120
     assert result.usage.completion_tokens == 40
     assert result.usage.total_tokens == 160
@@ -3392,6 +3393,53 @@ def test_evaluate_alignment_uses_api_key(assistants: Assistants) -> None:
 
     request = route.calls.last.request
     assert request.headers.get("Api-Key") == "test-key"
+
+
+@respx.mock
+def test_evaluate_alignment_reasoning_field(assistants: Assistants) -> None:
+    """evaluate_alignment() populates EntailmentResult.reasoning from the API response."""
+    from pinecone.models.assistant.evaluation import AlignmentResult
+
+    respx.post(f"{EVAL_BASE_URL}/evaluation/metrics/alignment").mock(
+        return_value=httpx.Response(200, json=make_alignment_response()),
+    )
+
+    result = assistants.evaluate_alignment(
+        question="What is the capital of Spain?",
+        answer="Barcelona.",
+        ground_truth_answer="Madrid.",
+    )
+
+    assert isinstance(result, AlignmentResult)
+    assert all(isinstance(f.reasoning, str) for f in result.facts)
+    # The factory includes a non-empty reasoning string
+    assert result.facts[0].reasoning == "The answer states Barcelona but Madrid is the capital."
+
+
+@respx.mock
+def test_evaluate_alignment_reasoning_defaults_to_empty(assistants: Assistants) -> None:
+    """evaluate_alignment() uses empty string for reasoning when API omits the field."""
+    from pinecone.models.assistant.evaluation import AlignmentResult
+
+    response_without_reasoning = make_alignment_response(
+        reasoning={
+            "evaluated_facts": [
+                {"fact": {"content": "Fact without reasoning."}, "entailment": "entailed"}
+            ]
+        }
+    )
+    respx.post(f"{EVAL_BASE_URL}/evaluation/metrics/alignment").mock(
+        return_value=httpx.Response(200, json=response_without_reasoning),
+    )
+
+    result = assistants.evaluate_alignment(
+        question="Q?",
+        answer="A.",
+        ground_truth_answer="GT.",
+    )
+
+    assert isinstance(result, AlignmentResult)
+    assert result.facts[0].reasoning == ""
 
 
 # ---------------------------------------------------------------------------

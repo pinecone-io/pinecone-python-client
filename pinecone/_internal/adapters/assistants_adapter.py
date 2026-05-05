@@ -87,6 +87,7 @@ class AssistantsAdapter:
                 EntailmentResult(
                     fact=str(item["fact"]["content"]),
                     entailment=str(item["entailment"]),
+                    reasoning=str(item.get("reasoning", "")),
                 )
                 for item in evaluated_facts
             ]
