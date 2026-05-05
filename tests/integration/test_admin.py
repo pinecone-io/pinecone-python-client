@@ -24,11 +24,13 @@ not skip.
 from __future__ import annotations
 
 import os
+import time
 
 import pytest
 
 from pinecone import Admin, PineconeValueError
 from pinecone.errors import ApiError
+from pinecone.models.admin.organization import OrganizationList, OrganizationModel
 
 
 @pytest.fixture(scope="module")
@@ -125,3 +127,92 @@ def test_admin_init_invalid_credentials_raises_api_error(monkeypatch: pytest.Mon
 
     with pytest.raises(ApiError):
         Admin(client_id="nonexistent", client_secret="nonexistent")
+
+
+# ---------------------------------------------------------------------------
+# admin fixture — requires real credentials (PINECONE_CLIENT_ID / SECRET)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def admin(admin_credentials: tuple[str, str]) -> Admin:
+    """Construct an authenticated Admin client using real service-account credentials.
+
+    Module-scoped so the OAuth token exchange happens once per test run.
+    Skipped automatically when admin_credentials skips (no env vars).
+    """
+    client_id, client_secret = admin_credentials
+    return Admin(client_id=client_id, client_secret=client_secret)
+
+
+# ---------------------------------------------------------------------------
+# organizations — list / describe / update
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_organizations_list_returns_iterable_of_models(admin: Admin) -> None:
+    """admin.organizations.list() returns an OrganizationList with at least one org.
+
+    Verifies:
+    - Return type is OrganizationList (supports iter and len).
+    - At least one organization is present (service accounts always belong to one).
+    - Every element is an OrganizationModel with non-empty id and name.
+    """
+    orgs = admin.organizations.list()
+
+    assert isinstance(orgs, OrganizationList)
+    assert len(orgs) >= 1
+
+    for org in orgs:
+        assert isinstance(org, OrganizationModel)
+        assert isinstance(org.id, str) and org.id
+        assert isinstance(org.name, str) and org.name
+
+
+@pytest.mark.integration
+def test_organizations_describe_returns_matching_model(admin: Admin) -> None:
+    """admin.organizations.describe() returns a model matching the listed org.
+
+    Takes the first org from list(), calls describe() with its id, and
+    verifies that the described model has consistent id and name and that
+    all required fields are populated.
+    """
+    orgs = admin.organizations.list()
+    first = orgs[0]
+
+    described = admin.organizations.describe(organization_id=first.id)
+
+    assert isinstance(described, OrganizationModel)
+    assert described.id == first.id
+    assert described.name == first.name
+    assert described.plan
+    assert described.payment_status
+    assert described.created_at
+    assert described.support_tier
+
+
+@pytest.mark.integration
+def test_organizations_update_roundtrips_name(admin: Admin) -> None:
+    """admin.organizations.update() persists the new name and is reversible.
+
+    Saves the original name, renames to a timestamped variant, asserts the
+    returned model reflects the new name, re-describes to confirm the change
+    persisted on the server, then restores the original name in a finally
+    block to leave org state clean.
+    """
+    orgs = admin.organizations.list()
+    first = orgs[0]
+    original_name = first.name
+    new_name = f"{original_name}-test-{int(time.time())}"
+
+    try:
+        updated = admin.organizations.update(organization_id=first.id, name=new_name)
+        assert isinstance(updated, OrganizationModel)
+        assert updated.name == new_name
+
+        # Re-describe to confirm server persisted the change.
+        described = admin.organizations.describe(organization_id=first.id)
+        assert described.name == new_name
+    finally:
+        admin.organizations.update(organization_id=first.id, name=original_name)
