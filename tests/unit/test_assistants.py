@@ -3593,3 +3593,41 @@ def test_chat_completion_choice_message_optional_fields() -> None:
     assert response.choices[0].message.role is None
     assert response.choices[0].message.content is None
     assert isinstance(response.choices[0].message, ChatCompletionMessage)
+
+
+# ---------------------------------------------------------------------------
+# ChatCompletionStreamChunk usage field
+# ---------------------------------------------------------------------------
+
+
+def test_chat_completion_stream_chunk_usage() -> None:
+    """ChatCompletionStreamChunk captures usage when present in an SSE data line."""
+    import orjson
+
+    from pinecone.models.assistant.chat import ChatUsage
+    from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
+
+    raw = orjson.loads(
+        b'{"id": "cmpl-end", "choices": [], "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}}'
+    )
+    chunk = msgspec.convert(raw, ChatCompletionStreamChunk)
+
+    assert chunk.usage is not None
+    assert isinstance(chunk.usage, ChatUsage)
+    assert chunk.usage.prompt_tokens == 10
+    assert chunk.usage.completion_tokens == 5
+    assert chunk.usage.total_tokens == 15
+
+
+def test_chat_completion_stream_chunk_usage_absent() -> None:
+    """ChatCompletionStreamChunk.usage is None when the SSE data line omits the field."""
+    import orjson
+
+    from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
+
+    raw = orjson.loads(
+        b'{"id": "cmpl-mid", "choices": [{"index": 0, "delta": {"content": "Hello"}, "finish_reason": null}]}'
+    )
+    chunk = msgspec.convert(raw, ChatCompletionStreamChunk)
+
+    assert chunk.usage is None

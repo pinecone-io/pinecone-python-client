@@ -1324,6 +1324,12 @@ def test_chat_completions_streaming_rest(client: Pinecone) -> None:
                 assert choice.delta.content is None or isinstance(choice.delta.content, str), (
                     f"delta.content must be str or None, got {type(choice.delta.content)}"
                 )
+            # usage is None on most chunks; when present it must be a ChatUsage
+            from pinecone.models.assistant.chat import ChatUsage
+
+            assert chunk.usage is None or isinstance(chunk.usage, ChatUsage), (
+                f"chunk.usage must be ChatUsage or None, got {type(chunk.usage)}"
+            )
 
         # At least one chunk must carry delta content
         content_choices = [

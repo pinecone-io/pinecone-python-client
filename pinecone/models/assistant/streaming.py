@@ -819,6 +819,7 @@ class ChatCompletionStreamChunk(StructDictMixin, Struct, kw_only=True):
         object: The object type (typically ``"chat.completion.chunk"``), or ``None``.
         created: Unix timestamp when the chunk was created, or ``None``.
         system_fingerprint: Opaque fingerprint identifying the backend, or ``None``.
+        usage: Token usage statistics, populated on the final chunk, or ``None``.
     """
 
     id: str
@@ -827,6 +828,7 @@ class ChatCompletionStreamChunk(StructDictMixin, Struct, kw_only=True):
     object: str | None = None
     created: int | None = None
     system_fingerprint: str | None = None
+    usage: ChatUsage | None = None
 
     @safe_display
     def __repr__(self) -> str:
@@ -834,6 +836,8 @@ class ChatCompletionStreamChunk(StructDictMixin, Struct, kw_only=True):
         if self.model is not None:
             parts.append(f"model={self.model!r}")
         parts.append(f"choices={len(self.choices)}")
+        if self.usage is not None:
+            parts.append(f"usage={self.usage!r}")
         return f"ChatCompletionStreamChunk({', '.join(parts)})"
 
     @safe_display
@@ -864,6 +868,9 @@ class ChatCompletionStreamChunk(StructDictMixin, Struct, kw_only=True):
             if first_content is not None:
                 p.breakable()
                 p.text(f"first_choice_content={first_content!r},")
+            if self.usage is not None:
+                p.breakable()
+                p.text(f"usage={self.usage!r},")
 
     @safe_display
     def _repr_html_(self) -> str:
@@ -888,4 +895,6 @@ class ChatCompletionStreamChunk(StructDictMixin, Struct, kw_only=True):
             if first.finish_reason is not None:
                 section_rows.append(("Finish reason", first.finish_reason))
             builder.section("First choice", section_rows)
+        if self.usage is not None:
+            builder.row("Usage", repr(self.usage))
         return builder.build()
