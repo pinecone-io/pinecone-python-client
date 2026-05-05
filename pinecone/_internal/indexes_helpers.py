@@ -146,7 +146,12 @@ def build_create_body(
         body["tags"] = tags
 
     if isinstance(spec, ServerlessSpec):
-        body["spec"] = {"serverless": {"cloud": spec.cloud, "region": spec.region}}
+        serverless_dict: dict[str, Any] = {"cloud": spec.cloud, "region": spec.region}
+        if spec.read_capacity is not None:
+            serverless_dict["read_capacity"] = spec.read_capacity
+        if spec.schema is not None:
+            serverless_dict["schema"] = spec.schema
+        body["spec"] = {"serverless": serverless_dict}
     elif isinstance(spec, PodSpec):
         body["spec"] = {"pod": msgspec.to_builtins(spec)}
     elif isinstance(spec, dict):

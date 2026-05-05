@@ -142,3 +142,29 @@ def test_configure_index_serverless_read_capacity() -> None:
 
     sent_body = json.loads(route.calls[0].request.content)
     assert sent_body == {"spec": {"serverless": {"read_capacity": {"mode": "OnDemand"}}}}
+
+
+@respx.mock
+def test_create_index_serverless_read_capacity_spec() -> None:
+    """ServerlessSpec.read_capacity is forwarded into spec.serverless.read_capacity in the request body."""
+    from pinecone.models.indexes.specs import ServerlessSpec
+
+    response_body = make_index_response(name="rc-index")
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=response_body),
+    )
+
+    pc = Pinecone(api_key="test-key")
+    result = pc.indexes.create(
+        name="rc-index",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1", read_capacity={"mode": "OnDemand"}),
+        dimension=128,
+        metric="cosine",
+        timeout=-1,
+    )
+
+    assert result.name == "rc-index"
+    sent_body = json.loads(route.calls[0].request.content)
+    assert sent_body["spec"]["serverless"]["read_capacity"] == {"mode": "OnDemand"}
+    assert result.spec.serverless is not None
+    assert result.spec.serverless.read_capacity is not None

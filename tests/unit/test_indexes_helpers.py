@@ -10,7 +10,7 @@ from pinecone._internal.indexes_helpers import (
     validate_read_capacity,
 )
 from pinecone.errors.exceptions import ValidationError
-from pinecone.models.indexes.specs import EmbedConfig, IntegratedSpec
+from pinecone.models.indexes.specs import EmbedConfig, IntegratedSpec, ServerlessSpec
 
 
 def test_build_create_body_dict_spec_not_mutated_by_schema() -> None:
@@ -126,3 +126,59 @@ def test_build_integrated_body_read_capacity_absent_when_none() -> None:
         read_capacity=None,
     )
     assert "read_capacity" not in body
+
+
+def test_build_create_body_serverless_includes_read_capacity() -> None:
+    spec = ServerlessSpec(
+        cloud="aws",
+        region="us-east-1",
+        read_capacity={
+            "mode": "Dedicated",
+            "dedicated": {
+                "node_type": "t1",
+                "scaling": "Manual",
+                "manual": {"shards": 2, "replicas": 3},
+            },
+        },
+    )
+    body = build_create_body(
+        name="test-index",
+        spec=spec,
+        dimension=128,
+        metric="cosine",
+        vector_type="dense",
+        deletion_protection="disabled",
+        tags=None,
+        schema=None,
+    )
+    assert body["spec"]["serverless"]["read_capacity"]["mode"] == "Dedicated"
+
+
+def test_build_create_body_serverless_read_capacity_absent_when_none() -> None:
+    spec = ServerlessSpec(cloud="aws", region="us-east-1")
+    body = build_create_body(
+        name="test-index",
+        spec=spec,
+        dimension=128,
+        metric="cosine",
+        vector_type="dense",
+        deletion_protection="disabled",
+        tags=None,
+        schema=None,
+    )
+    assert "read_capacity" not in body["spec"]["serverless"]
+
+
+def test_build_create_body_serverless_spec_schema_included() -> None:
+    spec = ServerlessSpec(cloud="aws", region="us-east-1", schema={"genre": {"type": "str"}})
+    body = build_create_body(
+        name="test-index",
+        spec=spec,
+        dimension=128,
+        metric="cosine",
+        vector_type="dense",
+        deletion_protection="disabled",
+        tags=None,
+        schema=None,
+    )
+    assert body["spec"]["serverless"]["schema"] == {"genre": {"type": "str"}}
