@@ -278,7 +278,7 @@ class Indexes:
         if serverless_read_capacity is not None:
             if pod_fields or read_capacity is not None:
                 raise ValidationError(
-                    "Cannot specify serverless_read_capacity alongside pod fields or byoc read_capacity"
+                    "Cannot specify serverless_read_capacity alongside pod fields or byoc read_capacity"  # noqa: E501
                 )
             validate_read_capacity(serverless_read_capacity)
             body["spec"] = {"serverless": {"read_capacity": serverless_read_capacity}}

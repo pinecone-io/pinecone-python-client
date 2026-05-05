@@ -1162,26 +1162,36 @@ async def test_configure_byoc_read_capacity_dedicated(
     }
 
 
-async def test_configure_byoc_read_capacity_dedicated_missing_node_type(
+@respx.mock
+async def test_configure_byoc_read_capacity_dedicated_partial_no_node_type(
     async_indexes: AsyncIndexes,
 ) -> None:
-    """Missing node_type in dedicated config raises ValidationError."""
-    with pytest.raises(ValidationError, match="node_type"):
-        await async_indexes.configure(
-            "my-idx",
-            read_capacity={"mode": "Dedicated", "dedicated": {"scaling": "Manual"}},
-        )
+    """Partial Dedicated patch omitting node_type is valid and passed to the API."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-idx").mock(
+        return_value=httpx.Response(202, json=make_index_response()),
+    )
+
+    rc = {"mode": "Dedicated", "dedicated": {"scaling": "Manual"}}
+    await async_indexes.configure("my-idx", read_capacity=rc)
+
+    payload = _request_json(route)
+    assert payload == {"spec": {"byoc": {"read_capacity": rc}}}
 
 
-async def test_configure_byoc_read_capacity_dedicated_missing_scaling(
+@respx.mock
+async def test_configure_byoc_read_capacity_dedicated_partial_no_scaling(
     async_indexes: AsyncIndexes,
 ) -> None:
-    """Missing scaling in dedicated config raises ValidationError."""
-    with pytest.raises(ValidationError, match="scaling"):
-        await async_indexes.configure(
-            "my-idx",
-            read_capacity={"mode": "Dedicated", "dedicated": {"node_type": "t1"}},
-        )
+    """Partial Dedicated patch omitting scaling is valid and passed to the API."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-idx").mock(
+        return_value=httpx.Response(202, json=make_index_response()),
+    )
+
+    rc = {"mode": "Dedicated", "dedicated": {"node_type": "t1"}}
+    await async_indexes.configure("my-idx", read_capacity=rc)
+
+    payload = _request_json(route)
+    assert payload == {"spec": {"byoc": {"read_capacity": rc}}}
 
 
 async def test_configure_byoc_read_capacity_missing_mode(

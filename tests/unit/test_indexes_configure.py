@@ -265,26 +265,36 @@ def test_configure_byoc_read_capacity_dedicated(indexes: Indexes) -> None:
     }
 
 
-def test_configure_byoc_read_capacity_dedicated_missing_node_type(
+@respx.mock
+def test_configure_byoc_read_capacity_dedicated_partial_no_node_type(
     indexes: Indexes,
 ) -> None:
-    """Missing node_type in dedicated config raises ValidationError."""
-    with pytest.raises(ValidationError, match="node_type"):
-        indexes.configure(
-            "my-idx",
-            read_capacity={"mode": "Dedicated", "dedicated": {"scaling": "Manual"}},
-        )
+    """Partial Dedicated patch omitting node_type is valid and passed to the API."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-idx").mock(
+        return_value=httpx.Response(202, json=make_index_response()),
+    )
+
+    rc = {"mode": "Dedicated", "dedicated": {"scaling": "Manual"}}
+    indexes.configure("my-idx", read_capacity=rc)
+
+    payload = _request_json(route)
+    assert payload == {"spec": {"byoc": {"read_capacity": rc}}}
 
 
-def test_configure_byoc_read_capacity_dedicated_missing_scaling(
+@respx.mock
+def test_configure_byoc_read_capacity_dedicated_partial_no_scaling(
     indexes: Indexes,
 ) -> None:
-    """Missing scaling in dedicated config raises ValidationError."""
-    with pytest.raises(ValidationError, match="scaling"):
-        indexes.configure(
-            "my-idx",
-            read_capacity={"mode": "Dedicated", "dedicated": {"node_type": "t1"}},
-        )
+    """Partial Dedicated patch omitting scaling is valid and passed to the API."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-idx").mock(
+        return_value=httpx.Response(202, json=make_index_response()),
+    )
+
+    rc = {"mode": "Dedicated", "dedicated": {"node_type": "t1"}}
+    indexes.configure("my-idx", read_capacity=rc)
+
+    payload = _request_json(route)
+    assert payload == {"spec": {"byoc": {"read_capacity": rc}}}
 
 
 def test_configure_byoc_read_capacity_missing_mode(indexes: Indexes) -> None:

@@ -66,28 +66,20 @@ def resolve_enum_value(value: Any) -> Any:
 
 
 def validate_read_capacity(read_capacity: dict[str, Any]) -> None:
-    """Validate read_capacity structure for BYOC configure."""
+    """Validate read_capacity structure for index configure."""
     if "mode" not in read_capacity:
         raise ValidationError("read_capacity must contain a 'mode' key")
 
     if read_capacity["mode"] == "Dedicated":
         dedicated = read_capacity.get("dedicated")
-        if not isinstance(dedicated, dict):
+        if dedicated is not None and not isinstance(dedicated, dict):
             raise ValidationError(
                 "read_capacity with mode 'Dedicated' must contain a 'dedicated' dict"
             )
-        if "node_type" not in dedicated:
-            raise ValidationError("dedicated read_capacity must contain 'node_type'")
-        if "scaling" not in dedicated:
-            raise ValidationError("dedicated read_capacity must contain 'scaling'")
-        if dedicated["scaling"] == "Manual" and "manual" in dedicated:
-            manual = dedicated["manual"]
-            if not isinstance(manual, dict):
+        if dedicated is not None and "scaling" in dedicated:
+            manual = dedicated.get("manual")
+            if manual is not None and not isinstance(manual, dict):
                 raise ValidationError("dedicated read_capacity manual must be a dict")
-            if "shards" not in manual:
-                raise ValidationError("manual scaling must contain 'shards'")
-            if "replicas" not in manual:
-                raise ValidationError("manual scaling must contain 'replicas'")
 
 
 def validate_create_inputs(

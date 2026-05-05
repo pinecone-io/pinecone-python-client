@@ -262,7 +262,9 @@ class AsyncIndexes:
                 async with AsyncPinecone(api_key="your-api-key") as pc:
                     await pc.indexes.configure("my-index", replicas=4)
                     await pc.indexes.configure("my-index", tags={"env": "prod"})
-                    await pc.indexes.configure("my-index", serverless_read_capacity={"mode": "OnDemand"})
+                    await pc.indexes.configure(
+                        "my-index", serverless_read_capacity={"mode": "OnDemand"}
+                    )
         """
         require_non_empty("name", name)
         logger.info("Configuring index %r", name)
@@ -294,7 +296,7 @@ class AsyncIndexes:
         if serverless_read_capacity is not None:
             if pod_fields or read_capacity is not None:
                 raise ValidationError(
-                    "Cannot specify serverless_read_capacity alongside pod fields or byoc read_capacity"
+                    "Cannot specify serverless_read_capacity alongside pod fields or byoc read_capacity"  # noqa: E501
                 )
             validate_read_capacity(serverless_read_capacity)
             body["spec"] = {"serverless": {"read_capacity": serverless_read_capacity}}
