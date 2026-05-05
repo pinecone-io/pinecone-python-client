@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import httpx
+import orjson
 import pytest
+import respx
 
 from pinecone import AsyncIndex, AsyncPinecone
 from pinecone.errors import ApiError, ConflictError, PineconeValueError
@@ -1372,3 +1375,45 @@ async def test_list_namespaces_multi_page_pagination_async(async_client: AsyncPi
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# search with dense vector — wire format (mock HTTP)
+# ---------------------------------------------------------------------------
+
+_SEARCH_HOST = "dense-vec-async-test.svc.pinecone.io"
+_SEARCH_URL = f"https://{_SEARCH_HOST}/records/namespaces/vec-ns/search"
+_SEARCH_MOCK_RESPONSE: dict[str, object] = {
+    "result": {
+        "hits": [
+            {"_id": "r1", "_score": 0.91},
+            {"_id": "r2", "_score": 0.75},
+        ]
+    },
+    "usage": {"read_units": 3},
+}
+
+
+@respx.mock
+@pytest.mark.anyio
+async def test_search_with_dense_vector() -> None:
+    """AsyncIndex.search(vector=...) sends vector as {"values": [...]} object, not a bare array.
+
+    Verifies SYNC-0098: the async code path sends the same corrected wire format
+    as the sync path.
+    """
+    route = respx.post(_SEARCH_URL).mock(
+        return_value=httpx.Response(200, json=_SEARCH_MOCK_RESPONSE),
+    )
+    idx = AsyncIndex(host=_SEARCH_HOST, api_key="test-key")
+    try:
+        response = await idx.search(namespace="vec-ns", top_k=3, vector=[0.1, 0.2, 0.3])
+    finally:
+        await idx.close()
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["query"]["vector"] == {"values": [0.1, 0.2, 0.3]}, (
+        f"Expected vector as object with 'values' key; got {body['query']['vector']!r}"
+    )
+    assert isinstance(response.result.hits, list)
+    assert response.usage.read_units >= 0

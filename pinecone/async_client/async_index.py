@@ -996,7 +996,7 @@ class AsyncIndex:
         if inputs is not None:
             query_body["inputs"] = inputs
         if vector is not None:
-            query_body["vector"] = vector
+            query_body["vector"] = {"values": list(vector)}
         if id is not None:
             query_body["id"] = id
         if filter is not None:
