@@ -128,3 +128,17 @@ def test_create_index_schema_parameter_forwarded() -> None:
     sent_body = json.loads(route.calls[0].request.content)
     # schema is forwarded into spec.serverless.schema by build_create_body
     assert sent_body["spec"]["serverless"]["schema"] == {"text_field": {"type": "str"}}
+
+
+@respx.mock
+def test_configure_index_serverless_read_capacity() -> None:
+    """configure_index shim forwards serverless_read_capacity to PATCH spec.serverless."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-serverless-idx").mock(
+        return_value=httpx.Response(202, json=make_index_response(name="my-serverless-idx")),
+    )
+
+    pc = Pinecone(api_key="test-key")
+    pc.configure_index("my-serverless-idx", serverless_read_capacity={"mode": "OnDemand"})
+
+    sent_body = json.loads(route.calls[0].request.content)
+    assert sent_body == {"spec": {"serverless": {"read_capacity": {"mode": "OnDemand"}}}}

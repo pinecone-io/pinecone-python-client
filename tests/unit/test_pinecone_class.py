@@ -246,6 +246,24 @@ class TestConfigureIndex:
             tags={"env": "prod"},
             embed={"model": "m"},
             read_capacity={"read_units": 5},
+            serverless_read_capacity=None,
+        )
+
+    def test_serverless_read_capacity_forwarded(self) -> None:
+        pc, mock_indexes = _make_pc_with_mock_indexes_delegates()
+        pc.configure_index(
+            "my-index",
+            serverless_read_capacity={"mode": "OnDemand"},
+        )
+        mock_indexes.configure.assert_called_once_with(
+            name="my-index",
+            replicas=None,
+            pod_type=None,
+            deletion_protection=None,
+            tags=None,
+            embed=None,
+            read_capacity=None,
+            serverless_read_capacity={"mode": "OnDemand"},
         )
 
 

@@ -549,6 +549,7 @@ class AsyncPinecone:
         tags: Mapping[str, str] | None = None,
         embed: dict[str, Any] | None = None,
         read_capacity: dict[str, Any] | None = None,
+        serverless_read_capacity: dict[str, Any] | None = None,
     ) -> None:
         """Backwards-compatibility shim for :meth:`AsyncPinecone.indexes.configure`.
 
@@ -564,6 +565,7 @@ class AsyncPinecone:
             tags=tags,
             embed=embed,
             read_capacity=read_capacity,
+            serverless_read_capacity=serverless_read_capacity,
         )
 
     async def delete_index(self, name: str, timeout: int | None = None) -> None:
