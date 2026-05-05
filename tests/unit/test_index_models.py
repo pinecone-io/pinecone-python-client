@@ -139,6 +139,32 @@ class TestIndexModel:
         assert model.spec.byoc is not None
         assert model.spec.byoc.read_capacity is None
 
+    def test_index_model_byoc_schema_decoded(self) -> None:
+        """ByocSpecInfo must expose schema when returned by backend."""
+        raw = (
+            b'{"name":"test","metric":"cosine","host":null,'
+            b'"status":{"ready":true,"state":"Ready"},'
+            b'"spec":{"byoc":{"environment":"byoc-aws-abc123",'
+            b'"schema":{"fields":[{"name":"genre","type":"string"}]}}},'
+            b'"deletion_protection":"disabled","vector_type":"dense"}'
+        )
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.spec.byoc is not None
+        assert model.spec.byoc.schema is not None
+        assert model.spec.byoc.schema["fields"][0]["name"] == "genre"
+
+    def test_index_model_byoc_schema_absent(self) -> None:
+        """ByocSpecInfo.schema is None when backend omits the field."""
+        raw = (
+            b'{"name":"test","metric":"cosine","host":null,'
+            b'"status":{"ready":true,"state":"Ready"},'
+            b'"spec":{"byoc":{"environment":"byoc-aws-abc123"}},'
+            b'"deletion_protection":"disabled","vector_type":"dense"}'
+        )
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.spec.byoc is not None
+        assert model.spec.byoc.schema is None
+
     def test_enum_string_values(self) -> None:
         """Both enum values and plain strings work since we store as str."""
         data = make_index_response(metric="euclidean", vector_type="sparse")

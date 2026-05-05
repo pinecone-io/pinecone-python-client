@@ -72,10 +72,13 @@ class ByocSpecInfo(StructDictMixin, Struct, kw_only=True):
     Attributes:
         environment: BYOC environment identifier.
         read_capacity: Read capacity configuration, or ``None``.
+        schema: Metadata indexing schema, or ``None`` if all metadata
+            fields are indexed (the default).
     """
 
     environment: str
     read_capacity: dict[str, Any] | None = None
+    schema: dict[str, Any] | None = None
 
 
 class IndexSpec(StructDictMixin, Struct, kw_only=True):
