@@ -105,7 +105,8 @@ class RestoreJobModel(Struct, kw_only=True):
         target_index_name: Name of the index being restored to.
         target_index_id: Unique identifier of the target index.
         status: Current status of the restore job.
-        created_at: Timestamp when the restore job was created.
+        created_at: Timestamp when the restore job was created, or ``None`` if the
+            backend has not yet assigned a creation timestamp.
         completed_at: Timestamp when the restore job completed.
         percent_complete: Percentage of the restore job that has completed.
     """
@@ -115,7 +116,7 @@ class RestoreJobModel(Struct, kw_only=True):
     target_index_name: str
     target_index_id: str
     status: str
-    created_at: str
+    created_at: str | None = None
     completed_at: str | None = None
     percent_complete: float | None = None
 

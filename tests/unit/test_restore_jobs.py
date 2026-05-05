@@ -123,6 +123,35 @@ def test_describe_empty_id_raises(restore_jobs: RestoreJobs) -> None:
     assert "non-empty" in str(exc_info.value)
 
 
+@respx.mock
+def test_restore_job_created_at_optional(restore_jobs: RestoreJobs) -> None:
+    """list() must not crash when the backend omits or nulls created_at (backend nullable field)."""
+    payload = make_restore_job_response()
+    del payload["created_at"]
+    respx.get(f"{BASE_URL}/restore-jobs").mock(
+        return_value=httpx.Response(200, json={"data": [payload]}),
+    )
+
+    result = restore_jobs.list()
+
+    assert len(result) == 1
+    job = result[0]
+    assert job.created_at is None or isinstance(job.created_at, str)
+
+
+@respx.mock
+def test_restore_job_created_at_null(restore_jobs: RestoreJobs) -> None:
+    """list() decodes created_at: null as None without raising DecodeError."""
+    payload = make_restore_job_response(created_at=None)
+    respx.get(f"{BASE_URL}/restore-jobs").mock(
+        return_value=httpx.Response(200, json={"data": [payload]}),
+    )
+
+    result = restore_jobs.list()
+
+    assert result[0].created_at is None
+
+
 # ---------------------------------------------------------------------------
 # Negative: no update or cancel methods (claim unified-bak-0019)
 # ---------------------------------------------------------------------------

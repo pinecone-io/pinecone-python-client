@@ -140,6 +140,35 @@ async def test_async_describe_empty_id_raises(async_restore_jobs: AsyncRestoreJo
     assert "non-empty" in str(exc_info.value)
 
 
+@respx.mock
+async def test_async_restore_job_created_at_optional(async_restore_jobs: AsyncRestoreJobs) -> None:
+    """list() must not crash when the backend omits or nulls created_at."""
+    payload = make_restore_job_response()
+    del payload["created_at"]
+    respx.get(f"{BASE_URL}/restore-jobs").mock(
+        return_value=httpx.Response(200, json={"data": [payload]}),
+    )
+
+    result = await async_restore_jobs.list()
+
+    assert len(result) == 1
+    job = result[0]
+    assert job.created_at is None or isinstance(job.created_at, str)
+
+
+@respx.mock
+async def test_async_restore_job_created_at_null(async_restore_jobs: AsyncRestoreJobs) -> None:
+    """list() decodes created_at: null as None without raising DecodeError."""
+    payload = make_restore_job_response(created_at=None)
+    respx.get(f"{BASE_URL}/restore-jobs").mock(
+        return_value=httpx.Response(200, json={"data": [payload]}),
+    )
+
+    result = await async_restore_jobs.list()
+
+    assert result[0].created_at is None
+
+
 # ---------------------------------------------------------------------------
 # create_index_from_backup — basic success
 # ---------------------------------------------------------------------------
