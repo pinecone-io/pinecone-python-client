@@ -524,6 +524,7 @@ class Pinecone:
         deletion_protection: DeletionProtection | str | None = "disabled",
         vector_type: VectorType | str = "dense",
         tags: Mapping[str, str] | None = None,
+        schema: dict[str, Any] | None = None,
     ) -> IndexModel:
         """Backwards-compatibility shim for :meth:`Pinecone.indexes.create`.
 
@@ -539,6 +540,7 @@ class Pinecone:
             vector_type=vector_type,
             deletion_protection=resolved_dp,
             tags=tags,
+            schema=schema,
             timeout=timeout,
         )
 

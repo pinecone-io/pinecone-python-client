@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 
 import httpx
@@ -10,6 +11,7 @@ import respx
 
 from pinecone import Pinecone
 from pinecone.models.backups.model import CreateIndexFromBackupResponse
+from tests.factories import make_index_response
 
 
 @pytest.mark.integration
@@ -103,3 +105,26 @@ def test_client_init_with_api_key() -> None:
 
     assert isinstance(__version__, str)
     assert len(__version__) > 0
+
+
+@respx.mock
+def test_create_index_schema_parameter_forwarded() -> None:
+    """Verify schema param is forwarded through the create_index backcompat shim."""
+    response_body = make_index_response(name="test-schema-shim")
+    route = respx.post("https://api.pinecone.io/indexes").mock(
+        return_value=httpx.Response(201, json=response_body),
+    )
+
+    pc = Pinecone(api_key="test-key")
+    result = pc.create_index(
+        name="test-schema-shim",
+        spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
+        dimension=1536,
+        schema={"text_field": {"type": "str"}},
+        timeout=-1,
+    )
+
+    assert result.name == "test-schema-shim"
+    sent_body = json.loads(route.calls[0].request.content)
+    # schema is forwarded into spec.serverless.schema by build_create_body
+    assert sent_body["spec"]["serverless"]["schema"] == {"text_field": {"type": "str"}}
