@@ -253,6 +253,18 @@ class TestStreamMessageEnd:
         printer.flush()
         assert "StreamMessageEnd(...)" in buf.getvalue()
 
+    def test_repr_null_usage(self) -> None:
+        e = StreamMessageEnd(id="e-1", usage=None)
+        r = repr(e)
+        assert "e-1" in r
+        assert "usage" not in r
+
+    def test_repr_html_null_usage(self) -> None:
+        e = StreamMessageEnd(id="e-1", usage=None)
+        html = e._repr_html_()
+        assert "<div" in html
+        assert "Prompt tokens" not in html
+
     def test_safe_on_malformed(self) -> None:
         e = StreamMessageEnd(
             id="x", usage=ChatUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0)

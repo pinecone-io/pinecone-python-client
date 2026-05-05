@@ -1497,20 +1497,24 @@ def test_chat_stream_message_start_and_end_structure_rest(client: Pinecone) -> N
             f"StreamMessageStart.role must be a non-empty string, got {first.role!r}"
         )
 
-        # Last chunk must be StreamMessageEnd with token usage statistics
+        # Last chunk must be StreamMessageEnd; usage may be None if backend omits it
         last = chunks[-1]
         assert isinstance(last, StreamMessageEnd), (
             f"Expected last chunk to be StreamMessageEnd, got {type(last).__name__}"
         )
-        assert isinstance(last.usage.prompt_tokens, int) and last.usage.prompt_tokens >= 0, (
-            f"prompt_tokens must be a non-negative int, got {last.usage.prompt_tokens!r}"
+        assert last.usage is None or isinstance(last.usage, ChatUsage), (
+            f"usage must be ChatUsage or None, got {type(last.usage).__name__}"
         )
-        assert (
-            isinstance(last.usage.completion_tokens, int) and last.usage.completion_tokens >= 0
-        ), f"completion_tokens must be a non-negative int, got {last.usage.completion_tokens!r}"
-        assert isinstance(last.usage.total_tokens, int) and last.usage.total_tokens > 0, (
-            f"total_tokens must be a positive int, got {last.usage.total_tokens!r}"
-        )
+        if last.usage is not None:
+            assert isinstance(last.usage.prompt_tokens, int) and last.usage.prompt_tokens >= 0, (
+                f"prompt_tokens must be a non-negative int, got {last.usage.prompt_tokens!r}"
+            )
+            assert (
+                isinstance(last.usage.completion_tokens, int) and last.usage.completion_tokens >= 0
+            ), f"completion_tokens must be a non-negative int, got {last.usage.completion_tokens!r}"
+            assert isinstance(last.usage.total_tokens, int) and last.usage.total_tokens > 0, (
+                f"total_tokens must be a positive int, got {last.usage.total_tokens!r}"
+            )
 
     finally:
         if tmp_path is not None:

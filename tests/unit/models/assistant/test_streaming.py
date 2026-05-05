@@ -113,6 +113,24 @@ def test_stream_message_end_model_defaults_none() -> None:
     assert chunk.model is None
 
 
+def test_stream_message_end_null_usage() -> None:
+    """StreamMessageEnd decodes successfully when backend sends null for usage."""
+    raw = b'{"type": "message_end", "id": "end1", "usage": null}'
+    chunk = msgspec.json.decode(raw, type=ChatStreamChunk)
+    assert isinstance(chunk, StreamMessageEnd)
+    assert chunk.id == "end1"
+    assert chunk.usage is None
+
+
+def test_stream_message_end_absent_usage() -> None:
+    """StreamMessageEnd decodes successfully when usage field is absent entirely."""
+    raw = b'{"type": "message_end", "id": "end1"}'
+    chunk = msgspec.json.decode(raw, type=ChatStreamChunk)
+    assert isinstance(chunk, StreamMessageEnd)
+    assert chunk.id == "end1"
+    assert chunk.usage is None
+
+
 # ---------------------------------------------------------------------------
 # StreamMessageStart — model field (already present, sanity check)
 # ---------------------------------------------------------------------------
