@@ -2193,3 +2193,84 @@ def test_search_with_dense_vector() -> None:
     )
     assert isinstance(response.result.hits, list)
     assert response.usage.read_units >= 0
+
+
+# ---------------------------------------------------------------------------
+# search with sparse/hybrid vector — wire format (mock HTTP)
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_search_with_sparse_vector() -> None:
+    """search(vector=dict) passes the dict through as-is for sparse/hybrid queries.
+
+    Verifies AGT-0046: a Mapping passed as vector is forwarded verbatim so that
+    sparse_indices and sparse_values reach the backend without wrapping.
+    """
+    route = respx.post(_SEARCH_URL).mock(
+        return_value=httpx.Response(200, json=_SEARCH_MOCK_RESPONSE),
+    )
+    idx = Index(host=_SEARCH_HOST, api_key="test-key")
+    response = idx.search(
+        namespace="vec-ns",
+        top_k=3,
+        vector={"sparse_indices": [10, 20], "sparse_values": [0.5, 0.3]},
+    )
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["query"]["vector"] == {"sparse_indices": [10, 20], "sparse_values": [0.5, 0.3]}
+    assert isinstance(response.result.hits, list)
+    assert response.usage.read_units >= 0
+
+
+@respx.mock
+def test_search_with_hybrid_vector() -> None:
+    """search(vector=dict) with both dense values and sparse indices is passed through."""
+    route = respx.post(_SEARCH_URL).mock(
+        return_value=httpx.Response(200, json=_SEARCH_MOCK_RESPONSE),
+    )
+    idx = Index(host=_SEARCH_HOST, api_key="test-key")
+    response = idx.search(
+        namespace="vec-ns",
+        top_k=3,
+        vector={
+            "values": [0.1, 0.2, 0.3],
+            "sparse_indices": [10, 20],
+            "sparse_values": [0.5, 0.3],
+        },
+    )
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["query"]["vector"] == {
+        "values": [0.1, 0.2, 0.3],
+        "sparse_indices": [10, 20],
+        "sparse_values": [0.5, 0.3],
+    }
+    assert isinstance(response.result.hits, list)
+
+
+# ---------------------------------------------------------------------------
+# async search with sparse/hybrid vector — wire format (mock HTTP)
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@pytest.mark.anyio
+async def test_async_search_with_sparse_vector() -> None:
+    """AsyncIndex.search(vector=dict) passes the dict through as-is for sparse queries."""
+    from pinecone.async_client.async_index import AsyncIndex
+
+    route = respx.post(_SEARCH_URL).mock(
+        return_value=httpx.Response(200, json=_SEARCH_MOCK_RESPONSE),
+    )
+    idx = AsyncIndex(host=_SEARCH_HOST, api_key="test-key")
+    response = await idx.search(
+        namespace="vec-ns",
+        top_k=3,
+        vector={"sparse_indices": [10, 20], "sparse_values": [0.5, 0.3]},
+    )
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["query"]["vector"] == {"sparse_indices": [10, 20], "sparse_values": [0.5, 0.3]}
+    assert isinstance(response.result.hits, list)
+    assert response.usage.read_units >= 0

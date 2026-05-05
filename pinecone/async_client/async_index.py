@@ -918,7 +918,7 @@ class AsyncIndex:
         namespace: str,
         top_k: int,
         inputs: SearchInputs | Mapping[str, Any] | None = None,
-        vector: Sequence[float] | None = None,
+        vector: Sequence[float] | Mapping[str, Any] | None = None,
         id: str | None = None,
         filter: Mapping[str, Any] | None = None,
         fields: Sequence[str] | None = None,
@@ -938,7 +938,12 @@ class AsyncIndex:
                 server-side embedding (e.g. ``{"text": "query text"}``).
                 Use :class:`SearchInputs` for typed key validation and IDE
                 autocompletion (e.g. ``SearchInputs(text="query text")``).
-            vector (list[float] | None): Dense query vector values.
+            vector (list[float] | dict[str, Any] | None): Query vector. Pass a
+                ``list[float]`` for a dense-only query (wrapped automatically as
+                ``{"values": [...]}``) or a dict for sparse/hybrid queries with
+                keys ``values``, ``sparse_indices``, and/or ``sparse_values``
+                (passed through as-is). See :class:`SearchQueryVector` for the
+                typed helper.
             id (str | None): ID of an existing record to use as the query.
             filter (dict[str, Any] | None): Metadata filter expression.
             fields (list[str] | None): Field names to include in results.
@@ -996,7 +1001,10 @@ class AsyncIndex:
         if inputs is not None:
             query_body["inputs"] = inputs
         if vector is not None:
-            query_body["vector"] = {"values": list(vector)}
+            if isinstance(vector, Mapping):
+                query_body["vector"] = dict(vector)
+            else:
+                query_body["vector"] = {"values": list(vector)}
         if id is not None:
             query_body["id"] = id
         if filter is not None:
@@ -1024,7 +1032,7 @@ class AsyncIndex:
         namespace: str,
         top_k: int,
         inputs: SearchInputs | Mapping[str, Any] | None = None,
-        vector: Sequence[float] | None = None,
+        vector: Sequence[float] | Mapping[str, Any] | None = None,
         id: str | None = None,
         filter: Mapping[str, Any] | None = None,
         fields: Sequence[str] | None = None,

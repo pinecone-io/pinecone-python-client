@@ -228,3 +228,58 @@ class TestSearch:
 
         body = orjson.loads(route.calls.last.request.content)
         assert "fields" not in body
+
+    @respx.mock
+    def test_search_with_sparse_vector(self) -> None:
+        route = respx.post(SEARCH_URL_NS).mock(
+            return_value=httpx.Response(200, json=SEARCH_RESPONSE),
+        )
+        idx = _make_index()
+        idx.search(
+            namespace="test-ns",
+            top_k=3,
+            vector={"sparse_indices": [10, 20], "sparse_values": [0.5, 0.3]},
+        )
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["query"]["vector"] == {"sparse_indices": [10, 20], "sparse_values": [0.5, 0.3]}
+
+    @respx.mock
+    def test_search_with_hybrid_vector(self) -> None:
+        route = respx.post(SEARCH_URL_NS).mock(
+            return_value=httpx.Response(200, json=SEARCH_RESPONSE),
+        )
+        idx = _make_index()
+        idx.search(
+            namespace="test-ns",
+            top_k=3,
+            vector={
+                "values": [0.1, 0.2, 0.3],
+                "sparse_indices": [10, 20],
+                "sparse_values": [0.5, 0.3],
+            },
+        )
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["query"]["vector"] == {
+            "values": [0.1, 0.2, 0.3],
+            "sparse_indices": [10, 20],
+            "sparse_values": [0.5, 0.3],
+        }
+
+    @respx.mock
+    def test_search_dense_list_still_wrapped_as_values(self) -> None:
+        route = respx.post(SEARCH_URL_NS).mock(
+            return_value=httpx.Response(200, json=SEARCH_RESPONSE),
+        )
+        idx = _make_index()
+        idx.search(namespace="test-ns", top_k=3, vector=[0.1, 0.2, 0.3])
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["query"]["vector"] == {"values": [0.1, 0.2, 0.3]}
