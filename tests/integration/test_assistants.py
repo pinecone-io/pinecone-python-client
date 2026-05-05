@@ -1370,7 +1370,9 @@ def test_list_files_page_with_page_size_and_pagination_token_rest(client: Pineco
 
         # First page: page_size=1 must return exactly one file plus a token
         page1 = client.assistants.list_files_page(assistant_name=name, page_size=1)
-        assert isinstance(page1, ListFilesResponse), f"Expected ListFilesResponse, got {type(page1)}"
+        assert isinstance(page1, ListFilesResponse), (
+            f"Expected ListFilesResponse, got {type(page1)}"
+        )
         assert len(page1.files) == 1, f"page_size=1 should yield 1 file, got {len(page1.files)}"
         assert all(isinstance(f, AssistantFileModel) for f in page1.files)
         assert page1.next is not None and page1.next != "", (

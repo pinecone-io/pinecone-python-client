@@ -140,7 +140,14 @@ class Preview:
             resolved_host = host
         elif name is not None:
             if name not in self._host_cache:
-                self._host_cache[name] = self.indexes.describe(name).host
+                described_host = self.indexes.describe(name).host
+                if described_host is None:
+                    raise PineconeValueError(
+                        f"Index {name!r} does not yet have a host assigned — "
+                        "the index may still be initializing. "
+                        "Wait until the index status is 'Ready' before connecting."
+                    )
+                self._host_cache[name] = described_host
             resolved_host = self._host_cache[name]
         else:
             raise PineconeValueError("Exactly one of 'name' or 'host' must be provided.")
@@ -323,6 +330,12 @@ class AsyncPreview:
         async def _resolve() -> str:
             if name not in host_cache:
                 desc = await indexes.describe(name)
+                if desc.host is None:
+                    raise PineconeValueError(
+                        f"Index {name!r} does not yet have a host assigned — "
+                        "the index may still be initializing. "
+                        "Wait until the index status is 'Ready' before connecting."
+                    )
                 host_cache[name] = desc.host
             return host_cache[name]
 

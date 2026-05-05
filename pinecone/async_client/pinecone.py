@@ -749,6 +749,12 @@ class AsyncPinecone:
                 return cached_host
 
             desc = await self.indexes.describe(name)
+            if desc.host is None:
+                raise ValidationError(
+                    f"Index {name!r} does not yet have a host assigned — "
+                    "the index may still be initializing. "
+                    "Wait until the index status is 'Ready' before connecting."
+                )
             self._host_cache[name] = desc.host
             return desc.host
 

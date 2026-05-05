@@ -158,6 +158,26 @@ class TestIndexModel:
         model = msgspec.convert(data, IndexModel)
         assert model.host == "https://my-index-abc.svc.pinecone.io"
 
+    def test_index_model_null_host(self) -> None:
+        """IndexModel must decode null host from backend without raising."""
+        raw = b'{"name":"test","metric":"cosine","host":null,"status":{"ready":false,"state":"Initializing"},"spec":{"serverless":{"cloud":"aws","region":"us-east-1"}},"deletion_protection":"disabled","vector_type":"dense"}'
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.host is None
+        assert model.name == "test"
+
+    def test_index_model_missing_host(self) -> None:
+        """IndexModel must decode when host field is absent from backend response."""
+        raw = b'{"name":"test","metric":"cosine","status":{"ready":false,"state":"Initializing"},"spec":{"serverless":{"cloud":"aws","region":"us-east-1"}},"deletion_protection":"disabled","vector_type":"dense"}'
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.host is None
+        assert model.name == "test"
+
+    def test_index_model_non_null_host_normalized(self) -> None:
+        """IndexModel still normalizes non-null host with https://."""
+        raw = b'{"name":"test","metric":"cosine","host":"index-host.pinecone.io","status":{"ready":true,"state":"Ready"},"spec":{"serverless":{"cloud":"aws","region":"us-east-1"}},"deletion_protection":"disabled","vector_type":"dense"}'
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.host == "https://index-host.pinecone.io"
+
 
 class TestIndexList:
     def _make_list(self) -> IndexList:

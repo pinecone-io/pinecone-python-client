@@ -136,7 +136,8 @@ class IndexModel(Struct, kw_only=True):
         name: The name of the index.
         metric: Distance metric used for similarity search (e.g. ``"cosine"``,
             ``"euclidean"``, ``"dotproduct"``).
-        host: The hostname where this index is served.
+        host: The hostname where this index is served, or ``None`` if the index
+            is still initializing and has not yet been assigned a host.
         status: Current status of the index.
         spec: Deployment specification containing either ``serverless``,
             ``pod``, or ``byoc`` configuration.
@@ -158,9 +159,9 @@ class IndexModel(Struct, kw_only=True):
 
     name: str
     metric: str
-    host: str
     status: IndexStatus
     spec: IndexSpec
+    host: str | None = None
     vector_type: str = "dense"
     dimension: int | None = None
     deletion_protection: str = "disabled"
@@ -170,7 +171,8 @@ class IndexModel(Struct, kw_only=True):
 
     def __post_init__(self) -> None:
         """Normalize host to always include https:// scheme."""
-        self.host = normalize_host(self.host)
+        if self.host is not None:
+            self.host = normalize_host(self.host)
         if isinstance(self.tags, dict) and not isinstance(self.tags, IndexTags):
             self.tags = IndexTags(self.tags)
 

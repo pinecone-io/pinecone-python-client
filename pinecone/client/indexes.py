@@ -123,7 +123,8 @@ class Indexes:
         logger.info("Describing index %r", name)
         response = self._http.get(f"/indexes/{name}")
         model = self._adapter.to_index_model(response.content)
-        self._host_cache[name] = model.host
+        if model.host is not None:
+            self._host_cache[name] = model.host
         logger.debug("Described index %r (host=%s)", name, model.host)
         return model
 
