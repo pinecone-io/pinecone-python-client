@@ -1119,6 +1119,11 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             ]
             body["messages"] = [{"role": m.role, "content": m.content} for m in parsed]
 
+        if top_k is not None and top_k < 0:
+            raise PineconeValueError("top_k must be a non-negative integer.")
+        if snippet_size is not None and snippet_size < 0:
+            raise PineconeValueError("snippet_size must be a non-negative integer.")
+
         if filter is not None:
             body["filter"] = filter
         if top_k is not None:

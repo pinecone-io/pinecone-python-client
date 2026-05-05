@@ -2887,6 +2887,18 @@ def test_context_empty_list_messages(assistants: Assistants) -> None:
         assistants.context(assistant_name="test-assistant", messages=[])
 
 
+def test_context_top_k_negative_raises(assistants: Assistants) -> None:
+    """Negative top_k raises PineconeValueError before any HTTP call."""
+    with pytest.raises(PineconeValueError, match="top_k"):
+        assistants.context(assistant_name="test-assistant", query="test", top_k=-1)
+
+
+def test_context_snippet_size_negative_raises(assistants: Assistants) -> None:
+    """Negative snippet_size raises PineconeValueError before any HTTP call."""
+    with pytest.raises(PineconeValueError, match="snippet_size"):
+        assistants.context(assistant_name="test-assistant", query="test", snippet_size=-1)
+
+
 # ---------------------------------------------------------------------------
 # context() — success with query
 # ---------------------------------------------------------------------------

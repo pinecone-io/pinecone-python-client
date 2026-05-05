@@ -1126,6 +1126,28 @@ def test_context_retrieval_validation_rest(client: Pinecone) -> None:
         pass
 
 
+@pytest.mark.integration
+def test_context_top_k_negative_raises(client: Pinecone) -> None:
+    """context() raises PineconeValueError for negative top_k before any HTTP call."""
+    with pytest.raises(PineconeValueError):
+        client.assistants.context(
+            assistant_name="validation-test",
+            query="test",
+            top_k=-1,
+        )
+
+
+@pytest.mark.integration
+def test_context_snippet_size_negative_raises(client: Pinecone) -> None:
+    """context() raises PineconeValueError for negative snippet_size before any HTTP call."""
+    with pytest.raises(PineconeValueError):
+        client.assistants.context(
+            assistant_name="validation-test",
+            query="test",
+            snippet_size=-1,
+        )
+
+
 # ---------------------------------------------------------------------------
 # assistant-context-query-param
 # ---------------------------------------------------------------------------

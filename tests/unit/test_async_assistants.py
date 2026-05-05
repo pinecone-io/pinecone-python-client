@@ -2273,6 +2273,22 @@ async def test_async_context_empty_list_messages(async_assistants: AsyncAssistan
         await async_assistants.context(assistant_name="test-assistant", messages=[])
 
 
+async def test_async_context_top_k_negative_raises(async_assistants: AsyncAssistants) -> None:
+    """Negative top_k raises PineconeValueError before any HTTP call."""
+    with pytest.raises(PineconeValueError, match="top_k"):
+        await async_assistants.context(assistant_name="test-assistant", query="test", top_k=-1)
+
+
+async def test_async_context_snippet_size_negative_raises(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """Negative snippet_size raises PineconeValueError before any HTTP call."""
+    with pytest.raises(PineconeValueError, match="snippet_size"):
+        await async_assistants.context(
+            assistant_name="test-assistant", query="test", snippet_size=-1
+        )
+
+
 # ---------------------------------------------------------------------------
 # context() — success
 # ---------------------------------------------------------------------------
