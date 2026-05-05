@@ -42,7 +42,7 @@ class BackupModel(Struct, kw_only=True):
     record_count: int | None = None
     namespace_count: int | None = None
     size_bytes: int | None = None
-    tags: dict[str, str] | None = None
+    tags: dict[str, Any] | None = None
     created_at: str | None = None
     schema: dict[str, Any] | None = None
 

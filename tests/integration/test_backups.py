@@ -465,3 +465,73 @@ def test_backup_and_restore_job_error_paths(client: Pinecone) -> None:
     # --- unified-bak-0018: nonexistent restore job raises an error ---
     with pytest.raises(NotFoundError):
         client.restore_jobs.describe(job_id="nonexistent-restore-job-id-xyz-000")
+
+
+# ---------------------------------------------------------------------------
+# backup-tags-type — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_backup_list_tags_type(client: Pinecone) -> None:
+    """Verify BackupModel.tags is None or a plain dict (not constrained to str values).
+
+    This guards against AGT-0035: the backend exposes tags as Option<serde_json::Value>,
+    so tag values may be non-string. The SDK must accept any dict, not dict[str, str].
+
+    Area tag: backup-tags-type
+    Transport: rest
+    """
+    all_backups = client.backups.list()
+    assert isinstance(all_backups, BackupList)
+    for backup in all_backups:
+        assert backup.tags is None or isinstance(backup.tags, dict), (
+            f"backup {backup.backup_id}: tags must be None or dict, got {type(backup.tags)}"
+        )
+
+
+@pytest.mark.integration
+def test_create_backup_tags_type(client: Pinecone) -> None:
+    """Create a backup and verify BackupModel.tags is None or a dict (not dict[str, str]).
+
+    Guards against AGT-0035: tag values from the backend may be any JSON value.
+
+    Area tag: backup-tags-type
+    Transport: rest
+    """
+    index_name = unique_name("idx")
+    backup_id: str | None = None
+
+    try:
+        client.indexes.create(
+            name=index_name,
+            dimension=2,
+            metric="cosine",
+            spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
+            timeout=120,
+        )
+
+        result = client.backups.create(
+            index_name=index_name,
+            name=unique_name("bk"),
+        )
+        assert isinstance(result, BackupModel)
+        backup_id = result.backup_id
+
+        # tags must be None or a plain dict — no str-value constraint
+        assert result.tags is None or isinstance(result.tags, dict), (
+            f"create: tags must be None or dict, got {type(result.tags)}"
+        )
+
+    finally:
+        if backup_id is not None:
+            cleanup_resource(
+                lambda: client.backups.delete(backup_id=backup_id),
+                backup_id,
+                "backup",
+            )
+        cleanup_resource(
+            lambda: client.indexes.delete(index_name),
+            index_name,
+            "index",
+        )

@@ -156,6 +156,38 @@ class TestBackupModelJsonDecode:
         assert backup.dimension == 768
         assert backup.tags == {"team": "ml"}
 
+    def test_backup_model_non_string_tag_values_decode_without_error(self) -> None:
+        """Backend tags are Option<serde_json::Value> — non-string values must not raise."""
+        payload = b"""{
+            "backup_id": "bkp-xyz",
+            "source_index_name": "my-index",
+            "source_index_id": "idx-xyz",
+            "status": "Ready",
+            "cloud": "aws",
+            "region": "us-east-1",
+            "tags": {"version": 3, "enabled": true, "ratio": 1.5, "nested": {"k": "v"}}
+        }"""
+        backup = msgspec.json.decode(payload, type=BackupModel)
+        assert isinstance(backup.tags, dict)
+        assert backup.tags["version"] == 3
+        assert backup.tags["enabled"] is True
+        assert backup.tags["ratio"] == 1.5
+        assert backup.tags["nested"] == {"k": "v"}
+
+    def test_backup_model_null_tags_decode_without_error(self) -> None:
+        """tags: null from backend maps to None."""
+        payload = b"""{
+            "backup_id": "bkp-null",
+            "source_index_name": "my-index",
+            "source_index_id": "idx-null",
+            "status": "Ready",
+            "cloud": "aws",
+            "region": "us-east-1",
+            "tags": null
+        }"""
+        backup = msgspec.json.decode(payload, type=BackupModel)
+        assert backup.tags is None
+
 
 class TestRestoreJobModelRequiredFields:
     def test_restore_job_model_required_fields(self) -> None:
