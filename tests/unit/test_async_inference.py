@@ -317,6 +317,12 @@ async def test_async_list_models_invalid_vector_type_raises(inference: AsyncInfe
         await inference.list_models(vector_type="invalid")
 
 
+@pytest.mark.asyncio
+async def test_async_list_models_rerank_vector_type_raises(inference: AsyncInference) -> None:
+    with pytest.raises(ValidationError, match="vector_type is not supported"):
+        await inference.list_models(type="rerank", vector_type="dense")
+
+
 @respx.mock
 @pytest.mark.asyncio
 async def test_async_list_models_filter_by_type(inference: AsyncInference) -> None:

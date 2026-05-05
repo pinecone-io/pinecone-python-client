@@ -621,6 +621,20 @@ def test_list_models_filter_by_vector_type_and_invalid_values(client: Pinecone) 
         client.inference.list_models(vector_type="invalid_vector_type")
 
 
+@pytest.mark.integration
+def test_list_models_rerank_vector_type_combination(client: Pinecone) -> None:
+    """list_models(type='rerank', vector_type=...) raises ValidationError client-side.
+
+    Verifies D6 fix: the combination type='rerank' + any vector_type is rejected before
+    any HTTP request, matching the backend's InvalidArgument behavior.
+    """
+    with pytest.raises(ValidationError, match="vector_type is not supported"):
+        client.inference.list_models(type="rerank", vector_type="dense")
+
+    with pytest.raises(ValidationError, match="vector_type is not supported"):
+        client.inference.list_models(type="rerank", vector_type="sparse")
+
+
 # ---------------------------------------------------------------------------
 # get_model full structure — description, supported_parameters, modality, etc.
 # ---------------------------------------------------------------------------

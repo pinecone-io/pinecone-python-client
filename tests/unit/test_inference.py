@@ -384,6 +384,11 @@ def test_list_models_invalid_vector_type_raises(inference: Inference) -> None:
         inference.list_models(vector_type="invalid")
 
 
+def test_list_models_rerank_vector_type_raises(inference: Inference) -> None:
+    with pytest.raises(ValidationError, match="vector_type is not supported"):
+        inference.list_models(type="rerank", vector_type="dense")
+
+
 @respx.mock
 def test_list_models_both_filters(inference: Inference) -> None:
     route = respx.get(f"{BASE_URL}/models").mock(
