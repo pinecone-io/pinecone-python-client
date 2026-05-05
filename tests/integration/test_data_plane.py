@@ -12,6 +12,7 @@ import respx
 
 from pinecone import GrpcIndex, Index, Pinecone
 from pinecone.errors import ApiError, ConflictError, PineconeValueError
+from pinecone.errors.exceptions import ValidationError
 from pinecone.grpc.future import PineconeFuture
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
@@ -2274,3 +2275,22 @@ async def test_async_search_with_sparse_vector() -> None:
     assert body["query"]["vector"] == {"sparse_indices": [10, 20], "sparse_values": [0.5, 0.3]}
     assert isinstance(response.result.hits, list)
     assert response.usage.read_units >= 0
+
+
+# ---------------------------------------------------------------------------
+# upsert_records — client-side ID validation
+# ---------------------------------------------------------------------------
+
+
+def test_upsert_records_id_must_be_string() -> None:
+    """upsert_records raises ValidationError when '_id' is not a string."""
+    idx = Index(host="my-index.svc.pinecone.io", api_key="test-key")
+    with pytest.raises(ValidationError, match="'_id' must be a string"):
+        idx.upsert_records(namespace="ns", records=[{"_id": 123, "text": "hello"}])
+
+
+def test_upsert_records_both_id_fields_rejected() -> None:
+    """upsert_records raises ValidationError when record has both '_id' and 'id' fields."""
+    idx = Index(host="my-index.svc.pinecone.io", api_key="test-key")
+    with pytest.raises(ValidationError, match="cannot have both '_id' and 'id'"):
+        idx.upsert_records(namespace="ns", records=[{"_id": "a", "id": "b", "text": "hello"}])

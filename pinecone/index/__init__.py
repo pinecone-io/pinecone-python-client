@@ -522,12 +522,16 @@ class Index:
         import orjson
 
         normalized: list[dict[str, Any]] = []
-        for record in records:
+        for i, record in enumerate(records):
             r = dict(record)  # shallow copy
             if "_id" not in r and "id" in r:
                 r["_id"] = r.pop("id")
             elif "_id" in r and "id" in r:
-                del r["id"]  # _id takes precedence; strip the extra key
+                raise ValidationError(f"Record at index {i} cannot have both '_id' and 'id' fields")
+            resolved_id = r.get("_id")
+            if not isinstance(resolved_id, str):
+                got = type(resolved_id).__name__
+                raise ValidationError(f"Record at index {i}: '_id' must be a string, got {got!r}")
             normalized.append(r)
 
         ndjson_lines = [orjson.dumps(r).decode("utf-8") for r in normalized]
