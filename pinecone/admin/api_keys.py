@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.admin_adapter import AdminAdapter
-from pinecone._internal.validation import require_non_empty
+from pinecone._internal.validation import require_max_length, require_non_empty
 from pinecone.errors.exceptions import ValidationError
 from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyRole, APIKeyWithSecret
 
@@ -107,7 +107,7 @@ class ApiKeys:
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
-                If *project_id* or *name* is empty.
+                If *project_id* or *name* is empty, or if *name* exceeds 80 characters.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -128,6 +128,7 @@ class ApiKeys:
         """
         require_non_empty("project_id", project_id)
         require_non_empty("name", name)
+        require_max_length("name", name, 80)
         body: dict[str, Any] = {"name": name}
         if description is not None:
             body["description"] = description

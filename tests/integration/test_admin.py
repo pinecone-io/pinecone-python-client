@@ -299,6 +299,30 @@ def test_project_lifecycle_create_describe_update_delete(admin: Admin) -> None:
 
 
 # ---------------------------------------------------------------------------
+# api_keys — validation (no credentials required)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_api_key_create_name_too_long() -> None:
+    """ApiKeys.create() raises PineconeValueError when name exceeds 80 characters.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.api_keys import ApiKeys
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    api_keys = ApiKeys(http=http)
+
+    with pytest.raises(PineconeValueError, match="name"):
+        api_keys.create(project_id="proj-abc123", name="x" * 81)
+
+
+# ---------------------------------------------------------------------------
 # api_keys — name-nullability
 # ---------------------------------------------------------------------------
 

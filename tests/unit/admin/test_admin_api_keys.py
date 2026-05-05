@@ -307,6 +307,11 @@ def test_create_requires_project_id(api_keys: ApiKeys) -> None:
         api_keys.create(project_id="", name="mykey")
 
 
+def test_api_key_create_name_too_long(api_keys: ApiKeys) -> None:
+    with pytest.raises(ValidationError, match="name"):
+        api_keys.create(project_id="p1", name="x" * 81)
+
+
 def test_describe_requires_api_key_id(api_keys: ApiKeys) -> None:
     with pytest.raises(ValidationError, match="api_key_id"):
         api_keys.describe(api_key_id="")

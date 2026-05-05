@@ -38,6 +38,12 @@ def require_in_range(name: str, value: int, min_val: int, max_val: int) -> None:
         raise ValidationError(f"{name} must be between {min_val} and {max_val}, got {value}")
 
 
+def require_max_length(name: str, value: str, max_length: int) -> None:
+    """Raise ValidationError if value exceeds max_length characters."""
+    if len(value) > max_length:
+        raise ValidationError(f"{name} is too long (max {max_length} characters)")
+
+
 def require_one_of(name: str, value: str, allowed: Sequence[str]) -> None:
     """Raise ValidationError if *value* is not in the *allowed* set."""
     if value not in allowed:
