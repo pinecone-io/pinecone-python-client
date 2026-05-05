@@ -217,15 +217,25 @@ class TestModelInfo:
             value_type="string",
             required=False,
             allowed_values=["END", "NONE"],
-            min=0.0,
-            max=1.0,
+            min=0,
+            max=10,
             default="END",
         )
         assert param["parameter"] == "truncate"
         assert param["allowed_values"] == ["END", "NONE"]
-        assert param["min"] == 0.0
-        assert param["max"] == 1.0
+        assert param["min"] == 0
+        assert param["max"] == 10
         assert param["default"] == "END"
+
+    def test_model_info_supported_parameter_min_max_int(self) -> None:
+        import msgspec
+
+        json_payload = b'{"parameter":"max_chunks_per_doc","type":"range","value_type":"integer","required":false,"min":1,"max":10}'
+        param = msgspec.json.decode(json_payload, type=ModelInfoSupportedParameter)
+        assert isinstance(param.min, int)
+        assert isinstance(param.max, int)
+        assert param.min == 1
+        assert param.max == 10
 
 
 class TestModelInfoList:
