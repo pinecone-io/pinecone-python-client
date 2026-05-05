@@ -86,7 +86,6 @@ class ApiKeys:
         *,
         project_id: str,
         name: str,
-        description: str | None = None,
         roles: Sequence[APIKeyRole | str] | None = None,
     ) -> APIKeyWithSecret:
         """Create a new API key for a project.
@@ -94,7 +93,6 @@ class ApiKeys:
         Args:
             project_id (str): The identifier of the project.
             name (str): Name for the new API key (1-80 characters).
-            description (str | None): Optional description for the API key.
             roles (list[APIKeyRole | str] | None): Roles to assign to the key.
                 Valid values are ``"ProjectEditor"``, ``"ProjectViewer"``,
                 ``"ControlPlaneEditor"``, ``"ControlPlaneViewer"``,
@@ -130,8 +128,6 @@ class ApiKeys:
         require_non_empty("name", name)
         require_max_length("name", name, 80)
         body: dict[str, Any] = {"name": name}
-        if description is not None:
-            body["description"] = description
         if roles is not None:
             body["roles"] = _validate_roles(roles)
         logger.info("Creating API key %r in project %r", name, project_id)

@@ -205,6 +205,11 @@ def test_create_without_description(api_keys: ApiKeys) -> None:
     assert request.content == expected_body.content
 
 
+def test_api_key_create_description_not_accepted(api_keys: ApiKeys) -> None:
+    with pytest.raises(TypeError, match="description"):
+        api_keys.create(project_id="p1", name="key", description="My key")  # type: ignore[call-arg]
+
+
 # ---------------------------------------------------------------------------
 # describe()
 # ---------------------------------------------------------------------------
