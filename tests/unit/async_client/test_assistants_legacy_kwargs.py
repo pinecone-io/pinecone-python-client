@@ -241,4 +241,4 @@ async def test_async_list_files_page_accepts_legacy_limit(
 
     await mock_async_assistants.list_files_page(assistant_name="foo", limit=5)
 
-    mock_data_http.get.assert_called_once_with("/files/foo", params={"pageSize": 5})
+    mock_data_http.get.assert_called_once_with("/files/foo", params={"limit": 5})

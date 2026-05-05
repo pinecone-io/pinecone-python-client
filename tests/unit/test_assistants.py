@@ -1625,7 +1625,7 @@ def test_list_files_page_last_page(assistants: Assistants) -> None:
 
 @respx.mock
 def test_list_files_page_no_page_size_param(assistants: Assistants) -> None:
-    """list_files_page() does not send a pageSize query param when page_size is omitted."""
+    """list_files_page() does not send a limit query param when page_size is omitted."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
@@ -1636,12 +1636,12 @@ def test_list_files_page_no_page_size_param(assistants: Assistants) -> None:
     assistants.list_files_page(assistant_name="test-assistant")
 
     request = route.calls.last.request
-    assert "pageSize" not in str(request.url)
+    assert "limit" not in str(request.url)
 
 
 @respx.mock
 def test_list_files_page_sends_page_size(assistants: Assistants) -> None:
-    """list_files_page() sends pageSize query param when page_size is provided."""
+    """list_files_page() sends limit query param when page_size is provided."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
@@ -1652,12 +1652,12 @@ def test_list_files_page_sends_page_size(assistants: Assistants) -> None:
     assistants.list_files_page(assistant_name="test-assistant", page_size=20)
 
     request = route.calls.last.request
-    assert "pageSize=20" in str(request.url)
+    assert "limit=20" in str(request.url)
 
 
 @respx.mock
 def test_list_files_page_with_pagination_token(assistants: Assistants) -> None:
-    """list_files_page() sends paginationToken query param when provided."""
+    """list_files_page() sends pagination_token query param when provided."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
     )
@@ -1668,7 +1668,7 @@ def test_list_files_page_with_pagination_token(assistants: Assistants) -> None:
     assistants.list_files_page(assistant_name="test-assistant", pagination_token="tok123")
 
     request = route.calls.last.request
-    assert "paginationToken=tok123" in str(request.url)
+    assert "pagination_token=tok123" in str(request.url)
 
 
 @respx.mock
@@ -1705,8 +1705,8 @@ def test_list_files_page_omits_none_params(assistants: Assistants) -> None:
     assistants.list_files_page(assistant_name="test-assistant")
 
     request = route.calls.last.request
-    assert "pageSize" not in str(request.url)
-    assert "paginationToken" not in str(request.url)
+    assert "limit" not in str(request.url)
+    assert "pagination_token" not in str(request.url)
     assert "filter" not in str(request.url)
 
 
@@ -1921,7 +1921,7 @@ def test_list_files_with_pagination_token(assistants: Assistants) -> None:
     assert len(result) == 1
     assert result[0].id == "f2"
     request = route.calls.last.request
-    assert "paginationToken=tok-page2" in str(request.url)
+    assert "pagination_token=tok-page2" in str(request.url)
 
 
 @respx.mock

@@ -524,9 +524,9 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         data_http = self._data_plane_http(assistant_name)
         params: dict[str, str | int] = {}
         if page_size is not None:
-            params["pageSize"] = page_size
+            params["limit"] = page_size
         if pagination_token is not None:
-            params["paginationToken"] = pagination_token
+            params["pagination_token"] = pagination_token
         if filter is not None:
             params["filter"] = _json.dumps(filter)
 
