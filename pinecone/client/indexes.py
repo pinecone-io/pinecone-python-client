@@ -288,11 +288,9 @@ class Indexes:
             _validate_deletion_protection(deletion_protection)
             body["deletion_protection"] = resolve_enum_value(deletion_protection)
 
-        # Tag merging — fetch current tags and merge
+        # Tags — sent as a sparse patch; backend merges with existing tags
         if tags is not None:
-            current = self.describe(name)
-            merged = {**(current.tags or {}), **tags}
-            body["tags"] = merged
+            body["tags"] = tags
 
         # Integrated embed config update
         if embed is not None:

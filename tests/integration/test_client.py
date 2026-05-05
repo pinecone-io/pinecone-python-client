@@ -145,6 +145,42 @@ def test_configure_index_serverless_read_capacity() -> None:
 
 
 @respx.mock
+def test_configure_index_tags_sparse_patch() -> None:
+    """configure sends user tags directly without pre-fetching current state.
+
+    The backend implements merge semantics (unmentioned tags preserved, empty-string
+    value removes a tag), so the client must send only the user's dict — no describe
+    round-trip and no client-side merge.
+    """
+    index_name = "my-tagged-idx"
+    patch_route = respx.patch(f"{BASE_URL}/indexes/{index_name}").mock(
+        return_value=httpx.Response(202, json=make_index_response(name=index_name)),
+    )
+    # Ensure no GET /indexes/{name} is registered — if the client calls describe,
+    # respx will raise an error (no matching route) rather than silently passing.
+
+    pc = Pinecone(api_key="test-key")
+
+    # Sparse add: send a new key; backend will preserve any pre-existing tags.
+    pc.indexes.configure(index_name, tags={"new_key": "new_val"})
+    sent_body = json.loads(patch_route.calls[0].request.content)
+    assert sent_body["tags"] == {"new_key": "new_val"}, (
+        "Client must send only the user-supplied tags dict, not a client-side merge"
+    )
+    assert len(patch_route.calls) == 1, "configure must issue exactly one PATCH (no describe GET)"
+
+    patch_route.reset()
+
+    # Sparse remove: empty-string value signals the backend to delete that tag.
+    pc.indexes.configure(index_name, tags={"existing_key": ""})
+    sent_body2 = json.loads(patch_route.calls[0].request.content)
+    assert sent_body2["tags"] == {"existing_key": ""}, (
+        "Client must forward the empty-string removal signal unchanged"
+    )
+    assert len(patch_route.calls) == 1, "configure must issue exactly one PATCH (no describe GET)"
+
+
+@respx.mock
 def test_create_index_serverless_read_capacity_spec() -> None:
     """ServerlessSpec.read_capacity is forwarded into spec.serverless.read_capacity in the request body."""
     from pinecone.models.indexes.specs import ServerlessSpec

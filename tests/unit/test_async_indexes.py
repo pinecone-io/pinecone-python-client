@@ -1008,14 +1008,8 @@ async def test_configure_deletion_protection(async_indexes: AsyncIndexes) -> Non
 
 
 @respx.mock
-async def test_configure_tags_with_merging(async_indexes: AsyncIndexes) -> None:
-    """Tags are merged with existing tags from describe."""
-    respx.get(f"{BASE_URL}/indexes/test-index").mock(
-        return_value=httpx.Response(
-            200,
-            json=make_index_response(tags={"existing": "val", "keep": "me"}),
-        ),
-    )
+async def test_configure_tags_sent_directly(async_indexes: AsyncIndexes) -> None:
+    """Tags are forwarded as-is; no describe pre-fetch is issued."""
     patch_route = respx.patch(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202, json=make_index_response()),
     )
@@ -1025,20 +1019,13 @@ async def test_configure_tags_with_merging(async_indexes: AsyncIndexes) -> None:
     )
 
     payload = _request_json(patch_route)
-    assert payload == {
-        "tags": {"existing": "overwritten", "keep": "me", "new_tag": "hello"},
-    }
+    assert payload == {"tags": {"new_tag": "hello", "existing": "overwritten"}}
+    assert len(patch_route.calls) == 1, "exactly one PATCH; no GET for describe"
 
 
 @respx.mock
 async def test_configure_tag_removal_via_empty_string(async_indexes: AsyncIndexes) -> None:
-    """Setting a tag value to empty string passes through for removal."""
-    respx.get(f"{BASE_URL}/indexes/test-index").mock(
-        return_value=httpx.Response(
-            200,
-            json=make_index_response(tags={"remove_me": "old_val", "keep": "val"}),
-        ),
-    )
+    """Empty-string tag value is forwarded unchanged; backend handles removal."""
     patch_route = respx.patch(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202, json=make_index_response()),
     )
@@ -1046,8 +1033,8 @@ async def test_configure_tag_removal_via_empty_string(async_indexes: AsyncIndexe
     await async_indexes.configure("test-index", tags={"remove_me": ""})
 
     payload = _request_json(patch_route)
-    assert payload["tags"]["remove_me"] == ""
-    assert payload["tags"]["keep"] == "val"
+    assert payload == {"tags": {"remove_me": ""}}
+    assert len(patch_route.calls) == 1, "exactly one PATCH; no GET for describe"
 
 
 @respx.mock
@@ -1066,9 +1053,6 @@ async def test_configure_deletion_protection_enum(async_indexes: AsyncIndexes) -
 @respx.mock
 async def test_configure_multiple_fields(async_indexes: AsyncIndexes) -> None:
     """Can set replicas, pod_type, and deletion_protection together."""
-    respx.get(f"{BASE_URL}/indexes/test-index").mock(
-        return_value=httpx.Response(200, json=make_index_response(tags={})),
-    )
     route = respx.patch(f"{BASE_URL}/indexes/test-index").mock(
         return_value=httpx.Response(202, json=make_index_response()),
     )
