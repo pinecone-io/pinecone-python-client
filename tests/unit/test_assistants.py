@@ -134,7 +134,7 @@ def test_create_assistant_region_case_sensitive(assistants: Assistants) -> None:
 
 @respx.mock
 def test_create_assistant_defaults(assistants: Assistants) -> None:
-    """Default region is 'us', metadata is {}, instructions is None."""
+    """Default region is 'us', metadata is omitted from body, instructions is None."""
     route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
@@ -150,7 +150,7 @@ def test_create_assistant_defaults(assistants: Assistants) -> None:
     request = route.calls.last.request
     body = json.loads(request.content)
     assert body["region"] == "us"
-    assert body["metadata"] == {}
+    assert "metadata" not in body
     assert body["instructions"] is None
 
 
@@ -462,6 +462,37 @@ def test_create_assistant_accepts_eu_region(assistants: Assistants) -> None:
 
     result = assistants.create(name="test-assistant", region="eu")
     assert isinstance(result, AssistantModel)
+
+
+@respx.mock
+def test_create_assistant_metadata_default_omitted(assistants: Assistants) -> None:
+    """When metadata is not provided, the 'metadata' key is absent from the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    assistants.create(name="test-assistant", timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert "metadata" not in body
+
+
+@respx.mock
+def test_create_assistant_metadata_explicit_dict_included(assistants: Assistants) -> None:
+    """When metadata is provided, it is sent in the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    assistants.create(name="test-assistant", metadata={"key": "value"}, timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["metadata"] == {"key": "value"}
 
 
 # ---------------------------------------------------------------------------

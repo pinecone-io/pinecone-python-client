@@ -630,6 +630,31 @@ def test_assistant_create_region_validation_and_chat_stream_json_conflict(
 
 
 # ---------------------------------------------------------------------------
+# assistant-create: metadata default behavior
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_create_assistant_metadata_default(client: Pinecone) -> None:
+    """create() without metadata produces an assistant with model.metadata is None.
+
+    Verifies the fix for D3: the SDK previously sent "metadata": {} instead of
+    omitting the key, causing the backend to store an empty object rather than None.
+    """
+    name = unique_name("asst")
+    try:
+        model = client.assistants.create(name=name, timeout=-1)
+        assert isinstance(model, AssistantModel)
+        assert model.metadata is None
+    finally:
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
 # assistant-files: byte-stream upload with file_name and metadata
 # ---------------------------------------------------------------------------
 

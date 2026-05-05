@@ -200,7 +200,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             instructions (str | None): Optional directive for the assistant.
                 Maximum 16 KB.
             metadata (dict[str, Any] | None): Optional metadata dictionary.
-                Defaults to an empty dict if not provided.
+                When omitted or ``None``, no metadata is sent and the assistant
+                is created without metadata (``None``).
             region (str): Region to deploy the assistant in. Must be ``"us"``
                 or ``"eu"`` (case-sensitive). Defaults to ``"us"``.
             timeout (float | None): Seconds to wait for the assistant to become
@@ -253,9 +254,10 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         body: dict[str, Any] = {
             "name": name,
             "instructions": instructions,
-            "metadata": metadata if metadata is not None else {},
             "region": region,
         }
+        if metadata is not None:
+            body["metadata"] = metadata
 
         logger.info("Creating assistant %r", name)
         response = await self._http.post("/assistants", json=body)

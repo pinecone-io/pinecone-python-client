@@ -670,6 +670,32 @@ async def test_assistant_create_region_validation_and_chat_stream_json_conflict_
 
 
 # ---------------------------------------------------------------------------
+# assistant-create: metadata default behavior (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.anyio
+async def test_create_assistant_metadata_default_async(async_client: AsyncPinecone) -> None:
+    """create() without metadata produces an assistant with model.metadata is None (async).
+
+    Verifies the fix for D3: the SDK previously sent "metadata": {} instead of
+    omitting the key, causing the backend to store an empty object rather than None.
+    """
+    name = unique_name("asst")
+    try:
+        model = await async_client.assistants.create(name=name, timeout=-1)
+        assert isinstance(model, AssistantModel)
+        assert model.metadata is None
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
 # assistant-files: byte-stream upload with file_name and metadata (async)
 # ---------------------------------------------------------------------------
 

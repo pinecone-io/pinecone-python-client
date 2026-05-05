@@ -76,7 +76,7 @@ async def test_create_assistant_region_case_sensitive(async_assistants: AsyncAss
 
 @respx.mock
 async def test_create_assistant_defaults(async_assistants: AsyncAssistants) -> None:
-    """Default region is 'us', metadata is {}, instructions is None."""
+    """Default region is 'us', metadata is omitted from body, instructions is None."""
     route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
@@ -92,7 +92,7 @@ async def test_create_assistant_defaults(async_assistants: AsyncAssistants) -> N
     request = route.calls.last.request
     body = json.loads(request.content)
     assert body["region"] == "us"
-    assert body["metadata"] == {}
+    assert "metadata" not in body
     assert body["instructions"] is None
 
 
@@ -373,6 +373,41 @@ async def test_create_assistant_accepts_eu_region(async_assistants: AsyncAssista
 
     result = await async_assistants.create(name="test-assistant", region="eu")
     assert isinstance(result, AssistantModel)
+
+
+@respx.mock
+async def test_create_assistant_metadata_default_omitted(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """When metadata is not provided, the 'metadata' key is absent from the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    await async_assistants.create(name="test-assistant", timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert "metadata" not in body
+
+
+@respx.mock
+async def test_create_assistant_metadata_explicit_dict_included(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """When metadata is provided, it is sent in the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    await async_assistants.create(name="test-assistant", metadata={"key": "value"}, timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["metadata"] == {"key": "value"}
 
 
 # ---------------------------------------------------------------------------
