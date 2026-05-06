@@ -24,6 +24,7 @@ from pinecone.preview._internal.adapters.indexes import (
     PreviewListIndexesAdapter,
 )
 from pinecone.preview._internal.constants import INDEXES_API_VERSION
+from pinecone.preview._internal.validation import validate_tags
 from pinecone.preview.models.backups import PreviewBackupModel, PreviewCreateBackupRequest
 from pinecone.preview.models.indexes import PreviewIndexModel
 from pinecone.preview.models.requests import PreviewConfigureIndexRequest, PreviewCreateIndexRequest
@@ -147,7 +148,9 @@ class AsyncPreviewIndexes:
                 ``"enabled"`` or ``"disabled"``. Defaults to ``"disabled"``
                 if not provided.
             tags: Optional key-value tags for the index. Keys must be at most
-                80 characters; values must be at most 120 characters.
+                80 characters and contain only alphanumeric characters,
+                underscores, or hyphens. Values must be at most 120 printable
+                ASCII characters. A maximum of 20 tags is allowed.
             source_collection: Optional name of an existing collection to
                 create the index from.
             source_backup_id: Optional ID of an existing backup to create
@@ -162,7 +165,9 @@ class AsyncPreviewIndexes:
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If a tag key
-                exceeds 80 characters or a tag value exceeds 120 characters.
+                exceeds 80 characters, contains invalid characters, if a tag
+                value exceeds 120 characters or contains non-ASCII/non-printable
+                characters, or if more than 20 tags are provided.
             :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns an
                 error response.
 
@@ -174,14 +179,7 @@ class AsyncPreviewIndexes:
                     name="my-preview-index",
                 )
         """
-        if tags is not None:
-            for key, value in tags.items():
-                if len(key) > 80:
-                    raise PineconeValueError(f"Tag key {key!r} exceeds the 80-character limit.")
-                if len(value) > 120:
-                    raise PineconeValueError(
-                        f"Tag value for key {key!r} exceeds the 120-character limit."
-                    )
+        validate_tags(tags)
 
         req = PreviewCreateIndexRequest(
             schema=schema,
@@ -318,14 +316,7 @@ class AsyncPreviewIndexes:
                 "schema, deletion_protection, tags, read_capacity, or deployment"
             )
 
-        if tags is not None:
-            for key, value in tags.items():
-                if len(key) > 80:
-                    raise PineconeValueError(f"Tag key {key!r} exceeds the 80-character limit.")
-                if len(value) > 120:
-                    raise PineconeValueError(
-                        f"Tag value for key {key!r} exceeds the 120-character limit."
-                    )
+        validate_tags(tags)
 
         req = PreviewConfigureIndexRequest(
             schema=schema,
