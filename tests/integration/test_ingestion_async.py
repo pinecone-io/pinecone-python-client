@@ -55,7 +55,7 @@ async def test_upsert_formats_async(async_client: AsyncPinecone) -> None:
             timeout=300,
         )
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         # Format 1: Vector object
         vec1 = Vector(id="fmt-v1", values=[0.1, 0.2, 0.3, 0.4], metadata={"fmt": "object", "n": 1})
@@ -160,7 +160,7 @@ async def test_upsert_batch_async(async_client: AsyncPinecone) -> None:
             timeout=300,
         )
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         vectors = [
             {"id": f"batch-{i}", "values": [float(i) / 200, 1.0 - float(i) / 200]}
@@ -209,7 +209,7 @@ async def test_upsert_overwrite_async(async_client: AsyncPinecone) -> None:
             timeout=300,
         )
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         # First write
         await index.upsert(
@@ -314,7 +314,7 @@ async def test_upsert_records_batch_async(async_client: AsyncPinecone) -> None:
 
         # Populate host cache and get async index handle
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         records = [
             {
@@ -392,7 +392,7 @@ async def test_upsert_records_async(async_client: AsyncPinecone) -> None:
 
         # Populate host cache and get async index handle
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         records = [
             {"_id": "urec-1", "text": "Vector databases enable fast similarity search."},
@@ -452,7 +452,7 @@ async def test_update_metadata_async(async_client: AsyncPinecone) -> None:
             timeout=300,
         )
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         # Upsert a vector with two metadata fields
         await index.upsert(
@@ -536,7 +536,7 @@ async def test_update_sparse_async(async_client: AsyncPinecone) -> None:
             timeout=300,
         )
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         # Upsert hybrid vector with initial sparse values
         await index.upsert(
@@ -625,7 +625,7 @@ async def test_update_by_filter_async(async_client: AsyncPinecone) -> None:
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
             timeout=300,
         )
-        index = async_client.index(name=name)
+        index = await async_client.index(name=name)
 
         # Upsert 3 drama and 2 comedy vectors
         vectors = [
@@ -746,7 +746,7 @@ async def test_delete_by_filter_async(async_client: AsyncPinecone) -> None:
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
             timeout=300,
         )
-        index = async_client.index(name=name)
+        index = await async_client.index(name=name)
 
         # 2 obsolete + 3 active vectors
         vectors = [
@@ -834,7 +834,7 @@ async def test_delete_all_namespace_async(async_client: AsyncPinecone) -> None:
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
             timeout=300,
         )
-        index = async_client.index(name=name)
+        index = await async_client.index(name=name)
 
         # Upsert into named namespace
         ns_vectors = [
@@ -921,7 +921,7 @@ async def test_upsert_records_validation_async(async_client: AsyncPinecone) -> N
     All validation is client-side; no real index is created. The AsyncIndex is
     constructed with a dummy host so that validation fires before any HTTP call.
     """
-    index = async_client.index(host="https://dummy.example.com")
+    index = await async_client.index(host="https://dummy.example.com")
 
     # unified-vec-0049: empty records list raises PineconeValueError
     with pytest.raises(PineconeValueError):
@@ -965,7 +965,7 @@ async def test_delete_mode_validation_async(async_client: AsyncPinecone) -> None
     All validation is client-side; no real index is created. The AsyncIndex is
     constructed with a dummy host so that validation fires before any HTTP request.
     """
-    index = async_client.index(host="fake-index.svc.pinecone.io")
+    index = await async_client.index(host="fake-index.svc.pinecone.io")
 
     # No mode at all raises PineconeValueError
     with pytest.raises(PineconeValueError):
@@ -1006,7 +1006,7 @@ async def test_upsert_from_dataframe_not_supported_async(async_client: AsyncPine
     """
     # Use a valid-looking fake host so the constructor does not reject it.
     # No network call is made — NotImplementedError is raised synchronously.
-    index = async_client.index(host="fake-index.svc.pinecone.io")
+    index = await async_client.index(host="fake-index.svc.pinecone.io")
 
     with pytest.raises(
         NotImplementedError, match="upsert_from_dataframe is not supported for async clients"
@@ -1055,7 +1055,7 @@ async def test_upsert_records_id_field_normalization_async(async_client: AsyncPi
         )
 
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         # Three normalization cases:
         # 1. Only "id" key — SDK must rename it to "_id" before sending
@@ -1128,7 +1128,7 @@ async def test_upsert_duplicate_ids_in_batch_async(async_client: AsyncPinecone) 
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
             timeout=300,
         )
-        index = async_client.index(name=name)
+        index = await async_client.index(name=name)
 
         first_values = [0.1, 0.2]
         last_values = [0.9, 0.8]

@@ -45,9 +45,9 @@ async def test_query_namespaces_filter_rest_async(async_client: AsyncPinecone) -
             timeout=300,
         )
 
-        # Populate host cache so async_client.index(name=...) can resolve it
+        # Populate host cache so await async_client.index(name=...) can resolve it
         await async_client.indexes.describe(name)
-        idx = async_client.index(name=name)
+        idx = await async_client.index(name=name)
 
         # Upsert comedy + drama vectors into two namespaces
         await idx.upsert(
@@ -162,9 +162,9 @@ async def test_query_namespaces_dedup_rest_async(async_client: AsyncPinecone) ->
             timeout=300,
         )
 
-        # Populate host cache so async_client.index(name=...) can resolve it
+        # Populate host cache so await async_client.index(name=...) can resolve it
         await async_client.indexes.describe(name)
-        idx = async_client.index(name=name)
+        idx = await async_client.index(name=name)
 
         # Upsert distinct vectors into two namespaces
         await idx.upsert(
@@ -260,9 +260,9 @@ async def test_query_namespaces_many_rest_async(async_client: AsyncPinecone) -> 
             timeout=300,
         )
 
-        # Populate host cache so async_client.index(name=...) can resolve it
+        # Populate host cache so await async_client.index(name=...) can resolve it
         await async_client.indexes.describe(name)
-        idx = async_client.index(name=name)
+        idx = await async_client.index(name=name)
 
         # Upsert 2 vectors into each of 5 namespaces
         namespaces = [f"qnm-ns-{i}" for i in range(5)]
@@ -359,7 +359,7 @@ async def test_query_namespaces_default_top_k_rest_async(async_client: AsyncPine
             timeout=300,
         )
         host_info = await async_client.indexes.describe(name)
-        idx = async_client.index(host=host_info.host)
+        idx = await async_client.index(host=host_info.host)
 
         # Upsert 7 vectors into each of 2 namespaces = 14 total (exceeds default top_k=10)
         ns_a_vectors = [
@@ -461,7 +461,7 @@ async def test_query_namespaces_euclidean_scores_ascending_rest_async(
             timeout=300,
         )
         host_info = await async_client.indexes.describe(name)
-        idx = async_client.index(host=host_info.host)
+        idx = await async_client.index(host=host_info.host)
 
         await idx.upsert(
             vectors=[
@@ -568,7 +568,7 @@ async def test_query_namespaces_include_values_rest_async(async_client: AsyncPin
             spec=ServerlessSpec(cloud="aws", region="us-east-1"),
             timeout=300,
         )
-        idx = async_client.index(name=name)
+        idx = await async_client.index(name=name)
 
         # Upsert 2 vectors into each of 2 namespaces with known values
         await idx.upsert(
@@ -691,9 +691,9 @@ async def test_query_namespaces_sparse_rest_async(async_client: AsyncPinecone) -
             timeout=300,
         )
 
-        # Populate host cache so async_client.index(name=...) can resolve it
+        # Populate host cache so await async_client.index(name=...) can resolve it
         await async_client.indexes.describe(name)
-        idx = async_client.index(name=name)
+        idx = await async_client.index(name=name)
 
         # Upsert sparse-only vectors into two namespaces
         await idx.upsert(
@@ -808,9 +808,9 @@ async def test_query_namespaces_parallel_faster_than_serial_rest_async(
             timeout=300,
         )
 
-        # Populate host cache so async_client.index(name=...) can resolve it
+        # Populate host cache so await async_client.index(name=...) can resolve it
         await async_client.indexes.describe(name)
-        idx = async_client.index(name=name)
+        idx = await async_client.index(name=name)
 
         namespaces = [f"qnpa-ns-{i}" for i in range(10)]
 
@@ -907,7 +907,7 @@ async def test_query_namespaces_validation_errors_rest_async(
             timeout=300,
         )
         await async_client.indexes.describe(name)
-        idx = async_client.index(name=name)
+        idx = await async_client.index(name=name)
 
         # Case 1 — empty namespaces list
         with pytest.raises(ValidationError) as excinfo:
@@ -979,7 +979,7 @@ async def test_query_namespaces_tie_breaking_rest_async(async_client: AsyncPinec
         )
 
         await async_client.indexes.describe(name)
-        idx = async_client.index(name=name)
+        idx = await async_client.index(name=name)
 
         # Upsert identical vectors into two namespaces so every match scores 1.0
         await idx.upsert(
@@ -1063,7 +1063,7 @@ async def test_query_namespaces_large_top_k_merge_rest_async(async_client: Async
         )
 
         await async_client.indexes.describe(name)
-        idx = async_client.index(name=name)
+        idx = await async_client.index(name=name)
 
         # Upsert 50 distinct vectors per namespace with interpolated values so scores differ
         ns1_vectors = [
@@ -1157,7 +1157,7 @@ async def test_query_namespaces_dense_dotproduct_scores_descending_rest_async(
             timeout=300,
         )
         host_info = await async_client.indexes.describe(name)
-        idx = async_client.index(host=host_info.host)
+        idx = await async_client.index(host=host_info.host)
 
         await idx.upsert(
             vectors=[

@@ -106,7 +106,7 @@ async def test_dimension_mismatch_raises_typed_error_async(
         )
         # Populate host cache so pc.index(name=...) can resolve it
         await async_client.indexes.describe(name)
-        index = async_client.index(name=name)
+        index = await async_client.index(name=name)
 
         with pytest.raises(ApiError) as exc_info:
             await index.upsert(vectors=[{"id": "dim-v1", "values": [0.1, 0.2, 0.3]}])

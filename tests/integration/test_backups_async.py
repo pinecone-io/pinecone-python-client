@@ -268,7 +268,7 @@ async def test_create_index_from_backup_async(async_client: AsyncPinecone) -> No
 
         # 6. Get an Index handle — index should be reachable and queryable
         restore_desc = await async_client.indexes.describe(restore_index_name)
-        restore_index = async_client.index(host=restore_desc.host)
+        restore_index = await async_client.index(host=restore_desc.host)
         stats = await restore_index.describe_index_stats()
         assert stats.dimension == 4
         # total_vector_count may be 0 for a freshly created backup (durable

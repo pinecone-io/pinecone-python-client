@@ -53,7 +53,7 @@ async def test_collection_lifecycle_async(async_client: AsyncPinecone) -> None:
 
         # 2. Seed vectors — get the index host from describe() for async
         desc = await async_client.indexes.describe(index_name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
         upsert_result = await index.upsert(
             vectors=[
                 {"id": "col-v1", "values": [0.1, 0.9]},

@@ -56,7 +56,7 @@ async def test_import_lifecycle_async(async_client: AsyncPinecone) -> None:
 
         # 2. Get a data-plane AsyncIndex handle (describe first to populate host)
         desc = await async_client.indexes.describe(index_name)
-        idx = async_client.index(host=desc.host)
+        idx = await async_client.index(host=desc.host)
 
         # 3. start_import — verify StartImportResponse structure
         start_resp = await idx.start_import(uri=_TEST_URI, error_mode="continue")
@@ -141,7 +141,7 @@ async def test_import_input_validation_async(async_client: AsyncPinecone) -> Non
     - unified-imp-0011: describe_import() and cancel_import() raise PineconeValueError
       for empty IDs or IDs exceeding 1000 characters.
     """
-    index = async_client.index(host="fake-host.svc.pinecone.io")
+    index = await async_client.index(host="fake-host.svc.pinecone.io")
 
     # --- unified-imp-0010: invalid error_mode raises PineconeValueError ---
     with pytest.raises(PineconeValueError):

@@ -127,7 +127,7 @@ async def test_search_records_rest_async(
 
         # Populate the async client's host cache before calling index()
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         # Upsert records: text fields are embedded server-side
         await index.upsert_records(
@@ -204,7 +204,7 @@ async def test_search_with_rerank_rest_async(
 
         # Populate the async client's host cache before calling index()
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         # Upsert records with varied text content
         await index.upsert_records(
@@ -302,7 +302,7 @@ async def test_search_by_id_rest_async(
 
         # Populate the async client's host cache before calling index()
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         # Upsert records — embeddings are generated server-side from the text field
         await index.upsert_records(
@@ -380,7 +380,7 @@ async def test_search_with_filter_rest_async(
 
         # Populate the async client's host cache before calling index()
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         # Upsert records with a 'category' metadata field for filtering
         await index.upsert_records(
@@ -484,7 +484,7 @@ async def test_search_input_validation_rest_async(async_client: AsyncPinecone) -
     - unified-vec-0051: rerank dict missing 'model' or 'rank_fields' is rejected
     """
     # Fake host — no describe-index call; validation fires before any HTTP request
-    index = async_client.index(host="fake-index.svc.pinecone.io")
+    index = await async_client.index(host="fake-index.svc.pinecone.io")
     try:
         # unified-vec-0047: non-string namespace (None) rejected
         with pytest.raises(PineconeValueError):
@@ -557,7 +557,7 @@ async def test_search_records_alias_with_typed_inputs_async(
         )
 
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         await index.upsert_records(
             namespace=namespace,
@@ -647,7 +647,7 @@ async def test_search_with_match_terms_async(
 
         # Populate the async client's host cache before calling index()
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         # mt-r1 and mt-r3 contain "astronaut"; mt-r2 does not
         await index.upsert_records(
@@ -740,7 +740,7 @@ async def test_search_all_fields_default_and_restricted_async(
 
         # Populate the async client's host cache before calling index()
         desc = await async_client.indexes.describe(name)
-        index = async_client.index(host=desc.host)
+        index = await async_client.index(host=desc.host)
 
         await index.upsert_records(
             namespace=namespace,

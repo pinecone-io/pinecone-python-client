@@ -211,7 +211,7 @@ async def test_index_handle_rest_async(async_client: AsyncPinecone) -> None:
         expected_host = desc.host
 
         # Get an AsyncIndex handle by name (uses cached host)
-        idx = async_client.index(name=name)
+        idx = await async_client.index(name=name)
 
         assert isinstance(idx, AsyncIndex)
         assert isinstance(idx.host, str)
@@ -546,11 +546,11 @@ async def test_async_index_factory_requires_prior_describe_rest_async(
 
     Sequence:
     1. Create index.
-    2. Call async_client.index(name) — cache is empty → PineconeValueError.
+    2. Call await async_client.index(name) — cache is empty → PineconeValueError.
     3. Call await async_client.indexes.describe(name) — populates cache.
-    4. Call async_client.index(name) — cache hit → returns AsyncIndex.
+    4. Call await async_client.index(name) — cache hit → returns AsyncIndex.
     5. Delete the index (clears cache, waits for gone).
-    6. Call async_client.index(name) — cache miss → PineconeValueError again.
+    6. Call await async_client.index(name) — cache miss → PineconeValueError again.
     """
     name = unique_name("idx")
     deleted = False
@@ -569,7 +569,7 @@ async def test_async_index_factory_requires_prior_describe_rest_async(
         # Step 2: cache is empty — async factory raises instead of auto-fetching
         # (unlike sync Pinecone.index() which triggers a new describe call)
         with pytest.raises(PineconeValueError):
-            async_client.index(name=name)
+            await async_client.index(name=name)
 
         # Step 3: describe() populates the cache as a side effect
         await async_client.indexes.describe(name)
@@ -578,7 +578,7 @@ async def test_async_index_factory_requires_prior_describe_rest_async(
         )
 
         # Step 4: cache hit — factory succeeds
-        idx = async_client.index(name=name)
+        idx = await async_client.index(name=name)
         assert isinstance(idx, AsyncIndex)
 
         # Step 5: delete clears cache immediately and polls until gone
@@ -591,7 +591,7 @@ async def test_async_index_factory_requires_prior_describe_rest_async(
 
         # Step 6: cache miss again → PineconeValueError (no auto-describe in async)
         with pytest.raises(PineconeValueError):
-            async_client.index(name=name)
+            await async_client.index(name=name)
 
     finally:
         if not deleted:
