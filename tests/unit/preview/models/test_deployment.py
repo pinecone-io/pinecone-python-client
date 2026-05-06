@@ -58,6 +58,15 @@ def test_byoc_deployment_decode_full() -> None:
     assert result.region == "us-east1"
 
 
+def test_preview_managed_deployment_no_environment() -> None:
+    """PreviewManagedDeployment must decode when environment is absent."""
+    raw = b'{"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"}'
+    result = msgspec.json.decode(raw, type=PreviewManagedDeployment)
+    assert result.cloud == "aws"
+    assert result.region == "us-east-1"
+    assert result.environment is None
+
+
 def test_deployment_union_ignores_unknown_fields() -> None:
     raw = b'{"deployment_type": "managed", "environment": "aped-1", "cloud": "aws", "region": "us-east-1", "metadata_config": {"indexed": ["genre"]}}'
     result = msgspec.json.decode(raw, type=PreviewDeployment)

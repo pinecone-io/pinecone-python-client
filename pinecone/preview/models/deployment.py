@@ -24,18 +24,20 @@ class PreviewManagedDeployment(Struct, tag="managed", tag_field="deployment_type
        relying on preview features.
 
     Attributes:
-        environment: Environment identifier.
         cloud: Cloud provider (e.g., ``"aws"``, ``"gcp"``, ``"azure"``).
         region: Cloud region (e.g., ``"us-east-1"``).
+        environment: Internal environment override. Absent for all production
+            managed serverless indexes; present only for indexes created with
+            an internal testing override.
 
     Note:
         The ``deployment_type`` field is automatically set to ``"managed"``
         by msgspec's tagged union system.
     """
 
-    environment: str
     cloud: str
     region: str
+    environment: str | None = None
 
 
 class PreviewPodDeployment(Struct, tag="pod", tag_field="deployment_type", kw_only=True):
