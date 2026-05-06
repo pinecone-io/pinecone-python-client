@@ -155,6 +155,27 @@ def test_fetch_filter_not_a_valid_kwarg(
         idx.documents.fetch(namespace="ns", filter={"category": {"$eq": "fruit"}})  # type: ignore[call-arg]
 
 
+def test_preview_documents_fetch_requires_ids(
+    client: Pinecone,
+    require_preview: None,
+) -> None:
+    """fetch() raises PineconeValueError when ids is None or an empty list.
+
+    The backend always requires at least one ID; calling fetch without ids produces
+    a confusing 400 from the server. The client validates early so users get a clear error.
+    Uses a dummy host so no real index or network call is needed.
+    """
+    from pinecone.errors.exceptions import PineconeValueError
+
+    idx = client.preview.index(host="https://dummy-host.pinecone.io")
+
+    with pytest.raises(PineconeValueError, match="ids"):
+        idx.documents.fetch(namespace="ns")
+
+    with pytest.raises(PineconeValueError, match="ids"):
+        idx.documents.fetch(namespace="ns", ids=[])
+
+
 def test_upsert_accepts_extra_and_partial_documents(
     client: Pinecone,
     preview_index_name: str,

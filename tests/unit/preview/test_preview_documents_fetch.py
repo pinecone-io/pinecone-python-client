@@ -136,19 +136,14 @@ def test_fetch_include_fields_named_fields_passes_through(docs: PreviewDocuments
     assert body["include_fields"] == ["title", "body"]
 
 
-@respx.mock
-def test_fetch_empty_body_accepted_by_server(docs: PreviewDocuments) -> None:
-    """Spec §5: server accepts empty body — client must not reject it."""
-    route = respx.post(FETCH_URL).mock(
-        return_value=httpx.Response(200, json={"documents": {}, "namespace": "my-ns"})
-    )
+def test_fetch_ids_none_raises(docs: PreviewDocuments) -> None:
+    with pytest.raises(ValidationError, match="ids"):
+        docs.fetch(namespace="my-ns")
 
-    result = docs.fetch(namespace="my-ns")
 
-    body = orjson.loads(route.calls.last.request.content)
-    assert body == {}
-    assert isinstance(result, PreviewDocumentFetchResponse)
-    assert result.documents == {}
+def test_fetch_ids_empty_raises(docs: PreviewDocuments) -> None:
+    with pytest.raises(ValidationError, match="ids"):
+        docs.fetch(namespace="my-ns", ids=[])
 
 
 @respx.mock
@@ -238,20 +233,15 @@ async def test_async_fetch_include_fields_wildcard_passes_through(
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_async_fetch_empty_body_accepted_by_server(
-    async_docs: AsyncPreviewDocuments,
-) -> None:
-    route = respx.post(FETCH_URL).mock(
-        return_value=httpx.Response(200, json={"documents": {}, "namespace": "my-ns"})
-    )
+async def test_async_fetch_ids_none_raises(async_docs: AsyncPreviewDocuments) -> None:
+    with pytest.raises(ValidationError, match="ids"):
+        await async_docs.fetch(namespace="my-ns")
 
-    result = await async_docs.fetch(namespace="my-ns")
 
-    body = orjson.loads(route.calls.last.request.content)
-    assert body == {}
-    assert isinstance(result, PreviewDocumentFetchResponse)
-    assert result.documents == {}
+@pytest.mark.asyncio
+async def test_async_fetch_ids_empty_raises(async_docs: AsyncPreviewDocuments) -> None:
+    with pytest.raises(ValidationError, match="ids"):
+        await async_docs.fetch(namespace="my-ns", ids=[])
 
 
 @pytest.mark.asyncio

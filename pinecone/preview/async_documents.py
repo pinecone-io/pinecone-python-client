@@ -423,7 +423,7 @@ class AsyncPreviewDocuments:
 
         Args:
             namespace: Target namespace. Must be a non-empty string.
-            ids: Optional list of document IDs to fetch.
+            ids: List of document IDs to fetch. Must be non-empty.
             include_fields: Fields to include in each result. ``None`` (default) omits
                 the key from the request — the server returns all stored fields.
                 Pass ``["*"]`` for explicit all-fields. Pass a narrower list to
@@ -435,7 +435,8 @@ class AsyncPreviewDocuments:
             in the namespace are silently omitted from ``documents``.
 
         Raises:
-            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is empty or
+                ids is None or an empty list.
 
         Examples:
             >>> import asyncio
@@ -453,10 +454,10 @@ class AsyncPreviewDocuments:
             2
         """
         require_non_empty("namespace", namespace)
+        if not ids:
+            raise PineconeValueError("ids must be a non-empty list of document ID strings")
 
-        body: dict[str, Any] = {}
-        if ids is not None:
-            body["ids"] = ids
+        body: dict[str, Any] = {"ids": ids}
         if include_fields is not None:
             body["include_fields"] = include_fields
 
