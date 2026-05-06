@@ -140,6 +140,7 @@ dev = [
     "pytest-asyncio>=0.23",
     "python-dotenv>=1.2.2",
     "pytest-benchmark>=5.0.0",
+    "pytest-xdist>=3.6",
     "respx>=0.22.0",
     "mypy>=1.20.0",
     "ruff>=0.15.9",
