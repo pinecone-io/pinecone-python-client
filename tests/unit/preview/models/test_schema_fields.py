@@ -7,9 +7,11 @@ import msgspec.json
 import pytest
 
 from pinecone.preview.models.schema import (
+    PreviewBooleanField,
     PreviewDenseVectorField,
     PreviewFullTextSearchConfig,
     PreviewIntegerField,
+    PreviewLegacyIntegerField,
     PreviewSchema,
     PreviewSchemaField,
     PreviewSemanticTextField,
@@ -239,3 +241,100 @@ def test_schema_field_union_rejects_old_string_array_tag() -> None:
     raw = b'{"type": "string[]"}'
     with pytest.raises(msgspec.ValidationError):
         msgspec.json.decode(raw, type=PreviewSchemaField)
+
+
+# ---------------------------------------------------------------------------
+# PreviewBooleanField
+# ---------------------------------------------------------------------------
+
+
+def test_preview_schema_boolean_field() -> None:
+    raw = b'{"type":"boolean","filterable":true}'
+    field = msgspec.json.decode(raw, type=PreviewSchemaField)
+    assert isinstance(field, PreviewBooleanField)
+    assert field.filterable is True
+
+
+def test_preview_schema_boolean_field_defaults() -> None:
+    raw = b'{"type":"boolean"}'
+    field = msgspec.json.decode(raw, type=PreviewSchemaField)
+    assert isinstance(field, PreviewBooleanField)
+    assert field.filterable is False
+    assert field.description is None
+
+
+def test_preview_schema_boolean_field_with_description() -> None:
+    raw = b'{"type":"boolean","filterable":false,"description":"active flag"}'
+    field = msgspec.json.decode(raw, type=PreviewSchemaField)
+    assert isinstance(field, PreviewBooleanField)
+    assert field.description == "active flag"
+
+
+# ---------------------------------------------------------------------------
+# PreviewLegacyIntegerField
+# ---------------------------------------------------------------------------
+
+
+def test_preview_schema_integer_field() -> None:
+    raw = b'{"type":"integer","filterable":false}'
+    field = msgspec.json.decode(raw, type=PreviewSchemaField)
+    assert isinstance(field, PreviewLegacyIntegerField)
+    assert field.filterable is False
+
+
+def test_preview_schema_integer_field_filterable() -> None:
+    raw = b'{"type":"integer","filterable":true}'
+    field = msgspec.json.decode(raw, type=PreviewSchemaField)
+    assert isinstance(field, PreviewLegacyIntegerField)
+    assert field.filterable is True
+
+
+def test_preview_schema_integer_field_defaults() -> None:
+    raw = b'{"type":"integer"}'
+    field = msgspec.json.decode(raw, type=PreviewSchemaField)
+    assert isinstance(field, PreviewLegacyIntegerField)
+    assert field.filterable is False
+    assert field.description is None
+
+
+# ---------------------------------------------------------------------------
+# Full PreviewIndexModel decode with boolean/integer schema fields
+# ---------------------------------------------------------------------------
+
+
+def test_preview_index_model_with_boolean_field() -> None:
+    """Full PreviewIndexModel decode with a boolean schema field must not crash."""
+    import msgspec as _msgspec
+
+    from pinecone.preview.models.indexes import PreviewIndexModel
+
+    raw = (
+        b'{"name":"idx","host":"idx.svc.pinecone.io",'
+        b'"status":{"state":"Ready","ready":true},'
+        b'"schema":{"fields":{"is_active":{"type":"boolean","filterable":true}}},'
+        b'"deployment":{"deployment_type":"managed","cloud":"aws","region":"us-east-1"},'
+        b'"deletion_protection":"disabled"}'
+    )
+    model = _msgspec.json.decode(raw, type=PreviewIndexModel)
+    assert model.name == "idx"
+    assert isinstance(model.schema.fields["is_active"], PreviewBooleanField)
+    assert model.schema.fields["is_active"].filterable is True
+
+
+def test_preview_index_model_with_integer_field() -> None:
+    """Full PreviewIndexModel decode with a legacy integer schema field must not crash."""
+    import msgspec as _msgspec
+
+    from pinecone.preview.models.indexes import PreviewIndexModel
+
+    raw = (
+        b'{"name":"idx","host":"idx.svc.pinecone.io",'
+        b'"status":{"state":"Ready","ready":true},'
+        b'"schema":{"fields":{"count":{"type":"integer","filterable":false}}},'
+        b'"deployment":{"deployment_type":"managed","cloud":"aws","region":"us-east-1"},'
+        b'"deletion_protection":"disabled"}'
+    )
+    model = _msgspec.json.decode(raw, type=PreviewIndexModel)
+    assert model.name == "idx"
+    assert isinstance(model.schema.fields["count"], PreviewLegacyIntegerField)
+    assert model.schema.fields["count"].filterable is False

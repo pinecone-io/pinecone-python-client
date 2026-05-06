@@ -13,9 +13,11 @@ from typing import Any
 from msgspec import Struct
 
 __all__ = [
+    "PreviewBooleanField",
     "PreviewDenseVectorField",
     "PreviewFullTextSearchConfig",
     "PreviewIntegerField",
+    "PreviewLegacyIntegerField",
     "PreviewSchema",
     "PreviewSchemaField",
     "PreviewSemanticTextField",
@@ -228,6 +230,57 @@ class PreviewStringListField(Struct, tag="string_list", tag_field="type", kw_onl
     filterable: bool = False
 
 
+class PreviewBooleanField(Struct, tag="boolean", tag_field="type", kw_only=True):
+    """Boolean field for metadata filtering.
+
+    .. admonition:: Preview
+       :class: warning
+
+       Uses Pinecone API version ``2026-01.alpha``.
+       Preview surface is not covered by SemVer — signatures and behavior
+       may change in any minor SDK release. Pin your SDK version when
+       relying on preview features.
+
+    Attributes:
+        description: Optional human-readable description.
+        filterable: Whether the field can be used in metadata filters.
+
+    Note:
+        The ``type`` field is automatically set to ``"boolean"`` by
+        msgspec's tagged union system.
+    """
+
+    description: str | None = None
+    filterable: bool = False
+
+
+class PreviewLegacyIntegerField(Struct, tag="integer", tag_field="type", kw_only=True):
+    """Legacy integer field (stored type from older API versions).
+
+    .. admonition:: Preview
+       :class: warning
+
+       Uses Pinecone API version ``2026-01.alpha``.
+       Preview surface is not covered by SemVer — signatures and behavior
+       may change in any minor SDK release. Pin your SDK version when
+       relying on preview features.
+
+    New indexes use ``float`` for numeric fields; ``integer`` only
+    appears in indexes migrated from older API versions.
+
+    Attributes:
+        description: Optional human-readable description.
+        filterable: Whether the field can be used in metadata filters.
+
+    Note:
+        The ``type`` field is automatically set to ``"integer"`` by
+        msgspec's tagged union system.
+    """
+
+    description: str | None = None
+    filterable: bool = False
+
+
 class PreviewIntegerField(Struct, tag="float", tag_field="type", kw_only=True):
     """Numeric (float) field for metadata filtering.
 
@@ -268,6 +321,8 @@ PreviewSchemaField = (
     | PreviewSemanticTextField
     | PreviewStringField
     | PreviewStringListField
+    | PreviewBooleanField
+    | PreviewLegacyIntegerField
     | PreviewIntegerField
 )
 

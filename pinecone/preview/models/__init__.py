@@ -35,8 +35,10 @@ from pinecone.preview.models.requests import (
     PreviewCreateIndexRequest,
 )
 from pinecone.preview.models.schema import (
+    PreviewBooleanField,
     PreviewDenseVectorField,
     PreviewIntegerField,
+    PreviewLegacyIntegerField,
     PreviewSchema,
     PreviewSchemaField,
     PreviewSemanticTextField,
@@ -56,6 +58,7 @@ from pinecone.preview.schema_builder import PreviewSchemaBuilder
 
 __all__ = [
     "PreviewBackupModel",
+    "PreviewBooleanField",
     "PreviewByocDeployment",
     "PreviewConfigureIndexRequest",
     "PreviewCreateBackupRequest",
@@ -70,6 +73,7 @@ __all__ = [
     "PreviewIndexModel",
     "PreviewIndexStatus",
     "PreviewIntegerField",
+    "PreviewLegacyIntegerField",
     "PreviewManagedDeployment",
     "PreviewPodDeployment",
     "PreviewQueryStringQuery",
