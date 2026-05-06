@@ -92,6 +92,14 @@ def test_list_backups_empty_for_new_index(
     assert len(items) == 0
 
 
+def test_list_backups_server_side_limit(
+    client: Pinecone,
+    ready_preview_index: str,
+) -> None:
+    items = list(client.preview.indexes.list_backups(ready_preview_index, limit=2))
+    assert len(items) <= 2
+
+
 # ---------------------------------------------------------------------------
 # Dense-vector fixture — avoids FTS dedicated-read-capacity requirement
 # ---------------------------------------------------------------------------

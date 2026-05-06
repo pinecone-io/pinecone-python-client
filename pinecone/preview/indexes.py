@@ -664,9 +664,11 @@ class PreviewIndexes:
             require_positive("limit", limit)
 
         def fetch_page(token: str | None) -> Page[PreviewBackupModel]:
-            params: dict[str, str] = {}
+            params: dict[str, str | int] = {}
             if token:
                 params["paginationToken"] = token
+            if limit is not None:
+                params["limit"] = limit
             response = self._http.get(f"/indexes/{index_name}/backups", params=params)
             items, next_token = PreviewListBackupsAdapter.from_response(response.content)
             return Page(items=items, pagination_token=next_token)

@@ -146,6 +146,24 @@ def test_list_backups_empty_index_name_raises(indexes: PreviewIndexes) -> None:
     assert not respx.calls
 
 
+@respx.mock
+def test_list_backups_forwards_limit_to_server(indexes: PreviewIndexes) -> None:
+    route = respx.get(f"{BASE_URL}/indexes/my-index/backups").mock(
+        return_value=httpx.Response(200, json={"data": [_BACKUP_1], "pagination": {"next": None}})
+    )
+    list(indexes.list_backups("my-index", limit=2))
+    assert "limit=2" in str(route.calls.last.request.url)
+
+
+@respx.mock
+def test_list_backups_no_limit_omits_limit_param(indexes: PreviewIndexes) -> None:
+    route = respx.get(f"{BASE_URL}/indexes/my-index/backups").mock(
+        return_value=httpx.Response(200, json={"data": [_BACKUP_1], "pagination": {"next": None}})
+    )
+    list(indexes.list_backups("my-index"))
+    assert "limit" not in str(route.calls.last.request.url)
+
+
 # ── async create_backup ───────────────────────────────────────────────────────
 
 
@@ -222,6 +240,30 @@ async def test_async_list_backups_empty_index_name_raises(
     with pytest.raises(PineconeValueError):
         async_indexes.list_backups("")
     assert not respx.calls
+
+
+@respx.mock
+async def test_async_list_backups_forwards_limit_to_server(
+    async_indexes: AsyncPreviewIndexes,
+) -> None:
+    route = respx.get(f"{BASE_URL}/indexes/my-index/backups").mock(
+        return_value=httpx.Response(200, json={"data": [_BACKUP_1], "pagination": {"next": None}})
+    )
+    items = [b async for b in async_indexes.list_backups("my-index", limit=2)]
+    assert len(items) == 1
+    assert "limit=2" in str(route.calls.last.request.url)
+
+
+@respx.mock
+async def test_async_list_backups_no_limit_omits_limit_param(
+    async_indexes: AsyncPreviewIndexes,
+) -> None:
+    route = respx.get(f"{BASE_URL}/indexes/my-index/backups").mock(
+        return_value=httpx.Response(200, json={"data": [_BACKUP_1], "pagination": {"next": None}})
+    )
+    items = [b async for b in async_indexes.list_backups("my-index")]
+    assert len(items) == 1
+    assert "limit" not in str(route.calls.last.request.url)
 
 
 # ── sync describe_backup ──────────────────────────────────────────────────────
