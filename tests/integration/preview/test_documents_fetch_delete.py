@@ -144,22 +144,15 @@ def test_fetch_missing_id_silently_omitted(
     assert {"doc-0", "doc-1"} <= set(response.documents.keys())
 
 
-def test_fetch_by_filter_returns_matching_docs(
+def test_fetch_filter_not_a_valid_kwarg(
     client: Pinecone,
-    populated_index: tuple[str, str],
+    require_preview: None,
 ) -> None:
-    """Fetch by metadata filter returns only documents matching the filter."""
-    idx = client.preview.index(name=populated_index[0])
-    response = idx.documents.fetch(
-        namespace=populated_index[1],
-        filter={"category": {"$eq": "fruit"}},
-        include_fields=["text", "category"],
-    )
+    """filter is not a valid kwarg on fetch() — backend does not support filter-based fetch."""
+    idx = client.preview.index(host="https://dummy-host.pinecone.io")
 
-    assert isinstance(response, PreviewDocumentFetchResponse)
-    for doc in response.documents.values():
-        assert doc.category == "fruit", f"Expected fruit, got {doc.category!r}"
-    assert {"doc-0", "doc-1", "doc-3"} <= set(response.documents.keys())
+    with pytest.raises(TypeError):
+        idx.documents.fetch(namespace="ns", filter={"category": {"$eq": "fruit"}})  # type: ignore[call-arg]
 
 
 def test_upsert_accepts_extra_and_partial_documents(

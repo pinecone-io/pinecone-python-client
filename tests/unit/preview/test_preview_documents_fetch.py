@@ -34,14 +34,6 @@ _PARTIAL_FETCH_RESPONSE = {
     "usage": {"read_units": 2},
 }
 
-_FILTER_FETCH_RESPONSE = {
-    "documents": {
-        "doc-3": {"_id": "doc-3", "category": "news"},
-    },
-    "namespace": "my-ns",
-    "usage": {"read_units": 4},
-}
-
 
 @pytest.fixture
 def config() -> PineconeConfig:
@@ -84,27 +76,7 @@ def test_fetch_by_ids_happy_path(docs: PreviewDocuments) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Sync — (b) by filter happy path
-# ---------------------------------------------------------------------------
-
-
-@respx.mock
-def test_fetch_by_filter_happy_path(docs: PreviewDocuments) -> None:
-    route = respx.post(FETCH_URL).mock(
-        return_value=httpx.Response(200, json=_FILTER_FETCH_RESPONSE)
-    )
-
-    result = docs.fetch(namespace="my-ns", filter={"category": {"$eq": "news"}})
-
-    body = orjson.loads(route.calls.last.request.content)
-    assert body["filter"] == {"category": {"$eq": "news"}}
-    assert "ids" not in body
-    assert isinstance(result, PreviewDocumentFetchResponse)
-    assert "doc-3" in result.documents
-
-
-# ---------------------------------------------------------------------------
-# Sync — (c) empty namespace raises
+# Sync — (b) empty namespace raises
 # ---------------------------------------------------------------------------
 
 
@@ -189,35 +161,13 @@ def test_fetch_sends_correct_api_version_header(docs: PreviewDocuments) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Sync — filter omitted when not provided
+# Sync — filter not a valid kwarg
 # ---------------------------------------------------------------------------
 
 
-@respx.mock
-def test_fetch_filter_omitted_when_not_provided(docs: PreviewDocuments) -> None:
-    route = respx.post(FETCH_URL).mock(return_value=httpx.Response(200, json=_FETCH_RESPONSE))
-
-    docs.fetch(namespace="my-ns", ids=["doc-1"])
-
-    body = orjson.loads(route.calls.last.request.content)
-    assert "filter" not in body
-
-
-# ---------------------------------------------------------------------------
-# Sync — ids omitted when not provided
-# ---------------------------------------------------------------------------
-
-
-@respx.mock
-def test_fetch_ids_omitted_when_not_provided(docs: PreviewDocuments) -> None:
-    route = respx.post(FETCH_URL).mock(
-        return_value=httpx.Response(200, json=_FILTER_FETCH_RESPONSE)
-    )
-
-    docs.fetch(namespace="my-ns", filter={"category": "news"})
-
-    body = orjson.loads(route.calls.last.request.content)
-    assert "ids" not in body
+def test_fetch_filter_not_a_valid_kwarg(docs: PreviewDocuments) -> None:
+    with pytest.raises(TypeError):
+        docs.fetch(namespace="my-ns", filter={"category": "news"})  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------
@@ -239,21 +189,6 @@ async def test_async_fetch_by_ids_happy_path(async_docs: AsyncPreviewDocuments) 
     assert len(result.documents) == 2
     assert isinstance(result.documents["doc-1"], PreviewDocument)
     assert result.documents["doc-1"]._id == "doc-1"
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_async_fetch_by_filter_happy_path(async_docs: AsyncPreviewDocuments) -> None:
-    route = respx.post(FETCH_URL).mock(
-        return_value=httpx.Response(200, json=_FILTER_FETCH_RESPONSE)
-    )
-
-    result = await async_docs.fetch(namespace="my-ns", filter={"category": {"$eq": "news"}})
-
-    body = orjson.loads(route.calls.last.request.content)
-    assert body["filter"] == {"category": {"$eq": "news"}}
-    assert isinstance(result, PreviewDocumentFetchResponse)
-    assert "doc-3" in result.documents
 
 
 @pytest.mark.asyncio
@@ -345,31 +280,9 @@ async def test_async_fetch_include_fields_named_fields_passes_through(
 
 
 @pytest.mark.asyncio
-@respx.mock
-async def test_async_fetch_filter_omitted_when_not_provided(
-    async_docs: AsyncPreviewDocuments,
-) -> None:
-    route = respx.post(FETCH_URL).mock(return_value=httpx.Response(200, json=_FETCH_RESPONSE))
-
-    await async_docs.fetch(namespace="my-ns", ids=["doc-1"])
-
-    body = orjson.loads(route.calls.last.request.content)
-    assert "filter" not in body
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_async_fetch_ids_omitted_when_not_provided(
-    async_docs: AsyncPreviewDocuments,
-) -> None:
-    route = respx.post(FETCH_URL).mock(
-        return_value=httpx.Response(200, json=_FILTER_FETCH_RESPONSE)
-    )
-
-    await async_docs.fetch(namespace="my-ns", filter={"category": "news"})
-
-    body = orjson.loads(route.calls.last.request.content)
-    assert "ids" not in body
+async def test_async_fetch_filter_not_a_valid_kwarg(async_docs: AsyncPreviewDocuments) -> None:
+    with pytest.raises(TypeError):
+        await async_docs.fetch(namespace="my-ns", filter={"category": "news"})  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------

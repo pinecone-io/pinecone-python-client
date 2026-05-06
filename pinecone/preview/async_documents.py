@@ -410,9 +410,8 @@ class AsyncPreviewDocuments:
         namespace: str,
         ids: list[str] | None = None,
         include_fields: list[str] | None = None,
-        filter: dict[str, Any] | None = None,
     ) -> PreviewDocumentFetchResponse:
-        """Fetch documents from a namespace by ID or filter.
+        """Fetch documents from a namespace by ID.
 
         .. admonition:: Preview
            :class: warning
@@ -429,7 +428,6 @@ class AsyncPreviewDocuments:
                 the key from the request — the server returns all stored fields.
                 Pass ``["*"]`` for explicit all-fields. Pass a narrower list to
                 project only the fields you need.
-            filter: Optional metadata filter expression.
 
         Returns:
             :class:`~pinecone.preview.models.documents.PreviewDocumentFetchResponse`
@@ -453,17 +451,6 @@ class AsyncPreviewDocuments:
             ...         print(len(response.documents))
             >>> asyncio.run(main())
             2
-
-            Fetch all documents matching a filter with all fields:
-
-            >>> async def main():
-            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
-            ...         index = pc.preview.index(name="articles-en-preview")
-            ...         response = await index.documents.fetch(
-            ...             namespace="articles-en",
-            ...             include_fields=["*"],
-            ...             filter={"category": "tech"},
-            ...         )
         """
         require_non_empty("namespace", namespace)
 
@@ -472,8 +459,6 @@ class AsyncPreviewDocuments:
             body["ids"] = ids
         if include_fields is not None:
             body["include_fields"] = include_fields
-        if filter is not None:
-            body["filter"] = filter
 
         http = await self._ensure_http()
         response = await http.post(
