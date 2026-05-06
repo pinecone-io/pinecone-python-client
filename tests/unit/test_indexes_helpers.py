@@ -2,16 +2,21 @@
 
 from __future__ import annotations
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from pinecone._internal.indexes_helpers import (
     _normalize_schema,
+    async_poll_index_until_ready,
     build_byoc_body,
     build_create_body,
     build_integrated_body,
+    poll_index_until_ready,
     validate_read_capacity,
 )
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import IndexInitFailedError, IndexTerminatedError, ValidationError
+from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus, ServerlessSpecInfo
 from pinecone.models.indexes.specs import ByocSpec, EmbedConfig, IntegratedSpec, ServerlessSpec
 
 
@@ -358,3 +363,71 @@ def test_build_integrated_body_method_schema_bare_input_gets_wrapped() -> None:
         schema={"genre": {"filterable": True}},
     )
     assert body["schema"] == {"fields": {"genre": {"filterable": True}}}
+
+
+# poll_index_until_ready terminal-state tests
+
+
+def _make_index(state: str, ready: bool = False) -> IndexModel:
+    return IndexModel(
+        name="test-index",
+        dimension=1536,
+        metric="cosine",
+        host="test-index.svc.pinecone.io",
+        spec=IndexSpec(serverless=ServerlessSpecInfo(cloud="aws", region="us-east-1")),
+        status=IndexStatus(ready=ready, state=state),
+        deletion_protection="disabled",
+        tags=None,
+    )
+
+
+def test_poll_index_until_ready_raises_on_terminating() -> None:
+    describe_fn = MagicMock(return_value=_make_index("Terminating"))
+    with pytest.raises(IndexTerminatedError) as exc_info:
+        poll_index_until_ready(describe_fn, "test-index", timeout=10)
+    assert exc_info.value.state == "Terminating"
+    assert exc_info.value.name == "test-index"
+
+
+def test_poll_index_until_ready_raises_on_disabled() -> None:
+    describe_fn = MagicMock(return_value=_make_index("Disabled"))
+    with pytest.raises(IndexTerminatedError) as exc_info:
+        poll_index_until_ready(describe_fn, "test-index", timeout=10)
+    assert exc_info.value.state == "Disabled"
+    assert exc_info.value.name == "test-index"
+
+
+def test_poll_index_until_ready_still_raises_on_initialization_failed() -> None:
+    describe_fn = MagicMock(return_value=_make_index("InitializationFailed"))
+    with pytest.raises(IndexInitFailedError):
+        poll_index_until_ready(describe_fn, "test-index", timeout=10)
+
+
+def test_poll_index_until_ready_returns_on_ready(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("pinecone._internal.indexes_helpers.time.sleep", lambda *_: None)
+    ready_index = _make_index("Ready", ready=True)
+    describe_fn = MagicMock(return_value=ready_index)
+    result = poll_index_until_ready(describe_fn, "test-index", timeout=10)
+    assert result.status.ready is True
+
+
+async def test_async_poll_index_until_ready_raises_on_terminating() -> None:
+    describe_fn = AsyncMock(return_value=_make_index("Terminating"))
+    with pytest.raises(IndexTerminatedError) as exc_info:
+        await async_poll_index_until_ready(describe_fn, "test-index", timeout=10)
+    assert exc_info.value.state == "Terminating"
+    assert exc_info.value.name == "test-index"
+
+
+async def test_async_poll_index_until_ready_raises_on_disabled() -> None:
+    describe_fn = AsyncMock(return_value=_make_index("Disabled"))
+    with pytest.raises(IndexTerminatedError) as exc_info:
+        await async_poll_index_until_ready(describe_fn, "test-index", timeout=10)
+    assert exc_info.value.state == "Disabled"
+    assert exc_info.value.name == "test-index"
+
+
+async def test_async_poll_index_until_ready_still_raises_on_initialization_failed() -> None:
+    describe_fn = AsyncMock(return_value=_make_index("InitializationFailed"))
+    with pytest.raises(IndexInitFailedError):
+        await async_poll_index_until_ready(describe_fn, "test-index", timeout=10)

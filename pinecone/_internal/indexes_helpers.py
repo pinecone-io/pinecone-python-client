@@ -321,9 +321,14 @@ def poll_index_until_ready(
 
     Raises:
         IndexInitFailedError: If the index enters ``InitializationFailed`` state.
+        IndexTerminatedError: If the index enters ``Terminating`` or ``Disabled`` state.
         PineconeTimeoutError: If *timeout* seconds elapse without becoming ready.
     """
-    from pinecone.errors.exceptions import IndexInitFailedError, PineconeTimeoutError
+    from pinecone.errors.exceptions import (
+        IndexInitFailedError,
+        IndexTerminatedError,
+        PineconeTimeoutError,
+    )
 
     start = time.monotonic()
     while True:
@@ -332,6 +337,8 @@ def poll_index_until_ready(
             return idx
         if idx.status.state == "InitializationFailed":
             raise IndexInitFailedError(name)
+        if idx.status.state in ("Terminating", "Disabled"):
+            raise IndexTerminatedError(name, idx.status.state)
         if timeout is not None:
             elapsed = time.monotonic() - start
             if elapsed >= timeout:
@@ -359,9 +366,14 @@ async def async_poll_index_until_ready(
 
     Raises:
         IndexInitFailedError: If the index enters ``InitializationFailed`` state.
+        IndexTerminatedError: If the index enters ``Terminating`` or ``Disabled`` state.
         PineconeTimeoutError: If *timeout* seconds elapse without becoming ready.
     """
-    from pinecone.errors.exceptions import IndexInitFailedError, PineconeTimeoutError
+    from pinecone.errors.exceptions import (
+        IndexInitFailedError,
+        IndexTerminatedError,
+        PineconeTimeoutError,
+    )
 
     start = time.monotonic()
     while True:
@@ -370,6 +382,8 @@ async def async_poll_index_until_ready(
             return idx
         if idx.status.state == "InitializationFailed":
             raise IndexInitFailedError(name)
+        if idx.status.state in ("Terminating", "Disabled"):
+            raise IndexTerminatedError(name, idx.status.state)
         if timeout is not None:
             elapsed = time.monotonic() - start
             if elapsed >= timeout:

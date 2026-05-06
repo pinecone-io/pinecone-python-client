@@ -210,6 +210,21 @@ class IndexInitFailedError(PineconeError):
         self.index_name = index_name
 
 
+class IndexTerminatedError(PineconeError):
+    """Raised when polling an index that has entered a terminal non-init state.
+
+    Terminal states include ``Terminating`` and ``Disabled``.
+    """
+
+    def __init__(self, name: str, state: str) -> None:
+        super().__init__(
+            f"Index '{name}' entered terminal state '{state}'. "
+            f"Check status with pc.describe_index(name='{name}')."
+        )
+        self.name = name
+        self.state = state
+
+
 class PineconeTimeoutError(PineconeError, TimeoutError):
     """Raised when an operation exceeds its timeout.
 
