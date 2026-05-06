@@ -77,8 +77,8 @@ class TestMultiFieldSchema:
 
         model = client.preview.indexes.describe(preview_index_name)
         assert model.name == preview_index_name
-        assert isinstance(model.host, str)
-        assert len(model.host) > 0
+        assert model.host is None or isinstance(model.host, str)
+        assert model.host is None or len(model.host) > 0
         assert len(model.schema.fields) == 6
 
 
@@ -197,8 +197,8 @@ class TestLifecycleBasics:
 
         described = client.preview.indexes.describe(preview_index_name)
         assert described.name == preview_index_name
-        assert isinstance(described.host, str)
-        assert len(described.host) > 0
+        assert described.host is None or isinstance(described.host, str)
+        assert described.host is None or len(described.host) > 0
         assert isinstance(described.schema.fields, dict)
 
     def test_list_includes_created_index(

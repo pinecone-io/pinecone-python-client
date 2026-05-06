@@ -28,7 +28,8 @@ class PreviewIndexModel(Struct, kw_only=True):
 
     Attributes:
         name: Index name.
-        host: Data-plane host for this index.
+        host: Data-plane host for this index, or ``None`` if the index is still
+            initializing and has not yet been assigned a host.
         status: Current operational status.
         schema: Field-level schema definition.
         deployment: Deployment configuration (managed, pod, or BYOC).
@@ -40,11 +41,11 @@ class PreviewIndexModel(Struct, kw_only=True):
     """
 
     name: str
-    host: str
     status: PreviewIndexStatus
     schema: PreviewSchema
     deployment: PreviewDeployment
     deletion_protection: str
+    host: str | None = None
     read_capacity: PreviewReadCapacity | None = None
     tags: dict[str, str] | None = None
 
@@ -110,7 +111,7 @@ class PreviewIndexModel(Struct, kw_only=True):
             ("Status:", self.status.state),
             ("Ready:", "Yes" if self.status.ready else "No"),
             ("Deployment:", f"{dep_name}{dep_detail}"),
-            ("Host:", self.host),
+            ("Host:", self.host if self.host is not None else "not yet assigned"),
             ("Deletion Protection:", self.deletion_protection),
             ("Schema fields:", len(self.schema.fields)),
         ]

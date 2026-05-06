@@ -69,7 +69,7 @@ _MINIMAL_PAYLOAD = b"""
 def _make_model(
     *,
     name: str = "test-index",
-    host: str = "test-index.svc.pinecone.io",
+    host: str | None = "test-index.svc.pinecone.io",
     state: str = "Ready",
     ready: bool = True,
     n_fields: int = 0,
@@ -291,3 +291,43 @@ def test_preview_index_model_repr_pretty_non_cycle_omits_optional_fields_when_no
     emitted = "".join(c.args[0] for c in p.text.call_args_list)
     assert "read_capacity=" not in emitted
     assert "tags=" not in emitted
+
+
+def test_preview_index_model_null_host() -> None:
+    """PreviewIndexModel must decode null host without raising."""
+    raw = b'{"name":"test","host":null,"status":{"state":"Initializing","ready":false},"schema":{"fields":{}},"deployment":{"deployment_type":"managed","cloud":"aws","region":"us-east-1"},"deletion_protection":"disabled"}'
+    model = msgspec.json.decode(raw, type=PreviewIndexModel)
+    assert model.host is None
+    assert model.name == "test"
+
+
+def test_preview_index_model_missing_host_defaults_to_none() -> None:
+    """PreviewIndexModel must decode a response that omits the host field entirely."""
+    raw = b'{"name":"test","status":{"state":"Initializing","ready":false},"schema":{"fields":{}},"deployment":{"deployment_type":"managed","cloud":"aws","region":"us-east-1"},"deletion_protection":"disabled"}'
+    model = msgspec.json.decode(raw, type=PreviewIndexModel)
+    assert model.host is None
+    assert model.name == "test"
+
+
+def test_preview_index_model_null_host_repr() -> None:
+    """__repr__ must not raise when host is None."""
+    m = _make_model(host=None)
+    r = repr(m)
+    assert "host=None" in r
+
+
+def test_preview_index_model_null_host_repr_html() -> None:
+    """_repr_html_ must not raise when host is None and must emit 'not yet assigned'."""
+    m = _make_model(host=None)
+    html = m._repr_html_()
+    assert "Host:" in html
+    assert "not yet assigned" in html
+
+
+def test_preview_index_model_null_host_repr_pretty() -> None:
+    """_repr_pretty_ must not raise when host is None."""
+    m = _make_model(host=None)
+    p = MagicMock()
+    m._repr_pretty_(p, cycle=False)
+    emitted = "".join(c.args[0] for c in p.text.call_args_list)
+    assert "host=None" in emitted
