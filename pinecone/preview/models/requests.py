@@ -32,6 +32,9 @@ class PreviewCreateIndexRequest(Struct, kw_only=True, omit_defaults=True):
         read_capacity: Optional read capacity configuration.
         deletion_protection: Optional deletion protection setting.
         tags: Optional key-value tags for the index.
+        source_collection: Optional name of an existing collection to create the index from.
+        source_backup_id: Optional ID of an existing backup to create the index from.
+        cmek_id: Optional Customer-Managed Encryption Key ID (valid for managed/BYOC indexes).
     """
 
     schema: dict[str, Any]
@@ -40,6 +43,9 @@ class PreviewCreateIndexRequest(Struct, kw_only=True, omit_defaults=True):
     read_capacity: dict[str, Any] | None = None
     deletion_protection: str | None = None
     tags: dict[str, str] | None = None
+    source_collection: str | None = None
+    source_backup_id: str | None = None
+    cmek_id: str | None = None
 
 
 class PreviewConfigureIndexRequest(Struct, kw_only=True, omit_defaults=True):

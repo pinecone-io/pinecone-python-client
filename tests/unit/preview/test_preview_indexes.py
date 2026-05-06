@@ -412,6 +412,69 @@ def test_create_accepts_unknown_field_type(indexes: PreviewIndexes) -> None:
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# source_collection / source_backup_id / cmek_id parameters
+# ---------------------------------------------------------------------------
+
+
+def test_preview_create_index_request_source_fields() -> None:
+    """PreviewCreateIndexRequest serializes source_collection, source_backup_id, cmek_id."""
+    import orjson
+
+    from pinecone.preview._internal.adapters.indexes import PreviewCreateIndexAdapter
+    from pinecone.preview.models.requests import PreviewCreateIndexRequest
+
+    req = PreviewCreateIndexRequest(
+        schema={"fields": {"vec": {"type": "dense_vector", "dimension": 128}}},
+        source_collection="my-collection",
+        source_backup_id="backup-abc",
+        cmek_id="key-xyz",
+    )
+    body = orjson.loads(PreviewCreateIndexAdapter.to_request(req))
+    assert body["source_collection"] == "my-collection"
+    assert body["source_backup_id"] == "backup-abc"
+    assert body["cmek_id"] == "key-xyz"
+
+
+@respx.mock
+def test_preview_create_sends_source_fields_in_body(indexes: PreviewIndexes) -> None:
+    """create() sends source_collection, source_backup_id, and cmek_id in request body."""
+    import orjson
+
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_INDEX_RESPONSE)
+    )
+
+    indexes.create(
+        schema=_MINIMAL_SCHEMA,
+        source_collection="my-collection",
+        source_backup_id="backup-abc",
+        cmek_id="key-xyz",
+    )
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["source_collection"] == "my-collection"
+    assert body["source_backup_id"] == "backup-abc"
+    assert body["cmek_id"] == "key-xyz"
+
+
+@respx.mock
+def test_preview_create_omits_source_fields_when_not_set(indexes: PreviewIndexes) -> None:
+    """create() omits source_collection, source_backup_id, cmek_id when not provided."""
+    import orjson
+
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=_INDEX_RESPONSE)
+    )
+
+    indexes.create(schema=_MINIMAL_SCHEMA)
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert "source_collection" not in body
+    assert "source_backup_id" not in body
+    assert "cmek_id" not in body
+
+
 def test_preview_indexes_property_is_lazily_initialized() -> None:
     """Preview.indexes returns a cached PreviewIndexes instance."""
     from pinecone._internal.config import PineconeConfig as _PineconeConfig

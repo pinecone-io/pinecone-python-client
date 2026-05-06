@@ -111,6 +111,9 @@ class AsyncPreviewIndexes:
         read_capacity: dict[str, Any] | None = None,
         deletion_protection: str | None = None,
         tags: dict[str, str] | None = None,
+        source_collection: str | None = None,
+        source_backup_id: str | None = None,
+        cmek_id: str | None = None,
     ) -> PreviewIndexModel:
         """Create a new preview index.
 
@@ -145,6 +148,12 @@ class AsyncPreviewIndexes:
                 if not provided.
             tags: Optional key-value tags for the index. Keys must be at most
                 80 characters; values must be at most 120 characters.
+            source_collection: Optional name of an existing collection to
+                create the index from.
+            source_backup_id: Optional ID of an existing backup to create
+                the index from.
+            cmek_id: Optional Customer-Managed Encryption Key ID. Valid for
+                managed and BYOC indexes; returns 400 for pod indexes.
 
         Returns:
             :class:`PreviewIndexModel` describing the newly created index. The
@@ -181,6 +190,9 @@ class AsyncPreviewIndexes:
             read_capacity=read_capacity,
             deletion_protection=deletion_protection,
             tags=tags,
+            source_collection=source_collection,
+            source_backup_id=source_backup_id,
+            cmek_id=cmek_id,
         )
 
         logger.info("Creating preview index name=%r", name)

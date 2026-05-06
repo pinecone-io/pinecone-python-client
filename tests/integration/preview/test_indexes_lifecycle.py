@@ -1156,3 +1156,61 @@ class TestConfigureReadCapacity:
             f"returned model.read_capacity must be PreviewReadCapacityOnDemandResponse, "
             f"got {type(returned.read_capacity)}"
         )
+
+
+# ---------------------------------------------------------------------------
+# TestSourceAndCmekParameters — source_collection, source_backup_id, cmek_id
+# ---------------------------------------------------------------------------
+
+
+class TestSourceAndCmekParameters:
+    """SDK surface accepts source_collection, source_backup_id, and cmek_id."""
+
+    def test_create_index_source_collection_parameter_accepted(self) -> None:
+        """create() accepts source_collection without raising; field appears in HTTP body.
+
+        Uses respx to mock the API so this test runs without real credentials.
+        """
+        import httpx
+        import orjson
+        import respx
+
+        from pinecone._internal.config import PineconeConfig
+        from pinecone.preview._internal.constants import INDEXES_API_VERSION
+        from pinecone.preview.indexes import PreviewIndexes
+        from pinecone.preview.models.indexes import PreviewIndexModel
+
+        _base_url = "https://api.test.pinecone.io"
+        _index_response = {
+            "name": "test-index",
+            "host": "test-index-xyz.svc.pinecone.io",
+            "status": {"ready": False, "state": "Initializing"},
+            "schema": {"fields": {"vec": {"type": "dense_vector", "dimension": 128}}},
+            "deployment": {
+                "deployment_type": "managed",
+                "environment": "us-east-1-aws",
+                "cloud": "aws",
+                "region": "us-east-1",
+            },
+            "deletion_protection": "disabled",
+        }
+
+        config = PineconeConfig(api_key="test-key", host=_base_url)
+        indexes = PreviewIndexes(config=config)
+
+        with respx.mock:
+            route = respx.post(f"{_base_url}/indexes").mock(
+                return_value=httpx.Response(201, json=_index_response)
+            )
+
+            result = indexes.create(
+                schema={"fields": {"vec": {"type": "dense_vector", "dimension": 128}}},
+                source_collection="some-collection",
+            )
+
+        assert isinstance(result, PreviewIndexModel)
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["source_collection"] == "some-collection"
+        assert "source_backup_id" not in body
+        assert "cmek_id" not in body
+        assert route.calls.last.request.headers.get("X-Pinecone-Api-Version") == INDEXES_API_VERSION
