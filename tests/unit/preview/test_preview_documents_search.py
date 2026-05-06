@@ -55,11 +55,11 @@ def test_search_typed_text_query_serializes_to_wire_shape(docs: PreviewDocuments
     docs.search(
         namespace="my-ns",
         top_k=5,
-        score_by=[PreviewTextQuery(field="title", query="hello world")],
+        score_by=[PreviewTextQuery(fields=["title"], query="hello world")],
     )
 
     body = orjson.loads(route.calls.last.request.content)
-    assert body["score_by"] == [{"type": "text", "field": "title", "query": "hello world"}]
+    assert body["score_by"] == [{"type": "text", "fields": ["title"], "query": "hello world"}]
 
 
 @respx.mock
@@ -86,7 +86,7 @@ def test_search_mixed_typed_and_typed_score_by(docs: PreviewDocuments) -> None:
         namespace="my-ns",
         top_k=5,
         score_by=[
-            PreviewTextQuery(field="body", query="test"),
+            PreviewTextQuery(fields=["body"], query="test"),
             PreviewDenseVectorQuery(field="vec", values=[0.5, 0.6]),
         ],
     )
@@ -334,11 +334,11 @@ async def test_async_search_typed_text_query_serializes_to_wire_shape(
     await async_docs.search(
         namespace="my-ns",
         top_k=5,
-        score_by=[PreviewTextQuery(field="title", query="hello world")],
+        score_by=[PreviewTextQuery(fields=["title"], query="hello world")],
     )
 
     body = orjson.loads(route.calls.last.request.content)
-    assert body["score_by"] == [{"type": "text", "field": "title", "query": "hello world"}]
+    assert body["score_by"] == [{"type": "text", "fields": ["title"], "query": "hello world"}]
 
 
 @pytest.mark.asyncio
@@ -480,7 +480,7 @@ async def test_async_search_mixed_typed_and_typed_score_by(
         namespace="my-ns",
         top_k=5,
         score_by=[
-            PreviewTextQuery(field="body", query="test"),
+            PreviewTextQuery(fields=["body"], query="test"),
             PreviewDenseVectorQuery(field="vec", values=[0.5, 0.6]),
         ],
     )

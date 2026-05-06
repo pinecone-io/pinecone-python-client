@@ -19,25 +19,34 @@ from pinecone.preview.models.sparse import PreviewSparseValues
 
 
 def test_text_query_wire_shape() -> None:
-    q = PreviewTextQuery(field="body", query="hello world")
+    q = PreviewTextQuery(fields=["body"], query="hello world")
     data = msgspec.json.encode(q)
     decoded = msgspec.json.decode(data)
     assert decoded["type"] == "text"
-    assert decoded["field"] == "body"
+    assert decoded["fields"] == ["body"]
+    assert decoded["query"] == "hello world"
+
+
+def test_text_query_multiple_fields_wire_shape() -> None:
+    q = PreviewTextQuery(fields=["title", "body"], query="hello world")
+    data = msgspec.json.encode(q)
+    decoded = msgspec.json.decode(data)
+    assert decoded["type"] == "text"
+    assert decoded["fields"] == ["title", "body"]
     assert decoded["query"] == "hello world"
 
 
 def test_text_query_round_trip() -> None:
-    raw = b'{"type": "text", "field": "body", "query": "hello world"}'
+    raw = b'{"type": "text", "fields": ["body"], "query": "hello world"}'
     result = msgspec.json.decode(raw, type=PreviewTextQuery)
     assert isinstance(result, PreviewTextQuery)
-    assert result.field == "body"
+    assert result.fields == ["body"]
     assert result.query == "hello world"
 
 
 def test_text_query_no_extra_fields() -> None:
-    q = PreviewTextQuery(field="f", query="q")
-    assert hasattr(q, "field")
+    q = PreviewTextQuery(fields=["f"], query="q")
+    assert hasattr(q, "fields")
     assert hasattr(q, "query")
     assert not hasattr(q, "values")
     assert not hasattr(q, "sparse_values")
@@ -121,7 +130,7 @@ def test_sparse_vector_query_round_trip() -> None:
 
 
 def test_union_decodes_text_query() -> None:
-    raw = b'{"type": "text", "field": "body", "query": "hello"}'
+    raw = b'{"type": "text", "fields": ["body"], "query": "hello"}'
     result = msgspec.json.decode(raw, type=PreviewScoreByQuery)
     assert isinstance(result, PreviewTextQuery)
 

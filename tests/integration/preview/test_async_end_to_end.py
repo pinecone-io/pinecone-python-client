@@ -79,7 +79,7 @@ async def test_async_end_to_end_flow(
     assert result.successful_batch_count == 5
 
     # Poll until all 50 docs are searchable (eventual consistency).
-    score_by: list[object] = [PreviewTextQuery(field="text", query="document")]
+    score_by: list[object] = [PreviewTextQuery(fields=["text"], query="document")]
 
     async def _search() -> PreviewDocumentSearchResponse:
         return await idx.documents.search(
@@ -2643,7 +2643,7 @@ async def test_async_preview_document_model_attributes_after_fts_search(
     response = await idx.documents.search(
         namespace=namespace,
         top_k=5,
-        score_by=[PreviewTextQuery(field="text", query="ancient Rome")],
+        score_by=[PreviewTextQuery(fields=["text"], query="ancient Rome")],
         include_fields=["text", "year"],
     )
 

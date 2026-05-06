@@ -27,11 +27,11 @@ class PreviewTextQuery(Struct, tag="text", tag_field="type", kw_only=True):
        relying on preview features.
 
     Attributes:
-        field: Name of the text field to search.
+        fields: One or more text field names to search across.
         query: Search query string.
     """
 
-    field: str
+    fields: list[str]
     query: str
 
 

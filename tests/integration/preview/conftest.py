@@ -176,7 +176,7 @@ def fts_index_state(
             lambda: idx.documents.search(
                 namespace=namespace,
                 top_k=5,
-                score_by=[PreviewTextQuery(field="text", query="ancient Rome")],
+                score_by=[PreviewTextQuery(fields=["text"], query="ancient Rome")],
                 include_fields=["text", "year"],
             ),
             lambda r: len(r.matches) > 0,

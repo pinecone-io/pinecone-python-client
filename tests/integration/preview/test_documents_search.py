@@ -116,7 +116,7 @@ def test_full_text_search_only_flow(
         max_concurrency=2,
     )
 
-    score_by: list[object] = [PreviewTextQuery(field="text", query="ancient")]
+    score_by: list[object] = [PreviewTextQuery(fields=["text"], query="ancient")]
     results = _wait_for_searchable(idx, preview_namespace, {"doc-0", "doc-1", "doc-2"}, score_by)
 
     assert len(results.matches) >= 1
@@ -174,7 +174,7 @@ def test_hybrid_search_combines_dense_and_text(
 
     score_by: list[object] = [
         PreviewDenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3, 0.4]),
-        PreviewTextQuery(field="chunk", query="hello"),
+        PreviewTextQuery(fields=["chunk"], query="hello"),
     ]
     results = _wait_for_searchable(idx, preview_namespace, {"doc-1"}, score_by)
 
@@ -1130,7 +1130,7 @@ def test_preview_document_model_attributes_after_fts_search(
     response = idx.documents.search(
         namespace=namespace,
         top_k=5,
-        score_by=[PreviewTextQuery(field="text", query="ancient Rome")],
+        score_by=[PreviewTextQuery(fields=["text"], query="ancient Rome")],
         include_fields=["text", "year"],
     )
 
@@ -1194,3 +1194,26 @@ def test_preview_document_model_attributes_after_fts_search(
     assert isinstance(parsed, dict), "doc.to_json() must parse to a dict"
     assert parsed[id_key] == doc.id, f"to_json() parsed {id_key!r} must equal doc.id"
     assert parsed["_score"] == doc.score, "to_json() parsed _score must equal doc.score"
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_search_text_query_multiple_fields(
+    client: Pinecone,
+    fts_index_state: tuple[str, str] | None,
+    require_preview: None,
+) -> None:
+    """PreviewTextQuery with multiple fields is accepted and returns a valid response."""
+    if fts_index_state is None:
+        pytest.skip("FTS index unavailable — preview endpoint unreachable or cold-start timeout")
+
+    host, namespace = fts_index_state
+    idx = client.preview.index(host=host)
+
+    response = idx.documents.search(
+        namespace=namespace,
+        top_k=5,
+        score_by=[PreviewTextQuery(fields=["text", "year"], query="ancient Rome")],
+    )
+
+    assert isinstance(response, PreviewDocumentSearchResponse)
