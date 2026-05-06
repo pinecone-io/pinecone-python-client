@@ -770,7 +770,7 @@ async def test_create_sparse_without_dimension(async_indexes: AsyncIndexes) -> N
 
 @respx.mock
 async def test_create_with_flat_schema(async_indexes: AsyncIndexes) -> None:
-    """Flat schema dict is placed inside spec.serverless.schema."""
+    """Flat schema dict is auto-wrapped under 'fields' before being placed in spec.serverless.schema."""
     route = respx.post(f"{BASE_URL}/indexes").mock(
         return_value=httpx.Response(201, json=make_index_response()),
     )
@@ -790,12 +790,12 @@ async def test_create_with_flat_schema(async_indexes: AsyncIndexes) -> None:
 
     request = route.calls.last.request
     body = json.loads(request.content)
-    assert body["spec"]["serverless"]["schema"] == schema
+    assert body["spec"]["serverless"]["schema"] == {"fields": schema}
 
 
 @respx.mock
 async def test_create_with_nested_schema(async_indexes: AsyncIndexes) -> None:
-    """Nested schema with 'fields' wrapper is unwrapped before sending."""
+    """Already-wrapped schema passes through unchanged on the wire."""
     route = respx.post(f"{BASE_URL}/indexes").mock(
         return_value=httpx.Response(201, json=make_index_response()),
     )
@@ -816,10 +816,7 @@ async def test_create_with_nested_schema(async_indexes: AsyncIndexes) -> None:
 
     request = route.calls.last.request
     body = json.loads(request.content)
-    # Should be unwrapped — same as flat
-    assert body["spec"]["serverless"]["schema"] == {
-        "genre": {"type": "str", "filterable": True},
-    }
+    assert body["spec"]["serverless"]["schema"] == nested_schema
 
 
 @respx.mock
@@ -1373,7 +1370,7 @@ async def test_create_integrated_with_schema(async_indexes: AsyncIndexes) -> Non
 
     request = route.calls.last.request
     body = json.loads(request.content)
-    assert body["schema"] == {"genre": {"type": "str"}}
+    assert body["schema"] == {"fields": {"genre": {"type": "str"}}}
 
 
 @respx.mock
@@ -1453,7 +1450,7 @@ async def test_async_create_index_integrated_schema_and_read_capacity(
 
     request = route.calls.last.request
     body = json.loads(request.content)
-    assert body["schema"] == {"genre": {"type": "str"}}
+    assert body["schema"] == {"fields": {"genre": {"type": "str"}}}
     assert body["read_capacity"] == {"mode": "OnDemand"}
 
 
