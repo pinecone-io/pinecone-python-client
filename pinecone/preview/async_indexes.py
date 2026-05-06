@@ -211,6 +211,7 @@ class AsyncPreviewIndexes:
         deletion_protection: str | None = None,
         tags: dict[str, str] | None = None,
         read_capacity: dict[str, Any] | None = None,
+        deployment: dict[str, Any] | None = None,
     ) -> PreviewIndexModel:
         """Update configuration of an existing preview index.
 
@@ -246,15 +247,18 @@ class AsyncPreviewIndexes:
                 be at most 80 characters; values at most 120 characters.
             read_capacity: Updated read capacity configuration dict.  Must
                 include a ``"mode"`` key (``"OnDemand"`` or ``"Dedicated"``).
+            deployment: Updated pod deployment configuration dict. For pod
+                indexes only. May include ``"replicas"`` (int) and/or
+                ``"pod_type"`` (str).
 
         Returns:
             :class:`PreviewIndexModel` reflecting the updated index state.
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name*
-                is empty; if all kwargs are ``None``; if *schema*, *tags*, or
-                *read_capacity* is an empty dict; or if a tag key/value
-                exceeds the length limit.
+                is empty; if all kwargs are ``None``; if *schema*, *tags*,
+                *read_capacity*, or *deployment* is an empty dict; or if a
+                tag key/value exceeds the length limit.
             :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns
                 an error response.
 
@@ -299,16 +303,19 @@ class AsyncPreviewIndexes:
             raise PineconeValueError("tags cannot be an empty dict")
         if read_capacity is not None and not read_capacity:
             raise PineconeValueError("read_capacity cannot be an empty dict")
+        if deployment is not None and not deployment:
+            raise PineconeValueError("deployment cannot be an empty dict")
 
         if (
             schema is None
             and deletion_protection is None
             and tags is None
             and read_capacity is None
+            and deployment is None
         ):
             raise PineconeValueError(
                 "at least one configuration parameter must be provided: "
-                "schema, deletion_protection, tags, or read_capacity"
+                "schema, deletion_protection, tags, read_capacity, or deployment"
             )
 
         if tags is not None:
@@ -325,6 +332,7 @@ class AsyncPreviewIndexes:
             read_capacity=read_capacity,
             deletion_protection=deletion_protection,
             tags=tags,
+            deployment=deployment,
         )
 
         provided = [
@@ -334,6 +342,7 @@ class AsyncPreviewIndexes:
                 "deletion_protection": deletion_protection,
                 "tags": tags,
                 "read_capacity": read_capacity,
+                "deployment": deployment,
             }.items()
             if v is not None
         ]

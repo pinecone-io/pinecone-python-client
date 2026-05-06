@@ -1214,3 +1214,66 @@ class TestSourceAndCmekParameters:
         assert "source_backup_id" not in body
         assert "cmek_id" not in body
         assert route.calls.last.request.headers.get("X-Pinecone-Api-Version") == INDEXES_API_VERSION
+
+
+# ---------------------------------------------------------------------------
+# TestConfigureDeployment — configure(deployment=...) client-side validation
+# ---------------------------------------------------------------------------
+
+
+class TestConfigureDeployment:
+    """configure(deployment=...) client-side validation and request serialization (§2)."""
+
+    def test_configure_deployment(self) -> None:
+        """configure(deployment={"replicas": 2}) serializes deployment into the PATCH body.
+
+        Uses respx to mock the API so this test runs without real credentials.
+        Verifies that:
+        1. deployment={} raises PineconeValueError before any API call.
+        2. A valid deployment dict is accepted and serialized correctly.
+        3. The returned model is a PreviewIndexModel.
+        """
+        import httpx
+        import orjson
+        import respx
+
+        from pinecone._internal.config import PineconeConfig
+        from pinecone.preview._internal.constants import INDEXES_API_VERSION
+        from pinecone.preview.indexes import PreviewIndexes
+
+        _base_url = "https://api.test.pinecone.io"
+        _index_response = {
+            "name": "pod-idx",
+            "host": "pod-idx-xyz.svc.pinecone.io",
+            "status": {"ready": True, "state": "Ready"},
+            "schema": {"fields": {}},
+            "deployment": {
+                "deployment_type": "pod",
+                "environment": "us-east-1-aws",
+                "cloud": "aws",
+                "region": "us-east-1",
+                "replicas": 2,
+                "pod_type": "p1.x1",
+            },
+            "deletion_protection": "disabled",
+        }
+
+        config = PineconeConfig(api_key="test-key", host=_base_url)
+        indexes = PreviewIndexes(config=config)
+
+        # Claim 1: empty deployment dict is rejected immediately.
+        with pytest.raises(PineconeValueError, match="deployment"):
+            indexes.configure("pod-idx", deployment={})
+
+        # Claim 2: valid deployment dict is serialized correctly.
+        with respx.mock:
+            route = respx.patch(f"{_base_url}/indexes/pod-idx").mock(
+                return_value=httpx.Response(200, json=_index_response)
+            )
+
+            result = indexes.configure("pod-idx", deployment={"replicas": 2})
+
+        assert isinstance(result, PreviewIndexModel)
+        body = orjson.loads(route.calls.last.request.content)
+        assert body == {"deployment": {"replicas": 2}}
+        assert route.calls.last.request.headers.get("X-Pinecone-Api-Version") == INDEXES_API_VERSION

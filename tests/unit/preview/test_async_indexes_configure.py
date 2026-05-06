@@ -169,3 +169,26 @@ async def test_async_configure_rejects_long_tag_value(indexes: AsyncPreviewIndex
 def test_async_configure_is_coroutine() -> None:
     """AsyncPreviewIndexes.configure is a coroutine function."""
     assert asyncio.iscoroutinefunction(AsyncPreviewIndexes.configure)
+
+
+async def test_async_configure_deployment_empty_dict_raises(
+    indexes: AsyncPreviewIndexes,
+) -> None:
+    """An empty deployment dict raises PineconeValueError before any HTTP call."""
+    with pytest.raises(PineconeValueError, match="deployment"):
+        await indexes.configure("my-index", deployment={})
+
+
+@respx.mock
+async def test_async_configure_deployment_sends_correct_body(
+    indexes: AsyncPreviewIndexes,
+) -> None:
+    """configure(deployment={"replicas": 2}) serializes deployment into the request body."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-index").mock(
+        return_value=httpx.Response(200, json=_PREVIEW_INDEX_RESPONSE)
+    )
+
+    await indexes.configure("my-index", deployment={"replicas": 2})
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body == {"deployment": {"replicas": 2}}

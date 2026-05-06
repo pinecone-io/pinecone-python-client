@@ -137,3 +137,22 @@ def test_configure_returns_updated_index_model(indexes: PreviewIndexes) -> None:
     assert result.name == "my"
     assert result.deletion_protection == "enabled"
     assert result.host == "my-xyz.svc.pinecone.io"
+
+
+def test_configure_deployment_empty_dict_raises(indexes: PreviewIndexes) -> None:
+    """An empty deployment dict raises PineconeValueError before any HTTP call."""
+    with pytest.raises(PineconeValueError, match="deployment"):
+        indexes.configure("my", deployment={})
+
+
+@respx.mock
+def test_configure_deployment_sends_correct_body(indexes: PreviewIndexes) -> None:
+    """configure(deployment={"replicas": 2}) serializes deployment into the request body."""
+    route = respx.patch(f"{BASE_URL}/indexes/my").mock(
+        return_value=httpx.Response(200, json=_PREVIEW_INDEX_RESPONSE)
+    )
+
+    indexes.configure("my", deployment={"replicas": 2})
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body == {"deployment": {"replicas": 2}}
