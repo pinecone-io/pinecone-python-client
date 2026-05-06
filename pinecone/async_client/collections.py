@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from pinecone._internal.adapters.collections_adapter import CollectionsAdapter
-from pinecone._internal.validation import require_non_empty
+from pinecone._internal.validation import require_non_empty, require_valid_resource_name
 from pinecone.models.collections.list import CollectionList
 from pinecone.models.collections.model import CollectionModel
 
@@ -57,7 +57,9 @@ class AsyncCollections:
             A CollectionModel describing the created collection.
 
         Raises:
-            ValidationError: If *name* or *source* is empty.
+            ValidationError: If *name* is empty, longer than 45 characters, contains
+                characters outside ``[a-z0-9-]``, or starts/ends with a hyphen.
+                Also raised if *source* is empty.
 
         Examples:
 
@@ -66,7 +68,7 @@ class AsyncCollections:
                 col = await pc.collections.create(name="my-collection", source="my-index")
                 print(col.status)
         """
-        require_non_empty("name", name)
+        require_valid_resource_name("name", name)
         require_non_empty("source", source)
         logger.info("Creating collection %r from source %r", name, source)
         response = await self._http.post("/collections", json={"name": name, "source": source})

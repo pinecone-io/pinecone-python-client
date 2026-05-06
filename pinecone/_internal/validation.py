@@ -49,3 +49,29 @@ def require_one_of(name: str, value: str, allowed: Sequence[str]) -> None:
     if value not in allowed:
         opts = ", ".join(repr(a) for a in allowed)
         raise ValidationError(f"{name} must be one of {opts}, got {value!r}")
+
+
+_RESOURCE_NAME_MAX_LEN = 45
+_RESOURCE_NAME_CHARS = frozenset("abcdefghijklmnopqrstuvwxyz0123456789-")
+
+
+def require_valid_resource_name(name: str, value: str) -> None:
+    """Raise ValidationError if value is not a valid Pinecone resource name.
+
+    Valid names are non-empty, at most 45 characters, consist only of lowercase
+    alphanumeric characters and hyphens, and must not start or end with a hyphen.
+    """
+    if not value or not value.strip():
+        raise ValidationError(f"{name} must be a non-empty string")
+    if len(value) > _RESOURCE_NAME_MAX_LEN:
+        raise ValidationError(
+            f"{name} is too long (max {_RESOURCE_NAME_MAX_LEN} characters, got {len(value)})"
+        )
+    if value[0] == "-":
+        raise ValidationError(f"{name} must not start with a hyphen")
+    if value[-1] == "-":
+        raise ValidationError(f"{name} must not end with a hyphen")
+    if not all(c in _RESOURCE_NAME_CHARS for c in value):
+        raise ValidationError(
+            f"{name} contains invalid characters; must be lowercase alphanumeric and hyphens only"
+        )

@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from pinecone._internal.adapters.collections_adapter import CollectionsAdapter
-from pinecone._internal.validation import require_non_empty
+from pinecone._internal.validation import require_non_empty, require_valid_resource_name
 from pinecone.models.collections.list import CollectionList
 from pinecone.models.collections.model import CollectionModel
 
@@ -56,7 +56,9 @@ class Collections:
             A CollectionModel describing the created collection.
 
         Raises:
-            ValidationError: If *name* or *source* is empty.
+            ValidationError: If *name* is empty, longer than 45 characters, contains
+                characters outside ``[a-z0-9-]``, or starts/ends with a hyphen.
+                Also raised if *source* is empty.
             ApiError: If the API returns an error response (e.g. authentication
                 failure or server error).
 
@@ -65,7 +67,7 @@ class Collections:
             >>> col.status  # doctest: +SKIP
             'Initializing'
         """
-        require_non_empty("name", name)
+        require_valid_resource_name("name", name)
         require_non_empty("source", source)
         logger.info("Creating collection %r from source %r", name, source)
         response = self._http.post("/collections", json={"name": name, "source": source})

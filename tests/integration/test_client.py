@@ -10,6 +10,7 @@ import pytest
 import respx
 
 from pinecone import Pinecone
+from pinecone.errors.exceptions import ValidationError
 from pinecone.models.backups.model import CreateIndexFromBackupResponse
 from tests.factories import make_index_response
 
@@ -251,3 +252,27 @@ def test_create_byoc_index_method_schema_forwarded() -> None:
 
     sent_body = json.loads(route.calls[0].request.content)
     assert sent_body["spec"]["byoc"]["schema"] == {"genre": {"type": "str"}}
+
+
+# ---------------------------------------------------------------------------
+# Collection name validation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "invalid_name",
+    [
+        "INVALID_NAME!",
+        "MY_COLLECTION",
+        "-leading",
+        "trailing-",
+        "a" * 46,
+        "underscore_name",
+        "test@name",
+    ],
+)
+def test_create_collection_invalid_name(invalid_name: str) -> None:
+    """Collections.create raises ValidationError for invalid names before any network call."""
+    pc = Pinecone(api_key="test-key")
+    with pytest.raises(ValidationError):
+        pc.collections.create(name=invalid_name, source="fake-index")
