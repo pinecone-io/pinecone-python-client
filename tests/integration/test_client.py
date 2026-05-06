@@ -128,7 +128,7 @@ def test_create_index_schema_parameter_forwarded() -> None:
     assert result.name == "test-schema-shim"
     sent_body = json.loads(route.calls[0].request.content)
     # schema is forwarded into spec.serverless.schema by build_create_body
-    assert sent_body["spec"]["serverless"]["schema"] == {"text_field": {"type": "str"}}
+    assert sent_body["spec"]["serverless"]["schema"] == {"fields": {"text_field": {"type": "str"}}}
 
 
 @respx.mock
@@ -227,7 +227,7 @@ def test_create_byoc_index_spec_schema_forwarded() -> None:
     )
 
     sent_body = json.loads(route.calls[0].request.content)
-    assert sent_body["spec"]["byoc"]["schema"] == {"genre": {"type": "str"}}
+    assert sent_body["spec"]["byoc"]["schema"] == {"fields": {"genre": {"type": "str"}}}
 
 
 @respx.mock
@@ -251,7 +251,7 @@ def test_create_byoc_index_method_schema_forwarded() -> None:
     )
 
     sent_body = json.loads(route.calls[0].request.content)
-    assert sent_body["spec"]["byoc"]["schema"] == {"genre": {"type": "str"}}
+    assert sent_body["spec"]["byoc"]["schema"] == {"fields": {"genre": {"type": "str"}}}
 
 
 # ---------------------------------------------------------------------------
