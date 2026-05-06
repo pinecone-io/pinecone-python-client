@@ -443,6 +443,14 @@ jobs:
         id: smoke
         continue-on-error: true
         run: |
+          # The source `pinecone/` directory from actions/checkout shadows the
+          # wheel-installed package on sys.path (cwd is on the path). The source
+          # tree has `pinecone/grpc/__init__.py` but not the compiled
+          # `_grpc.abi3.so` extension, which only ships inside the wheel — so
+          # any test that constructs a GrpcIndex would crash with
+          # `ModuleNotFoundError: No module named 'pinecone._grpc'`. Smoke runs
+          # the published wheel only, so we can safely delete the source.
+          rm -rf pinecone rust target
           pytest tests/smoke/ \
             -v -s -rs \
             --ignore=tests/smoke/test_pod_collections_sync.py \
