@@ -52,6 +52,20 @@ def test_read_capacity_union_decode_dispatches_on_mode() -> None:
     assert isinstance(dedicated, PreviewReadCapacityDedicatedResponse)
 
 
+def test_preview_read_capacity_status_error_message() -> None:
+    raw = b'{"state":"Error","current_shards":null,"current_replicas":null,"error_message":"provisioning failed"}'
+    status = msgspec.json.decode(raw, type=PreviewReadCapacityStatus)
+    assert status.state == "Error"
+    assert status.error_message == "provisioning failed"
+
+
+def test_preview_read_capacity_status_no_error_message() -> None:
+    raw = b'{"state":"Ready","current_shards":2,"current_replicas":1}'
+    status = msgspec.json.decode(raw, type=PreviewReadCapacityStatus)
+    assert status.state == "Ready"
+    assert status.error_message is None
+
+
 def test_status_decode_with_scaling_states() -> None:
     initializing_raw = (
         b'{"state": "Initializing", "current_shards": null, "current_replicas": null}'

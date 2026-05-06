@@ -49,16 +49,19 @@ class PreviewReadCapacityStatus(Struct, kw_only=True):
 
     Attributes:
         state: Current provisioning state. Observed values: ``"Ready"``,
-            ``"Initializing"``, ``"Migrating"``.
+            ``"Initializing"``, ``"Migrating"``, ``"Error"``.
         current_shards: Current number of active shards (may be ``None``
             during provisioning).
         current_replicas: Current number of active replicas (may be ``None``
             during provisioning).
+        error_message: Error message describing the provisioning failure.
+            Present only when ``state`` is ``"Error"``; ``None`` otherwise.
     """
 
     state: str
     current_shards: int | None = None
     current_replicas: int | None = None
+    error_message: str | None = None
 
 
 class PreviewReadCapacityDedicatedInner(Struct, kw_only=True):
