@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from pinecone._internal.config import normalize_host
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import PineconeValueError, ValidationError
 from pinecone.models.vectors.vector import Vector
 
 
@@ -29,6 +30,34 @@ def _validate_host(host: str) -> str:
             f"host {host!r} does not appear to be a valid URL (must contain a dot or 'localhost')"
         )
     return normalized
+
+
+_ALLOWED_SEARCH_VECTOR_KEYS: frozenset[str] = frozenset(
+    {"values", "sparse_indices", "sparse_values"}
+)
+
+
+def _normalize_search_vector_dict(vector: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate and normalize a sparse/hybrid search vector dict.
+
+    Raises:
+        PineconeValueError: when *vector* contains a key outside the supported set
+            (``values``, ``sparse_indices``, ``sparse_values``).
+    """
+    unknown = set(vector.keys()) - _ALLOWED_SEARCH_VECTOR_KEYS
+    if unknown:
+        raise PineconeValueError(
+            f"Unsupported keys in search vector dict: {sorted(unknown)}. "
+            f"Allowed keys are {sorted(_ALLOWED_SEARCH_VECTOR_KEYS)}."
+        )
+    result: dict[str, Any] = {}
+    if "values" in vector:
+        result["values"] = list(vector["values"])
+    if "sparse_indices" in vector:
+        result["sparse_indices"] = list(vector["sparse_indices"])
+    if "sparse_values" in vector:
+        result["sparse_values"] = list(vector["sparse_values"])
+    return result
 
 
 def _vector_to_dict(v: Vector) -> dict[str, Any]:

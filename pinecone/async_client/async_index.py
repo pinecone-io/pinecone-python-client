@@ -17,7 +17,11 @@ from pinecone._internal.batch import async_batch_execute
 from pinecone._internal.batching import validate_batch_size
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
-from pinecone._internal.data_plane_helpers import _validate_host, _vector_to_dict
+from pinecone._internal.data_plane_helpers import (
+    _normalize_search_vector_dict,
+    _validate_host,
+    _vector_to_dict,
+)
 from pinecone._internal.validation import require_in_range, require_positive
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import PineconeValueError, ValidationError
@@ -1008,7 +1012,7 @@ class AsyncIndex:
             query_body["inputs"] = inputs
         if vector is not None:
             if isinstance(vector, Mapping):
-                query_body["vector"] = dict(vector)
+                query_body["vector"] = _normalize_search_vector_dict(vector)
             else:
                 query_body["vector"] = {"values": list(vector)}
         if id is not None:

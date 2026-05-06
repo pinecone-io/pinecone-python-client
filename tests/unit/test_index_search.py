@@ -7,7 +7,7 @@ import pytest
 import respx
 
 from pinecone import Index
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import PineconeValueError, ValidationError
 from pinecone.models.vectors.search import SearchRecordsResponse
 
 INDEX_HOST = "my-index-abc123.svc.pinecone.io"
@@ -283,3 +283,46 @@ class TestSearch:
 
         body = orjson.loads(route.calls.last.request.content)
         assert body["query"]["vector"] == {"values": [0.1, 0.2, 0.3]}
+
+    def test_search_vector_dict_unknown_key_raises(self) -> None:
+        idx = _make_index()
+        with pytest.raises(PineconeValueError, match="vlaues") as exc_info:
+            idx.search(namespace="ns", top_k=3, vector={"vlaues": [0.1]})
+        assert "values" in str(exc_info.value)
+        assert "sparse_indices" in str(exc_info.value)
+        assert "sparse_values" in str(exc_info.value)
+
+    @respx.mock
+    def test_search_vector_dict_normalizes_sequences(self) -> None:
+        route = respx.post(SEARCH_URL_NS).mock(
+            return_value=httpx.Response(200, json=SEARCH_RESPONSE),
+        )
+        idx = _make_index()
+        idx.search(namespace="test-ns", top_k=3, vector={"values": (0.1, 0.2)})
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["query"]["vector"] == {"values": [0.1, 0.2]}
+        assert isinstance(body["query"]["vector"]["values"], list)
+
+    @respx.mock
+    def test_search_vector_dict_passes_full_hybrid(self) -> None:
+        route = respx.post(SEARCH_URL_NS).mock(
+            return_value=httpx.Response(200, json=SEARCH_RESPONSE),
+        )
+        idx = _make_index()
+        idx.search(
+            namespace="test-ns",
+            top_k=3,
+            vector={"values": [0.1, 0.2], "sparse_indices": [10], "sparse_values": [0.9]},
+        )
+
+        import orjson
+
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["query"]["vector"] == {
+            "values": [0.1, 0.2],
+            "sparse_indices": [10],
+            "sparse_values": [0.9],
+        }
