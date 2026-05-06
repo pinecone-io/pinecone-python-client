@@ -272,7 +272,7 @@ class TestQuery:
         )
 
     def test_query_validates_top_k(self, grpc_index: GrpcIndex) -> None:
-        with pytest.raises(ValidationError, match="top_k must be a positive integer"):
+        with pytest.raises(ValidationError, match="top_k must be between"):
             grpc_index.query(top_k=0, vector=[0.1])
 
     def test_query_validates_both_vector_and_id(self, grpc_index: GrpcIndex) -> None:
