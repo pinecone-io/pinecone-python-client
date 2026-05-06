@@ -678,8 +678,8 @@ def test_get_model_full_structure_rest(client: Pinecone) -> None:
         assert isinstance(param.required, bool)
         # Optional fields: None or correct type
         assert param.allowed_values is None or isinstance(param.allowed_values, list)
-        assert param.min is None or isinstance(param.min, int)
-        assert param.max is None or isinstance(param.max, int)
+        assert param.min is None or isinstance(param.min, (int, float))
+        assert param.max is None or isinstance(param.max, (int, float))
         # Bracket access works on supported parameters
         assert param["parameter"] == param.parameter
 

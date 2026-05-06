@@ -237,6 +237,24 @@ class TestModelInfo:
         assert param.min == 1
         assert param.max == 10
 
+    def test_model_info_supported_parameter_min_max_float(self) -> None:
+        import msgspec
+
+        payload = b'{"parameter": "temperature", "type": "float", "value_type": "float", "required": false, "min": 0.0, "max": 1.0}'
+        result = msgspec.json.decode(payload, type=ModelInfoSupportedParameter)
+        assert result.min == 0.0
+        assert result.max == 1.0
+        assert isinstance(result.min, float)
+        assert isinstance(result.max, float)
+
+    def test_model_info_supported_parameter_min_max_mixed(self) -> None:
+        import msgspec
+
+        payload = b'{"parameter": "x", "type": "number", "value_type": "number", "required": false, "min": 0, "max": 1.5}'
+        result = msgspec.json.decode(payload, type=ModelInfoSupportedParameter)
+        assert result.min == 0
+        assert result.max == 1.5
+
 
 class TestModelInfoList:
     def test_model_info_list_names(self) -> None:
