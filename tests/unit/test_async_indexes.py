@@ -1351,6 +1351,113 @@ async def test_create_integrated_with_tags(async_indexes: AsyncIndexes) -> None:
 
 
 @respx.mock
+async def test_create_integrated_with_schema(async_indexes: AsyncIndexes) -> None:
+    """schema= is forwarded in the request body for IntegratedSpec creates."""
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
+        return_value=httpx.Response(201, json=_integrated_response()),
+    )
+
+    await async_indexes.create(
+        name="my-integrated-index",
+        spec=IntegratedSpec(
+            cloud="aws",
+            region="us-east-1",
+            embed=EmbedConfig(
+                model="multilingual-e5-large",
+                field_map={"text": "my_text_field"},
+            ),
+        ),
+        schema={"genre": {"type": "str"}},
+        timeout=-1,
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["schema"] == {"genre": {"type": "str"}}
+
+
+@respx.mock
+async def test_create_integrated_without_schema(async_indexes: AsyncIndexes) -> None:
+    """schema key is absent from the request body when not set for IntegratedSpec."""
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
+        return_value=httpx.Response(201, json=_integrated_response()),
+    )
+
+    await async_indexes.create(
+        name="my-integrated-index",
+        spec=IntegratedSpec(
+            cloud="aws",
+            region="us-east-1",
+            embed=EmbedConfig(
+                model="multilingual-e5-large",
+                field_map={"text": "my_text_field"},
+            ),
+        ),
+        timeout=-1,
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert "schema" not in body
+
+
+@respx.mock
+async def test_create_integrated_with_read_capacity(async_indexes: AsyncIndexes) -> None:
+    """read_capacity= is forwarded in the request body for IntegratedSpec creates."""
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
+        return_value=httpx.Response(201, json=_integrated_response()),
+    )
+
+    await async_indexes.create(
+        name="my-integrated-index",
+        spec=IntegratedSpec(
+            cloud="aws",
+            region="us-east-1",
+            embed=EmbedConfig(
+                model="multilingual-e5-large",
+                field_map={"text": "my_text_field"},
+            ),
+        ),
+        read_capacity={"mode": "OnDemand"},
+        timeout=-1,
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["read_capacity"] == {"mode": "OnDemand"}
+
+
+@respx.mock
+async def test_async_create_index_integrated_schema_and_read_capacity(
+    async_indexes: AsyncIndexes,
+) -> None:
+    """schema= and read_capacity= together are both forwarded for IntegratedSpec."""
+    route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(
+        return_value=httpx.Response(201, json=_integrated_response()),
+    )
+
+    await async_indexes.create(
+        name="my-integrated-index",
+        spec=IntegratedSpec(
+            cloud="aws",
+            region="us-east-1",
+            embed=EmbedConfig(
+                model="multilingual-e5-large",
+                field_map={"text": "my_text_field"},
+            ),
+        ),
+        schema={"genre": {"type": "str"}},
+        read_capacity={"mode": "OnDemand"},
+        timeout=-1,
+    )
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["schema"] == {"genre": {"type": "str"}}
+    assert body["read_capacity"] == {"mode": "OnDemand"}
+
+
+@respx.mock
 async def test_create_integrated_with_embed_model_enum(async_indexes: AsyncIndexes) -> None:
     """EmbedModel enum values are accepted for model parameter."""
     route = respx.post(f"{BASE_URL}/indexes/create-for-model").mock(

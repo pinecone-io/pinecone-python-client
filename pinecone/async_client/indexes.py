@@ -328,6 +328,7 @@ class AsyncIndexes:
         deletion_protection: DeletionProtection | str = "disabled",
         tags: Mapping[str, str] | None = None,
         schema: dict[str, Any] | None = None,
+        read_capacity: dict[str, Any] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
         """Create a new Pinecone index.
@@ -352,6 +353,9 @@ class AsyncIndexes:
                 field types for indexing. Accepts both flat format
                 (``{"field": {"type": "str"}}``) and nested format
                 (``{"fields": {"field": {"type": "str"}}}``).
+            read_capacity (dict[str, Any] | None): Optional read capacity
+                configuration for integrated indexes. For example,
+                ``{"mode": "OnDemand"}`` or a dedicated capacity dict.
             timeout (int | None): Seconds to wait for the index to become ready.
                 Use ``None`` (default) to poll indefinitely every 5 seconds
                 with no upper time bound. Use a positive int to poll with a
@@ -402,6 +406,8 @@ class AsyncIndexes:
                 spec=spec,
                 deletion_protection=deletion_protection,
                 tags=tags,
+                schema=schema,
+                read_capacity=read_capacity,
             )
         elif isinstance(spec, ByocSpec):
             validate_byoc_inputs(
