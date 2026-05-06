@@ -212,7 +212,7 @@ def test_create_backup_optional_fields_are_correctly_typed(
         f"backup.schema must be dict or None, got {type(backup.schema)}"
     )
 
-    # tags — dict[str, str] or None; API returns {} when no tags are passed
+    # tags — dict[str, Any] or None; API returns {} when no tags are passed
     assert backup.tags is None or isinstance(backup.tags, dict), (
         f"backup.tags must be dict or None, got {type(backup.tags)}"
     )

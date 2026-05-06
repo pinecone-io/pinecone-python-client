@@ -26,7 +26,7 @@ class PreviewBackupModel(Struct, kw_only=True, omit_defaults=True):
         backup_id: Unique identifier for the backup.
         source_index_id: ID of the source index.
         source_index_name: Name of the index from which the backup was taken.
-        status: Current status (``"Initializing"``, ``"Ready"``, or ``"Failed"``).
+        status: Current status (``"Initializing"``, ``"Ready"``, or ``"InitializationFailed"``).
         cloud: Cloud provider where the backup is stored.
         region: Cloud region where the backup is stored.
         created_at: ISO 8601 timestamp when the backup was created.
@@ -49,7 +49,7 @@ class PreviewBackupModel(Struct, kw_only=True, omit_defaults=True):
     created_at: str
     name: str | None = None
     description: str | None = None
-    tags: dict[str, str] | None = None
+    tags: dict[str, Any] | None = None
     dimension: int | None = None
     schema: dict[str, Any] | None = None
     record_count: int | None = None

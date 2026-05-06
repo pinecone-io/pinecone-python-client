@@ -92,3 +92,24 @@ def test_ignores_unknown_fields() -> None:
 def test_all_statuses_decode(status: str) -> None:
     m = _make(status)
     assert m.status == status
+
+
+def test_preview_backup_model_tags_non_string_values() -> None:
+    raw = (
+        b'{"backup_id":"bkp-1","source_index_id":"idx-abc",'
+        b'"source_index_name":"my-index","status":"Ready",'
+        b'"cloud":"aws","region":"us-east-1","created_at":"2026-01-01T00:00:00Z",'
+        b'"tags":{"version":3,"env":"prod"}}'
+    )
+    model = msgspec.json.decode(raw, type=PreviewBackupModel)
+    assert model.tags == {"version": 3, "env": "prod"}
+
+
+def test_preview_backup_model_initialization_failed_status() -> None:
+    raw = (
+        b'{"backup_id":"bkp-2","source_index_id":"idx-abc",'
+        b'"source_index_name":"my-index","status":"InitializationFailed",'
+        b'"cloud":"aws","region":"us-east-1","created_at":"2026-01-01T00:00:00Z"}'
+    )
+    model = msgspec.json.decode(raw, type=PreviewBackupModel)
+    assert model.status == "InitializationFailed"
