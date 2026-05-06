@@ -279,41 +279,16 @@ def test_delete_by_ids(
     assert surviving.documents["doc-1"]._id == "doc-1"
 
 
-def test_delete_by_filter(
+def test_delete_by_filter_not_supported(
     client: Pinecone,
     populated_index: tuple[str, str],
 ) -> None:
-    """Delete by filter removes all documents matching the filter expression."""
+    """filter parameter is not accepted by delete() — backend DeleteDocumentsRequest has no filter field."""
     idx = client.preview.index(name=populated_index[0])
     namespace = populated_index[1]
 
-    idx.documents.delete(namespace=namespace, filter={"category": {"$eq": "vegetable"}})
-
-    def _fetch_vegetables() -> PreviewDocumentFetchResponse:
-        return idx.documents.fetch(
-            namespace=namespace,
-            filter={"category": {"$eq": "vegetable"}},
-            include_fields=["category"],
-        )
-
-    def _no_vegetables(r: PreviewDocumentFetchResponse) -> bool:
-        return len(r.documents) == 0
-
-    poll_until(
-        _fetch_vegetables,
-        _no_vegetables,
-        timeout=90,
-        interval=3,
-        description="all vegetable docs deleted",
-    )
-
-    # Fruit docs remain
-    fruits = idx.documents.fetch(
-        namespace=namespace,
-        filter={"category": {"$eq": "fruit"}},
-        include_fields=["category"],
-    )
-    assert len(fruits.documents) > 0
+    with pytest.raises(TypeError):
+        idx.documents.delete(namespace=namespace, filter={"category": {"$eq": "vegetable"}})  # type: ignore[call-arg]
 
 
 def test_delete_all(
@@ -804,9 +779,9 @@ def test_delete_client_side_validation_rejects_invalid_arguments(
 
     Spec §4 declares client-side validation:
     - namespace must be a non-empty string
-    - at least one of ids, delete_all=True, or filter must be provided
+    - at least one of ids or delete_all=True must be provided
     - ids and delete_all are mutually exclusive
-    - ids and filter are mutually exclusive
+    - filter parameter is not accepted (raises TypeError)
 
     Uses a dummy host so no real index is needed and no API call is made.
     """
@@ -826,9 +801,9 @@ def test_delete_client_side_validation_rejects_invalid_arguments(
     with pytest.raises(ValidationError, match="ids"):
         idx.documents.delete(namespace="ns", ids=["doc-0"], delete_all=True)
 
-    # ids and filter are mutually exclusive.
-    with pytest.raises(ValidationError, match="ids"):
-        idx.documents.delete(namespace="ns", ids=["doc-0"], filter={"category": {"$eq": "fruit"}})
+    # filter is not a valid parameter — raises TypeError.
+    with pytest.raises(TypeError):
+        idx.documents.delete(namespace="ns", ids=["doc-0"], filter={"category": {"$eq": "fruit"}})  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------
@@ -846,14 +821,13 @@ def test_documents_delete_returns_none_for_all_targeting_modes(
     preview_namespace: str,
     require_preview: None,
 ) -> None:
-    """documents.delete() returns None for ids, filter, and delete_all targeting modes.
+    """documents.delete() returns None for ids and delete_all targeting modes.
 
     Spec §5 states: "Returns: None (empty response body)" with 202 Accepted.
-    The existing delete tests (test_delete_by_ids, test_delete_by_filter,
-    test_delete_all) are broken because their populated_index fixture depends
-    on FTS (dedicated capacity) and fetch (IPV-0002). This test uses a dense
-    vector OnDemand schema and does not require verification of deletion to
-    verify the return type contract.
+    The existing delete tests (test_delete_by_ids, test_delete_all) are broken
+    because their populated_index fixture depends on FTS (dedicated capacity)
+    and fetch (IPV-0002). This test uses a dense vector OnDemand schema and does
+    not require verification of deletion to verify the return type contract.
 
     DISABLED (IPV-0004): The /namespaces/{ns}/documents/delete endpoint returns
     401 Unauthorized with x-pinecone-auth-rejected-reason: Unknown operation,
@@ -893,9 +867,6 @@ def test_documents_delete_returns_none_for_all_targeting_modes(
 
     # delete by IDs must return None (verified by -> None annotation).
     idx.documents.delete(namespace=ns, ids=["doc-0"])
-
-    # delete by filter must return None.
-    idx.documents.delete(namespace=ns, filter={"category": {"$eq": "vegetable"}})
 
     # delete_all=True must return None.
     idx.documents.delete(namespace=ns, delete_all=True)

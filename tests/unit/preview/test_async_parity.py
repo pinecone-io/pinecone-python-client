@@ -243,16 +243,6 @@ async def test_delete_ids_and_delete_all_parity() -> None:
     assert sync_msg == async_msg
 
 
-async def test_delete_ids_and_filter_parity() -> None:
-    sync = _make_sync_docs()
-    async_d = _make_async_docs()
-    sync_msg = _sync_error(sync.delete, namespace="ns", ids=["a"], filter={"field": {"$eq": "v"}})
-    async_msg = await _async_error(
-        async_d.delete, namespace="ns", ids=["a"], filter={"field": {"$eq": "v"}}
-    )
-    assert sync_msg == async_msg
-
-
 # upsert validation
 
 

@@ -456,7 +456,6 @@ class PreviewDocuments:
         namespace: str,
         ids: list[str] | None = None,
         delete_all: bool = False,
-        filter: dict[str, Any] | None = None,
     ) -> None:
         """Delete documents from a namespace.
 
@@ -471,19 +470,16 @@ class PreviewDocuments:
         Args:
             namespace: Target namespace. Must be a non-empty string.
             ids: Optional list of document IDs to delete. Mutually exclusive
-                with ``delete_all`` and ``filter``.
+                with ``delete_all``.
             delete_all: If ``True``, delete all documents in the namespace.
-            filter: Optional metadata filter — delete all matching documents.
-                Mutually exclusive with ``ids``.
 
         Returns:
             ``None`` (server responds with 202 Accepted, empty body).
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If namespace is
-                empty, none of ``ids``, ``delete_all=True``, or ``filter`` is
-                provided, ``ids`` and ``delete_all`` are both provided, or
-                ``ids`` and ``filter`` are both provided.
+                empty, neither ``ids`` nor ``delete_all=True`` is provided, or
+                both ``ids`` and ``delete_all`` are provided.
 
         Examples:
             >>> from pinecone import Pinecone
@@ -494,13 +490,6 @@ class PreviewDocuments:
             ...     ids=["article-101", "article-102"],
             ... )
 
-            Delete all documents matching a filter:
-
-            >>> index.documents.delete(
-            ...     namespace="articles-en",
-            ...     filter={"category": "draft"},
-            ... )
-
             Delete all documents in the namespace:
 
             >>> index.documents.delete(
@@ -509,22 +498,16 @@ class PreviewDocuments:
             ... )
         """
         require_non_empty("namespace", namespace)
-        if ids is None and not delete_all and filter is None:
-            raise PineconeValueError(
-                "at least one of ids, delete_all=True, or filter must be provided"
-            )
+        if ids is None and not delete_all:
+            raise PineconeValueError("at least one of ids or delete_all=True must be provided")
         if ids is not None and delete_all:
             raise PineconeValueError("ids and delete_all are mutually exclusive")
-        if ids is not None and filter is not None:
-            raise PineconeValueError("ids and filter are mutually exclusive")
 
         body: dict[str, Any] = {}
         if ids is not None:
             body["ids"] = ids
         if delete_all:
             body["delete_all"] = True
-        if filter is not None:
-            body["filter"] = filter
 
         self._http.post(
             f"/namespaces/{namespace}/documents/delete",

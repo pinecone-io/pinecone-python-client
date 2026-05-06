@@ -55,19 +55,6 @@ def test_delete_ids_only(docs: PreviewDocuments) -> None:
 
 
 @respx.mock
-def test_delete_filter_only(docs: PreviewDocuments) -> None:
-    import orjson
-
-    route = respx.post(DELETE_URL).mock(return_value=httpx.Response(202))
-
-    result = docs.delete(namespace="my-ns", filter={"genre": "sci-fi"})
-
-    assert result is None
-    body = orjson.loads(route.calls.last.request.content)
-    assert body == {"filter": {"genre": "sci-fi"}}
-
-
-@respx.mock
 def test_delete_all_only(docs: PreviewDocuments) -> None:
     import orjson
 
@@ -78,20 +65,6 @@ def test_delete_all_only(docs: PreviewDocuments) -> None:
     assert result is None
     body = orjson.loads(route.calls.last.request.content)
     assert body == {"delete_all": True}
-
-
-@respx.mock
-def test_delete_all_with_filter_allowed(docs: PreviewDocuments) -> None:
-    """delete_all=True + filter is not prohibited by spec."""
-    import orjson
-
-    route = respx.post(DELETE_URL).mock(return_value=httpx.Response(202))
-
-    result = docs.delete(namespace="my-ns", delete_all=True, filter={"k": "v"})
-
-    assert result is None
-    body = orjson.loads(route.calls.last.request.content)
-    assert body == {"delete_all": True, "filter": {"k": "v"}}
 
 
 @respx.mock
@@ -116,8 +89,8 @@ def test_delete_whitespace_namespace_raises(docs: PreviewDocuments) -> None:
         docs.delete(namespace="   ", ids=["a"])
 
 
-def test_delete_none_of_three_raises(docs: PreviewDocuments) -> None:
-    with pytest.raises(ValidationError, match="at least one of"):
+def test_delete_requires_ids_or_delete_all(docs: PreviewDocuments) -> None:
+    with pytest.raises(ValidationError, match="at least one of ids or delete_all"):
         docs.delete(namespace="my-ns")
 
 
@@ -126,9 +99,9 @@ def test_delete_ids_and_delete_all_raises(docs: PreviewDocuments) -> None:
         docs.delete(namespace="my-ns", ids=["a"], delete_all=True)
 
 
-def test_delete_ids_and_filter_raises(docs: PreviewDocuments) -> None:
-    with pytest.raises(ValidationError, match="mutually exclusive"):
-        docs.delete(namespace="my-ns", ids=["a"], filter={"k": "v"})
+def test_delete_filter_param_not_accepted(docs: PreviewDocuments) -> None:
+    with pytest.raises(TypeError):
+        docs.delete(namespace="my-ns", filter={"k": "v"})  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------
@@ -153,20 +126,6 @@ async def test_async_delete_ids_only(async_docs: AsyncPreviewDocuments) -> None:
     assert request.headers.get("X-Pinecone-Api-Version") == INDEXES_API_VERSION
     body = orjson.loads(request.content)
     assert body == {"ids": ["doc-1", "doc-2"]}
-
-
-@pytest.mark.asyncio
-@respx.mock
-async def test_async_delete_filter_only(async_docs: AsyncPreviewDocuments) -> None:
-    import orjson
-
-    route = respx.post(DELETE_URL).mock(return_value=httpx.Response(202))
-
-    result = await async_docs.delete(namespace="my-ns", filter={"genre": "sci-fi"})
-
-    assert result is None
-    body = orjson.loads(route.calls.last.request.content)
-    assert body == {"filter": {"genre": "sci-fi"}}
 
 
 @pytest.mark.asyncio
@@ -207,10 +166,10 @@ async def test_async_delete_empty_namespace_raises(
 
 
 @pytest.mark.asyncio
-async def test_async_delete_none_of_three_raises(
+async def test_async_delete_requires_ids_or_delete_all(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
-    with pytest.raises(ValidationError, match="at least one of"):
+    with pytest.raises(ValidationError, match="at least one of ids or delete_all"):
         await async_docs.delete(namespace="my-ns")
 
 
@@ -223,8 +182,8 @@ async def test_async_delete_ids_and_delete_all_raises(
 
 
 @pytest.mark.asyncio
-async def test_async_delete_ids_and_filter_raises(
+async def test_async_delete_filter_param_not_accepted(
     async_docs: AsyncPreviewDocuments,
 ) -> None:
-    with pytest.raises(ValidationError, match="mutually exclusive"):
-        await async_docs.delete(namespace="my-ns", ids=["a"], filter={"k": "v"})
+    with pytest.raises(TypeError):
+        await async_docs.delete(namespace="my-ns", filter={"k": "v"})  # type: ignore[call-arg]
