@@ -371,8 +371,8 @@ class GrpcIndex:
             :class:`QueryResponse` with matches, namespace, and usage info.
 
         Raises:
-            :exc:`ValidationError`: If top_k < 1, both vector and id are provided,
-                or none of vector, id, or sparse_vector are provided.
+            :exc:`ValidationError`: If top_k is not between 1 and 10000, both vector
+                and id are provided, or none of vector, id, or sparse_vector are provided.
             :exc:`PineconeTimeoutError`: If the call exceeds *timeout* or the server
                 returns CANCELLED with a timeout cause.
 
@@ -387,8 +387,7 @@ class GrpcIndex:
                 for match in response.matches:
                     print(match.id, match.score)
         """
-        if top_k < 1:
-            raise ValidationError(f"top_k must be a positive integer, got {top_k}")
+        require_in_range("top_k", top_k, 1, 10_000)
 
         has_vector = vector is not None
         has_id = id is not None

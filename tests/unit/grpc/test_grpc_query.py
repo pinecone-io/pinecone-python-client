@@ -48,6 +48,30 @@ def test_grpc_query_vector_id_sparse_none_rejected() -> None:
         idx.query(top_k=5)
 
 
+def test_query_top_k_upper_bound_grpc() -> None:
+    """top_k > 10000 must raise ValidationError client-side without a network call."""
+    idx, mock_channel = _make_grpc_index()
+    with pytest.raises(ValidationError, match="top_k must be between 1 and 10000"):
+        idx.query(top_k=10001, vector=[0.1])
+    mock_channel.query.assert_not_called()
+
+
+def test_query_top_k_lower_bound_grpc() -> None:
+    """top_k < 1 must still raise ValidationError client-side."""
+    idx, mock_channel = _make_grpc_index()
+    with pytest.raises(ValidationError, match="top_k must be between 1 and 10000"):
+        idx.query(top_k=0, vector=[0.1])
+    mock_channel.query.assert_not_called()
+
+
+def test_query_top_k_at_max_boundary_accepted() -> None:
+    """top_k=10000 is the maximum allowed value and must be accepted."""
+    idx, mock_channel = _make_grpc_index()
+    mock_channel.query.return_value = {"matches": [], "namespace": ""}
+    idx.query(top_k=10000, vector=[0.1])
+    mock_channel.query.assert_called_once()
+
+
 def test_query_with_sparse_values_model_forwards_as_dict() -> None:
     """SparseValues model is converted to plain dict before being forwarded to GrpcChannel."""
     from pinecone.models.vectors.sparse import SparseValues
