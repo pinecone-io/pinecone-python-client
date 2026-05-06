@@ -17,13 +17,15 @@ from pinecone.preview.models.indexes import PreviewIndexModel
 
 BASE_URL = "https://api.test.pinecone.io"
 
-_MINIMAL_SCHEMA: dict = {"fields": {"emb": {"type": "dense_vector", "dimension": 4}}}
+_MINIMAL_SCHEMA: dict = {
+    "fields": {"summary": {"type": "semantic_text", "model": "multilingual-e5-large"}}
+}
 
 _PREVIEW_INDEX_RESPONSE: dict = {
     "name": "my-index",
     "host": "my-index-xyz.svc.pinecone.io",
     "status": {"ready": True, "state": "Ready"},
-    "schema": {"fields": {"emb": {"type": "dense_vector", "dimension": 4}}},
+    "schema": {"fields": {"summary": {"type": "semantic_text", "model": "multilingual-e5-large"}}},
     "deployment": {
         "deployment_type": "managed",
         "environment": "us-east-1-aws",
@@ -82,8 +84,8 @@ async def test_async_configure_serializes_schema_only(indexes: AsyncPreviewIndex
 
     body = orjson.loads(route.calls.last.request.content)
     assert list(body.keys()) == ["schema"]
-    assert body["schema"]["fields"]["emb"]["type"] == "dense_vector"
-    assert body["schema"]["fields"]["emb"]["dimension"] == 4
+    assert body["schema"]["fields"]["summary"]["type"] == "semantic_text"
+    assert body["schema"]["fields"]["summary"]["model"] == "multilingual-e5-large"
 
 
 @respx.mock
@@ -192,3 +194,27 @@ async def test_async_configure_deployment_sends_correct_body(
 
     body = orjson.loads(route.calls.last.request.content)
     assert body == {"deployment": {"replicas": 2}}
+
+
+async def test_async_configure_schema_non_semantic_text_raises(
+    indexes: AsyncPreviewIndexes,
+) -> None:
+    """configure() with a non-semantic_text schema field raises PineconeValueError before HTTP."""
+    with pytest.raises(PineconeValueError, match="dense_vector"):
+        await indexes.configure("idx", schema={"fields": {"vec": {"type": "dense_vector"}}})
+
+
+@respx.mock
+async def test_async_configure_schema_semantic_text_accepted(
+    indexes: AsyncPreviewIndexes,
+) -> None:
+    """configure() with a semantic_text schema field succeeds and does not raise PineconeValueError."""
+    respx.patch(f"{BASE_URL}/indexes/idx").mock(
+        return_value=httpx.Response(200, json=_PREVIEW_INDEX_RESPONSE)
+    )
+
+    result = await indexes.configure(
+        "idx",
+        schema={"fields": {"summary": {"type": "semantic_text", "model": "multilingual-e5-large"}}},
+    )
+    assert isinstance(result, PreviewIndexModel)

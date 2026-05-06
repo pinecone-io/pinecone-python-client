@@ -145,12 +145,11 @@ class TestSchemaEvolution:
             description=f"index {preview_index_name} ready before configure",
         )
 
-        evolved_schema = (
-            PreviewSchemaBuilder()
-            .add_string_field("text", full_text_search={})
-            .add_dense_vector_field("embedding", dimension=384, metric="cosine")
-            .build()
-        )
+        evolved_schema: dict = {
+            "fields": {
+                "text": {"type": "semantic_text", "model": "multilingual-e5-large"},
+            }
+        }
         client.preview.indexes.configure(preview_index_name, schema=evolved_schema)
 
         def _has_two_fields(m: object) -> bool:
@@ -833,56 +832,22 @@ class TestConfigureSchemaAdditiveOnly:
     schema updates that modify existing field definitions."
     """
 
-    def test_configure_schema_rejects_field_modification(
+    def test_configure_schema_rejects_non_semantic_text_field(
         self,
         client: Pinecone,
-        preview_index_name: str,
-        cleanup_preview_indexes: list[str],
         require_preview: None,
     ) -> None:
-        """Attempting to change an existing field's dimension via configure() raises ApiError (§2).
+        """configure() with a non-semantic_text field raises PineconeValueError before any API call.
 
-        The existing test_configure_adds_field_to_existing_schema verifies the happy path
-        (adding a new field). This test verifies the boundary: modifying an existing field's
-        definition (dimension 4 → 8) must be rejected by the API.
+        The backend only accepts semantic_text fields in PATCH /indexes schema updates.
+        The SDK validates this client-side so the error is caught immediately without a
+        network round-trip.
         """
-        from pinecone.errors.exceptions import ApiError
-
-        schema = (
-            PreviewSchemaBuilder()
-            .add_dense_vector_field("embedding", dimension=4, metric="cosine")
-            .build()
-        )
-        cleanup_preview_indexes.append(preview_index_name)
-        client.preview.indexes.create(name=preview_index_name, schema=schema)
-
-        poll_until(
-            lambda: client.preview.indexes.describe(preview_index_name),
-            lambda m: isinstance(m, PreviewIndexModel) and m.status.state == "Ready",
-            timeout=300,
-            interval=5,
-            description=f"index {preview_index_name} ready",
-        )
-
-        # Attempt to modify the existing "embedding" field (dimension 4 → 8).
-        modified_schema = (
-            PreviewSchemaBuilder()
-            .add_dense_vector_field("embedding", dimension=8, metric="cosine")
-            .build()
-        )
-        with pytest.raises(ApiError) as exc_info:
-            client.preview.indexes.configure(preview_index_name, schema=modified_schema)
-
-        assert exc_info.value.status_code >= 400, (
-            f"Expected 4xx error for field modification, got status {exc_info.value.status_code}"
-        )
-
-        # The index must still be accessible after the rejected configure().
-        described = client.preview.indexes.describe(preview_index_name)
-        assert isinstance(described, PreviewIndexModel)
-        assert len(described.schema.fields) == 1, (
-            "Schema must be unchanged after rejected configure()"
-        )
+        with pytest.raises(PineconeValueError, match="dense_vector"):
+            client.preview.indexes.configure(
+                "any-index",
+                schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 4}}},
+            )
 
 
 # ---------------------------------------------------------------------------

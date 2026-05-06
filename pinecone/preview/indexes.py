@@ -225,7 +225,7 @@ class PreviewIndexes:
                     pc.preview.indexes.configure(
                         "my-index",
                         schema={"fields": {
-                            "summary": {"type": "string", "full_text_search": {}},
+                            "summary": {"type": "semantic_text", "model": "multilingual-e5-large"},
                         }},
                     )
 
@@ -256,7 +256,9 @@ class PreviewIndexes:
 
                 pc.preview.indexes.configure(
                     "my-index",
-                    schema={"fields": {"summary": {"type": "string"}}},
+                    schema={"fields": {
+                        "summary": {"type": "semantic_text", "model": "multilingual-e5-large"},
+                    }},
                 )
 
             Update read capacity to dedicated::
@@ -289,6 +291,15 @@ class PreviewIndexes:
             raise PineconeValueError("read_capacity cannot be an empty dict")
         if deployment is not None and not deployment:
             raise PineconeValueError("deployment cannot be an empty dict")
+
+        if schema is not None:
+            fields = schema.get("fields", {})
+            for field_name, field_def in fields.items():
+                if field_def.get("type") != "semantic_text":
+                    raise PineconeValueError(
+                        f"Schema field {field_name!r} has type {field_def.get('type')!r}; "
+                        "configure() only supports adding 'semantic_text' fields."
+                    )
 
         if (
             schema is None
