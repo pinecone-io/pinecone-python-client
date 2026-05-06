@@ -405,12 +405,21 @@ jobs:
       # at runtime on other 3.x versions. This is the static complement to multi-python
       # smoke tests: the smoke tests exercise the wheel; abi3audit proves it is valid by
       # inspection. Runs on every OS and reads any wheel format (ELF/Mach-O/PE).
+      #
+      # Isolated in its own venv: pip-installing abi3audit into the runner's host
+      # Python leaves abi3audit + packaging + rich in user site-packages, which then
+      # makes the verify step's `pip check` fail because the verify Python sees those
+      # leftover packages but pinecone's install does not pull in their transitive
+      # deps (urllib3, platformdirs). The venv keeps abi3audit fully out of the
+      # verify Python's view. See CI-0037 for the original failure (Release Readiness
+      # run 25457165040).
       - name: abi3audit
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --quiet abi3audit
-          python -m abi3audit --strict --report dist/*.whl
+          python3 -m venv /tmp/abi3audit-venv
+          /tmp/abi3audit-venv/bin/pip install --quiet abi3audit
+          /tmp/abi3audit-venv/bin/python -m abi3audit --strict --report dist/*.whl
 
       # auditwheel show inspects ELF binaries inside each manylinux wheel and reports
       # the actual minimum glibc version. A wheel tagged manylinux_2_17 but linking
