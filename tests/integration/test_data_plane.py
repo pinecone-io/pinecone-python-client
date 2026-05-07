@@ -1862,7 +1862,9 @@ def test_async_req_concurrent_fanout_rest(client_pool: Pinecone, shared_index_di
     ns = f"ns-{uuid.uuid4().hex[:8]}"
     with client_pool.index(name=shared_index_dim2) as index:
         index.upsert(
-            vectors=[{"id": f"con-v{i}", "values": [i * 0.1, i * 0.2]} for i in range(8)],
+            vectors=[
+                {"id": f"con-v{i}", "values": [(i + 1) * 0.1, (i + 1) * 0.2]} for i in range(8)
+            ],
             namespace=ns,
         )
         poll_until(
@@ -1875,7 +1877,9 @@ def test_async_req_concurrent_fanout_rest(client_pool: Pinecone, shared_index_di
         # Fan out 4 simultaneous queries. With pool_threads=4, all
         # four should be in flight at once.
         results: list[Any] = [
-            index.query(top_k=2, vector=[i * 0.1, i * 0.2], namespace=ns, async_req=True)  # type: ignore[call-arg]
+            index.query(
+                top_k=2, vector=[(i + 1) * 0.1, (i + 1) * 0.2], namespace=ns, async_req=True
+            )  # type: ignore[call-arg]
             for i in range(4)
         ]
         for r in results:
