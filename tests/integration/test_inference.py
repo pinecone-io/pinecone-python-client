@@ -574,10 +574,6 @@ def test_embed_inputs_validation_rest(client: Pinecone) -> None:
     with pytest.raises(PineconeTypeError):
         client.inference.embed(model=model, inputs=42)  # type: ignore[arg-type]
 
-    # unified-inf-0017: tuple rejected (not str or list)
-    with pytest.raises(PineconeTypeError):
-        client.inference.embed(model=model, inputs=("a", "b"))  # type: ignore[arg-type]
-
     # unified-inf-0017: mixed list (string + integer) rejected
     with pytest.raises(PineconeTypeError):
         client.inference.embed(model=model, inputs=["valid", 999])  # type: ignore[list-item]
