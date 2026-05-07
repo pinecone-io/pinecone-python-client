@@ -1,4 +1,4 @@
-"""Unit tests for GrpcIndex.query() sparse-only validation parity."""
+"""Unit tests for GrpcIndex.query() — validation parity and filter forwarding."""
 
 from __future__ import annotations
 
@@ -85,3 +85,66 @@ def test_query_with_sparse_values_model_forwards_as_dict() -> None:
     mock_channel.query.assert_called_once()
     call_kwargs = mock_channel.query.call_args[1]
     assert call_kwargs["sparse_vector"] == {"indices": [1, 4], "values": [0.5, 0.2]}
+
+
+def test_query_boolean_filter_true_forwarded_as_bool() -> None:
+    """Filter with boolean True value is forwarded to channel.query as a Python bool.
+
+    This is a regression guard for CI-0050: the gRPC path must forward
+    boolean filter values as Python bool objects (not as ints/floats) so the
+    Rust GrpcChannel can encode them as protobuf BoolValue rather than
+    NumberValue.  Covers unified-filter-0006.
+    """
+    idx, mock_channel = _make_grpc_index()
+    mock_channel.query.return_value = {"matches": [], "namespace": ""}
+
+    idx.query(
+        top_k=10,
+        vector=[0.1, 0.2],
+        filter={"active": {"$eq": True}},
+        namespace="ns-test",
+    )
+
+    mock_channel.query.assert_called_once()
+    call_kwargs = mock_channel.query.call_args[1]
+    filt = call_kwargs["filter"]
+    assert filt is not None, "filter must be forwarded to channel"
+    assert filt == {"active": {"$eq": True}}, "filter dict must be passed unchanged"
+    bool_val = filt["active"]["$eq"]
+    assert type(bool_val) is bool, f"$eq value must be bool, got {type(bool_val)}"
+    assert bool_val is True, "$eq value must be True"
+
+
+def test_query_boolean_filter_false_forwarded_as_bool() -> None:
+    """Filter with boolean False value is forwarded to channel.query as a Python bool.
+
+    Covers the False branch of CI-0050 / unified-filter-0006.
+    """
+    idx, mock_channel = _make_grpc_index()
+    mock_channel.query.return_value = {"matches": [], "namespace": ""}
+
+    idx.query(
+        top_k=10,
+        vector=[0.3, 0.4],
+        filter={"active": {"$eq": False}},
+        namespace="ns-test",
+    )
+
+    mock_channel.query.assert_called_once()
+    call_kwargs = mock_channel.query.call_args[1]
+    filt = call_kwargs["filter"]
+    assert filt is not None
+    bool_val = filt["active"]["$eq"]
+    assert type(bool_val) is bool, f"$eq value must be bool, got {type(bool_val)}"
+    assert bool_val is False, "$eq value must be False"
+
+
+def test_query_no_filter_forwards_none() -> None:
+    """When no filter is supplied, channel.query receives filter=None."""
+    idx, mock_channel = _make_grpc_index()
+    mock_channel.query.return_value = {"matches": [], "namespace": ""}
+
+    idx.query(top_k=5, vector=[0.1, 0.2])
+
+    call_kwargs = mock_channel.query.call_args[1]
+    assert call_kwargs["filter"] is None, "filter should be None when not specified"
