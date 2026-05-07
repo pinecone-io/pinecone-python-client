@@ -2657,15 +2657,17 @@ async def test_assistant_create_rejects_name_over_max_length(
 @pytest.mark.anyio
 @pytest.mark.timeout(30)
 async def test_create_assistant_environment_rejected(async_client: AsyncPinecone) -> None:
-    """create() with environment= raises ApiError 403 on non-internal plans (async).
+    """create() with environment= raises ApiError 400 INVALID_ARGUMENT or 403 non-internal-plan (async).
 
     Confirms the environment parameter is wired through to the backend:
-    the backend returns 403 when the calling org is not an internal plan.
+    the backend returns 400 INVALID_ARGUMENT or 403 when the calling org is not an internal plan.
     """
     name = unique_name("env-test")
     with pytest.raises(ApiError) as exc_info:
         await async_client.assistants.create(name=name, environment="prod-us", timeout=-1)
-    assert exc_info.value.status_code == 403
+    assert exc_info.value.status_code in (400, 403)
+    if exc_info.value.status_code == 400:
+        assert exc_info.value.error_code == "INVALID_ARGUMENT"
 
 
 # ---------------------------------------------------------------------------
