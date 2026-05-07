@@ -843,6 +843,22 @@ class TestGrpcExceptionPropagation:
 
         assert exc_info.value is exc
 
+    def test_cancelled_timeout_expired_propagates_as_pinecone_timeout_error(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        # tonic converts per-request req.set_timeout() expiry via TimeoutExpired into
+        # Status::cancelled("Timeout expired") instead of DeadlineExceeded.  The Rust
+        # transport maps that specific Cancelled+message to PineconeTimeoutError so that
+        # callers see the typed subclass rather than the base PineconeError.
+        exc = PineconeTimeoutError("Timeout expired")
+        mock_channel.query.side_effect = exc
+
+        with pytest.raises(PineconeTimeoutError) as exc_info:
+            grpc_index.query(top_k=1, vector=[0.1])
+
+        assert exc_info.value is exc
+        assert str(exc_info.value) == "Timeout expired"
+
     def test_unauthorized_error_propagates_unchanged(
         self, grpc_index: GrpcIndex, mock_channel: MagicMock
     ) -> None:
