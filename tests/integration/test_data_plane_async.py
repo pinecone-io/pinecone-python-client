@@ -596,8 +596,13 @@ async def test_namespace_crud_lifecycle_rest_async(
         assert created.name == ns_name
         assert created.record_count == 0  # unified-ns-0002
 
-        # 2. Describe namespace — returns NamespaceDescription
-        described = await idx.describe_namespace(name=ns_name)
+        # 2. Describe namespace — poll for eventual consistency after create
+        described = await async_poll_until(
+            query_fn=lambda: idx.describe_namespace(name=ns_name),
+            check_fn=lambda r: isinstance(r, NamespaceDescription),
+            timeout=60,
+            description=f"namespace {ns_name} visible after create",
+        )
         assert isinstance(described, NamespaceDescription)
         assert described.name == ns_name
         assert isinstance(described.record_count, int)

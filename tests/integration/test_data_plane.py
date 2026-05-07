@@ -1599,7 +1599,13 @@ def test_create_namespace_with_schema_rest(client: Pinecone, shared_index_dim2: 
         assert created.record_count == 0  # new namespace has no vectors
 
         # describe_namespace returns the namespace as accessible (schema was accepted)
-        described = index.describe_namespace(name=ns_name)
+        # Poll for eventual consistency — backend may not expose the namespace immediately after create
+        described = poll_until(
+            query_fn=lambda: index.describe_namespace(name=ns_name),
+            check_fn=lambda r: isinstance(r, NamespaceDescription),
+            timeout=60,
+            description=f"namespace {ns_name} visible after create",
+        )
         assert isinstance(described, NamespaceDescription)
         assert described.name == ns_name
         assert isinstance(described.record_count, int)
