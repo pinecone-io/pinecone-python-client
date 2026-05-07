@@ -394,6 +394,23 @@ class TestDelete:
             timeout_s=None,
         )
 
+    def test_delete_by_ids_with_namespace(
+        self, grpc_index: GrpcIndex, mock_channel: MagicMock
+    ) -> None:
+        mock_channel.delete.return_value = {}
+
+        grpc_index.delete(ids=["qadg-v1"], namespace="ns-abc12345")
+
+        # delete_all must be False and namespace must be forwarded as-is;
+        # the proto3 false default for delete_all must not become True.
+        mock_channel.delete.assert_called_once_with(
+            ids=["qadg-v1"],
+            delete_all=False,
+            namespace="ns-abc12345",
+            filter=None,
+            timeout_s=None,
+        )
+
     def test_delete_all(self, grpc_index: GrpcIndex, mock_channel: MagicMock) -> None:
         mock_channel.delete.return_value = {}
 
