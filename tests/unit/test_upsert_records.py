@@ -170,6 +170,36 @@ class TestUpsertRecords:
             idx.upsert_records([{"_id": "r1"}], "test-ns")  # type: ignore[misc]
 
     @respx.mock
+    def test_upsert_records_preserves_metadata_fields(self) -> None:
+        """Non-field_map fields (e.g. 'category') are forwarded in the NDJSON payload.
+
+        Regression guard for CI-0058: if the SDK were to strip non-embedded fields
+        before sending, metadata filters would silently return zero hits because the
+        backend would have nothing to filter on.
+        """
+        route = respx.post(UPSERT_URL).mock(
+            return_value=httpx.Response(201),
+        )
+        idx = _make_index()
+        idx.upsert_records(
+            namespace="test-ns",
+            records=[
+                {"_id": "sci-1", "text": "Quantum mechanics.", "category": "science"},
+                {"_id": "hist-1", "text": "The Roman Empire.", "category": "history"},
+            ],
+        )
+
+        body = route.calls.last.request.content.decode("utf-8")
+        lines = body.strip().split("\n")
+        assert len(lines) == 2
+        parsed_0 = json.loads(lines[0])
+        parsed_1 = json.loads(lines[1])
+        assert parsed_0["category"] == "science"
+        assert parsed_0["text"] == "Quantum mechanics."
+        assert parsed_1["category"] == "history"
+        assert parsed_1["text"] == "The Roman Empire."
+
+    @respx.mock
     def test_upsert_records_response_bracket_access(self) -> None:
         respx.post(UPSERT_URL).mock(
             return_value=httpx.Response(201),

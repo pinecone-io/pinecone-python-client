@@ -396,7 +396,7 @@ def test_search_with_filter_rest(client: Pinecone, api_key: str) -> None:
             ],
         )
 
-        # Wait for records to be searchable (eventual consistency)
+        # Wait for records to be searchable (eventual consistency — vector indexing)
         poll_until(
             query_fn=lambda: index.search(
                 namespace=namespace,
@@ -408,7 +408,23 @@ def test_search_with_filter_rest(client: Pinecone, api_key: str) -> None:
             description="all records searchable before filter test",
         )
 
-        # Search with category=science filter, requesting category field in hits
+        # Wait for metadata filter indexing — may lag behind vector indexing.
+        # poll_until raises TimeoutError (not AssertionError) if it never converges,
+        # giving a clear signal that the backend hasn't indexed the category field.
+        response = poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=5,
+                inputs={"text": "science and research"},
+                filter={"category": {"$eq": "science"}},
+                fields=["category"],
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=60,
+            description="filtered search returns science records",
+        )
+
+        # Re-fetch with the same params so the final response is used for assertions
         response = index.search(
             namespace=namespace,
             top_k=5,
@@ -504,7 +520,7 @@ def test_search_with_filter_grpc(client: Pinecone, api_key: str) -> None:
             ],
         )
 
-        # Wait for records to be searchable
+        # Wait for records to be searchable (vector indexing)
         poll_until(
             query_fn=lambda: index.search(
                 namespace=namespace,
@@ -514,6 +530,19 @@ def test_search_with_filter_grpc(client: Pinecone, api_key: str) -> None:
             check_fn=lambda r: len(r.result.hits) >= 2,
             timeout=120,
             description="records searchable (gRPC) before filter test",
+        )
+
+        # Wait for metadata filter indexing — may lag behind vector indexing.
+        poll_until(
+            query_fn=lambda: index.search(
+                namespace=namespace,
+                top_k=5,
+                inputs={"text": "science research"},
+                filter={"category": {"$eq": "science"}},
+            ),
+            check_fn=lambda r: len(r.result.hits) > 0,
+            timeout=60,
+            description="filtered search (gRPC) returns science records",
         )
 
         # Search with filter via gRPC index (delegates to REST internally)
