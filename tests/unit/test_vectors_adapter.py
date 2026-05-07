@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import msgspec
+import pytest
 
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter
 from pinecone.models.vectors.responses import (
@@ -117,6 +118,40 @@ class TestToQueryResponse:
         data = msgspec.json.encode({"matches": [], "namespace": "ns"})
         result = VectorsAdapter.to_query_response(data)
         assert result.usage is None
+
+    def test_query_preserves_api_order_ascending(self) -> None:
+        """SDK must NOT reorder matches — euclidean backends return ascending scores."""
+        data = msgspec.json.encode(
+            {
+                "matches": [
+                    {"id": "v1", "score": 0.1},
+                    {"id": "v2", "score": 0.5},
+                    {"id": "v3", "score": 0.9},
+                ],
+                "namespace": "ns",
+            }
+        )
+        result = VectorsAdapter.to_query_response(data)
+        assert [m.id for m in result.matches] == ["v1", "v2", "v3"]
+        assert [m.score for m in result.matches] == [0.1, 0.5, 0.9]
+
+    def test_query_preserves_api_order_descending(self) -> None:
+        """SDK must NOT reorder matches — cosine backends return descending scores."""
+        data = msgspec.json.encode(
+            {
+                "matches": [
+                    {"id": "v1", "score": 1.0},
+                    {"id": "v2", "score": 0.9839},
+                    {"id": "v3", "score": 0.9735},
+                ],
+                "namespace": "ns",
+            }
+        )
+        result = VectorsAdapter.to_query_response(data)
+        assert [m.id for m in result.matches] == ["v1", "v2", "v3"]
+        assert result.matches[0].score == pytest.approx(1.0)
+        assert result.matches[1].score == pytest.approx(0.9839)
+        assert result.matches[2].score == pytest.approx(0.9735)
 
 
 class TestToFetchResponse:
