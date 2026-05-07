@@ -2829,15 +2829,20 @@ def test_assistant_create_rejects_name_over_max_length(client: Pinecone) -> None
 @pytest.mark.integration
 @pytest.mark.timeout(30)
 def test_create_assistant_environment_rejected(client: Pinecone) -> None:
-    """create() with environment= raises ApiError 403 on non-internal plans.
+    """create() with environment= raises ApiError on non-internal plans.
 
     Confirms the environment parameter is wired through to the backend:
-    the backend returns 403 when the calling org is not an internal plan.
+    the backend returns 403 when the calling org is not an internal plan,
+    or 400 INVALID_ARGUMENT when the environment value is unrecognised.
+    Either response shape proves the kwarg reached the wire.
     """
     name = unique_name("env-test")
     with pytest.raises(ApiError) as exc_info:
         client.assistants.create(name=name, environment="prod-us", timeout=-1)
-    assert exc_info.value.status_code == 403
+    assert exc_info.value.status_code in (400, 403)
+    if exc_info.value.status_code == 400:
+        # New backend shape: rejected as invalid environment value
+        assert exc_info.value.error_code == "INVALID_ARGUMENT"
 
 
 # ---------------------------------------------------------------------------
