@@ -2017,11 +2017,19 @@ def test_upsert_records_id_must_be_string() -> None:
         idx.upsert_records(namespace="ns", records=[{"_id": 123, "text": "hello"}])
 
 
-def test_upsert_records_both_id_fields_rejected() -> None:
-    """upsert_records raises ValidationError when record has both '_id' and 'id' fields."""
+@respx.mock
+def test_upsert_records_both_id_fields_strips_id() -> None:
+    """When both '_id' and 'id' are present, 'id' is dropped and '_id' is used."""
+    import json as _json
+
+    upsert_url = "https://my-index.svc.pinecone.io/records/namespaces/ns/upsert"
+    route = respx.post(upsert_url).mock(return_value=httpx.Response(201))
     idx = Index(host="my-index.svc.pinecone.io", api_key="test-key")
-    with pytest.raises(ValidationError, match="cannot have both '_id' and 'id'"):
-        idx.upsert_records(namespace="ns", records=[{"_id": "a", "id": "b", "text": "hello"}])
+    idx.upsert_records(namespace="ns", records=[{"_id": "wins", "id": "loses", "text": "hello"}])
+    body = route.calls.last.request.content.decode("utf-8")
+    parsed = _json.loads(body.strip())
+    assert parsed["_id"] == "wins"
+    assert "id" not in parsed
 
 
 # ---------------------------------------------------------------------------

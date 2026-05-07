@@ -202,7 +202,7 @@ class AsyncIndex:
             if "_id" not in r and "id" in r:
                 r["_id"] = r.pop("id")
             elif "_id" in r and "id" in r:
-                raise ValidationError(f"Record at index {i} cannot have both '_id' and 'id' fields")
+                del r["id"]  # _id wins; drop the redundant 'id' key
             resolved_id = r.get("_id")
             if not isinstance(resolved_id, str):
                 got = type(resolved_id).__name__

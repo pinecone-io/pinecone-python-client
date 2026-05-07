@@ -116,15 +116,20 @@ class TestAsyncUpsertRecords:
         with pytest.raises(TypeError):
             await idx.upsert_records([{"_id": "r1"}], "ns")  # type: ignore[misc]
 
+    @respx.mock
     @pytest.mark.anyio
-    async def test_async_upsert_records_both_id_fields_rejected(self) -> None:
-        """Records with both '_id' and 'id' fields raise ValidationError."""
+    async def test_async_upsert_records_both_id_fields_strips_id(self) -> None:
+        """When both '_id' and 'id' are present, 'id' is dropped and '_id' wins."""
+        route = respx.post(UPSERT_URL).mock(return_value=httpx.Response(201, content=b""))
         idx = _make_async_index()
-        with pytest.raises(ValidationError, match="cannot have both '_id' and 'id'"):
-            await idx.upsert_records(
-                namespace="test-ns",
-                records=[{"_id": "a", "id": "b", "text": "hello"}],
-            )
+        await idx.upsert_records(
+            namespace="test-ns",
+            records=[{"_id": "wins", "id": "loses", "text": "hello"}],
+        )
+        body = route.calls.last.request.content.decode("utf-8")
+        parsed = json.loads(body.strip())
+        assert parsed["_id"] == "wins"
+        assert "id" not in parsed
 
     @pytest.mark.anyio
     async def test_async_upsert_records_id_must_be_string(self) -> None:
