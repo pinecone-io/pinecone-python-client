@@ -417,9 +417,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m venv /tmp/abi3audit-venv
-          /tmp/abi3audit-venv/bin/pip install --quiet abi3audit
-          /tmp/abi3audit-venv/bin/python -m abi3audit --strict --report dist/*.whl
+          VENV_DIR="${RUNNER_TEMP}/abi3audit-venv"
+          python3 -m venv "$VENV_DIR"
+          if [ -d "$VENV_DIR/Scripts" ]; then
+            VBIN="$VENV_DIR/Scripts"
+          else
+            VBIN="$VENV_DIR/bin"
+          fi
+          "$VBIN/pip" install --quiet abi3audit
+          "$VBIN/python" -m abi3audit --strict --report dist/*.whl
 
       # auditwheel show inspects ELF binaries inside each manylinux wheel and reports
       # the actual minimum glibc version. A wheel tagged manylinux_2_17 but linking
