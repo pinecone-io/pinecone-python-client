@@ -17,6 +17,7 @@ Back-reference storage:
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import IO, TYPE_CHECKING, Any, ClassVar
 
 if TYPE_CHECKING:
@@ -235,35 +236,44 @@ class AssistantModelLegacyMethodsMixin:
 
     def context(
         self,
-        query: str,
+        query: str | None = None,
+        messages: Sequence[Message | Mapping[str, str]] | None = None,
         filter: dict[str, Any] | None = None,
         top_k: int | None = None,
         snippet_size: int | None = None,
+        multimodal: bool | None = None,
+        include_binary_content: bool | None = None,
         context_options: ContextOptions | dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> ContextResponse:
         """Retrieve context snippets from this assistant.
 
         .. deprecated:: 9.0.0
-            Use :meth:`Assistants.context` instead. The ``context_options``
-            parameter is unpacked into ``multimodal`` and
-            ``include_binary_content`` for the new API.
+            Use :meth:`Assistants.context` instead. Exactly one of ``query``
+            or ``messages`` must be provided; the namespace validates this
+            and raises :class:`PineconeValueError` otherwise. The
+            ``context_options`` parameter is a v9 convenience that unpacks
+            into ``multimodal``, ``include_binary_content``, ``top_k``, and
+            ``snippet_size``; explicit kwargs override values from
+            ``context_options``.
         """
         ns = self._resolve_assistants()
-        # Unpack context_options into the new API's individual parameters.
-        multimodal: bool | None = None
-        include_binary_content: bool | None = None
+        # Unpack context_options. Explicit kwargs win over context_options values.
         if context_options is not None:
             if isinstance(context_options, dict):
-                multimodal = context_options.get("multimodal")
-                include_binary_content = context_options.get("include_binary_content")
+                if multimodal is None:
+                    multimodal = context_options.get("multimodal")
+                if include_binary_content is None:
+                    include_binary_content = context_options.get("include_binary_content")
                 if top_k is None:
                     top_k = context_options.get("top_k")
                 if snippet_size is None:
                     snippet_size = context_options.get("snippet_size")
             else:
-                multimodal = context_options.multimodal
-                include_binary_content = context_options.include_binary_content
+                if multimodal is None:
+                    multimodal = context_options.multimodal
+                if include_binary_content is None:
+                    include_binary_content = context_options.include_binary_content
                 if top_k is None:
                     top_k = context_options.top_k
                 if snippet_size is None:
@@ -271,6 +281,7 @@ class AssistantModelLegacyMethodsMixin:
         return ns.context(
             assistant_name=self.name,  # type: ignore[attr-defined]
             query=query,
+            messages=messages,
             filter=filter,
             top_k=top_k,
             snippet_size=snippet_size,

@@ -33,6 +33,7 @@ def test_assistant_model_context_legacy(
     mock_assistants.context.assert_called_once_with(
         assistant_name=mock_assistant_model.name,
         query="what is x?",
+        messages=None,
         filter=None,
         top_k=5,
         snippet_size=None,
@@ -54,6 +55,7 @@ def test_assistant_model_context_legacy_with_filter(
     mock_assistants.context.assert_called_once_with(
         assistant_name=mock_assistant_model.name,
         query="explain Pinecone",
+        messages=None,
         filter={"source": "docs"},
         top_k=10,
         snippet_size=200,
@@ -71,6 +73,7 @@ def test_assistant_model_context_legacy_context_options_struct(
     mock_assistants.context.assert_called_once_with(
         assistant_name=mock_assistant_model.name,
         query="images?",
+        messages=None,
         filter=None,
         top_k=3,
         snippet_size=150,
@@ -90,6 +93,7 @@ def test_assistant_model_context_legacy_context_options_dict(
     mock_assistants.context.assert_called_once_with(
         assistant_name=mock_assistant_model.name,
         query="videos?",
+        messages=None,
         filter=None,
         top_k=7,
         snippet_size=None,
@@ -113,3 +117,83 @@ def test_assistant_model_context_legacy_no_client_raises() -> None:
     detached = AssistantModel(name="detached", status="Ready")
     with pytest.raises(RuntimeError, match="no client reference"):
         detached.context(query="hello")
+
+
+def test_assistant_model_context_legacy_with_messages(
+    mock_assistants: MagicMock, mock_assistant_model: AssistantModel
+) -> None:
+    """context forwards messages to ns.context with query=None."""
+    msgs = [{"role": "user", "content": "Tell me about my files"}]
+    mock_assistant_model.context(messages=msgs)
+    mock_assistants.context.assert_called_once_with(
+        assistant_name=mock_assistant_model.name,
+        query=None,
+        messages=msgs,
+        filter=None,
+        top_k=None,
+        snippet_size=None,
+        multimodal=None,
+        include_binary_content=None,
+    )
+
+
+def test_assistant_model_context_legacy_messages_with_filter_and_top_k(
+    mock_assistants: MagicMock, mock_assistant_model: AssistantModel
+) -> None:
+    """messages path forwards filter, top_k, and snippet_size."""
+    msgs = [
+        {"role": "user", "content": "first"},
+        {"role": "assistant", "content": "reply"},
+        {"role": "user", "content": "follow up"},
+    ]
+    mock_assistant_model.context(
+        messages=msgs,
+        filter={"source": "docs"},
+        top_k=4,
+        snippet_size=120,
+    )
+    mock_assistants.context.assert_called_once_with(
+        assistant_name=mock_assistant_model.name,
+        query=None,
+        messages=msgs,
+        filter={"source": "docs"},
+        top_k=4,
+        snippet_size=120,
+        multimodal=None,
+        include_binary_content=None,
+    )
+
+
+def test_assistant_model_context_legacy_messages_with_context_options(
+    mock_assistants: MagicMock, mock_assistant_model: AssistantModel
+) -> None:
+    """messages path coexists with context_options unpacking."""
+    msgs = [{"role": "user", "content": "show images"}]
+    opts = ContextOptions(multimodal=True, include_binary_content=True, top_k=5)
+    mock_assistant_model.context(messages=msgs, context_options=opts)
+    mock_assistants.context.assert_called_once_with(
+        assistant_name=mock_assistant_model.name,
+        query=None,
+        messages=msgs,
+        filter=None,
+        top_k=5,
+        snippet_size=None,
+        multimodal=True,
+        include_binary_content=True,
+    )
+
+
+def test_assistant_model_context_legacy_explicit_multimodal_overrides_context_options(
+    mock_assistants: MagicMock, mock_assistant_model: AssistantModel
+) -> None:
+    """Explicit multimodal/include_binary_content kwargs win over context_options."""
+    opts = ContextOptions(multimodal=False, include_binary_content=False)
+    mock_assistant_model.context(
+        query="q",
+        multimodal=True,
+        include_binary_content=True,
+        context_options=opts,
+    )
+    call_kwargs = mock_assistants.context.call_args.kwargs
+    assert call_kwargs["multimodal"] is True
+    assert call_kwargs["include_binary_content"] is True
