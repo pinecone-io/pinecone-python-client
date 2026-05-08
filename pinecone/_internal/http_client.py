@@ -17,7 +17,7 @@ from urllib.parse import urlsplit
 import httpx
 import orjson
 
-from pinecone import __version__
+from pinecone._version import __version__
 from pinecone._internal.config import PineconeConfig, RetryConfig
 from pinecone._internal.constants import API_VERSION_HEADER, DEFAULT_BASE_URL
 from pinecone._internal.user_agent import build_user_agent

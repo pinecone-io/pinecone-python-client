@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 import httpx
 import orjson
 
-from pinecone import __version__
+from pinecone._version import __version__
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION, API_VERSION_HEADER, DEFAULT_BASE_URL
 from pinecone._internal.http_client import HTTPClient, _build_socket_options, _RetryTransport
