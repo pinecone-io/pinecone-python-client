@@ -99,6 +99,29 @@ async def test_async_create_index_delegate_with_explicit_metric_forwards_verbati
     assert kwargs["vector_type"] == "sparse"
 
 
+async def test_async_create_index_delegate_forwards_schema() -> None:
+    pc, mock_indexes = _make_async_pc_with_mock_indexes()
+    await pc.create_index(
+        name="x",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        dimension=1536,
+        schema={"text_field": {"type": "str"}},
+    )
+    _, kwargs = mock_indexes.create.call_args
+    assert kwargs["schema"] == {"text_field": {"type": "str"}}
+
+
+async def test_async_create_index_delegate_schema_none_by_default() -> None:
+    pc, mock_indexes = _make_async_pc_with_mock_indexes()
+    await pc.create_index(
+        name="x",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+        dimension=4,
+    )
+    _, kwargs = mock_indexes.create.call_args
+    assert kwargs["schema"] is None
+
+
 # ---------------------------------------------------------------------------
 # create_index_for_model delegate
 # ---------------------------------------------------------------------------
@@ -159,6 +182,45 @@ async def test_async_create_index_for_model_delegate_with_dict_constructs_embed_
     assert spec.embed.model == "m"
     assert spec.embed.field_map == {"text": "a"}
     assert spec.cloud == "aws"
+
+
+async def test_async_create_index_for_model_delegate_forwards_schema() -> None:
+    pc, mock_indexes = _make_async_pc_with_mock_indexes()
+    await pc.create_index_for_model(
+        name="my-index",
+        cloud="aws",
+        region="us-east-1",
+        embed={"model": "multilingual-e5-large", "field_map": {"text": "body"}},
+        schema={"body": {"type": "str"}},
+    )
+    _, kwargs = mock_indexes.create.call_args
+    assert kwargs["schema"] == {"body": {"type": "str"}}
+
+
+async def test_async_create_index_for_model_delegate_forwards_read_capacity() -> None:
+    pc, mock_indexes = _make_async_pc_with_mock_indexes()
+    await pc.create_index_for_model(
+        name="my-index",
+        cloud="aws",
+        region="us-east-1",
+        embed={"model": "multilingual-e5-large", "field_map": {"text": "body"}},
+        read_capacity={"mode": "OnDemand"},
+    )
+    _, kwargs = mock_indexes.create.call_args
+    assert kwargs["read_capacity"] == {"mode": "OnDemand"}
+
+
+async def test_async_create_index_for_model_delegate_schema_none_by_default() -> None:
+    pc, mock_indexes = _make_async_pc_with_mock_indexes()
+    await pc.create_index_for_model(
+        name="my-index",
+        cloud="aws",
+        region="us-east-1",
+        embed={"model": "multilingual-e5-large", "field_map": {"text": "body"}},
+    )
+    _, kwargs = mock_indexes.create.call_args
+    assert kwargs["schema"] is None
+    assert kwargs["read_capacity"] is None
 
 
 # ---------------------------------------------------------------------------
