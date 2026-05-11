@@ -58,11 +58,14 @@ jobs:
           # uploaded a 'dev-version' artifact. The check-changes gate skips the
           # version job (and so the upload) when there are no new commits, but
           # such runs still complete as success — those must be ignored.
+          # Use a wide window (100 candidates ≈ ~4 days at hourly cadence) so a
+          # quiet main (no new commits for >10h) does not exhaust the window
+          # before finding a real publish run.
           mapfile -t candidates < <(gh run list \
             --workflow dev-publish.yml \
             --branch main \
             --status success \
-            --limit 10 \
+            --limit 100 \
             --json databaseId \
             --jq '.[].databaseId')
 
