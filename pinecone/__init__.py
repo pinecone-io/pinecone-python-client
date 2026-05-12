@@ -49,6 +49,8 @@ from __future__ import annotations
 
 import os as _os
 
+from pinecone._version import __version__  # noqa: F401  (re-exported as public API)
+
 # Avoid importing typing at runtime — its transitive deps (re, enum,
 # collections, contextlib, functools, warnings) add ~28ms to cold import.
 # All annotations use PEP 563 (from __future__ import annotations), so
@@ -204,8 +206,6 @@ if TYPE_CHECKING:
     from pinecone.models.vectors.sparse import SparseValues
     from pinecone.models.vectors.vector import ScoredVector, Vector
     from pinecone.utils.filter_builder import Field, FilterBuilder
-
-__version__ = "9.0.0"
 
 if _os.environ.get("PINECONE_DEBUG"):
     import logging as _logging

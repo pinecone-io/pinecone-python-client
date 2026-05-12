@@ -164,7 +164,7 @@ class GrpcIndex:
         # Build gRPC endpoint and create the Rust-backed channel
         endpoint = _build_grpc_endpoint(self._host, secure)
 
-        from pinecone import __version__
+        from pinecone._version import __version__
         from pinecone._grpc import GrpcChannel  # type: ignore[import-not-found]
 
         self._channel: GrpcChannelProtocol = GrpcChannel(
