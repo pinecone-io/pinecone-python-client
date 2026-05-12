@@ -190,8 +190,13 @@ async def test_embed_bare_string_auto_wrapped_async(async_client: AsyncPinecone)
         parameters={"input_type": "passage", "truncate": "END"},
     )
     assert len(result_as_list) == 1
-    # Same string → same embedding values (deterministic model)
-    assert result.data[0].values == result_as_list.data[0].values
+    # Same string → same embedding shape and (approximately) same values.
+    # Element-wise tolerance absorbs server-side non-determinism (e.g. mixed
+    # precision across replicas); the SDK contract being verified here is
+    # that the bare-string path doesn't transform the input differently from
+    # the single-element-list path, not that the model is bit-deterministic.
+    assert len(result.data[0].values) == len(result_as_list.data[0].values)
+    assert result.data[0].values == pytest.approx(result_as_list.data[0].values, abs=1e-3)
 
 
 # ---------------------------------------------------------------------------
