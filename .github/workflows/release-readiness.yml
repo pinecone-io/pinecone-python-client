@@ -54,31 +54,21 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          # Walk recent successful runs and pick the first one that actually
-          # uploaded a 'dev-version' artifact. The check-changes gate skips the
-          # version job (and so the upload) when there are no new commits, but
-          # such runs still complete as success — those must be ignored.
-          mapfile -t candidates < <(gh run list \
-            --workflow dev-publish.yml \
-            --branch main \
-            --status success \
-            --limit 10 \
-            --json databaseId \
-            --jq '.[].databaseId')
-
-          run_id=""
-          for candidate in "${candidates[@]}"; do
-            if gh api "repos/${GH_REPO}/actions/runs/${candidate}/artifacts" \
-                 --jq '.artifacts[].name' \
-                 | grep -qx "dev-version"; then
-              run_id="${candidate}"
-              break
-            fi
-            echo "Run ${candidate} has no dev-version artifact; trying older run"
-          done
+          # Query the artifacts API directly instead of walking workflow runs.
+          # Many dev-publish runs are no-ops (the check-changes gate skips
+          # version/build/publish when there are no new commits) but still
+          # report as success, so a fixed-size run window can miss the most
+          # recent real publish. The artifacts API is sorted newest-first and
+          # only returns runs that actually uploaded the artifact.
+          run_id=$(gh api \
+              "repos/${GH_REPO}/actions/artifacts?name=dev-version&per_page=20" \
+            --jq '[.artifacts[]
+                    | select(.expired == false)
+                    | select(.workflow_run.head_branch == "main")
+                  ][0].workflow_run.id // empty')
 
           if [ -z "$run_id" ]; then
-            echo "::error::No recent successful 'Dev Build & Publish' run on main has a 'dev-version' artifact"
+            echo "::error::No non-expired 'dev-version' artifact on main"
             exit 1
           fi
           echo "run_id=${run_id}" >> "$GITHUB_OUTPUT"
