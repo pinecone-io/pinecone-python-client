@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from unittest.mock import patch
 
 import pytest
@@ -54,6 +55,42 @@ class TestQueryNamespacesFanOut:
             assert mock_query.call_count == 3
             called_namespaces = sorted(c.kwargs["namespace"] for c in mock_query.call_args_list)
             assert called_namespaces == ["ns1", "ns2", "ns3"]
+
+
+class TestQueryNamespacesTieBreaking:
+    def test_tie_breaking_follows_input_namespace_order(self) -> None:
+        """With tied scores, result order must match input namespace order
+        regardless of completion order. Earlier-listed namespaces are made
+        slowest so completion order is the reverse of input order; the
+        aggregator's insertion-order tie-break is only deterministic when
+        the caller adds results in input order."""
+        idx = _make_index()
+
+        delays = {"ns1": 0.03, "ns2": 0.02, "ns3": 0.01, "ns4": 0.0}
+
+        def query_side_effect(**kwargs: object) -> QueryResponse:
+            ns = str(kwargs["namespace"])
+            time.sleep(delays[ns])
+            return _make_query_response([_scored(f"{ns}-v0", 1.0), _scored(f"{ns}-v1", 1.0)])
+
+        with patch.object(idx, "query", side_effect=query_side_effect):
+            result = idx.query_namespaces(
+                vector=[0.1, 0.2],
+                namespaces=["ns1", "ns2", "ns3", "ns4"],
+                metric="cosine",
+                top_k=8,
+            )
+
+        assert [m.id for m in result.matches] == [
+            "ns1-v0",
+            "ns1-v1",
+            "ns2-v0",
+            "ns2-v1",
+            "ns3-v0",
+            "ns3-v1",
+            "ns4-v0",
+            "ns4-v1",
+        ]
 
 
 class TestQueryNamespacesMerge:

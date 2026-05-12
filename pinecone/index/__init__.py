@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import os
 from collections.abc import Iterator, Mapping, Sequence
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -762,14 +762,13 @@ class Index:
         if vector is not None:
             query_kwargs["vector"] = vector
 
+        # Submit every query before iterating results so queries run concurrently;
+        # collect results in input namespace order so the aggregator's
+        # insertion-order tie-break stays deterministic across runs.
         with ThreadPoolExecutor(max_workers=min(len(namespaces), 32)) as pool:
-            future_to_ns = {
-                pool.submit(self.query, namespace=ns, **query_kwargs): ns for ns in namespaces
-            }
-            for future in as_completed(future_to_ns):
-                ns = future_to_ns[future]
-                response = future.result()
-                aggregator.add_results(ns, response)
+            futures = [pool.submit(self.query, namespace=ns, **query_kwargs) for ns in namespaces]
+            for ns, future in zip(namespaces, futures, strict=True):
+                aggregator.add_results(ns, future.result())
 
         return aggregator.get_results()
 
