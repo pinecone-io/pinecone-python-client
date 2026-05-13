@@ -372,3 +372,62 @@ def test_data_shim_omits_removed_vector_errors() -> None:
         assert not hasattr(data_shim, name), (
             f"`from pinecone.data import {name}` should raise ImportError"
         )
+
+
+class TestAlignmentMetricsProxyCompat:
+    def _make_fake_result(self) -> object:
+
+        from pinecone.models.assistant.chat import ChatUsage
+        from pinecone.models.assistant.evaluation import (
+            AlignmentResult,
+            AlignmentScores,
+            EntailmentResult,
+        )
+
+        scores = AlignmentScores(correctness=0.9, completeness=0.8, alignment=0.85)
+        facts = [
+            EntailmentResult(fact="The sky is blue.", entailment="entailed"),
+            EntailmentResult(fact="Water is wet.", entailment="neutral"),
+        ]
+        usage = ChatUsage(prompt_tokens=10, completion_tokens=20, total_tokens=30)
+        return AlignmentResult(scores=scores, facts=facts, usage=usage)
+
+    def _make_proxy(self) -> object:
+        from unittest.mock import MagicMock
+
+        from pinecone.client._assistants_legacy import _AlignmentMetricsProxy
+
+        fake_result = self._make_fake_result()
+        mock_assistants = MagicMock()
+        mock_assistants.evaluate_alignment.return_value = fake_result
+        return _AlignmentMetricsProxy(mock_assistants)
+
+    def test_evaluation_metrics_alignment_legacy_shape(self) -> None:
+        proxy = self._make_proxy()
+        result = proxy.alignment(  # type: ignore[union-attr]
+            question="q", answer="a", ground_truth_answer="g"
+        )
+        assert result.metrics.alignment == pytest.approx(0.85)
+        assert result.metrics.correctness == pytest.approx(0.9)
+        assert result.metrics.completeness == pytest.approx(0.8)
+        assert result.reasoning.evaluated_facts[0].fact.content == "The sky is blue."
+        assert result.reasoning.evaluated_facts[0].entailment == "entailed"
+        assert result.reasoning.evaluated_facts[1].fact.content == "Water is wet."
+
+    def test_evaluation_metrics_alignment_new_shape(self) -> None:
+        proxy = self._make_proxy()
+        result = proxy.alignment(  # type: ignore[union-attr]
+            question="q", answer="a", ground_truth_answer="g"
+        )
+        assert result.scores.alignment == pytest.approx(0.85)
+        assert isinstance(result.facts[0].fact, str)
+        assert result.facts[0].fact == "The sky is blue."
+
+    def test_evaluation_metrics_alignment_usage_unchanged(self) -> None:
+        proxy = self._make_proxy()
+        result = proxy.alignment(  # type: ignore[union-attr]
+            question="q", answer="a", ground_truth_answer="g"
+        )
+        assert result.usage.prompt_tokens == 10
+        assert result.usage.completion_tokens == 20
+        assert result.usage.total_tokens == 30

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
 from pinecone.async_client.pinecone import AsyncPinecone
 from pinecone.inference.models.index_embed import IndexEmbed
 from pinecone.models.enums import CloudProvider
@@ -402,3 +404,67 @@ async def test_async_delete_backup_delegate_forwards() -> None:
     pc, mock_backups = _make_async_pc_with_mock_backups()
     await pc.delete_backup(backup_id="bkp-123")
     mock_backups.delete.assert_awaited_once_with(backup_id="bkp-123")
+
+
+# ---------------------------------------------------------------------------
+# Async alignment metrics proxy compat
+# ---------------------------------------------------------------------------
+
+
+def _make_fake_alignment_result() -> object:
+    from pinecone.models.assistant.chat import ChatUsage
+    from pinecone.models.assistant.evaluation import (
+        AlignmentResult,
+        AlignmentScores,
+        EntailmentResult,
+    )
+
+    scores = AlignmentScores(correctness=0.9, completeness=0.8, alignment=0.85)
+    facts = [
+        EntailmentResult(fact="The sky is blue.", entailment="entailed"),
+        EntailmentResult(fact="Water is wet.", entailment="neutral"),
+    ]
+    usage = ChatUsage(prompt_tokens=10, completion_tokens=20, total_tokens=30)
+    return AlignmentResult(scores=scores, facts=facts, usage=usage)
+
+
+def _make_async_alignment_proxy() -> object:
+    from pinecone.async_client._assistants_legacy import _AsyncAlignmentMetricsProxy
+
+    fake_result = _make_fake_alignment_result()
+    mock_assistants = MagicMock()
+    mock_assistants.evaluate_alignment = AsyncMock(return_value=fake_result)
+    return _AsyncAlignmentMetricsProxy(mock_assistants)
+
+
+async def test_evaluation_metrics_alignment_legacy_shape() -> None:
+    proxy = _make_async_alignment_proxy()
+    result = await proxy.alignment(  # type: ignore[union-attr]
+        question="q", answer="a", ground_truth_answer="g"
+    )
+    assert result.metrics.alignment == pytest.approx(0.85)
+    assert result.metrics.correctness == pytest.approx(0.9)
+    assert result.metrics.completeness == pytest.approx(0.8)
+    assert result.reasoning.evaluated_facts[0].fact.content == "The sky is blue."
+    assert result.reasoning.evaluated_facts[0].entailment == "entailed"
+    assert result.reasoning.evaluated_facts[1].fact.content == "Water is wet."
+
+
+async def test_evaluation_metrics_alignment_new_shape() -> None:
+    proxy = _make_async_alignment_proxy()
+    result = await proxy.alignment(  # type: ignore[union-attr]
+        question="q", answer="a", ground_truth_answer="g"
+    )
+    assert result.scores.alignment == pytest.approx(0.85)
+    assert isinstance(result.facts[0].fact, str)
+    assert result.facts[0].fact == "The sky is blue."
+
+
+async def test_evaluation_metrics_alignment_usage_unchanged() -> None:
+    proxy = _make_async_alignment_proxy()
+    result = await proxy.alignment(  # type: ignore[union-attr]
+        question="q", answer="a", ground_truth_answer="g"
+    )
+    assert result.usage.prompt_tokens == 10
+    assert result.usage.completion_tokens == 20
+    assert result.usage.total_tokens == 30

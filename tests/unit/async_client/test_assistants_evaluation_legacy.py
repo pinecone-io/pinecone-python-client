@@ -74,5 +74,6 @@ async def test_async_evaluation_metrics_returns_alignment_result(
         answer="2024",
         ground_truth_answer="2024",
     )
-    assert isinstance(result, AlignmentResult)
     assert result.scores.alignment == 1.0
+    assert result.metrics.alignment == 1.0
+    assert result.reasoning.evaluated_facts[0].fact.content == "2024"

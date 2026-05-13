@@ -13,9 +13,42 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
-    from pinecone.models.assistant.evaluation import AlignmentResult
+    from pinecone.models.assistant.evaluation import AlignmentResult, EntailmentResult
     from pinecone.models.assistant.list import ListAssistantsResponse
     from pinecone.models.assistant.model import AssistantModel
+
+
+class _LegacyFact:
+    """Shim: wraps a plain str so legacy `.fact.content` access works."""
+
+    def __init__(self, content: str) -> None:
+        self.content = content
+
+
+class _LegacyEvaluatedFact:
+    """Shim: wraps EntailmentResult to expose legacy .fact.content / .entailment."""
+
+    def __init__(self, item: EntailmentResult) -> None:
+        self.fact = _LegacyFact(item.fact)
+        self.entailment = item.entailment
+
+
+class _LegacyReasoning:
+    """Shim: wraps list[EntailmentResult] as .evaluated_facts."""
+
+    def __init__(self, facts: list[EntailmentResult]) -> None:
+        self.evaluated_facts = [_LegacyEvaluatedFact(f) for f in facts]
+
+
+class _AlignmentResponseCompat:
+    """Wraps AlignmentResult to expose legacy .metrics / .reasoning attributes."""
+
+    def __init__(self, result: AlignmentResult) -> None:
+        self.metrics = result.scores
+        self.reasoning = _LegacyReasoning(result.facts)
+        self.usage = result.usage
+        self.scores = result.scores
+        self.facts = result.facts
 
 
 class _AsyncAlignmentMetricsProxy:
@@ -30,17 +63,14 @@ class _AsyncAlignmentMetricsProxy:
         answer: str,
         ground_truth_answer: str,
         **kwargs: Any,
-    ) -> AlignmentResult:
+    ) -> _AlignmentResponseCompat:
         """Deprecated alias for :meth:`AsyncAssistants.evaluate_alignment`."""
-        return cast(
-            "AlignmentResult",
-            await self._assistants.evaluate_alignment(  # type: ignore[attr-defined]
-                question=question,
-                answer=answer,
-                ground_truth_answer=ground_truth_answer,
-                **kwargs,
-            ),
+        result = await self._assistants.evaluate_alignment(  # type: ignore[attr-defined]
+            question=question,
+            answer=answer,
+            ground_truth_answer=ground_truth_answer,
         )
+        return _AlignmentResponseCompat(result)
 
 
 class _AsyncAlignmentEvaluationProxy:
