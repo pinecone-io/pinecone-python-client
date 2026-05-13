@@ -50,7 +50,7 @@ def test_assistant_model_chat_completions_legacy(
         messages=[{"role": "user", "content": "hi"}],
         filter=None,
         stream=False,
-        model=None,
+        model="gpt-4o",
         temperature=None,
     )
 
@@ -86,6 +86,25 @@ def test_assistant_model_chat_completions_legacy_all_params(
         model="gpt-4o",
         temperature=0.5,
     )
+
+
+def test_chat_completions_model_none_normalized_to_gpt4o(
+    mock_assistants: MagicMock, mock_assistant_model: AssistantModel
+) -> None:
+    """Omitting model normalizes to 'gpt-4o', matching legacy plugin behavior."""
+    mock_assistant_model.chat_completions(messages=[{"role": "user", "content": "hi"}])
+    assert mock_assistants.chat_completions.call_args.kwargs["model"] == "gpt-4o"
+
+
+def test_chat_completions_explicit_model_forwarded(
+    mock_assistants: MagicMock, mock_assistant_model: AssistantModel
+) -> None:
+    """Explicitly provided model is forwarded unchanged."""
+    mock_assistant_model.chat_completions(
+        messages=[{"role": "user", "content": "hi"}],
+        model="gpt-4o-mini",
+    )
+    assert mock_assistants.chat_completions.call_args.kwargs["model"] == "gpt-4o-mini"
 
 
 def test_assistant_model_chat_completions_legacy_no_client_raises() -> None:

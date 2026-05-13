@@ -85,6 +85,25 @@ def test_assistant_model_chat_legacy_all_params(
     )
 
 
+def test_chat_model_none_normalized_to_gpt4o(
+    mock_assistants: MagicMock, mock_assistant_model: AssistantModel
+) -> None:
+    """Omitting model normalizes to 'gpt-4o', matching legacy plugin behavior."""
+    mock_assistant_model.chat(messages=[{"role": "user", "content": "hi"}])
+    assert mock_assistants.chat.call_args.kwargs["model"] == "gpt-4o"
+
+
+def test_chat_explicit_model_forwarded(
+    mock_assistants: MagicMock, mock_assistant_model: AssistantModel
+) -> None:
+    """Explicitly provided model is forwarded unchanged."""
+    mock_assistant_model.chat(
+        messages=[{"role": "user", "content": "hi"}],
+        model="gpt-4o-mini",
+    )
+    assert mock_assistants.chat.call_args.kwargs["model"] == "gpt-4o-mini"
+
+
 def test_assistant_model_chat_legacy_no_client_raises() -> None:
     """chat raises RuntimeError when no client back-reference is set."""
     detached = AssistantModel(name="detached", status="Ready")

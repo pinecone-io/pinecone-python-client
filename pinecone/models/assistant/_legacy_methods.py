@@ -223,12 +223,14 @@ class AssistantModelLegacyMethodsMixin:
             Use :meth:`Assistants.chat_completions` instead.
         """
         ns = self._resolve_assistants()
+        if model is None:
+            model = "gpt-4o"
         return ns.chat_completions(
             assistant_name=self.name,  # type: ignore[attr-defined]
             messages=messages,
             filter=filter,
             stream=stream,
-            model=model,  # type: ignore[arg-type]
+            model=model,
             temperature=temperature,
             **kwargs,
         )
@@ -306,12 +308,14 @@ class AssistantModelLegacyMethodsMixin:
             Use :meth:`Assistants.chat` instead.
         """
         ns = self._resolve_assistants()
+        if model is None:
+            model = "gpt-4o"
         return ns.chat(
             assistant_name=self.name,  # type: ignore[attr-defined]
             messages=messages,
             filter=filter,
             stream=stream,
-            model=model,  # type: ignore[arg-type]
+            model=model,
             temperature=temperature,
             json_response=json_response,
             include_highlights=include_highlights,
