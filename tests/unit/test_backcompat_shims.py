@@ -645,3 +645,29 @@ class TestBackupModelMetric:
             region="us-east-1",
         )
         assert backup.metric is None
+
+
+class TestExceptionBuiltinSuperclasses:
+    def test_pinecone_api_attribute_error_is_attribute_error(self) -> None:
+        from pinecone.exceptions import PineconeApiAttributeError
+
+        exc = PineconeApiAttributeError("msg")
+        assert isinstance(exc, AttributeError)
+
+    def test_pinecone_api_key_error_is_key_error(self) -> None:
+        from pinecone.exceptions import PineconeApiKeyError
+
+        exc = PineconeApiKeyError("msg")
+        assert isinstance(exc, KeyError)
+
+    def test_list_conversion_exception_is_type_error(self) -> None:
+        from pinecone.exceptions import ListConversionException
+
+        exc = ListConversionException("msg")
+        assert isinstance(exc, TypeError)
+
+    def test_list_conversion_exception_is_pinecone_exception(self) -> None:
+        from pinecone.exceptions import ListConversionException, PineconeException
+
+        exc = ListConversionException("msg")
+        assert isinstance(exc, PineconeException)
