@@ -76,6 +76,17 @@ class ApiError(PineconeError):
                 parts.append("body=<unrenderable>")
         return f"{type(self).__name__}({', '.join(parts)})"
 
+    @property
+    def status(self) -> int:
+        import warnings
+
+        warnings.warn(
+            "ApiError.status is deprecated; use .status_code instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.status_code
+
 
 class NotFoundError(ApiError):
     """404 Not Found."""
@@ -260,6 +271,12 @@ class PineconeValueError(PineconeError, ValueError):
         except Exception:
             return self.message if isinstance(self.message, str) else super().__str__()
 
+    @property
+    def path_to_item(self) -> list[str] | None:
+        if self.path is None:
+            return None
+        return [self.path]
+
 
 class PineconeTypeError(PineconeError, TypeError):
     """Input validation failed — wrong type."""
@@ -275,6 +292,12 @@ class PineconeTypeError(PineconeError, TypeError):
             return self.message
         except Exception:
             return self.message if isinstance(self.message, str) else super().__str__()
+
+    @property
+    def path_to_item(self) -> list[str] | None:
+        if self.path is None:
+            return None
+        return [self.path]
 
 
 class ResponseParsingError(PineconeError):
