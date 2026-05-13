@@ -560,6 +560,14 @@ class AsyncPinecone:
         should use ``await pc.indexes.configure(...)`` instead of
         ``await pc.configure_index(...)``.
         """
+        if read_capacity is not None and serverless_read_capacity is not None:
+            raise ValidationError(
+                "Cannot pass both read_capacity and serverless_read_capacity; "
+                "use serverless_read_capacity for serverless indexes"
+            )
+        effective_serverless_rc = (
+            serverless_read_capacity if serverless_read_capacity is not None else read_capacity
+        )
         await self.indexes.configure(
             name=name,
             replicas=replicas,
@@ -567,8 +575,7 @@ class AsyncPinecone:
             deletion_protection=deletion_protection,
             tags=tags,
             embed=embed,
-            read_capacity=read_capacity,
-            serverless_read_capacity=serverless_read_capacity,
+            serverless_read_capacity=effective_serverless_rc,
         )
 
     async def delete_index(self, name: str, timeout: int | None = None) -> None:

@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from pinecone.async_client.pinecone import AsyncPinecone
+from pinecone.errors.exceptions import PineconeValueError
 from pinecone.inference.models.index_embed import IndexEmbed
 from pinecone.models.enums import CloudProvider
 from pinecone.models.indexes.specs import EmbedConfig, IntegratedSpec, ServerlessSpec
@@ -253,6 +254,25 @@ async def test_async_configure_index_delegate_forwards() -> None:
     mock_indexes.configure.assert_called_once()
     _, kwargs = mock_indexes.configure.call_args
     assert kwargs["deletion_protection"] == "enabled"
+
+
+async def test_async_configure_index_read_capacity_maps_to_serverless_rc() -> None:
+    pc, mock_indexes = _make_async_pc_with_mock_indexes()
+    await pc.configure_index("my-index", read_capacity={"mode": "OnDemand"})
+    mock_indexes.configure.assert_called_once()
+    _, kwargs = mock_indexes.configure.call_args
+    assert kwargs["serverless_read_capacity"] == {"mode": "OnDemand"}
+    assert "read_capacity" not in kwargs
+
+
+async def test_async_configure_index_both_read_capacity_raises() -> None:
+    pc, _mock_indexes = _make_async_pc_with_mock_indexes()
+    with pytest.raises(PineconeValueError):
+        await pc.configure_index(
+            "my-index",
+            read_capacity={"mode": "OnDemand"},
+            serverless_read_capacity={"mode": "Dedicated", "dedicated": {"read_units": 10}},
+        )
 
 
 # ---------------------------------------------------------------------------

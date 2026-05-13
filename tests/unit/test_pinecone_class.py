@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pinecone import Pinecone
+from pinecone.errors.exceptions import PineconeValueError
 from pinecone.inference.models.index_embed import IndexEmbed
 from pinecone.models.enums import CloudProvider
 from pinecone.models.indexes.specs import EmbedConfig, IntegratedSpec, ServerlessSpec
@@ -245,8 +246,7 @@ class TestConfigureIndex:
             deletion_protection="enabled",
             tags={"env": "prod"},
             embed={"model": "m"},
-            read_capacity={"read_units": 5},
-            serverless_read_capacity=None,
+            serverless_read_capacity={"read_units": 5},
         )
 
     def test_serverless_read_capacity_forwarded(self) -> None:
@@ -262,9 +262,25 @@ class TestConfigureIndex:
             deletion_protection=None,
             tags=None,
             embed=None,
-            read_capacity=None,
             serverless_read_capacity={"mode": "OnDemand"},
         )
+
+    def test_configure_index_read_capacity_maps_to_serverless_rc(self) -> None:
+        pc, mock_indexes = _make_pc_with_mock_indexes_delegates()
+        pc.configure_index("my-index", read_capacity={"mode": "OnDemand"})
+        mock_indexes.configure.assert_called_once()
+        _, kwargs = mock_indexes.configure.call_args
+        assert kwargs["serverless_read_capacity"] == {"mode": "OnDemand"}
+        assert "read_capacity" not in kwargs
+
+    def test_configure_index_both_read_capacity_raises(self) -> None:
+        pc, _mock_indexes = _make_pc_with_mock_indexes_delegates()
+        with pytest.raises(PineconeValueError):
+            pc.configure_index(
+                "my-index",
+                read_capacity={"mode": "OnDemand"},
+                serverless_read_capacity={"mode": "Dedicated", "dedicated": {"read_units": 10}},
+            )
 
 
 # ---------------------------------------------------------------------------
