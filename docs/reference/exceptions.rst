@@ -25,6 +25,7 @@ Class Hierarchy
        ├── NotFoundError (404)
        ├── ForbiddenError (403)
        ├── UnauthorizedError (401)
+       ├── RateLimitError (429)
        └── ServiceError (5xx)
 
 Base & Configuration Errors
@@ -81,6 +82,10 @@ API Errors
    :show-inheritance:
 
 .. autoexception:: pinecone.errors.exceptions.ForbiddenError
+   :members:
+   :show-inheritance:
+
+.. autoexception:: pinecone.errors.exceptions.RateLimitError
    :members:
    :show-inheritance:
 

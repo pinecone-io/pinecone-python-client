@@ -13,6 +13,7 @@ PineconeError (base)
 │   ├── ConflictError           # 409
 │   ├── UnauthorizedError       # 401
 │   ├── ForbiddenError          # 403
+│   ├── RateLimitError          # 429
 │   └── ServiceError            # 5xx
 ├── PineconeConnectionError     # Network-level failure (DNS, refused, transport)
 ├── PineconeTimeoutError        # Operation exceeded its timeout
@@ -31,6 +32,7 @@ from pinecone.errors import (
     ConflictError,
     UnauthorizedError,
     ForbiddenError,
+    RateLimitError,
     ServiceError,
     PineconeConnectionError,
     PineconeTimeoutError,
@@ -48,6 +50,12 @@ except UnauthorizedError:
     print("Invalid or missing API key")
 except ForbiddenError:
     print("API key lacks permission for this operation")
+except RateLimitError as exc:
+    # SDK retries 429s automatically with backoff; this fires only after
+    # retries are exhausted. exc.retry_after is the server-suggested delay
+    # in seconds, or None if no Retry-After header was provided.
+    delay = exc.retry_after or 30
+    print(f"Rate limited — wait {delay}s and retry")
 except ServiceError as exc:
     print(f"Server error {exc.status_code}: {exc.message}")
 except PineconeConnectionError:
@@ -121,6 +129,37 @@ try:
 except ConflictError:
     pass  # index already exists, nothing to do
 ```
+
+## RateLimitError and automatic retries
+
+The SDK's default `RetryConfig` retries 429 responses with exponential backoff (see
+[Retries](#retries) below). For most callers, transient rate-limit responses are
+handled transparently and never surface as exceptions.
+
+`RateLimitError` is what you'll see only when:
+
+- retries are disabled (`RetryConfig(max_retries=1)`), or
+- rate limiting persists beyond the configured retry budget.
+
+When it does surface, the exception carries the server's suggested back-off in
+`exc.retry_after` (seconds, integer) if the response included a `Retry-After`
+header with a delta-seconds value. Use it to pace your retry loop:
+
+```python
+from pinecone.errors import RateLimitError
+import time
+
+try:
+    index.upsert(vectors=[...])
+except RateLimitError as exc:
+    time.sleep(exc.retry_after or 30)
+    # retry the call yourself, or surface the failure to your caller
+```
+
+`exc.retry_after` is `None` if the server didn't send a `Retry-After` header or
+sent it as an HTTP date (date-form `Retry-After` is not parsed). gRPC-sourced
+`RateLimitError` instances always have `retry_after=None` because the gRPC
+gateway doesn't currently emit retry-after metadata.
 
 ## Retries
 
