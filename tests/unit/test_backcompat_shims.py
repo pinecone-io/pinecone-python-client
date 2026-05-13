@@ -527,3 +527,21 @@ class TestDbControlModuleExports:
         from pinecone.db_control.models import IndexModel
 
         assert IndexModel is not None
+
+
+class TestVectorPositionalOrder:
+    def test_vector_positional_metadata_third(self) -> None:
+        from pinecone.db_data.dataclasses.vector import Vector
+
+        v = Vector("v1", [0.1, 0.2], {"genre": "comedy"})
+        assert v.metadata == {"genre": "comedy"}
+        assert v.sparse_values is None
+
+    def test_vector_positional_sparse_values_fourth(self) -> None:
+        from pinecone.db_data.dataclasses.vector import Vector
+        from pinecone.models.vectors.sparse import SparseValues
+
+        sv = SparseValues(indices=[0], values=[0.5])
+        v = Vector("v1", [0.1, 0.2], None, sv)
+        assert v.metadata is None
+        assert v.sparse_values == sv

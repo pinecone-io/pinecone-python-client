@@ -42,7 +42,7 @@ def _from_tuple(item: tuple[Any, ...]) -> Vector:
             raise PineconeValueError(
                 "Vector must have at least one of non-empty dense values or sparse values"
             )
-        return Vector(id_, converted, None, metadata)
+        return Vector(id_, converted, metadata=metadata, sparse_values=None)
     raise PineconeValueError(f"Vector tuple must have 2 or 3 elements, got {length}")
 
 
@@ -74,7 +74,7 @@ def _from_dict(item: dict[str, Any]) -> Vector:
         raw_values = item["values"]
         values = raw_values if isinstance(raw_values, list) else list(raw_values)
         sv = _parse_sparse(item["sparse_values"])
-        return Vector(id_, values, sv, None)
+        return Vector(id_, values, sparse_values=sv, metadata=None)
 
     # General path: validate keys and extract optional fields
     if not _RECOGNIZED_KEYS.issuperset(item):
@@ -102,7 +102,7 @@ def _from_dict(item: dict[str, Any]) -> Vector:
             "Vector must have at least one of non-empty dense values or sparse values"
         )
 
-    return Vector(id_, values, sparse, metadata)
+    return Vector(id_, values, metadata=metadata, sparse_values=sparse)
 
 
 def _parse_sparse(raw: Any) -> SparseValues:
@@ -209,14 +209,19 @@ class VectorFactory:
                             )
                             if not s_values or s_values[0].__class__ is float:
                                 return Vector(
-                                    id_, converted, SparseValues(s_indices, s_values), None
+                                    id_,
+                                    converted,
+                                    sparse_values=SparseValues(s_indices, s_values),
+                                    metadata=None,
                                 )
                             if isinstance(s_values[0], (int, float)):
                                 return Vector(
                                     id_,
                                     converted,
-                                    SparseValues(s_indices, [float(v) for v in s_values]),
-                                    None,
+                                    sparse_values=SparseValues(
+                                        s_indices, [float(v) for v in s_values]
+                                    ),
+                                    metadata=None,
                                 )
                             # else: non-numeric type → fall through to _from_dict
                             # for proper PineconeTypeError via _parse_sparse

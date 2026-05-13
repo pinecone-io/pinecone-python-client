@@ -24,8 +24,8 @@ class Vector(DictLikeStruct, Struct, rename="camel", gc=False):
 
     id: str
     values: list[float] = []
-    sparse_values: SparseValues | None = None
     metadata: dict[str, Any] | None = None
+    sparse_values: SparseValues | None = None
 
     def __post_init__(self) -> None:
         """Require at least one of ``values`` or ``sparse_values`` to be populated."""
