@@ -9,4 +9,26 @@ New code should import from the canonical module.
 
 from __future__ import annotations
 
-__all__: list[str] = []
+from pinecone.inference.models.index_embed import IndexEmbed
+from pinecone.models.backups.list import BackupList, RestoreJobList
+from pinecone.models.backups.model import BackupModel, RestoreJobModel
+from pinecone.models.collections.description import CollectionDescription
+from pinecone.models.collections.list import CollectionList
+from pinecone.models.indexes.index import IndexModel
+from pinecone.models.indexes.list import IndexList
+from pinecone.models.indexes.specs import ByocSpec, PodSpec, ServerlessSpec
+
+__all__ = [
+    "BackupList",
+    "BackupModel",
+    "ByocSpec",
+    "CollectionDescription",
+    "CollectionList",
+    "IndexEmbed",
+    "IndexList",
+    "IndexModel",
+    "PodSpec",
+    "RestoreJobList",
+    "RestoreJobModel",
+    "ServerlessSpec",
+]

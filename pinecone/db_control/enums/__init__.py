@@ -9,4 +9,26 @@ New code should import from the canonical module.
 
 from __future__ import annotations
 
-__all__: list[str] = []
+from pinecone.models.enums import (
+    AwsRegion,
+    AzureRegion,
+    CloudProvider,
+    DeletionProtection,
+    GcpRegion,
+    Metric,
+    PodIndexEnvironment,
+    PodType,
+    VectorType,
+)
+
+__all__ = [
+    "AwsRegion",
+    "AzureRegion",
+    "CloudProvider",
+    "DeletionProtection",
+    "GcpRegion",
+    "Metric",
+    "PodIndexEnvironment",
+    "PodType",
+    "VectorType",
+]

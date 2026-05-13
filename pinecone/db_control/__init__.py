@@ -9,4 +9,52 @@ New code should import from the canonical module.
 
 from __future__ import annotations
 
-__all__: list[str] = []
+from pinecone.db_control.enums import (
+    AwsRegion,
+    AzureRegion,
+    CloudProvider,
+    DeletionProtection,
+    GcpRegion,
+    Metric,
+    PodIndexEnvironment,
+    PodType,
+    VectorType,
+)
+from pinecone.db_control.models import (
+    BackupList,
+    BackupModel,
+    ByocSpec,
+    CollectionDescription,
+    CollectionList,
+    IndexEmbed,
+    IndexList,
+    IndexModel,
+    PodSpec,
+    RestoreJobList,
+    RestoreJobModel,
+    ServerlessSpec,
+)
+
+__all__ = [
+    "AwsRegion",
+    "AzureRegion",
+    "BackupList",
+    "BackupModel",
+    "ByocSpec",
+    "CloudProvider",
+    "CollectionDescription",
+    "CollectionList",
+    "DeletionProtection",
+    "GcpRegion",
+    "IndexEmbed",
+    "IndexList",
+    "IndexModel",
+    "Metric",
+    "PodIndexEnvironment",
+    "PodSpec",
+    "PodType",
+    "RestoreJobList",
+    "RestoreJobModel",
+    "ServerlessSpec",
+    "VectorType",
+]

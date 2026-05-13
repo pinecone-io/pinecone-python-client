@@ -431,3 +431,50 @@ class TestAlignmentMetricsProxyCompat:
         assert result.usage.prompt_tokens == 10
         assert result.usage.completion_tokens == 20
         assert result.usage.total_tokens == 30
+
+
+class TestDbControlModuleExports:
+    def test_db_control_top_exports_cloud_provider(self) -> None:
+        from pinecone.db_control import CloudProvider
+
+        assert CloudProvider is not None
+
+    def test_db_control_top_exports_serverless_spec(self) -> None:
+        from pinecone.db_control import ServerlessSpec
+
+        assert ServerlessSpec is not None
+
+    def test_db_control_top_exports_index_model(self) -> None:
+        from pinecone.db_control import IndexModel
+
+        assert IndexModel is not None
+
+    def test_db_control_enums_exports_cloud_provider(self) -> None:
+        from pinecone.db_control.enums import CloudProvider
+
+        assert CloudProvider is not None
+
+    def test_db_control_enums_exports_metric(self) -> None:
+        from pinecone.db_control.enums import Metric
+
+        assert Metric is not None
+
+    def test_db_control_enums_exports_pod_type(self) -> None:
+        from pinecone.db_control.enums import PodType
+
+        assert PodType is not None
+
+    def test_db_control_models_exports_serverless_spec(self) -> None:
+        from pinecone.db_control.models import ServerlessSpec
+
+        assert ServerlessSpec is not None
+
+    def test_db_control_models_exports_pod_spec(self) -> None:
+        from pinecone.db_control.models import PodSpec
+
+        assert PodSpec is not None
+
+    def test_db_control_models_exports_index_model(self) -> None:
+        from pinecone.db_control.models import IndexModel
+
+        assert IndexModel is not None
