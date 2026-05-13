@@ -614,3 +614,34 @@ class TestCreateBackupDescriptionDefault:
         mock_backups.create.assert_called_once_with(
             index_name="my-index", name="my-backup", description="my desc"
         )
+
+
+class TestBackupModelMetric:
+    def test_backup_model_has_metric_attribute(self) -> None:
+        """Legacy callers can access backup.metric without AttributeError."""
+        from pinecone.models.backups.model import BackupModel
+
+        backup = BackupModel(
+            backup_id="bkp-1",
+            source_index_name="my-index",
+            source_index_id="idx-abc",
+            status="Ready",
+            cloud="aws",
+            region="us-east-1",
+            metric="cosine",
+        )
+        assert backup.metric == "cosine"
+
+    def test_backup_model_metric_defaults_to_none(self) -> None:
+        """metric is None when not provided (matches optional API field)."""
+        from pinecone.models.backups.model import BackupModel
+
+        backup = BackupModel(
+            backup_id="bkp-2",
+            source_index_name="my-index",
+            source_index_id="idx-abc",
+            status="Ready",
+            cloud="aws",
+            region="us-east-1",
+        )
+        assert backup.metric is None
