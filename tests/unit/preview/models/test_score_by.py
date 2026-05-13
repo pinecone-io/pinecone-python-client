@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import warnings
+
 import msgspec
+import pytest
 
 from pinecone.preview.models.score_by import (
     PreviewDenseVectorQuery,
@@ -50,6 +53,55 @@ def test_text_query_no_extra_fields() -> None:
     assert hasattr(q, "query")
     assert not hasattr(q, "values")
     assert not hasattr(q, "sparse_values")
+
+
+# ---------------------------------------------------------------------------
+# PreviewTextQuery — deprecated `field=` alias
+# ---------------------------------------------------------------------------
+
+
+def test_text_query_deprecated_field_kwarg_migrates_to_fields() -> None:
+    with pytest.warns(DeprecationWarning, match=r"`field` is deprecated"):
+        q = PreviewTextQuery(field="title", query="hello")
+    assert q.fields == ["title"]
+    assert q.field is None
+
+
+def test_text_query_deprecated_field_kwarg_keeps_wire_shape_clean() -> None:
+    with pytest.warns(DeprecationWarning, match=r"`field` is deprecated"):
+        q = PreviewTextQuery(field="title", query="hello")
+    decoded = msgspec.json.decode(msgspec.json.encode(q))
+    assert decoded == {"type": "text", "fields": ["title"], "query": "hello"}
+    assert "field" not in decoded
+
+
+def test_text_query_canonical_fields_emits_no_warning() -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        q = PreviewTextQuery(fields=["title"], query="hello")
+    assert q.fields == ["title"]
+    assert q.field is None
+
+
+def test_text_query_rejects_both_field_and_fields() -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        with pytest.raises(ValueError, match="not both"):
+            PreviewTextQuery(field="title", fields=["body"], query="hello")
+
+
+def test_text_query_rejects_neither_field_nor_fields() -> None:
+    with pytest.raises(ValueError, match="requires `fields"):
+        PreviewTextQuery(query="hello")
+
+
+def test_text_query_decodes_backend_field_variant() -> None:
+    """Backend may return the legacy single-field form; decode should migrate."""
+    raw = b'{"type": "text", "field": "body", "query": "hello"}'
+    with pytest.warns(DeprecationWarning, match=r"`field` is deprecated"):
+        result = msgspec.json.decode(raw, type=PreviewTextQuery)
+    assert result.fields == ["body"]
+    assert result.field is None
 
 
 # ---------------------------------------------------------------------------
