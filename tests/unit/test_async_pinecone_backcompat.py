@@ -356,6 +356,16 @@ def test_async_index_asyncio_delegate_returns_async_index() -> None:
 
 
 # ---------------------------------------------------------------------------
+# __init__ positional host (backcompat)
+# ---------------------------------------------------------------------------
+
+
+def test_async_pinecone_init_host_positional_accepted() -> None:
+    pc = AsyncPinecone("test-api-key", "https://api.pinecone.io")
+    assert pc._config.host == "https://api.pinecone.io"
+
+
+# ---------------------------------------------------------------------------
 # __repr__ masking
 # ---------------------------------------------------------------------------
 

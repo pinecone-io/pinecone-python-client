@@ -108,8 +108,8 @@ class AsyncPinecone:
     def __init__(
         self,
         api_key: str | None = None,
-        *,
         host: str | None = None,
+        *,
         additional_headers: Mapping[str, str] | None = None,
         source_tag: str | None = None,
         proxy_url: str | None = None,
