@@ -63,8 +63,6 @@ publish. The CI job:
   run locally on demand.
 - Writes a PASSED / FAILED summary to the GitHub Actions step summary.
 - Uploads a `smoke-results.xml` JUnit artifact for diagnostic review.
-- On failure, opens a labeled GitHub issue
-  (`[smoke regression] …`) via the `notify-smoke-failure` job.
 - Runs orphan cleanup unconditionally after the suite, so a
   failed/cancelled run does not leak indexes.
 
