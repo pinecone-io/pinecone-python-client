@@ -529,6 +529,41 @@ class TestDbControlModuleExports:
         assert IndexModel is not None
 
 
+class TestVectorToDictLegacyBehavior:
+    def test_vector_to_dict_omits_none_fields(self) -> None:
+        from pinecone.db_data.dataclasses.vector import Vector
+
+        v = Vector(id="v1", values=[0.1, 0.2])
+        d = v.to_dict()
+        assert "id" in d and "values" in d
+        assert "metadata" not in d
+        assert "sparse_values" not in d
+
+    def test_vector_to_dict_includes_metadata_when_set(self) -> None:
+        from pinecone.db_data.dataclasses.vector import Vector
+
+        v = Vector(id="v1", values=[0.1], metadata={"genre": "comedy"})
+        d = v.to_dict()
+        assert d["metadata"] == {"genre": "comedy"}
+        assert "sparse_values" not in d
+
+    def test_vector_to_dict_includes_sparse_values_when_set(self) -> None:
+        from pinecone.db_data.dataclasses.vector import Vector
+        from pinecone.models.vectors.sparse import SparseValues
+
+        sv = SparseValues(indices=[0, 2], values=[0.5, 0.3])
+        v = Vector(id="v1", values=[], sparse_values=sv)
+        d = v.to_dict()
+        assert d["sparse_values"] == {"indices": [0, 2], "values": [0.5, 0.3]}
+        assert "metadata" not in d
+
+    def test_vector_to_dict_dense_only_shape(self) -> None:
+        from pinecone.db_data.dataclasses.vector import Vector
+
+        v = Vector(id="v1", values=[0.1, 0.2])
+        assert v.to_dict() == {"id": "v1", "values": [0.1, 0.2]}
+
+
 class TestVectorPositionalOrder:
     def test_vector_positional_metadata_third(self) -> None:
         from pinecone.db_data.dataclasses.vector import Vector

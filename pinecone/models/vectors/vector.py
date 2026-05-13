@@ -45,6 +45,15 @@ class Vector(DictLikeStruct, Struct, rename="camel", gc=False):
             metadata=vector_dict.get("metadata"),
         )
 
+    def to_dict(self) -> dict[str, Any]:
+        """Return a plain dict, omitting ``None`` fields to match legacy behavior."""
+        d: dict[str, Any] = {"id": self.id, "values": self.values}
+        if self.metadata is not None:
+            d["metadata"] = self.metadata
+        if self.sparse_values is not None:
+            d["sparse_values"] = self.sparse_values.to_dict()
+        return d
+
     def __repr__(self) -> str:
         if len(self.values) > 5:
             preview = ", ".join(repr(v) for v in self.values[:3])
