@@ -11,7 +11,7 @@ import respx
 
 from pinecone import Pinecone
 from pinecone.errors.exceptions import ValidationError
-from pinecone.models.backups.model import CreateIndexFromBackupResponse
+from pinecone.models.indexes.index import IndexModel
 from tests.factories import make_index_response
 
 
@@ -67,13 +67,16 @@ BASE_URL = "https://api.pinecone.io"
 
 
 @respx.mock
-def test_create_index_from_backup_no_wait_returns_restore_job_id() -> None:
-    """timeout=-1 returns CreateIndexFromBackupResponse with restore_job_id and index_id."""
+def test_create_index_from_backup_no_wait_returns_index_model() -> None:
+    """timeout=-1 returns IndexModel from describe without polling."""
     respx.post(f"{BASE_URL}/backups/bk-test/create-index").mock(
         return_value=httpx.Response(
             202,
             json={"restore_job_id": "rj-test-123", "index_id": "idx-test-456"},
         ),
+    )
+    respx.get(f"{BASE_URL}/indexes/test-restore-nowait").mock(
+        return_value=httpx.Response(200, json=make_index_response(name="test-restore-nowait")),
     )
 
     pc = Pinecone(api_key="test-key")
@@ -83,9 +86,8 @@ def test_create_index_from_backup_no_wait_returns_restore_job_id() -> None:
         timeout=-1,
     )
 
-    assert isinstance(result, CreateIndexFromBackupResponse)
-    assert result.restore_job_id == "rj-test-123"
-    assert result.index_id == "idx-test-456"
+    assert isinstance(result, IndexModel)
+    assert result.name == "test-restore-nowait"
 
 
 @pytest.mark.integration

@@ -25,7 +25,6 @@ if TYPE_CHECKING:
     from pinecone.models.backups.list import BackupList, RestoreJobList
     from pinecone.models.backups.model import (
         BackupModel,
-        CreateIndexFromBackupResponse,
         RestoreJobModel,
     )
     from pinecone.models.collections.list import CollectionList
@@ -354,7 +353,7 @@ class AsyncPinecone:
         deletion_protection: DeletionProtection | str | None = None,
         tags: Mapping[str, str] | None = None,
         timeout: int | None = None,
-    ) -> CreateIndexFromBackupResponse | IndexModel:
+    ) -> IndexModel:
         """Create a new index by restoring from a backup.
 
         Sends a POST to ``/backups/{backup_id}/create-index`` and then
@@ -367,13 +366,13 @@ class AsyncPinecone:
                 ``"disabled"``. Defaults to ``"disabled"`` server-side when omitted.
             tags (dict[str, str] | None): Optional key-value tags for the new index.
             timeout (int | None): Seconds to wait for readiness. ``None`` (default)
-                blocks up to 300 s. ``-1`` returns a :class:`CreateIndexFromBackupResponse`
-                immediately (contains ``restore_job_id`` and ``index_id``) without polling.
+                blocks up to 300 s. ``-1`` returns a snapshot :class:`IndexModel`
+                immediately without polling.
 
         Returns:
-            A :class:`CreateIndexFromBackupResponse` when *timeout* is ``-1`` (contains
-            ``restore_job_id`` and ``index_id``), or an :class:`IndexModel` describing
-            the restored index once it is ready.
+            An :class:`IndexModel` describing the restored index. When *timeout* is
+            ``-1``, a snapshot :class:`IndexModel` is returned immediately without
+            polling for readiness.
 
         Raises:
             :exc:`PineconeValueError`: If *name* or *backup_id* is empty.
@@ -394,14 +393,14 @@ class AsyncPinecone:
 
             .. code-block:: python
 
-                # Restore without waiting (returns restore_job_id)
+                # Restore without waiting (returns snapshot IndexModel immediately)
                 async with AsyncPinecone(api_key="your-api-key") as pc:
                     result = await pc.create_index_from_backup(
                         name="product-search-restored",
                         backup_id="bk-daily-20240115",
                         timeout=-1,
                     )
-                    print(result.restore_job_id)
+                    print(result.name)
         """
         require_non_empty("name", name)
         require_non_empty("backup_id", backup_id)
@@ -417,13 +416,10 @@ class AsyncPinecone:
         if tags is not None:
             body["tags"] = tags
 
-        from pinecone._internal.adapters.backups_adapter import BackupsAdapter
-
-        response = await self._http.post(f"/backups/{backup_id}/create-index", json=body)
-        create_response = BackupsAdapter.to_create_index_from_backup_response(response.content)
+        await self._http.post(f"/backups/{backup_id}/create-index", json=body)
 
         if timeout == -1:
-            return create_response
+            return await self.indexes.describe(name)
 
         effective_timeout = timeout if timeout is not None else 300
         return await async_poll_index_until_ready(self.indexes.describe, name, effective_timeout)
