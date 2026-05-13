@@ -15,7 +15,7 @@ __all__ = [
 ]
 
 
-class PreviewTextQuery(Struct, tag="text", tag_field="type", kw_only=True):
+class PreviewTextQuery(Struct, tag="text", tag_field="type", kw_only=True, omit_defaults=True):
     """Full-text search query for scoring documents.
 
     .. admonition:: Preview
@@ -29,10 +29,33 @@ class PreviewTextQuery(Struct, tag="text", tag_field="type", kw_only=True):
     Attributes:
         fields: One or more text field names to search across.
         query: Search query string.
+        field: Deprecated alias for ``fields``. If provided, it is migrated
+            to ``fields=[field]`` and a ``DeprecationWarning`` is emitted.
+            Cleared to ``None`` after migration; read ``fields`` instead.
     """
 
-    fields: list[str]
     query: str
+    fields: list[str] | None = None
+    field: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.field is not None:
+            if self.fields is not None:
+                raise ValueError(
+                    "PreviewTextQuery accepts `fields=[...]` or the deprecated "
+                    "`field=...`, but not both."
+                )
+            import warnings
+
+            warnings.warn(
+                "PreviewTextQuery `field` is deprecated; use `fields=[...]`.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.fields = [self.field]
+            self.field = None
+        elif self.fields is None:
+            raise ValueError("PreviewTextQuery requires `fields=[...]`.")
 
 
 class PreviewQueryStringQuery(Struct, tag="query_string", tag_field="type", kw_only=True):
