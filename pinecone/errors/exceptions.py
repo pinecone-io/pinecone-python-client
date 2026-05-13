@@ -138,6 +138,38 @@ class ConflictError(ApiError):
         )
 
 
+class RateLimitError(ApiError):
+    """429 Too Many Requests — rate limit exceeded.
+
+    Inherits from :class:`ApiError` so that ``except ApiError`` blocks still
+    catch it. Callers who want to honor the server's ``Retry-After`` hint can
+    catch :class:`RateLimitError` specifically and read :attr:`retry_after`.
+    """
+
+    def __init__(
+        self,
+        message: str = "Rate limit exceeded",
+        status_code: int = 429,
+        body: dict[str, Any] | None = None,
+        *,
+        reason: str | None = None,
+        headers: dict[str, str] | None = None,
+        error_code: str | None = None,
+        request_id: str | None = None,
+        retry_after: int | None = None,
+    ) -> None:
+        self.retry_after = retry_after
+        super().__init__(
+            message=message,
+            status_code=status_code,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
+        )
+
+
 class UnauthorizedError(ApiError):
     """401 Unauthorized."""
 
