@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import warnings
 
-import pytest
-
 
 class TestPineconeApiExceptionStatusAttribute:
     def test_pinecone_api_exception_status_attribute_readable(self) -> None:

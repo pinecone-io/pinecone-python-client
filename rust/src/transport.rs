@@ -185,7 +185,8 @@ fn status_to_py_err(status: tonic::Status) -> PyErr {
             tonic::Code::Cancelled if msg == "Timeout expired" => "PineconeTimeoutError",
             tonic::Code::Unavailable => "PineconeConnectionError",
             tonic::Code::Internal | tonic::Code::Unknown => "ServiceError",
-            tonic::Code::InvalidArgument | tonic::Code::ResourceExhausted => "ApiError",
+            tonic::Code::InvalidArgument => "ApiError",
+            tonic::Code::ResourceExhausted => "RateLimitError",
             _ => "PineconeError",
         };
 

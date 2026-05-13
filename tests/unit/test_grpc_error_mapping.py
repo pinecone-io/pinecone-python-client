@@ -24,6 +24,7 @@ from pinecone.errors.exceptions import (
     PineconeConnectionError,
     PineconeError,
     PineconeTimeoutError,
+    RateLimitError,
     ResponseParsingError,
     ServiceError,
     UnauthorizedError,
@@ -48,6 +49,21 @@ def _make_api_error(
         http_status,
         body,
         error_code=grpc_code_name,
+        request_id=request_id,
+    )
+
+
+def _make_rate_limit_error(
+    message: str,
+    *,
+    request_id: str | None = None,
+) -> RateLimitError:
+    """Build a RateLimitError the same way the new Rust code does for ResourceExhausted."""
+    body: dict[str, object] = {"error": {"code": "RESOURCE_EXHAUSTED", "message": message}}
+    return RateLimitError(
+        message=message,
+        body=body,
+        error_code="RESOURCE_EXHAUSTED",
         request_id=request_id,
     )
 
@@ -265,6 +281,48 @@ class TestGrpcErrorHierarchy:
         assert exc.error_code == "RESOURCE_EXHAUSTED"
         assert exc.status_code == 429
         assert exc.request_id == "req-abc"
+
+
+# ---------------------------------------------------------------------------
+# P-0233: ResourceExhausted → RateLimitError mapping
+# ---------------------------------------------------------------------------
+
+
+class TestResourceExhaustedMapsToRateLimitError:
+    def test_isinstance_rate_limit_error(self) -> None:
+        exc = _make_rate_limit_error("rate limited")
+        assert isinstance(exc, RateLimitError)
+
+    def test_isinstance_api_error(self) -> None:
+        # Backwards compat: still catchable by `except ApiError`.
+        exc = _make_rate_limit_error("rate limited")
+        assert isinstance(exc, ApiError)
+
+    def test_status_code_429(self) -> None:
+        exc = _make_rate_limit_error("rate limited")
+        assert exc.status_code == 429
+
+    def test_error_code_resource_exhausted(self) -> None:
+        exc = _make_rate_limit_error("rate limited")
+        assert exc.error_code == "RESOURCE_EXHAUSTED"
+
+    def test_body_shape(self) -> None:
+        exc = _make_rate_limit_error("rate limited")
+        assert exc.body == {"error": {"code": "RESOURCE_EXHAUSTED", "message": "rate limited"}}
+
+    def test_str_format_matches_rest(self) -> None:
+        exc = _make_rate_limit_error("rate limited")
+        assert str(exc) == "[429 RESOURCE_EXHAUSTED] rate limited"
+
+    def test_retry_after_is_none_from_grpc(self) -> None:
+        # gRPC trailers don't carry Retry-After; default should be None.
+        exc = _make_rate_limit_error("rate limited")
+        assert exc.retry_after is None
+
+    def test_message_no_grpc_prefix(self) -> None:
+        exc = _make_rate_limit_error("rate limited")
+        assert not exc.message.startswith("gRPC")
+        assert exc.message == "rate limited"
 
 
 # ---------------------------------------------------------------------------
