@@ -3536,15 +3536,13 @@ def test_multimodal_pdf_context_image_text_and_errors(client: Pinecone) -> None:
             f"expected MultimodalSnippet, got {type(snippet).__name__}"
         )
         image_blocks_with_data = [
-            b
-            for b in snippet.content
-            if isinstance(b, ContextImageBlock) and b.image_data is not None
+            b for b in snippet.content if isinstance(b, ContextImageBlock) and b.image is not None
         ]
         assert len(image_blocks_with_data) > 0, (
-            "expected at least one ContextImageBlock with image_data populated"
+            "expected at least one ContextImageBlock with image populated"
         )
 
-        # --- 3. include_binary_content=False → image blocks have image_data=None ---
+        # --- 3. include_binary_content=False → image blocks have image=None ---
         res_no_binary = client.assistants.context(
             assistant_name=name,
             query=query,
@@ -3558,8 +3556,8 @@ def test_multimodal_pdf_context_image_text_and_errors(client: Pinecone) -> None:
         image_blocks = [b for b in snippet_no_binary.content if isinstance(b, ContextImageBlock)]
         assert len(image_blocks) > 0, "expected at least one image block"
         for block in image_blocks:
-            assert block.image_data is None, (
-                f"expected image_data=None when include_binary_content=False; got {block.image_data!r}"
+            assert block.image is None, (
+                f"expected image=None when include_binary_content=False; got {block.image!r}"
             )
 
         # --- 4. multimodal=False → TextSnippet fallback ---

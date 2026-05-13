@@ -60,7 +60,7 @@ class TestContextImageBlock:
     def test_repr_with_image(self) -> None:
         b = ContextImageBlock(
             caption="A cat",
-            image_data=ContextImageData(type="base64", mime_type="image/jpeg", data="X" * 500),
+            image=ContextImageData(type="base64", mime_type="image/jpeg", data="X" * 500),
         )
         r = repr(b)
         assert "A cat" in r
@@ -148,29 +148,29 @@ def _f() -> AssistantFileModel:
 
 class TestFileReference:
     def test_repr(self) -> None:
-        r = repr(FileReference(file=_f(), pages=[1, 2]))
+        r = repr(FileReference(type="text", file=_f(), pages=[1, 2]))
         assert "doc.pdf" in r
         assert "1" in r
 
     def test_repr_no_pages(self) -> None:
-        assert "doc.pdf" in repr(FileReference(file=_f()))
+        assert "doc.pdf" in repr(FileReference(type="text", file=_f()))
 
     def test_repr_many_pages_abbreviated(self) -> None:
-        r = repr(FileReference(file=_f(), pages=list(range(1000))))
+        r = repr(FileReference(type="text", file=_f(), pages=list(range(1000))))
         assert len(r) < 500
         assert "more" in r
 
     def test_repr_html(self) -> None:
-        assert "doc.pdf" in FileReference(file=_f(), pages=[1])._repr_html_()
+        assert "doc.pdf" in FileReference(type="text", file=_f(), pages=[1])._repr_html_()
 
     def test_repr_html_no_pages(self) -> None:
-        h = FileReference(file=_f())._repr_html_()
+        h = FileReference(type="text", file=_f())._repr_html_()
         assert "<div" in h
 
     def test_repr_pretty_normal(self) -> None:
         from IPython.lib.pretty import pretty
 
-        r = pretty(FileReference(file=_f(), pages=[1, 2]))
+        r = pretty(FileReference(type="text", file=_f(), pages=[1, 2]))
         assert "doc.pdf" in r
 
     def test_repr_pretty_cycle(self) -> None:
@@ -180,19 +180,19 @@ class TestFileReference:
 
         buf = io.StringIO()
         printer = RepresentationPrinter(buf)
-        FileReference(file=_f())._repr_pretty_(printer, cycle=True)
+        FileReference(type="text", file=_f())._repr_pretty_(printer, cycle=True)
         printer.flush()
         assert "FileReference(...)" in buf.getvalue()
 
     def test_safe_on_malformed(self) -> None:
-        r = FileReference(file=_f())
+        r = FileReference(type="text", file=_f())
         r.file = object()  # type: ignore[assignment]
         assert isinstance(repr(r), str)
         assert isinstance(r._repr_html_(), str)
 
 
 def _ref() -> FileReference:
-    return FileReference(file=_f(), pages=[1, 2])
+    return FileReference(type="text", file=_f(), pages=[1, 2])
 
 
 class TestTextSnippet:
@@ -245,7 +245,7 @@ class TestMultimodalSnippet:
             ContextTextBlock(text="hi"),
             ContextImageBlock(
                 caption="A cat",
-                image_data=ContextImageData(type="base64", mime_type="image/png", data="AAA"),
+                image=ContextImageData(type="base64", mime_type="image/png", data="AAA"),
             ),
         ]
 

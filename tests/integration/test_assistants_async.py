@@ -3257,15 +3257,13 @@ async def test_multimodal_pdf_context_image_text_and_errors(
         snippet = res.snippets[0]
         assert isinstance(snippet, MultimodalSnippet)
         image_blocks_with_data = [
-            b
-            for b in snippet.content
-            if isinstance(b, ContextImageBlock) and b.image_data is not None
+            b for b in snippet.content if isinstance(b, ContextImageBlock) and b.image is not None
         ]
         assert len(image_blocks_with_data) > 0, (
-            "expected at least one ContextImageBlock with image_data populated"
+            "expected at least one ContextImageBlock with image populated"
         )
 
-        # 3. include_binary_content=False → image_data stripped
+        # 3. include_binary_content=False → image stripped
         res_no_binary = await async_client.assistants.context(
             assistant_name=name,
             query=query,
@@ -3278,7 +3276,7 @@ async def test_multimodal_pdf_context_image_text_and_errors(
         image_blocks = [b for b in snippet_no_binary.content if isinstance(b, ContextImageBlock)]
         assert len(image_blocks) > 0
         for block in image_blocks:
-            assert block.image_data is None
+            assert block.image is None
 
         # 4. multimodal=False → TextSnippet fallback
         res_text = await async_client.assistants.context(

@@ -27,7 +27,7 @@ def _file() -> AssistantFileModel:
 
 
 def _file_ref() -> FileReference:
-    return FileReference(file=_file())
+    return FileReference(type="text", file=_file())
 
 
 def _text_snippet() -> TextSnippet:

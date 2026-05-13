@@ -61,25 +61,24 @@ class ContextImageBlock(
     kw_only=True,
     tag="image",
     tag_field="type",
-    rename={"image_data": "image"},
 ):
     """An image block within a multimodal context snippet.
 
     Attributes:
         caption: A text caption describing the image.
-        image_data: The image data, or ``None`` when binary content
+        image: The image data, or ``None`` when binary content
             is excluded from the response.
     """
 
     caption: str
-    image_data: ContextImageData | None = None
+    image: ContextImageData | None = None
 
     @safe_display
     def __repr__(self) -> str:
-        image_summary = "present" if self.image_data is not None else "absent"
+        image_summary = "present" if self.image is not None else "absent"
         return (
             f"ContextImageBlock(caption={truncate_text(self.caption, 80)!r},"
-            f" image_data=<{image_summary}>)"
+            f" image=<{image_summary}>)"
         )
 
     @safe_display
@@ -87,11 +86,11 @@ class ContextImageBlock(
         if cycle:
             p.text("ContextImageBlock(...)")
             return
-        image_summary = "present" if self.image_data is not None else "absent"
+        image_summary = "present" if self.image is not None else "absent"
         p.text(
             f"ContextImageBlock(\n"
             f"  caption={truncate_text(self.caption, 80)!r},\n"
-            f"  image_data=<{image_summary}>\n"
+            f"  image=<{image_summary}>\n"
             f")"
         )
 
@@ -99,8 +98,8 @@ class ContextImageBlock(
     def _repr_html_(self) -> str:
         builder = HtmlBuilder("ContextImageBlock")
         builder.row("Caption", truncate_text(self.caption, 200))
-        if self.image_data is not None:
-            image_value = f"{self.image_data.mime_type} ({len(self.image_data.data):,} chars)"
+        if self.image is not None:
+            image_value = f"{self.image.mime_type} ({len(self.image.data):,} chars)"
         else:
             image_value = "—"
         builder.row("Image", image_value)
@@ -142,12 +141,15 @@ class FileReference(StructDictMixin, Struct, kw_only=True):
     """A reference to a source file.
 
     Attributes:
+        type: The type of the source file (e.g. ``"text"``, ``"pdf"``,
+            ``"doc_x"``, ``"markdown"``, ``"json"``).
         file: The source file object returned by the API.
         pages: The list of page numbers relevant to the snippet, when
             the source is a paginated document (e.g. PDF). ``None`` for
             text, JSON, or Markdown sources.
     """
 
+    type: str
     file: AssistantFileModel
     pages: list[int] | None = None
 

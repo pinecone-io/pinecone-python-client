@@ -197,3 +197,26 @@ def test_assistant_model_context_legacy_explicit_multimodal_overrides_context_op
     call_kwargs = mock_assistants.context.call_args.kwargs
     assert call_kwargs["multimodal"] is True
     assert call_kwargs["include_binary_content"] is True
+
+
+def test_context_reference_type_attribute(
+    mock_assistants: MagicMock, mock_assistant_model: AssistantModel
+) -> None:
+    """snippet.reference.type is accessible, matching legacy BaseReference.type."""
+    from pinecone.models.assistant.context import FileReference
+    from pinecone.models.assistant.file_model import AssistantFileModel
+
+    ref = FileReference(
+        type="pdf",
+        file=AssistantFileModel(name="doc.pdf", id="abc", status="Available"),
+        pages=[1, 2],
+    )
+    assert ref.type == "pdf"
+
+
+def test_context_image_block_image_attribute() -> None:
+    """ContextImageBlock.image is accessible (not image_data), matching legacy ImageBlock.image."""
+    from pinecone.models.assistant.context import ContextImageBlock
+
+    block = ContextImageBlock(caption="a chart", image=None)
+    assert block.image is None

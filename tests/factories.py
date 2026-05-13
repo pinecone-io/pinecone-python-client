@@ -379,9 +379,10 @@ def make_context_response(**overrides: Any) -> dict[str, Any]:
                 "content": "Pinecone is a vector database.",
                 "score": 0.95,
                 "reference": {
+                    "type": "pdf",
                     "file": make_assistant_file_response(
                         name="pinecone-overview.pdf", id="file-abc123"
-                    )
+                    ),
                 },
             }
         ],
