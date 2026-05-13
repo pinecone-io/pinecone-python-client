@@ -580,3 +580,37 @@ class TestVectorPositionalOrder:
         v = Vector("v1", [0.1, 0.2], None, sv)
         assert v.metadata is None
         assert v.sparse_values == sv
+
+
+class TestCreateBackupDescriptionDefault:
+    def test_create_backup_description_empty_string_default(self) -> None:
+        """Omitting description should send '' not None to the API."""
+        from unittest.mock import MagicMock
+
+        from pinecone import Pinecone
+        from pinecone.client.backups import Backups
+
+        pc = Pinecone(api_key="test-key")
+        mock_backups = MagicMock(spec=Backups)
+        mock_backups.create.return_value = MagicMock()
+        pc._backups = mock_backups
+        pc.create_backup(index_name="my-index", backup_name="my-backup")
+        mock_backups.create.assert_called_once_with(
+            index_name="my-index", name="my-backup", description=""
+        )
+
+    def test_create_backup_description_explicit_value(self) -> None:
+        """Explicit description value is forwarded unchanged."""
+        from unittest.mock import MagicMock
+
+        from pinecone import Pinecone
+        from pinecone.client.backups import Backups
+
+        pc = Pinecone(api_key="test-key")
+        mock_backups = MagicMock(spec=Backups)
+        mock_backups.create.return_value = MagicMock()
+        pc._backups = mock_backups
+        pc.create_backup(index_name="my-index", backup_name="my-backup", description="my desc")
+        mock_backups.create.assert_called_once_with(
+            index_name="my-index", name="my-backup", description="my desc"
+        )
