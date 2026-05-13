@@ -671,3 +671,33 @@ class TestExceptionBuiltinSuperclasses:
 
         exc = ListConversionException("msg")
         assert isinstance(exc, PineconeException)
+
+
+class TestIndexConnectionPoolMaxsize:
+    def test_index_connection_pool_maxsize_accepted(self) -> None:
+        """pc.Index(connection_pool_maxsize=32) must not raise TypeError."""
+        from pinecone import Pinecone
+
+        pc = Pinecone(api_key="test-key")
+        with pytest.raises(Exception) as exc_info:
+            pc.Index(name="", host="", connection_pool_maxsize=32)
+        # Should fail on "Either name or host" ValidationError, NOT TypeError
+        assert "connection_pool_maxsize" not in str(exc_info.value)
+        assert "TypeError" not in type(exc_info.value).__name__
+
+    def test_index_unknown_kwarg_still_raises_type_error(self) -> None:
+        """Unknown kwargs other than connection_pool_maxsize still raise TypeError."""
+        from pinecone import Pinecone
+
+        pc = Pinecone(api_key="test-key")
+        with pytest.raises(TypeError, match="unexpected keyword arguments"):
+            pc.Index(name="", host="", bogus_kwarg=True)
+
+    def test_index_connection_pool_maxsize_wired_to_index(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """connection_pool_maxsize is forwarded to the Index instance config."""
+        from pinecone import Pinecone
+
+        pc = Pinecone(api_key="test-key")
+        monkeypatch.setattr(pc, "_resolve_index_host", lambda name, host: "https://my-host.svc.pinecone.io")
+        idx = pc.Index(name="my-index", connection_pool_maxsize=32)
+        assert idx._config.connection_pool_maxsize == 32

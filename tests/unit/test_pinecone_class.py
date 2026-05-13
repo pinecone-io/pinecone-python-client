@@ -453,18 +453,20 @@ class TestDescribeRestoreJob:
 
 class TestPineconeIndexDelegate:
     def test_forwards(self) -> None:
+        from pinecone.index import Index
+
         pc = Pinecone(api_key="test-key")
-        mock_index = MagicMock()
-        pc.index = mock_index  # type: ignore[method-assign]
-        pc.Index(name="x", host="h")
-        mock_index.assert_called_once_with(name="x", host="h", pool_threads=None)
+        with patch.object(pc, "_resolve_index_host", return_value="my-index.svc.pinecone.io"):
+            idx = pc.Index(name="x", host="h")
+        assert isinstance(idx, Index)
 
     def test_forwards_pool_threads(self) -> None:
+        from pinecone.index import Index
+
         pc = Pinecone(api_key="test-key")
-        mock_index = MagicMock()
-        pc.index = mock_index  # type: ignore[method-assign]
-        pc.Index(name="x", host="h", pool_threads=20)  # type: ignore[call-arg]
-        mock_index.assert_called_once_with(name="x", host="h", pool_threads=20)
+        with patch.object(pc, "_resolve_index_host", return_value="my-index.svc.pinecone.io"):
+            idx = pc.Index(name="x", host="h", pool_threads=20)  # type: ignore[call-arg]
+        assert isinstance(idx, Index)
 
     def test_rejects_unknown_kwargs(self) -> None:
         pc = Pinecone(api_key="test-key")

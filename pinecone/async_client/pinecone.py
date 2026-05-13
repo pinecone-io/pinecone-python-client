@@ -706,9 +706,18 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New
         code should use ``pc.index(host=...)`` (where ``pc`` is an
         :class:`AsyncPinecone` instance) instead of ``pc.IndexAsyncio(...)``.
+        Accepts ``connection_pool_maxsize=`` to override the pool size for this
+        index instance; other unknown kwargs raise ``TypeError``.
         """
         from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
 
+        connection_pool_maxsize: int = kwargs.pop(
+            "connection_pool_maxsize", self._config.connection_pool_maxsize
+        )
+        if kwargs:
+            raise TypeError(
+                f"AsyncPinecone.IndexAsyncio() got unexpected keyword arguments: {sorted(kwargs)!r}"
+            )
         return _AsyncIndex(
             host=host,
             api_key=self._config.api_key,
@@ -719,7 +728,7 @@ class AsyncPinecone:
             ssl_ca_certs=self._config.ssl_ca_certs,
             ssl_verify=self._config.ssl_verify,
             source_tag=self._config.source_tag,
-            connection_pool_maxsize=self._config.connection_pool_maxsize,
+            connection_pool_maxsize=connection_pool_maxsize,
         )
 
     def _build_index_kwargs(self, host: str) -> IndexKwargs:

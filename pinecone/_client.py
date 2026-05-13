@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import replace
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.config import PineconeConfig, RetryConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
@@ -768,17 +768,24 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.index(name=..., host=...)`` instead of ``pc.Index(...)``.
-        Accepts a legacy ``pool_threads=`` kwarg and forwards it to size the
-        ``async_req=True`` thread pool; other unknown kwargs raise ``TypeError``.
+        Accepts legacy ``pool_threads=`` and ``connection_pool_maxsize=`` kwargs;
+        other unknown kwargs raise ``TypeError``.
         """
         pool_threads = kwargs.pop("pool_threads", None)
+        connection_pool_maxsize: int | None = kwargs.pop("connection_pool_maxsize", None)
         if kwargs:
             raise TypeError(
                 f"Pinecone.Index() got unexpected keyword arguments: {sorted(kwargs)!r}"
             )
         from pinecone.index import Index as _Index
 
-        return cast(_Index, self.index(name=name, host=host, pool_threads=pool_threads))
+        kw = self._build_index_kwargs(
+            self._resolve_index_host(name=name, host=host),
+            pool_threads=pool_threads,
+        )
+        if connection_pool_maxsize is not None:
+            kw["connection_pool_maxsize"] = connection_pool_maxsize
+        return _Index(**kw)
 
     def IndexAsyncio(self, host: str, **kwargs: Any) -> Any:  # noqa: N802
         """Backwards-compatibility shim that returns an :class:`AsyncIndex`.

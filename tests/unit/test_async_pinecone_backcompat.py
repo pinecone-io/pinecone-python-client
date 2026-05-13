@@ -355,6 +355,20 @@ def test_async_index_asyncio_delegate_returns_async_index() -> None:
     assert isinstance(idx, AsyncIndex)
 
 
+def test_async_index_asyncio_connection_pool_maxsize_forwarded() -> None:
+    """pc.IndexAsyncio(host, connection_pool_maxsize=32) must propagate to the AsyncIndex."""
+    pc = AsyncPinecone(api_key="test-key")
+    idx = pc.IndexAsyncio(host="https://my-host.svc.pinecone.io", connection_pool_maxsize=32)
+    assert idx._config.connection_pool_maxsize == 32
+
+
+def test_async_index_asyncio_unknown_kwarg_raises_type_error() -> None:
+    """Unknown kwargs now raise TypeError instead of being silently dropped."""
+    pc = AsyncPinecone(api_key="test-key")
+    with pytest.raises(TypeError, match="unexpected keyword arguments"):
+        pc.IndexAsyncio(host="https://my-host.svc.pinecone.io", bogus_kwarg=True)
+
+
 # ---------------------------------------------------------------------------
 # __init__ positional host (backcompat)
 # ---------------------------------------------------------------------------
