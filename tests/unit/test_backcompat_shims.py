@@ -433,6 +433,55 @@ class TestAlignmentMetricsProxyCompat:
         assert result.usage.total_tokens == 30
 
 
+class TestInferenceModuleExports:
+    def test_inference_module_exports_embed_model(self) -> None:
+        from pinecone.inference import EmbedModel
+
+        assert EmbedModel is not None
+
+    def test_inference_module_exports_rerank_model(self) -> None:
+        from pinecone.inference import RerankModel
+
+        assert RerankModel is not None
+
+    def test_inference_module_exports_model_info(self) -> None:
+        from pinecone.inference import ModelInfo
+
+        assert ModelInfo is not None
+
+    def test_inference_module_exports_model_info_list(self) -> None:
+        from pinecone.inference import ModelInfoList
+
+        assert ModelInfoList is not None
+
+    def test_inference_module_exports_embeddings_list(self) -> None:
+        from pinecone.inference import EmbeddingsList
+
+        assert EmbeddingsList is not None
+
+    def test_inference_module_exports_rerank_result(self) -> None:
+        from pinecone.inference import RerankResult
+
+        assert RerankResult is not None
+
+    def test_inference_module_all_matches(self) -> None:
+        import pinecone.inference as inf
+
+        expected = {
+            "AsyncioInference",
+            "EmbedModel",
+            "EmbeddingsList",
+            "Inference",
+            "ModelInfo",
+            "ModelInfoList",
+            "RerankModel",
+            "RerankResult",
+        }
+        assert set(inf.__all__) == expected
+        for name in expected:
+            assert hasattr(inf, name), f"pinecone.inference missing attribute {name!r}"
+
+
 class TestDbControlModuleExports:
     def test_db_control_top_exports_cloud_provider(self) -> None:
         from pinecone.db_control import CloudProvider

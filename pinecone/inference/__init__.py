@@ -15,6 +15,11 @@ from __future__ import annotations
 # ---------------------------------------------------------------------------
 from pinecone.inference.inference import Inference as _Inference
 from pinecone.inference.inference_asyncio import AsyncioInference as _AsyncioInference
+from pinecone.models.enums import EmbedModel, RerankModel
+from pinecone.models.inference.embed import EmbeddingsList
+from pinecone.models.inference.model_list import ModelInfoList
+from pinecone.models.inference.models import ModelInfo
+from pinecone.models.inference.rerank import RerankResult
 
 Inference = _Inference
 """Backwards-compatibility alias. Canonical: :class:`pinecone.client.inference.Inference`.
@@ -29,4 +34,13 @@ Canonical: :class:`pinecone.async_client.inference.AsyncInference`.
 :meta private:
 """
 
-__all__ = ["AsyncioInference", "Inference"]
+__all__ = [
+    "AsyncioInference",
+    "EmbedModel",
+    "EmbeddingsList",
+    "Inference",
+    "ModelInfo",
+    "ModelInfoList",
+    "RerankModel",
+    "RerankResult",
+]
