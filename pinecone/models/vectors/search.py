@@ -193,6 +193,11 @@ class SearchQuery(DictLikeStruct, Struct, kw_only=True, gc=False):
     id: str | None = None
     match_terms: dict[str, Any] | None = None
 
+    def __post_init__(self) -> None:
+        v: object = self.vector
+        if isinstance(v, SearchQueryVector):
+            self.vector = v.to_dict()
+
     def to_dict(self) -> dict[str, Any]:
         """Return a dict of non-None field values.
 

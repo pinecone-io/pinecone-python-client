@@ -75,6 +75,19 @@ class TestSearchQueryShim:
         assert "inputs" in fields
         assert "top_k" in fields
 
+    def test_search_query_vector_auto_converted_to_dict(self) -> None:
+        from pinecone.db_data.dataclasses.search_query import SearchQuery
+        from pinecone.db_data.dataclasses.search_query_vector import SearchQueryVector
+
+        query = SearchQuery(inputs={"text": "hello"}, top_k=10, vector=SearchQueryVector(values=[0.1, 0.2, 0.3]))  # type: ignore[arg-type]
+        assert query.vector == {"values": [0.1, 0.2, 0.3]}
+        assert query.as_dict()["vector"] == {"values": [0.1, 0.2, 0.3]}
+
+    def test_search_query_vector_none_unchanged(self) -> None:
+        from pinecone.db_data.dataclasses.search_query import SearchQuery
+
+        assert SearchQuery(inputs={"text": "hello"}, top_k=5, vector=None).vector is None
+
 
 class TestSearchQueryVectorShim:
     def test_legacy_search_query_vector_importable_from_old_path(self) -> None:
