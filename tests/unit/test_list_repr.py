@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from pinecone.models.admin.api_key import APIKeyList, APIKeyModel
 from pinecone.models.admin.organization import OrganizationList, OrganizationModel
 from pinecone.models.admin.project import ProjectList, ProjectModel
@@ -87,7 +89,7 @@ class TestRestoreJobListRepr:
             target_index_name=target,
             target_index_id="idx-xyz",
             status=status,
-            created_at="2025-01-01T00:00:00Z",
+            created_at=datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
         )
 
     def test_repr_summary_format(self) -> None:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 import httpx
 import pytest
 import respx
@@ -112,7 +114,7 @@ def test_describe_restore_job(restore_jobs: RestoreJobs) -> None:
 
     assert isinstance(result, RestoreJobModel)
     assert result.restore_job_id == job_id
-    assert result.completed_at == "2025-02-04T12:15:00Z"
+    assert isinstance(result.completed_at, datetime)
 
 
 def test_describe_empty_id_raises(restore_jobs: RestoreJobs) -> None:
@@ -136,7 +138,7 @@ def test_restore_job_created_at_optional(restore_jobs: RestoreJobs) -> None:
 
     assert len(result) == 1
     job = result[0]
-    assert job.created_at is None or isinstance(job.created_at, str)
+    assert job.created_at is None or isinstance(job.created_at, datetime)
 
 
 @respx.mock

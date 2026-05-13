@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from msgspec import Struct
@@ -113,8 +114,8 @@ class RestoreJobModel(Struct, kw_only=True):
     target_index_name: str
     target_index_id: str
     status: str
-    created_at: str | None = None
-    completed_at: str | None = None
+    created_at: datetime | None = None
+    completed_at: datetime | None = None
     percent_complete: float | None = None
 
     def __getattr__(self, name: str) -> Any:
@@ -141,13 +142,14 @@ class RestoreJobModel(Struct, kw_only=True):
 
         Examples:
             >>> from pinecone.models.backups.model import RestoreJobModel
+            >>> from datetime import datetime, timezone
             >>> job = RestoreJobModel(
             ...     restore_job_id="rj-1",
             ...     backup_id="bkp-1",
             ...     target_index_name="my-index",
             ...     target_index_id="idx-abc",
             ...     status="Running",
-            ...     created_at="2024-01-01T00:00:00Z",
+            ...     created_at=datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
             ... )
             >>> d = job.to_dict()
             >>> d["restore_job_id"]

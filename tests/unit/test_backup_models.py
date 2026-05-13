@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 import msgspec
 import pytest
 
@@ -26,6 +28,10 @@ def _make_backup(**overrides: object) -> BackupModel:
     return BackupModel(**defaults)  # type: ignore[arg-type]
 
 
+_CREATED_AT = datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+_COMPLETED_AT = datetime(2025, 1, 1, 1, 0, 0, tzinfo=timezone.utc)
+
+
 def _make_restore_job(**overrides: object) -> RestoreJobModel:
     defaults: dict[str, object] = {
         "restore_job_id": "rj-001",
@@ -33,7 +39,7 @@ def _make_restore_job(**overrides: object) -> RestoreJobModel:
         "target_index_name": "restored-index",
         "target_index_id": "idx-789",
         "status": "Running",
-        "created_at": "2025-01-01T00:00:00Z",
+        "created_at": _CREATED_AT,
     }
     defaults.update(overrides)
     return RestoreJobModel(**defaults)  # type: ignore[arg-type]
@@ -206,7 +212,8 @@ class TestRestoreJobModelRequiredFields:
         assert job.target_index_name == "restored-index"
         assert job.target_index_id == "idx-789"
         assert job.status == "Running"
-        assert job.created_at == "2025-01-01T00:00:00Z"
+        assert isinstance(job.created_at, datetime)
+        assert job.created_at == _CREATED_AT
         assert job.completed_at is None
         assert job.percent_complete is None
 
@@ -215,11 +222,12 @@ class TestRestoreJobModelCompleted:
     def test_restore_job_model_completed(self) -> None:
         job = _make_restore_job(
             status="Completed",
-            completed_at="2025-01-01T01:00:00Z",
+            completed_at=_COMPLETED_AT,
             percent_complete=100.0,
         )
         assert job.status == "Completed"
-        assert job.completed_at == "2025-01-01T01:00:00Z"
+        assert isinstance(job.completed_at, datetime)
+        assert job.completed_at == _COMPLETED_AT
         assert job.percent_complete == 100.0
 
 
@@ -257,3 +265,41 @@ class TestCreateFromBackupResponse:
         assert resp.index_id == "idx-new"
         assert resp["restore_job_id"] == "rj-100"
         assert resp["index_id"] == "idx-new"
+
+
+class TestRestoreJobModelDatetimeFields:
+    def test_restore_job_model_created_at_is_datetime(self) -> None:
+        """Legacy callers expect created_at to be a datetime object, not a string."""
+        job = RestoreJobModel(
+            restore_job_id="rj-1",
+            backup_id="bkp-1",
+            target_index_name="my-index",
+            target_index_id="idx-abc",
+            status="Completed",
+            created_at=datetime(2024, 1, 15, 12, 0, 0, tzinfo=timezone.utc),
+        )
+        assert isinstance(job.created_at, datetime)
+        assert job.created_at.year == 2024
+        assert job.created_at.strftime("%Y-%m-%d") == "2024-01-15"
+
+    def test_restore_job_model_created_at_json_decode_is_datetime(self) -> None:
+        """msgspec.json.decode converts ISO 8601 string to datetime for created_at."""
+        raw = (
+            b'{"restore_job_id":"rj-1","backup_id":"bkp-1",'
+            b'"target_index_name":"my-index","target_index_id":"idx-abc",'
+            b'"status":"Completed","created_at":"2024-01-15T12:00:00Z"}'
+        )
+        job = msgspec.json.decode(raw, type=RestoreJobModel)
+        assert isinstance(job.created_at, datetime)
+        assert job.created_at.year == 2024
+
+    def test_restore_job_model_completed_at_json_decode_is_datetime(self) -> None:
+        """msgspec.json.decode converts ISO 8601 string to datetime for completed_at."""
+        raw = (
+            b'{"restore_job_id":"rj-1","backup_id":"bkp-1",'
+            b'"target_index_name":"my-index","target_index_id":"idx-abc",'
+            b'"status":"Completed","completed_at":"2024-01-15T13:30:00Z"}'
+        )
+        job = msgspec.json.decode(raw, type=RestoreJobModel)
+        assert isinstance(job.completed_at, datetime)
+        assert job.completed_at.hour == 13

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyRole
 from pinecone.models.admin.organization import OrganizationList, OrganizationModel
 from pinecone.models.admin.project import ProjectList, ProjectModel
@@ -34,7 +36,7 @@ def _make_restore_job() -> RestoreJobModel:
         target_index_name="restored",
         target_index_id="idx-2",
         status="Completed",
-        created_at="2025-01-01T00:00:00Z",
+        created_at=datetime(2025, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
     )
 
 
@@ -97,7 +99,7 @@ class TestRestoreJobListToDict:
             target_index_name="restored2",
             target_index_id="idx-3",
             status="Pending",
-            created_at="2025-02-01T00:00:00Z",
+            created_at=datetime(2025, 2, 1, 0, 0, 0, tzinfo=timezone.utc),
         )
         result = RestoreJobList([j1, j2]).to_dict()
         assert len(result["data"]) == 2

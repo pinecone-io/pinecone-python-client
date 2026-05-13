@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from datetime import datetime
 from unittest.mock import AsyncMock, patch
 
 import httpx
@@ -129,7 +130,7 @@ async def test_async_describe_restore_job(async_restore_jobs: AsyncRestoreJobs) 
 
     assert isinstance(result, RestoreJobModel)
     assert result.restore_job_id == job_id
-    assert result.completed_at == "2025-02-04T12:15:00Z"
+    assert isinstance(result.completed_at, datetime)
 
 
 async def test_async_describe_empty_id_raises(async_restore_jobs: AsyncRestoreJobs) -> None:
@@ -153,7 +154,7 @@ async def test_async_restore_job_created_at_optional(async_restore_jobs: AsyncRe
 
     assert len(result) == 1
     job = result[0]
-    assert job.created_at is None or isinstance(job.created_at, str)
+    assert job.created_at is None or isinstance(job.created_at, datetime)
 
 
 @respx.mock
