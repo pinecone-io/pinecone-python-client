@@ -28,6 +28,7 @@ from pinecone.errors.exceptions import (
     NotFoundError,
     PineconeConnectionError,
     PineconeTimeoutError,
+    RateLimitError,
     ServiceError,
     UnauthorizedError,
 )
@@ -295,6 +296,21 @@ def _extract_request_id(headers: httpx.Headers | dict[str, str]) -> str | None:
         return None
 
 
+def _parse_retry_after(headers: httpx.Headers | dict[str, str]) -> int | None:
+    """Parse the ``Retry-After`` header as delta-seconds (int).
+
+    Returns ``None`` if the header is absent, empty, non-numeric, or expresses
+    an HTTP date (we don't parse dates here). Never raises.
+    """
+    try:
+        raw = headers.get("retry-after")
+        if not raw:
+            return None
+        return int(raw)
+    except (ValueError, TypeError, AttributeError):
+        return None
+
+
 def _raise_for_status(response: httpx.Response) -> None:
     if response.is_success:
         return
@@ -350,6 +366,17 @@ def _raise_for_status(response: httpx.Response) -> None:
             headers=headers,
             error_code=error_code,
             request_id=request_id,
+        )
+    if status == 429:
+        raise RateLimitError(
+            message=message,
+            status_code=status,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
+            retry_after=_parse_retry_after(response.headers),
         )
     if 500 <= status <= 599:
         raise ServiceError(

@@ -65,7 +65,7 @@ def test_rate_limit_error_str_includes_status_and_error_code() -> None:
 
 
 def test_rate_limit_error_importable_from_pinecone_errors() -> None:
-    from pinecone.errors import RateLimitError as _RLE  # noqa: F401
+    from pinecone.errors import RateLimitError as _RLE  # noqa: F401, N814
 
 
 def test_rate_limit_error_importable_from_top_level() -> None:

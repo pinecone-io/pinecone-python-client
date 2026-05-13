@@ -14,6 +14,7 @@ from pinecone._internal.http_client import (
 from pinecone.errors.exceptions import (
     ApiError,
     NotFoundError,
+    RateLimitError,
     ServiceError,
 )
 
@@ -240,3 +241,74 @@ class TestExtractionResilience:
             msg, code = result
             assert isinstance(msg, str)
             assert code is None or isinstance(code, str)
+
+
+class TestParseRetryAfter:
+    def test_integer_seconds(self) -> None:
+        from pinecone._internal.http_client import _parse_retry_after
+
+        assert _parse_retry_after({"retry-after": "30"}) == 30
+
+    def test_missing_header(self) -> None:
+        from pinecone._internal.http_client import _parse_retry_after
+
+        assert _parse_retry_after({}) is None
+
+    def test_http_date_returns_none(self) -> None:
+        from pinecone._internal.http_client import _parse_retry_after
+
+        assert _parse_retry_after({"retry-after": "Wed, 21 Oct 2026 07:28:00 GMT"}) is None
+
+    def test_empty_string_returns_none(self) -> None:
+        from pinecone._internal.http_client import _parse_retry_after
+
+        assert _parse_retry_after({"retry-after": ""}) is None
+
+
+class TestRateLimitErrorMapping:
+    def test_429_with_canonical_body_raises_rate_limit_error(self) -> None:
+        body = {"error": {"code": "RESOURCE_EXHAUSTED", "message": "rate limited"}}
+        response = _make_response(429, json=body)
+        with pytest.raises(RateLimitError) as exc_info:
+            _raise_for_status(response)
+        err = exc_info.value
+        assert err.status_code == 429
+        assert err.error_code == "RESOURCE_EXHAUSTED"
+        assert err.message == "rate limited"
+        assert err.retry_after is None  # no Retry-After header
+
+    def test_429_with_retry_after_header_int(self) -> None:
+        body = {"error": {"code": "RESOURCE_EXHAUSTED", "message": "slow down"}}
+        response = _make_response(429, json=body, headers={"retry-after": "30"})
+        with pytest.raises(RateLimitError) as exc_info:
+            _raise_for_status(response)
+        assert exc_info.value.retry_after == 30
+
+    def test_429_with_retry_after_http_date_falls_back_to_none(self) -> None:
+        # RFC 7231 allows HTTP-date format; we don't parse dates → retry_after=None.
+        body = {"error": {"code": "RESOURCE_EXHAUSTED", "message": "later"}}
+        response = _make_response(
+            429,
+            json=body,
+            headers={"retry-after": "Wed, 21 Oct 2026 07:28:00 GMT"},
+        )
+        with pytest.raises(RateLimitError) as exc_info:
+            _raise_for_status(response)
+        assert exc_info.value.retry_after is None
+
+    def test_429_caught_by_api_error_block(self) -> None:
+        # Backwards-compat: code that catches ApiError still catches 429s.
+        response = _make_response(429, json={"error": {"message": "x"}})
+        with pytest.raises(ApiError) as exc_info:
+            _raise_for_status(response)
+        assert isinstance(exc_info.value, RateLimitError)
+
+    def test_429_request_id_extracted_from_headers(self) -> None:
+        response = _make_response(
+            429,
+            json={"error": {"code": "RESOURCE_EXHAUSTED", "message": "x"}},
+            headers={"x-pinecone-request-id": "req-abc-123"},
+        )
+        with pytest.raises(RateLimitError) as exc_info:
+            _raise_for_status(response)
+        assert exc_info.value.request_id == "req-abc-123"
