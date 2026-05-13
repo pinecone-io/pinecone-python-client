@@ -202,3 +202,71 @@ def test_create_index_from_backup_polls_until_ready(mock_sleep: object, pc: Pine
     assert result.name == "poll-index"
     # Describe should be called at least 2 times (first not-ready, then ready)
     assert describe_route.call_count >= 2
+
+
+# ---------------------------------------------------------------------------
+# Default deletion_protection is "disabled" in request body
+# ---------------------------------------------------------------------------
+
+
+@patch("pinecone._internal.indexes_helpers.time.sleep")
+@respx.mock
+def test_create_index_from_backup_default_deletion_protection_in_body(
+    mock_sleep: object, pc: Pinecone
+) -> None:
+    """When deletion_protection is not passed, 'disabled' is sent in the request body."""
+    import orjson
+
+    route = respx.post(f"{BASE_URL}/backups/bk-dp/create-index").mock(
+        return_value=httpx.Response(
+            202,
+            json={"restore_job_id": "rj-dp", "index_id": "idx-dp"},
+        ),
+    )
+    respx.get(f"{BASE_URL}/indexes/dp-test").mock(
+        return_value=httpx.Response(200, json=make_index_response(name="dp-test")),
+    )
+
+    pc.create_index_from_backup(name="dp-test", backup_id="bk-dp")
+
+    body = orjson.loads(route.calls[0].request.content)
+    assert body["deletion_protection"] == "disabled"
+
+
+# ---------------------------------------------------------------------------
+# timeout=None polls indefinitely (no premature 300s cap)
+# ---------------------------------------------------------------------------
+
+
+@patch("pinecone._internal.indexes_helpers.time.sleep")
+@respx.mock
+def test_create_index_from_backup_timeout_none_polls_indefinitely(
+    mock_sleep: object, pc: Pinecone
+) -> None:
+    """timeout=None must not cap at 300s — all describe calls complete before returning."""
+    respx.post(f"{BASE_URL}/backups/bk-inf/create-index").mock(
+        return_value=httpx.Response(
+            202,
+            json={"restore_job_id": "rj-inf", "index_id": "idx-inf"},
+        ),
+    )
+    not_ready = make_index_response(
+        name="inf-index",
+        status={"ready": False, "state": "Initializing"},
+    )
+    ready = make_index_response(
+        name="inf-index",
+        status={"ready": True, "state": "Ready"},
+    )
+    describe_route = respx.get(f"{BASE_URL}/indexes/inf-index").mock(
+        side_effect=[
+            httpx.Response(200, json=not_ready),
+            httpx.Response(200, json=not_ready),
+            httpx.Response(200, json=ready),
+        ]
+    )
+
+    result = pc.create_index_from_backup(name="inf-index", backup_id="bk-inf", timeout=None)
+
+    assert isinstance(result, IndexModel)
+    assert describe_route.call_count == 3

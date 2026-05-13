@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import orjson
 from collections.abc import AsyncGenerator
 from datetime import datetime
 from unittest.mock import AsyncMock, patch
@@ -311,6 +312,72 @@ async def test_async_create_index_from_backup_polls_until_ready(
     assert result.name == "poll-index"
     # Describe should be called at least 2 times (first not-ready, then ready)
     assert describe_route.call_count >= 2
+
+
+# ---------------------------------------------------------------------------
+# create_index_from_backup — default deletion_protection is "disabled"
+# ---------------------------------------------------------------------------
+
+
+@patch("pinecone._internal.indexes_helpers.asyncio.sleep", new_callable=AsyncMock)
+@respx.mock
+async def test_async_create_index_from_backup_default_deletion_protection_in_body(
+    mock_sleep: object, pc: AsyncPinecone
+) -> None:
+    """When deletion_protection is not passed, 'disabled' is sent in the request body."""
+    route = respx.post(f"{DEFAULT_BASE_URL}/backups/bk-dp/create-index").mock(
+        return_value=httpx.Response(
+            202,
+            json={"restore_job_id": "rj-dp", "index_id": "idx-dp"},
+        ),
+    )
+    respx.get(f"{DEFAULT_BASE_URL}/indexes/dp-test").mock(
+        return_value=httpx.Response(200, json=make_index_response(name="dp-test")),
+    )
+
+    await pc.create_index_from_backup(name="dp-test", backup_id="bk-dp")
+
+    body = orjson.loads(route.calls[0].request.content)
+    assert body["deletion_protection"] == "disabled"
+
+
+# ---------------------------------------------------------------------------
+# create_index_from_backup — timeout=None polls indefinitely
+# ---------------------------------------------------------------------------
+
+
+@patch("pinecone._internal.indexes_helpers.asyncio.sleep", new_callable=AsyncMock)
+@respx.mock
+async def test_async_create_index_from_backup_timeout_none_polls_indefinitely(
+    mock_sleep: object, pc: AsyncPinecone
+) -> None:
+    """timeout=None must not cap at 300s — all describe calls complete before returning."""
+    respx.post(f"{DEFAULT_BASE_URL}/backups/bk-inf/create-index").mock(
+        return_value=httpx.Response(
+            202,
+            json={"restore_job_id": "rj-inf", "index_id": "idx-inf"},
+        ),
+    )
+    not_ready = make_index_response(
+        name="inf-index",
+        status={"ready": False, "state": "Initializing"},
+    )
+    ready = make_index_response(
+        name="inf-index",
+        status={"ready": True, "state": "Ready"},
+    )
+    describe_route = respx.get(f"{DEFAULT_BASE_URL}/indexes/inf-index").mock(
+        side_effect=[
+            httpx.Response(200, json=not_ready),
+            httpx.Response(200, json=not_ready),
+            httpx.Response(200, json=ready),
+        ]
+    )
+
+    result = await pc.create_index_from_backup(name="inf-index", backup_id="bk-inf", timeout=None)
+
+    assert isinstance(result, IndexModel)
+    assert describe_route.call_count == 3
 
 
 # ---------------------------------------------------------------------------

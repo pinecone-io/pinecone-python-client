@@ -350,7 +350,7 @@ class AsyncPinecone:
         *,
         name: str,
         backup_id: str,
-        deletion_protection: DeletionProtection | str | None = None,
+        deletion_protection: DeletionProtection | str | None = "disabled",
         tags: Mapping[str, str] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
@@ -363,10 +363,10 @@ class AsyncPinecone:
             name (str): Name for the new index.
             backup_id (str): Identifier of the backup to restore from.
             deletion_protection (DeletionProtection | str | None): ``"enabled"`` or
-                ``"disabled"``. Defaults to ``"disabled"`` server-side when omitted.
+                ``"disabled"``. Defaults to ``"disabled"``.
             tags (dict[str, str] | None): Optional key-value tags for the new index.
             timeout (int | None): Seconds to wait for readiness. ``None`` (default)
-                blocks up to 300 s. ``-1`` returns a snapshot :class:`IndexModel`
+                polls indefinitely. ``-1`` returns a snapshot :class:`IndexModel`
                 immediately without polling.
 
         Returns:
@@ -421,8 +421,7 @@ class AsyncPinecone:
         if timeout == -1:
             return await self.indexes.describe(name)
 
-        effective_timeout = timeout if timeout is not None else 300
-        return await async_poll_index_until_ready(self.indexes.describe, name, effective_timeout)
+        return await async_poll_index_until_ready(self.indexes.describe, name, timeout)
 
     @property
     def config(self) -> PineconeConfig:
