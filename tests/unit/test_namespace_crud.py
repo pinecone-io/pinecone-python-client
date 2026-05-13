@@ -237,12 +237,18 @@ class TestDeleteNamespace:
 
 
 class TestKeywordOnly:
-    """All namespace CRUD methods require keyword arguments."""
+    """describe_namespace / delete_namespace still require keyword arguments;
+    create_namespace accepts name as positional-or-keyword for backcompat."""
 
-    def test_create_namespace_keyword_only(self) -> None:
+    @respx.mock
+    def test_create_namespace_positional_name(self) -> None:
+        respx.post(NS_URL).mock(
+            return_value=httpx.Response(200, json={"name": "movies-en", "record_count": 0}),
+        )
         idx = _make_index()
-        with pytest.raises(TypeError):
-            idx.create_namespace("ns1")  # type: ignore[misc]
+        result = idx.create_namespace("movies-en")  # positional — must not raise TypeError
+        assert isinstance(result, NamespaceDescription)
+        assert result.name == "movies-en"
 
     def test_describe_namespace_keyword_only(self) -> None:
         idx = _make_index()

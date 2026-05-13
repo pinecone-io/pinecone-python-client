@@ -1295,7 +1295,6 @@ class Index:
 
     def create_namespace(
         self,
-        *,
         name: str,
         schema: dict[str, Any] | None = None,
     ) -> NamespaceDescription:

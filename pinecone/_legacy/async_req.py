@@ -20,6 +20,15 @@ logger = logging.getLogger(__name__)
 
 _METHODS_TO_WRAP = ("upsert", "query", "describe_index_stats", "list_paginated")
 
+# Maps method name → ordered tuple of parameter names that the legacy signature
+# accepted as positional-or-keyword but the new canonical signature makes keyword-only.
+# The coercion block in _build_wrapper uses this to promote leading positional args
+# before forwarding to the canonical method.
+_POSITIONAL_SLOTS: dict[str, tuple[str, ...]] = {
+    "describe_index_stats": ("filter",),
+    "list_paginated": ("prefix", "limit", "pagination_token", "namespace"),
+}
+
 # Default thread-pool size when the caller uses ``async_req=True`` without
 # having passed ``pool_threads=N``. Sized to match typical HTTP connection-pool
 # defaults (urllib3=10, httpx max_keepalive=20) — meaningful parallelism for
@@ -90,6 +99,14 @@ def _build_wrapper(
     pool: _LegacyAsyncPool,
 ) -> Callable[..., Any]:
     def wrapper(*args: Any, **kwargs: Any) -> Any:
+        if name in _POSITIONAL_SLOTS and args:
+            slots = _POSITIONAL_SLOTS[name]
+            extra = list(args)
+            for slot in slots:
+                if not extra:
+                    break
+                kwargs.setdefault(slot, extra.pop(0))
+            args = tuple(extra)
         async_req = kwargs.pop("async_req", False)
         if not async_req:
             return canonical(*args, **kwargs)

@@ -120,3 +120,53 @@ def test_invalid_pool_threads_rejected() -> None:
         install_async_req_support(idx, pool_threads=0)
     with pytest.raises(PineconeValueError):
         install_async_req_support(idx, pool_threads=-1)
+
+
+# ---------------------------------------------------------------------------
+# Positional-arg coercion tests (SDK-BC-082 / SDK-BC-083)
+# ---------------------------------------------------------------------------
+
+
+def test_describe_index_stats_positional_filter_sync() -> None:
+    idx = _FakeIndex()
+    install_async_req_support(idx, pool_threads=2)
+    result = idx.describe_index_stats({"genre": {"$eq": "drama"}})  # positional, no filter= kw
+    assert result == "describe-result:{'filter': {'genre': {'$eq': 'drama'}}}"
+    assert idx.describe_calls == [{"filter": {"genre": {"$eq": "drama"}}}]
+
+
+def test_describe_index_stats_positional_filter_async_req() -> None:
+    idx = _FakeIndex()
+    install_async_req_support(idx, pool_threads=2)
+    result = idx.describe_index_stats({"genre": {"$eq": "drama"}}, async_req=True)
+    assert isinstance(result, ApplyResult)
+    value = result.get(timeout=5)
+    assert value.startswith("describe-result:")
+    # filter must have been forwarded to canonical, not dropped
+    assert idx.describe_calls == [{"filter": {"genre": {"$eq": "drama"}}}]
+
+
+def test_list_paginated_positional_prefix_sync() -> None:
+    idx = _FakeIndex()
+    install_async_req_support(idx, pool_threads=2)
+    result = idx.list_paginated("doc1#")
+    assert result == "list-result:{'prefix': 'doc1#'}"
+    assert idx.list_calls == [{"prefix": "doc1#"}]
+
+
+def test_list_paginated_positional_prefix_limit_sync() -> None:
+    idx = _FakeIndex()
+    install_async_req_support(idx, pool_threads=2)
+    result = idx.list_paginated("doc1#", 50)
+    assert result == "list-result:{'prefix': 'doc1#', 'limit': 50}"
+    assert idx.list_calls == [{"prefix": "doc1#", "limit": 50}]
+
+
+def test_list_paginated_positional_prefix_async_req() -> None:
+    idx = _FakeIndex()
+    install_async_req_support(idx, pool_threads=2)
+    result = idx.list_paginated("doc1#", 50, async_req=True)
+    assert isinstance(result, ApplyResult)
+    result.get(timeout=5)
+    # prefix and limit must be forwarded, not silently dropped
+    assert idx.list_calls == [{"prefix": "doc1#", "limit": 50}]
