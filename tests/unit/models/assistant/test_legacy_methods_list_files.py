@@ -90,6 +90,7 @@ def test_assistant_model_list_files_paginated_legacy(
         assistant_name=mock_assistant_model.name,
         filter=None,
         pagination_token=None,
+        page_size=None,
     )
 
 
@@ -102,6 +103,7 @@ def test_assistant_model_list_files_paginated_with_pagination_token(
         assistant_name=mock_assistant_model.name,
         filter=None,
         pagination_token="tok-abc",
+        page_size=None,
     )
 
 
@@ -114,6 +116,7 @@ def test_assistant_model_list_files_paginated_with_filter(
         assistant_name=mock_assistant_model.name,
         filter={"status": "Available"},
         pagination_token=None,
+        page_size=None,
     )
 
 
@@ -127,19 +130,43 @@ def test_list_files_paginated_returns_response_shape(
     assert hasattr(resp, "next")
 
 
-def test_list_files_paginated_limit_accepted_without_error(
+def test_list_files_paginated_limit_forwarded_as_page_size(
     mock_assistants: MagicMock, mock_assistant_model: AssistantModel
 ) -> None:
-    """list_files_paginated accepts limit= without raising even though the API ignores it."""
-    # Should not raise; limit is a legacy parameter accepted for compatibility.
+    """list_files_paginated forwards limit as page_size to ns.list_files_page."""
     mock_assistant_model.list_files_paginated(limit=10)
+    mock_assistants.list_files_page.assert_called_once_with(
+        assistant_name="test-assistant",
+        filter=None,
+        pagination_token=None,
+        page_size=10,
+    )
 
 
-def test_list_files_paginated_page_size_accepted_without_error(
+def test_list_files_paginated_page_size_forwarded(
     mock_assistants: MagicMock, mock_assistant_model: AssistantModel
 ) -> None:
-    """list_files_paginated accepts page_size= without raising even though the API ignores it."""
-    mock_assistant_model.list_files_paginated(page_size=10)
+    """list_files_paginated forwards page_size directly to ns.list_files_page."""
+    mock_assistant_model.list_files_paginated(page_size=5)
+    mock_assistants.list_files_page.assert_called_once_with(
+        assistant_name="test-assistant",
+        filter=None,
+        pagination_token=None,
+        page_size=5,
+    )
+
+
+def test_list_files_paginated_page_size_wins_over_limit(
+    mock_assistants: MagicMock, mock_assistant_model: AssistantModel
+) -> None:
+    """When both limit and page_size are provided, page_size wins."""
+    mock_assistant_model.list_files_paginated(limit=10, page_size=20)
+    mock_assistants.list_files_page.assert_called_once_with(
+        assistant_name="test-assistant",
+        filter=None,
+        pagination_token=None,
+        page_size=20,
+    )
 
 
 def test_assistant_model_list_files_paginated_without_client_ref_raises(

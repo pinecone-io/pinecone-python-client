@@ -153,16 +153,15 @@ class AssistantModelLegacyMethodsMixin:
         """Return a single page of files for this assistant.
 
         .. deprecated:: 9.0.0
-            Use :meth:`Assistants.list_files_page` instead. The ``limit`` and
-            ``page_size`` parameters are accepted for backwards compatibility but
-            are not forwarded; the underlying endpoint does not support page-size
-            control.
+            Use :meth:`Assistants.list_files_page` instead.
         """
         ns = self._resolve_assistants()
+        effective_page_size = page_size if page_size is not None else limit
         return ns.list_files_page(
             assistant_name=self.name,  # type: ignore[attr-defined]
             filter=filter,
             pagination_token=pagination_token,
+            page_size=effective_page_size,
         )
 
     def upload_file(
