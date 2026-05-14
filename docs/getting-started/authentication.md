@@ -42,7 +42,7 @@ from pinecone import Pinecone, PineconeConfigurationError
 try:
     pc = Pinecone()
 except PineconeConfigurationError as e:
-    print(e)  # "No API key provided. Pass api_key='...' or set the PINECONE_API_KEY env var."
+    print(e)  # "No API key provided. Pass api_key='...' or set the PINECONE_API_KEY environment variable."
 ```
 
 ## Security best practices
