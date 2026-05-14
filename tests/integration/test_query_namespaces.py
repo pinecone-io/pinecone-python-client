@@ -1122,3 +1122,89 @@ def test_query_namespaces_dense_dotproduct_scores_descending_rest(client: Pineco
         assert results.ns_usage.keys() == {"ddp-ns1", "ddp-ns2"}
     finally:
         ensure_index_deleted(client, name)
+
+
+# ---------------------------------------------------------------------------
+# query-namespaces — gRPC transport
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_query_namespaces_grpc(client: Pinecone) -> None:
+    """GrpcIndex.query_namespaces() fans out per-namespace gRPC queries and merges results.
+
+    Mirrors test_query_namespaces_filter_rest but uses the gRPC transport.
+    Verifies that GrpcIndex exposes query_namespaces with the same interface
+    and returns a correctly-typed QueryNamespacesResults.
+    """
+    name = unique_name("idx")
+    try:
+        client.indexes.create(
+            name=name,
+            dimension=2,
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+            timeout=300,
+        )
+        rest_index = client.index(name=name)
+
+        # Upsert into 2 namespaces via REST (upsert_records is REST-only for gRPC clients)
+        rest_index.upsert(
+            vectors=[
+                {"id": "grpc-qn-ns1-v1", "values": [0.1, 0.9]},
+                {"id": "grpc-qn-ns1-v2", "values": [0.9, 0.1]},
+            ],
+            namespace="grpc-qn-ns1",
+        )
+        rest_index.upsert(
+            vectors=[
+                {"id": "grpc-qn-ns2-v1", "values": [0.5, 0.5]},
+                {"id": "grpc-qn-ns2-v2", "values": [0.6, 0.4]},
+            ],
+            namespace="grpc-qn-ns2",
+        )
+
+        # Wait for vectors to be queryable in both namespaces
+        poll_until(
+            query_fn=lambda: rest_index.query(vector=[0.5, 0.5], top_k=10, namespace="grpc-qn-ns1"),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="grpc-qn-ns1 vectors queryable before gRPC query_namespaces test",
+        )
+        poll_until(
+            query_fn=lambda: rest_index.query(vector=[0.5, 0.5], top_k=10, namespace="grpc-qn-ns2"),
+            check_fn=lambda r: len(r.matches) >= 2,
+            timeout=120,
+            description="grpc-qn-ns2 vectors queryable before gRPC query_namespaces test",
+        )
+
+        # Switch to gRPC client for the actual test
+        index = client.index(name=name, grpc=True)
+        results = index.query_namespaces(
+            vector=[0.5, 0.5],
+            namespaces=["grpc-qn-ns1", "grpc-qn-ns2"],
+            metric="cosine",
+            top_k=5,
+        )
+
+        assert isinstance(results, QueryNamespacesResults)
+        assert isinstance(results.matches, list)
+        assert len(results.matches) >= 1
+
+        for match in results.matches:
+            assert isinstance(match, ScoredVector)
+            assert isinstance(match.id, str)
+            assert isinstance(match.score, float)
+
+        # Scores must be sorted descending for cosine
+        scores = [m.score for m in results.matches]
+        assert scores == sorted(scores, reverse=True), (
+            f"GrpcIndex query_namespaces matches not sorted by descending score: {scores}"
+        )
+
+        # Both namespaces must appear in ns_usage
+        assert isinstance(results.ns_usage, dict)
+        assert "grpc-qn-ns1" in results.ns_usage
+        assert "grpc-qn-ns2" in results.ns_usage
+    finally:
+        cleanup_resource(lambda: client.indexes.delete(name), name, "index")

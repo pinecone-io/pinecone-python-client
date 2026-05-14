@@ -385,6 +385,8 @@ PineconeProtocolError = PineconeError
 PineconeApiTypeError = PineconeTypeError
 # Backcompat alias, :meta private:
 PineconeApiValueError = PineconeValueError
+
+
 class PineconeApiAttributeError(PineconeError, AttributeError):
     """:meta private:"""
 
