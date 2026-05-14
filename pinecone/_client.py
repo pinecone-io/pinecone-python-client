@@ -290,6 +290,10 @@ class Pinecone:
         alias is provided for ergonomic singular-form access and is not
         deprecated.
 
+        Returns:
+            Proxy supporting namespace-style access (``pc.assistant.create_assistant(...)``)
+            and the shorthand call form (``pc.assistant("my-name")``).
+
         Examples:
 
             >>> bot = pc.assistant("acme-support-bot")  # doctest: +SKIP
