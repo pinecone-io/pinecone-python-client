@@ -131,7 +131,8 @@ with GrpcIndex(host="product-search-abc123.svc.pinecone.io") as index:
 
 - `GrpcIndex` is **sync only**. It does not support Python's `async/await`. For async
   concurrency, use `PineconeFuture` or switch to `AsyncIndex`.
-- The `grpc` extra requires a compatible platform. Check the package's supported-platform
-  list if installation fails.
+- The Rust-backed gRPC channel (`pinecone._grpc`) is a platform-specific native extension
+  bundled in the base package. If installation fails on your platform, check the package's
+  supported-platform list for available wheels.
 - `upsert_records` and `search` on `GrpcIndex` are routed over REST (the Pinecone gRPC
   API does not expose those endpoints).
