@@ -131,3 +131,62 @@ class TestGrpcDescribeNamespace:
         idx.describe_namespace(name="ns1", timeout=5.0)
 
         mock_channel.describe_namespace.assert_called_once_with("ns1", timeout_s=5.0)
+
+
+class TestGrpcDeleteNamespace:
+    def test_grpc_delete_namespace_returns_none(self) -> None:
+        mock_channel = MagicMock()
+        mock_channel.delete_namespace.return_value = None
+        idx = _make_grpc_index(mock_channel)
+
+        result = idx.delete_namespace(name="movies")
+
+        mock_channel.delete_namespace.assert_called_once_with("movies", timeout_s=None)
+        assert result is None
+
+    def test_grpc_delete_namespace_accepts_legacy_namespace_kwarg(self) -> None:
+        mock_channel = MagicMock()
+        mock_channel.delete_namespace.return_value = None
+        idx = _make_grpc_index(mock_channel)
+
+        result = idx.delete_namespace(namespace="movies")  # type: ignore[call-arg]
+
+        mock_channel.delete_namespace.assert_called_once_with("movies", timeout_s=None)
+        assert result is None
+
+    def test_grpc_delete_namespace_both_kwargs_raise(self) -> None:
+        from pinecone.errors.exceptions import ValidationError
+
+        mock_channel = MagicMock()
+        idx = _make_grpc_index(mock_channel)
+
+        with pytest.raises(ValidationError, match=r"name=.*namespace="):
+            idx.delete_namespace(name="movies", namespace="movies")  # type: ignore[call-arg]
+
+    def test_grpc_delete_namespace_positional_name_raises(self) -> None:
+        mock_channel = MagicMock()
+        idx = _make_grpc_index(mock_channel)
+
+        with pytest.raises(TypeError):
+            idx.delete_namespace("my-ns")  # type: ignore[misc]
+
+    def test_grpc_delete_namespace_empty_name_raises(self) -> None:
+        from pinecone.errors.exceptions import ValidationError
+
+        mock_channel = MagicMock()
+        idx = _make_grpc_index(mock_channel)
+
+        with pytest.raises(ValidationError, match="non-empty"):
+            idx.delete_namespace(name="")
+
+        with pytest.raises(ValidationError, match="non-empty"):
+            idx.delete_namespace(name="   ")
+
+    def test_grpc_delete_namespace_passes_timeout(self) -> None:
+        mock_channel = MagicMock()
+        mock_channel.delete_namespace.return_value = None
+        idx = _make_grpc_index(mock_channel)
+
+        idx.delete_namespace(name="ns1", timeout=3.0)
+
+        mock_channel.delete_namespace.assert_called_once_with("ns1", timeout_s=3.0)

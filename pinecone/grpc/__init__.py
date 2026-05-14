@@ -1381,6 +1381,42 @@ class GrpcIndex:
             indexed_fields=indexed_fields,
         )
 
+    def delete_namespace(
+        self,
+        *,
+        name: str | None = None,
+        timeout: float | None = None,
+        **kwargs: str,
+    ) -> None:
+        """Delete a namespace by name, removing all its vectors.
+
+        Args:
+            name (str): Name of the namespace to delete.
+            timeout (float | None): Per-call timeout in seconds.
+
+        Returns:
+            None — a successful delete returns no payload.
+
+        Raises:
+            :exc:`ValidationError`: If the name is not a string or is empty/whitespace.
+            :exc:`TypeError`: If unexpected keyword arguments are passed.
+        """
+        legacy_namespace: str | None = kwargs.pop("namespace", None)
+        if kwargs:
+            raise TypeError(
+                f"delete_namespace() got unexpected keyword arguments: {sorted(kwargs)!r}"
+            )
+        if name is not None and legacy_namespace is not None:
+            raise ValidationError("Provide either name= or namespace=, not both")
+        effective: str = name if name is not None else (legacy_namespace or "")
+        if not isinstance(effective, str):
+            raise ValidationError("namespace name must be a string")
+        if not effective or not effective.strip():
+            raise ValidationError("namespace name must be a non-empty string")
+
+        logger.info("Deleting namespace %r via gRPC", effective)
+        self._channel.delete_namespace(effective, timeout_s=timeout)
+
     def close(self) -> None:
         """Close the underlying gRPC channel, REST client, and release resources."""
         self._executor.shutdown(wait=True)
