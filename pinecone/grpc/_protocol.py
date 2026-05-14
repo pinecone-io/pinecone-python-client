@@ -101,6 +101,16 @@ class GrpcChannelProtocol(Protocol):
         """Describe index statistics."""
         ...
 
+    def create_namespace(
+        self,
+        name: str,
+        schema: Mapping[str, Any] | None = None,
+        *,
+        timeout_s: float | None = None,
+    ) -> dict[str, Any]:
+        """Create a namespace."""
+        ...
+
     def describe_namespace(
         self,
         namespace: str,

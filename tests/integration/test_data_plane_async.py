@@ -978,7 +978,13 @@ async def test_create_namespace_with_schema_async(
         assert created.record_count == 0  # new namespace has no vectors
 
         # describe_namespace returns the namespace as accessible (schema was accepted)
-        described = await idx.describe_namespace(name=ns_name)
+        # Poll for eventual consistency — backend may not expose the namespace immediately after create
+        described = await async_poll_until(
+            query_fn=lambda: idx.describe_namespace(name=ns_name),
+            check_fn=lambda r: isinstance(r, NamespaceDescription),
+            timeout=60,
+            description=f"namespace {ns_name} visible after create",
+        )
         assert isinstance(described, NamespaceDescription)
         assert described.name == ns_name
         assert isinstance(described.record_count, int)

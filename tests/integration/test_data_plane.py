@@ -936,11 +936,14 @@ def test_namespace_crud_lifecycle_rest(client: Pinecone, shared_index_dim2: str)
     result = index.delete_namespace(name=ns_name)
     assert result is None  # unified-ns-0004
 
-    # 6. After deletion, namespace no longer appears in listing
-    post_delete = index.list_namespaces_paginated(prefix=f"{ns}-", limit=100)
+    # 6. After deletion, namespace no longer appears in listing (eventual consistency)
+    post_delete = poll_until(
+        query_fn=lambda: index.list_namespaces_paginated(prefix=f"{ns}-", limit=100),
+        check_fn=lambda r: ns_name not in [ns_item.name for ns_item in r.namespaces],
+        timeout=60,
+        description=f"namespace {ns_name} removed from listing after delete",
+    )
     assert isinstance(post_delete, ListNamespacesResponse)
-    post_names = [ns_item.name for ns_item in post_delete.namespaces]
-    assert ns_name not in post_names
 
 
 # ---------------------------------------------------------------------------
@@ -970,27 +973,38 @@ def test_namespace_crud_lifecycle_grpc(client: Pinecone, shared_index_dim2: str)
     assert created.name == ns_name
     assert created.record_count == 0  # unified-ns-0002
 
-    # 2. Describe namespace — returns same details
-    described = index.describe_namespace(name=ns_name)
+    # 2. Describe namespace — poll for eventual consistency after create
+    described = poll_until(
+        query_fn=lambda: index.describe_namespace(name=ns_name),
+        check_fn=lambda r: isinstance(r, NamespaceDescription),
+        timeout=60,
+        description=f"namespace {ns_name} visible after create via gRPC",
+    )
     assert isinstance(described, NamespaceDescription)
     assert described.name == ns_name
     assert isinstance(described.record_count, int)
 
     # 3. Namespace appears in list_namespaces_paginated with prefix match
-    list_resp = index.list_namespaces_paginated(prefix=f"{ns}-", limit=100)
+    list_resp = poll_until(
+        query_fn=lambda: index.list_namespaces_paginated(prefix=f"{ns}-", limit=100),
+        check_fn=lambda r: ns_name in [ns_item.name for ns_item in r.namespaces],
+        timeout=60,
+        description=f"namespace {ns_name} visible in listing after create via gRPC",
+    )
     assert isinstance(list_resp, ListNamespacesResponse)
-    ns_names = [ns_item.name for ns_item in list_resp.namespaces]
-    assert ns_name in ns_names
 
     # 4. Delete namespace — returns None on success (unified-ns-0004)
     result = index.delete_namespace(name=ns_name)
     assert result is None
 
-    # 5. After deletion, namespace no longer appears in listing
-    post_delete = index.list_namespaces_paginated(prefix=f"{ns}-", limit=100)
+    # 5. After deletion, namespace no longer appears in listing (eventual consistency)
+    post_delete = poll_until(
+        query_fn=lambda: index.list_namespaces_paginated(prefix=f"{ns}-", limit=100),
+        check_fn=lambda r: ns_name not in [ns_item.name for ns_item in r.namespaces],
+        timeout=60,
+        description=f"namespace {ns_name} removed from listing after delete via gRPC",
+    )
     assert isinstance(post_delete, ListNamespacesResponse)
-    post_names = [ns_item.name for ns_item in post_delete.namespaces]
-    assert ns_name not in post_names
 
 
 # ---------------------------------------------------------------------------
