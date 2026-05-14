@@ -1386,6 +1386,49 @@ class GrpcIndex:
             total_count=result.get("total_count", 0),
         )
 
+    def list_namespaces(
+        self,
+        *,
+        prefix: str | None = None,
+        limit: int | None = None,
+        timeout: float | None = None,
+    ) -> Iterator[ListNamespacesResponse]:
+        """List namespaces, automatically following pagination.
+
+        Yields one :class:`ListNamespacesResponse` per page. The generator
+        automatically follows pagination tokens until all pages have been
+        retrieved.
+
+        Args:
+            prefix (str | None): Return only namespaces whose names start with this prefix.
+            limit (int | None): Maximum number of namespaces to return per page.
+            timeout (float | None): Per-call timeout in seconds.
+
+        Yields:
+            :class:`ListNamespacesResponse` for each page of results.
+
+        Examples:
+            .. code-block:: python
+
+                for page in idx.list_namespaces(prefix="prod-"):
+                    for ns in page.namespaces:
+                        print(ns.name, ns.record_count)
+        """
+        pagination_token: str | None = None
+        while True:
+            page = self.list_namespaces_paginated(
+                prefix=prefix,
+                limit=limit,
+                pagination_token=pagination_token,
+                timeout=timeout,
+            )
+            if page.namespaces:
+                yield page
+            if page.pagination is not None and page.pagination.next is not None:
+                pagination_token = page.pagination.next
+            else:
+                break
+
     def describe_namespace(
         self,
         *,

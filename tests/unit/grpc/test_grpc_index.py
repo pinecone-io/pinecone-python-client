@@ -281,3 +281,93 @@ class TestGrpcListNamespacesPaginated:
             pagination_token=None,
             timeout_s=2.5,
         )
+
+
+class TestGrpcListNamespaces:
+    def test_grpc_list_namespaces_yields_pages_single(self) -> None:
+        mock_channel = MagicMock()
+        idx = _make_grpc_index(mock_channel)
+
+        page = ListNamespacesResponse(
+            namespaces=[NamespaceDescription(name="a", record_count=1)],
+            pagination=None,
+            total_count=1,
+        )
+        idx.list_namespaces_paginated = MagicMock(return_value=page)
+
+        pages = list(idx.list_namespaces())
+
+        assert pages == [page]
+        idx.list_namespaces_paginated.assert_called_once_with(
+            prefix=None,
+            limit=None,
+            pagination_token=None,
+            timeout=None,
+        )
+
+    def test_grpc_list_namespaces_yields_pages_multi(self) -> None:
+        mock_channel = MagicMock()
+        idx = _make_grpc_index(mock_channel)
+
+        from pinecone.models.namespaces.models import Pagination
+
+        page1 = ListNamespacesResponse(
+            namespaces=[NamespaceDescription(name="a", record_count=1)],
+            pagination=Pagination(next="tok1"),
+            total_count=2,
+        )
+        page2 = ListNamespacesResponse(
+            namespaces=[NamespaceDescription(name="b", record_count=2)],
+            pagination=None,
+            total_count=2,
+        )
+        idx.list_namespaces_paginated = MagicMock(side_effect=[page1, page2])
+
+        pages = list(idx.list_namespaces())
+
+        assert pages == [page1, page2]
+        assert idx.list_namespaces_paginated.call_count == 2
+        second_call_kwargs = idx.list_namespaces_paginated.call_args_list[1].kwargs
+        assert second_call_kwargs["pagination_token"] == "tok1"
+
+    def test_grpc_list_namespaces_skips_empty_pages(self) -> None:
+        mock_channel = MagicMock()
+        idx = _make_grpc_index(mock_channel)
+
+        from pinecone.models.namespaces.models import Pagination
+
+        empty_page = ListNamespacesResponse(
+            namespaces=[],
+            pagination=Pagination(next="tok1"),
+            total_count=0,
+        )
+        final_page = ListNamespacesResponse(
+            namespaces=[NamespaceDescription(name="a", record_count=1)],
+            pagination=None,
+            total_count=1,
+        )
+        idx.list_namespaces_paginated = MagicMock(side_effect=[empty_page, final_page])
+
+        pages = list(idx.list_namespaces())
+
+        assert pages == [final_page]
+
+    def test_grpc_list_namespaces_limit_forwarded(self) -> None:
+        mock_channel = MagicMock()
+        idx = _make_grpc_index(mock_channel)
+
+        page = ListNamespacesResponse(
+            namespaces=[NamespaceDescription(name="a", record_count=1)],
+            pagination=None,
+            total_count=1,
+        )
+        idx.list_namespaces_paginated = MagicMock(return_value=page)
+
+        list(idx.list_namespaces(limit=5))
+
+        idx.list_namespaces_paginated.assert_called_once_with(
+            prefix=None,
+            limit=5,
+            pagination_token=None,
+            timeout=None,
+        )
