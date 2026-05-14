@@ -73,14 +73,17 @@ except ConflictError:
     pass  # index already exists — continue
 ```
 
-### Why are responses immutable?
+### Can I modify a response object?
 
-Response objects are `msgspec.Struct` instances, which are frozen by default. Immutability
-eliminates a class of bugs where code accidentally modifies a shared response object and
-enables safe use across threads without locks. If you need a mutable copy, convert it:
+Response objects are `msgspec.Struct` instances. They are **not** frozen (i.e., fields
+can be reassigned), but mutating them directly is not recommended because subsequent SDK
+calls may return new instances that replace the object. If you need a plain, mutable dict,
+use the `.to_dict()` method available on most response structs:
 
 ```python
-import msgspec
 idx = pc.indexes.describe("my-index")
-d = msgspec.structs.asdict(idx)   # returns a plain dict you can modify
+d = idx.to_dict()   # returns a plain dict you can modify
 ```
+
+Alternatively, `msgspec.structs.asdict(idx)` works for any `msgspec.Struct` but does
+not recursively convert nested structs the way `.to_dict()` does.
