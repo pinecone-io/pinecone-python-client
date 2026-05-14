@@ -182,7 +182,7 @@ class Pinecone:
 
     @property
     def collections(self) -> Collections:
-        """Access the Collections namespace for collection operations.
+        """Access the Collections namespace for control-plane collection operations.
 
         Lazily imported and instantiated on first access.
 
