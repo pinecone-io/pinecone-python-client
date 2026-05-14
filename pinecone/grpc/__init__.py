@@ -1429,6 +1429,57 @@ class GrpcIndex:
             else:
                 break
 
+    def create_namespace(
+        self,
+        *,
+        name: str,
+        schema: dict[str, Any] | None = None,
+        timeout: float | None = None,
+    ) -> NamespaceDescription:
+        """Create a named namespace in the index via gRPC.
+
+        Args:
+            name (str): Name for the new namespace (must be non-empty).
+            schema (dict[str, Any] | None): Optional schema configuration
+                with metadata field indexing settings.
+            timeout (float | None): Per-call timeout in seconds.
+
+        Returns:
+            :class:`NamespaceDescription` with the namespace name and record count.
+
+        Raises:
+            :exc:`ValidationError`: If the name is not a string or is empty/whitespace.
+        """
+        if not isinstance(name, str):
+            raise ValidationError("namespace name must be a string")
+        if not name or not name.strip():
+            raise ValidationError("namespace name must be a non-empty string")
+
+        logger.info("Creating namespace %r via gRPC", name)
+        result = self._channel.create_namespace(name, schema, timeout_s=timeout)
+
+        schema_obj: NamespaceSchema | None = None
+        raw_schema = result.get("schema")
+        if raw_schema is not None:
+            schema_obj = NamespaceSchema(
+                fields={
+                    k: NamespaceFieldConfig(filterable=v["filterable"])
+                    for k, v in raw_schema.get("fields", {}).items()
+                }
+            )
+
+        indexed_fields: IndexedFields | None = None
+        raw_indexed = result.get("indexed_fields")
+        if raw_indexed is not None:
+            indexed_fields = IndexedFields(fields=list(raw_indexed))
+
+        return NamespaceDescription(
+            name=result.get("name", ""),
+            record_count=result.get("record_count", 0),
+            schema=schema_obj,
+            indexed_fields=indexed_fields,
+        )
+
     def describe_namespace(
         self,
         *,

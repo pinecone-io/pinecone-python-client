@@ -133,6 +133,77 @@ class TestGrpcDescribeNamespace:
         mock_channel.describe_namespace.assert_called_once_with("ns1", timeout_s=5.0)
 
 
+class TestGrpcCreateNamespace:
+    def test_grpc_create_namespace_routes_to_channel(self) -> None:
+        mock_channel = MagicMock()
+        mock_channel.create_namespace.return_value = {
+            "name": "movies",
+            "record_count": 0,
+        }
+        idx = _make_grpc_index(mock_channel)
+
+        result = idx.create_namespace(name="movies")
+
+        mock_channel.create_namespace.assert_called_once_with("movies", None, timeout_s=None)
+        assert isinstance(result, NamespaceDescription)
+        assert result.name == "movies"
+        assert result.record_count == 0
+
+    def test_grpc_create_namespace_forwards_schema(self) -> None:
+        mock_channel = MagicMock()
+        mock_channel.create_namespace.return_value = {
+            "name": "movies",
+            "record_count": 0,
+            "schema": {"fields": {"genre": {"filterable": True}}},
+        }
+        idx = _make_grpc_index(mock_channel)
+
+        schema = {"fields": {"genre": {"filterable": True}}}
+        result = idx.create_namespace(name="movies", schema=schema)
+
+        mock_channel.create_namespace.assert_called_once_with("movies", schema, timeout_s=None)
+        assert isinstance(result, NamespaceDescription)
+        assert result.schema is not None
+        assert result.schema.fields["genre"].filterable is True
+
+    def test_grpc_create_namespace_positional_name_raises(self) -> None:
+        mock_channel = MagicMock()
+        idx = _make_grpc_index(mock_channel)
+
+        with pytest.raises(TypeError):
+            idx.create_namespace("my-ns")  # type: ignore[misc]
+
+    def test_grpc_create_namespace_empty_name_raises(self) -> None:
+        from pinecone.errors.exceptions import ValidationError
+
+        mock_channel = MagicMock()
+        idx = _make_grpc_index(mock_channel)
+
+        with pytest.raises(ValidationError, match="non-empty"):
+            idx.create_namespace(name="")
+
+        with pytest.raises(ValidationError, match="non-empty"):
+            idx.create_namespace(name="   ")
+
+    def test_grpc_create_namespace_non_string_name_raises(self) -> None:
+        from pinecone.errors.exceptions import ValidationError
+
+        mock_channel = MagicMock()
+        idx = _make_grpc_index(mock_channel)
+
+        with pytest.raises(ValidationError, match="must be a string"):
+            idx.create_namespace(name=123)  # type: ignore[arg-type]
+
+    def test_grpc_create_namespace_passes_timeout(self) -> None:
+        mock_channel = MagicMock()
+        mock_channel.create_namespace.return_value = {"name": "ns1", "record_count": 0}
+        idx = _make_grpc_index(mock_channel)
+
+        idx.create_namespace(name="ns1", timeout=4.5)
+
+        mock_channel.create_namespace.assert_called_once_with("ns1", None, timeout_s=4.5)
+
+
 class TestGrpcDeleteNamespace:
     def test_grpc_delete_namespace_returns_none(self) -> None:
         mock_channel = MagicMock()
