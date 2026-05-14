@@ -18,7 +18,7 @@ from pinecone._internal.batching import chunked, validate_batch_size, with_progr
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host
-from pinecone._internal.validation import require_in_range
+from pinecone._internal.validation import require_in_range, require_positive
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import (
     PineconeValueError,
@@ -29,6 +29,7 @@ from pinecone.grpc.future import PineconeFuture
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults, QueryResultsAggregator
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
+    FetchByMetadataResponse,
     FetchResponse,
     ListItem,
     ListResponse,
@@ -813,6 +814,72 @@ class GrpcIndex:
                 pagination_token = page.pagination.next
             else:
                 break
+
+    def fetch_by_metadata(
+        self,
+        *,
+        filter: Mapping[str, Any],
+        namespace: str = "",
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        timeout: float | None = None,
+    ) -> FetchByMetadataResponse:
+        """Fetch vectors matching a metadata filter from a namespace.
+
+        Args:
+            filter (dict[str, Any]): Metadata filter expression (required).
+            namespace (str): Namespace to fetch from. Defaults to the default namespace.
+            limit (int | None): Maximum number of vectors to return. Must be a positive integer.
+            pagination_token (str | None): Token from a previous response to fetch the next page.
+            timeout (float | None): Per-call timeout in seconds. None uses the client-level default.
+
+        Returns:
+            :class:`FetchByMetadataResponse` with matched vectors, namespace, usage,
+            and optional pagination token.
+
+        Raises:
+            :exc:`PineconeValueError`: If ``limit`` is not a positive integer.
+            :exc:`PineconeTimeoutError`: If the call exceeds *timeout*.
+
+        Examples:
+
+            .. code-block:: python
+
+                response = idx.fetch_by_metadata(
+                    filter={"genre": {"$eq": "comedy"}},
+                    namespace="movies",
+                )
+                for vid, vec in response.vectors.items():
+                    print(vid, vec.values)
+        """
+        if limit is not None:
+            require_positive("limit", limit)
+
+        logger.info("Fetching vectors by metadata filter via gRPC in namespace %r", namespace)
+        result = self._channel.fetch_by_metadata(
+            namespace=namespace or None,
+            filter=filter,
+            limit=limit,
+            pagination_token=pagination_token,
+            timeout_s=timeout,
+        )
+
+        vectors: dict[str, Vector] = {}
+        for vid, vdata in result.get("vectors", {}).items():
+            vectors[vid] = _dict_to_vector(vid, vdata)
+
+        usage = _dict_to_usage(result.get("usage"))
+        pagination_data = result.get("pagination")
+        pagination: Pagination | None = None
+        if pagination_data is not None:
+            pagination = Pagination(next=pagination_data.get("next"))
+
+        return FetchByMetadataResponse(
+            vectors=vectors,
+            namespace=result.get("namespace", ""),
+            usage=usage,
+            pagination=pagination,
+        )
 
     def describe_index_stats(
         self,

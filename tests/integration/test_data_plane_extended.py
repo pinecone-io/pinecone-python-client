@@ -3174,3 +3174,75 @@ def test_update_values_preserves_metadata_grpc(client: Pinecone, shared_index_di
     assert vec.metadata.get("year") == 2022, (
         f"Expected year==2022 after gRPC values-only update, got {vec.metadata.get('year')!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# fetch_by_metadata — gRPC
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_fetch_by_metadata_grpc(client: Pinecone, shared_index_dim3: str) -> None:
+    """fetch_by_metadata() via GrpcIndex returns vectors matching a filter, response shape mirrors REST.
+
+    Verifies:
+    - GrpcIndex.fetch_by_metadata routes through the Rust gRPC channel.
+    - Response shape (vectors, namespace, usage, pagination) matches the REST version.
+    """
+    ns = f"ns-{uuid.uuid4().hex[:8]}"
+    index = client.index(name=shared_index_dim3, grpc=True)
+
+    # Upsert vectors with metadata; only fm-gv1 and fm-gv3 have genre=comedy
+    index.upsert(
+        vectors=[
+            {
+                "id": "fm-gv1",
+                "values": [0.1, 0.2, 0.3],
+                "metadata": {"genre": "comedy", "year": 2020},
+            },
+            {
+                "id": "fm-gv2",
+                "values": [0.4, 0.5, 0.6],
+                "metadata": {"genre": "action", "year": 2021},
+            },
+            {
+                "id": "fm-gv3",
+                "values": [0.7, 0.8, 0.9],
+                "metadata": {"genre": "comedy", "year": 2022},
+            },
+        ],
+        namespace=ns,
+    )
+
+    # Wait until comedy vectors are reachable via fetch_by_metadata (eventual consistency)
+    poll_until(
+        query_fn=lambda: index.fetch_by_metadata(
+            filter={"genre": {"$eq": "comedy"}}, namespace=ns
+        ),
+        check_fn=lambda r: len(r.vectors) >= 2,
+        timeout=120,
+        description="comedy vectors reachable via fetch_by_metadata (gRPC)",
+    )
+
+    response = index.fetch_by_metadata(filter={"genre": {"$eq": "comedy"}}, namespace=ns)
+
+    # Verify response type and shape
+    assert isinstance(response, FetchByMetadataResponse)
+    assert isinstance(response.vectors, dict)
+    assert isinstance(response.namespace, str)
+
+    # Only comedy vectors should be returned
+    assert "fm-gv1" in response.vectors
+    assert "fm-gv3" in response.vectors
+    assert "fm-gv2" not in response.vectors
+
+    # Single page — no pagination token
+    assert response.pagination is None or response.pagination.next is None
+
+    # Each returned vector has id and values
+    for vid, vec in response.vectors.items():
+        assert isinstance(vid, str)
+        assert vec.id == vid
+        assert isinstance(vec.values, list)
+        assert len(vec.values) == 3

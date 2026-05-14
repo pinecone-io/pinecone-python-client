@@ -1,4 +1,4 @@
-"""Unit tests for GrpcIndex — alias (BCG-141) and query_namespaces."""
+"""Unit tests for GrpcIndex — alias (BCG-141), query_namespaces, and fetch_by_metadata."""
 
 from __future__ import annotations
 
@@ -8,10 +8,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 import pinecone.grpc
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import PineconeValueError, ValidationError
 from pinecone.grpc import GRPCIndex, GrpcIndex
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults
-from pinecone.models.vectors.responses import QueryResponse
+from pinecone.models.vectors.responses import FetchByMetadataResponse, Pagination, QueryResponse
 from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector
 
@@ -129,3 +129,115 @@ def test_grpc_query_namespaces_aggregates_results() -> None:
     assert scores[0] == pytest.approx(0.9)
     assert scores[1] == pytest.approx(0.85)
     assert scores[2] == pytest.approx(0.7)
+
+
+# ---------------------------------------------------------------------------
+# GrpcIndex.fetch_by_metadata unit tests
+# ---------------------------------------------------------------------------
+
+
+def _make_grpc_index(mock_channel: MagicMock) -> GrpcIndex:
+    mock_module = MagicMock()
+    mock_module.GrpcChannel.return_value = mock_channel
+    with patch.dict("sys.modules", {_MOCK_GRPC_MODULE_PATH: mock_module}):
+        return GrpcIndex(
+            host="https://x-abc.svc.pinecone.io",
+            api_key="k",
+        )
+
+
+def test_grpc_fetch_by_metadata_routes_to_channel() -> None:
+    """Wrapper parses channel dict into FetchByMetadataResponse and calls channel with expected kwargs."""
+    mock_channel = MagicMock()
+    mock_channel.fetch_by_metadata.return_value = {
+        "vectors": {
+            "v1": {"values": [0.1, 0.2, 0.3], "metadata": {"genre": "comedy"}},
+            "v2": {"values": [0.4, 0.5, 0.6]},
+        },
+        "namespace": "movies",
+        "usage": {"read_units": 2},
+        "pagination": {"next": "tok123"},
+    }
+
+    idx = _make_grpc_index(mock_channel)
+    response = idx.fetch_by_metadata(
+        filter={"genre": {"$eq": "comedy"}},
+        namespace="movies",
+        limit=10,
+        pagination_token="prev-tok",
+        timeout=5.0,
+    )
+
+    mock_channel.fetch_by_metadata.assert_called_once_with(
+        namespace="movies",
+        filter={"genre": {"$eq": "comedy"}},
+        limit=10,
+        pagination_token="prev-tok",
+        timeout_s=5.0,
+    )
+
+    assert isinstance(response, FetchByMetadataResponse)
+    assert set(response.vectors.keys()) == {"v1", "v2"}
+    assert response.vectors["v1"].values == [0.1, 0.2, 0.3]
+    assert response.vectors["v1"].metadata == {"genre": "comedy"}
+    assert response.namespace == "movies"
+    assert response.usage is not None
+    assert response.usage.read_units == 2
+    assert isinstance(response.pagination, Pagination)
+    assert response.pagination.next == "tok123"
+
+
+def test_grpc_fetch_by_metadata_limit_validation() -> None:
+    """Passing limit=0 or limit=-1 raises PineconeValueError via require_positive."""
+    mock_channel = MagicMock()
+    idx = _make_grpc_index(mock_channel)
+
+    with pytest.raises(PineconeValueError):
+        idx.fetch_by_metadata(filter={"genre": "comedy"}, limit=0)
+
+    with pytest.raises(PineconeValueError):
+        idx.fetch_by_metadata(filter={"genre": "comedy"}, limit=-1)
+
+    mock_channel.fetch_by_metadata.assert_not_called()
+
+
+def test_grpc_fetch_by_metadata_pagination_token_forwarded() -> None:
+    """pagination_token is forwarded verbatim to the channel call."""
+    mock_channel = MagicMock()
+    mock_channel.fetch_by_metadata.return_value = {
+        "vectors": {},
+        "namespace": "",
+    }
+
+    idx = _make_grpc_index(mock_channel)
+    idx.fetch_by_metadata(filter={"x": 1}, pagination_token="page-abc")
+
+    call_kwargs = mock_channel.fetch_by_metadata.call_args.kwargs
+    assert call_kwargs["pagination_token"] == "page-abc"
+
+
+def test_grpc_fetch_by_metadata_empty_namespace_converts_to_none() -> None:
+    """Empty-string namespace is passed as None to the channel."""
+    mock_channel = MagicMock()
+    mock_channel.fetch_by_metadata.return_value = {"vectors": {}, "namespace": ""}
+
+    idx = _make_grpc_index(mock_channel)
+    idx.fetch_by_metadata(filter={"x": 1}, namespace="")
+
+    call_kwargs = mock_channel.fetch_by_metadata.call_args.kwargs
+    assert call_kwargs["namespace"] is None
+
+
+def test_grpc_fetch_by_metadata_no_usage_no_pagination() -> None:
+    """Missing usage and pagination keys yield None in the response."""
+    mock_channel = MagicMock()
+    mock_channel.fetch_by_metadata.return_value = {
+        "vectors": {"v1": {"values": [1.0, 2.0]}},
+        "namespace": "ns",
+    }
+
+    idx = _make_grpc_index(mock_channel)
+    response = idx.fetch_by_metadata(filter={"k": "v"})
+
+    assert response.usage is None
+    assert response.pagination is None
