@@ -117,6 +117,36 @@ def _dict_to_usage(data: dict[str, Any] | None) -> Usage | None:
     return Usage(read_units=data.get("read_units", 0))
 
 
+def _dict_to_namespace_description(data: dict[str, Any]) -> NamespaceDescription:
+    """Convert a GrpcChannel namespace dict to a NamespaceDescription model.
+
+    Shared by create_namespace, describe_namespace, and list_namespaces_paginated
+    to convert the dict payload returned by the Rust-backed GrpcChannel into a
+    typed NamespaceDescription, including optional schema and indexed_fields.
+    """
+    schema: NamespaceSchema | None = None
+    raw_schema = data.get("schema")
+    if raw_schema is not None:
+        schema = NamespaceSchema(
+            fields={
+                k: NamespaceFieldConfig(filterable=v["filterable"])
+                for k, v in raw_schema.get("fields", {}).items()
+            }
+        )
+
+    indexed_fields: IndexedFields | None = None
+    raw_indexed = data.get("indexed_fields")
+    if raw_indexed is not None:
+        indexed_fields = IndexedFields(fields=list(raw_indexed))
+
+    return NamespaceDescription(
+        name=data.get("name", ""),
+        record_count=data.get("record_count", 0),
+        schema=schema,
+        indexed_fields=indexed_fields,
+    )
+
+
 class GrpcIndex:
     """Synchronous gRPC data plane client targeting a specific Pinecone index.
 
@@ -1351,29 +1381,9 @@ class GrpcIndex:
             timeout_s=timeout,
         )
 
-        namespaces: list[NamespaceDescription] = []
-        for ns_data in result.get("namespaces", []):
-            schema: NamespaceSchema | None = None
-            raw_schema = ns_data.get("schema")
-            if raw_schema is not None:
-                schema = NamespaceSchema(
-                    fields={
-                        k: NamespaceFieldConfig(filterable=v["filterable"])
-                        for k, v in raw_schema.get("fields", {}).items()
-                    }
-                )
-            indexed_fields: IndexedFields | None = None
-            raw_indexed = ns_data.get("indexed_fields")
-            if raw_indexed is not None:
-                indexed_fields = IndexedFields(fields=list(raw_indexed))
-            namespaces.append(
-                NamespaceDescription(
-                    name=ns_data.get("name", ""),
-                    record_count=ns_data.get("record_count", 0),
-                    schema=schema,
-                    indexed_fields=indexed_fields,
-                )
-            )
+        namespaces = [
+            _dict_to_namespace_description(ns_data) for ns_data in result.get("namespaces", [])
+        ]
 
         pagination: Pagination | None = None
         raw_pag = result.get("pagination")
@@ -1457,28 +1467,7 @@ class GrpcIndex:
 
         logger.info("Creating namespace %r via gRPC", name)
         result = self._channel.create_namespace(name, schema, timeout_s=timeout)
-
-        schema_obj: NamespaceSchema | None = None
-        raw_schema = result.get("schema")
-        if raw_schema is not None:
-            schema_obj = NamespaceSchema(
-                fields={
-                    k: NamespaceFieldConfig(filterable=v["filterable"])
-                    for k, v in raw_schema.get("fields", {}).items()
-                }
-            )
-
-        indexed_fields: IndexedFields | None = None
-        raw_indexed = result.get("indexed_fields")
-        if raw_indexed is not None:
-            indexed_fields = IndexedFields(fields=list(raw_indexed))
-
-        return NamespaceDescription(
-            name=result.get("name", ""),
-            record_count=result.get("record_count", 0),
-            schema=schema_obj,
-            indexed_fields=indexed_fields,
-        )
+        return _dict_to_namespace_description(result)
 
     def describe_namespace(
         self,
@@ -1516,28 +1505,7 @@ class GrpcIndex:
 
         logger.info("Describing namespace %r via gRPC", effective)
         result = self._channel.describe_namespace(effective, timeout_s=timeout)
-
-        schema: NamespaceSchema | None = None
-        raw_schema = result.get("schema")
-        if raw_schema is not None:
-            schema = NamespaceSchema(
-                fields={
-                    k: NamespaceFieldConfig(filterable=v["filterable"])
-                    for k, v in raw_schema.get("fields", {}).items()
-                }
-            )
-
-        indexed_fields: IndexedFields | None = None
-        raw_indexed = result.get("indexed_fields")
-        if raw_indexed is not None:
-            indexed_fields = IndexedFields(fields=list(raw_indexed))
-
-        return NamespaceDescription(
-            name=result.get("name", ""),
-            record_count=result.get("record_count", 0),
-            schema=schema,
-            indexed_fields=indexed_fields,
-        )
+        return _dict_to_namespace_description(result)
 
     def delete_namespace(
         self,
