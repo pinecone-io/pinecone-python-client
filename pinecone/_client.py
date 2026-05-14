@@ -289,6 +289,14 @@ class Pinecone:
         The canonical entry point is :attr:`Pinecone.assistants`; this
         alias is provided for ergonomic singular-form access and is not
         deprecated.
+
+        Examples:
+
+            >>> bot = pc.assistant("acme-support-bot")  # doctest: +SKIP
+            >>> pc.assistant.create_assistant(  # doctest: +SKIP
+            ...     name="support-bot",
+            ...     instructions="Help users with billing questions.",
+            ... )
         """
         from pinecone.client._assistant_namespace_proxy import _AssistantNamespaceProxy
 
