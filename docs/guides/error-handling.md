@@ -126,7 +126,7 @@ except ConflictError:
 
 The SDK retries failed requests automatically. The default `RetryConfig` retries up to
 **3 attempts total** (1 initial + 2 retries) with exponential backoff for status codes
-`429`, `500`, `502`, `503`, and `504`.
+`408`, `429`, `500`, `502`, `503`, and `504`.
 
 Customize retry behavior by passing a `RetryConfig` to `Pinecone()`:
 
