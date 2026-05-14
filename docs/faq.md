@@ -48,7 +48,7 @@ batches. For typical read-heavy or mixed workloads, `Index` is simpler to operat
 
 ```python
 # REST — general purpose
-index = pc.Index("my-index")
+index = pc.index("my-index")
 
 # gRPC — high-throughput upserts
 index = pc.index("my-index", grpc=True)
