@@ -210,7 +210,7 @@ class Pinecone:
 
         Examples:
 
-            >>> ids = [b.backup_id for b in pc.backups.list()]  # doctest: +SKIP
+            >>> ids = [backup.backup_id for backup in pc.backups.list()]  # doctest: +SKIP
         """
         if self._backups is None:
             from pinecone.client.backups import Backups as _Backups
