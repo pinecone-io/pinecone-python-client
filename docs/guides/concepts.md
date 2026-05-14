@@ -133,7 +133,8 @@ index.upsert_records(
 
 results = index.search_records(
     namespace="articles-en",
-    query={"inputs": {"text": "latest physics research"}, "top_k": 5},
+    inputs={"text": "latest physics research"},
+    top_k=5,
 )
 ```
 
