@@ -101,6 +101,15 @@ class GrpcChannelProtocol(Protocol):
         """Describe index statistics."""
         ...
 
+    def describe_namespace(
+        self,
+        namespace: str,
+        *,
+        timeout_s: float | None = None,
+    ) -> dict[str, Any]:
+        """Describe a namespace."""
+        ...
+
     def close(self) -> None:
         """Close the channel and release resources."""
         ...
