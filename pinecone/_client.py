@@ -249,7 +249,8 @@ class Pinecone:
         Examples:
 
             >>> embeddings = pc.inference.embed(  # doctest: +SKIP
-            ...     model="multilingual-e5-large", inputs=["Hello, world!"]
+            ...     model="multilingual-e5-large",
+            ...     inputs=["Solar panels reduce energy costs and lower carbon emissions."],
             ... )
         """
         if self._inference is None:
