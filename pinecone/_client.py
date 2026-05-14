@@ -280,7 +280,7 @@ class Pinecone:
 
     @property
     def assistant(self) -> _AssistantNamespaceProxy:
-        """Convenience alias for :attr:`Pinecone.assistants`.
+        """Return a callable proxy alias for :attr:`Pinecone.assistants`.
 
         Returns a proxy that supports both namespace-style access
         (``pc.assistant.create_assistant(...)``) and the convenience call
