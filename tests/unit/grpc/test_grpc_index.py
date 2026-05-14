@@ -8,7 +8,7 @@ import pytest
 
 import pinecone.grpc
 from pinecone.grpc import GRPCIndex, GrpcIndex
-from pinecone.models.namespaces.models import NamespaceDescription
+from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
 
 _MOCK_GRPC_MODULE_PATH = "pinecone._grpc"
 
@@ -190,3 +190,94 @@ class TestGrpcDeleteNamespace:
         idx.delete_namespace(name="ns1", timeout=3.0)
 
         mock_channel.delete_namespace.assert_called_once_with("ns1", timeout_s=3.0)
+
+
+class TestGrpcListNamespacesPaginated:
+    def test_grpc_list_namespaces_paginated_routes_to_channel(self) -> None:
+        mock_channel = MagicMock()
+        mock_channel.list_namespaces.return_value = {
+            "namespaces": [{"name": "ns1", "record_count": 5}],
+            "total_count": 1,
+        }
+        idx = _make_grpc_index(mock_channel)
+
+        result = idx.list_namespaces_paginated()
+
+        assert isinstance(result, ListNamespacesResponse)
+        assert len(result.namespaces) == 1
+        assert isinstance(result.namespaces[0], NamespaceDescription)
+        assert result.namespaces[0].name == "ns1"
+        assert result.namespaces[0].record_count == 5
+        assert result.total_count == 1
+        assert result.pagination is None
+
+    def test_grpc_list_namespaces_paginated_prefix_forwarded(self) -> None:
+        mock_channel = MagicMock()
+        mock_channel.list_namespaces.return_value = {"namespaces": [], "total_count": 0}
+        idx = _make_grpc_index(mock_channel)
+
+        idx.list_namespaces_paginated(prefix="prod-")
+
+        mock_channel.list_namespaces.assert_called_once_with(
+            prefix="prod-",
+            limit=None,
+            pagination_token=None,
+            timeout_s=None,
+        )
+
+    def test_grpc_list_namespaces_paginated_pagination_token_forwarded(self) -> None:
+        mock_channel = MagicMock()
+        mock_channel.list_namespaces.return_value = {"namespaces": [], "total_count": 0}
+        idx = _make_grpc_index(mock_channel)
+
+        idx.list_namespaces_paginated(pagination_token="tok123")
+
+        mock_channel.list_namespaces.assert_called_once_with(
+            prefix=None,
+            limit=None,
+            pagination_token="tok123",
+            timeout_s=None,
+        )
+
+    def test_grpc_list_namespaces_paginated_limit_forwarded(self) -> None:
+        mock_channel = MagicMock()
+        mock_channel.list_namespaces.return_value = {"namespaces": [], "total_count": 0}
+        idx = _make_grpc_index(mock_channel)
+
+        idx.list_namespaces_paginated(limit=10)
+
+        mock_channel.list_namespaces.assert_called_once_with(
+            prefix=None,
+            limit=10,
+            pagination_token=None,
+            timeout_s=None,
+        )
+
+    def test_grpc_list_namespaces_paginated_pagination_next_parsed(self) -> None:
+        mock_channel = MagicMock()
+        mock_channel.list_namespaces.return_value = {
+            "namespaces": [{"name": "a", "record_count": 1}],
+            "pagination": {"next": "nexttoken"},
+            "total_count": 5,
+        }
+        idx = _make_grpc_index(mock_channel)
+
+        result = idx.list_namespaces_paginated()
+
+        assert result.pagination is not None
+        assert result.pagination.next == "nexttoken"
+        assert result.total_count == 5
+
+    def test_grpc_list_namespaces_paginated_timeout_forwarded(self) -> None:
+        mock_channel = MagicMock()
+        mock_channel.list_namespaces.return_value = {"namespaces": [], "total_count": 0}
+        idx = _make_grpc_index(mock_channel)
+
+        idx.list_namespaces_paginated(timeout=2.5)
+
+        mock_channel.list_namespaces.assert_called_once_with(
+            prefix=None,
+            limit=None,
+            pagination_token=None,
+            timeout_s=2.5,
+        )

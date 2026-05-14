@@ -28,6 +28,7 @@ from pinecone.grpc._protocol import GrpcChannelProtocol
 from pinecone.grpc.future import PineconeFuture
 from pinecone.models.namespaces.models import (
     IndexedFields,
+    ListNamespacesResponse,
     NamespaceDescription,
     NamespaceFieldConfig,
     NamespaceSchema,
@@ -1320,6 +1321,69 @@ class GrpcIndex:
             rerank=rerank,
             match_terms=match_terms,
             timeout=timeout,
+        )
+
+    def list_namespaces_paginated(
+        self,
+        *,
+        prefix: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        timeout: float | None = None,
+    ) -> ListNamespacesResponse:
+        """Fetch a single page of namespace descriptions via gRPC.
+
+        Args:
+            prefix (str | None): Return only namespaces whose names start with this prefix.
+            limit (int | None): Maximum number of namespaces to return in this page.
+            pagination_token (str | None): Token from a previous response to fetch the next page.
+            timeout (float | None): Per-call timeout in seconds.
+
+        Returns:
+            :class:`ListNamespacesResponse` with namespace descriptions, pagination info,
+            and total count.
+        """
+        logger.info("Listing namespaces (paginated) via gRPC")
+        result = self._channel.list_namespaces(
+            prefix=prefix,
+            limit=limit,
+            pagination_token=pagination_token,
+            timeout_s=timeout,
+        )
+
+        namespaces: list[NamespaceDescription] = []
+        for ns_data in result.get("namespaces", []):
+            schema: NamespaceSchema | None = None
+            raw_schema = ns_data.get("schema")
+            if raw_schema is not None:
+                schema = NamespaceSchema(
+                    fields={
+                        k: NamespaceFieldConfig(filterable=v["filterable"])
+                        for k, v in raw_schema.get("fields", {}).items()
+                    }
+                )
+            indexed_fields: IndexedFields | None = None
+            raw_indexed = ns_data.get("indexed_fields")
+            if raw_indexed is not None:
+                indexed_fields = IndexedFields(fields=list(raw_indexed))
+            namespaces.append(
+                NamespaceDescription(
+                    name=ns_data.get("name", ""),
+                    record_count=ns_data.get("record_count", 0),
+                    schema=schema,
+                    indexed_fields=indexed_fields,
+                )
+            )
+
+        pagination: Pagination | None = None
+        raw_pag = result.get("pagination")
+        if raw_pag is not None:
+            pagination = Pagination(next=raw_pag.get("next"))
+
+        return ListNamespacesResponse(
+            namespaces=namespaces,
+            pagination=pagination,
+            total_count=result.get("total_count", 0),
         )
 
     def describe_namespace(
