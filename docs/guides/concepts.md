@@ -110,14 +110,16 @@ the embeddings server-side using a hosted model. You upsert text records; the in
 handles embedding automatically.
 
 ```python
-from pinecone import Pinecone, ServerlessSpec
-from pinecone.models import EmbedConfig
+from pinecone import Pinecone, IntegratedSpec, EmbedConfig
 
 pc = Pinecone()
 pc.indexes.create(
     name="article-search",
-    spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-    spec_embed=EmbedConfig(model="multilingual-e5-large"),
+    spec=IntegratedSpec(
+        cloud="aws",
+        region="us-east-1",
+        embed=EmbedConfig(model="multilingual-e5-large"),
+    ),
 )
 
 index = pc.index(name="article-search")
