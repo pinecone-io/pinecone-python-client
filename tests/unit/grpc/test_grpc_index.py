@@ -241,3 +241,63 @@ def test_grpc_fetch_by_metadata_no_usage_no_pagination() -> None:
 
     assert response.usage is None
     assert response.pagination is None
+
+
+# ---------------------------------------------------------------------------
+# GrpcIndex.create_namespace unit tests
+# ---------------------------------------------------------------------------
+
+
+def test_grpc_create_namespace_routes_to_channel() -> None:
+    """Wrapper calls channel and converts dict into NamespaceDescription."""
+    from pinecone.models.namespaces.models import NamespaceDescription
+
+    mock_channel = MagicMock()
+    mock_channel.create_namespace.return_value = {"name": "ns1", "record_count": 0}
+
+    idx = _make_grpc_index(mock_channel)
+    result = idx.create_namespace("ns1")
+
+    mock_channel.create_namespace.assert_called_once_with("ns1", schema=None, timeout_s=None)
+    assert isinstance(result, NamespaceDescription)
+    assert result.name == "ns1"
+    assert result.record_count == 0
+
+
+def test_grpc_create_namespace_with_schema_forwarded() -> None:
+    """schema kwarg is forwarded to the channel call."""
+    mock_channel = MagicMock()
+    mock_channel.create_namespace.return_value = {"name": "ns2", "record_count": 0}
+
+    idx = _make_grpc_index(mock_channel)
+    schema = {"fields": {"genre": {"filterable": True}}}
+    idx.create_namespace("ns2", schema=schema)
+
+    call_kwargs = mock_channel.create_namespace.call_args
+    assert call_kwargs.args[0] == "ns2"
+    assert call_kwargs.kwargs["schema"] == schema
+
+
+def test_grpc_create_namespace_timeout_forwarded() -> None:
+    """timeout kwarg is forwarded as timeout_s to the channel call."""
+    mock_channel = MagicMock()
+    mock_channel.create_namespace.return_value = {"name": "ns3", "record_count": 0}
+
+    idx = _make_grpc_index(mock_channel)
+    idx.create_namespace("ns3", timeout=5.0)
+
+    assert mock_channel.create_namespace.call_args.kwargs["timeout_s"] == 5.0
+
+
+def test_grpc_create_namespace_empty_name_raises() -> None:
+    """Empty and whitespace-only names raise ValidationError."""
+    mock_channel = MagicMock()
+    idx = _make_grpc_index(mock_channel)
+
+    with pytest.raises(ValidationError):
+        idx.create_namespace("")
+
+    with pytest.raises(ValidationError):
+        idx.create_namespace("   ")
+
+    mock_channel.create_namespace.assert_not_called()

@@ -26,6 +26,7 @@ from pinecone.errors.exceptions import (
 )
 from pinecone.grpc._protocol import GrpcChannelProtocol
 from pinecone.grpc.future import PineconeFuture
+from pinecone.models.namespaces.models import IndexedFields, NamespaceDescription, NamespaceSchema
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults, QueryResultsAggregator
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
@@ -927,6 +928,60 @@ class GrpcIndex:
             vector_type=result.get("vector_type"),
             memory_fullness=result.get("memory_fullness"),
             storage_fullness=result.get("storage_fullness"),
+        )
+
+    def create_namespace(
+        self,
+        name: str,
+        schema: dict[str, Any] | None = None,
+        *,
+        timeout: float | None = None,
+    ) -> NamespaceDescription:
+        """Create a named namespace in the index.
+
+        Args:
+            name (str): Name for the new namespace (must be non-empty).
+            schema (dict[str, Any] | None): Optional schema configuration
+                with metadata field indexing settings.
+            timeout (float | None): Per-call timeout in seconds. None uses the client-level default.
+
+        Returns:
+            :class:`NamespaceDescription` with the namespace name and record count.
+
+        Raises:
+            :exc:`ValidationError`: If the name is not a string or is empty/whitespace.
+            :exc:`PineconeTimeoutError`: If the call exceeds *timeout*.
+
+        Examples:
+
+            .. code-block:: python
+
+                ns = idx.create_namespace(name="movies-en")
+                print(ns.name, ns.record_count)
+        """
+        if not isinstance(name, str):
+            raise ValidationError("namespace name must be a string")
+        if not name or not name.strip():
+            raise ValidationError("namespace name must be a non-empty string")
+
+        logger.info("Creating namespace %r via gRPC", name)
+        result = self._channel.create_namespace(name, schema=schema, timeout_s=timeout)
+
+        schema_data = result.get("schema")
+        ns_schema: NamespaceSchema | None = None
+        if schema_data is not None:
+            ns_schema = NamespaceSchema(fields=schema_data.get("fields", {}))
+
+        indexed_fields_data = result.get("indexed_fields")
+        indexed_fields: IndexedFields | None = None
+        if indexed_fields_data is not None:
+            indexed_fields = IndexedFields(fields=indexed_fields_data.get("fields", []))
+
+        return NamespaceDescription(
+            name=result.get("name", ""),
+            record_count=result.get("record_count", 0),
+            schema=ns_schema,
+            indexed_fields=indexed_fields,
         )
 
     def upsert_from_dataframe(

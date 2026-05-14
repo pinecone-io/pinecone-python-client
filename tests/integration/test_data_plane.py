@@ -944,6 +944,60 @@ def test_namespace_crud_lifecycle_rest(client: Pinecone, shared_index_dim2: str)
 
 
 # ---------------------------------------------------------------------------
+# namespace CRUD — gRPC
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_namespace_crud_lifecycle_grpc(client: Pinecone, shared_index_dim2: str) -> None:
+    # shared_index_dim2
+    """create_namespace via gRPC with REST describe/list/delete round-trip.
+
+    Exercises GrpcIndex.create_namespace (LSB-0049). The REST index handles
+    describe/list/delete until LSB-0050 – LSB-0052 add those methods to GrpcIndex.
+
+    Verifies claims:
+    - unified-ns-0001: Can create a named namespace.
+    - unified-ns-0002: Creation returns name and record_count == 0.
+    - unified-ns-0003: Can describe a namespace by name.
+    - unified-ns-0004: Can delete a namespace by name.
+    - unified-ns-0005: Can list all namespaces with optional prefix filtering.
+    """
+    ns = f"ns-grpc-{uuid.uuid4().hex[:8]}"
+    ns_name = f"{ns}-alpha"
+    grpc_index = client.index(name=shared_index_dim2, grpc=True)
+    rest_index = client.index(name=shared_index_dim2)
+
+    # 1. Create namespace via gRPC — returns NamespaceDescription with record_count == 0
+    created = grpc_index.create_namespace(name=ns_name)
+    assert isinstance(created, NamespaceDescription)
+    assert created.name == ns_name
+    assert created.record_count == 0  # unified-ns-0002
+
+    # 2. Describe namespace via REST — verifies the namespace exists on the server
+    described = rest_index.describe_namespace(name=ns_name)
+    assert isinstance(described, NamespaceDescription)
+    assert described.name == ns_name
+    assert isinstance(described.record_count, int)
+
+    # 3. Namespace appears in list_namespaces_paginated via REST
+    list_resp = rest_index.list_namespaces_paginated(prefix=f"{ns}-", limit=100)
+    assert isinstance(list_resp, ListNamespacesResponse)
+    ns_names = [ns_item.name for ns_item in list_resp.namespaces]
+    assert ns_name in ns_names
+
+    # 4. Delete namespace via REST — returns None on success
+    result = rest_index.delete_namespace(name=ns_name)
+    assert result is None  # unified-ns-0004
+
+    # 5. After deletion, namespace no longer appears in listing
+    post_delete = rest_index.list_namespaces_paginated(prefix=f"{ns}-", limit=100)
+    assert isinstance(post_delete, ListNamespacesResponse)
+    post_names = [ns_item.name for ns_item in post_delete.namespaces]
+    assert ns_name not in post_names
+
+
+# ---------------------------------------------------------------------------
 # list_namespaces generator — REST sync
 # ---------------------------------------------------------------------------
 
