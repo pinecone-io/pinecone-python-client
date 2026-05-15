@@ -362,8 +362,8 @@ class Pinecone:
             (gRPC) data plane client.
 
         Raises:
-            :exc:`PineconeValueError`: If neither *name* nor *host* is provided.
-            :exc:`~pinecone.errors.NotFoundError`: If *name* is given but no index with that
+            :exc:`PineconeValueError`: If neither ``name`` nor ``host`` is provided.
+            :exc:`~pinecone.errors.NotFoundError`: If ``name`` is given but no index with that
                 name exists.
 
         Examples:
