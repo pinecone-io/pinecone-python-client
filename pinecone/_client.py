@@ -480,6 +480,8 @@ class Pinecone:
         Raises:
             :exc:`PineconeValueError`: If *name* or *backup_id* is empty.
             :exc:`PineconeTimeoutError`: If the index is not ready within the timeout.
+            :exc:`IndexInitFailedError`: If the index enters ``InitializationFailed`` state.
+            :exc:`IndexTerminatedError`: If the index enters ``Terminating`` or ``Disabled`` state.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
