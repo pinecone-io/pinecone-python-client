@@ -33,38 +33,111 @@ class AdminAdapter:
 
     @staticmethod
     def to_organization(data: bytes) -> OrganizationModel:
-        """Decode raw JSON bytes into an OrganizationModel."""
+        """Decode raw JSON bytes into an :class:`OrganizationModel`.
+
+        Args:
+            data (bytes): Raw JSON response bytes from the Admin API.
+
+        Returns:
+            :class:`OrganizationModel`: Decoded organization.
+
+        Raises:
+            :exc:`ResponseParsingError`: If ``data`` cannot be decoded into
+                :class:`OrganizationModel`.
+        """
         return decode_response(data, OrganizationModel)
 
     @staticmethod
     def to_organization_list(data: bytes) -> OrganizationList:
-        """Decode raw JSON bytes from a list-organizations response into an OrganizationList."""
+        """Decode raw JSON bytes from a list-organizations response into an
+        :class:`OrganizationList`.
+
+        Args:
+            data (bytes): Raw JSON response bytes from the Admin API.
+
+        Returns:
+            :class:`OrganizationList`: Decoded list of organizations.
+
+        Raises:
+            :exc:`ResponseParsingError`: If ``data`` cannot be decoded.
+        """
         envelope = decode_response(data, _OrganizationListEnvelope)
         return OrganizationList(envelope.data)
 
     @staticmethod
     def to_project(data: bytes) -> ProjectModel:
-        """Decode raw JSON bytes into a ProjectModel."""
+        """Decode raw JSON bytes into a :class:`ProjectModel`.
+
+        Args:
+            data (bytes): Raw JSON response bytes from the Admin API.
+
+        Returns:
+            :class:`ProjectModel`: Decoded project.
+
+        Raises:
+            :exc:`ResponseParsingError`: If ``data`` cannot be decoded into :class:`ProjectModel`.
+        """
         return decode_response(data, ProjectModel)
 
     @staticmethod
     def to_project_list(data: bytes) -> ProjectList:
-        """Decode raw JSON bytes from a list-projects response into a ProjectList."""
+        """Decode raw JSON bytes from a list-projects response into a :class:`ProjectList`.
+
+        Args:
+            data (bytes): Raw JSON response bytes from the Admin API.
+
+        Returns:
+            :class:`ProjectList`: Decoded list of projects.
+
+        Raises:
+            :exc:`ResponseParsingError`: If ``data`` cannot be decoded.
+        """
         envelope = decode_response(data, _ProjectListEnvelope)
         return ProjectList(envelope.data)
 
     @staticmethod
     def to_api_key(data: bytes) -> APIKeyModel:
-        """Decode raw JSON bytes into an APIKeyModel."""
+        """Decode raw JSON bytes into an :class:`APIKeyModel`.
+
+        Args:
+            data (bytes): Raw JSON response bytes from the Admin API.
+
+        Returns:
+            :class:`APIKeyModel`: Decoded API key.
+
+        Raises:
+            :exc:`ResponseParsingError`: If ``data`` cannot be decoded into :class:`APIKeyModel`.
+        """
         return decode_response(data, APIKeyModel)
 
     @staticmethod
     def to_api_key_with_secret(data: bytes) -> APIKeyWithSecret:
-        """Decode raw JSON bytes into an APIKeyWithSecret."""
+        """Decode raw JSON bytes into an :class:`APIKeyWithSecret`.
+
+        Args:
+            data (bytes): Raw JSON response bytes from the Admin API.
+
+        Returns:
+            :class:`APIKeyWithSecret`: Decoded API key including the secret value.
+
+        Raises:
+            :exc:`ResponseParsingError`: If ``data`` cannot be decoded into
+                :class:`APIKeyWithSecret`.
+        """
         return decode_response(data, APIKeyWithSecret)
 
     @staticmethod
     def to_api_key_list(data: bytes) -> APIKeyList:
-        """Decode raw JSON bytes from a list-api-keys response into an APIKeyList."""
+        """Decode raw JSON bytes from a list-api-keys response into an :class:`APIKeyList`.
+
+        Args:
+            data (bytes): Raw JSON response bytes from the Admin API.
+
+        Returns:
+            :class:`APIKeyList`: Decoded list of API keys.
+
+        Raises:
+            :exc:`ResponseParsingError`: If ``data`` cannot be decoded.
+        """
         envelope = decode_response(data, _APIKeyListEnvelope)
         return APIKeyList(envelope.data)
