@@ -72,6 +72,7 @@ nitpick_ignore = [
     ("py:class", "pinecone._internal.config.RetryConfig"),
     ("py:class", "pinecone._internal.http_client.HTTPClient"),
     ("py:class", "pinecone._internal.http_client.AsyncHTTPClient"),
+    ("py:class", "pinecone.client._assistant_namespace_proxy._AssistantNamespaceProxy"),
 ]
 
 myst_enable_extensions = ["colon_fence", "deflist"]
