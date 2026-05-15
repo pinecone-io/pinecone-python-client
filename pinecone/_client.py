@@ -675,6 +675,23 @@ class Pinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.indexes.configure()`` instead of ``pc.configure_index()``.
 
+        Args:
+            name (str): Name of the index to configure.
+            replicas (int | None): Number of replicas. Only applies to pod-based indexes.
+                Defaults to ``None`` (no change).
+            pod_type (str | None): Pod type (e.g. ``"p1.x1"``). Only applies to pod-based
+                indexes. Defaults to ``None`` (no change).
+            deletion_protection (DeletionProtection | str | None): Whether to enable deletion
+                protection (``"enabled"`` or ``"disabled"``). Defaults to ``None`` (no change).
+            tags (Mapping[str, str] | None): Key-value tags to apply to the index. Defaults to
+                ``None`` (no change).
+            embed (dict[str, Any] | None): Integrated inference embedding configuration.
+                Defaults to ``None`` (no change).
+            read_capacity (dict[str, Any] | None): Read capacity settings for the index.
+                Defaults to ``None`` (no change).
+            serverless_read_capacity (dict[str, Any] | None): Serverless read capacity settings.
+                Defaults to ``None`` (no change).
+
         :meta private:
         """
         self.indexes.configure(
