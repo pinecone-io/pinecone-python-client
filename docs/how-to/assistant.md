@@ -69,7 +69,12 @@ print(response.message.content)
 
 ## Streaming chat
 
-Pass ``stream=True`` to receive tokens incrementally:
+Pass ``stream=True`` to receive tokens incrementally as text fragments.  Use
+``stream.text()`` — the idiomatic text-only accessor — to iterate over plain
+strings.  Iterating ``stream`` directly instead yields typed chunk objects
+(``StreamMessageStart``, ``StreamContentChunk``, ``StreamCitationChunk``,
+``StreamMessageEnd``), which is useful when you need full metadata but would
+print their ``repr`` rather than the assistant's text.
 
 ```python
 stream = pc.assistant.chat(
@@ -77,8 +82,8 @@ stream = pc.assistant.chat(
     messages=[{"role": "user", "content": "Summarize the document."}],
     stream=True,
 )
-for chunk in stream:
-    print(chunk, end="", flush=True)
+for text in stream.text():
+    print(text, end="", flush=True)
 ```
 
 ## Delete a file
