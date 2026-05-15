@@ -352,6 +352,10 @@ class Pinecone:
             grpc (bool): If ``True``, return a :class:`~pinecone.grpc.GrpcIndex`
                 that routes data-plane operations over gRPC instead of HTTP.
                 Defaults to ``False``.
+            pool_threads (int | None): Maximum number of threads in the connection pool
+                used by the underlying HTTP client. Pass ``None`` to use the client-level
+                default set at :class:`Pinecone` construction time. Has no effect when
+                ``grpc=True``. Defaults to ``None``.
 
         Returns:
             A sync :class:`Index` (HTTP) or :class:`~pinecone.grpc.GrpcIndex`
