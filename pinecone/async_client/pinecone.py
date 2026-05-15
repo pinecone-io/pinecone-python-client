@@ -432,7 +432,12 @@ class AsyncPinecone:
 
     @property
     def config(self) -> PineconeConfig:
-        """The resolved configuration for this client."""
+        """The resolved configuration for this client.
+
+        Returns:
+            :class:`~pinecone._internal.config.PineconeConfig` containing the
+            resolved API key, host, timeout, and connection settings.
+        """
         return self._config
 
     # ---- Backcompat flat-method delegates (:meta private:) ----
