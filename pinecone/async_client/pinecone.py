@@ -821,7 +821,11 @@ class AsyncPinecone:
         return _AsyncIndex(**self._build_index_kwargs(resolved_host))
 
     async def close(self) -> None:
-        """Close the underlying HTTP client."""
+        """Close all open HTTP connections.
+
+        Closes the main control-plane client and any namespace clients (inference, assistants,
+        preview) that were initialized during this session.
+        """
         await self._http.close()
         if self._assistants is not None:
             await self._assistants.close()

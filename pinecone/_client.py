@@ -853,7 +853,11 @@ class Pinecone:
         )
 
     def close(self) -> None:
-        """Close the underlying HTTP client."""
+        """Close all open HTTP connections.
+
+        Closes the main control-plane client and any namespace clients (inference, assistants,
+        preview) that were initialized during this session.
+        """
         self._http.close()
         if self._inference is not None:
             self._inference.close()
