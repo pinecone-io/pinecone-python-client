@@ -470,7 +470,7 @@ class Pinecone:
             backup_id (str): Identifier of the backup to restore from.
             deletion_protection (DeletionProtection | str | None): ``"enabled"`` or
                 ``"disabled"``. Defaults to ``"disabled"`` server-side when omitted.
-            tags (dict[str, str] | None): Optional key-value tags for the new index.
+            tags (Mapping[str, str] | None): Optional key-value tags for the new index.
             timeout (int | None): Seconds to wait for readiness. ``None`` (default)
                 blocks up to 300 s. ``-1`` returns a :class:`CreateIndexFromBackupResponse`
                 immediately (contains ``restore_job_id`` and ``index_id``) without polling.
