@@ -825,8 +825,28 @@ class AsyncPinecone:
     async def close(self) -> None:
         """Close all open HTTP connections.
 
-        Closes the main control-plane client and any namespace clients (inference, assistants,
-        preview) that were initialized during this session.
+        Closes the main control-plane client and any namespace clients (inference,
+        assistants, preview) that were initialized during this session.
+
+        Prefer the async context manager form (``async with AsyncPinecone(...) as pc:``)
+        which calls :meth:`close` automatically on exit.
+
+        Examples:
+            Close the client explicitly after use:
+
+            >>> import asyncio
+            >>> from pinecone import AsyncPinecone
+            >>> async def example():
+            ...     client = AsyncPinecone(api_key="your-api-key")
+            ...     await client.close()
+            >>> asyncio.run(example())
+
+            Use AsyncPinecone as a context manager (``close`` is called automatically):
+
+            >>> async def example():
+            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...         _ = await pc.indexes.list()
+            >>> asyncio.run(example())
         """
         await self._http.close()
         if self._assistants is not None:

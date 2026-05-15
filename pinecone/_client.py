@@ -862,8 +862,23 @@ class Pinecone:
     def close(self) -> None:
         """Close all open HTTP connections.
 
-        Closes the main control-plane client and any namespace clients (inference, assistants,
-        preview) that were initialized during this session.
+        Closes the main control-plane client and any namespace clients (inference,
+        assistants, preview) that were initialized during this session.
+
+        Prefer the context manager form (``with Pinecone(...) as pc:``) which calls
+        :meth:`close` automatically on exit.
+
+        Examples:
+            Close the client explicitly after use:
+
+            >>> from pinecone import Pinecone
+            >>> client = Pinecone(api_key="your-api-key")
+            >>> client.close()
+
+            Use Pinecone as a context manager (``close`` is called automatically):
+
+            >>> with Pinecone(api_key="your-api-key") as pinecone_client:
+            ...     _ = pinecone_client.indexes.list()
         """
         self._http.close()
         if self._inference is not None:
