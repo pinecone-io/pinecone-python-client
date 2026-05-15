@@ -529,7 +529,7 @@ class Pinecone:
 
     @property
     def config(self) -> PineconeConfig:
-        """The resolved configuration for this client.
+        """Return the resolved configuration for this client.
 
         Returns:
             :class:`~pinecone._internal.config.PineconeConfig` containing the
