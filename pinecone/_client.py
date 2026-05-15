@@ -320,10 +320,7 @@ class Pinecone:
 
         Examples:
 
-            .. code-block:: python
-
-                pc = Pinecone(api_key="your-api-key")
-                pc.preview.indexes.create(...)  # when a preview area exists
+            >>> info = pc.preview.indexes.describe("articles-en-preview")  # doctest: +SKIP
         """
         if self._preview is None:
             from pinecone.preview import Preview as _Preview
