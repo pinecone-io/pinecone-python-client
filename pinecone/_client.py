@@ -270,7 +270,7 @@ class Pinecone:
 
         Examples:
 
-            >>> names = [a.name for a in pc.assistants.list()]  # doctest: +SKIP
+            >>> names = [assistant.name for assistant in pc.assistants.list()]  # doctest: +SKIP
         """
         if self._assistants is None:
             from pinecone.client.assistants import Assistants as _Assistants
