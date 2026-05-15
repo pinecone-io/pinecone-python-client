@@ -68,7 +68,7 @@ while True:
 pc.collections.delete("snap-2025-01")
 ```
 
-``delete`` raises {exc}`~pinecone.exceptions.NotFoundError` if the collection does not
+``delete`` raises {exc}`~pinecone.errors.exceptions.NotFoundError` if the collection does not
 exist.
 
 ## Create an index from a collection
