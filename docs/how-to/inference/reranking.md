@@ -119,7 +119,7 @@ query_embedding = pc.inference.embed(
 
 matches = index.query(vector=query_embedding, top_k=20, include_metadata=True)
 candidates = [
-    {"text": m.metadata.get("description", ""), "id": m.id}
+    {"text": (m.metadata or {}).get("description", ""), "id": m.id}
     for m in matches.matches
 ]
 
