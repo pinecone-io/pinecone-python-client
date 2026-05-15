@@ -236,7 +236,7 @@ The same partial-success contract applies to
 | Delete index | `pc.delete_index("name")` | `pc.indexes.delete("name")` |
 | Configure index | `pc.configure_index("name", ...)` | `pc.indexes.configure("name", ...)` |
 | Check index exists | `pc.describe_index("name")` + try/except | `pc.indexes.exists("name")` |
-| Get data-plane index | `pc.Index("name")` | `pc.Index("name")` *(unchanged)* |
+| Get data-plane index | `pc.Index("name")` | `pc.index("name")` *(lowercase in v9; `pc.Index()` is a deprecated shim)* |
 | Get gRPC index | `Pinecone(...).GrpcIndex("name")` | `pc.index("name", grpc=True)` |
 | Create collection | `pc.create_collection(name=..., source=...)` | `pc.collections.create(name=..., source=...)` |
 | List collections | `pc.list_collections()` | `pc.collections.list()` |
