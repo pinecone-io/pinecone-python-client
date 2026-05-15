@@ -10,7 +10,7 @@ from pinecone import Pinecone
 
 pc = Pinecone(api_key="your-api-key")
 
-assistant = pc.assistant.create(
+assistant = pc.assistants.create(
     name="my-assistant",
     instructions="Answer questions based on the uploaded documents.",
 )
@@ -28,14 +28,14 @@ asynchronously), pass ``timeout=-1`` — the returned assistant will be in
 ``list`` returns all assistants in the project:
 
 ```python
-for asst in pc.assistant.list():
+for asst in pc.assistants.list():
     print(asst.name, asst.status)
 ```
 
 ``describe`` returns details for a single assistant:
 
 ```python
-asst = pc.assistant.describe(name="my-assistant")
+asst = pc.assistants.describe(name="my-assistant")
 print(asst.name)         # "my-assistant"
 print(asst.status)       # "Ready"
 print(asst.instructions) # the instruction string
@@ -46,7 +46,7 @@ print(asst.instructions) # the instruction string
 Pass a local file path to upload context documents for the assistant to read:
 
 ```python
-file = pc.assistant.upload_file(
+file = pc.assistants.upload_file(
     assistant_name="my-assistant",
     file_path="data.pdf",
 )
@@ -60,7 +60,7 @@ print(file.status) # "Processing" → "Available"
 Send a conversation and receive a response:
 
 ```python
-response = pc.assistant.chat(
+response = pc.assistants.chat(
     assistant_name="my-assistant",
     messages=[{"role": "user", "content": "What is the main topic of the document?"}],
 )
@@ -77,7 +77,7 @@ strings.  Iterating ``stream`` directly instead yields typed chunk objects
 print their ``repr`` rather than the assistant's text.
 
 ```python
-stream = pc.assistant.chat(
+stream = pc.assistants.chat(
     assistant_name="my-assistant",
     messages=[{"role": "user", "content": "Summarize the document."}],
     stream=True,
@@ -91,7 +91,7 @@ for text in stream.text():
 Remove an uploaded file from an assistant:
 
 ```python
-pc.assistant.delete_file(
+pc.assistants.delete_file(
     assistant_name="my-assistant",
     file_id="file-id-here",
 )
@@ -102,7 +102,7 @@ Raises {exc}`~pinecone.errors.exceptions.NotFoundError` if the file does not exi
 ## Delete an assistant
 
 ```python
-pc.assistant.delete(name="my-assistant")
+pc.assistants.delete(name="my-assistant")
 ```
 
 Raises {exc}`~pinecone.errors.exceptions.NotFoundError` if the assistant does not exist.
