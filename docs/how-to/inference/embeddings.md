@@ -69,13 +69,12 @@ Use the {class}`~pinecone.models.enums.EmbedModel` enum for tab-completion and t
 safety:
 
 ```python
-from pinecone import Pinecone
-from pinecone.client.inference import Inference
+from pinecone import Pinecone, EmbedModel
 
 pc = Pinecone(api_key="your-api-key")
 
 result = pc.inference.embed(
-    model=Inference.EmbedModel.Multilingual_E5_Large,
+    model=EmbedModel.Multilingual_E5_Large,
     inputs=["search query"],
     parameters={"input_type": "query"},
 )
