@@ -589,7 +589,7 @@ class Pinecone:
         schema: dict[str, Any] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
-        """Backwards-compatibility shim for creating an integrated (model-backed) index.
+        """Backwards-compatibility shim for :meth:`Pinecone.indexes.create`.
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New
         code should use ``pc.indexes.create()`` with an ``IntegratedSpec``
