@@ -142,7 +142,7 @@ stop.
 #### Why surfaced errors are usually persistent
 
 The HTTP transport retries `{408, 429, 500, 502, 503, 504}`
-automatically up to three times with exponential backoff (see
+automatically up to two times (three total attempts) with exponential backoff (see
 {class}`~pinecone.RetryConfig`). That layer absorbs nearly
 all transient infrastructure issues. By the time an error
 reaches `response.errors`, it has either:
