@@ -15,11 +15,13 @@ assistant = pc.assistant.create(
     instructions="Answer questions based on the uploaded documents.",
 )
 print(assistant.name)    # "my-assistant"
-print(assistant.status)  # "Initializing" immediately after creation
+print(assistant.status)  # "Ready"
 ```
 
-The assistant transitions through ``Initializing`` → ``Ready``. ``create`` returns
-immediately; poll with ``describe`` to wait for readiness.
+By default, ``create()`` polls until the assistant reaches ``"Ready"`` status before
+returning. To return immediately without waiting (for example to kick off creation
+asynchronously), pass ``timeout=-1`` — the returned assistant will be in
+``"Initializing"`` status and you can check readiness later via ``describe()``.
 
 ## List and describe assistants
 
