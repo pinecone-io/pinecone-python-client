@@ -116,17 +116,26 @@ class TestBackupModelSchema:
         assert model.schema is None
 
 
-class TestBackupModelNoMetricField:
-    def test_backup_model_has_no_metric_field(self) -> None:
-        """BackupModel must not expose a metric field (backend never sends it)."""
+class TestBackupModelMetricField:
+    def test_backup_model_metric_defaults_to_none(self) -> None:
+        """BackupModel.metric is None when the server omits the field."""
         raw = (
             b'{"backup_id":"bkp-1","source_index_name":"my-index",'
             b'"source_index_id":"idx-abc","status":"Ready","cloud":"aws",'
             b'"region":"us-east-1"}'
         )
         model = msgspec.json.decode(raw, type=BackupModel)
-        with pytest.raises(AttributeError):
-            _ = model.metric  # type: ignore[attr-defined]
+        assert model.metric is None
+
+    def test_backup_model_metric_decoded_when_present(self) -> None:
+        """BackupModel.metric is populated when returned by the server."""
+        raw = (
+            b'{"backup_id":"bkp-1","source_index_name":"my-index",'
+            b'"source_index_id":"idx-abc","status":"Ready","cloud":"aws",'
+            b'"region":"us-east-1","metric":"cosine"}'
+        )
+        model = msgspec.json.decode(raw, type=BackupModel)
+        assert model.metric == "cosine"
 
 
 class TestBackupModelJsonDecode:

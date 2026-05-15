@@ -22,6 +22,8 @@ class BackupModel(Struct, kw_only=True):
         name: User-provided name for the backup.
         description: User-provided description for the backup.
         dimension: Dimensionality of vectors in the backup.
+        metric: Distance metric used for this backup (e.g. ``"cosine"``), or ``None`` if not
+            returned by the server.
         record_count: Number of records in the backup.
         namespace_count: Number of namespaces in the backup.
         size_bytes: Size of the backup in bytes.
@@ -39,6 +41,7 @@ class BackupModel(Struct, kw_only=True):
     name: str | None = None
     description: str | None = None
     dimension: int | None = None
+    metric: str | None = None
     record_count: int | None = None
     namespace_count: int | None = None
     size_bytes: int | None = None
