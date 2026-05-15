@@ -107,6 +107,8 @@ for assistant in pc.assistants.list(limit=50):
 
 Save `pagination_token` to resume iteration later:
 
+::::{tabs}
+:::{tab} Sync
 ```python
 paginator = pc.assistants.list()
 first_page = next(paginator.pages())
@@ -115,10 +117,25 @@ first_page = next(paginator.pages())
 token = first_page.pagination_token
 
 # Later: resume from where you left off
-from pinecone.models.pagination import Paginator
-
-# (pass initial_token when constructing directly)
+for assistant in pc.assistants.list(pagination_token=token):
+    print(assistant.name)
 ```
+:::
+:::{tab} Async
+```python
+async with AsyncPinecone() as pc:
+    paginator = pc.assistants.list()
+    first_page = await paginator.pages().__anext__()
+
+    # Store the token
+    token = first_page.pagination_token
+
+    # Later: resume from where you left off
+    async for assistant in pc.assistants.list(pagination_token=token):
+        print(assistant.name)
+```
+:::
+::::
 
 ## Paginating Vector IDs
 
