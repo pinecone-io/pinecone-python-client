@@ -299,7 +299,7 @@ class AsyncPinecone:
 
     @property
     def inference(self) -> AsyncInference:
-        """Access the AsyncInference namespace for inference operations.
+        """Access the AsyncInference namespace for embed and rerank operations.
 
         Lazily imported and instantiated on first access.
 
