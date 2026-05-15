@@ -370,12 +370,14 @@ class Pinecone:
 
             .. code-block:: python
 
-                pc = Pinecone(api_key="...")
-                idx = pc.index(host="my-index-abc123.svc.pinecone.io")
-                # or
-                idx = pc.index(name="my-index")
-                # gRPC transport
-                idx = pc.index(name="my-index", grpc=True)
+                from pinecone import Pinecone
+
+                pc = Pinecone(api_key="your-api-key")
+                idx = pc.index(host="product-search-abc123.svc.pinecone.io")
+                # or resolve the host by name
+                idx = pc.index(name="product-search")
+                # gRPC transport for high-throughput upserts
+                idx = pc.index(name="product-search", grpc=True)
         """
         resolved_host = self._resolve_index_host(name=name, host=host)
 
