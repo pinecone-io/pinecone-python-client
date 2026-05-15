@@ -201,7 +201,7 @@ class Pinecone:
 
     @property
     def backups(self) -> Backups:
-        """Access the Backups namespace for backup operations.
+        """Access the Backups namespace for control-plane backup operations.
 
         Lazily imported and instantiated on first access.
 
