@@ -217,7 +217,8 @@ reporting:
 
 ```python
 # Preferred
-async with pc.index(host=desc.host) as index:
+index = await pc.index(host=desc.host)
+async with index:
     response = await index.upsert(
         vectors=large_list,
         batch_size=100,
@@ -230,7 +231,8 @@ many namespaces — `asyncio.gather` over `AsyncIndex` calls is still the natura
 pattern:
 
 ```python
-async with pc.index(host=desc.host) as index:
+index = await pc.index(host=desc.host)
+async with index:
     results = await asyncio.gather(
         index.upsert(vectors=writes_batch, batch_size=100),
         index.query(vector=q1, top_k=10),
