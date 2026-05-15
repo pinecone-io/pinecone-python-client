@@ -529,7 +529,14 @@ class Pinecone:
 
     @property
     def config(self) -> PineconeConfig:
-        """The resolved configuration for this client."""
+        """The resolved configuration for this client.
+
+        Examples:
+
+            >>> cfg = pc.config
+            >>> cfg.timeout
+            30.0
+        """
         return self._config
 
     # ---- Backcompat flat-method delegates (:meta private:) ----
