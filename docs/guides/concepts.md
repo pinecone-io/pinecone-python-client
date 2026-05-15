@@ -118,7 +118,10 @@ pc.indexes.create(
     spec=IntegratedSpec(
         cloud="aws",
         region="us-east-1",
-        embed=EmbedConfig(model="multilingual-e5-large"),
+        embed=EmbedConfig(
+            model="multilingual-e5-large",
+            field_map={"text": "text"},
+        ),
     ),
 )
 
