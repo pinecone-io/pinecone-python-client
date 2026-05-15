@@ -14,6 +14,13 @@ T = TypeVar("T")
 def decode_response(data: bytes, type: type[T]) -> T:
     """Decode *data* as JSON into an instance of *type*, wrapping decode errors.
 
+    Args:
+        data (bytes): Raw JSON bytes from the API response.
+        type (type[T]): The target msgspec-decodable type to decode into.
+
+    Returns:
+        T: Decoded instance of ``type``.
+
     Raises:
         ResponseParsingError: If *data* cannot be decoded into *type*.
     """
