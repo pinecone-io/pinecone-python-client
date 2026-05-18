@@ -134,7 +134,8 @@ def normalize_rerank_documents(
         documents: A Sequence of strings or Sequence of Mappings.
 
     Returns:
-        A list of dicts with ``"text"`` keys.
+        A list of dicts suitable for the rerank API.  String inputs are wrapped as
+        ``{"text": s}``; Mapping inputs are copied as-is.
 
     Raises:
         PineconeTypeError: If documents is not a Sequence (or is a string)
