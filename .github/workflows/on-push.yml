@@ -90,6 +90,16 @@ jobs:
       - name: Install deps + build Rust extension
         run: uv sync --group dev
 
+      - name: Check pinecone/__init__.pyi is in sync with _LAZY_IMPORTS
+        run: uv run --no-sync python scripts/generate_init_stub.py --check
+
+      - name: How to fix __init__.pyi drift
+        if: failure()
+        run: |
+          echo "::error::pinecone/__init__.pyi is out of sync with _LAZY_IMPORTS."
+          echo "Run:  cd sdks/python-sdk && uv run python scripts/generate_init_stub.py"
+          echo "Then commit the regenerated pinecone/__init__.pyi."
+
       - name: mypy --strict
         run: uv run --no-sync mypy --strict pinecone/
 
