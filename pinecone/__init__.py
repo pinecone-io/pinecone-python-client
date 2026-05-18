@@ -205,7 +205,7 @@ if TYPE_CHECKING:
     from pinecone.models.vectors.vector import ScoredVector, Vector
     from pinecone.utils.filter_builder import Field, FilterBuilder
 
-__version__ = "9.0.0"
+__version__ = "9.0.1rc1"
 
 if _os.environ.get("PINECONE_DEBUG"):
     import logging as _logging
