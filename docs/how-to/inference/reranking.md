@@ -88,13 +88,12 @@ Use the {class}`~pinecone.models.enums.RerankModel` enum for tab-completion and 
 safety:
 
 ```python
-from pinecone import Pinecone
-from pinecone.client.inference import Inference
+from pinecone import Pinecone, RerankModel
 
 pc = Pinecone(api_key="your-api-key")
 
 result = pc.inference.rerank(
-    model=Inference.RerankModel.Bge_Reranker_V2_M3,
+    model=RerankModel.Bge_Reranker_V2_M3,
     query="machine learning",
     documents=documents,
 )
