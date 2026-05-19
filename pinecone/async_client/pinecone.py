@@ -8,7 +8,11 @@ from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.config import PineconeConfig, RetryConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
-from pinecone._internal.indexes_helpers import IndexKwargs, async_poll_index_until_ready
+from pinecone._internal.indexes_helpers import (
+    IndexKwargs,
+    apply_index_kwargs_overrides,
+    async_poll_index_until_ready,
+)
 from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import ValidationError
 
@@ -750,7 +754,7 @@ class AsyncPinecone:
         """
         from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
 
-        return _AsyncIndex(
+        index_kwargs = IndexKwargs(
             host=host,
             api_key=self._config.api_key,
             additional_headers=dict(self._config.additional_headers),
@@ -762,6 +766,10 @@ class AsyncPinecone:
             source_tag=self._config.source_tag,
             connection_pool_maxsize=self._config.connection_pool_maxsize,
         )
+        index_kwargs = apply_index_kwargs_overrides(
+            index_kwargs, kwargs, caller="AsyncPinecone.IndexAsyncio()"
+        )
+        return _AsyncIndex(**index_kwargs)
 
     def _build_index_kwargs(self, host: str) -> IndexKwargs:
         """Return the kwargs dict for constructing an AsyncIndex."""
