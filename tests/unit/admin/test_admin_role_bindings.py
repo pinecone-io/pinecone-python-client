@@ -1215,7 +1215,7 @@ def test_list_never_sends_a_filter_the_caller_omitted(
     role=st.sampled_from(_ROLE_NAMES),
 )
 def test_create_body_carries_every_known_combination_unmodified(
-    principal_type: str, resource_type: str, role: str
+    principal_type: str, resource_type: str, role: str, property_role_bindings: RoleBindings
 ) -> None:
     """Every enum triple the SDK accepts reaches the wire verbatim.
 
@@ -1226,14 +1226,11 @@ def test_create_body_carries_every_known_combination_unmodified(
     """
     resource_id = PROJECT_ID if resource_type == "project" else None
 
-    config = PineconeConfig(api_key="test-key", host=BASE_URL)
-    namespace = RoleBindings(http=HTTPClient(config, ADMIN_API_VERSION))
-
     with respx.mock:
         route = respx.post(f"{BASE_URL}/admin/role-bindings").mock(
             return_value=httpx.Response(200, json=_binding())
         )
-        namespace.create(
+        property_role_bindings.create(
             principal_type=principal_type,
             principal_id=PRINCIPAL_ID,
             resource_type=resource_type,
