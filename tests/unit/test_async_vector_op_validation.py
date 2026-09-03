@@ -499,9 +499,10 @@ def property_index(
     still mocked and no example opens a socket.
 
     It is bound to ``property_loop`` so the lazily created ``AsyncClient``
-    belongs to the loop the examples run on, and to
-    ``hermetic_pinecone_env_module`` so the ``PINECONE_*`` scrub runs before the
-    client is built: module-scoped fixtures are set up before the
+    belongs to the loop the examples run on; driving it from ``asyncio.run``
+    instead raises a cross-loop ``RuntimeError`` rather than hanging. It is
+    bound to ``hermetic_pinecone_env_module`` so the ``PINECONE_*`` scrub runs
+    before the client is built: module-scoped fixtures are set up before the
     function-scoped scrub, and a client built ahead of it bakes the developer's
     ambient variables into every example.
     """
