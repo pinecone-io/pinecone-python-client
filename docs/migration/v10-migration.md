@@ -46,23 +46,27 @@ import line is not by itself something to fix:
 | Import | Names it still resolves |
 | --- | --- |
 | `from pinecone.pinecone import Pinecone` | `Pinecone` |
-| `from pinecone.exceptions import ...` | the `*Exception` aliases (`PineconeException`, `NotFoundException`, `PineconeApiException`, and the rest) |
+| `from pinecone.exceptions import ...` | the legacy exception aliases (`PineconeException`, `NotFoundException`, `PineconeApiException`, `RateLimitException`, `ValidationError`, and the rest) |
 | `from pinecone.control import ...` | the control-plane models and specs (`ServerlessSpec`, `PodSpec`, `IndexModel`, `IndexList`, `BackupModel`, the enums) |
 | `from pinecone.data import ...` | `Index`, `AsyncIndex`, `Vector`, `SparseValues`, `QueryResponse`, `UpsertResponse`, `FetchResponse`, `DescribeIndexStatsResponse`, `ImportErrorMode`, `SearchQuery`, `SearchRerank` |
+| `from pinecone.db_control import ...` | the same names as `pinecone.control`, and `pinecone.db_control.enums` / `pinecone.db_control.models` resolve their halves |
+| `from pinecone.db_data import ...` | the same names as `pinecone.data`, plus `SearchQueryVector` and the `_Index` / `_IndexAsyncio` aliases |
+| `from pinecone.config import ...` | `Config` and `PineconeConfig`, the legacy named tuple and its static builder |
+| `from pinecone.inference.models import ...` | `EmbeddingsList`, `RerankResult`, `ModelInfo`, `ModelInfoList`, `IndexEmbed` |
 
-Three paths are the exception. `pinecone.config`, `pinecone.db_control`, and
-`pinecone.db_data` import as modules but export nothing usable, so a name
-read out of any of them raises:
+A handful of names that used to sit on those paths have no re-export, so
+those are the lines to fix:
 
-```python
-from pinecone.config import Config          # ImportError
-from pinecone.db_control import ServerlessSpec   # ImportError
-from pinecone.db_data import Index          # ImportError
-```
+| Import | Now raises | Do instead |
+| --- | --- | --- |
+| `from pinecone.config import ConfigBuilder, OpenApiConfiguration` | `ImportError` | pass the settings as `Pinecone(...)` keyword arguments |
+| `from pinecone.db_control import DBControl, DBControlAsyncio` | `ImportError` | use the `pc.indexes` and `pc.collections` namespaces on a client |
+| `from pinecone.db_control import PodSpecDefinition, ServerlessSpecDefinition` | `ImportError` | `index.spec` returns `PodSpecInfo` / `ServerlessSpecInfo` in their place |
+| `from pinecone.db_control import ConfigureIndexEmbed, CreateIndexForModelEmbedTypedDict` | `ImportError` | pass a plain dict, or `IndexEmbed` / `EmbedConfig` |
+| `from pinecone.db_data import VectorDictionaryMissingKeysError` (and the other per-field vector errors) | `ImportError` | catch `PineconeValueError` or `PineconeTypeError` |
 
-Import those three from `pinecone` instead: `ServerlessSpec`, `Index`, and
-`PineconeConfig` are all top-level. Apart from the `Preview*` names covered
-next, that is the whole of the import work the upgrade asks of you.
+Apart from those and the `Preview*` names covered next, that is the whole of
+the import work the upgrade asks of you.
 
 (documents-api)=
 ## Documents API
