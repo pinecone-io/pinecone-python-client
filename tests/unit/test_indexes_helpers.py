@@ -272,6 +272,7 @@ def test_poll_index_until_ready_raises_on_terminating() -> None:
         poll_index_until_ready(describe_fn, "test-index", timeout=10)
     assert exc_info.value.state == "Terminating"
     assert exc_info.value.name == "test-index"
+    assert "pc.indexes.describe(name='test-index')" in str(exc_info.value)
 
 
 def test_poll_index_until_ready_raises_on_disabled() -> None:
@@ -302,6 +303,7 @@ async def test_async_poll_index_until_ready_raises_on_terminating() -> None:
         await async_poll_index_until_ready(describe_fn, "test-index", timeout=10)
     assert exc_info.value.state == "Terminating"
     assert exc_info.value.name == "test-index"
+    assert "pc.indexes.describe(name='test-index')" in str(exc_info.value)
 
 
 async def test_async_poll_index_until_ready_raises_on_disabled() -> None:

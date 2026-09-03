@@ -451,7 +451,7 @@ class IndexTerminatedError(PineconeError):
     def __init__(self, name: str, state: str) -> None:
         super().__init__(
             f"Index '{name}' entered terminal state '{state}'. "
-            f"Check status with pc.describe_index(name='{name}')."
+            f"Check status with pc.indexes.describe(name='{name}')."
         )
         self.name = name
         self.state = state
