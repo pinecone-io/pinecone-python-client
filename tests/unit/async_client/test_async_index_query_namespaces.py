@@ -132,7 +132,7 @@ class TestQueryNamespacesValidation:
 class TestQueryNamespacesLimiterBoundedFanOut:
     @pytest.mark.asyncio
     async def test_query_namespaces_caps_concurrency_at_internal_ceiling(self) -> None:
-        """Fan-out of 30 namespaces never exceeds the internal ceiling of 10."""
+        """Fan-out of 30 namespaces saturates the internal ceiling of 10 and stops there."""
         idx = _make_index()
         namespaces = [f"ns{i}" for i in range(30)]
         peak_inflight = 0
@@ -158,17 +158,18 @@ class TestQueryNamespacesLimiterBoundedFanOut:
                 top_k=5,
             )
 
-        assert peak_inflight <= 10
+        assert peak_inflight == 10
 
     @pytest.mark.asyncio
     async def test_query_namespaces_respects_limiter(self) -> None:
-        """When limiter is throttled to 2, fan-out never exceeds 2."""
+        """When the limiter is throttled to 2, fan-out reaches 2 and stops there."""
         registry = _AdaptiveLimiterRegistry()
         # Pre-throttle the limiter down to 2: start at ceiling 10, throttle 3x → 10→5→2→1, restore
         limiter = registry.get(INDEX_HOST, 10)
         limiter.report_throttled()  # 10 → 5
         limiter.report_throttled()  # 5 → 2
-        # current_limit == 2
+        throttled_limit = limiter.current_limit()
+        assert throttled_limit == 2
 
         idx = _make_index(limiter_registry=registry)
         namespaces = [f"ns{i}" for i in range(10)]
@@ -195,15 +196,19 @@ class TestQueryNamespacesLimiterBoundedFanOut:
                 top_k=5,
             )
 
-        assert peak_inflight <= limiter.current_limit()
+        assert peak_inflight == throttled_limit
 
     @pytest.mark.asyncio
     async def test_query_namespaces_preserves_namespace_order_in_results(self) -> None:
-        """Results are aggregated in the order of the input namespaces list."""
+        """Tied scores fall back to input-namespace order, not completion order.
+
+        Latencies are assigned so that completion order is unrelated to input
+        order; every match scores the same, so the aggregator's insertion-order
+        tie-break is the only thing that can produce the expected sequence.
+        """
         idx = _make_index()
         namespaces = ["ns-a", "ns-b", "ns-c", "ns-d", "ns-e"]
 
-        # Assign different latencies so completion order differs from input order
         latencies = {"ns-a": 0.05, "ns-b": 0.01, "ns-c": 0.04, "ns-d": 0.02, "ns-e": 0.03}
 
         async def latency_query(**kwargs: object) -> QueryResponse:
@@ -219,9 +224,7 @@ class TestQueryNamespacesLimiterBoundedFanOut:
                 top_k=5,
             )
 
-        # Each match id starts with the namespace name; verify the top result is from expected NSes
-        match_ids = [m.id for m in result.matches]
-        assert len(match_ids) == len(namespaces)
+        assert [m.id for m in result.matches] == [f"{ns}-v1" for ns in namespaces]
 
     @pytest.mark.asyncio
     async def test_query_namespaces_works_without_limiter(self) -> None:

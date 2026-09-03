@@ -257,7 +257,7 @@ class TestAsyncUpsertConcurrency:
             )
 
         assert result.upserted_count == 25
-        assert peak <= 2
+        assert peak == 2
 
     def test_upsert_max_concurrency_default_is_8(self) -> None:
         import inspect
