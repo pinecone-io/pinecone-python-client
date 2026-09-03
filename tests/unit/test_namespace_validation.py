@@ -33,7 +33,7 @@ rather than being restated per lane.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from typing import Any
 
 import httpx
@@ -422,6 +422,27 @@ def test_delete_namespace_404_raises_not_found(index: Index) -> None:
 # Property: the client-side name rule is exactly ASCII / no-NUL / 1-512
 # ---------------------------------------------------------------------------
 
+
+@pytest.fixture(scope="module")
+def property_index(hermetic_pinecone_env_module: None) -> Iterator[Index]:
+    """One client shared by every Hypothesis example below.
+
+    Building an ``Index`` parses the CA bundle into a fresh ``ssl.SSLContext``,
+    which costs more than any property here asserts; per example that pushes the
+    default 200 ms deadline over on a loaded runner. respx intercepts at the
+    transport, so a client built outside the example is still mocked and no
+    example opens a socket.
+
+    It depends on ``hermetic_pinecone_env_module`` so the ``PINECONE_*`` scrub
+    runs before the client is built: module-scoped fixtures are set up before
+    the function-scoped scrub, and a client built ahead of it bakes the
+    developer's ambient variables into every example.
+    """
+    client = Index(host=INDEX_HOST, api_key="test-key")
+    yield client
+    client.close()
+
+
 _legal_chars = st.characters(min_codepoint=1, max_codepoint=127)
 _legal_names = st.text(alphabet=_legal_chars, min_size=1, max_size=NAME_MAX)
 _illegal_names = st.one_of(
@@ -433,57 +454,41 @@ _illegal_names = st.one_of(
 
 
 @given(name=_legal_names)
-def test_every_legal_name_passes_client_validation(name: str) -> None:
+def test_every_legal_name_passes_client_validation(property_index: Index, name: str) -> None:
     with respx.mock(assert_all_called=False) as mock:
         route = mock.get(url__startswith=NS_URL).mock(
             return_value=httpx.Response(200, json=make_namespace_description_response(name=name))
         )
-        client = Index(host=INDEX_HOST, api_key="test-key")
-        try:
-            assert client.describe_namespace(name=name).name == name
-        finally:
-            client.close()
+        assert property_index.describe_namespace(name=name).name == name
         assert route.called
 
 
 @given(name=_illegal_names)
-def test_every_illegal_name_is_rejected_before_http(name: str) -> None:
+def test_every_illegal_name_is_rejected_before_http(property_index: Index, name: str) -> None:
     with respx.mock as mock:
-        client = Index(host=INDEX_HOST, api_key="test-key")
-        try:
-            with pytest.raises(ValidationError):
-                client.describe_namespace(name=name)
-            with pytest.raises(ValidationError):
-                client.delete_namespace(name=name)
-            with pytest.raises(ValidationError):
-                client.create_namespace(name=name)
-        finally:
-            client.close()
+        with pytest.raises(ValidationError):
+            property_index.describe_namespace(name=name)
+        with pytest.raises(ValidationError):
+            property_index.delete_namespace(name=name)
+        with pytest.raises(ValidationError):
+            property_index.create_namespace(name=name)
         assert not mock.calls
 
 
 @given(limit=st.integers(min_value=1, max_value=LIMIT_MAX))
-def test_every_legal_limit_passes_client_validation(limit: int) -> None:
+def test_every_legal_limit_passes_client_validation(property_index: Index, limit: int) -> None:
     with respx.mock as mock:
         mock.get(NS_URL).mock(
             return_value=httpx.Response(200, json={"namespaces": [], "total_count": 0})
         )
-        client = Index(host=INDEX_HOST, api_key="test-key")
-        try:
-            client.list_namespaces_paginated(limit=limit)
-        finally:
-            client.close()
+        property_index.list_namespaces_paginated(limit=limit)
 
 
 @given(
     limit=st.one_of(st.integers(max_value=0), st.integers(min_value=LIMIT_MAX + 1, max_value=10**6))
 )
-def test_every_illegal_limit_is_rejected_before_http(limit: int) -> None:
+def test_every_illegal_limit_is_rejected_before_http(property_index: Index, limit: int) -> None:
     with respx.mock as mock:
-        client = Index(host=INDEX_HOST, api_key="test-key")
-        try:
-            with pytest.raises(ValidationError, match=f"limit must be between 1 and {LIMIT_MAX}"):
-                client.list_namespaces_paginated(limit=limit)
-        finally:
-            client.close()
+        with pytest.raises(ValidationError, match=f"limit must be between 1 and {LIMIT_MAX}"):
+            property_index.list_namespaces_paginated(limit=limit)
         assert not mock.calls
