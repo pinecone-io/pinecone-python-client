@@ -20,6 +20,7 @@ from pinecone.errors.exceptions import (
     PineconeError,
 )
 from pinecone.models.assistant.model import AssistantModel
+from pinecone.models.backups.list import BackupList
 
 BASE_URL = "https://api.test.pinecone.io"
 
@@ -69,7 +70,7 @@ def _assistant_blocked_project(remaining: set[str]) -> object:
     mock_pc.assistants = assistants
     mock_pc.indexes.list.return_value = []
     mock_pc.collections.list.return_value = []
-    mock_pc.backups.list.return_value = []
+    mock_pc.backups.list.return_value = BackupList([])
     return mock_pc
 
 

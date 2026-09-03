@@ -20,10 +20,56 @@ from pinecone.models.admin.api_key import APIKeyRole
 from pinecone.models.admin.project import ProjectList, ProjectModel
 
 if TYPE_CHECKING:
+    from pinecone._client import Pinecone
     from pinecone._internal.http_client import HTTPClient
     from pinecone.admin.admin import Admin
 
 logger = logging.getLogger(__name__)
+
+
+def _project_backup_ids(pc: Pinecone) -> list[str]:
+    """Collect the ids of every backup in the project, across every page.
+
+    :meth:`~pinecone.client.backups.Backups.list` returns one page plus a
+    token rather than a paginator, so the caller walks the pages.
+
+    The whole listing is read before any of it is deleted. The page token
+    names a position in a live result set, so deleting while paging would
+    shift the remaining rows out from under the token and skip whole pages.
+    Ids are de-duplicated for the same reason: a listing that changes
+    underneath a walk can hand back a row twice.
+
+    A token the walk has already followed ends it, so a server that keeps
+    naming the same next page cannot hang an unattended cleanup. The walk
+    returns what it has; the project delete that follows then fails naming
+    the backups still there, which is a diagnosable outcome rather than a
+    process that never comes back.
+
+    Args:
+        pc: A client scoped to the project whose backups are being listed.
+    """
+    backup_ids: list[str] = []
+    seen_ids: set[str] = set()
+    seen_tokens: set[str] = set()
+    page = pc.backups.list()
+    while True:
+        for backup in page:
+            if backup.backup_id not in seen_ids:
+                seen_ids.add(backup.backup_id)
+                backup_ids.append(backup.backup_id)
+        next_token = page.pagination.next if page.pagination else None
+        if next_token is None:
+            return backup_ids
+        if next_token in seen_tokens:
+            logger.warning(
+                "Cleanup: the backup listing repeated pagination token %r, so the walk "
+                "stopped after %d backups; any beyond that will block the project delete",
+                next_token,
+                len(backup_ids),
+            )
+            return backup_ids
+        seen_tokens.add(next_token)
+        page = pc.backups.list(pagination_token=next_token)
 
 
 class Projects:
@@ -337,6 +383,9 @@ class Projects:
         handle race conditions where a resource is deleted between the list
         and delete calls.
 
+        Backups are the one listing here that does not follow its own pages,
+        so they are gathered by :func:`_project_backup_ids` first.
+
         Args:
             api_key: A Pinecone API key scoped to the target project.
         """
@@ -368,12 +417,12 @@ class Projects:
                     logger.debug("Cleanup: assistant %r already deleted", assistant.name)
 
             # Delete all backups
-            for backup in pc.backups.list():
+            for backup_id in _project_backup_ids(pc):
                 try:
-                    logger.debug("Cleanup: deleting backup %r", backup.backup_id)
-                    pc.backups.delete(backup_id=backup.backup_id)
+                    logger.debug("Cleanup: deleting backup %r", backup_id)
+                    pc.backups.delete(backup_id=backup_id)
                 except NotFoundError:
-                    logger.debug("Cleanup: backup %r already deleted", backup.backup_id)
+                    logger.debug("Cleanup: backup %r already deleted", backup_id)
         finally:
             pc.close()
 
@@ -419,8 +468,11 @@ class Projects:
                 cannot be created — usually the project's API-key quota. Nothing is
                 deleted in this case, and the message says so and how to clear it.
             :exc:`~pinecone.errors.exceptions.FailedPreconditionError`: If the project is
-                still not empty when the final delete runs, which happens when something
-                is created in it after cleanup finishes. The error names what is blocking.
+                still not empty when the final delete runs; the error names what is
+                blocking. Something created in the project while cleanup ran is one cause,
+                a resource cleanup could not remove is the other. Everything cleanup did
+                delete is already gone and stays gone, so read what the error names rather
+                than assuming a race.
             :exc:`ApiError`: If the last cleanup attempt failed; the error from that
                 attempt is re-raised, and the project is left partly emptied.
 
