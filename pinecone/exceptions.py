@@ -21,8 +21,10 @@ from pinecone.errors.exceptions import (
     PineconeConfigurationError,
     PineconeException,
     PineconeProtocolError,
+    RateLimitException,
     ServiceException,
     UnauthorizedException,
+    ValidationError,
 )
 
 __all__ = [
@@ -37,6 +39,8 @@ __all__ = [
     "PineconeConfigurationError",
     "PineconeException",
     "PineconeProtocolError",
+    "RateLimitException",
     "ServiceException",
     "UnauthorizedException",
+    "ValidationError",
 ]
