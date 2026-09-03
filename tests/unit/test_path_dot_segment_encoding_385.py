@@ -28,7 +28,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
-from hypothesis import HealthCheck, example, given, settings
+from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
 from pinecone import AsyncIndex, Index, Pinecone, PineconeAsyncio
@@ -445,6 +445,32 @@ PATH_VALUES = st.one_of(
 )
 
 
+@pytest.fixture(scope="module")
+def property_index(hermetic_pinecone_env_module: None) -> Iterator[Index]:
+    """One client shared by every Hypothesis example below.
+
+    Building an ``Index`` parses the CA bundle into a fresh ``ssl.SSLContext``,
+    which costs more than the property being asserted; per example that is what
+    pushes a 200-example run over its deadline on a loaded runner. respx
+    intercepts at the transport, so a client built outside the example is still
+    mocked and no example opens a socket. The scrub in
+    ``hermetic_pinecone_env_module`` has to run before the client is built, or
+    the developer's ambient ``PINECONE_*`` variables are baked into every
+    example.
+    """
+    client = Index(host=INDEX_HOST, api_key="test-key")
+    yield client
+    client.close()
+
+
+@pytest.fixture(scope="module")
+def property_control_plane(hermetic_pinecone_env_module: None) -> Iterator[Pinecone]:
+    """The control-plane counterpart of ``property_index``, for the same reason."""
+    client = Pinecone(api_key="test-key")
+    yield client
+    client.close()
+
+
 def _assert_not_collapsed(prefix: str, value: str, path: str) -> None:
     assert path.startswith(prefix), f"{value!r} collapsed the path to {path!r}"
     assert len(path.split("/")) >= len(prefix.rstrip("/").split("/")) + 1, (
@@ -452,14 +478,14 @@ def _assert_not_collapsed(prefix: str, value: str, path: str) -> None:
     )
 
 
-@settings(max_examples=200, suppress_health_check=[HealthCheck.function_scoped_fixture])
+@settings(max_examples=200)
 @given(value=PATH_VALUES)
 @example(value="..")
 @example(value=".")
 @example(value="/")
 @example(value="")
 @example(value="ünïcødé")
-def test_namespace_request_is_never_collapsed(value: str) -> None:
+def test_namespace_request_is_never_collapsed(property_index: Index, value: str) -> None:
     """Whatever the value, the request still addresses ``/namespaces/<something>``.
 
     ``..`` and ``.`` are pinned as explicit examples because a cached
@@ -471,12 +497,8 @@ def test_namespace_request_is_never_collapsed(value: str) -> None:
     """
     with respx.mock(assert_all_called=False) as router:
         router.route().mock(return_value=httpx.Response(200, json={}))
-        index = Index(host=INDEX_HOST, api_key="test-key")
-        try:
-            with _ignoring_the_stub_response_body():
-                index.describe_namespace(name=value)
-        finally:
-            index.close()
+        with _ignoring_the_stub_response_body():
+            property_index.describe_namespace(name=value)
         calls = list(router.calls)
 
     if not calls:
@@ -486,14 +508,14 @@ def test_namespace_request_is_never_collapsed(value: str) -> None:
     assert path.count("/") == 2, f"{value!r} injected a path segment: {path!r}"
 
 
-@settings(max_examples=200, suppress_health_check=[HealthCheck.function_scoped_fixture])
+@settings(max_examples=200)
 @given(value=PATH_VALUES)
 @example(value="..")
 @example(value=".")
 @example(value="/")
 @example(value="")
 @example(value="ünïcødé")
-def test_index_request_is_never_collapsed(value: str) -> None:
+def test_index_request_is_never_collapsed(property_control_plane: Pinecone, value: str) -> None:
     """Same invariant on a control-plane route, plus the stronger one #417 bought.
 
     ``/indexes/{name}`` percent-encodes its parameter, so the name occupies
@@ -502,9 +524,8 @@ def test_index_request_is_never_collapsed(value: str) -> None:
     """
     with respx.mock(assert_all_called=False) as router:
         router.route().mock(return_value=httpx.Response(200, json={}))
-        client = Pinecone(api_key="test-key")
         with _ignoring_the_stub_response_body():
-            client.describe_index(value)
+            property_control_plane.describe_index(value)
         calls = list(router.calls)
 
     if not calls:
