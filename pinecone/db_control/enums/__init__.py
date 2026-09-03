@@ -2,7 +2,7 @@
 
 Re-exports the control-plane enums that used to live here. Preserved to keep
 pre-rewrite callers working. New code should import them from the top-level
-:mod:`pinecone` namespace or from :mod:`pinecone.models.enums`.
+:mod:`pinecone` namespace.
 
 :meta private:
 """

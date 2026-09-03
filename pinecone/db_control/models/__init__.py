@@ -3,9 +3,9 @@
 Re-exports the control-plane models and specs that used to live here.
 Preserved to keep pre-rewrite callers working. New code should import them
 from the top-level :mod:`pinecone` namespace. ``PodSpecDefinition`` and
-``ServerlessSpecDefinition`` also used to live here;
-:attr:`~pinecone.IndexModel.spec` now returns :class:`~pinecone.PodSpecInfo`
-and :class:`~pinecone.ServerlessSpecInfo` in their place.
+``ServerlessSpecDefinition`` also used to live here; ``index.spec.pod`` and
+``index.spec.serverless`` now hold a :class:`~pinecone.PodSpecInfo` and a
+:class:`~pinecone.ServerlessSpecInfo` in their place.
 
 :meta private:
 """

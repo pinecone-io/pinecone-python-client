@@ -61,7 +61,7 @@ those are the lines to fix:
 | --- | --- | --- |
 | `from pinecone.config import ConfigBuilder, OpenApiConfiguration` | `ImportError` | pass the settings as `Pinecone(...)` keyword arguments |
 | `from pinecone.db_control import DBControl, DBControlAsyncio` | `ImportError` | use the `pc.indexes` and `pc.collections` namespaces on a client |
-| `from pinecone.db_control import PodSpecDefinition, ServerlessSpecDefinition` | `ImportError` | `index.spec` returns `PodSpecInfo` / `ServerlessSpecInfo` in their place |
+| `from pinecone.db_control import PodSpecDefinition, ServerlessSpecDefinition` | `ImportError` | `index.spec.pod` and `index.spec.serverless` hold a `PodSpecInfo` / `ServerlessSpecInfo` in their place |
 | `from pinecone.db_control import ConfigureIndexEmbed, CreateIndexForModelEmbedTypedDict` | `ImportError` | pass a plain dict, or `IndexEmbed` / `EmbedConfig` |
 | `from pinecone.db_data import VectorDictionaryMissingKeysError` (and the other per-field vector errors) | `ImportError` | catch `PineconeValueError` or `PineconeTypeError` |
 

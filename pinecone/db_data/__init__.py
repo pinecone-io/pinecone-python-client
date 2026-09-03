@@ -4,9 +4,11 @@ Re-exports the data-plane clients and models that used to live here,
 matching what :mod:`pinecone.data` exports plus the ``SearchQueryVector``
 and underscore-prefixed ``_Index``/``_IndexAsyncio`` aliases this path also
 carried. Preserved to keep pre-rewrite callers working. New code should
-import them from the top-level :mod:`pinecone` namespace. The per-field
-vector validation errors (``VectorDictionaryMissingKeysError`` and the rest)
-also used to live here and have no replacement; vector validation now raises
+import these from the top-level :mod:`pinecone` namespace, except
+``SearchQueryVector``, whose canonical home is
+:mod:`pinecone.models.vectors.search`. The per-field vector validation
+errors (``VectorDictionaryMissingKeysError`` and the rest) also used to live
+here and have no replacement; vector validation now raises
 :class:`pinecone.PineconeValueError` or :class:`pinecone.PineconeTypeError`.
 
 :meta private:
