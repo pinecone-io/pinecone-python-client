@@ -169,10 +169,14 @@ class AsyncBackups:
         :meth:`~pinecone.async_client.restore_jobs.AsyncRestoreJobs.list`,
         :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.list`
         and
-        :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.history`,
-        each of which pairs with a separate ``iter_*`` method that walks the
-        pages. The project-wide backup listing has no such companion, so
-        walking it is the caller's job;
+        :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.history`.
+        Where a page-walking companion exists it is a separate method —
+        :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.iter_schedules`
+        and
+        :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.iter_history`.
+        Neither this listing nor
+        :meth:`~pinecone.async_client.restore_jobs.AsyncRestoreJobs.list` has
+        one, so walking those is the caller's job;
         :meth:`~pinecone.async_client.indexes.AsyncIndexes.list_backups` is
         the page-walking shape for one index at a time.
 

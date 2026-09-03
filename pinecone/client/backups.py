@@ -158,10 +158,14 @@ class Backups:
         the backup endpoints are shaped throughout: so do
         :meth:`~pinecone.client.restore_jobs.RestoreJobs.list`,
         :meth:`~pinecone.client.backup_schedules.BackupSchedules.list` and
-        :meth:`~pinecone.client.backup_schedules.BackupSchedules.history`,
-        each of which pairs with a separate ``iter_*`` method that walks the
-        pages. The project-wide backup listing has no such companion, so
-        walking it is the caller's job;
+        :meth:`~pinecone.client.backup_schedules.BackupSchedules.history`.
+        Where a page-walking companion exists it is a separate method —
+        :meth:`~pinecone.client.backup_schedules.BackupSchedules.iter_schedules`
+        and
+        :meth:`~pinecone.client.backup_schedules.BackupSchedules.iter_history`.
+        Neither this listing nor
+        :meth:`~pinecone.client.restore_jobs.RestoreJobs.list` has one, so
+        walking those is the caller's job;
         :meth:`~pinecone.client.indexes.Indexes.list_backups` is the
         page-walking shape for one index at a time.
 
