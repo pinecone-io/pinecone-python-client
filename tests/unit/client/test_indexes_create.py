@@ -611,6 +611,26 @@ def test_create_invalid_name_raises_with_rule(indexes: Indexes, bad_name: str, m
 
 
 @respx.mock
+def test_create_rejects_schema_field_name_over_64_utf8_bytes(indexes: Indexes) -> None:
+    route = respx.post(f"{BASE_URL}/indexes").mock(return_value=_mock_created())
+
+    with pytest.raises(PineconeValueError, match="120 UTF-8 bytes"):
+        indexes.create(schema={"fields": {"文" * 40: {"type": "dense_vector", "dimension": 3}}})
+
+    assert not route.called
+
+
+@respx.mock
+def test_create_rejects_surrogate_schema_field_name_before_encoding(indexes: Indexes) -> None:
+    route = respx.post(f"{BASE_URL}/indexes").mock(return_value=_mock_created())
+
+    with pytest.raises(PineconeValueError, match="surrogate"):
+        indexes.create(schema={"fields": {"vec\ud800": {"type": "dense_vector", "dimension": 3}}})
+
+    assert not route.called
+
+
+@respx.mock
 def test_create_underscore_prefixed_schema_field_name_reaches_server_unmodified(
     indexes: Indexes,
 ) -> None:

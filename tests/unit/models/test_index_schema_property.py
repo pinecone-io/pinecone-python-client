@@ -150,9 +150,22 @@ def test_create_schema_build_encode_decode_to_dict_lossless(schema: IndexSchema)
     assert redecoded.to_dict() == schema.to_dict()
 
 
+_multibyte_char = st.sampled_from(["文", "é", "🎉", "д"])
+
+_over_64_byte_names = st.lists(_multibyte_char, min_size=33, max_size=48).map("".join)
+
+_within_64_byte_multibyte_names = st.lists(_multibyte_char, min_size=1, max_size=16).map("".join)
+
+_surrogate_names = st.tuples(
+    _valid_field_name,
+    st.integers(min_value=0xD800, max_value=0xDFFF).map(chr),
+).map(lambda pair: pair[0] + pair[1])
+
 _invalid_field_names = st.one_of(
     st.just(""),
     st.just("f" * 65),
+    _over_64_byte_names,
+    _surrogate_names,
 )
 
 _reserved_shaped_field_names = st.one_of(
@@ -168,6 +181,15 @@ def test_invalid_field_names_rejected_before_any_http(name: str) -> None:
     with pytest.raises(PineconeValueError, match="Invalid schema field name") as exc_info:
         CreateIndexRequest(schema={"fields": {name: {"type": "dense_vector", "dimension": 3}}})
     assert type(exc_info.value) is PineconeValueError
+
+
+@given(name=_within_64_byte_multibyte_names)
+def test_multibyte_names_within_the_byte_bound_accepted(name: str) -> None:
+    assert len(name.encode("utf-8")) <= 64
+    request = CreateIndexRequest(
+        schema={"fields": {name: {"type": "dense_vector", "dimension": 3}}}
+    )
+    assert name in request.schema["fields"]  # type: ignore[union-attr, index, operator]
 
 
 @given(name=_reserved_shaped_field_names)

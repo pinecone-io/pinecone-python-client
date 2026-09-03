@@ -118,7 +118,7 @@ def test_configure_request_read_capacity_only_stays_sparse() -> None:
 
 class TestCreateRequestValidation:
     def test_empty_field_name_rejected(self) -> None:
-        with pytest.raises(PineconeValueError, match="1-64 characters") as exc_info:
+        with pytest.raises(PineconeValueError, match="1-64 bytes") as exc_info:
             CreateIndexRequest(schema={"fields": {"": {"type": "dense_vector"}}})
         assert type(exc_info.value) is PineconeValueError
 
@@ -159,6 +159,34 @@ class TestCreateRequestValidation:
             schema={"fields": {ok_name: {"type": "dense_vector", "dimension": 3}}}
         )
         assert ok_name in req.schema["fields"]  # type: ignore[union-attr, index, operator]
+
+    def test_multibyte_name_under_64_chars_but_over_64_bytes_rejected(self) -> None:
+        name = "文" * 40
+        with pytest.raises(PineconeValueError, match="exceeds") as exc_info:
+            CreateIndexRequest(schema={"fields": {name: {"type": "dense_vector"}}})
+        message = str(exc_info.value)
+        assert "120 UTF-8 bytes" in message
+        assert type(exc_info.value) is PineconeValueError
+
+    def test_multibyte_name_over_64_bytes_rejected_on_typed_schema_path(self) -> None:
+        name = "文" * 40
+        schema = IndexSchema(fields={name: DenseVectorField(dimension=3, metric="cosine")})
+        with pytest.raises(PineconeValueError, match="exceeds"):
+            CreateIndexRequest(schema=schema)
+
+    def test_multibyte_name_within_64_bytes_accepted(self) -> None:
+        ok_name = "文" * 21
+        req = CreateIndexRequest(
+            schema={"fields": {ok_name: {"type": "dense_vector", "dimension": 3}}}
+        )
+        assert ok_name in req.schema["fields"]  # type: ignore[union-attr, index, operator]
+
+    def test_surrogate_field_name_rejected_with_pinecone_value_error(self) -> None:
+        name = "vec\ud800"
+        with pytest.raises(PineconeValueError, match="surrogate") as exc_info:
+            CreateIndexRequest(schema={"fields": {name: {"type": "dense_vector"}}})
+        assert repr(name) in str(exc_info.value)
+        assert type(exc_info.value) is PineconeValueError
 
     def test_error_message_names_field_and_value(self) -> None:
         with pytest.raises(PineconeValueError) as exc_info:
