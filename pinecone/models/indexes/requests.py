@@ -28,11 +28,11 @@ def validate_schema_field_name(name: str) -> None:
     """Check one schema field name for length before the request is sent.
 
     Names must be 1-64 bytes once encoded as UTF-8, the same unit the server
-    measures, so a name of CJK characters runs out of room at 21 rather than
-    64. Which names are reserved (``_id``, ``_values``, ``_sparse_values``) or
-    otherwise special (a leading ``$``) is the server's call rather than the
-    SDK's — a client-side copy of that list would drift the moment the
-    server's rules changed — so only length is checked here.
+    measures, so a name of multibyte characters fits far fewer of them than an
+    ASCII name does. Which names are reserved (``_id``, ``_values``,
+    ``_sparse_values``) or otherwise special (a leading ``$``) is the server's
+    call rather than the SDK's — a client-side copy of that list would drift
+    the moment the server's rules changed — so only length is checked here.
 
     Raises:
         PineconeValueError: If the name is empty, too long, or holds a
@@ -96,7 +96,8 @@ class CreateIndexRequest(Struct, kw_only=True, omit_defaults=True):
             :class:`~pinecone.models.indexes.schema.IndexSchema` or the
             equivalent dict. Only searchable fields are declared —
             ``dense_vector``, ``sparse_vector``, or ``string`` with a
-            ``full_text_search`` config.
+            ``full_text_search`` config. Each field name is limited to 64
+            UTF-8 bytes.
         name: Name for the index; the server assigns one when omitted.
         deployment: Where the index runs, discriminated on
             ``deployment_type`` (``managed``, ``pod`` or ``byoc``). Omitted
