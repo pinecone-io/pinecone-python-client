@@ -492,21 +492,28 @@ def property_index(
 ) -> Iterator[AsyncIndex]:
     """One client shared by every Hypothesis example below.
 
-    Building an ``AsyncIndex`` parses the CA bundle into a fresh
-    ``ssl.SSLContext``, which costs more than any property here asserts; per
-    example that pushes the default 200 ms deadline over on a loaded runner.
-    respx intercepts at the transport, so a client built outside the example is
-    still mocked and no example opens a socket.
+    ``AsyncIndex`` defers its ``httpx.AsyncClient`` to the first request, and
+    building that transport parses the CA bundle into a fresh
+    ``ssl.SSLContext`` — more work than any property here asserts. This fixture
+    forces that build, so it lands in setup rather than in whichever example
+    runs first under the default 200 ms deadline. respx intercepts at the
+    transport, so a client built outside the example is still mocked and no
+    example opens a socket.
 
-    It is bound to ``property_loop`` so the lazily created ``AsyncClient``
-    belongs to the loop the examples run on; driving it from ``asyncio.run``
-    instead raises a cross-loop ``RuntimeError`` rather than hanging. It is
-    bound to ``hermetic_pinecone_env_module`` so the ``PINECONE_*`` scrub runs
-    before the client is built: module-scoped fixtures are set up before the
-    function-scoped scrub, and a client built ahead of it bakes the developer's
-    ambient variables into every example.
+    The transport is built on ``property_loop``, the loop the examples run on,
+    so the ``AsyncClient`` belongs to it; driving a client from ``asyncio.run``
+    instead raises a cross-loop ``RuntimeError`` rather than hanging. The
+    fixture takes ``hermetic_pinecone_env_module`` so the ``PINECONE_*`` scrub
+    runs before the client is built: module-scoped fixtures are set up before
+    the function-scoped scrub, and a client built ahead of it bakes the
+    developer's ambient variables into every example.
     """
     client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
+
+    async def build_transport() -> None:
+        client._http._ensure_client()
+
+    property_loop.run_until_complete(build_transport())
     yield client
     property_loop.run_until_complete(client.close())
 
