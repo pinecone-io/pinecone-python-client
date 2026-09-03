@@ -235,9 +235,24 @@ class TestAsyncUpsertConcurrency:
     @pytest.mark.asyncio
     async def test_upsert_max_concurrency_bounds_in_flight(self) -> None:
         max_concurrency = 2
+        quiet_turns_required = 32
         peak = 0
         in_flight = 0
-        cap_reached: asyncio.Event = asyncio.Event()
+        admitted = 0
+
+        async def hold_until_admissions_stop() -> None:
+            """Stay in flight until the engine has stopped admitting batches.
+
+            A batch that leaves as soon as the cap is first reached cannot see
+            over-admission: it decrements ``in_flight`` before the next batch
+            increments it, so the peak sits at the cap however many batches the
+            engine let through.
+            """
+            quiet_turns = 0
+            while quiet_turns < quiet_turns_required:
+                seen = admitted
+                await asyncio.sleep(0)
+                quiet_turns = quiet_turns + 1 if admitted == seen else 0
 
         async def mock_upsert_dict_batch(
             *,
@@ -245,13 +260,14 @@ class TestAsyncUpsertConcurrency:
             namespace: str,
             timeout: float | None,
         ) -> UpsertResponse:
-            nonlocal in_flight, peak
+            nonlocal admitted, in_flight, peak
+            admitted += 1
             in_flight += 1
             peak = max(peak, in_flight)
-            if in_flight >= max_concurrency:
-                cap_reached.set()
-            await asyncio.wait_for(cap_reached.wait(), timeout=5.0)
-            in_flight -= 1
+            try:
+                await hold_until_admissions_stop()
+            finally:
+                in_flight -= 1
             return UpsertResponse(upserted_count=len(items))
 
         idx = _make_async_index()
