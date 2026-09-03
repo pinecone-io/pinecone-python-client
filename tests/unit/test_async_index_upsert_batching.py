@@ -234,8 +234,10 @@ class TestAsyncUpsertConcurrency:
 
     @pytest.mark.asyncio
     async def test_upsert_max_concurrency_bounds_in_flight(self) -> None:
+        max_concurrency = 2
         peak = 0
         in_flight = 0
+        cap_reached: asyncio.Event = asyncio.Event()
 
         async def mock_upsert_dict_batch(
             *,
@@ -246,18 +248,23 @@ class TestAsyncUpsertConcurrency:
             nonlocal in_flight, peak
             in_flight += 1
             peak = max(peak, in_flight)
-            await asyncio.sleep(0)  # yield so other waiting batches can attempt to start
+            if in_flight >= max_concurrency:
+                cap_reached.set()
+            await asyncio.wait_for(cap_reached.wait(), timeout=5.0)
             in_flight -= 1
             return UpsertResponse(upserted_count=len(items))
 
         idx = _make_async_index()
         with patch.object(idx, "_upsert_dict_batch", side_effect=mock_upsert_dict_batch):
             result = await idx.upsert(
-                vectors=_make_vectors(25), batch_size=5, max_concurrency=2, show_progress=False
+                vectors=_make_vectors(25),
+                batch_size=5,
+                max_concurrency=max_concurrency,
+                show_progress=False,
             )
 
         assert result.upserted_count == 25
-        assert peak == 2
+        assert peak == max_concurrency
 
     def test_upsert_max_concurrency_default_is_8(self) -> None:
         import inspect

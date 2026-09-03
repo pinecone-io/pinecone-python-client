@@ -164,10 +164,9 @@ class TestQueryNamespacesLimiterBoundedFanOut:
     async def test_query_namespaces_respects_limiter(self) -> None:
         """When the limiter is throttled to 2, fan-out reaches 2 and stops there."""
         registry = _AdaptiveLimiterRegistry()
-        # Pre-throttle the limiter down to 2: start at ceiling 10, throttle 3x → 10→5→2→1, restore
         limiter = registry.get(INDEX_HOST, 10)
-        limiter.report_throttled()  # 10 → 5
-        limiter.report_throttled()  # 5 → 2
+        limiter.report_throttled()
+        limiter.report_throttled()
         throttled_limit = limiter.current_limit()
         assert throttled_limit == 2
 
@@ -200,11 +199,13 @@ class TestQueryNamespacesLimiterBoundedFanOut:
 
     @pytest.mark.asyncio
     async def test_query_namespaces_preserves_namespace_order_in_results(self) -> None:
-        """Tied scores fall back to input-namespace order, not completion order.
+        """Tied scores resolve to input-namespace order.
 
-        Latencies are assigned so that completion order is unrelated to input
-        order; every match scores the same, so the aggregator's insertion-order
-        tie-break is the only thing that can produce the expected sequence.
+        Every match scores the same, so only the aggregator's insertion-order
+        tie-break can produce the expected sequence, and only if the fan-out
+        hands namespaces over in input order. The per-namespace latencies make
+        completion order differ from input order, so a fan-out that aggregated
+        results as they arrived would show up here.
         """
         idx = _make_index()
         namespaces = ["ns-a", "ns-b", "ns-c", "ns-d", "ns-e"]
