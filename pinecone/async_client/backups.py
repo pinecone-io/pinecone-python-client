@@ -163,6 +163,19 @@ class AsyncBackups:
         following ``pagination`` on your behalf. Drive the token yourself to
         walk the rest — see :doc:`/guides/pagination`.
 
+        ``list`` returns a page rather than a
+        :class:`~pinecone.models.pagination.Paginator` because that is how
+        the backup endpoints are shaped throughout: so do
+        :meth:`~pinecone.async_client.restore_jobs.AsyncRestoreJobs.list`,
+        :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.list`
+        and
+        :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.history`,
+        each of which pairs with a separate ``iter_*`` method that walks the
+        pages. The project-wide backup listing has no such companion, so
+        walking it is the caller's job;
+        :meth:`~pinecone.async_client.indexes.AsyncIndexes.list_backups` is
+        the page-walking shape for one index at a time.
+
         Args:
             index_name (str | None): Index name to scope the listing to, or
                 ``None`` for every backup in the project.
