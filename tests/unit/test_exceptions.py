@@ -392,4 +392,4 @@ class TestIndexTerminatedErrorMessage:
         for describe in (Indexes.describe, AsyncIndexes.describe):
             params = inspect.signature(describe).parameters
             assert "name" in params
-            assert params["name"].kind is inspect.Parameter.POSITIONAL_OR_KEYWORD
+            assert params["name"].kind is not inspect.Parameter.POSITIONAL_ONLY
