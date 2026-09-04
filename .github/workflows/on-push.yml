@@ -334,3 +334,11 @@ jobs:
       # sphinx-build command line is identical to release-readiness's.
       - name: Build HTML docs
         run: make -C docs html SPHINXOPTS="-W" SPHINXBUILD="uv run --no-sync sphinx-build"
+
+      # Pages the site has already published must keep resolving: a link
+      # someone saved before a restructure should not 404. Deleting a page is
+      # still allowed — add a redirect in docs/conf.py and sphinx-reredirects
+      # emits a forwarding stub at the old path, which satisfies this. Offline
+      # and deterministic; docs/published-urls.txt is the committed inventory.
+      - name: Check published docs URLs still resolve
+        run: uv run --no-sync python scripts/check_docs_urls.py
