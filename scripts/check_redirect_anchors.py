@@ -1,40 +1,28 @@
 #!/usr/bin/env python3
-"""Check that the redirect stub's anchor tables point at things that exist.
+"""Guard the redirect stub's anchor tables against pointing at nothing.
 
-``docs/_templates/redirect.html`` carries lookup tables that rewrite a deep
-link's fragment as it forwards: a class that was renamed, a method that moved
-onto a sub-resource, a section heading that was reslugged. Each entry names a
-``reference/`` page and, usually, an id on it.
+``docs/_templates/redirect.html`` rewrites a deep link's fragment as it
+forwards, naming a ``reference/`` page and usually an id on it. A stale entry
+fails silently: the browser loads the page and simply does not scroll, so
+neither the build nor anyone but the reader who followed that link finds out.
 
-Nothing in the Sphinx build validates those names. An entry that points at a
-page which no longer documents the thing it promises still *works* -- the
-browser loads the page and quietly fails to scroll -- so the failure is
-invisible in CI and to anyone who is not the reader who followed the link.
-That is how ``grpc.html#pineconegrpc`` came to forward into a page that had
-stopped documenting ``PineconeGRPC`` at all.
-
-This checks the tables against the built HTML: every page named must exist,
-and every fragment named must be an id on the page it is paired with. Offline
-and deterministic, like ``check_docs_urls.py``; run it after ``make -C docs
-html``.
-
-Usage::
-
-    uv run python scripts/check_redirect_anchors.py [BUILD_DIR]
+This validates the entries that are there. It cannot know an anchor is missing
+one it ought to have.
 """
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = REPO_ROOT / "docs" / "_templates" / "redirect.html"
-DEFAULT_BUILD = REPO_ROOT / "docs" / "_build" / "html"
+DEFAULT_BUILD_DIR = REPO_ROOT / "docs" / "_build" / "html"
 REFERENCE = "reference/"
 
-# The tables use plain double-quoted literals with no escapes, so matching them
+# The tables hold plain double-quoted literals with no escapes, so reading them
 # does not need a JS parser.
 _STR = r'"([^"]*)"'
 
@@ -47,7 +35,6 @@ def _display(path: Path) -> str:
 
 
 def _strip_comments(js: str) -> str:
-    """Drop // line comments so they cannot be mistaken for table entries."""
     return re.sub(r"^\s*//.*$", "", js, flags=re.MULTILINE)
 
 
@@ -73,7 +60,7 @@ def parse_destinations(template_text: str) -> list[tuple[str, str, str | None]]:
     """Extract (source, page, fragment) for every rewrite the template can do.
 
     ``page`` is relative to ``reference/``. ``fragment`` is None when the entry
-    only names a page, which lands the reader at the top of it.
+    names only a page, landing the reader at the top of it.
     """
     js = _strip_comments(template_text)
     out: list[tuple[str, str, str | None]] = []
@@ -108,10 +95,22 @@ def ids_on_page(path: Path) -> set[str]:
     return set(re.findall(r'id="([^"]+)"', path.read_text(encoding="utf-8")))
 
 
-def main(argv: list[str]) -> int:
-    build = Path(argv[1]) if len(argv) > 1 else DEFAULT_BUILD
-    if not build.is_dir():
-        print(f"error: no build at {build}. Run `make -C docs html` first.", file=sys.stderr)
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "build_dir",
+        nargs="?",
+        default=DEFAULT_BUILD_DIR,
+        type=Path,
+        help="built HTML to check against (default: docs/_build/html)",
+    )
+    args = parser.parse_args(argv)
+
+    if not args.build_dir.is_dir():
+        print(
+            f"error: no build at {args.build_dir}. Run `make -C docs html` first.",
+            file=sys.stderr,
+        )
         return 2
 
     destinations = parse_destinations(TEMPLATE.read_text(encoding="utf-8"))
@@ -119,7 +118,7 @@ def main(argv: list[str]) -> int:
     problems: list[str] = []
 
     for source, page, fragment in destinations:
-        path = build / REFERENCE / page
+        path = args.build_dir / REFERENCE / page
         if not path.is_file():
             problems.append(f"{source} -> {REFERENCE}{page} (no such page)")
             continue
@@ -131,18 +130,10 @@ def main(argv: list[str]) -> int:
             problems.append(f"{source} -> {REFERENCE}{page}#{fragment} (no such id on that page)")
 
     if problems:
-        print(
-            f"error: {len(problems)} redirect anchor(s) point at something that does not exist:",
-            file=sys.stderr,
-        )
+        print(f"error: {len(problems)} redirect anchor(s) point at nothing:", file=sys.stderr)
         for problem in problems:
             print(f"  {problem}", file=sys.stderr)
-        print(
-            f"\nFix the table in {_display(TEMPLATE)}, or the page it "
-            "names.\nA stale entry is worse than none: the reader lands on a page "
-            "that\nsilently fails to scroll, and nothing else notices.",
-            file=sys.stderr,
-        )
+        print(f"\nFix the table in {_display(TEMPLATE)}, or the page it names.", file=sys.stderr)
         return 1
 
     print(f"ok: all {len(destinations)} redirect anchor destinations exist in this build.")
@@ -150,4 +141,4 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv))
+    raise SystemExit(main())

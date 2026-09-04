@@ -91,24 +91,24 @@ def test_commented_out_rows_are_not_parsed_as_entries():
 
 
 def test_passes_when_every_destination_exists(tmp_path, template, capsys):
-    assert mod.main(["check", str(build_with(tmp_path, FULL_PAGES))]) == 0
+    assert mod.main([str(build_with(tmp_path, FULL_PAGES))]) == 0
     assert "ok:" in capsys.readouterr().out
 
 
 def test_fails_on_a_missing_page(tmp_path, template, capsys):
     pages = {k: v for k, v in FULL_PAGES.items() if k != "async-pinecone.html"}
-    assert mod.main(["check", str(build_with(tmp_path, pages))]) == 1
+    assert mod.main([str(build_with(tmp_path, pages))]) == 1
     assert "no such page" in capsys.readouterr().err
 
 
 def test_fails_on_a_fragment_the_page_does_not_define(tmp_path, template, capsys):
     pages = dict(FULL_PAGES, **{"admin.html": {"something-else"}})
-    assert mod.main(["check", str(build_with(tmp_path, pages))]) == 1
+    assert mod.main([str(build_with(tmp_path, pages))]) == 1
     assert "no such id on that page" in capsys.readouterr().err
 
 
 def test_missing_build_directory_is_a_usage_error(tmp_path, capsys):
-    assert mod.main(["check", str(tmp_path / "absent")]) == 2
+    assert mod.main([str(tmp_path / "absent")]) == 2
     assert "no build at" in capsys.readouterr().err
 
 
