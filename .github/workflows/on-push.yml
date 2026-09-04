@@ -342,3 +342,9 @@ jobs:
       # and deterministic; docs/published-urls.txt is the committed inventory.
       - name: Check published docs URLs still resolve
         run: uv run --no-sync python scripts/check_docs_urls.py
+
+      # A stub that rewrites a fragment to somewhere that no longer exists
+      # fails silently: the page loads and simply does not scroll. Nothing
+      # else in the build notices.
+      - name: Check redirect anchor targets still exist
+        run: uv run --no-sync python scripts/check_redirect_anchors.py

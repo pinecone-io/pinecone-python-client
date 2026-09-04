@@ -60,6 +60,204 @@ redirects = {
     # Published with the 10.0 release candidates, removed when the preview
     # namespace graduated.
     "reference/preview": "../migration/v10-migration.html#preview-namespace-removed",
+    #
+    # URLs from the two documentation generations before the flat Sphinx layout
+    # above. The site published 342 distinct URLs between 2023-10 and now; these
+    # are the ones no current page occupies. Most come from the pdoc era
+    # (v3.0-v7.0), which named a page after each module path, so a single
+    # release that added __all__ to a package could delete dozens of pages at
+    # once -- v7.0.0 took the tree from 84 pages to 2.
+    #
+    # Targets are not guesses. A page goes to the page its documented symbol
+    # lives on today; failing that, to the page for a subject the docs still
+    # cover; failing that, to the index, which is honest about there being no
+    # counterpart rather than stranding the reader somewhere plausible-looking.
+    # Pre-10.0 URLs. Generated: depth from key, every target asserted
+    # present in the published build. Pages whose symbol survives go to
+    # that symbol's page; the rest go to index.html rather than guess.
+    "maintainers/debugging": "../index.html",  # no v10 counterpart
+    "maintainers/releasing": "../index.html",  # no v10 counterpart
+    "maintainers/testing-guide": "../index.html",  # no v10 counterpart
+    "pinecone": "index.html",  # README landing page
+    "pinecone/config": "../getting-started/authentication.html",  # topic still documented
+    "pinecone/config/config": "../../getting-started/authentication.html",  # topic still documented
+    "pinecone/config/openapi": "../../getting-started/authentication.html",  # topic still documented
+    "pinecone/config/pinecone_config": "../../getting-started/authentication.html",  # topic still documented
+    "pinecone/control": "../reference/pinecone.html",  # topic still documented
+    "pinecone/control/index_host_store": "../../index.html",  # no v10 counterpart
+    "pinecone/control/langchain_import_warnings": "../../index.html",  # no v10 counterpart
+    "pinecone/control/pinecone": "../../reference/pinecone.html",
+    "pinecone/control/pinecone_asyncio": "../../reference/async-pinecone.html",
+    "pinecone/control/pinecone_interface": "../../reference/pinecone.html",
+    "pinecone/control/pinecone_interface_asyncio": "../../reference/async-pinecone.html",
+    "pinecone/control/repr_overrides": "../../index.html",  # no v10 counterpart
+    "pinecone/control/request_factory": "../../index.html",  # no v10 counterpart
+    "pinecone/control/types": "../../reference/models.html",  # topic still documented
+    "pinecone/control/types/create_index_for_model_embed": "../../../index.html",  # no v10 counterpart
+    "pinecone/core": "../index.html",  # no v10 counterpart
+    "pinecone/core/api_action": "../../index.html",  # no v10 counterpart
+    "pinecone/core/api_base": "../../index.html",  # no v10 counterpart
+    "pinecone/core/client": "../../index.html",  # no v10 counterpart
+    "pinecone/core/client/api": "../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/api/index_operations_api": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/api/manage_indexes_api": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/api/vector_operations_api": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/api_client": "../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/apis": "../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/configuration": "../../../getting-started/authentication.html",  # topic still documented
+    "pinecone/core/client/exceptions": "../../../reference/exceptions.html",  # topic still documented
+    "pinecone/core/client/model": "../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/approximated_config": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/aws_regions": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/collection_list": "../../../../reference/models.html",
+    "pinecone/core/client/model/collection_meta": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/collection_model": "../../../../reference/models.html",
+    "pinecone/core/client/model/configure_index_request": "../../../../reference/models.html",
+    "pinecone/core/client/model/configure_index_request_spec": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/configure_index_request_spec_pod": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/create_collection_request": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/create_index_request": "../../../../reference/models.html",
+    "pinecone/core/client/model/create_request": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/delete_request": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/describe_index_stats_request": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/describe_index_stats_response": "../../../../reference/models.html",
+    "pinecone/core/client/model/error_response": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/error_response_error": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/fetch_response": "../../../../reference/models.html",
+    "pinecone/core/client/model/gcp_regions": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/hnsw_config": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/index_list": "../../../../reference/models.html",
+    "pinecone/core/client/model/index_meta": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/index_meta_database": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/index_meta_database_status": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/index_meta_status": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/index_model": "../../../../reference/models.html",
+    "pinecone/core/client/model/index_model_spec": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/index_model_status": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/namespace_summary": "../../../../reference/models.html",
+    "pinecone/core/client/model/patch_request": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/pod_spec": "../../../../reference/models.html",
+    "pinecone/core/client/model/pod_spec_metadata_config": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/protobuf_any": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/protobuf_null_value": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/query_request": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/query_response": "../../../../reference/models.html",
+    "pinecone/core/client/model/query_vector": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/rpc_status": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/scored_vector": "../../../../reference/models.html",
+    "pinecone/core/client/model/serverless_spec": "../../../../reference/models.html",
+    "pinecone/core/client/model/single_query_results": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/sparse_values": "../../../../reference/models.html",
+    "pinecone/core/client/model/update_request": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/upsert_request": "../../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/model/upsert_response": "../../../../reference/models.html",
+    "pinecone/core/client/model/usage": "../../../../reference/models.html",
+    "pinecone/core/client/model/vector": "../../../../reference/models.html",
+    "pinecone/core/client/model_utils": "../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/models": "../../../index.html",  # no v10 counterpart
+    "pinecone/core/client/rest": "../../../index.html",  # no v10 counterpart
+    "pinecone/core/exceptions": "../../reference/exceptions.html",  # topic still documented
+    "pinecone/core/grpc": "../../reference/grpc.html",
+    "pinecone/core/grpc/index_grpc": "../../../reference/grpc.html",
+    "pinecone/core/grpc/protos": "../../../reference/grpc.html",  # topic still documented
+    "pinecone/core/grpc/protos/vector_column_service_pb2": "../../../../reference/grpc.html",  # topic still documented
+    "pinecone/core/grpc/protos/vector_column_service_pb2_grpc": "../../../../reference/grpc.html",  # topic still documented
+    "pinecone/core/grpc/protos/vector_service_pb2": "../../../../reference/grpc.html",  # topic still documented
+    "pinecone/core/grpc/protos/vector_service_pb2_grpc": "../../../../reference/grpc.html",  # topic still documented
+    "pinecone/core/grpc/retry": "../../../reference/grpc.html",  # topic still documented
+    "pinecone/core/utils": "../../index.html",  # no v10 counterpart
+    "pinecone/core/utils/constants": "../../../index.html",  # no v10 counterpart
+    "pinecone/core/utils/error_handling": "../../../guides/error-handling.html",  # topic still documented
+    "pinecone/data": "../reference/sync-index.html",  # topic still documented
+    "pinecone/data/dataclasses": "../../reference/models.html",  # topic still documented
+    "pinecone/data/dataclasses/fetch_response": "../../../reference/models.html",
+    "pinecone/data/dataclasses/search_query": "../../../reference/models.html",
+    "pinecone/data/dataclasses/search_query_vector": "../../../reference/models.html",
+    "pinecone/data/dataclasses/search_rerank": "../../../reference/models.html",
+    "pinecone/data/dataclasses/sparse_values": "../../../reference/models.html",
+    "pinecone/data/dataclasses/utils": "../../../index.html",  # no v10 counterpart
+    "pinecone/data/dataclasses/vector": "../../../reference/models.html",
+    "pinecone/data/errors": "../../reference/exceptions.html",  # topic still documented
+    "pinecone/data/features": "../../index.html",  # no v10 counterpart
+    "pinecone/data/features/bulk_import": "../../../how-to/vectors/bulk-import.html",  # topic still documented
+    "pinecone/data/features/bulk_import/bulk_import": "../../../../how-to/vectors/bulk-import.html",  # topic still documented
+    "pinecone/data/features/bulk_import/bulk_import_asyncio": "../../../../how-to/vectors/bulk-import.html",  # topic still documented
+    "pinecone/data/features/bulk_import/bulk_import_request_factory": "../../../../how-to/vectors/bulk-import.html",  # topic still documented
+    "pinecone/data/features/inference": "../../../reference/pinecone.html",
+    "pinecone/data/features/inference/inference": "../../../../reference/pinecone.html",
+    "pinecone/data/features/inference/inference_asyncio": "../../../../reference/async-pinecone.html",
+    "pinecone/data/features/inference/inference_request_builder": "../../../../index.html",  # no v10 counterpart
+    "pinecone/data/features/inference/models": "../../../../index.html",  # no v10 counterpart
+    "pinecone/data/features/inference/models/embedding_list": "../../../../../index.html",  # no v10 counterpart
+    "pinecone/data/features/inference/models/rerank_result": "../../../../../reference/models.html",
+    "pinecone/data/features/inference/repl_overrides": "../../../../index.html",  # no v10 counterpart
+    "pinecone/data/import_error": "../../reference/exceptions.html",  # topic still documented
+    "pinecone/data/index": "../../reference/sync-index.html",
+    "pinecone/data/index_asyncio": "../../reference/async-index.html",
+    "pinecone/data/index_asyncio_interface": "../../reference/async-index.html",
+    "pinecone/data/interfaces": "../../reference/sync-index.html",
+    "pinecone/data/query_results_aggregator": "../../reference/models.html",
+    "pinecone/data/request_factory": "../../index.html",  # no v10 counterpart
+    "pinecone/data/sparse_values_factory": "../../index.html",  # no v10 counterpart
+    "pinecone/data/sparse_vector_factory": "../../index.html",  # no v10 counterpart
+    "pinecone/data/types": "../../reference/models.html",  # topic still documented
+    "pinecone/data/types/query_filter": "../../../index.html",  # no v10 counterpart
+    "pinecone/data/types/search_query_typed_dict": "../../../index.html",  # no v10 counterpart
+    "pinecone/data/types/search_query_vector_typed_dict": "../../../index.html",  # no v10 counterpart
+    "pinecone/data/types/search_rerank_typed_dict": "../../../index.html",  # no v10 counterpart
+    "pinecone/data/types/sparse_vector_typed_dict": "../../../index.html",  # no v10 counterpart
+    "pinecone/data/types/vector_metadata_dict": "../../../index.html",  # no v10 counterpart
+    "pinecone/data/types/vector_tuple": "../../../index.html",  # no v10 counterpart
+    "pinecone/data/types/vector_typed_dict": "../../../index.html",  # no v10 counterpart
+    "pinecone/data/vector_factory": "../../index.html",  # no v10 counterpart
+    "pinecone/deprecated_plugins": "../migration/v10-migration.html",  # topic still documented
+    "pinecone/deprecation_warnings": "../migration/v10-migration.html",  # topic still documented
+    "pinecone/enums": "../reference/models.html",  # topic still documented
+    "pinecone/exceptions": "../reference/exceptions.html",  # topic still documented
+    "pinecone/grpc": "../reference/grpc.html",
+    "pinecone/grpc/base": "../../reference/grpc.html",  # topic still documented
+    "pinecone/grpc/config": "../../getting-started/authentication.html",  # topic still documented
+    "pinecone/grpc/future": "../../reference/grpc.html",  # topic still documented
+    "pinecone/grpc/index_grpc": "../../reference/grpc.html",
+    "pinecone/grpc/pinecone": "../../reference/pinecone.html",
+    "pinecone/grpc/retry": "../../reference/grpc.html",  # topic still documented
+    "pinecone/grpc/sparse_values_factory": "../../reference/grpc.html",  # topic still documented
+    "pinecone/grpc/utils": "../../reference/grpc.html",  # topic still documented
+    "pinecone/grpc/vector_factory_grpc": "../../reference/grpc.html",  # topic still documented
+    "pinecone/index": "../reference/sync-index.html",
+    "pinecone/info": "../index.html",  # no v10 counterpart
+    "pinecone/manage": "../reference/pinecone.html",
+    "pinecone/models": "../reference/models.html",  # topic still documented
+    "pinecone/openapi_support": "../reference/pinecone.html",  # topic still documented
+    "pinecone/openapi_support/api_client": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/api_client_utils": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/api_version": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/asyncio_api_client": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/asyncio_endpoint": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/auth_util": "../../getting-started/authentication.html",  # topic still documented
+    "pinecone/openapi_support/cached_class_property": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/configuration": "../../getting-started/authentication.html",  # topic still documented
+    "pinecone/openapi_support/constants": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/deserializer": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/endpoint": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/endpoint_utils": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/exceptions": "../../reference/exceptions.html",  # topic still documented
+    "pinecone/openapi_support/model_utils": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/rest_aiohttp": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/rest_urllib3": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/rest_utils": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/serializer": "../../index.html",  # no v10 counterpart
+    "pinecone/openapi_support/types": "../../index.html",  # no v10 counterpart
+    "pinecone/utils": "../index.html",  # no v10 counterpart
+    "pinecone/utils/check_kwargs": "../../index.html",  # no v10 counterpart
+    "pinecone/utils/constants": "../../index.html",  # no v10 counterpart
+    "pinecone/utils/convert_to_list": "../../index.html",  # no v10 counterpart
+    "pinecone/utils/deprecation_notice": "../../migration/v10-migration.html",  # topic still documented
+    "pinecone/utils/error_handling": "../../guides/error-handling.html",  # topic still documented
+    "pinecone/utils/fix_tuple_length": "../../index.html",  # no v10 counterpart
+    "pinecone/utils/normalize_host": "../../index.html",  # no v10 counterpart
+    "pinecone/utils/user_agent": "../../index.html",  # no v10 counterpart
+    "pinecone/utils/version": "../../index.html",  # no v10 counterpart
 }
 
 exclude_patterns = [
