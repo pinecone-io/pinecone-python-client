@@ -1,39 +1,14 @@
 #!/usr/bin/env python3
-"""Guard already-published documentation URLs against silent removal.
+"""Guard published documentation URLs against silent removal.
 
-The 10.0 restructure renamed and moved pages, which turned every external
-link written against the old layout into a 404. ``docs/conf.py`` now carries
-a ``redirects`` table so those URLs resolve again. This script stops the same
-thing happening a second time.
+Every URL listed in ``docs/published-urls.txt`` has to still resolve in a
+fresh build. Deleting a page is fine; deleting it without a redirect is not.
+sphinx-reredirects writes a real file at the old path, which is why one
+existence check covers both a page that is still there and one that moved.
 
-The invariant: **every URL the published site serves must keep resolving in a
-fresh build.** A page may be renamed, merged, or deleted — but only if a
-redirect takes its place.
-
-That invariant is checked against ``docs/published-urls.txt``, a committed
-inventory of the URLs the site serves. The check is offline and deterministic:
-the same commit always produces the same verdict, with no network call and no
-model in the loop. ``--update`` is the only mode that reads the live site.
-
-Removing a page without a redirect fails the check. Adding the redirect fixes
-it for free: sphinx-reredirects writes a real stub file at the old path, so
-the same file-existence test covers "page still here" and "page moved, with a
-forwarding stub" without needing to tell them apart.
-
-Usage::
-
-    # CI: verify the build against the committed inventory.
-    uv run python scripts/check_docs_urls.py
-
-    # Maintainer: fold newly added pages (and anything live that the
-    # inventory is missing) into docs/published-urls.txt, then commit it.
-    uv run python scripts/check_docs_urls.py --update
-
-``--update`` only ever *adds*. Running it after deleting a page will not make
-the check pass, because the deleted URL stays in the inventory — which is the
-point. Retiring a URL for real means deleting its line by hand, in a diff a
-reviewer can see, and that is a decision to make only for a URL that was
-never publicly reachable.
+``--update`` only ever adds. Run it after deleting a page and the URL stays
+in the inventory and the check still fails; retiring a URL for good means
+removing its line by hand.
 """
 
 from __future__ import annotations
@@ -51,10 +26,8 @@ DEFAULT_SITEMAP_URL = "https://sdk.pinecone.io/python/sitemap.xml"
 
 SITEMAP_NS = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
 
-# URLs deliberately outside the stability promise. The _modules/ tree is
-# viewcode's source listings, named after Python module paths — holding those
-# URLs stable would mean never renaming an internal module. The other three are
-# Sphinx infrastructure that every build regenerates unconditionally.
+# _modules/ is viewcode's listings, named after Python module paths; promising
+# those URLs would mean never renaming an internal module.
 EXCLUDED_PREFIXES = ("_modules/",)
 EXCLUDED_NAMES = frozenset({"genindex.html", "py-modindex.html", "search.html"})
 
@@ -104,13 +77,10 @@ def baseline_urls(baseline: Path) -> set[str]:
 def published_urls(sitemap_url: str) -> set[str]:
     """URL paths the live sitemap advertises.
 
-    Redirect stubs are not Sphinx documents, so they never appear here. The
-    sitemap is a lower bound on what the site serves, which is why --update
-    unions it with the build rather than trusting it alone.
+    Redirect stubs are not Sphinx documents and never appear here, so --update
+    unions this with the build rather than trusting it alone.
     """
-    # Imported here, not at module scope, so the offline check CI runs needs
-    # nothing but the standard library.
-    import httpx
+    import httpx  # deferred so the check CI runs needs only the standard library
 
     site_root = urljoin(sitemap_url, ".")
     try:
@@ -123,9 +93,7 @@ def published_urls(sitemap_url: str) -> set[str]:
         ) from exc
 
     document = response.text
-    # A sitemap has no legitimate use for a doctype or entity declaration, and
-    # refusing them here is what keeps ElementTree's expat parser away from an
-    # entity-expansion bomb -- the reason for the S314 suppression below.
+    # Refusing these is what keeps expat away from an entity-expansion bomb.
     if "<!DOCTYPE" in document or "<!ENTITY" in document:
         raise SystemExit(f"error: {sitemap_url} declares entities; refusing to parse it.")
 
