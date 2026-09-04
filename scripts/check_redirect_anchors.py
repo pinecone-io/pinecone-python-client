@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """Guard the redirect stub's anchor tables against pointing at nothing.
 
-``docs/_templates/redirect.html`` rewrites a deep link's fragment as it
-forwards, naming a ``reference/`` page and usually an id on it. A stale entry
-fails silently: the browser loads the page and simply does not scroll, so
-neither the build nor anyone but the reader who followed that link finds out.
+A stale entry in ``docs/_templates/redirect.html`` fails silently: the page
+loads and does not scroll, so only the reader who followed that link finds out.
 
 This validates the entries that are there. It cannot know an anchor is missing
 one it ought to have.
@@ -22,8 +20,7 @@ TEMPLATE = REPO_ROOT / "docs" / "_templates" / "redirect.html"
 DEFAULT_BUILD_DIR = REPO_ROOT / "docs" / "_build" / "html"
 REFERENCE = "reference/"
 
-# The tables hold plain double-quoted literals with no escapes, so reading them
-# does not need a JS parser.
+# Plain double-quoted literals, no escapes, so no JS parser is needed.
 _STR = r'"([^"]*)"'
 
 
@@ -74,8 +71,7 @@ def parse_destinations(template_text: str) -> list[tuple[str, str, str | None]]:
         page, _, fragment = dest.partition("#")
         out.append((f"sections[{dest}]", page, fragment or None))
 
-    # The method ids are assembled at runtime from three tables, so rebuild
-    # every id that can be produced rather than trusting the parts separately.
+    # Assembled at runtime from three tables, so check the ids they produce.
     verbs = re.findall(rf"{_STR}\s*:\s*\[\s*{_STR}\s*,\s*{_STR}\s*\]", _table(js, "verbs"))
     resources = dict(re.findall(rf"{_STR}\s*:\s*{_STR}", _table(js, "resources")))
     clients = re.findall(

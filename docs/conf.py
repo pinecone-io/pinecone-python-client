@@ -61,17 +61,10 @@ redirects = {
     # namespace graduated.
     "reference/preview": "../migration/v10-migration.html#preview-namespace-removed",
     #
-    # URLs from the two documentation generations before the flat Sphinx layout
-    # above. The site published 342 distinct URLs between 2023-10 and now; these
-    # are the ones no current page occupies. Most come from the pdoc era
-    # (v3.0-v7.0), which named a page after each module path, so a single
-    # release that added __all__ to a package could delete dozens of pages at
-    # once -- v7.0.0 took the tree from 84 pages to 2.
-    #
-    # Targets are not guesses. A page goes to the page its documented symbol
-    # lives on today; failing that, to the page for a subject the docs still
-    # cover; failing that, to the index, which is honest about there being no
-    # counterpart rather than stranding the reader somewhere plausible-looking.
+    # Pages from the pdoc era (v3.0-v7.0), which named one page per module path.
+    # Each goes to the page its symbol lives on now, else to the page for a
+    # subject still covered, else to the index -- which means no counterpart
+    # exists, rather than a guess.
     # Pre-10.0 URLs. Generated: depth from key, every target asserted
     # present in the published build. Pages whose symbol survives go to
     # that symbol's page; the rest go to index.html rather than guess.
