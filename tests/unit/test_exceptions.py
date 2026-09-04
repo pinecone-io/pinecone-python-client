@@ -8,6 +8,7 @@ from pinecone.errors.exceptions import (
     ApiError,
     ConflictError,
     ForbiddenError,
+    IndexTerminatedError,
     NotFoundError,
     PineconeError,
     PineconeTypeError,
@@ -367,3 +368,28 @@ class TestResponseParsingErrorStr:
         except PineconeError:
             caught = True
         assert caught
+
+
+class TestIndexTerminatedErrorMessage:
+    @pytest.mark.parametrize("state", ["Terminating", "Disabled"])
+    def test_message_names_the_documented_describe_call(self, state: str) -> None:
+        err = IndexTerminatedError("movies", state)
+        assert str(err) == (
+            f"Index 'movies' entered terminal state '{state}'. "
+            "Check status with pc.indexes.describe(name='movies')."
+        )
+
+    def test_message_does_not_name_a_backcompat_shim(self) -> None:
+        err = IndexTerminatedError("movies", "Disabled")
+        assert "pc.describe_index" not in str(err)
+
+    def test_suggested_call_is_accepted_by_both_surfaces(self) -> None:
+        import inspect
+
+        from pinecone.async_client.indexes import AsyncIndexes
+        from pinecone.client.indexes import Indexes
+
+        for describe in (Indexes.describe, AsyncIndexes.describe):
+            params = inspect.signature(describe).parameters
+            assert "name" in params
+            assert params["name"].kind is not inspect.Parameter.POSITIONAL_ONLY
