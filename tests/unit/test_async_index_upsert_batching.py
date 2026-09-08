@@ -234,8 +234,25 @@ class TestAsyncUpsertConcurrency:
 
     @pytest.mark.asyncio
     async def test_upsert_max_concurrency_bounds_in_flight(self) -> None:
+        max_concurrency = 2
+        quiet_turns_required = 32
         peak = 0
         in_flight = 0
+        admitted = 0
+
+        async def hold_until_admissions_stop() -> None:
+            """Stay in flight until the engine has stopped admitting batches.
+
+            A batch that leaves as soon as the cap is first reached cannot see
+            over-admission: it decrements ``in_flight`` before the next batch
+            increments it, so the peak sits at the cap however many batches the
+            engine let through.
+            """
+            quiet_turns = 0
+            while quiet_turns < quiet_turns_required:
+                seen = admitted
+                await asyncio.sleep(0)
+                quiet_turns = quiet_turns + 1 if admitted == seen else 0
 
         async def mock_upsert_dict_batch(
             *,
@@ -243,21 +260,27 @@ class TestAsyncUpsertConcurrency:
             namespace: str,
             timeout: float | None,
         ) -> UpsertResponse:
-            nonlocal in_flight, peak
+            nonlocal admitted, in_flight, peak
+            admitted += 1
             in_flight += 1
             peak = max(peak, in_flight)
-            await asyncio.sleep(0)  # yield so other waiting batches can attempt to start
-            in_flight -= 1
+            try:
+                await hold_until_admissions_stop()
+            finally:
+                in_flight -= 1
             return UpsertResponse(upserted_count=len(items))
 
         idx = _make_async_index()
         with patch.object(idx, "_upsert_dict_batch", side_effect=mock_upsert_dict_batch):
             result = await idx.upsert(
-                vectors=_make_vectors(25), batch_size=5, max_concurrency=2, show_progress=False
+                vectors=_make_vectors(25),
+                batch_size=5,
+                max_concurrency=max_concurrency,
+                show_progress=False,
             )
 
         assert result.upserted_count == 25
-        assert peak <= 2
+        assert peak == max_concurrency
 
     def test_upsert_max_concurrency_default_is_8(self) -> None:
         import inspect
