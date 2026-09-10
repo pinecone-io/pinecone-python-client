@@ -9,8 +9,13 @@ import httpx
 import pytest
 
 from pinecone._internal.adaptive import _AdaptiveLimiter, _AdaptiveLimiterRegistry
+from pinecone._internal.bulk.registry import get_registry
 from pinecone._internal.config import RetryConfig
-from pinecone._internal.http_client import _AsyncRetryTransport, _RetryTransport
+from pinecone._internal.http_client import (
+    _AsyncRetryTransport,
+    _BudgetRegistry,
+    _RetryTransport,
+)
 
 
 def _transport(max_retries: int = 1) -> tuple[_RetryTransport, MagicMock]:
@@ -117,3 +122,74 @@ async def test_async_throttle_response_logs_debug(caplog: pytest.LogCaptureFixtu
     assert throttle_records[0].levelname == "DEBUG"
     assert "status=429" in msg
     assert "host=example.com" in msg
+
+
+def _drained_budgets() -> _BudgetRegistry:
+    """A registry whose first recorded failure already forbids a retry."""
+    return _BudgetRegistry(max_tokens=1.0)
+
+
+def test_gate_hears_the_throttle_the_log_guard_drops_on_the_last_attempt(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    rt, inner = _transport(max_retries=0)
+    inner.handle_request.side_effect = [httpx.Response(429)]
+    with caplog.at_level(logging.DEBUG, logger="pinecone._internal.http_client"):
+        response = rt.handle_request(_req())
+
+    assert response.status_code == 429
+    assert [r for r in caplog.records if "Throttled response" in r.getMessage()] == []
+    assert get_registry().get("example.com").throttle_events == 1
+
+
+def test_gate_hears_the_throttle_the_log_guard_drops_when_the_budget_is_exhausted(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    inner = MagicMock(spec=httpx.BaseTransport)
+    inner.handle_request.side_effect = [httpx.Response(429)]
+    rt = _RetryTransport(
+        transport=inner,  # type: ignore[arg-type]
+        retry_config=RetryConfig(max_retries=3, backoff_factor=0.001, max_wait=0.01),
+        budget_registry=_drained_budgets(),
+    )
+    with caplog.at_level(logging.DEBUG, logger="pinecone._internal.http_client"):
+        response = rt.handle_request(_req())
+
+    assert response.status_code == 429
+    assert len(inner.handle_request.call_args_list) == 1
+    assert [r for r in caplog.records if "Throttled response" in r.getMessage()] == []
+    assert get_registry().get("example.com").throttle_events == 1
+
+
+@pytest.mark.asyncio
+async def test_async_gate_hears_the_throttle_dropped_on_the_last_attempt(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    rt, inner = _async_transport(max_retries=0)
+    inner.handle_async_request.side_effect = [httpx.Response(429)]
+    with caplog.at_level(logging.DEBUG, logger="pinecone._internal.http_client"):
+        response = await rt.handle_async_request(_req())
+
+    assert response.status_code == 429
+    assert [r for r in caplog.records if "Throttled response" in r.getMessage()] == []
+    assert get_registry().get("example.com").throttle_events == 1
+
+
+@pytest.mark.asyncio
+async def test_async_gate_hears_the_throttle_dropped_when_the_budget_is_exhausted(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    inner = AsyncMock(spec=httpx.AsyncBaseTransport)
+    inner.handle_async_request.side_effect = [httpx.Response(429)]
+    rt = _AsyncRetryTransport(
+        transport=inner,  # type: ignore[arg-type]
+        retry_config=RetryConfig(max_retries=3, backoff_factor=0.001, max_wait=0.01),
+        budget_registry=_drained_budgets(),
+    )
+    with caplog.at_level(logging.DEBUG, logger="pinecone._internal.http_client"):
+        response = await rt.handle_async_request(_req())
+
+    assert response.status_code == 429
+    assert len(inner.handle_async_request.call_args_list) == 1
+    assert [r for r in caplog.records if "Throttled response" in r.getMessage()] == []
+    assert get_registry().get("example.com").throttle_events == 1
