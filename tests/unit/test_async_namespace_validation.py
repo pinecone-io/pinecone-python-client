@@ -26,7 +26,7 @@ false`` message), ``pc-settings/src/settings.rs:261-262`` (512 / 100 limits).
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 
 import httpx
 import orjson
@@ -343,6 +343,55 @@ async def test_delete_namespace_404_raises_not_found(
 # Property: the client-side name rule is exactly ASCII / no-NUL / 1-512
 # ---------------------------------------------------------------------------
 
+
+@pytest.fixture(scope="module")
+def property_loop() -> Iterator[asyncio.AbstractEventLoop]:
+    """One event loop for every Hypothesis example below.
+
+    ``asyncio.run`` builds and tears a loop down per example, which is setup
+    rather than anything these properties assert.
+    """
+    loop = asyncio.new_event_loop()
+    yield loop
+    # asyncio.run() does this for the loop it owns; a hand-rolled loop has to do
+    # it too, or the last example's response iterators are collected after the
+    # loop is gone and each one reports an un-awaited aclose().
+    loop.run_until_complete(loop.shutdown_asyncgens())
+    loop.close()
+
+
+@pytest.fixture(scope="module")
+def property_index(
+    property_loop: asyncio.AbstractEventLoop, hermetic_pinecone_env_module: None
+) -> Iterator[AsyncIndex]:
+    """One client shared by every Hypothesis example below.
+
+    ``AsyncIndex`` defers its ``httpx.AsyncClient`` to the first request, and
+    building that transport parses the CA bundle into a fresh
+    ``ssl.SSLContext`` — more work than any property here asserts. This fixture
+    forces that build, so it lands in setup rather than in whichever example
+    runs first under the default 200 ms deadline. respx intercepts at the
+    transport, so a client built outside the example is still mocked and no
+    example opens a socket.
+
+    The transport is built on ``property_loop``, the loop the examples run on,
+    so the ``AsyncClient`` belongs to it; driving a client from ``asyncio.run``
+    instead raises a cross-loop ``RuntimeError`` rather than hanging. The
+    fixture takes ``hermetic_pinecone_env_module`` so the ``PINECONE_*`` scrub
+    runs before the client is built: module-scoped fixtures are set up before
+    the function-scoped scrub, and a client built ahead of it bakes the
+    developer's ambient variables into every example.
+    """
+    client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
+
+    async def build_transport() -> None:
+        client._http._ensure_client()
+
+    property_loop.run_until_complete(build_transport())
+    yield client
+    property_loop.run_until_complete(client.close())
+
+
 _legal_chars = st.characters(min_codepoint=1, max_codepoint=127)
 _legal_names = st.text(alphabet=_legal_chars, min_size=1, max_size=NAME_MAX)
 _illegal_names = st.one_of(
@@ -354,7 +403,9 @@ _illegal_names = st.one_of(
 
 
 @given(name=_legal_names)
-def test_every_legal_name_passes_client_validation(name: str) -> None:
+def test_every_legal_name_passes_client_validation(
+    property_index: AsyncIndex, property_loop: asyncio.AbstractEventLoop, name: str
+) -> None:
     async def check() -> None:
         with respx.mock(assert_all_called=False) as mock:
             route = mock.get(url__startswith=NS_URL).mock(
@@ -362,65 +413,53 @@ def test_every_legal_name_passes_client_validation(name: str) -> None:
                     200, json=make_namespace_description_response(name=name)
                 )
             )
-            client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
-            try:
-                assert (await client.describe_namespace(name=name)).name == name
-            finally:
-                await client.close()
+            assert (await property_index.describe_namespace(name=name)).name == name
             assert route.called
 
-    asyncio.run(check())
+    property_loop.run_until_complete(check())
 
 
 @given(name=_illegal_names)
-def test_every_illegal_name_is_rejected_before_http(name: str) -> None:
+def test_every_illegal_name_is_rejected_before_http(
+    property_index: AsyncIndex, property_loop: asyncio.AbstractEventLoop, name: str
+) -> None:
     async def check() -> None:
         with respx.mock as mock:
-            client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
-            try:
-                with pytest.raises(ValidationError):
-                    await client.describe_namespace(name=name)
-                with pytest.raises(ValidationError):
-                    await client.delete_namespace(name=name)
-                with pytest.raises(ValidationError):
-                    await client.create_namespace(name=name)
-            finally:
-                await client.close()
+            with pytest.raises(ValidationError):
+                await property_index.describe_namespace(name=name)
+            with pytest.raises(ValidationError):
+                await property_index.delete_namespace(name=name)
+            with pytest.raises(ValidationError):
+                await property_index.create_namespace(name=name)
             assert not mock.calls
 
-    asyncio.run(check())
+    property_loop.run_until_complete(check())
 
 
 @given(limit=st.integers(min_value=1, max_value=LIMIT_MAX))
-def test_every_legal_limit_passes_client_validation(limit: int) -> None:
+def test_every_legal_limit_passes_client_validation(
+    property_index: AsyncIndex, property_loop: asyncio.AbstractEventLoop, limit: int
+) -> None:
     async def check() -> None:
         with respx.mock as mock:
             mock.get(NS_URL).mock(
                 return_value=httpx.Response(200, json={"namespaces": [], "total_count": 0})
             )
-            client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
-            try:
-                await client.list_namespaces_paginated(limit=limit)
-            finally:
-                await client.close()
+            await property_index.list_namespaces_paginated(limit=limit)
 
-    asyncio.run(check())
+    property_loop.run_until_complete(check())
 
 
 @given(
     limit=st.one_of(st.integers(max_value=0), st.integers(min_value=LIMIT_MAX + 1, max_value=10**6))
 )
-def test_every_illegal_limit_is_rejected_before_http(limit: int) -> None:
+def test_every_illegal_limit_is_rejected_before_http(
+    property_index: AsyncIndex, property_loop: asyncio.AbstractEventLoop, limit: int
+) -> None:
     async def check() -> None:
         with respx.mock as mock:
-            client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
-            try:
-                with pytest.raises(
-                    ValidationError, match=f"limit must be between 1 and {LIMIT_MAX}"
-                ):
-                    await client.list_namespaces_paginated(limit=limit)
-            finally:
-                await client.close()
+            with pytest.raises(ValidationError, match=f"limit must be between 1 and {LIMIT_MAX}"):
+                await property_index.list_namespaces_paginated(limit=limit)
             assert not mock.calls
 
-    asyncio.run(check())
+    property_loop.run_until_complete(check())

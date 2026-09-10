@@ -975,7 +975,7 @@ def test_email_survives_json_body_encoding_unmodified(
     role=st.sampled_from(list(RoleName)),
 )
 def test_enum_and_str_role_bindings_produce_identical_payloads(
-    resource_type: ResourceType, role: RoleName
+    resource_type: ResourceType, role: RoleName, property_invites: Invites
 ) -> None:
     """Enum members, raw strings, and models are three spellings of one binding.
 
@@ -995,13 +995,11 @@ def test_enum_and_str_role_bindings_produce_identical_payloads(
 
     bodies = []
     for binding in (enum_dict, str_dict, model):
-        config = PineconeConfig(api_key="test-key", host=BASE_URL)
-        namespace = Invites(http=HTTPClient(config, ADMIN_API_VERSION))
         with respx.mock:
             route = respx.post(f"{BASE_URL}/admin/invites").mock(
                 return_value=httpx.Response(200, json=_invite())
             )
-            namespace.create(email="newhire@acme.com", role_bindings=[binding])
+            property_invites.create(email="newhire@acme.com", role_bindings=[binding])
             bodies.append(route.calls.last.request.content)
 
     assert bodies[0] == bodies[1] == bodies[2]

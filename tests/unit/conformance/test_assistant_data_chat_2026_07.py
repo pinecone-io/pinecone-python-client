@@ -27,7 +27,7 @@ import httpx
 import orjson
 import pytest
 import respx
-from hypothesis import HealthCheck, given, settings
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from pinecone._internal.config import PineconeConfig
@@ -457,13 +457,34 @@ def test_chat_response_without_the_new_fields_decodes(
     assert result.content_filter_results is None
 
 
-@settings(
-    max_examples=40,
-    deadline=None,
-    suppress_health_check=[HealthCheck.function_scoped_fixture],
-)
+@pytest.fixture(scope="module")
+def property_assistants(hermetic_pinecone_env_module: None) -> Iterator[Assistants]:
+    """One client reused by every example of the property test below.
+
+    The client builds its control-plane and data-plane HTTP clients on first
+    use, and each one parses the whole CA bundle into a fresh
+    ``ssl.SSLContext`` — the work that dominated this test and the part that
+    amplifies on slower CI runners (#345). None of it is exercised: respx
+    intercepts at the transport, so no example opens a socket. Every example
+    still streams its own transcript through its own routes; only the client
+    build moves out, so the data-plane host is resolved once instead of once per
+    example. The scrub in ``hermetic_pinecone_env_module`` has to run before the
+    client is built, or the developer's ambient ``PINECONE_*`` variables are
+    baked into every example.
+
+    This is the sync counterpart of ``property_assistants`` in
+    ``test_assistant_data_chat_async_2026_07.py``.
+    """
+    client = Assistants(config=PineconeConfig(api_key="conformance-key", host=BASE_URL))
+    yield client
+    client.close()
+
+
+@settings(max_examples=40, deadline=None)
 @given(sizes=st.lists(st.integers(min_value=1, max_value=64), min_size=1, max_size=24))
-def test_sse_chunk_boundaries_do_not_change_the_parsed_stream(sizes: list[int]) -> None:
+def test_sse_chunk_boundaries_do_not_change_the_parsed_stream(
+    property_assistants: Assistants, sizes: list[int]
+) -> None:
     """Chunk boundaries are a transport artifact, not part of the message.
 
     A server may flush one SSE event across any number of reads, so the parser
@@ -487,17 +508,13 @@ def test_sse_chunk_boundaries_do_not_change_the_parsed_stream(sizes: list[int]) 
         respx.post(f"{DATA_URL}/chat/{ASSISTANT_NAME}").mock(
             return_value=httpx.Response(200, content=iter(pieces))
         )
-        client = Assistants(config=PineconeConfig(api_key="conformance-key", host=BASE_URL))
-        try:
-            stream = client.chat(
-                assistant_name=ASSISTANT_NAME,
-                messages=[{"content": "What is Pinecone?"}],
-                stream=True,
-            )
-            assert isinstance(stream, ChatStream)
-            chunks = list(stream)
-        finally:
-            client.close()
+        stream = property_assistants.chat(
+            assistant_name=ASSISTANT_NAME,
+            messages=[{"content": "What is Pinecone?"}],
+            stream=True,
+        )
+        assert isinstance(stream, ChatStream)
+        chunks = list(stream)
 
     assert summarise(chunks) == EXPECTED_CHAT_STREAM
 

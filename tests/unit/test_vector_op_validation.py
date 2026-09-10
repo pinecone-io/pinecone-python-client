@@ -72,7 +72,7 @@ enforced the spec's ``maximum: 10000`` (``:2153-2162``).
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from typing import Any
 
 import httpx
@@ -881,6 +881,27 @@ def test_api_version_header_on_every_vector_op(
 # Properties: the client-side rules are exactly the spec's
 # ---------------------------------------------------------------------------
 
+
+@pytest.fixture(scope="module")
+def property_index(hermetic_pinecone_env_module: None) -> Iterator[Index]:
+    """One client shared by every Hypothesis example below.
+
+    Building an ``Index`` parses the CA bundle into a fresh ``ssl.SSLContext``,
+    which costs more than any property here asserts; per example that pushes the
+    default 200 ms deadline over on a loaded runner. respx intercepts at the
+    transport, so a client built outside the example is still mocked and no
+    example opens a socket.
+
+    It depends on ``hermetic_pinecone_env_module`` so the ``PINECONE_*`` scrub
+    runs before the client is built: module-scoped fixtures are set up before
+    the function-scoped scrub, and a client built ahead of it bakes the
+    developer's ambient variables into every example.
+    """
+    client = Index(host=INDEX_HOST, api_key="test-key")
+    yield client
+    client.close()
+
+
 _legal_chars = st.characters(min_codepoint=1, max_codepoint=127)
 _legal_ids = st.text(alphabet=_legal_chars, min_size=1, max_size=ID_MAX)
 _illegal_ids = st.one_of(
@@ -892,58 +913,42 @@ _illegal_ids = st.one_of(
 
 
 @given(vector_id=_legal_ids)
-def test_every_legal_id_passes_fetch_validation(vector_id: str) -> None:
+def test_every_legal_id_passes_fetch_validation(property_index: Index, vector_id: str) -> None:
     with respx.mock(assert_all_called=False) as mock:
         route = mock.get(url__startswith=f"{BASE_URL}/vectors/fetch").mock(
             return_value=httpx.Response(200, json=_fetch_response())
         )
-        client = Index(host=INDEX_HOST, api_key="test-key")
-        try:
-            client.fetch(ids=[vector_id])
-        finally:
-            client.close()
+        property_index.fetch(ids=[vector_id])
         assert route.called
 
 
 @given(vector_id=_illegal_ids)
-def test_every_illegal_id_is_rejected_before_http(vector_id: str) -> None:
+def test_every_illegal_id_is_rejected_before_http(property_index: Index, vector_id: str) -> None:
     with respx.mock as mock:
-        client = Index(host=INDEX_HOST, api_key="test-key")
-        try:
-            with pytest.raises(ValidationError):
-                client.fetch(ids=[vector_id])
-            with pytest.raises(ValidationError):
-                client.delete(ids=[vector_id])
-        finally:
-            client.close()
+        with pytest.raises(ValidationError):
+            property_index.fetch(ids=[vector_id])
+        with pytest.raises(ValidationError):
+            property_index.delete(ids=[vector_id])
         assert not mock.calls
 
 
 @given(prefix=st.text(alphabet=_legal_chars, max_size=PREFIX_MAX))
-def test_every_legal_prefix_passes_list_validation(prefix: str) -> None:
+def test_every_legal_prefix_passes_list_validation(property_index: Index, prefix: str) -> None:
     with respx.mock(assert_all_called=False) as mock:
         route = mock.get(url__startswith=f"{BASE_URL}/vectors/list").mock(
             return_value=httpx.Response(200, json=_list_response())
         )
-        client = Index(host=INDEX_HOST, api_key="test-key")
-        try:
-            client.list_paginated(prefix=prefix)
-        finally:
-            client.close()
+        property_index.list_paginated(prefix=prefix)
         assert route.called
 
 
 @given(limit=st.integers(min_value=1, max_value=LIST_LIMIT_MAX))
-def test_every_legal_list_limit_passes_validation(limit: int) -> None:
+def test_every_legal_list_limit_passes_validation(property_index: Index, limit: int) -> None:
     with respx.mock as mock:
         mock.get(url__startswith=f"{BASE_URL}/vectors/list").mock(
             return_value=httpx.Response(200, json=_list_response())
         )
-        client = Index(host=INDEX_HOST, api_key="test-key")
-        try:
-            client.list_paginated(limit=limit)
-        finally:
-            client.close()
+        property_index.list_paginated(limit=limit)
 
 
 @given(
@@ -951,22 +956,18 @@ def test_every_legal_list_limit_passes_validation(limit: int) -> None:
         st.integers(max_value=0), st.integers(min_value=LIST_LIMIT_MAX + 1, max_value=10**6)
     )
 )
-def test_every_illegal_list_limit_is_rejected_before_http(limit: int) -> None:
+def test_every_illegal_list_limit_is_rejected_before_http(
+    property_index: Index, limit: int
+) -> None:
     with respx.mock as mock:
-        client = Index(host=INDEX_HOST, api_key="test-key")
-        try:
-            with pytest.raises(
-                ValidationError, match=f"limit must be between 1 and {LIST_LIMIT_MAX}"
-            ):
-                client.list_paginated(limit=limit)
-        finally:
-            client.close()
+        with pytest.raises(ValidationError, match=f"limit must be between 1 and {LIST_LIMIT_MAX}"):
+            property_index.list_paginated(limit=limit)
         assert not mock.calls
 
 
 @given(has_vector=st.booleans(), has_id=st.booleans(), has_sparse=st.booleans())
 def test_query_selectors_match_the_spec_truth_table(
-    has_vector: bool, has_id: bool, has_sparse: bool
+    property_index: Index, has_vector: bool, has_id: bool, has_sparse: bool
 ) -> None:
     """Randomized presence combinations must land exactly on 2026-07's anyOf/not."""
     spec_allows = (has_vector or has_id or has_sparse) and not (
@@ -977,18 +978,14 @@ def test_query_selectors_match_the_spec_truth_table(
         route = mock.post(f"{BASE_URL}/query").mock(
             return_value=httpx.Response(200, json=_query_response())
         )
-        client = Index(host=INDEX_HOST, api_key="test-key")
-        try:
-            kwargs = query_kwargs(has_vector, has_id, has_sparse)
-            if spec_allows:
-                client.query(**kwargs)
-                assert route.called
-            else:
-                with pytest.raises(ValidationError):
-                    client.query(**kwargs)
-                assert not mock.calls
-        finally:
-            client.close()
+        kwargs = query_kwargs(has_vector, has_id, has_sparse)
+        if spec_allows:
+            property_index.query(**kwargs)
+            assert route.called
+        else:
+            with pytest.raises(ValidationError):
+                property_index.query(**kwargs)
+            assert not mock.calls
 
 
 @given(
@@ -996,7 +993,7 @@ def test_query_selectors_match_the_spec_truth_table(
     sparse_values=st.one_of(st.none(), st.just(SPARSE)),
 )
 def test_update_by_filter_rejects_any_vector_payload(
-    values: list[float] | None, sparse_values: dict[str, Any] | None
+    property_index: Index, values: list[float] | None, sparse_values: dict[str, Any] | None
 ) -> None:
     """A by-filter update accepts metadata and nothing else, whichever value form is passed."""
     carries_vector_data = values is not None or sparse_values is not None
@@ -1005,14 +1002,10 @@ def test_update_by_filter_rejects_any_vector_payload(
         route = mock.post(f"{BASE_URL}/vectors/update").mock(
             return_value=httpx.Response(200, json={"matchedRecords": 1})
         )
-        client = Index(host=INDEX_HOST, api_key="test-key")
-        try:
-            if carries_vector_data:
-                with pytest.raises(ValidationError, match="metadata-only"):
-                    client.update(filter=FILTER, values=values, sparse_values=sparse_values)
-                assert not mock.calls
-            else:
-                client.update(filter=FILTER, set_metadata={"year": 2020})
-                assert route.called
-        finally:
-            client.close()
+        if carries_vector_data:
+            with pytest.raises(ValidationError, match="metadata-only"):
+                property_index.update(filter=FILTER, values=values, sparse_values=sparse_values)
+            assert not mock.calls
+        else:
+            property_index.update(filter=FILTER, set_metadata={"year": 2020})
+            assert route.called

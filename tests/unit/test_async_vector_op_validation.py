@@ -23,7 +23,7 @@ this index supports filtered stats.
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from typing import Any
 
 import httpx
@@ -470,6 +470,54 @@ async def test_api_version_header_on_every_vector_op(
     assert DATA_PLANE_API_VERSION == "2026-07"
 
 
+@pytest.fixture(scope="module")
+def property_loop() -> Iterator[asyncio.AbstractEventLoop]:
+    """One event loop for every Hypothesis example below.
+
+    ``asyncio.run`` builds and tears a loop down per example, which is setup
+    rather than anything these properties assert.
+    """
+    loop = asyncio.new_event_loop()
+    yield loop
+    # asyncio.run() does this for the loop it owns; a hand-rolled loop has to do
+    # it too, or the last example's response iterators are collected after the
+    # loop is gone and each one reports an un-awaited aclose().
+    loop.run_until_complete(loop.shutdown_asyncgens())
+    loop.close()
+
+
+@pytest.fixture(scope="module")
+def property_index(
+    property_loop: asyncio.AbstractEventLoop, hermetic_pinecone_env_module: None
+) -> Iterator[AsyncIndex]:
+    """One client shared by every Hypothesis example below.
+
+    ``AsyncIndex`` defers its ``httpx.AsyncClient`` to the first request, and
+    building that transport parses the CA bundle into a fresh
+    ``ssl.SSLContext`` — more work than any property here asserts. This fixture
+    forces that build, so it lands in setup rather than in whichever example
+    runs first under the default 200 ms deadline. respx intercepts at the
+    transport, so a client built outside the example is still mocked and no
+    example opens a socket.
+
+    The transport is built on ``property_loop``, the loop the examples run on,
+    so the ``AsyncClient`` belongs to it; driving a client from ``asyncio.run``
+    instead raises a cross-loop ``RuntimeError`` rather than hanging. The
+    fixture takes ``hermetic_pinecone_env_module`` so the ``PINECONE_*`` scrub
+    runs before the client is built: module-scoped fixtures are set up before
+    the function-scoped scrub, and a client built ahead of it bakes the
+    developer's ambient variables into every example.
+    """
+    client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
+
+    async def build_transport() -> None:
+        client._http._ensure_client()
+
+    property_loop.run_until_complete(build_transport())
+    yield client
+    property_loop.run_until_complete(client.close())
+
+
 _legal_chars = st.characters(min_codepoint=1, max_codepoint=127)
 _legal_ids = st.text(alphabet=_legal_chars, min_size=1, max_size=ID_MAX)
 _illegal_ids = st.one_of(
@@ -481,70 +529,62 @@ _illegal_ids = st.one_of(
 
 
 @given(vector_id=_legal_ids)
-def test_every_legal_id_passes_fetch_validation(vector_id: str) -> None:
+def test_every_legal_id_passes_fetch_validation(
+    property_index: AsyncIndex, property_loop: asyncio.AbstractEventLoop, vector_id: str
+) -> None:
     async def check() -> None:
         with respx.mock(assert_all_called=False) as mock:
             route = mock.get(url__startswith=f"{BASE_URL}/vectors/fetch").mock(
                 return_value=httpx.Response(200, json=_fetch_response())
             )
-            client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
-            try:
-                await client.fetch(ids=[vector_id])
-            finally:
-                await client.close()
+            await property_index.fetch(ids=[vector_id])
             assert route.called
 
-    asyncio.run(check())
+    property_loop.run_until_complete(check())
 
 
 @given(vector_id=_illegal_ids)
-def test_every_illegal_id_is_rejected_before_http(vector_id: str) -> None:
+def test_every_illegal_id_is_rejected_before_http(
+    property_index: AsyncIndex, property_loop: asyncio.AbstractEventLoop, vector_id: str
+) -> None:
     async def check() -> None:
         with respx.mock as mock:
-            client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
-            try:
-                with pytest.raises(ValidationError):
-                    await client.fetch(ids=[vector_id])
-                with pytest.raises(ValidationError):
-                    await client.delete(ids=[vector_id])
-            finally:
-                await client.close()
+            with pytest.raises(ValidationError):
+                await property_index.fetch(ids=[vector_id])
+            with pytest.raises(ValidationError):
+                await property_index.delete(ids=[vector_id])
             assert not mock.calls
 
-    asyncio.run(check())
+    property_loop.run_until_complete(check())
 
 
 @given(prefix=st.text(alphabet=_legal_chars, max_size=PREFIX_MAX))
-def test_every_legal_prefix_passes_list_validation(prefix: str) -> None:
+def test_every_legal_prefix_passes_list_validation(
+    property_index: AsyncIndex, property_loop: asyncio.AbstractEventLoop, prefix: str
+) -> None:
     async def check() -> None:
         with respx.mock(assert_all_called=False) as mock:
             route = mock.get(url__startswith=f"{BASE_URL}/vectors/list").mock(
                 return_value=httpx.Response(200, json=_list_response())
             )
-            client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
-            try:
-                await client.list_paginated(prefix=prefix)
-            finally:
-                await client.close()
+            await property_index.list_paginated(prefix=prefix)
             assert route.called
 
-    asyncio.run(check())
+    property_loop.run_until_complete(check())
 
 
 @given(limit=st.integers(min_value=1, max_value=LIST_LIMIT_MAX))
-def test_every_legal_list_limit_passes_validation(limit: int) -> None:
+def test_every_legal_list_limit_passes_validation(
+    property_index: AsyncIndex, property_loop: asyncio.AbstractEventLoop, limit: int
+) -> None:
     async def check() -> None:
         with respx.mock as mock:
             mock.get(url__startswith=f"{BASE_URL}/vectors/list").mock(
                 return_value=httpx.Response(200, json=_list_response())
             )
-            client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
-            try:
-                await client.list_paginated(limit=limit)
-            finally:
-                await client.close()
+            await property_index.list_paginated(limit=limit)
 
-    asyncio.run(check())
+    property_loop.run_until_complete(check())
 
 
 @given(
@@ -552,25 +592,27 @@ def test_every_legal_list_limit_passes_validation(limit: int) -> None:
         st.integers(max_value=0), st.integers(min_value=LIST_LIMIT_MAX + 1, max_value=10**6)
     )
 )
-def test_every_illegal_list_limit_is_rejected_before_http(limit: int) -> None:
+def test_every_illegal_list_limit_is_rejected_before_http(
+    property_index: AsyncIndex, property_loop: asyncio.AbstractEventLoop, limit: int
+) -> None:
     async def check() -> None:
         with respx.mock as mock:
-            client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
-            try:
-                with pytest.raises(
-                    ValidationError, match=f"limit must be between 1 and {LIST_LIMIT_MAX}"
-                ):
-                    await client.list_paginated(limit=limit)
-            finally:
-                await client.close()
+            with pytest.raises(
+                ValidationError, match=f"limit must be between 1 and {LIST_LIMIT_MAX}"
+            ):
+                await property_index.list_paginated(limit=limit)
             assert not mock.calls
 
-    asyncio.run(check())
+    property_loop.run_until_complete(check())
 
 
 @given(has_vector=st.booleans(), has_id=st.booleans(), has_sparse=st.booleans())
 def test_query_selectors_match_the_spec_truth_table(
-    has_vector: bool, has_id: bool, has_sparse: bool
+    property_index: AsyncIndex,
+    property_loop: asyncio.AbstractEventLoop,
+    has_vector: bool,
+    has_id: bool,
+    has_sparse: bool,
 ) -> None:
     """Randomized presence combinations must land exactly on 2026-07's anyOf/not."""
     spec_allows = (has_vector or has_id or has_sparse) and not (
@@ -582,20 +624,16 @@ def test_query_selectors_match_the_spec_truth_table(
             route = mock.post(f"{BASE_URL}/query").mock(
                 return_value=httpx.Response(200, json=_query_response())
             )
-            client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
-            try:
-                kwargs = query_kwargs(has_vector, has_id, has_sparse)
-                if spec_allows:
-                    await client.query(**kwargs)
-                    assert route.called
-                else:
-                    with pytest.raises(ValidationError):
-                        await client.query(**kwargs)
-                    assert not mock.calls
-            finally:
-                await client.close()
+            kwargs = query_kwargs(has_vector, has_id, has_sparse)
+            if spec_allows:
+                await property_index.query(**kwargs)
+                assert route.called
+            else:
+                with pytest.raises(ValidationError):
+                    await property_index.query(**kwargs)
+                assert not mock.calls
 
-    asyncio.run(check())
+    property_loop.run_until_complete(check())
 
 
 @given(
@@ -603,7 +641,10 @@ def test_query_selectors_match_the_spec_truth_table(
     sparse_values=st.one_of(st.none(), st.just(SPARSE)),
 )
 def test_update_by_filter_rejects_any_vector_payload(
-    values: list[float] | None, sparse_values: dict[str, Any] | None
+    property_index: AsyncIndex,
+    property_loop: asyncio.AbstractEventLoop,
+    values: list[float] | None,
+    sparse_values: dict[str, Any] | None,
 ) -> None:
     """A by-filter update accepts metadata and nothing else, whichever value form is passed."""
     carries_vector_data = values is not None or sparse_values is not None
@@ -613,18 +654,14 @@ def test_update_by_filter_rejects_any_vector_payload(
             route = mock.post(f"{BASE_URL}/vectors/update").mock(
                 return_value=httpx.Response(200, json={"matchedRecords": 1})
             )
-            client = AsyncIndex(host=INDEX_HOST, api_key="test-key")
-            try:
-                if carries_vector_data:
-                    with pytest.raises(ValidationError, match="metadata-only"):
-                        await client.update(
-                            filter=FILTER, values=values, sparse_values=sparse_values
-                        )
-                    assert not mock.calls
-                else:
-                    await client.update(filter=FILTER, set_metadata={"year": 2020})
-                    assert route.called
-            finally:
-                await client.close()
+            if carries_vector_data:
+                with pytest.raises(ValidationError, match="metadata-only"):
+                    await property_index.update(
+                        filter=FILTER, values=values, sparse_values=sparse_values
+                    )
+                assert not mock.calls
+            else:
+                await property_index.update(filter=FILTER, set_metadata={"year": 2020})
+                assert route.called
 
-    asyncio.run(check())
+    property_loop.run_until_complete(check())
