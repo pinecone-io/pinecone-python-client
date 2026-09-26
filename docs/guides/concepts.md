@@ -42,7 +42,7 @@ Three field types can be declared at creation time:
 |---|---|
 | `dense_vector` | Similarity search over embeddings. At most one per schema. Takes `dimension` and `metric`. |
 | `sparse_vector` | Term-based scoring, such as BM25. Has no fixed dimension. |
-| `string` with `full_text_search` | Full-text search over a text field. |
+| `string` with `full_text_search`, `embed`, and/or `sparse_embed` | Full-text search over a text field, and search over dense or sparse embeddings Pinecone makes from its text — see [Text Pinecone embeds for you](#text-pinecone-embeds-for-you). |
 
 Everything else you store is **metadata**. Metadata fields are not declared in the
 schema; Pinecone indexes them for filtering the first time they appear on a record you
@@ -147,7 +147,7 @@ created decides which data-plane interface reads and writes its records.**
 |---|---|---|
 | `schema=` naming your own fields | **documents** — an `_id` plus your fields | `index.documents` |
 | the deprecated `dimension=`/`metric=` | **vectors** — an ID plus coordinates | `index.upsert`, `index.query` |
-| `pc.indexes.create_for_model(...)` | **records** with text Pinecone embeds for you | `index.upsert_records`, `index.search` |
+| `pc.indexes.create_for_model(...)` (legacy) | **records** with text Pinecone embeds for you | `index.upsert_records`, `index.search` |
 
 The interfaces are not interchangeable: calling the vector methods on a schema-based index
 is rejected by the server.
@@ -180,9 +180,66 @@ with pc.index(name="support-articles") as index:
 ```
 
 `score_by` is what makes a document search a *search*: each clause names one scoring
-method — a dense vector, a sparse vector, a BM25 text query, or a Lucene query string —
-and a search may combine several. See
+method — a dense vector, a sparse vector, a BM25 text query, a Lucene query string, or
+query text Pinecone embeds with a field's model — and a search may combine several
+`text` and `query_string` clauses. Any other clause has to stand alone. See
 {doc}`the Index reference </reference/sync-index>` for every document operation.
+
+### Text Pinecone embeds for you
+
+A `string` field can carry `embed` (a hosted dense model) and `sparse_embed` (a hosted
+sparse model). Pinecone embeds the field's text when you upsert or update a document,
+and embeds the query text with the same model when you search the field with an
+`EmbedQuery` or `SparseEmbedQuery`. Every key of either config is optional: `{}` takes
+the default model, and describe reports the resolved model, dimension, metric, and
+parameters. An index has one dense slot and one sparse slot, so at most one field
+carries `embed` (and then no `dense_vector` field), and at most one carries
+`sparse_embed` (and then no `sparse_vector` field). The configuration is fixed at
+creation.
+
+```python
+from pinecone import EmbedQuery, Pinecone, SchemaBuilder
+
+pc = Pinecone()
+pc.indexes.create(
+    name="support-articles",
+    schema=SchemaBuilder()
+    .add_string_field("body", embed={"dimension": 512}, sparse_embed=True)
+    .build(),
+)
+
+with pc.index(name="support-articles") as index:
+    index.documents.upsert(
+        namespace="published",
+        documents=[{"_id": "article-101", "body": "Roman aqueducts carried water by gravity"}],
+    )
+    hits = index.documents.search(
+        namespace="published",
+        top_k=5,
+        score_by=[EmbedQuery(field="body", query="how did Rome move water")],
+        include_fields=["body"],
+    )
+    for match in hits.matches:
+        print(match.id, match.score)
+    if hits.usage is not None:
+        print(hits.usage.embed_total_tokens)  # None until the server reports it
+```
+
+- **An `embed` or `sparse_embed` clause stands alone** in `score_by`; the SDK rejects
+  one combined with any other clause before the request goes out.
+- **Every document carries the text of an `embed` field**, as a string. A field with
+  only `sparse_embed` may be left out. An index that embeds a field takes at most 96
+  documents per upsert or update request; `index.documents.batch_upsert`'s default
+  `batch_size` of 50 fits, so keep any value you pass at 96 or below.
+- **`store_text`** decides whether the text is kept. It defaults to true, and stored
+  text is always full-text searchable: describe reports `full_text_search` with default
+  settings even when you declared only `embed`. Stored text is capped at 10,000 tokens by
+  full-text search as well as 100 KB per value.
+- **`store_text=False`** embeds the text and keeps it nowhere, which lifts the token cap.
+  The field then needs `embed` or `sparse_embed` and cannot take `full_text_search`, it
+  can be searched only with an embed clause, and a fetch or search whose
+  `include_fields` names it fails with a `400` — `["*"]` leaves it out. Like the rest of
+  the schema, it cannot be changed after creation.
 
 ### Vectors
 
@@ -233,13 +290,15 @@ with pc.index(host="my-index-abc123.svc.pinecone.io") as index:
 
 See [Upsert and query vectors](../how-to/vectors/upsert-and-query.md).
 
-### Integrated inference
+### Integrated inference (legacy)
 
 An index created with `pc.indexes.create_for_model()` embeds text for you. The `field_map`
 names the record field to embed, and the same model embeds your queries at read time. In
 the returned index that field shows up in the schema as a `semantic_text` field —
 `create_for_model` is the only way to get one, since `semantic_text` cannot be declared in
-a `schema=` you pass to `create()`.
+a `schema=` you pass to `create()`. This is the legacy integrated-inference path; for new
+work, declare a `string` field with `embed` or `sparse_embed` instead (see
+[Text Pinecone embeds for you](#text-pinecone-embeds-for-you)).
 
 ```python
 from pinecone import Pinecone

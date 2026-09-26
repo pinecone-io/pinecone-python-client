@@ -139,7 +139,9 @@ if TYPE_CHECKING:
     from pinecone.models.documents.score_by import (  # noqa: F401
         DenseVectorQuery,
         DocumentScoringMethod,
+        EmbedQuery,
         QueryStringQuery,
+        SparseEmbedQuery,
         SparseVectorQuery,
         TextQuery,
     )
@@ -186,6 +188,8 @@ if TYPE_CHECKING:
     from pinecone.models.indexes.schema import (  # noqa: F401
         BooleanField,
         DenseVectorField,
+        FieldEmbedConfig,
+        FieldSparseEmbedConfig,
         FloatField,
         FullTextSearchConfig,
         IndexSchema,
@@ -360,7 +364,9 @@ _LAZY_IMPORTS: dict[str, str] = {
     "UpdateDocumentRecord": "pinecone.models.documents.document",
     "DenseVectorQuery": "pinecone.models.documents.score_by",
     "DocumentScoringMethod": "pinecone.models.documents.score_by",
+    "EmbedQuery": "pinecone.models.documents.score_by",
     "QueryStringQuery": "pinecone.models.documents.score_by",
+    "SparseEmbedQuery": "pinecone.models.documents.score_by",
     "SparseVectorQuery": "pinecone.models.documents.score_by",
     "TextQuery": "pinecone.models.documents.score_by",
     "DeleteDocumentsRequest": "pinecone.models.documents.requests",
@@ -407,6 +413,8 @@ _LAZY_IMPORTS: dict[str, str] = {
     "CreateIndexRequest": "pinecone.models.indexes.requests",
     "BooleanField": "pinecone.models.indexes.schema",
     "DenseVectorField": "pinecone.models.indexes.schema",
+    "FieldEmbedConfig": "pinecone.models.indexes.schema",
+    "FieldSparseEmbedConfig": "pinecone.models.indexes.schema",
     "FloatField": "pinecone.models.indexes.schema",
     "FullTextSearchConfig": "pinecone.models.indexes.schema",
     "IndexSchema": "pinecone.models.indexes.schema",

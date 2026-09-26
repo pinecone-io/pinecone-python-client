@@ -147,6 +147,14 @@ attributes, which survive only as deprecated computed properties.
    :members:
    :show-inheritance:
 
+.. autoclass:: pinecone.models.indexes.schema.FieldEmbedConfig
+   :members:
+   :show-inheritance:
+
+.. autoclass:: pinecone.models.indexes.schema.FieldSparseEmbedConfig
+   :members:
+   :show-inheritance:
+
 Index Deployment Models
 -----------------------
 
@@ -371,6 +379,14 @@ Document Scoring
    :show-inheritance:
 
 .. autoclass:: pinecone.models.documents.score_by.SparseVectorQuery
+   :members:
+   :show-inheritance:
+
+.. autoclass:: pinecone.models.documents.score_by.EmbedQuery
+   :members:
+   :show-inheritance:
+
+.. autoclass:: pinecone.models.documents.score_by.SparseEmbedQuery
    :members:
    :show-inheritance:
 

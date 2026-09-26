@@ -18,6 +18,8 @@ from msgspec import Struct
 __all__ = [
     "BooleanField",
     "DenseVectorField",
+    "FieldEmbedConfig",
+    "FieldSparseEmbedConfig",
     "FloatField",
     "FullTextSearchConfig",
     "IndexSchema",
@@ -129,11 +131,15 @@ class SparseVectorField(Struct, tag="sparse_vector", tag_field="type", kw_only=T
 
 
 class SemanticTextField(Struct, tag="semantic_text", tag_field="type", kw_only=True):
-    """Text that Pinecone embeds for you, on write and on read.
+    """The embedded text field of an index made by the legacy create-for-model path.
 
     With a semantic text field you upsert and query plain text and never
     handle a vector yourself — the difference from :class:`DenseVectorField`,
-    where producing the embedding is your job.
+    where producing the embedding is your job. Such an index is read and
+    written through the legacy records API (``upsert_records`` and
+    ``search``). For new work, declare a :class:`StringField` with ``embed``
+    or ``sparse_embed`` instead: that index is read and written through
+    ``index.documents``, and describe reports the field as a ``string``.
 
     **Response-only, and there is exactly one way to get one:**
     :meth:`~pinecone.client.indexes.Indexes.create_for_model`, which names the
@@ -228,39 +234,149 @@ class FullTextSearchConfig(Struct, kw_only=True):
     ngram: NgramConfig | None = None
 
 
-class StringField(Struct, tag="string", tag_field="type", kw_only=True):
-    """Text, either full-text searchable or filterable — never both.
+class FieldEmbedConfig(Struct, kw_only=True):
+    """Have Pinecone embed a string field's text into a dense vector.
 
-    A string field you declare on create must carry a ``full_text_search``
-    config, because search is the only reason the schema takes a string field.
-    Text you only want to filter on is not declared at all: put it in the
-    documents you upsert. Its ``type`` in a ``schema=`` dict is ``"string"``.
+    Set on a :class:`StringField` as ``embed``. Pinecone embeds the field's
+    text with a hosted model when you upsert or update a document, and embeds
+    the query text with the same model when a search scores the field with an
+    :class:`~pinecone.models.documents.score_by.EmbedQuery`. You never handle
+    the vector yourself.
 
-    In responses, a searchable field reports its ``full_text_search`` object
-    and a filter-only field reports just ``filterable``.
+    Every key is optional, so ``FieldEmbedConfig()`` (or ``{}``) selects the
+    default model at its default dimension and metric. Describe reports the
+    resolved configuration, with every omitted key filled in from the model.
+    The configuration is fixed at creation.
+
+    An ``embed`` field takes the index's one dense vector slot, so it cannot
+    sit alongside a ``dense_vector`` field or ``embed`` on another field.
 
     Attributes:
-        description: Free-text note about the field, or ``None``.
-        filterable: Whether the field can be used in metadata filters.
-            Defaults to ``False``. Sending ``filterable=True`` alongside
-            ``full_text_search`` does not give you both: the server keeps the
-            filter, discards the search configuration, and reports no error
-            for doing so, so the field silently comes back unsearchable.
-        full_text_search: A :class:`FullTextSearchConfig` — its presence, even
-            empty, is what makes the field searchable; ``None`` means it is
-            not.
+        model: Hosted dense embedding model, e.g. ``"llama-text-embed-v2"``,
+            the server default. ``None`` on create takes the default.
+        dimension: Width of the embeddings, one the model supports, e.g.
+            ``512``. ``None`` on create takes the model's default.
+        metric: ``"cosine"``, ``"dotproduct"`` or ``"euclidean"``. ``None`` on
+            create takes the model's default.
+        write_parameters: Model parameters used when embedding document text,
+            e.g. ``{"truncate": "END"}``. Describe reports them merged with
+            the model's defaults.
+        read_parameters: Model parameters used when embedding query text.
+            Describe reports them merged with the model's defaults.
 
     Examples:
         The ``schema=`` entry that declares one:
 
         .. code-block:: python
 
+            {"body": {"type": "string",
+                      "embed": {"model": "llama-text-embed-v2", "dimension": 512}}}
+    """
+
+    model: str | None = None
+    dimension: int | None = None
+    metric: str | None = None
+    write_parameters: dict[str, Any] | None = None
+    read_parameters: dict[str, Any] | None = None
+
+
+class FieldSparseEmbedConfig(Struct, kw_only=True):
+    """Have Pinecone embed a string field's text into a learned-sparse vector.
+
+    Set on a :class:`StringField` as ``sparse_embed``. It works like
+    :class:`FieldEmbedConfig`, with a sparse model, and is searched with a
+    :class:`~pinecone.models.documents.score_by.SparseEmbedQuery`. A sparse
+    embedding has no dimension and no metric, so there is nothing to set but
+    the model and its parameters.
+
+    A ``sparse_embed`` field takes the index's one sparse vector slot, so it
+    cannot sit alongside a ``sparse_vector`` field or ``sparse_embed`` on
+    another field.
+
+    Attributes:
+        model: Hosted sparse embedding model, e.g.
+            ``"pinecone-sparse-english-v0"``, the server default. ``None`` on
+            create takes the default.
+        write_parameters: Model parameters used when embedding document text.
+            Describe reports them merged with the model's defaults.
+        read_parameters: Model parameters used when embedding query text.
+            Describe reports them merged with the model's defaults.
+
+    Examples:
+        The ``schema=`` entry that declares one:
+
+        .. code-block:: python
+
+            {"body": {"type": "string", "sparse_embed": {}}}
+    """
+
+    model: str | None = None
+    write_parameters: dict[str, Any] | None = None
+    read_parameters: dict[str, Any] | None = None
+
+
+class StringField(Struct, tag="string", tag_field="type", kw_only=True):
+    """Text that is searched — by full-text search, by embeddings, or both.
+
+    A string field you declare on create must carry at least one search
+    configuration, because search is the only reason the schema takes a string
+    field: ``full_text_search`` for keyword search, ``embed`` to have Pinecone
+    embed the text into a dense vector, ``sparse_embed`` for a learned-sparse
+    one. They combine on one field, so the same text can be searched all three
+    ways. Text you only want to filter on is not declared at all: put it in
+    the documents you upsert. Its ``type`` in a ``schema=`` dict is
+    ``"string"``.
+
+    **Stored text.** By default the field's text is stored, and stored text is
+    always indexed for full-text search: declare only ``embed`` and describe
+    reports ``full_text_search`` with default settings as well. Set
+    ``store_text=False`` to embed the text and keep it nowhere. Such a field
+    needs ``embed`` or ``sparse_embed`` and cannot take ``full_text_search``;
+    it cannot be returned, so a fetch or search whose ``include_fields`` names
+    it is rejected with a ``400`` (``["*"]`` leaves it out); and it cannot be
+    scored by ``text`` or ``query_string`` or matched by ``$match_*`` filters.
+    Stored text is also capped at 10,000 tokens by full-text search, which an
+    unstored field is not; both are capped at 100 KB per value. The setting is
+    fixed at creation.
+
+    In responses, a searchable field reports its search configurations and
+    ``store_text``, and a filter-only field reports just ``filterable``.
+
+    Attributes:
+        description: Free-text note about the field, or ``None``.
+        filterable: Whether the field can be used in metadata filters.
+            Defaults to ``False``. A field is filtered or searched, not both:
+            the server rejects ``filterable=True`` alongside ``embed`` or
+            ``sparse_embed``, and alongside only ``full_text_search`` it keeps
+            the filter and silently discards the search configuration.
+        full_text_search: A :class:`FullTextSearchConfig` — its presence, even
+            empty, makes the field full-text searchable; ``None`` means it is
+            not, unless the text is stored, in which case responses report
+            the default configuration.
+        embed: A :class:`FieldEmbedConfig` to have Pinecone embed the text
+            into a dense vector, or ``None``.
+        sparse_embed: A :class:`FieldSparseEmbedConfig` to have Pinecone embed
+            the text into a sparse vector, or ``None``.
+        store_text: Whether the text is stored, ``True`` by default. ``None``
+            on create leaves it to the server default; describe always
+            reports it for a search field.
+
+    Examples:
+        The ``schema=`` entries that declare one:
+
+        .. code-block:: python
+
             {"title": {"type": "string", "full_text_search": {}}}
+            {"body": {"type": "string", "embed": {}, "sparse_embed": {}}}
+            {"body": {"type": "string", "store_text": False, "embed": {}}}
     """
 
     description: str | None = None
     filterable: bool = False
     full_text_search: FullTextSearchConfig | None = None
+    embed: FieldEmbedConfig | None = None
+    sparse_embed: FieldSparseEmbedConfig | None = None
+    store_text: bool | None = None
 
 
 class StringListField(Struct, tag="string_list", tag_field="type", kw_only=True):
@@ -423,15 +539,18 @@ class IndexSchema(Struct, kw_only=True):
         Variable-length index/value pairs for keyword-style scoring, with no
         dimension and no choice of metric — see :class:`SparseVectorField`.
     ``string``
-        Text made full-text searchable by a ``full_text_search`` config — see
+        Text searched by full-text search (``full_text_search``), by a dense
+        embedding Pinecone makes from it (``embed``), by a sparse one
+        (``sparse_embed``), or any mix of the three — see
         :class:`StringField`.
 
     Read back but not declarable — sending one on create is rejected:
 
     ``semantic_text``
-        Text Pinecone embeds for you on write and on read.
-        :meth:`~pinecone.client.indexes.Indexes.create_for_model` is the only
-        way to get one — see :class:`SemanticTextField`.
+        The embedded text field of an index made by
+        :meth:`~pinecone.client.indexes.Indexes.create_for_model`, the only
+        way to get one — see :class:`SemanticTextField`. A ``string`` field
+        with ``embed`` is the way to embed text in an index you create.
     ``float``, ``boolean``, ``string_list``
         Numeric, boolean and tag-style metadata, indexed for filtering
         automatically at upsert time — see :class:`FloatField`,
@@ -483,12 +602,13 @@ def _encode_schema_for_request(schema: IndexSchema) -> dict[str, Any]:
     """Encode a typed schema for a create or configure request body.
 
     ``filterable`` is omitted from a :class:`StringField` that carries a
-    ``full_text_search`` config and did not ask to be filterable.  The
-    server reads a string field as filter-only metadata as soon as
-    ``filterable`` is present and discards the full-text-search
-    configuration, so emitting the ``False`` default would turn every
-    full-text-search field into a filter-only one.  An explicit
-    ``filterable=True`` is still sent as given.
+    search configuration (``full_text_search``, ``embed`` or
+    ``sparse_embed``) or ``store_text`` and did not ask to be filterable.
+    The server reads a string field as filter-only metadata as soon as
+    ``filterable`` is present: it discards a full-text-search configuration
+    and rejects the embedding ones, so emitting the ``False`` default would
+    break every search field.  An explicit ``filterable=True`` is still sent
+    as given.
 
     Every other field type, and a schema passed as a plain dict, is
     encoded unchanged.
@@ -496,10 +616,15 @@ def _encode_schema_for_request(schema: IndexSchema) -> dict[str, Any]:
     encoded: dict[str, Any] = msgspec.to_builtins(schema)
     fields: dict[str, Any] = encoded["fields"]
     for name, field in schema.fields.items():
-        if (
-            isinstance(field, StringField)
-            and field.full_text_search is not None
-            and not field.filterable
-        ):
+        if isinstance(field, StringField) and not field.filterable and _is_search_field(field):
             fields[name].pop("filterable")
     return encoded
+
+
+def _is_search_field(field: StringField) -> bool:
+    return (
+        field.full_text_search is not None
+        or field.embed is not None
+        or field.sparse_embed is not None
+        or field.store_text is not None
+    )

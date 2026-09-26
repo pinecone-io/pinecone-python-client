@@ -20,6 +20,8 @@ from pinecone.models.documents.document import DocumentRecord, UpdateDocumentRec
 from pinecone.models.documents.score_by import (
     DenseVectorQuery,
     DocumentScoringMethod,
+    EmbedQuery,
+    SparseEmbedQuery,
     SparseVectorQuery,
 )
 
@@ -38,6 +40,7 @@ _MAX_SCORING_METHODS = 100
 _MAX_TOP_K = 10000
 _MAX_LIST_LIMIT = 100
 _MAX_PREFIX_LENGTH = 512
+_STANDALONE_CLAUSES = (DenseVectorQuery, SparseVectorQuery, EmbedQuery, SparseEmbedQuery)
 
 _FILTER_EMPTY_ERR = (
     "The 'filter' field must be a non-empty object of filter predicates, "
@@ -98,13 +101,15 @@ class SearchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
         score_by: How to rank the documents, 1 to 100 clauses. Each may be a typed
             :data:`~pinecone.models.documents.score_by.DocumentScoringMethod` variant or a
             plain dict with a ``type`` key. Several ``text`` and ``query_string`` clauses
-            can be combined to score on more than one signal at once; a ``dense_vector``
-            or ``sparse_vector`` clause has to stand alone, and combining one with
-            anything else is rejected here.
+            can be combined to score on more than one signal at once; a
+            ``dense_vector``, ``sparse_vector``, ``embed`` or ``sparse_embed`` clause has
+            to stand alone, and combining one with anything else is rejected here.
         top_k: How many documents to return, 1 to 10000.
         include_fields: Which of your fields to return on each match. Omitting it, and
             passing ``[]``, both mean the same thing — only ``_id`` and ``_score`` come
-            back. Pass ``["*"]`` for every field, or name the ones you need.
+            back. Pass ``["*"]`` for every field, or name the ones you need. Naming a
+            field declared with ``store_text: false`` is rejected by the server with a
+            ``400``, since its text is not stored; ``["*"]`` leaves such fields out.
         filter: A metadata filter narrowing which documents are searched at all, or
             ``None`` to search the whole namespace. It restricts the candidates; it does
             not contribute to the score.
@@ -134,12 +139,12 @@ class SearchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
             for item in self.score_by
         ]
         if len(normalized) > 1 and any(
-            isinstance(item, (DenseVectorQuery, SparseVectorQuery)) for item in normalized
+            isinstance(item, _STANDALONE_CLAUSES) for item in normalized
         ):
             raise ValueError(
                 "'score_by' clauses of type 'text' and 'query_string' may be combined, "
-                "but 'dense_vector' and 'sparse_vector' clauses must appear alone in "
-                "'score_by'"
+                "but 'dense_vector', 'sparse_vector', 'embed', and 'sparse_embed' "
+                "clauses must appear alone in 'score_by'"
             )
         self.score_by = normalized
         if not 1 <= self.top_k <= _MAX_TOP_K:
@@ -159,7 +164,9 @@ class FetchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
             exclusive with ``ids``.
         include_fields: Which of your fields to return. Omitting it, passing ``[]``, and
             passing ``["*"]`` all return every field — the opposite of the default on a
-            search, which returns none of them.
+            search, which returns none of them. Every field here means every field the
+            index stores: a field declared with ``store_text: false`` is left out, and
+            naming one is rejected by the server with a ``400``.
         pagination_token: The token from a previous fetch response, to get the next page.
             Valid only with ``filter``; the server chooses the page size.
 

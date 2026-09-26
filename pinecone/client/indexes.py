@@ -63,7 +63,8 @@ def _require_fields_dict(param: str, schema: dict[str, Any] | IndexSchema) -> No
         raise PineconeValueError(
             f"{param} must be a dict of the form {{'fields': {{'<field-name>': "
             "{...}}}} mapping field names to searched-field configurations "
-            "(dense_vector, sparse_vector, or string with full_text_search). "
+            "(dense_vector, sparse_vector, or string with full_text_search, embed, "
+            "or sparse_embed). "
             "Metadata-only fields are not declared at create time in the 2026-07 "
             "API; they are indexed automatically at upsert."
         )
@@ -71,7 +72,7 @@ def _require_fields_dict(param: str, schema: dict[str, Any] | IndexSchema) -> No
         raise PineconeValueError(
             f"{param}['fields'] cannot be empty: the 2026-07 API requires at least "
             "one searched field (dense_vector, sparse_vector, or string with "
-            "full_text_search)."
+            "full_text_search, embed, or sparse_embed)."
         )
 
 
@@ -98,7 +99,8 @@ def _reject_legacy_metadata_schema(schema: dict[str, Any] | IndexSchema) -> None
         raise PineconeValueError(
             f"schema={schema!r} looks like a 9.x metadata schema: none of its fields "
             "carry a 'type' key. At 2026-07, schema= declares searched fields instead "
-            "(dense_vector, sparse_vector, or string with full_text_search) — metadata "
+            "(dense_vector, sparse_vector, or string with full_text_search, embed, or "
+            "sparse_embed) — metadata "
             "fields are no longer declared at create time; they are indexed "
             "automatically at upsert. If you meant to declare a searched field, add "
             "'type': 'dense_vector' | 'sparse_vector' | 'string' to each field. See "
@@ -349,7 +351,10 @@ class Indexes:
         An index's field layout is declared as a ``schema`` of named, typed
         fields. Every field in the schema must be one that gets searched —
         ``dense_vector``, ``sparse_vector``, or ``string`` with
-        ``full_text_search`` enabled. Metadata-only fields aren't declared
+        ``full_text_search``, ``embed`` or ``sparse_embed``. A string field
+        with ``embed`` or ``sparse_embed`` has Pinecone embed its text on
+        write and embed the query text on search; read and write such an
+        index through ``index.documents``. Metadata-only fields aren't declared
         here; they're indexed automatically the first time they appear on an
         upserted record. The schema can't change once the index exists, and
         the call blocks until the index is ready unless you pass
@@ -540,7 +545,8 @@ class Indexes:
             raise PineconeValueError(
                 "schema is required: pass schema={'fields': {'<field-name>': {...}}} "
                 "declaring at least one searched field (dense_vector, sparse_vector, "
-                "or string with full_text_search), or, for backward compatibility, "
+                "or string with full_text_search, embed, or sparse_embed), or, for "
+                "backward compatibility, "
                 "the deprecated dimension= keyword argument (optionally with metric= "
                 "and vector_type=)."
             )
@@ -618,6 +624,12 @@ class Indexes:
         the returned index, the embedding configuration surfaces as a
         ``semantic_text`` field in ``schema``, named after the ``field_map``
         text entry.
+
+        This is the legacy integrated-inference path: the index is read and
+        written through the legacy records API (``index.upsert_records`` and
+        ``index.search``). For new work, pass :meth:`create` a ``string``
+        field with ``embed`` or ``sparse_embed`` and use ``index.documents``,
+        which adds full-text search on the same fields and ``score_by``.
 
         Args:
             name: Name for the index — 1-45 characters, lowercase

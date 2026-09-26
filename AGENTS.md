@@ -97,7 +97,30 @@ Use `query()` for raw vector search on standard indexes. Use `search()` for text
 
 For datasets larger than ~1000 vectors, use `upsert_from_dataframe()` or `start_import()`. Do not pass more than ~1000 vectors to a single `upsert()` call.
 
-### Semantic search with integrated embeddings
+### Embed text server-side on a document index
+
+A `string` field with `embed` (dense) and/or `sparse_embed` (sparse) has Pinecone embed its text on write and the query text on search. Search it with `EmbedQuery` / `SparseEmbedQuery`, which must be the only clause in `score_by`.
+
+```python
+from pinecone import EmbedQuery, Pinecone, SchemaBuilder
+
+pc = Pinecone(api_key="your-api-key")
+pc.indexes.create(
+    name="articles",
+    schema=SchemaBuilder().add_string_field("body", embed=True, sparse_embed=True).build(),
+)
+index = pc.index("articles")
+index.documents.upsert(namespace="en", documents=[{"_id": "a1", "body": "Roman aqueducts"}])
+results = index.documents.search(
+    namespace="en", top_k=5, score_by=[EmbedQuery(field="body", query="how did Rome move water")]
+)
+```
+
+Text is stored (and full-text searchable) by default. `store_text=False` embeds it without storing it: the field can then be searched only with an embed clause, and naming it in `include_fields` fails with a 400.
+
+### Semantic search with integrated embeddings (legacy)
+
+`create_for_model` is the legacy integrated-inference path, served by the records API. Prefer `embed` on a string field (above) for new indexes.
 
 ```python
 from pinecone import EmbedConfig, Pinecone

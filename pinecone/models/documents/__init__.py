@@ -33,7 +33,9 @@ if TYPE_CHECKING:
     from pinecone.models.documents.score_by import (  # noqa: F401
         DenseVectorQuery,
         DocumentScoringMethod,
+        EmbedQuery,
         QueryStringQuery,
+        SparseEmbedQuery,
         SparseVectorQuery,
         TextQuery,
     )
@@ -44,7 +46,9 @@ _LAZY_IMPORTS: dict[str, str] = {
     "UpdateDocumentRecord": "pinecone.models.documents.document",
     "DenseVectorQuery": "pinecone.models.documents.score_by",
     "DocumentScoringMethod": "pinecone.models.documents.score_by",
+    "EmbedQuery": "pinecone.models.documents.score_by",
     "QueryStringQuery": "pinecone.models.documents.score_by",
+    "SparseEmbedQuery": "pinecone.models.documents.score_by",
     "SparseVectorQuery": "pinecone.models.documents.score_by",
     "TextQuery": "pinecone.models.documents.score_by",
     "DeleteDocumentsRequest": "pinecone.models.documents.requests",
