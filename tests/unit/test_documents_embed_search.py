@@ -98,6 +98,28 @@ class TestClauses:
         with pytest.raises(ValueError, match="non-empty 'query'"):
             cls(field="body", query="")
 
+    @pytest.mark.parametrize("kind", ["embed", "sparse_embed"])
+    @pytest.mark.parametrize(
+        "vector",
+        [
+            {"values": [0.1]},
+            {"sparse_values": {"indices": [1], "values": [0.5]}},
+            {"values": [0.1], "sparse_values": {"indices": [1], "values": [0.5]}},
+        ],
+        ids=["values", "sparse_values", "both"],
+    )
+    def test_vector_in_a_dict_clause_rejected(self, kind: str, vector: dict[str, Any]) -> None:
+        """The server refuses a vector on these clauses, so dropping it would hide the mistake."""
+        with pytest.raises(msgspec.ValidationError, match="takes no vector"):
+            SearchDocumentsRequest(
+                score_by=[{"type": kind, "field": "body", "query": "fox", **vector}], top_k=4
+            )
+
+    @pytest.mark.parametrize("cls", [EmbedQuery, SparseEmbedQuery])
+    def test_vector_on_a_typed_clause_rejected(self, cls: type) -> None:
+        with pytest.raises(ValueError, match="takes no vector"):
+            cls(field="body", query="fox", values=[0.1])
+
     @pytest.mark.parametrize(
         "clause",
         [
@@ -185,6 +207,21 @@ class TestSyncSearch:
             {"type": "sparse_embed", "field": "body", "query": "Vector database!"}
         ]
         assert result.usage is not None and result.usage.embed_total_tokens is None
+
+    @respx.mock
+    def test_vector_on_a_dict_clause_rejected_before_the_request(self, index: Index) -> None:
+        route = respx.post(SEARCH_URL).mock(
+            return_value=httpx.Response(200, json=EMBED_SEARCH_RESPONSE)
+        )
+
+        with pytest.raises(PineconeValueError, match="takes no vector"):
+            index.documents.search(
+                namespace=NS,
+                top_k=4,
+                score_by=[{"type": "embed", "field": "body", "query": "fox", "values": [0.1]}],
+            )
+
+        assert not route.called
 
     def test_combined_clause_rejected_before_the_request(self, index: Index) -> None:
         with pytest.raises(PineconeValueError, match="must appear alone"):

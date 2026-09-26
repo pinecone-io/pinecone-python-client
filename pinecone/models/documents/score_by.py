@@ -17,6 +17,7 @@ stand alone.
 from __future__ import annotations
 
 import warnings
+from typing import Any
 
 from msgspec import Struct
 
@@ -196,7 +197,7 @@ class SparseVectorQuery(Struct, tag="sparse_vector", tag_field="type", kw_only=T
             )
 
 
-class EmbedQuery(Struct, tag="embed", tag_field="type", kw_only=True):
+class EmbedQuery(Struct, tag="embed", tag_field="type", kw_only=True, omit_defaults=True):
     """Score documents by dense similarity to query text that Pinecone embeds.
 
     The clause for searching a ``string`` field declared with ``embed``: pass the query
@@ -207,9 +208,13 @@ class EmbedQuery(Struct, tag="embed", tag_field="type", kw_only=True):
     Attributes:
         field: The ``string`` field that declares ``embed``, e.g. ``"body"``.
         query: The text to search for, e.g. ``"how do vector indexes scale"``.
+        values: Not accepted here — Pinecone embeds ``query`` for you.
+        sparse_values: Not accepted here — Pinecone embeds ``query`` for you.
 
     Raises:
-        ValueError: If ``field`` or ``query`` is empty.
+        ValueError: If ``field`` or ``query`` is empty, or if ``values`` or
+            ``sparse_values`` is given. A vector is rejected rather than ignored, because
+            it would silently not be used.
 
     Examples:
         >>> from pinecone.models.documents.score_by import EmbedQuery
@@ -223,15 +228,20 @@ class EmbedQuery(Struct, tag="embed", tag_field="type", kw_only=True):
 
     field: str
     query: str
+    values: Any | None = None
+    sparse_values: Any | None = None
 
     def __post_init__(self) -> None:
         if not self.field:
             raise ValueError("embed scoring requires specifying the name of exactly one field")
         if not self.query:
             raise ValueError("embed scoring requires a non-empty 'query'")
+        _reject_vector(self, "embed", "dense_vector")
 
 
-class SparseEmbedQuery(Struct, tag="sparse_embed", tag_field="type", kw_only=True):
+class SparseEmbedQuery(
+    Struct, tag="sparse_embed", tag_field="type", kw_only=True, omit_defaults=True
+):
     """Score documents by sparse similarity to query text that Pinecone embeds.
 
     The clause for searching a ``string`` field declared with ``sparse_embed``: pass the
@@ -241,9 +251,13 @@ class SparseEmbedQuery(Struct, tag="sparse_embed", tag_field="type", kw_only=Tru
     Attributes:
         field: The ``string`` field that declares ``sparse_embed``, e.g. ``"body"``.
         query: The text to search for, e.g. ``"vector database"``.
+        values: Not accepted here — Pinecone embeds ``query`` for you.
+        sparse_values: Not accepted here — Pinecone embeds ``query`` for you.
 
     Raises:
-        ValueError: If ``field`` or ``query`` is empty.
+        ValueError: If ``field`` or ``query`` is empty, or if ``values`` or
+            ``sparse_values`` is given. A vector is rejected rather than ignored, because
+            it would silently not be used.
 
     Examples:
         >>> from pinecone.models.documents.score_by import SparseEmbedQuery
@@ -257,6 +271,8 @@ class SparseEmbedQuery(Struct, tag="sparse_embed", tag_field="type", kw_only=Tru
 
     field: str
     query: str
+    values: Any | None = None
+    sparse_values: Any | None = None
 
     def __post_init__(self) -> None:
         if not self.field:
@@ -265,6 +281,16 @@ class SparseEmbedQuery(Struct, tag="sparse_embed", tag_field="type", kw_only=Tru
             )
         if not self.query:
             raise ValueError("sparse_embed scoring requires a non-empty 'query'")
+        _reject_vector(self, "sparse_embed", "sparse_vector")
+
+
+def _reject_vector(clause: EmbedQuery | SparseEmbedQuery, kind: str, vector_kind: str) -> None:
+    if clause.values is not None or clause.sparse_values is not None:
+        raise ValueError(
+            f"'{kind}' scoring embeds 'query' with the model of field '{clause.field}' and "
+            "takes no vector. Remove 'values' and 'sparse_values' from the clause, or use "
+            f"'{vector_kind}' scoring to score a vector you supply."
+        )
 
 
 DocumentScoringMethod = (
