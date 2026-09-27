@@ -64,11 +64,11 @@ class TestClauses:
         [
             (
                 EmbedQuery(field="body", query="quick brown fox"),
-                {"type": "embed", "field": "body", "query": "quick brown fox"},
+                {"type": "embed", "fields": ["body"], "query": "quick brown fox"},
             ),
             (
                 SparseEmbedQuery(field="body", query="vector database"),
-                {"type": "sparse_embed", "field": "body", "query": "vector database"},
+                {"type": "sparse_embed", "fields": ["body"], "query": "vector database"},
             ),
         ],
         ids=["embed", "sparse_embed"],
@@ -87,6 +87,40 @@ class TestClauses:
     )
     def test_dict_form_converts(self, raw: dict[str, Any], cls: type) -> None:
         assert isinstance(msgspec.convert(raw, type=DocumentScoringMethod), cls)
+
+    @pytest.mark.parametrize("cls", [EmbedQuery, SparseEmbedQuery])
+    def test_fields_and_field_both_encode_as_fields(self, cls: type) -> None:
+        by_fields = cls(fields=["body"], query="fox")
+        by_field = cls(field="body", query="fox")
+
+        assert by_fields == by_field
+        assert by_field.fields == ["body"] and by_field.field is None
+        assert msgspec.to_builtins(by_field)["fields"] == ["body"]
+        assert "field" not in msgspec.to_builtins(by_field)
+
+    @pytest.mark.parametrize("kind", ["embed", "sparse_embed"])
+    def test_dict_clause_with_fields_accepted(self, kind: str) -> None:
+        clause = msgspec.convert(
+            {"type": kind, "fields": ["body"], "query": "fox"}, type=DocumentScoringMethod
+        )
+
+        assert msgspec.to_builtins(clause) == {"type": kind, "fields": ["body"], "query": "fox"}
+
+    @pytest.mark.parametrize("cls", [EmbedQuery, SparseEmbedQuery])
+    @pytest.mark.parametrize("fields", [[], ["a", "b"], [""]], ids=["none", "two", "blank"])
+    def test_fields_must_name_exactly_one(self, cls: type, fields: list[str]) -> None:
+        with pytest.raises(ValueError, match="exactly one field"):
+            cls(fields=fields, query="fox")
+
+    @pytest.mark.parametrize("cls", [EmbedQuery, SparseEmbedQuery])
+    def test_fields_and_field_together_rejected(self, cls: type) -> None:
+        with pytest.raises(ValueError, match="not both"):
+            cls(fields=["body"], field="body", query="fox")
+
+    @pytest.mark.parametrize("cls", [EmbedQuery, SparseEmbedQuery])
+    def test_no_field_rejected(self, cls: type) -> None:
+        with pytest.raises(ValueError, match="exactly one field"):
+            cls(query="fox")
 
     @pytest.mark.parametrize("cls", [EmbedQuery, SparseEmbedQuery])
     def test_empty_field_rejected(self, cls: type) -> None:
@@ -181,7 +215,7 @@ class TestSyncSearch:
         )
 
         assert _body(route) == {
-            "score_by": [{"type": "embed", "field": "body", "query": "quick brown fox jumps"}],
+            "score_by": [{"type": "embed", "fields": ["body"], "query": "quick brown fox jumps"}],
             "top_k": 4,
             "include_fields": ["genre"],
             "filter": {"genre": {"$eq": "animal"}},
@@ -190,6 +224,20 @@ class TestSyncSearch:
         assert result.matches[0].genre == "animal"
         assert result.usage is not None
         assert result.usage.embed_total_tokens == 4
+
+    @respx.mock
+    def test_embed_search_with_fields_dict(self, index: Index) -> None:
+        route = respx.post(SEARCH_URL).mock(
+            return_value=httpx.Response(200, json=EMBED_SEARCH_RESPONSE)
+        )
+
+        index.documents.search(
+            namespace=NS,
+            top_k=2,
+            score_by=[{"type": "embed", "fields": ["body"], "query": "fox"}],
+        )
+
+        assert _body(route)["score_by"] == [{"type": "embed", "fields": ["body"], "query": "fox"}]
 
     @respx.mock
     def test_sparse_embed_search_from_a_dict(self, index: Index) -> None:
@@ -204,7 +252,7 @@ class TestSyncSearch:
         )
 
         assert _body(route)["score_by"] == [
-            {"type": "sparse_embed", "field": "body", "query": "Vector database!"}
+            {"type": "sparse_embed", "fields": ["body"], "query": "Vector database!"}
         ]
         assert result.usage is not None and result.usage.embed_total_tokens is None
 
@@ -273,7 +321,7 @@ class TestAsyncSearch:
         )
 
         assert _body(route) == {
-            "score_by": [{"type": "sparse_embed", "field": "body", "query": "quick brown fox"}],
+            "score_by": [{"type": "sparse_embed", "fields": ["body"], "query": "quick brown fox"}],
             "top_k": 4,
         }
         assert result.matches[0].id == "d1"

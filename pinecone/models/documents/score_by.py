@@ -206,37 +206,39 @@ class EmbedQuery(Struct, tag="embed", tag_field="type", kw_only=True, omit_defau
     dense clause, it has to stand alone in ``score_by``.
 
     Attributes:
-        field: The ``string`` field that declares ``embed``, e.g. ``"body"``.
         query: The text to search for, e.g. ``"how do vector indexes scale"``.
+        fields: The one ``string`` field that declares ``embed``, as a one-element list,
+            e.g. ``["body"]``.
+        field: Single-name form of ``fields``, e.g. ``"body"``. A value here is moved
+            into ``fields`` and this attribute reads back as ``None``, so read ``fields``
+            whichever way you set it.
         values: Not accepted here — Pinecone embeds ``query`` for you.
         sparse_values: Not accepted here — Pinecone embeds ``query`` for you.
 
     Raises:
-        ValueError: If ``field`` or ``query`` is empty, or if ``values`` or
+        ValueError: If ``query`` is empty, if the clause does not name exactly one field,
+            if both ``fields`` and ``field`` are given, or if ``values`` or
             ``sparse_values`` is given. A vector is rejected rather than ignored, because
             it would silently not be used.
 
     Examples:
         >>> from pinecone.models.documents.score_by import EmbedQuery
-        >>> EmbedQuery(field="body", query="how do vector indexes scale").field
-        'body'
+        >>> EmbedQuery(field="body", query="how do vector indexes scale").fields
+        ['body']
 
     .. seealso::
        :class:`DenseVectorQuery` — to score a ``dense_vector`` field with a vector you
        embedded yourself.
     """
 
-    field: str
     query: str
+    fields: list[str] | None = None
+    field: str | None = None
     values: Any | None = None
     sparse_values: Any | None = None
 
     def __post_init__(self) -> None:
-        if not self.field:
-            raise ValueError("embed scoring requires specifying the name of exactly one field")
-        if not self.query:
-            raise ValueError("embed scoring requires a non-empty 'query'")
-        _reject_vector(self, "embed", "dense_vector")
+        _normalize_embed_clause(self, "embed", "dense_vector")
 
 
 class SparseEmbedQuery(
@@ -249,47 +251,60 @@ class SparseEmbedQuery(
     parameters. It has to stand alone in ``score_by``.
 
     Attributes:
-        field: The ``string`` field that declares ``sparse_embed``, e.g. ``"body"``.
         query: The text to search for, e.g. ``"vector database"``.
+        fields: The one ``string`` field that declares ``sparse_embed``, as a
+            one-element list, e.g. ``["body"]``.
+        field: Single-name form of ``fields``, e.g. ``"body"``. A value here is moved
+            into ``fields`` and this attribute reads back as ``None``, so read ``fields``
+            whichever way you set it.
         values: Not accepted here — Pinecone embeds ``query`` for you.
         sparse_values: Not accepted here — Pinecone embeds ``query`` for you.
 
     Raises:
-        ValueError: If ``field`` or ``query`` is empty, or if ``values`` or
+        ValueError: If ``query`` is empty, if the clause does not name exactly one field,
+            if both ``fields`` and ``field`` are given, or if ``values`` or
             ``sparse_values`` is given. A vector is rejected rather than ignored, because
             it would silently not be used.
 
     Examples:
         >>> from pinecone.models.documents.score_by import SparseEmbedQuery
-        >>> SparseEmbedQuery(field="body", query="vector database").query
-        'vector database'
+        >>> SparseEmbedQuery(fields=["body"], query="vector database").fields
+        ['body']
 
     .. seealso::
        :class:`SparseVectorQuery` — to score a ``sparse_vector`` field with a sparse
        vector you encoded yourself.
     """
 
-    field: str
     query: str
+    fields: list[str] | None = None
+    field: str | None = None
     values: Any | None = None
     sparse_values: Any | None = None
 
     def __post_init__(self) -> None:
-        if not self.field:
+        _normalize_embed_clause(self, "sparse_embed", "sparse_vector")
+
+
+def _normalize_embed_clause(
+    clause: EmbedQuery | SparseEmbedQuery, kind: str, vector_kind: str
+) -> None:
+    if clause.field is not None:
+        if clause.fields is not None:
             raise ValueError(
-                "sparse_embed scoring requires specifying the name of exactly one field"
+                f"{type(clause).__name__} accepts `fields=[...]` or `field=...`, but not both."
             )
-        if not self.query:
-            raise ValueError("sparse_embed scoring requires a non-empty 'query'")
-        _reject_vector(self, "sparse_embed", "sparse_vector")
-
-
-def _reject_vector(clause: EmbedQuery | SparseEmbedQuery, kind: str, vector_kind: str) -> None:
+        clause.fields = [clause.field]
+        clause.field = None
+    if not clause.fields or len(clause.fields) != 1 or not clause.fields[0]:
+        raise ValueError(f"{kind} scoring requires specifying the name of exactly one field")
+    if not clause.query:
+        raise ValueError(f"{kind} scoring requires a non-empty 'query'")
     if clause.values is not None or clause.sparse_values is not None:
         raise ValueError(
-            f"'{kind}' scoring embeds 'query' with the model of field '{clause.field}' and "
-            "takes no vector. Remove 'values' and 'sparse_values' from the clause, or use "
-            f"'{vector_kind}' scoring to score a vector you supply."
+            f"'{kind}' scoring embeds 'query' with the model of field '{clause.fields[0]}' "
+            "and takes no vector. Remove 'values' and 'sparse_values' from the clause, or "
+            f"use '{vector_kind}' scoring to score a vector you supply."
         )
 
 
