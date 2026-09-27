@@ -233,13 +233,14 @@ with pc.index(name="support-articles") as index:
   `batch_size` of 50 fits, so keep any value you pass at 96 or below.
 - **`store_text`** decides whether the text is kept. It defaults to true, and stored
   text is always full-text searchable: describe reports `full_text_search` with default
-  settings even when you declared only `embed`. Stored text is capped at 10,000 tokens by
-  full-text search as well as 100 KB per value.
-- **`store_text=False`** embeds the text and keeps it nowhere, which lifts the token cap.
-  The field then needs `embed` or `sparse_embed` and cannot take `full_text_search`, it
-  can be searched only with an embed clause, and a fetch or search whose
-  `include_fields` names it fails with a `400` — `["*"]` leaves it out. Like the rest of
-  the schema, it cannot be changed after creation.
+  settings even when you declared only `embed`.
+- **Limits:** each value of the field is at most 100 KB. With `store_text` true, the
+  full-text limit of 10,000 tokens per value also applies.
+- **`store_text=False`** embeds the text and keeps it nowhere. The field then needs
+  `embed` or `sparse_embed` and cannot take `full_text_search`, it can be searched only
+  with an embed clause, and a fetch or search whose `include_fields` names it fails with
+  a `400` — `["*"]` leaves it out. Like the rest of the schema, it cannot be changed
+  after creation.
 
 ### Vectors
 

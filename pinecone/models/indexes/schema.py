@@ -335,9 +335,9 @@ class StringField(Struct, tag="string", tag_field="type", kw_only=True):
     it cannot be returned, so a fetch or search whose ``include_fields`` names
     it is rejected with a ``400`` (``["*"]`` leaves it out); and it cannot be
     scored by ``text`` or ``query_string`` or matched by ``$match_*`` filters.
-    Stored text is also capped at 10,000 tokens by full-text search, which an
-    unstored field is not; both are capped at 100 KB per value. The setting is
-    fixed at creation.
+    Each value is at most 100 KB; with ``store_text`` true, the full-text
+    limit of 10,000 tokens per value also applies. The setting is fixed at
+    creation.
 
     In responses, a searchable field reports its search configurations and
     ``store_text``, and a filter-only field reports just ``filterable``.

@@ -485,9 +485,11 @@ class SchemaBuilder:
                 ``False`` embeds the text without storing it, which needs
                 ``embed`` or ``sparse_embed`` and rules out
                 ``full_text_search``: the field can then be searched only with
-                an embed clause, a fetch or search whose ``include_fields``
-                names it is rejected with a ``400``, and the 10,000-token
-                full-text limit does not apply. Fixed at creation.
+                an embed clause, and a fetch or search whose
+                ``include_fields`` names it is rejected with a ``400``. Each
+                value is at most 100 KB; with the text stored, the full-text
+                limit of 10,000 tokens per value also applies. Fixed at
+                creation.
             filterable: Make the field filterable instead of searched.
                 Requesting it together with a search key is the trap: a
                 string field is one or the other. Alongside ``embed`` or
@@ -555,7 +557,7 @@ class SchemaBuilder:
             >>> schema["fields"]["body"]["sparse_embed"]
             {}
 
-            ``store_text=False`` embeds long text without keeping it:
+            ``store_text=False`` embeds the text without keeping it:
 
             >>> schema = SchemaBuilder().add_string_field(
             ...     "body", embed=True, store_text=False
