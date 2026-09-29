@@ -42,7 +42,7 @@ Three field types can be declared at creation time:
 |---|---|
 | `dense_vector` | Similarity search over embeddings. At most one per schema. Takes `dimension` and `metric`. |
 | `sparse_vector` | Term-based scoring, such as BM25. Has no fixed dimension. |
-| `string` with `full_text_search`, `embed`, and/or `sparse_embed` | Full-text search over a text field, and search over dense or sparse embeddings Pinecone makes from its text — see [Text Pinecone embeds for you](#text-pinecone-embeds-for-you). |
+| `string` with `full_text_search`, `embed`, and/or `sparse_embed` | Full-text search over a text field, and integrated embeddings: dense or sparse embeddings Pinecone makes from its text — see [Integrated embeddings](#integrated-embeddings). |
 
 Everything else you store is **metadata**. Metadata fields are not declared in the
 schema; Pinecone indexes them for filtering the first time they appear on a record you
@@ -147,7 +147,7 @@ created decides which data-plane interface reads and writes its records.**
 |---|---|---|
 | `schema=` naming your own fields | **documents** — an `_id` plus your fields | `index.documents` |
 | the deprecated `dimension=`/`metric=` | **vectors** — an ID plus coordinates | `index.upsert`, `index.query` |
-| `pc.indexes.create_for_model(...)` (legacy) | **records** with text Pinecone embeds for you | `index.upsert_records`, `index.search` |
+| `pc.indexes.create_for_model(...)`, a legacy integrated index | **records** with text Pinecone embeds for you | the legacy Records API: `index.upsert_records`, `index.search` |
 
 The interfaces are not interchangeable: calling the vector methods on a schema-based index
 is rejected by the server.
@@ -185,10 +185,10 @@ query text Pinecone embeds with a field's model — and a search may combine sev
 `text` and `query_string` clauses. Any other clause has to stand alone. See
 {doc}`the Index reference </reference/sync-index>` for every document operation.
 
-### Text Pinecone embeds for you
+### Integrated embeddings
 
-A `string` field can carry `embed` (a hosted dense model) and `sparse_embed` (a hosted
-sparse model). Pinecone embeds the field's text when you upsert or update a document,
+Document indexes support fields with integrated embeddings. A `string` field can carry
+`embed` (a hosted dense model) and `sparse_embed` (a hosted sparse model). Pinecone embeds the field's text when you upsert or update a document,
 and embeds the query text with the same model when you search the field with an
 `EmbedQuery` or `SparseEmbedQuery`. Every key of either config is optional: `{}` takes
 the default model, and describe reports the resolved model, dimension, metric, and
@@ -291,15 +291,16 @@ with pc.index(host="my-index-abc123.svc.pinecone.io") as index:
 
 See [Upsert and query vectors](../how-to/vectors/upsert-and-query.md).
 
-### Integrated inference (legacy)
+### Legacy integrated indexes
 
-An index created with `pc.indexes.create_for_model()` embeds text for you. The `field_map`
+A legacy integrated index, created with `pc.indexes.create_for_model()`, embeds text for
+you and requires the legacy Records API. The `field_map`
 names the record field to embed, and the same model embeds your queries at read time. In
 the returned index that field shows up in the schema as a `semantic_text` field —
 `create_for_model` is the only way to get one, since `semantic_text` cannot be declared in
-a `schema=` you pass to `create()`. This is the legacy integrated-inference path; for new
-work, declare a `string` field with `embed` or `sparse_embed` instead (see
-[Text Pinecone embeds for you](#text-pinecone-embeds-for-you)).
+a `schema=` you pass to `create()`. For new work, create a document index with a
+`string` field that uses integrated embeddings (`embed` or `sparse_embed`) instead (see
+[Integrated embeddings](#integrated-embeddings)).
 
 ```python
 from pinecone import Pinecone

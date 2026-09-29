@@ -352,13 +352,13 @@ class Indexes:
         fields. Every field in the schema must be one that gets searched —
         ``dense_vector``, ``sparse_vector``, or ``string`` with
         ``full_text_search``, ``embed`` or ``sparse_embed``. A string field
-        with ``embed`` or ``sparse_embed`` has Pinecone embed its text on
-        write and embed the query text on search; read and write such an
-        index through ``index.documents``. Metadata-only fields aren't declared
-        here; they're indexed automatically the first time they appear on an
-        upserted record. The schema can't change once the index exists, and
-        the call blocks until the index is ready unless you pass
-        ``timeout=-1``.
+        with ``embed`` or ``sparse_embed`` has integrated embeddings: Pinecone
+        embeds its text on write and the query text on search. The result is
+        a document index; read and write it through ``index.documents``.
+        Metadata-only fields aren't declared here; they're indexed
+        automatically the first time they appear on an upserted record. The
+        schema can't change once the index exists, and the call blocks until
+        the index is ready unless you pass ``timeout=-1``.
 
         Args:
             schema: The index's field schema. Required unless the
@@ -499,8 +499,10 @@ class Indexes:
            :doc:`/migration/v10-migration`.
 
         .. seealso::
-           :meth:`create_for_model` — creates an index with an integrated
-           embedding model, so you upsert and query text instead of vectors.
+           :meth:`create_for_model` — creates a legacy integrated index, which
+           requires the legacy Records API. For integrated embeddings in a
+           document index, declare ``embed`` / ``sparse_embed`` on a
+           ``string`` field here instead.
 
         .. versionchanged:: 10.0
            ``spec=``, ``dimension=``, ``metric=``, and ``vector_type=`` are
@@ -508,7 +510,9 @@ class Indexes:
            ``deployment=`` arguments. ``pods=``, ``metadata_config=``,
            ``source_collection=``, ``source_backup_id=``, and
            ``spec=IntegratedSpec(...)`` have no equivalent here; use
-           :meth:`create_for_model` for integrated embedding.
+           :meth:`create_for_model` for a legacy integrated index, or
+           ``embed`` / ``sparse_embed`` on a ``string`` field for integrated
+           embeddings in a document index.
         """
         reject_legacy_create_kwargs(legacy_kwargs, name)
         reject_integrated_spec_create(spec, name)
@@ -625,11 +629,12 @@ class Indexes:
         ``semantic_text`` field in ``schema``, named after the ``field_map``
         text entry.
 
-        This is the legacy integrated-inference path: the index is read and
-        written through the legacy records API (``index.upsert_records`` and
-        ``index.search``). For new work, pass :meth:`create` a ``string``
-        field with ``embed`` or ``sparse_embed`` and use ``index.documents``,
-        which adds full-text search on the same fields and ``score_by``.
+        This creates a legacy integrated index, and legacy integrated indexes
+        require the legacy Records API (``index.upsert_records`` and
+        ``index.search``). For new work, create a document index with
+        integrated embeddings instead: pass :meth:`create` a ``string`` field
+        with ``embed`` or ``sparse_embed`` and use ``index.documents``, which
+        adds full-text search on the same fields and ``score_by``.
 
         Args:
             name: Name for the index — 1-45 characters, lowercase

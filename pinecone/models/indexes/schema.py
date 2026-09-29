@@ -131,15 +131,16 @@ class SparseVectorField(Struct, tag="sparse_vector", tag_field="type", kw_only=T
 
 
 class SemanticTextField(Struct, tag="semantic_text", tag_field="type", kw_only=True):
-    """The embedded text field of an index made by the legacy create-for-model path.
+    """The embedded text field of a legacy integrated index, created via create-for-model.
 
     With a semantic text field you upsert and query plain text and never
     handle a vector yourself — the difference from :class:`DenseVectorField`,
-    where producing the embedding is your job. Such an index is read and
-    written through the legacy records API (``upsert_records`` and
-    ``search``). For new work, declare a :class:`StringField` with ``embed``
-    or ``sparse_embed`` instead: that index is read and written through
-    ``index.documents``, and describe reports the field as a ``string``.
+    where producing the embedding is your job. Legacy integrated indexes
+    require the legacy Records API (``upsert_records`` and ``search``). For
+    new work, create a document index with a :class:`StringField` that uses
+    integrated embeddings (``embed`` or ``sparse_embed``) instead: a document
+    index is read and written through ``index.documents``, and describe
+    reports the field as a ``string``.
 
     **Response-only, and there is exactly one way to get one:**
     :meth:`~pinecone.client.indexes.Indexes.create_for_model`, which names the
@@ -235,7 +236,7 @@ class FullTextSearchConfig(Struct, kw_only=True):
 
 
 class FieldEmbedConfig(Struct, kw_only=True):
-    """Have Pinecone embed a string field's text into a dense vector.
+    """Integrated dense embeddings for a string field of a document index.
 
     Set on a :class:`StringField` as ``embed``. Pinecone embeds the field's
     text with a hosted model when you upsert or update a document, and embeds
@@ -281,7 +282,7 @@ class FieldEmbedConfig(Struct, kw_only=True):
 
 
 class FieldSparseEmbedConfig(Struct, kw_only=True):
-    """Have Pinecone embed a string field's text into a learned-sparse vector.
+    """Integrated learned-sparse embeddings for a string field of a document index.
 
     Set on a :class:`StringField` as ``sparse_embed``. It works like
     :class:`FieldEmbedConfig`, with a sparse model, and is searched with a
@@ -316,7 +317,7 @@ class FieldSparseEmbedConfig(Struct, kw_only=True):
 
 
 class StringField(Struct, tag="string", tag_field="type", kw_only=True):
-    """Text that is searched — by full-text search, by embeddings, or both.
+    """Text that is searched — by full-text search, by integrated embeddings, or both.
 
     A string field you declare on create must carry at least one search
     configuration, because search is the only reason the schema takes a string
@@ -539,18 +540,19 @@ class IndexSchema(Struct, kw_only=True):
         Variable-length index/value pairs for keyword-style scoring, with no
         dimension and no choice of metric — see :class:`SparseVectorField`.
     ``string``
-        Text searched by full-text search (``full_text_search``), by a dense
-        embedding Pinecone makes from it (``embed``), by a sparse one
+        Text searched by full-text search (``full_text_search``), by
+        integrated dense embeddings (``embed``), by integrated sparse ones
         (``sparse_embed``), or any mix of the three — see
         :class:`StringField`.
 
     Read back but not declarable — sending one on create is rejected:
 
     ``semantic_text``
-        The embedded text field of an index made by
+        The embedded text field of a legacy integrated index, created via
         :meth:`~pinecone.client.indexes.Indexes.create_for_model`, the only
-        way to get one — see :class:`SemanticTextField`. A ``string`` field
-        with ``embed`` is the way to embed text in an index you create.
+        way to get one — see :class:`SemanticTextField`. In a document index,
+        a ``string`` field with integrated embeddings (``embed`` /
+        ``sparse_embed``) takes its place.
     ``float``, ``boolean``, ``string_list``
         Numeric, boolean and tag-style metadata, indexed for filtering
         automatically at upsert time — see :class:`FloatField`,
