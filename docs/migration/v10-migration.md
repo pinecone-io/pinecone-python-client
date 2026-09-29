@@ -446,7 +446,8 @@ behavior); `create()` no longer accepts `source_collection` or
 `source_backup_id` (the backend rejects both with a 400, use
 `pc.create_index_from_backup(...)` to restore a backup instead); `create()`
 and `configure()` accept a typed `IndexSchema` as well as a plain dict; and
-`create_for_model()` is new, replacing the old integrated-embedding path.
+`create_for_model()` is new, replacing the old `spec=IntegratedSpec(...)` path for
+legacy integrated indexes.
 
 Everything else about the `2026-07` create/configure contract, including the
 schema rules and field removals, is the same for you as for a `9.x` caller
@@ -730,12 +731,15 @@ to every request that client makes, and `10.x` models decode `2026-07`
 response shapes, so keep a pinned client scoped to the pod and collection
 calls that need it rather than using it as a general downgrade.
 
-Integrated-embedding creation moved from `create(spec=IntegratedSpec(...))`
+Creating a legacy integrated index moved from `create(spec=IntegratedSpec(...))`
 to a dedicated `pc.indexes.create_for_model(name=..., cloud=..., region=...,
 embed={"model": ..., "field_map": {"text": ...}})`. The embedding
 configuration now surfaces as a `semantic_text` field in the returned
 `index.schema`, named after the `field_map` text entry; `index.embed` is a
-deprecated view rebuilt from that field.
+deprecated view rebuilt from that field. Legacy integrated indexes require the
+legacy Records API; for a new index, give a document index a `string` field with
+integrated embeddings instead (see
+[How Pinecone Works](../guides/concepts.md#integrated-embeddings)).
 
 `ConfigureIndexRequest` rejects an unknown PATCH field rather than ignoring
 it.

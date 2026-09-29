@@ -139,18 +139,18 @@ def validate_integrated_inputs(
     spec: IntegratedSpec,
     deletion_protection: DeletionProtection | str = "disabled",
 ) -> None:
-    """Client-side validation for integrated index creation."""
+    """Client-side validation for legacy integrated index creation."""
     require_non_empty("name", name)
     if len(name) > 45:
         raise ValidationError("index name must not exceed 45 characters")
     if not re.fullmatch(r"[a-z0-9-]+", name):
         raise ValidationError("index name must contain only lowercase letters, digits, and hyphens")
     if not spec.cloud or not spec.cloud.strip():
-        raise ValidationError("cloud is required for integrated indexes")
+        raise ValidationError("cloud is required for legacy integrated indexes")
     if not spec.embed.model or not spec.embed.model.strip():
-        raise ValidationError("embed model is required for integrated indexes")
+        raise ValidationError("embed model is required for legacy integrated indexes")
     if not spec.embed.field_map:
-        raise ValidationError("embed field_map is required for integrated indexes")
+        raise ValidationError("embed field_map is required for legacy integrated indexes")
     _validate_deletion_protection(deletion_protection)
 
 
@@ -163,7 +163,7 @@ def build_integrated_body(
     schema: dict[str, Any] | None = None,
     read_capacity: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Build the JSON body for POST /indexes (integrated/model-backed)."""
+    """Build the JSON body for POST /indexes (legacy integrated, model-backed)."""
     embed_body: dict[str, Any] = {
         "model": resolve_enum_value(spec.embed.model),
         "field_map": spec.embed.field_map,

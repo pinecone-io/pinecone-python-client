@@ -17,7 +17,7 @@ Everything here is a pure function. The module imports nothing from
 hammer it without fixtures. ``tests/unit/_internal/test_legacy_index_translation.py``
 pins that constraint so it cannot rot.
 
-``IntegratedSpec`` is deliberately not translated: integrated-embedding
+``IntegratedSpec`` is deliberately not translated: legacy integrated
 indexes are created through ``create_for_model()``, so it stays in the
 rejection path.
 """
@@ -77,7 +77,7 @@ def _coerce_spec(spec: Any) -> ServerlessSpec | PodSpec | ByocSpec:
     if isinstance(spec, IntegratedSpec):
         raise PineconeValueError(
             "spec=IntegratedSpec(...) has no deployment= translation: the 2026-07 API "
-            "creates integrated-embedding indexes through "
+            "creates legacy integrated indexes through "
             "pc.indexes.create_for_model(name=..., cloud=..., region=..., embed=...). "
             f"See the migration guide: {MIGRATION_GUIDE}"
         )

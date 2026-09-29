@@ -1,14 +1,19 @@
-# Integrated records (server-side embedding)
+# Legacy integrated indexes (legacy Records API)
 
-An index with integrated inference stores text records and embeds them server-side with a
+A legacy integrated index stores text records and embeds them server-side with a
 hosted model — the same model on write and on read. You upsert text and you search with
-text; no vector ever passes through your code.
+text; no vector ever passes through your code. Legacy integrated indexes are created via
+create-for-model and require the legacy Records API (`upsert_records` and `search`).
+
+For new work, create a document index instead: document indexes support fields with
+integrated embeddings, read and written through `index.documents`. See
+[How Pinecone Works](../guides/concepts.md#integrated-embeddings).
 
 The alternative is to embed the text yourself and upsert vectors. See
 [Generating embeddings](inference/embeddings.md) for that path, and
 [Upserting and querying vectors](vectors/upsert-and-query.md) for the read side of it.
 
-## Create an index with integrated inference
+## Create a legacy integrated index
 
 {meth}`~pinecone.client.indexes.Indexes.create_for_model` is how these indexes are
 created. `embed` needs a `model` and a `field_map`:
@@ -69,8 +74,8 @@ print(index_model.schema.fields["chunk_text"].model)
 `semantic_text` is read-only in a schema. You cannot declare one in a `schema=` you pass
 to {meth}`~pinecone.client.indexes.Indexes.create` — sending it is rejected, and a single
 rejected field fails the whole schema. `create_for_model` is what produces the field.
-`create(schema=...)` is for the index shapes where you supply the vectors yourself:
-`dense_vector`, `sparse_vector`, and `string` with full-text search. See
+`create(schema=...)` creates a document index instead: `dense_vector`, `sparse_vector`,
+and `string` fields with full-text search or integrated embeddings. See
 [Working with serverless indexes](indexes/serverless.md).
 
 Passing `spec=IntegratedSpec(...)` to `create()` raises

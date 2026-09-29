@@ -77,7 +77,7 @@ class SearchInputs(_SearchInputsRequired, total=False):
     """The ``inputs`` argument of :meth:`~pinecone.Index.search`, as a typed dict.
 
     Use this when you want the index to embed your query for you rather than sending a
-    vector — the path available on indexes with integrated inference. Like
+    vector — the path available on legacy integrated indexes. Like
     :class:`RerankConfig` it is a :class:`~typing.TypedDict`, so pass a plain dict and let
     your editor check the keys.
 

@@ -33,7 +33,7 @@ Obtain an ``Index`` instance via :meth:`pinecone.Pinecone.index`.
   :class:`~pinecone.client.documents.Documents` namespace for schema-based indexes
   (``index.documents.upsert``, ``.search``, ``.fetch``, ``.delete``, ``.update``,
   ``.list``, ``.batch_upsert``).
-- **Integrated Inference** — :meth:`~pinecone.index.Index.search`,
+- **Legacy Records API** (legacy integrated indexes) — :meth:`~pinecone.index.Index.search`,
   :meth:`~pinecone.index.Index.search_records`
 - **Namespaces** — :meth:`~pinecone.index.Index.create_namespace`,
   :meth:`~pinecone.index.Index.describe_namespace`,

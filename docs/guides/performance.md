@@ -28,7 +28,7 @@ knob on the wrong one.
 | `index.upsert(vectors=[...])` | You have pre-computed vectors and one request will hold them | None — one request, one payload |
 | `index.upsert(vectors=[...], batch_size=N)` | You have more vectors than one request can carry | Client-side, in parallel, with partial-failure reporting |
 | `index.upsert_from_dataframe(df)` | Your vectors are already in a pandas DataFrame | Client-side, `batch_size=500` by default |
-| `index.upsert_records(records=[...])` | The index has integrated inference, so the server embeds your text | None — one NDJSON request per call |
+| `index.upsert_records(records=[...])` | The index is a legacy integrated index, so the server embeds your text | None — one NDJSON request per call |
 | `index.start_import(uri="s3://...")` | Millions of records already sit in Parquet in cloud storage | Server-side and asynchronous; no client bandwidth spent |
 
 An unbatched `upsert()` sends everything in one request, so a large enough

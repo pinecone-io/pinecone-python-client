@@ -621,7 +621,7 @@ class Indexes:
         read_capacity: dict[str, Any] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
-        """Create a serverless index with an integrated embedding model.
+        """Create a legacy integrated index, served by the legacy Records API.
 
         Pinecone embeds text written to the mapped field automatically at
         upsert time and embeds queries at read time using the same model. In
@@ -721,10 +721,10 @@ class Indexes:
         if read_capacity is not None:
             body["read_capacity"] = read_capacity
 
-        logger.info("Creating integrated index name=%r", name)
+        logger.info("Creating legacy integrated index name=%r", name)
         response = self._http.post("/indexes/create-for-model", json=body)
         model = self._adapter.to_index_model(response.content)
-        logger.debug("Created integrated index %r", model.name)
+        logger.debug("Created legacy integrated index %r", model.name)
 
         if timeout != -1:
             model = self._poll_until_ready(model.name, timeout)

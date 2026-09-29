@@ -221,8 +221,8 @@ created.
   you. This is the method for a standard index created with a top-level `dimension` and
   `metric`, and it is what the rest of this page uses.
 - {meth}`~pinecone.index.Index.search` — **you supply text**, and the index's own
-  embedding model turns it into the query vector server-side. This needs an index with
-  integrated inference, which is created with
+  embedding model turns it into the query vector server-side. This needs a legacy integrated
+  index, which is created with
   {meth}`~pinecone.client.indexes.Indexes.create_for_model` and no other way, and
   `search` takes a required `namespace`. See {doc}`/how-to/integrated-records`.
 
@@ -451,7 +451,7 @@ filter.
 - {doc}`/how-to/vectors/namespaces`: working with namespaces
 - {doc}`/how-to/vectors/bulk-import`: bulk importing from cloud storage
 - {class}`~pinecone.index.Index`: full data plane client reference
-- {doc}`/how-to/integrated-records`: `search` on an index with integrated inference
+- {doc}`/how-to/integrated-records`: `search` on a legacy integrated index
 - {doc}`/guides/performance`: choosing a `batch_size` and a `max_concurrency`
 - {class}`~pinecone.models.vectors.responses.QueryResponse`: query response model
 - {class}`~pinecone.models.vectors.vector.ScoredVector`: individual match in query results

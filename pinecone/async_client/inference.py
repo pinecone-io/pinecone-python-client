@@ -161,10 +161,13 @@ class AsyncInference:
     Reached as ``pc.inference``. Call these when you want the vectors or the
     scores in your own hands — to store somewhere else, to embed a query
     yourself, or to rerank candidates that came from another system. If instead
-    you want Pinecone to embed on your behalf, build an index with
-    :class:`~pinecone.models.indexes.specs.IntegratedSpec` and use
-    :meth:`~pinecone.async_client.async_index.AsyncIndex.upsert_records`, which
-    needs no explicit embed step. Not constructed directly.
+    you want Pinecone to embed on your behalf, give a document index a
+    ``string`` field with integrated embeddings (``embed`` / ``sparse_embed``),
+    which needs no explicit embed step. Legacy integrated indexes, created via
+    :meth:`~pinecone.async_client.indexes.AsyncIndexes.create_for_model`, do the
+    same through the legacy Records API
+    (:meth:`~pinecone.async_client.async_index.AsyncIndex.upsert_records`). Not
+    constructed directly.
 
     Examples:
 
@@ -320,10 +323,11 @@ class AsyncInference:
            fixed in advance.
 
         .. seealso::
-           :meth:`~pinecone.async_client.async_index.AsyncIndex.upsert_records`
-           — on an index built with
-           :class:`~pinecone.models.indexes.specs.IntegratedSpec`, Pinecone
-           embeds the records for you and no call here is needed.
+           :attr:`~pinecone.async_client.async_index.AsyncIndex.documents` —
+           on a document index whose ``string`` field has integrated
+           embeddings, Pinecone embeds the text for you and no call here is
+           needed. Legacy integrated indexes do the same through
+           :meth:`~pinecone.async_client.async_index.AsyncIndex.upsert_records`.
         """
         model_id = resolve_model_id(model)
         require_non_empty("model", model_id)

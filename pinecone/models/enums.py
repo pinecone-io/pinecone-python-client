@@ -67,7 +67,7 @@ class VectorType(str, Enum):
 
 
 class EmbedModel(str, Enum):
-    """Known embedding models for integrated indexes.
+    """Known embedding models, for integrated embeddings and ``pc.inference``.
 
     A convenience enum rather than an exhaustive list: ``model`` is also accepted
     as a plain string, so a model added after this SDK release can still be used.

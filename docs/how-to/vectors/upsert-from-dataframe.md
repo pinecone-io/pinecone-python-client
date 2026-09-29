@@ -34,7 +34,7 @@ parallel batching from a list of vectors — see
 | Vectors in a pandas DataFrame | `upsert_from_dataframe()` — this page |
 | Vectors in a list, and no pandas | [`upsert(batch_size=...)`](upsert-and-query.md#large-datasets) |
 | Far more rows than you want to stream, already in cloud storage | [`start_import()`](bulk-import.md) — server-side bulk load |
-| Raw text, embedded server-side | `upsert_records()` — needs an index with integrated inference |
+| Raw text, embedded server-side | `upsert_records()` — needs a legacy integrated index |
 
 ## The DataFrame contract
 

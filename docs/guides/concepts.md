@@ -325,7 +325,7 @@ index.upsert_records(
 
 Read it back with `index.search(namespace=..., inputs={"text": ...}, top_k=...)`, which
 embeds the query string server-side. See
-[Integrated records](../how-to/integrated-records.md).
+[Legacy integrated indexes](../how-to/integrated-records.md).
 
 For embedding and reranking as standalone operations, against text that is not going into
 an index, use `pc.inference` — see [Embeddings](../how-to/inference/embeddings.md) and

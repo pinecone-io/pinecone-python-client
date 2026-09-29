@@ -70,7 +70,7 @@ Pinecone Python SDK
 
 .. toctree::
    :maxdepth: 1
-   :caption: Integrated Records
+   :caption: Legacy Integrated Indexes
 
    how-to/integrated-records
 

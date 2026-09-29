@@ -1,4 +1,4 @@
-"""Backwards-compatibility shim — IndexEmbed model for integrated indexes.
+"""Backwards-compatibility shim — IndexEmbed model for legacy integrated indexes.
 
 Defines the class that used to live at
 :mod:`pinecone.inference.models.index_embed` in earlier releases, so that code
@@ -17,7 +17,7 @@ __all__ = ["IndexEmbed"]
 
 @dataclasses.dataclass(frozen=True)
 class IndexEmbed:
-    """Which model embeds an integrated index, and which field it embeds.
+    """Which model embeds a legacy integrated index, and which field it embeds.
 
     Accepted as the ``embed`` argument of
     :meth:`~pinecone.Pinecone.create_index_for_model`, alongside a plain dict

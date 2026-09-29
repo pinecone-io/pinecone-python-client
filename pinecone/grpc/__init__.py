@@ -554,7 +554,7 @@ class GrpcIndex:
 
         self._executor = ThreadPoolExecutor()
 
-        # REST HTTP client for records operations (integrated inference).
+        # REST HTTP client for records operations (legacy Records API).
         # upsert_records and search use REST endpoints with no gRPC equivalent.
         from pinecone._internal.http_client import HTTPClient
 
@@ -681,7 +681,7 @@ class GrpcIndex:
                     idx.upsert(vectors=response.failed_items, namespace="articles-en")
 
         .. seealso::
-           :meth:`upsert_records` — for an index with integrated inference,
+           :meth:`upsert_records` — for a legacy integrated index,
            where you send text and the server embeds it.
            :meth:`start_import` — for a one-off load of millions of vectors
            already sitting in cloud storage.
@@ -792,7 +792,7 @@ class GrpcIndex:
                     print(match.id, match.score)
 
         .. seealso::
-           :meth:`search` — for an index with integrated inference, where you
+           :meth:`search` — for a legacy integrated index, where you
            send query text and the server embeds it.
            :meth:`query_namespaces` — to run the same query across several
            namespaces and merge the results.
@@ -2005,19 +2005,24 @@ class GrpcIndex:
         namespace: str,
         timeout: float | None = None,
     ) -> UpsertRecordsResponse:
-        """Upsert records for indexes with integrated inference.
+        """Upsert records for legacy integrated indexes.
 
         Embeddings are generated server-side from the fields you provide, so
         each record carries source data (e.g. text) rather than precomputed
         vector values. Like :meth:`search`, this call travels over REST even on
         a ``GrpcIndex``, because the gRPC API has no records operations.
 
+        Part of the legacy Records API. For a new index, give a document index a
+        ``string`` field with integrated embeddings and write through the REST
+        :attr:`Index.documents <pinecone.index.Index.documents>` instead;
+        ``GrpcIndex`` has no document operations.
+
         Args:
             records: List of record dicts. Each must contain an ``_id`` or
                 ``id`` field. Additional fields are passed through for
                 server-side embedding.
             namespace (str): Target namespace (required). Unlike :meth:`upsert`,
-                namespace has no default because the records API requires an
+                namespace has no default because the legacy Records API requires an
                 explicit namespace (must be non-empty).
             timeout (float | None): Per-request deadline in seconds. ``None``
                 uses the ``timeout`` the index was constructed with.
@@ -2103,10 +2108,15 @@ class GrpcIndex:
     ) -> SearchRecordsResponse:
         """Search records by text, vector, or ID with optional reranking.
 
-        Use this on an index with integrated inference: you send query text and the server embeds
+        Use this on a legacy integrated index: you send query text and the server embeds
         it. This call travels over REST even on a ``GrpcIndex``, because the gRPC API has no records
         search — so a ``retry_config`` you passed to :class:`~pinecone.grpc.GrpcIndex` does not
         govern it, and it retries on the REST data plane's own fixed terms (:doc:`/guides/retries`).
+
+        Part of the legacy Records API. On a document index, including one with
+        integrated embeddings, search through the REST
+        :attr:`Index.documents <pinecone.index.Index.documents>` instead;
+        ``GrpcIndex`` has no document operations.
 
         Args:
             namespace (str): Namespace to search in (required).
@@ -2639,7 +2649,7 @@ class GrpcIndex:
         .. seealso::
            - :meth:`upsert` — for upserting vectors directly in small
              batches (single request per call).
-           - :meth:`upsert_records` — for indexes with integrated inference
+           - :meth:`upsert_records` — for legacy integrated indexes
              (text in, server-side embedding).
            - :meth:`upsert_from_dataframe` — for loading vectors from a
              pandas DataFrame with automatic batching.

@@ -39,9 +39,11 @@ How the index was created decides which data-plane interface it answers on. An
 index declaring a ``schema`` of your own field names stores documents, read and
 written through ``index.documents``. The vector methods :meth:`Index.upsert` and
 :meth:`Index.query` serve indexes created with top-level ``dimension`` and
-``metric``, and the server rejects them on a schema-based index. An index built
-by ``pc.indexes.create_for_model()`` embeds text server-side, so you search it
-with text rather than with a vector::
+``metric``, and the server rejects them on a schema-based index. A legacy
+integrated index, built by ``pc.indexes.create_for_model()``, requires the legacy
+Records API: it embeds text server-side, so you search it with text rather than
+with a vector (for a new index, give a document index a field with integrated
+embeddings instead)::
 
     index = pc.index("semantic-search")
     results = index.search(

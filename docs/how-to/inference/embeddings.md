@@ -4,9 +4,11 @@ Pinecone hosts embedding models, so you can turn text into vectors without runni
 embedding infrastructure of your own. `pc.inference.embed` takes the text and hands the
 vectors back to you — to upsert, to query with, or to keep somewhere else entirely.
 
-If you would rather never handle a vector, that is an index with integrated inference,
-where Pinecone embeds on both write and read. See
-[Integrated records](../integrated-records.md).
+If you would rather never handle a vector, give a document index a field with
+integrated embeddings, and Pinecone embeds on both write and read. See
+[How Pinecone Works](../../guides/concepts.md#integrated-embeddings). Legacy integrated
+indexes do the same through the legacy Records API; see
+[Legacy integrated indexes](../integrated-records.md).
 
 ## Basic usage
 
