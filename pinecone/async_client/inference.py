@@ -162,7 +162,7 @@ class AsyncInference:
     scores in your own hands — to store somewhere else, to embed a query
     yourself, or to rerank candidates that came from another system. If instead
     you want Pinecone to embed on your behalf, give a document index a
-    ``string`` field with integrated embeddings (``embed`` / ``sparse_embed``),
+    ``string`` field with integrated embedding (``embed`` / ``sparse_embed``),
     which needs no explicit embed step. Legacy integrated indexes, created via
     :meth:`~pinecone.async_client.indexes.AsyncIndexes.create_for_model`, do the
     same through the legacy Records API
@@ -324,8 +324,8 @@ class AsyncInference:
 
         .. seealso::
            :attr:`~pinecone.async_client.async_index.AsyncIndex.documents` —
-           on a document index whose ``string`` field has integrated
-           embeddings, Pinecone embeds the text for you and no call here is
+           on a document index whose ``string`` field uses integrated
+           embedding, Pinecone embeds the text for you and no call here is
            needed. Legacy integrated indexes do the same through
            :meth:`~pinecone.async_client.async_index.AsyncIndex.upsert_records`.
         """

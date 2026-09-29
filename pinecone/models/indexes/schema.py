@@ -138,7 +138,7 @@ class SemanticTextField(Struct, tag="semantic_text", tag_field="type", kw_only=T
     where producing the embedding is your job. Legacy integrated indexes
     require the legacy Records API (``upsert_records`` and ``search``). For
     new work, create a document index with a :class:`StringField` that uses
-    integrated embeddings (``embed`` or ``sparse_embed``) instead: a document
+    integrated embedding (``embed`` or ``sparse_embed``) instead: a document
     index is read and written through ``index.documents``, and describe
     reports the field as a ``string``.
 
@@ -236,7 +236,7 @@ class FullTextSearchConfig(Struct, kw_only=True):
 
 
 class FieldEmbedConfig(Struct, kw_only=True):
-    """Integrated dense embeddings for a string field of a document index.
+    """Dense integrated embedding for a string field of a document index.
 
     Set on a :class:`StringField` as ``embed``. Pinecone embeds the field's
     text with a hosted model when you upsert or update a document, and embeds
@@ -282,7 +282,7 @@ class FieldEmbedConfig(Struct, kw_only=True):
 
 
 class FieldSparseEmbedConfig(Struct, kw_only=True):
-    """Integrated learned-sparse embeddings for a string field of a document index.
+    """Learned-sparse integrated embedding for a string field of a document index.
 
     Set on a :class:`StringField` as ``sparse_embed``. It works like
     :class:`FieldEmbedConfig`, with a sparse model, and is searched with a
@@ -317,7 +317,7 @@ class FieldSparseEmbedConfig(Struct, kw_only=True):
 
 
 class StringField(Struct, tag="string", tag_field="type", kw_only=True):
-    """Text that is searched — by full-text search, by integrated embeddings, or both.
+    """Text that is searched — by full-text search, by integrated embedding, or both.
 
     A string field you declare on create must carry at least one search
     configuration, because search is the only reason the schema takes a string
@@ -541,7 +541,7 @@ class IndexSchema(Struct, kw_only=True):
         dimension and no choice of metric — see :class:`SparseVectorField`.
     ``string``
         Text searched by full-text search (``full_text_search``), by
-        integrated dense embeddings (``embed``), by integrated sparse ones
+        dense integrated embedding (``embed``), by sparse integrated embedding
         (``sparse_embed``), or any mix of the three — see
         :class:`StringField`.
 
@@ -551,7 +551,7 @@ class IndexSchema(Struct, kw_only=True):
         The embedded text field of a legacy integrated index, created via
         :meth:`~pinecone.client.indexes.Indexes.create_for_model`, the only
         way to get one — see :class:`SemanticTextField`. In a document index,
-        a ``string`` field with integrated embeddings (``embed`` /
+        a ``string`` field with integrated embedding (``embed`` /
         ``sparse_embed``) takes its place.
     ``float``, ``boolean``, ``string_list``
         Numeric, boolean and tag-style metadata, indexed for filtering

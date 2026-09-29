@@ -8,7 +8,7 @@ version does not yet model still reaches the server unchanged.
 What belongs in a create schema is narrower than what an index stores. Declare
 the fields you search — a ``dense_vector`` field, a ``sparse_vector`` field,
 and ``string`` fields with full-text search enabled or with integrated
-embeddings (``embed`` / ``sparse_embed``) — and at least one of those is required.
+embedding (``embed`` / ``sparse_embed``) — and at least one of those is required.
 Everything else is metadata: put those values in the documents you upsert and
 they are indexed for filtering automatically, with no declaration at all. An
 index has one dense slot and one sparse slot: at most one field may be a
@@ -22,7 +22,7 @@ The builder still has methods for the metadata-only declarations
 :meth:`SchemaBuilder.add_string_field` with no search key). The server
 rejects all of them on create, and one rejected field fails the whole request.
 
-Two field types have no method at all. For integrated embeddings, pass
+Two field types have no method at all. For integrated embedding, pass
 ``embed`` or ``sparse_embed`` to :meth:`SchemaBuilder.add_string_field`; the
 ``semantic_text`` field type, which is how a legacy integrated index (created
 via :meth:`~pinecone.client.indexes.Indexes.create_for_model`) reports its
@@ -421,7 +421,7 @@ class SchemaBuilder:
         description: str | None = None,
         **additional_options: Any,
     ) -> SchemaBuilder:
-        """Add a string field searched by full-text search, integrated embeddings, or both.
+        """Add a string field searched by full-text search, integrated embedding, or both.
 
         Always pass at least one of ``full_text_search``, ``embed`` and
         ``sparse_embed``: they are what make the field searched, and a string
@@ -432,7 +432,7 @@ class SchemaBuilder:
         on; where a dict and a keyword argument set the same key, the keyword
         argument wins.
 
-        ``embed`` and ``sparse_embed`` give the field integrated embeddings:
+        ``embed`` and ``sparse_embed`` enable integrated embedding for the field:
         Pinecone embeds the text into a dense or learned-sparse vector with a
         hosted model. Search
         the field with :class:`~pinecone.models.documents.score_by.EmbedQuery`

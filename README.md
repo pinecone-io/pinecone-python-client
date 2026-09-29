@@ -62,7 +62,7 @@ which one applies: an index created with the deprecated top-level vector
 arguments answers on `index.upsert` / `index.query`, and a legacy integrated
 index, created with `pc.indexes.create_for_model(...)`, requires the legacy
 Records API: `index.upsert_records` / `index.search`. For new indexes that should
-embed text for you, give a document index a field with integrated embeddings. See
+embed text for you, give a document index a field with integrated embedding. See
 the [quickstart](https://sdk.pinecone.io/python/getting-started/quickstart.html)
 and the rest of the [documentation](https://sdk.pinecone.io/python/) for the full
 picture.

@@ -43,7 +43,7 @@ written through ``index.documents``. The vector methods :meth:`Index.upsert` and
 integrated index, built by ``pc.indexes.create_for_model()``, requires the legacy
 Records API: it embeds text server-side, so you search it with text rather than
 with a vector (for a new index, give a document index a field with integrated
-embeddings instead)::
+embedding instead)::
 
     index = pc.index("semantic-search")
     results = index.search(

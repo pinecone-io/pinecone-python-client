@@ -320,7 +320,7 @@ class AsyncIndexes:
         fields. Every field in the schema must be one that gets searched —
         ``dense_vector``, ``sparse_vector``, or ``string`` with
         ``full_text_search``, ``embed`` or ``sparse_embed``. A string field
-        with ``embed`` or ``sparse_embed`` has integrated embeddings: Pinecone
+        with ``embed`` or ``sparse_embed`` supports integrated embedding: Pinecone
         embeds its text on write and the query text on search. The result is
         a document index; read and write it through ``index.documents``.
         Metadata-only fields aren't declared here; they're indexed
@@ -472,7 +472,7 @@ class AsyncIndexes:
 
         .. seealso::
            :meth:`create_for_model` — creates a legacy integrated index, which
-           requires the legacy Records API. For integrated embeddings in a
+           requires the legacy Records API. For integrated embedding in a
            document index, declare ``embed`` / ``sparse_embed`` on a
            ``string`` field here instead.
 
@@ -484,7 +484,7 @@ class AsyncIndexes:
            ``spec=IntegratedSpec(...)`` have no equivalent here; use
            :meth:`create_for_model` for a legacy integrated index, or
            ``embed`` / ``sparse_embed`` on a ``string`` field for integrated
-           embeddings in a document index.
+           embedding in a document index.
         """
         reject_legacy_create_kwargs(legacy_kwargs, name)
         reject_integrated_spec_create(spec, name)
@@ -604,7 +604,7 @@ class AsyncIndexes:
         This creates a legacy integrated index, and legacy integrated indexes
         require the legacy Records API (``index.upsert_records`` and
         ``index.search``). For new work, create a document index with
-        integrated embeddings instead: pass :meth:`create` a ``string`` field
+        integrated embedding instead: pass :meth:`create` a ``string`` field
         with ``embed`` or ``sparse_embed`` and use ``index.documents``, which
         adds full-text search on the same fields and ``score_by``.
 

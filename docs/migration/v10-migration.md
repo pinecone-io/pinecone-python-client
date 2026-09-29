@@ -738,8 +738,8 @@ configuration now surfaces as a `semantic_text` field in the returned
 `index.schema`, named after the `field_map` text entry; `index.embed` is a
 deprecated view rebuilt from that field. Legacy integrated indexes require the
 legacy Records API; for a new index, give a document index a `string` field with
-integrated embeddings instead (see
-[How Pinecone Works](../guides/concepts.md#integrated-embeddings)).
+integrated embedding instead (see
+[How Pinecone Works](../guides/concepts.md#integrated-embedding)).
 
 `ConfigureIndexRequest` rejects an unknown PATCH field rather than ignoring
 it.

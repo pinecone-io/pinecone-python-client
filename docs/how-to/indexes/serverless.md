@@ -24,8 +24,8 @@ entirely and you get a managed index on AWS `us-east-1`.
 
 Only fields that get *searched* go in the schema: `dense_vector`, `sparse_vector`, or
 `string` carrying a `full_text_search`, `embed`, or `sparse_embed` config (the last two
-give the field integrated embeddings — see
-[How Pinecone Works](../../guides/concepts.md#integrated-embeddings)). Metadata you merely filter on stays out —
+enable integrated embedding for the field — see
+[How Pinecone Works](../../guides/concepts.md#integrated-embedding)). Metadata you merely filter on stays out —
 put it on the records you upsert and it is indexed for filtering automatically. Declaring
 a metadata-only field here is rejected server-side, and one rejected field fails the whole
 schema. A hybrid index has to declare its `sparse_vector` field up front, because

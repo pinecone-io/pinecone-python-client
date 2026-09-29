@@ -227,7 +227,7 @@ class AsyncIndex:
         generated server-side.
 
         Part of the legacy Records API. For a new index, give a document index a
-        ``string`` field with integrated embeddings and write through
+        ``string`` field that uses integrated embedding and write through
         ``documents.upsert`` instead.
 
         Args:
@@ -1352,7 +1352,7 @@ class AsyncIndex:
         cases where you already have one.
 
         Part of the legacy Records API. On a document index, including one with
-        integrated embeddings, search through ``documents.search`` instead.
+        an integrated-embedding field, search through ``documents.search`` instead.
 
         Args:
             namespace (str): Namespace to search, e.g. ``"articles-en"``. Required

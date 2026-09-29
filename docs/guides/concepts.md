@@ -42,7 +42,7 @@ Three field types can be declared at creation time:
 |---|---|
 | `dense_vector` | Similarity search over embeddings. At most one per schema. Takes `dimension` and `metric`. |
 | `sparse_vector` | Term-based scoring, such as BM25. Has no fixed dimension. |
-| `string` with `full_text_search`, `embed`, and/or `sparse_embed` | Full-text search over a text field, and integrated embeddings: dense or sparse embeddings Pinecone makes from its text — see [Integrated embeddings](#integrated-embeddings). |
+| `string` with `full_text_search`, `embed`, and/or `sparse_embed` | Full-text search over a text field, and integrated embedding: dense or sparse embeddings Pinecone makes from its text — see [Integrated embedding](#integrated-embedding). |
 
 Everything else you store is **metadata**. Metadata fields are not declared in the
 schema; Pinecone indexes them for filtering the first time they appear on a record you
@@ -185,9 +185,9 @@ query text Pinecone embeds with a field's model — and a search may combine sev
 `text` and `query_string` clauses. Any other clause has to stand alone. See
 {doc}`the Index reference </reference/sync-index>` for every document operation.
 
-### Integrated embeddings
+### Integrated embedding
 
-Document indexes support fields with integrated embeddings. A `string` field can carry
+Document indexes support fields with integrated embedding. A `string` field can carry
 `embed` (a hosted dense model) and `sparse_embed` (a hosted sparse model). Pinecone embeds the field's text when you upsert or update a document,
 and embeds the query text with the same model when you search the field with an
 `EmbedQuery` or `SparseEmbedQuery`. Every key of either config is optional: `{}` takes
@@ -299,8 +299,8 @@ names the record field to embed, and the same model embeds your queries at read 
 the returned index that field shows up in the schema as a `semantic_text` field —
 `create_for_model` is the only way to get one, since `semantic_text` cannot be declared in
 a `schema=` you pass to `create()`. For new work, create a document index with a
-`string` field that uses integrated embeddings (`embed` or `sparse_embed`) instead (see
-[Integrated embeddings](#integrated-embeddings)).
+`string` field that uses integrated embedding (`embed` or `sparse_embed`) instead (see
+[Integrated embedding](#integrated-embedding)).
 
 ```python
 from pinecone import Pinecone

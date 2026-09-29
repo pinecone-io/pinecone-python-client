@@ -6,8 +6,8 @@ text; no vector ever passes through your code. Legacy integrated indexes are cre
 create-for-model and require the legacy Records API (`upsert_records` and `search`).
 
 For new work, create a document index instead: document indexes support fields with
-integrated embeddings, read and written through `index.documents`. See
-[How Pinecone Works](../guides/concepts.md#integrated-embeddings).
+integrated embedding, read and written through `index.documents`. See
+[How Pinecone Works](../guides/concepts.md#integrated-embedding).
 
 The alternative is to embed the text yourself and upsert vectors. See
 [Generating embeddings](inference/embeddings.md) for that path, and
@@ -75,7 +75,7 @@ print(index_model.schema.fields["chunk_text"].model)
 to {meth}`~pinecone.client.indexes.Indexes.create` — sending it is rejected, and a single
 rejected field fails the whole schema. `create_for_model` is what produces the field.
 `create(schema=...)` creates a document index instead: `dense_vector`, `sparse_vector`,
-and `string` fields with full-text search or integrated embeddings. See
+and `string` fields with full-text search or integrated embedding. See
 [Working with serverless indexes](indexes/serverless.md).
 
 Passing `spec=IntegratedSpec(...)` to `create()` raises

@@ -97,9 +97,9 @@ Use `query()` for raw vector search on standard indexes. Use `search()` for text
 
 For datasets larger than ~1000 vectors, use `upsert_from_dataframe()` or `start_import()`. Do not pass more than ~1000 vectors to a single `upsert()` call.
 
-### Integrated embeddings on a document index
+### Integrated embedding on a document index
 
-Document indexes support fields with integrated embeddings: a `string` field with `embed` (dense) and/or `sparse_embed` (sparse) has Pinecone embed its text on write and the query text on search. Search it with `EmbedQuery` / `SparseEmbedQuery`, which must be the only clause in `score_by`.
+Document indexes support fields with integrated embedding: a `string` field with `embed` (dense) and/or `sparse_embed` (sparse) has Pinecone embed its text on write and the query text on search. Search it with `EmbedQuery` / `SparseEmbedQuery`, which must be the only clause in `score_by`.
 
 ```python
 from pinecone import EmbedQuery, Pinecone, SchemaBuilder
@@ -120,7 +120,7 @@ Text is stored (and full-text searchable) by default. `store_text=False` embeds 
 
 ### Legacy integrated indexes
 
-`create_for_model` creates a legacy integrated index, and legacy integrated indexes require the legacy Records API (`upsert_records`, `search`). For new indexes, use a document index with integrated embeddings (above).
+`create_for_model` creates a legacy integrated index, and legacy integrated indexes require the legacy Records API (`upsert_records`, `search`). For new indexes, use a document index with integrated embedding (above).
 
 ```python
 from pinecone import EmbedConfig, Pinecone

@@ -2013,7 +2013,7 @@ class GrpcIndex:
         a ``GrpcIndex``, because the gRPC API has no records operations.
 
         Part of the legacy Records API. For a new index, give a document index a
-        ``string`` field with integrated embeddings and write through the REST
+        ``string`` field that uses integrated embedding and write through the REST
         :attr:`Index.documents <pinecone.index.Index.documents>` instead;
         ``GrpcIndex`` has no document operations.
 
@@ -2114,7 +2114,7 @@ class GrpcIndex:
         govern it, and it retries on the REST data plane's own fixed terms (:doc:`/guides/retries`).
 
         Part of the legacy Records API. On a document index, including one with
-        integrated embeddings, search through the REST
+        an integrated-embedding field, search through the REST
         :attr:`Index.documents <pinecone.index.Index.documents>` instead;
         ``GrpcIndex`` has no document operations.
 

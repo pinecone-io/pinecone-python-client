@@ -116,7 +116,7 @@ applies:
 
 | You created the index with | Use | Entry point |
 | --- | --- | --- |
-| `schema={"fields": {...}}` naming your own fields, including fields with integrated embeddings (`embed` / `sparse_embed`) | documents | `index.documents` |
+| `schema={"fields": {...}}` naming your own fields, including fields with integrated embedding (`embed` / `sparse_embed`) | documents | `index.documents` |
 | top-level `dimension=` and `metric=` | vectors | `index.upsert`, `index.query` |
 | `create_for_model(...)`, a legacy integrated index | legacy Records API | `index.upsert_records`, `index.search` |
 

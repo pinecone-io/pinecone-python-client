@@ -555,7 +555,7 @@ class IndexModel(Struct, kw_only=True):
         reads like ``index.embed.model`` and ``index.embed.field_map`` keep
         working. ``None`` for an index with no semantic text field, which is
         what 9.x reported for a non-integrated index. That includes a document
-        index whose string fields use integrated embeddings: read those from
+        index whose string fields use integrated embedding: read those from
         :attr:`schema`.
 
         ``dimension`` and ``vector_type`` are always ``None``: a 2026-07
