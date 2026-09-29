@@ -88,7 +88,7 @@ Passing `spec=IntegratedSpec(...)` to `create()` raises
 index = pc.index("semantic-search")
 ```
 
-## Upsert records
+## Upsert records (legacy Records API)
 
 {meth}`~pinecone.index.Index.upsert_records` takes record dicts, each with an `_id` (or
 `id`) plus the field named in `field_map`. Records are sent as newline-delimited JSON
@@ -120,7 +120,7 @@ position, before any HTTP request.
 readable the instant this returns, so allow for freshness lag before searching for a
 record you just wrote.
 
-## Search records
+## Search records (legacy Records API)
 
 {meth}`~pinecone.index.Index.search` with `inputs` sends text, and the index's own model
 embeds it as the query vector:

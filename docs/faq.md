@@ -66,7 +66,7 @@ index = pc.index("my-index")
 index = pc.index("my-index", grpc=True)
 ```
 
-`GrpcIndex` carries no document operations — the `2026-07` documents API is REST-only.
+`GrpcIndex` carries no document operations — the `2026-07` Documents API is REST-only.
 See [Using the gRPC client](guides/grpc.md) for the full comparison and when the
 switch is worth making.
 

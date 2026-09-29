@@ -67,7 +67,7 @@ next, that is the whole of the import work the upgrade asks of you.
 (documents-api)=
 ## Documents API
 
-Preview graduated into this release, and every 2026-07 index (dense, sparse, hybrid, or full-text-search) is created with a schema and served through the documents API. This section covers migrating off preview and what changed about creating and configuring an index.
+Preview graduated into this release, and every 2026-07 index (dense, sparse, hybrid, or full-text-search) is created with a schema and served through the Documents API. This section covers migrating off preview and what changed about creating and configuring an index.
 
 (preview-graduation)=
 ### Preview namespace removed
@@ -1050,7 +1050,7 @@ index = await pc.indexes.configure("movies", tags={"team": "search", "owner": ""
 
 This covers the classic `upsert`/`query`/`fetch` vector operations, which
 keep serving indexes created before `2026-07` unchanged. Nothing here is
-about the documents API above.
+about the Documents API above.
 
 Every snippet in this section takes `idx` from one call, unchanged from
 `9.x`:
@@ -1208,9 +1208,9 @@ index you create with `2026-07`, a vectors-API upsert is refused before the
 sparse check is ever reached, with a message that begins "This index has a
 document schema, so writes must go through the documents API." Declaring the
 sparse field doesn't satisfy that gate on its own; a hybrid schema is routed
-to the documents API rather than the vectors API. If you're debugging a
+to the Documents API rather than the vectors API. If you're debugging a
 hybrid upsert against a freshly created `2026-07` index, that document-schema
-message is the string to search for. On the documents API, where a
+message is the string to search for. On the Documents API, where a
 `2026-07` index is routed today, the same requirement shows up at search
 time instead, with a clearer message: `Scoring field '<name>' not found in
 index schema`.

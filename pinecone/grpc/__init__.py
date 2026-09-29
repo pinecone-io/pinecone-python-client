@@ -2005,7 +2005,7 @@ class GrpcIndex:
         namespace: str,
         timeout: float | None = None,
     ) -> UpsertRecordsResponse:
-        """Upsert records for legacy integrated indexes.
+        """Upsert records for legacy integrated indexes (legacy Records API).
 
         Embeddings are generated server-side from the fields you provide, so
         each record carries source data (e.g. text) rather than precomputed
@@ -2106,7 +2106,7 @@ class GrpcIndex:
         query: SearchQuery | Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> SearchRecordsResponse:
-        """Search records by text, vector, or ID with optional reranking.
+        """Search records by text, vector, or ID with optional reranking (legacy Records API).
 
         Use this on a legacy integrated index: you send query text and the server embeds
         it. This call travels over REST even on a ``GrpcIndex``, because the gRPC API has no records
@@ -2235,7 +2235,7 @@ class GrpcIndex:
         query: SearchQuery | Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> SearchRecordsResponse:
-        """Alias for :meth:`search`, kept for callers written against the old name.
+        """Alias for :meth:`search` (legacy Records API), kept for callers of the old name.
 
         Identical arguments, identical behavior — it forwards straight to
         :meth:`search`, which is where the arguments are documented. Prefer

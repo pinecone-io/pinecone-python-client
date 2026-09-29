@@ -577,7 +577,7 @@ class Index:
         namespace: str,
         timeout: float | None = None,
     ) -> UpsertRecordsResponse:
-        """Upsert records for legacy integrated indexes.
+        """Upsert records for legacy integrated indexes (legacy Records API).
 
         Records are sent as newline-delimited JSON (NDJSON). Embeddings are
         generated server-side.
@@ -1374,7 +1374,7 @@ class Index:
         query: SearchQuery | Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> SearchRecordsResponse:
-        """Search records by text, vector, or ID, optionally reranking the hits.
+        """Search records by text, vector, or ID, optionally reranking (legacy Records API).
 
         Pass *inputs* and the index's own embedding model turns your text into the
         query vector server-side — that is what separates this from :meth:`query`,
@@ -1517,7 +1517,7 @@ class Index:
         query: SearchQuery | Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> SearchRecordsResponse:
-        """Alias for :meth:`search`, kept for callers written against 9.x.
+        """Alias for :meth:`search` (legacy Records API), kept for callers written against 9.x.
 
         Every argument, return value and error is :meth:`search`'s. Call that one in
         new code; nothing here differs.
