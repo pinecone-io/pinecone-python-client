@@ -78,6 +78,7 @@ _CALLS: dict[str, dict[str, Any]] = {
         "filter": {"category": {"$eq": "history"}},
         "include_fields": [],
         "pagination_token": "tok-1",
+        "limit": 250,
     },
     "delete": {
         "namespace": "live ns/v1",
@@ -172,6 +173,8 @@ _ERROR_CASES: list[tuple[str, dict[str, Any]]] = [
     ("fetch", {"namespace": NS, "filter": {}}),
     ("fetch", {"namespace": NS, "ids": ["a"], "pagination_token": "tok"}),
     ("fetch", {"namespace": NS, "ids": [f"d{i}" for i in range(1001)]}),
+    ("fetch", {"namespace": NS, "filter": {"x": {"$eq": 1}}, "limit": 0}),
+    ("fetch", {"namespace": NS, "filter": {"x": {"$eq": 1}}, "limit": 10001}),
     ("fetch", {"namespace": "", "ids": ["a"]}),
     ("delete", {"namespace": NS}),
     ("delete", {"namespace": NS, "ids": ["a"], "filter": {"x": {"$eq": 1}}}),

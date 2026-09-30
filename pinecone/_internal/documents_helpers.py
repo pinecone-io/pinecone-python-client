@@ -202,13 +202,15 @@ def _build_fetch_documents_body(
     filter: Mapping[str, Any] | None,
     include_fields: Sequence[str] | None,
     pagination_token: str | None,
+    limit: int | None,
 ) -> dict[str, Any]:
     """Build and validate a ``fetch_documents`` request body.
 
     Raises:
         :exc:`PineconeValueError`: If both or neither of ``ids`` and ``filter``
-            are provided, ``filter`` is empty, ``ids`` exceeds 1000 entries, or
-            ``pagination_token`` is passed without ``filter``.
+            are provided, ``filter`` is empty, ``ids`` exceeds 1000 entries,
+            ``pagination_token`` is passed without ``filter``, or ``limit``
+            falls outside 1-10000.
     """
     try:
         request = FetchDocumentsRequest(
@@ -216,6 +218,7 @@ def _build_fetch_documents_body(
             filter=dict(filter) if filter is not None else None,
             include_fields=list(include_fields) if include_fields is not None else None,
             pagination_token=pagination_token,
+            limit=limit,
         )
     except ValueError as exc:
         raise ValidationError(str(exc)) from exc

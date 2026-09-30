@@ -112,6 +112,7 @@ _fetch_shape = st.fixed_dictionaries(
         "filter": st.one_of(st.none(), st.just({}), st.just({"genre": {"$eq": "news"}})),
         "pagination_token": st.one_of(st.none(), st.just("tok-1")),
         "include_fields": st.one_of(st.none(), st.just(["title"])),
+        "limit": st.one_of(st.none(), st.just(0), st.just(500)),
     }
 )
 
@@ -125,6 +126,7 @@ def test_fetch_shape_accept_reject_matches_spec(shape: dict[str, Any]) -> None:
         (has_ids != has_filter)
         and (not has_filter or filter_nonempty)
         and (shape["pagination_token"] is None or has_filter)
+        and shape["limit"] != 0
     )
     if valid:
         body = _build_fetch_documents_body(**shape)

@@ -129,24 +129,36 @@ def test_fetch_request_by_filter_with_pagination() -> None:
     }
 
 
-def test_fetch_request_rejects_limit() -> None:
-    with pytest.raises(TypeError, match="Unexpected keyword argument 'limit'"):
-        FetchDocumentsRequest(filter={"category": {"$eq": "news"}}, limit=50)  # type: ignore[call-arg]
+def test_fetch_request_serializes_limit() -> None:
+    request = FetchDocumentsRequest(filter={"category": {"$eq": "news"}}, limit=50)
+    assert orjson.loads(msgspec.json.encode(request)) == {
+        "filter": {"category": {"$eq": "news"}},
+        "limit": 50,
+    }
 
 
-def test_fetch_request_never_serializes_limit() -> None:
-    assert "limit" not in FetchDocumentsRequest.__struct_fields__
+def test_fetch_request_omits_limit_when_unset() -> None:
     by_filter = FetchDocumentsRequest(filter={"category": {"$eq": "news"}}, pagination_token="tok")
     by_ids = FetchDocumentsRequest(ids=["doc-1"], include_fields=["title"])
     for request in (by_filter, by_ids):
         assert "limit" not in orjson.loads(msgspec.json.encode(request))
 
 
+@pytest.mark.parametrize("limit", [1, 10000])
+def test_fetch_request_accepts_limit_bounds(limit: int) -> None:
+    assert FetchDocumentsRequest(filter={"a": {"$eq": 1}}, limit=limit).limit == limit
+
+
+@pytest.mark.parametrize("limit", [0, -1, 10001])
+def test_fetch_request_rejects_limit_out_of_range(limit: int) -> None:
+    with pytest.raises(ValueError, match="'limit' must be between 1 and 10000"):
+        FetchDocumentsRequest(filter={"a": {"$eq": 1}}, limit=limit)
+
+
 def test_fetch_request_docstring_does_not_claim_a_fixed_page_size() -> None:
     doc = " ".join((FetchDocumentsRequest.__doc__ or "").split())
-    assert "the server chooses the page size" in doc
+    assert "server default of 100" in doc
     assert "fixed" not in doc
-    assert "10000" not in doc
 
 
 def test_fetch_request_rejects_ids_with_filter() -> None:

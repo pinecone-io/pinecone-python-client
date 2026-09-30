@@ -384,14 +384,14 @@ class AsyncDocuments:
         filter: Mapping[str, Any] | None = None,
         include_fields: Sequence[str] | None = None,
         pagination_token: str | None = None,
+        limit: int | None = None,
         timeout: float | None = None,
     ) -> FetchDocumentsResponse:
         """Fetch documents from a namespace by ID or by metadata filter.
 
         Exactly one of ``ids`` or ``filter`` must be provided. A filtered
         fetch returns matching documents a page at a time, with
-        ``response.pagination`` carrying the token for the next page; the
-        server fixes the page size, so there is no page-size argument here.
+        ``response.pagination`` carrying the token for the next page.
 
         Args:
             namespace (str): Namespace to fetch from (required, non-empty).
@@ -411,6 +411,9 @@ class AsyncDocuments:
             pagination_token: Token from a previous filtered fetch response
                 to retrieve the next page. Only valid together with
                 ``filter``.
+            limit: Maximum number of documents per page of a filtered fetch
+                (1-10000). Omitting it uses the server default of 100. A fetch
+                by ``ids`` ignores it.
             timeout (float | None): Per-request timeout in seconds. Overrides
                 the client-level default for this call only.
 
@@ -423,8 +426,9 @@ class AsyncDocuments:
         Raises:
             :exc:`PineconeValueError`: If ``namespace`` is empty, both or
                 neither of ``ids`` and ``filter`` are provided, ``filter`` is
-                an empty dict, ``ids`` exceeds 1000 entries, or
-                ``pagination_token`` is passed without ``filter``.
+                an empty dict, ``ids`` exceeds 1000 entries,
+                ``pagination_token`` is passed without ``filter``, or
+                ``limit`` is outside 1-10000.
 
         Examples:
             Fetch specific documents by ID. IDs that do not exist are absent
@@ -472,6 +476,7 @@ class AsyncDocuments:
             filter=filter,
             include_fields=include_fields,
             pagination_token=pagination_token,
+            limit=limit,
         )
         logger.info("Fetching documents from namespace %r", namespace)
         response = await self._http.post(
