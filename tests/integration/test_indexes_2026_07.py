@@ -116,22 +116,21 @@ def test_create_without_name_assigns_one(client: Pinecone) -> None:
 
 
 def test_bare_string_field_rejected_by_server(client: Pinecone, index_name: str) -> None:
-    """A string field is accepted only with ``full_text_search``; the two
-    unaccepted shapes are refused at different layers.
+    """A string field needs a search configuration; the two unaccepted shapes
+    are refused with different messages.
 
-    ``{"type": "string"}`` matches neither variant of the server's untagged
-    ``CreateStringSchemaField`` union — ``full_text_search`` is missing for the
-    text-search variant, ``filterable`` is a required bool on the metadata
-    variant — so it fails deserialization with 422 and never reaches schema
-    validation, which is where the documented "fields used for search" 400
-    lives. The two rejections are each other's positive control: a blanket
-    refusal of index creation would answer both with one identical status.
+    ``{"type": "string"}`` with no ``full_text_search``, ``embed`` or
+    ``sparse_embed`` leaves the schema with no searchable field, a 400 naming
+    that. A filter-only string beside a vector field gets the "fields used for
+    search" 400 instead. The two messages are each other's positive control: a
+    blanket refusal of index creation would answer both the same way.
     """
     with pytest.raises(ApiError) as bare:
         client.indexes.create(
             name=index_name, schema={"fields": {"title": {"type": "string"}}}, timeout=-1
         )
-    assert bare.value.status_code == 422
+    assert bare.value.status_code == 400
+    assert "The schema declares no searchable field" in str(bare.value)
 
     with pytest.raises(ApiError) as filter_only:
         client.indexes.create(
