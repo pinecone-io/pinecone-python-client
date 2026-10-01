@@ -319,7 +319,10 @@ class AsyncIndexes:
         An index's field layout is declared as a ``schema`` of named, typed
         fields. Every field in the schema must be one that gets searched —
         ``dense_vector``, ``sparse_vector``, or ``string`` with
-        ``full_text_search`` enabled. Metadata-only fields aren't declared
+        ``full_text_search``, ``embed`` or ``sparse_embed``. A string field
+        with ``embed`` or ``sparse_embed`` has Pinecone embed its text on
+        write and embed the query text on search; read and write such an
+        index through ``index.documents``. Metadata-only fields aren't declared
         here; they're indexed automatically the first time they appear on an
         upserted record. The schema can't change once the index exists, and
         the call waits until the index is ready unless you pass
@@ -514,7 +517,8 @@ class AsyncIndexes:
             raise PineconeValueError(
                 "schema is required: pass schema={'fields': {'<field-name>': {...}}} "
                 "declaring at least one searched field (dense_vector, sparse_vector, "
-                "or string with full_text_search), or, for backward compatibility, "
+                "or string with full_text_search, embed, or sparse_embed), or, for "
+                "backward compatibility, "
                 "the deprecated dimension= keyword argument (optionally with metric= "
                 "and vector_type=)."
             )
@@ -592,6 +596,12 @@ class AsyncIndexes:
         the returned index, the embedding configuration surfaces as a
         ``semantic_text`` field in ``schema``, named after the ``field_map``
         text entry.
+
+        This is the legacy integrated-inference path: the index is read and
+        written through the legacy records API (``index.upsert_records`` and
+        ``index.search``). For new work, pass :meth:`create` a ``string``
+        field with ``embed`` or ``sparse_embed`` and use ``index.documents``,
+        which adds full-text search on the same fields and ``score_by``.
 
         Args:
             name: Name for the index — 1-45 characters, lowercase

@@ -37,9 +37,13 @@ class DocumentSearchUsage(Struct, kw_only=True, gc=False):
 
     Attributes:
         read_units: Read units this call consumed.
+        embed_total_tokens: Tokens Pinecone embedded for the query text of an
+            ``embed`` or ``sparse_embed`` clause, or ``None`` when the search embedded no
+            text or the server did not report it.
     """
 
     read_units: int
+    embed_total_tokens: int | None = None
 
 
 class DocumentFetchUsage(Struct, kw_only=True, gc=False):
@@ -237,7 +241,10 @@ class SearchDocumentsResponse:
             matches=[Document(match) for match in data.get("matches", [])],
             namespace=data.get("namespace", ""),
             usage=(
-                DocumentSearchUsage(read_units=raw_usage["read_units"])
+                DocumentSearchUsage(
+                    read_units=raw_usage["read_units"],
+                    embed_total_tokens=raw_usage.get("embed_total_tokens"),
+                )
                 if raw_usage is not None
                 else None
             ),
@@ -255,7 +262,10 @@ class SearchDocumentsResponse:
             "namespace": self.namespace,
         }
         if self.usage is not None:
-            result["usage"] = {"read_units": self.usage.read_units}
+            usage: dict[str, Any] = {"read_units": self.usage.read_units}
+            if self.usage.embed_total_tokens is not None:
+                usage["embed_total_tokens"] = self.usage.embed_total_tokens
+            result["usage"] = usage
         return result
 
     def __eq__(self, other: object) -> bool:
@@ -281,6 +291,8 @@ class SearchDocumentsResponse:
         ]
         if self.usage is not None:
             rows.append(("Read Units:", self.usage.read_units))
+            if self.usage.embed_total_tokens is not None:
+                rows.append(("Embed Tokens:", self.usage.embed_total_tokens))
         return render_table("SearchDocumentsResponse", rows)
 
 

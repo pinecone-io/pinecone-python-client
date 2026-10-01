@@ -116,9 +116,9 @@ applies:
 
 | You created the index with | Use | Entry point |
 | --- | --- | --- |
-| `schema={"fields": {...}}` naming your own vector field | documents | `index.documents` |
+| `schema={"fields": {...}}` naming your own fields, including a `string` field Pinecone embeds (`embed` / `sparse_embed`) | documents | `index.documents` |
 | top-level `dimension=` and `metric=` | vectors | `index.upsert`, `index.query` |
-| `create_for_model(...)`, embedding server-side | records | `index.upsert_records`, `index.search` |
+| `create_for_model(...)` (legacy), embedding server-side | records | `index.upsert_records`, `index.search` |
 
 Calling the vector methods on a document index fails with an
 {exc}`~pinecone.errors.exceptions.ApiError` whose message names the documents

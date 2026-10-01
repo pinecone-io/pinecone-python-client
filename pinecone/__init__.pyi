@@ -44,7 +44,7 @@ from pinecone.models.collections.model import CollectionModel as CollectionModel
 from pinecone.models.documents.document import Document as Document, DocumentRecord as DocumentRecord, UpdateDocumentRecord as UpdateDocumentRecord
 from pinecone.models.documents.requests import DeleteDocumentsRequest as DeleteDocumentsRequest, FetchDocumentsRequest as FetchDocumentsRequest, ListDocumentsRequest as ListDocumentsRequest, SearchDocumentsRequest as SearchDocumentsRequest, UpdateDocumentsRequest as UpdateDocumentsRequest, UpsertDocumentsRequest as UpsertDocumentsRequest
 from pinecone.models.documents.responses import DeleteDocumentsResponse as DeleteDocumentsResponse, DocumentFetchUsage as DocumentFetchUsage, DocumentListUsage as DocumentListUsage, DocumentSearchUsage as DocumentSearchUsage, FetchDocumentsResponse as FetchDocumentsResponse, ListDocumentsResponse as ListDocumentsResponse, ListedDocumentRecord as ListedDocumentRecord, SearchDocumentsResponse as SearchDocumentsResponse, UpdateDocumentsResponse as UpdateDocumentsResponse, UpsertDocumentsResponse as UpsertDocumentsResponse
-from pinecone.models.documents.score_by import DenseVectorQuery as DenseVectorQuery, DocumentScoringMethod as DocumentScoringMethod, QueryStringQuery as QueryStringQuery, SparseVectorQuery as SparseVectorQuery, TextQuery as TextQuery
+from pinecone.models.documents.score_by import DenseVectorQuery as DenseVectorQuery, DocumentScoringMethod as DocumentScoringMethod, EmbedQuery as EmbedQuery, QueryStringQuery as QueryStringQuery, SparseEmbedQuery as SparseEmbedQuery, SparseVectorQuery as SparseVectorQuery, TextQuery as TextQuery
 from pinecone.models.enums import CloudProvider as CloudProvider, DeletionProtection as DeletionProtection, EmbedModel as EmbedModel, Metric as Metric, PodIndexEnvironment as PodIndexEnvironment, PodType as PodType, RerankModel as RerankModel, VectorType as VectorType
 from pinecone.models.imports.error_mode import ImportErrorMode as ImportErrorMode
 from pinecone.models.imports.list import ImportList as ImportList
@@ -54,7 +54,7 @@ from pinecone.models.indexes.index import ByocSpecInfo as ByocSpecInfo, IndexMod
 from pinecone.models.indexes.list import IndexList as IndexList
 from pinecone.models.indexes.read_capacity import ReadCapacityDedicatedConfig as ReadCapacityDedicatedConfig, ReadCapacityDedicatedResponse as ReadCapacityDedicatedResponse, ReadCapacityOnDemandResponse as ReadCapacityOnDemandResponse, ReadCapacityResponse as ReadCapacityResponse, ReadCapacityStatus as ReadCapacityStatus, ScalingConfigManual as ScalingConfigManual
 from pinecone.models.indexes.requests import ConfigureIndexRequest as ConfigureIndexRequest, CreateIndexRequest as CreateIndexRequest
-from pinecone.models.indexes.schema import BooleanField as BooleanField, DenseVectorField as DenseVectorField, FloatField as FloatField, FullTextSearchConfig as FullTextSearchConfig, IndexSchema as IndexSchema, IndexSchemaField as IndexSchemaField, IntegerField as IntegerField, LegacyMetadataField as LegacyMetadataField, NgramConfig as NgramConfig, SemanticTextField as SemanticTextField, SparseVectorField as SparseVectorField, StringField as StringField, StringListField as StringListField
+from pinecone.models.indexes.schema import BooleanField as BooleanField, DenseVectorField as DenseVectorField, FieldEmbedConfig as FieldEmbedConfig, FieldSparseEmbedConfig as FieldSparseEmbedConfig, FloatField as FloatField, FullTextSearchConfig as FullTextSearchConfig, IndexSchema as IndexSchema, IndexSchemaField as IndexSchemaField, IntegerField as IntegerField, LegacyMetadataField as LegacyMetadataField, NgramConfig as NgramConfig, SemanticTextField as SemanticTextField, SparseVectorField as SparseVectorField, StringField as StringField, StringListField as StringListField
 from pinecone.models.indexes.specs import ByocSpec as ByocSpec, EmbedConfig as EmbedConfig, IntegratedSpec as IntegratedSpec, PodSpec as PodSpec, ServerlessSpec as ServerlessSpec
 from pinecone.models.inference.embed import DenseEmbedding as DenseEmbedding, EmbeddingsList as EmbeddingsList, SparseEmbedding as SparseEmbedding
 from pinecone.models.inference.model_list import ModelInfoList as ModelInfoList
@@ -135,6 +135,7 @@ __all__ = [
     "DocumentSearchUsage",
     "EmbedConfig",
     "EmbedModel",
+    "EmbedQuery",
     "EmbeddingsList",
     "FailedPreconditionError",
     "FetchByMetadataResponse",
@@ -142,6 +143,8 @@ __all__ = [
     "FetchDocumentsResponse",
     "FetchResponse",
     "Field",
+    "FieldEmbedConfig",
+    "FieldSparseEmbedConfig",
     "FilterBuilder",
     "FloatField",
     "ForbiddenError",
@@ -269,6 +272,7 @@ __all__ = [
     "ServiceAccountWithSecret",
     "ServiceError",
     "ServiceException",
+    "SparseEmbedQuery",
     "SparseEmbedding",
     "SparseValues",
     "SparseVectorField",

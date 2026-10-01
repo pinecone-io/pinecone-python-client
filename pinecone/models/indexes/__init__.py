@@ -42,6 +42,8 @@ if TYPE_CHECKING:
     from pinecone.models.indexes.schema import (  # noqa: F401
         BooleanField,
         DenseVectorField,
+        FieldEmbedConfig,
+        FieldSparseEmbedConfig,
         FloatField,
         FullTextSearchConfig,
         IndexSchema,
@@ -86,6 +88,8 @@ _LAZY_IMPORTS: dict[str, str] = {
     "CreateIndexRequest": "pinecone.models.indexes.requests",
     "BooleanField": "pinecone.models.indexes.schema",
     "DenseVectorField": "pinecone.models.indexes.schema",
+    "FieldEmbedConfig": "pinecone.models.indexes.schema",
+    "FieldSparseEmbedConfig": "pinecone.models.indexes.schema",
     "FloatField": "pinecone.models.indexes.schema",
     "FullTextSearchConfig": "pinecone.models.indexes.schema",
     "IndexSchema": "pinecone.models.indexes.schema",

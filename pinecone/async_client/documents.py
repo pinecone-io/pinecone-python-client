@@ -292,7 +292,9 @@ class AsyncDocuments:
 
         Returns the ``top_k`` most similar documents ranked by the given
         scoring methods (dense vector, sparse vector, BM25 text, or Lucene
-        query string similarity).
+        query string similarity, or similarity to query text that Pinecone
+        embeds with the model of a field declared with ``embed`` or
+        ``sparse_embed``).
 
         Args:
             namespace (str): Namespace to search (required, non-empty).
@@ -301,16 +303,22 @@ class AsyncDocuments:
                 (:class:`~pinecone.models.documents.score_by.TextQuery`,
                 :class:`~pinecone.models.documents.score_by.QueryStringQuery`,
                 :class:`~pinecone.models.documents.score_by.DenseVectorQuery`,
-                :class:`~pinecone.models.documents.score_by.SparseVectorQuery`)
+                :class:`~pinecone.models.documents.score_by.SparseVectorQuery`,
+                :class:`~pinecone.models.documents.score_by.EmbedQuery`,
+                :class:`~pinecone.models.documents.score_by.SparseEmbedQuery`)
                 or plain dicts with a ``type`` key. ``text`` and
-                ``query_string`` clauses may be combined; a ``dense_vector``
-                or ``sparse_vector`` clause must appear alone.
+                ``query_string`` clauses may be combined; a ``dense_vector``,
+                ``sparse_vector``, ``embed`` or ``sparse_embed`` clause must
+                appear alone.
             top_k (int): Number of top-ranked documents to return (1-10000).
             include_fields: Document fields to include in each match.
                 Omitting it (the default) or passing ``[]`` returns only
                 ``_id`` and ``_score``; ``["*"]`` returns every field, even
                 alongside other names. :meth:`fetch` is the opposite — there,
-                omitting the argument returns every field.
+                omitting the argument returns every field. Naming a field
+                declared with ``store_text: false`` is rejected by the server
+                with a ``400``, since its text is not stored; ``["*"]`` leaves
+                it out.
             filter: Metadata filter expression restricting the documents
                 searched, or ``None``.
             timeout (float | None): Per-request timeout in seconds. Overrides
@@ -318,15 +326,18 @@ class AsyncDocuments:
 
         Returns:
             :class:`SearchDocumentsResponse` with ``matches`` (ordered from
-            most to least similar), ``namespace``, and ``usage``. Each match
+            most to least similar), ``namespace``, and ``usage``, whose
+            ``embed_total_tokens`` counts the query tokens Pinecone embedded
+            when the server reports it. Each match
             is a :class:`~pinecone.models.documents.document.Document`,
             reached as ``doc.id``, ``doc.score``, and ``doc.<field>`` for the
             fields ``include_fields`` asked for.
 
         Raises:
             :exc:`PineconeValueError`: If ``namespace`` is empty, ``score_by``
-                is empty, over 100 clauses, or combines a vector clause with
-                any other clause, or ``top_k`` is outside [1, 10000].
+                is empty, over 100 clauses, or combines a vector, ``embed``
+                or ``sparse_embed`` clause with any other clause, or ``top_k``
+                is outside [1, 10000].
 
         Examples:
             .. code-block:: python
@@ -392,7 +403,10 @@ class AsyncDocuments:
                 Omitting it (the default), ``[]``, or ``["*"]`` each return
                 every field; a list of names returns just those.
                 :meth:`search` is the opposite — there, omitting the argument
-                returns only ``_id`` and ``_score``.
+                returns only ``_id`` and ``_score``. Every field means every
+                field the index stores: a field declared with ``store_text:
+                false`` is left out, and naming one is rejected by the server
+                with a ``400``.
             pagination_token: Token from a previous filtered fetch response
                 to retrieve the next page. Only valid together with
                 ``filter``.

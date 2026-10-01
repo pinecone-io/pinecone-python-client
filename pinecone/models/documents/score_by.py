@@ -1,14 +1,17 @@
-"""The four ways a document search can score a document, and the union over them.
+"""The six ways a document search can score a document, and the union over them.
 
-Every ``score_by`` clause is one of these four, told apart by its ``type`` tag:
+Every ``score_by`` clause is one of these six, told apart by its ``type`` tag:
 ``text`` for BM25 keyword scoring, ``query_string`` for a Lucene expression,
-``dense_vector`` for similarity to an embedding, and ``sparse_vector`` for similarity to
-a sparse vector. Pass them as typed instances or as plain dicts with a ``type`` key —
-either way each one checks its required fields on construction, so a malformed clause is
-rejected at the call site.
+``dense_vector`` for similarity to an embedding, ``sparse_vector`` for similarity to
+a sparse vector, and ``embed`` and ``sparse_embed`` for similarity to query text that
+Pinecone embeds with the model of a ``string`` field declared with that aspect. Pass
+them as typed instances or as plain dicts with a ``type`` key — either way each one
+checks its required fields on construction, so a malformed clause is rejected at the
+call site.
 
 ``text`` and ``query_string`` clauses can be combined in one search to score on several
-signals at once. A vector clause has to stand alone.
+signals at once. A vector clause, and an ``embed`` or ``sparse_embed`` clause, has to
+stand alone.
 """
 
 from __future__ import annotations
@@ -22,7 +25,9 @@ from pinecone.models.vectors.sparse import SparseValues
 __all__ = [
     "DenseVectorQuery",
     "DocumentScoringMethod",
+    "EmbedQuery",
     "QueryStringQuery",
+    "SparseEmbedQuery",
     "SparseVectorQuery",
     "TextQuery",
 ]
@@ -191,4 +196,92 @@ class SparseVectorQuery(Struct, tag="sparse_vector", tag_field="type", kw_only=T
             )
 
 
-DocumentScoringMethod = TextQuery | QueryStringQuery | DenseVectorQuery | SparseVectorQuery
+class EmbedQuery(Struct, tag="embed", tag_field="type", kw_only=True, forbid_unknown_fields=True):
+    """Score documents by dense similarity to query text that Pinecone embeds.
+
+    The clause for searching a ``string`` field declared with ``embed``: pass the query
+    as text, and Pinecone embeds it with that field's model and read parameters, then
+    scores it against the field's stored embeddings. You never handle a vector. Like a
+    dense clause, it has to stand alone in ``score_by``.
+
+    A dict clause is checked strictly: a key other than ``type``, ``field`` and
+    ``query`` is rejected rather than dropped, so a vector passed as ``values`` cannot be
+    silently ignored.
+
+    Attributes:
+        field: The ``string`` field that declares ``embed``, e.g. ``"body"``.
+        query: The text to search for, e.g. ``"how do vector indexes scale"``.
+
+    Raises:
+        ValueError: If ``field`` or ``query`` is empty.
+
+    Examples:
+        >>> from pinecone.models.documents.score_by import EmbedQuery
+        >>> EmbedQuery(field="body", query="how do vector indexes scale").field
+        'body'
+
+    .. seealso::
+       :class:`DenseVectorQuery` — to score a ``dense_vector`` field with a vector you
+       embedded yourself.
+    """
+
+    field: str
+    query: str
+
+    def __post_init__(self) -> None:
+        if not self.field:
+            raise ValueError("embed scoring requires specifying the name of exactly one field")
+        if not self.query:
+            raise ValueError("embed scoring requires a non-empty 'query'")
+
+
+class SparseEmbedQuery(
+    Struct, tag="sparse_embed", tag_field="type", kw_only=True, forbid_unknown_fields=True
+):
+    """Score documents by sparse similarity to query text that Pinecone embeds.
+
+    The clause for searching a ``string`` field declared with ``sparse_embed``: pass the
+    query as text, and Pinecone embeds it with that field's sparse model and read
+    parameters. It has to stand alone in ``score_by``.
+
+    A dict clause is checked strictly: a key other than ``type``, ``field`` and
+    ``query`` is rejected rather than dropped, so a vector passed as ``sparse_values``
+    cannot be silently ignored.
+
+    Attributes:
+        field: The ``string`` field that declares ``sparse_embed``, e.g. ``"body"``.
+        query: The text to search for, e.g. ``"vector database"``.
+
+    Raises:
+        ValueError: If ``field`` or ``query`` is empty.
+
+    Examples:
+        >>> from pinecone.models.documents.score_by import SparseEmbedQuery
+        >>> SparseEmbedQuery(field="body", query="vector database").query
+        'vector database'
+
+    .. seealso::
+       :class:`SparseVectorQuery` — to score a ``sparse_vector`` field with a sparse
+       vector you encoded yourself.
+    """
+
+    field: str
+    query: str
+
+    def __post_init__(self) -> None:
+        if not self.field:
+            raise ValueError(
+                "sparse_embed scoring requires specifying the name of exactly one field"
+            )
+        if not self.query:
+            raise ValueError("sparse_embed scoring requires a non-empty 'query'")
+
+
+DocumentScoringMethod = (
+    TextQuery
+    | QueryStringQuery
+    | DenseVectorQuery
+    | SparseVectorQuery
+    | EmbedQuery
+    | SparseEmbedQuery
+)

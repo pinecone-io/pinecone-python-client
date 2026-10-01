@@ -277,6 +277,9 @@ def test_to_dict_still_reports_filterable() -> None:
                     "stop_words": None,
                     "ngram": None,
                 },
+                "embed": None,
+                "sparse_embed": None,
+                "store_text": None,
             },
             "old": {"filterable": True},
         }
