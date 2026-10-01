@@ -366,8 +366,8 @@ options: exactly one of `ids`, `filter`, or `delete_all` must be given.
 ##### `documents.fetch` gained a filter and pagination
 
 Preview's `fetch` took `ids` only. `documents.fetch` takes exactly one of
-`ids` or `filter`, and a filtered fetch is paginated. The server fixes the
-page size, so there's no page-size argument to pass — follow
+`ids` or `filter`, and a filtered fetch is paginated. Pages hold 100
+documents unless you pass `limit` (1-10000) — follow
 `response.pagination.next` until it's `None`.
 
 ```python

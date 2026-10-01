@@ -45,7 +45,7 @@ resume after a crash. Otherwise iterate the paginator.
 
 One paged surface is not a listing at all: `idx.documents.fetch(filter=...)` is
 a read whose filter can match unboundedly many documents, so it pages too. It
-takes a token but no page size — see
+takes a token and an optional `limit` page size (1-10000, default 100) — see
 [When the first call takes no token](#when-the-first-call-takes-no-token).
 
 ## Paginator and AsyncPaginator
@@ -303,10 +303,9 @@ async with AsyncPinecone() as pc:
 
 Not every paged surface is a listing. `idx.documents.fetch(filter=...)` is a
 paged *read*: the filter can match an unbounded number of documents, so the
-response carries a `pagination` envelope, but there is no page-size argument and
-no first-page call that differs from the rest. Write it as a `while True` with
-the token starting at `None`, and read each page's documents before asking for
-the next one:
+response carries a `pagination` envelope, but there is no first-page call that
+differs from the rest. Write it as a `while True` with the token starting at
+`None`, and read each page's documents before asking for the next one:
 
 ```python
 from pinecone import Pinecone

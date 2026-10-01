@@ -38,6 +38,7 @@ _MAX_DOCUMENTS_PER_REQUEST = 1000
 _MAX_IDS_PER_REQUEST = 1000
 _MAX_SCORING_METHODS = 100
 _MAX_TOP_K = 10000
+_MAX_FETCH_LIMIT = 10000
 _MAX_LIST_LIMIT = 100
 _MAX_PREFIX_LENGTH = 512
 _STANDALONE_CLAUSES = (DenseVectorQuery, SparseVectorQuery, EmbedQuery, SparseEmbedQuery)
@@ -168,18 +169,21 @@ class FetchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
             index stores: a field declared with ``store_text: false`` is left out, and
             naming one is rejected by the server with a ``400``.
         pagination_token: The token from a previous fetch response, to get the next page.
-            Valid only with ``filter``; the server chooses the page size.
+            Valid only with ``filter``.
+        limit: How many documents per page, 1 to 10000, or ``None`` for the server default
+            of 100. Only a ``filter`` fetch pages; an ``ids`` fetch ignores it.
 
     Raises:
         ValueError: If both or neither of ``ids`` and ``filter`` are given, if ``filter``
-            is an empty object, if ``ids`` holds over 1000 IDs, or if
-            ``pagination_token`` is given without ``filter``.
+            is an empty object, if ``ids`` holds over 1000 IDs, if ``pagination_token``
+            is given without ``filter``, or if ``limit`` is outside 1 to 10000.
     """
 
     ids: list[str] | None = None
     filter: dict[str, Any] | None = None
     include_fields: list[str] | None = None
     pagination_token: str | None = None
+    limit: int | None = None
 
     def __post_init__(self) -> None:
         if self.pagination_token is not None and self.filter is None:
@@ -203,6 +207,10 @@ class FetchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
         _validate_filter_not_empty(self.filter)
         if self.ids is not None:
             _validate_id_count(len(self.ids))
+        if self.limit is not None and not 1 <= self.limit <= _MAX_FETCH_LIMIT:
+            raise ValueError(
+                f"'limit' must be between 1 and {_MAX_FETCH_LIMIT} (got {self.limit})."
+            )
 
 
 class DeleteDocumentsRequest(Struct, kw_only=True, omit_defaults=True):

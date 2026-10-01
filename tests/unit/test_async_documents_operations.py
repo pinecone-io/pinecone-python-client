@@ -274,6 +274,19 @@ class TestFetchDocuments:
             "pagination_token": "tok-1",
         }
 
+    @respx.mock
+    async def test_by_filter_with_limit_body(self, index: AsyncIndex) -> None:
+        route = respx.post(f"{BASE_URL}/namespaces/{NS}/documents/fetch").mock(
+            return_value=FETCH_OK
+        )
+        await index.documents.fetch(namespace=NS, filter={"category": {"$eq": "tech"}}, limit=500)
+        assert _body(route) == {"filter": {"category": {"$eq": "tech"}}, "limit": 500}
+
+    @pytest.mark.parametrize("limit", [0, 10001])
+    async def test_limit_out_of_range_rejected(self, index: AsyncIndex, limit: int) -> None:
+        with pytest.raises(PineconeValueError, match="'limit' must be between 1 and 10000"):
+            await index.documents.fetch(namespace=NS, filter={"x": {"$eq": 1}}, limit=limit)
+
     async def test_both_ids_and_filter_rejected_naming_both(self, index: AsyncIndex) -> None:
         with pytest.raises(PineconeValueError, match="'ids' and 'filter'"):
             await index.documents.fetch(namespace=NS, ids=["a"], filter={"x": {"$eq": 1}})
