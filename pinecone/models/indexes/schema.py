@@ -94,8 +94,8 @@ class DenseVectorField(Struct, tag="dense_vector", tag_field="type", kw_only=Tru
 
         .. code-block:: python
 
-            {"fields": {"embedding": {"type": "dense_vector", "dimension": 1536,
-                                      "metric": "cosine"}}}
+            {"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536,
+                                        "metric": "cosine"}}}
     """
 
     dimension: int

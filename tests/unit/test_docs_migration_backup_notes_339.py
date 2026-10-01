@@ -143,7 +143,9 @@ async def _async_requests(source: str) -> list[tuple[str, str, bytes]]:
 def _backup_with_typed_schema() -> Any:
     payload = make_backup_response(
         schema={
-            "fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}
+            "fields": {
+                "your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}
+            }
         }
     )
     payload.pop("dimension")

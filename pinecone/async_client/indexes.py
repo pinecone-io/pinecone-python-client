@@ -337,8 +337,8 @@ class AsyncIndexes:
 
                     {
                         "fields": {
-                            "embedding": {"type": "dense_vector",
-                                          "dimension": 1536, "metric": "cosine"},
+                            "your_vector": {"type": "dense_vector",
+                                            "dimension": 1536, "metric": "cosine"},
                             "body": {"type": "string",
                                      "full_text_search": {"language": "en"}},
                         }
@@ -434,7 +434,7 @@ class AsyncIndexes:
                 async with AsyncPinecone(api_key="your-api-key") as pc:
                     await pc.indexes.create(
                         name="movie-recommendations",
-                        schema={"fields": {"embedding": {
+                        schema={"fields": {"your_vector": {
                             "type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
                     )
 
@@ -449,8 +449,8 @@ class AsyncIndexes:
                     index = await pc.indexes.create(
                         name="support-articles",
                         schema={"fields": {
-                            "embedding": {"type": "dense_vector",
-                                          "dimension": 1024, "metric": "cosine"},
+                            "your_vector": {"type": "dense_vector",
+                                            "dimension": 1024, "metric": "cosine"},
                             "keywords": {"type": "sparse_vector"},
                             "body": {"type": "string",
                                      "full_text_search": {"language": "en"}},

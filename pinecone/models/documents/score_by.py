@@ -128,7 +128,7 @@ class DenseVectorQuery(Struct, tag="dense_vector", tag_field="type", kw_only=Tru
     with any other scoring method in the same search.
 
     Attributes:
-        field: The dense vector field to score against, e.g. ``"embedding"``.
+        field: The dense vector field to score against, e.g. ``"your_vector"``.
         values: The query embedding, one float per dimension of that field.
 
     Raises:
@@ -138,8 +138,8 @@ class DenseVectorQuery(Struct, tag="dense_vector", tag_field="type", kw_only=Tru
         The three floats here stand in for a full-length embedding.
 
         >>> from pinecone.models.documents.score_by import DenseVectorQuery
-        >>> DenseVectorQuery(field="embedding", values=[0.12, 0.34, 0.56]).field
-        'embedding'
+        >>> DenseVectorQuery(field="your_vector", values=[0.12, 0.34, 0.56]).field
+        'your_vector'
 
     .. seealso::
        :class:`SparseVectorQuery` — the same idea against a sparse field.

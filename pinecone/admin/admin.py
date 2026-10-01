@@ -246,7 +246,7 @@ class Admin:
         >>> pc = Pinecone(api_key=key.value)
         >>> index = pc.indexes.create(
         ...     name="product-catalog",
-        ...     schema={"fields": {"embedding": {
+        ...     schema={"fields": {"your_vector": {
         ...         "type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
         ...     deployment={"deployment_type": "managed", "cloud": "aws",
         ...                 "region": "us-east-1"},

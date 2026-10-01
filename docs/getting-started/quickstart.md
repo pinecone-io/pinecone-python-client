@@ -20,12 +20,12 @@ the first request. See [Authentication](authentication.md).
 ## 2. Create an index
 
 An index's fields are declared as a schema. This one has a single dense vector field,
-`embedding`:
+`your_vector`:
 
 ```python
 pc.indexes.create(
     name="quickstart",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 3, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 3, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
 ```
@@ -62,15 +62,15 @@ plane, which is a different host.
 ## 4. Upsert documents
 
 Each document needs an `_id`. Every other key is either a field you declared in the
-schema — here, `embedding` — or arbitrary metadata:
+schema — here, `your_vector` — or arbitrary metadata:
 
 ```python
 index.documents.upsert(
     namespace="movies",
     documents=[
-        {"_id": "movie-001", "embedding": [0.1, 0.2, 0.3], "title": "Arrival"},
-        {"_id": "movie-002", "embedding": [0.4, 0.5, 0.6], "title": "Interstellar"},
-        {"_id": "movie-003", "embedding": [0.7, 0.8, 0.9], "title": "Dune"},
+        {"_id": "movie-001", "your_vector": [0.1, 0.2, 0.3], "title": "Arrival"},
+        {"_id": "movie-002", "your_vector": [0.4, 0.5, 0.6], "title": "Interstellar"},
+        {"_id": "movie-003", "your_vector": [0.7, 0.8, 0.9], "title": "Dune"},
     ],
 )
 ```
@@ -81,7 +81,7 @@ immediately.
 ## 5. Search
 
 Rank documents with a `score_by` clause naming the field to compare against.
-{class}`~pinecone.models.documents.score_by.DenseVectorQuery` scores by cosine similarity on the `embedding` field, because that
+{class}`~pinecone.models.documents.score_by.DenseVectorQuery` scores by cosine similarity on the `your_vector` field, because that
 is the metric the field was declared with:
 
 ```python
@@ -90,7 +90,7 @@ from pinecone import DenseVectorQuery
 results = index.documents.search(
     namespace="movies",
     top_k=3,
-    score_by=[DenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3])],
+    score_by=[DenseVectorQuery(field="your_vector", values=[0.1, 0.2, 0.3])],
     include_fields=["title"],
 )
 for match in results.matches:
@@ -139,7 +139,7 @@ pc = Pinecone()  # reads PINECONE_API_KEY
 
 pc.indexes.create(
     name="quickstart",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 3, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 3, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
 
@@ -148,16 +148,16 @@ index = pc.index("quickstart")
 index.documents.upsert(
     namespace="movies",
     documents=[
-        {"_id": "movie-001", "embedding": [0.1, 0.2, 0.3], "title": "Arrival"},
-        {"_id": "movie-002", "embedding": [0.4, 0.5, 0.6], "title": "Interstellar"},
-        {"_id": "movie-003", "embedding": [0.7, 0.8, 0.9], "title": "Dune"},
+        {"_id": "movie-001", "your_vector": [0.1, 0.2, 0.3], "title": "Arrival"},
+        {"_id": "movie-002", "your_vector": [0.4, 0.5, 0.6], "title": "Interstellar"},
+        {"_id": "movie-003", "your_vector": [0.7, 0.8, 0.9], "title": "Dune"},
     ],
 )
 
 results = index.documents.search(
     namespace="movies",
     top_k=3,
-    score_by=[DenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3])],
+    score_by=[DenseVectorQuery(field="your_vector", values=[0.1, 0.2, 0.3])],
     include_fields=["title"],
 )
 for match in results.matches:

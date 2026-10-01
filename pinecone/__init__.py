@@ -14,7 +14,7 @@ and set ``PINECONE_API_KEY``::
 
     pc.indexes.create(
         name="movie-recommendations",
-        schema={"fields": {"embedding": {
+        schema={"fields": {"your_vector": {
             "type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
         deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
     )
@@ -27,12 +27,12 @@ in for a full 1536-dimensional embedding::
     index = pc.index("movie-recommendations")
     index.documents.upsert(
         namespace="movies-en",
-        documents=[{"_id": "movie-42", "embedding": [0.012, -0.087, 0.153]}],
+        documents=[{"_id": "movie-42", "your_vector": [0.012, -0.087, 0.153]}],
     )
     results = index.documents.search(
         namespace="movies-en",
         top_k=5,
-        score_by=[DenseVectorQuery(field="embedding", values=[0.012, -0.087, 0.153])],
+        score_by=[DenseVectorQuery(field="your_vector", values=[0.012, -0.087, 0.153])],
     )
 
 How the index was created decides which data-plane interface it answers on. An
@@ -65,7 +65,7 @@ embedding instead)::
             results = await index.documents.search(
                 namespace="movies-en",
                 top_k=5,
-                score_by=[DenseVectorQuery(field="embedding",
+                score_by=[DenseVectorQuery(field="your_vector",
                                            values=[0.012, -0.087, 0.153])],
             )
 

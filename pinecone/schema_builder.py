@@ -246,12 +246,12 @@ class SchemaBuilder:
         >>> from pinecone.schema_builder import SchemaBuilder
         >>> schema = (
         ...     SchemaBuilder()
-        ...     .add_dense_vector_field("embedding", dimension=768, metric="cosine")
+        ...     .add_dense_vector_field("your_vector", dimension=768, metric="cosine")
         ...     .add_string_field("title", full_text_search={"language": "en"})
         ...     .build()
         ... )
         >>> sorted(schema["fields"])
-        ['embedding', 'title']
+        ['title', 'your_vector']
 
     Pass the result straight to the create call:
 
@@ -295,7 +295,7 @@ class SchemaBuilder:
 
         Args:
             name: Field name, up to 64 bytes; the documents you upsert carry
-                their vector under this key, e.g. ``"embedding"``. Replaces
+                their vector under this key, e.g. ``"your_vector"``. Replaces
                 any existing field with the same name.
             dimension: Length of the vectors this field stores — the output
                 width of your embedding model, e.g. ``1536``. Must be between
@@ -323,9 +323,9 @@ class SchemaBuilder:
         Examples:
             >>> from pinecone.schema_builder import SchemaBuilder
             >>> schema = SchemaBuilder().add_dense_vector_field(
-            ...     "embedding", dimension=1536, metric="cosine"
+            ...     "your_vector", dimension=1536, metric="cosine"
             ... ).build()
-            >>> schema["fields"]["embedding"]
+            >>> schema["fields"]["your_vector"]
             {'type': 'dense_vector', 'dimension': 1536, 'metric': 'cosine'}
         """
         from pinecone.errors.exceptions import PineconeValueError
@@ -388,7 +388,7 @@ class SchemaBuilder:
             >>> schema = (
             ...     SchemaBuilder()
             ...     .add_dense_vector_field(
-            ...         "embedding", dimension=1536, metric="dotproduct"
+            ...         "your_vector", dimension=1536, metric="dotproduct"
             ...     )
             ...     .add_sparse_vector_field("keyword_terms")
             ...     .build()
@@ -857,9 +857,9 @@ class SchemaBuilder:
             >>> described = {"type": "dense_vector", "dimension": 1536,
             ...              "metric": "cosine"}
             >>> schema = SchemaBuilder().add_custom_field(
-            ...     "embedding", described
+            ...     "your_vector", described
             ... ).build()
-            >>> schema["fields"]["embedding"]
+            >>> schema["fields"]["your_vector"]
             {'type': 'dense_vector', 'dimension': 1536, 'metric': 'cosine'}
 
         .. note::
@@ -899,11 +899,11 @@ class SchemaBuilder:
         Examples:
             >>> from pinecone.schema_builder import SchemaBuilder
             >>> builder = SchemaBuilder().add_dense_vector_field(
-            ...     "embedding", dimension=8, metric="cosine"
+            ...     "your_vector", dimension=8, metric="cosine"
             ... )
             >>> schema = builder.build()
-            >>> schema["fields"]["embedding"]["future_option"] = True
-            >>> builder.build()["fields"]["embedding"]
+            >>> schema["fields"]["your_vector"]["future_option"] = True
+            >>> builder.build()["fields"]["your_vector"]
             {'type': 'dense_vector', 'dimension': 8, 'metric': 'cosine'}
         """
         return {"fields": copy.deepcopy(self._fields)}

@@ -424,7 +424,7 @@ pc = Pinecone(api_key="your-api-key")
 
 schema = (
     SchemaBuilder()
-    .add_dense_vector_field("embedding", dimension=1536, metric="cosine")
+    .add_dense_vector_field("your_vector", dimension=1536, metric="cosine")
     .build()
 )
 
@@ -654,7 +654,7 @@ pc.create_index(
 # Schema form: what new code should use; pick your own field name.
 pc.indexes.create(
     name="movies",
-    schema={"fields": {"embedding": {
+    schema={"fields": {"your_vector": {
         "type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
@@ -703,7 +703,7 @@ shape used throughout this section:
 ```python
 pc.indexes.create(
     name="movies",
-    schema={"fields": {"embedding": {
+    schema={"fields": {"your_vector": {
         "type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
@@ -806,7 +806,7 @@ pc.indexes.create(
     name="movies",
     schema={
         "fields": {
-            "embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}
+            "your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}
         }
     },
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
@@ -821,7 +821,7 @@ await pc.indexes.create(
     name="movies",
     schema={
         "fields": {
-            "embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}
+            "your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}
         }
     },
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
@@ -947,11 +947,11 @@ A field `description` is capped at 256 bytes of UTF-8, not 256 characters, so
 emoji and CJK text reach the cap at a fraction of their character count — 64
 emoji fit, 65 don't. A field *name* is capped the same way, at 64 bytes.
 `SchemaBuilder` enforces both and names the byte count it measured, so
-`add_dense_vector_field("embedding", ..., description="🙂" * 65)` raises
+`add_dense_vector_field("your_vector", ..., description="🙂" * 65)` raises
 before any request:
 
 ```text
-PineconeValueError: Field 'embedding' description is too long: 260 bytes (max 256)
+PineconeValueError: Field 'your_vector' description is too long: 260 bytes (max 256)
 ```
 
 A schema is also capped on how many `full_text_search` fields it may declare.
@@ -962,7 +962,7 @@ pc.indexes.create(
     name="movies",
     schema={
         "fields": {
-            "embedding": {
+            "your_vector": {
                 "type": "dense_vector",
                 "dimension": 1536,
                 "metric": "cosine",
@@ -1020,7 +1020,7 @@ ASCII within 120 characters.
 # index carries exactly one tag.
 index = pc.indexes.create(
     name="movies",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
     tags={"env": "prod", "owner": ""},
 )
@@ -1164,7 +1164,7 @@ pc.indexes.create(
     name="hybrid",
     schema={
         "fields": {
-            "embedding": {"type": "dense_vector", "dimension": 1536, "metric": "dotproduct"},
+            "your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "dotproduct"},
             "sparse_terms": {"type": "sparse_vector"},
         }
     },
@@ -1180,7 +1180,7 @@ await pc.indexes.create(
     name="hybrid",
     schema={
         "fields": {
-            "embedding": {"type": "dense_vector", "dimension": 1536, "metric": "dotproduct"},
+            "your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "dotproduct"},
             "sparse_terms": {"type": "sparse_vector"},
         }
     },
@@ -1235,7 +1235,7 @@ from pinecone import SchemaBuilder
 
 schema = (
     SchemaBuilder()
-    .add_dense_vector_field("embedding", dimension=1536, metric="dotproduct")
+    .add_dense_vector_field("your_vector", dimension=1536, metric="dotproduct")
     .add_sparse_vector_field("sparse_terms")
     .build()
 )
@@ -1728,7 +1728,7 @@ metric = backup.metric
 
 # 10.x
 dim = backup.dense_dimension
-metric = backup.schema.fields["embedding"].metric
+metric = backup.schema.fields["your_vector"].metric
 ```
 
 `dense_dimension` is a convenience for the common one-vector-field case. It

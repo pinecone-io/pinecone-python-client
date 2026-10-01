@@ -27,7 +27,7 @@ pc.indexes.create(
     name="support-articles",
     schema={
         "fields": {
-            "embedding": {"type": "dense_vector", "dimension": 1024, "metric": "cosine"},
+            "your_vector": {"type": "dense_vector", "dimension": 1024, "metric": "cosine"},
             "keywords": {"type": "sparse_vector"},
             "body": {"type": "string", "full_text_search": {"language": "en"}},
         }
@@ -58,7 +58,7 @@ from pinecone import Pinecone, SchemaBuilder
 pc = Pinecone()
 schema = (
     SchemaBuilder()
-    .add_dense_vector_field("embedding", dimension=1024, metric="cosine")
+    .add_dense_vector_field("your_vector", dimension=1024, metric="cosine")
     .add_string_field("body", full_text_search={"language": "en"})
     .build()
 )
@@ -97,7 +97,7 @@ for field_name, field in desc.schema.fields.items():
 `IndexModel.dimension`, `.metric`, and `.vector_type` survive as deprecated properties
 that resolve only when the schema has exactly one vector field. On a schema with more than
 one — or with none — reading them raises `AttributeError` naming the fields it found. Read
-`desc.schema.fields["embedding"].dimension` instead.
+`desc.schema.fields["your_vector"].dimension` instead.
 
 
 ## Deployment types

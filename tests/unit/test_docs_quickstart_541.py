@@ -57,7 +57,7 @@ def _index_response() -> dict[str, Any]:
         name="quickstart",
         host=DATA_HOST,
         schema={
-            "fields": {"embedding": {"type": "dense_vector", "dimension": 3, "metric": "cosine"}}
+            "fields": {"your_vector": {"type": "dense_vector", "dimension": 3, "metric": "cosine"}}
         },
     )
 
@@ -147,4 +147,4 @@ def test_dense_score_by_clause_names_the_schema_field_on_the_wire() -> None:
     assert search, "no document search reached the wire"
     body = search[-1].request.read().decode().replace(" ", "")
     assert '"type":"dense_vector"' in body
-    assert '"embedding"' in body
+    assert '"your_vector"' in body

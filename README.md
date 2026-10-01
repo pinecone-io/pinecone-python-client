@@ -26,7 +26,7 @@ pc = Pinecone(api_key="your-api-key")  # or omit and set PINECONE_API_KEY
 # Create an index. This blocks until the index is ready.
 pc.indexes.create(
     name="movie-recommendations",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 3, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 3, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
 
@@ -38,8 +38,8 @@ index = pc.index("movie-recommendations")
 index.documents.upsert(
     namespace="movies-en",
     documents=[
-        {"_id": "movie-001", "embedding": [0.1, 0.2, 0.3], "title": "Arrival"},
-        {"_id": "movie-002", "embedding": [0.4, 0.5, 0.6], "title": "Interstellar"},
+        {"_id": "movie-001", "your_vector": [0.1, 0.2, 0.3], "title": "Arrival"},
+        {"_id": "movie-002", "your_vector": [0.4, 0.5, 0.6], "title": "Interstellar"},
     ],
 )
 
@@ -47,7 +47,7 @@ index.documents.upsert(
 results = index.documents.search(
     namespace="movies-en",
     top_k=5,
-    score_by=[DenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3])],
+    score_by=[DenseVectorQuery(field="your_vector", values=[0.1, 0.2, 0.3])],
     include_fields=["title"],
 )
 for doc in results.matches:
@@ -85,7 +85,7 @@ async def main():
             results = await index.documents.search(
                 namespace="movies-en",
                 top_k=5,
-                score_by=[DenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3])],
+                score_by=[DenseVectorQuery(field="your_vector", values=[0.1, 0.2, 0.3])],
                 include_fields=["title"],
             )
             for doc in results.matches:

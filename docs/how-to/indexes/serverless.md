@@ -14,7 +14,7 @@ pc = Pinecone(api_key="your-api-key")
 
 pc.indexes.create(
     name="product-search",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
 ```
@@ -57,7 +57,7 @@ pc = Pinecone(api_key="your-api-key")
 
 pc.indexes.create(
     name="product-search",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={
         "deployment_type": "managed",
         "cloud": CloudProvider.AWS,
@@ -91,7 +91,7 @@ pc = Pinecone(api_key="your-api-key")
 
 pc.indexes.create(
     name="product-search",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
     deletion_protection=DeletionProtection.ENABLED,
 )
@@ -106,7 +106,7 @@ and the index comes up on on-demand capacity, billed per operation:
 ```python
 pc.indexes.create(
     name="product-search",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
     read_capacity={"mode": "OnDemand"},
 )
@@ -117,7 +117,7 @@ Dedicated capacity provisions read nodes you size yourself:
 ```python
 pc.indexes.create(
     name="product-search",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
     read_capacity={
         "mode": "Dedicated",
@@ -225,7 +225,7 @@ print(idx.deployment.cloud)
 print(idx.deployment.region)
 ```
 
-Reach a field you declared by name — `idx.schema.fields["embedding"].dimension` and
+Reach a field you declared by name — `idx.schema.fields["your_vector"].dimension` and
 `.metric` on a `dense_vector` field. `idx.dimension` and `idx.metric` are gone: reading
 either raises `AttributeError` naming the field access to use instead, because an
 index with several vector fields has no single dimension to report.

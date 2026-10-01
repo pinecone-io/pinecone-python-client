@@ -123,7 +123,7 @@ def test_the_section_still_carries_the_five_blocks_this_file_checks() -> None:
 def test_the_documented_description_stays_inside_the_byte_cap() -> None:
     """The cap is bytes, so the example must be measured in bytes too."""
     body = _find(lambda b: "description" in json.dumps(b))
-    field = body["schema"]["fields"]["embedding"]
+    field = body["schema"]["fields"]["your_vector"]
     assert len(field["description"].encode("utf-8")) <= 256
 
     section = _section()

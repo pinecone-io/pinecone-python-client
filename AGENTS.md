@@ -15,7 +15,7 @@ pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
 # Create an index. This blocks until the index is ready.
 pc.indexes.create(
     name="movie-recommendations",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
 
@@ -27,8 +27,8 @@ index = pc.index("movie-recommendations")
 index.documents.upsert(
     namespace="movies-en",
     documents=[
-        {"_id": "movie-42", "embedding": [0.012, -0.087, 0.153]},  # 1536-dim vector
-        {"_id": "movie-43", "embedding": [0.045, 0.021, -0.064]},  # 1536-dim vector
+        {"_id": "movie-42", "your_vector": [0.012, -0.087, 0.153]},  # 1536-dim vector
+        {"_id": "movie-43", "your_vector": [0.045, 0.021, -0.064]},  # 1536-dim vector
     ],
 )
 
@@ -36,7 +36,7 @@ index.documents.upsert(
 results = index.documents.search(
     namespace="movies-en",
     top_k=5,
-    score_by=[DenseVectorQuery(field="embedding", values=[0.012, -0.087, 0.153])],  # 1536-dim vector
+    score_by=[DenseVectorQuery(field="your_vector", values=[0.012, -0.087, 0.153])],  # 1536-dim vector
 )
 for doc in results.matches:
     print(doc.id, doc.score)
@@ -246,7 +246,7 @@ key = admin.api_keys.create(project_id=project.id, name="my-key")
 pc = Pinecone(api_key=key.value)
 pc.indexes.create(
     name="my-index",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
 ```
