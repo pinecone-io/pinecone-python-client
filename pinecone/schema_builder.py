@@ -481,16 +481,21 @@ class SchemaBuilder:
                 :class:`~pinecone.models.indexes.schema.FieldSparseEmbedConfig`
                 of ``model``, ``write_parameters`` and ``read_parameters``. The
                 field takes the index's one sparse slot. Fixed at creation.
-            store_text: Whether the field's text is stored. ``None``, the
-                default, leaves the key off and the server stores it.
-                ``False`` embeds the text without storing it, which needs
-                ``embed`` or ``sparse_embed`` and rules out
-                ``full_text_search``: the field can then be searched only with
-                an embed clause, and a fetch or search whose
-                ``include_fields`` names it is rejected with a ``400``. Each
-                value is at most 100 KB; with the text stored, the full-text
-                limit of 10,000 tokens per value also applies. Fixed at
-                creation.
+            store_text: Only meaningful as ``False``, on a field with ``embed``
+                or ``sparse_embed``. ``None``, the default, leaves the key off
+                and the server stores the text. ``False`` embeds the text
+                without storing it, which can save space when the field is
+                only used for similarity search, or keep sensitive text out of
+                Pinecone. The field then has no full-text search: it can be
+                searched only with an embed clause, and a fetch or search
+                whose ``include_fields`` names it is rejected with a ``400``.
+                The server rejects ``False`` on a field without ``embed`` or
+                ``sparse_embed``, and together with ``full_text_search``, each
+                with a ``400``. If you're not sure whether you'll need
+                full-text search, keep the text stored, for more search
+                flexibility later. Each value is at most 100 KB; with the text
+                stored, the full-text limit of 10,000 tokens per value also
+                applies. Fixed at creation.
             filterable: Make the field filterable instead of searched.
                 Requesting it together with a search key is the trap: a
                 string field is one or the other. Alongside ``embed`` or

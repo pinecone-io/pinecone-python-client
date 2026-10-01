@@ -201,12 +201,12 @@ creation.
 from pinecone import EmbedQuery, Pinecone, SchemaBuilder
 
 pc = Pinecone()
-pc.indexes.create(
-    name="support-articles",
-    schema=SchemaBuilder()
+schema = (
+    SchemaBuilder()
     .add_string_field("body", embed={"dimension": 512}, sparse_embed=True)
-    .build(),
+    .build()
 )
+pc.indexes.create(name="support-articles", schema=schema)
 
 with pc.index(name="support-articles") as index:
     index.documents.upsert(
@@ -239,8 +239,10 @@ with pc.index(name="support-articles") as index:
 - **`store_text=False`** embeds the text and keeps it nowhere. The field then needs
   `embed` or `sparse_embed` and cannot take `full_text_search`, it can be searched only
   with an embed clause, and a fetch or search whose `include_fields` names it fails with
-  a `400` — `["*"]` leaves it out. Like the rest of the schema, it cannot be changed
-  after creation.
+  a `400` — `["*"]` leaves it out. Turning off text storage can save space when the field
+  is only used for similarity search, or keep sensitive text out of Pinecone. If you're
+  not sure whether you'll need full-text search, keep text storage on, for more search
+  flexibility later. Like the rest of the schema, it cannot be changed after creation.
 
 ### Vectors
 
