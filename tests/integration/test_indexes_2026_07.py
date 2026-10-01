@@ -18,11 +18,21 @@ import uuid
 from collections.abc import Generator
 from typing import Any
 
+import msgspec
+import orjson
 import pytest
 
 from pinecone import Pinecone
+from pinecone._internal.adapters.indexes_adapter import IndexesAdapter
 from pinecone.errors import ApiError, NotFoundError, PineconeError
 from pinecone.models.indexes.index import IndexModel
+from pinecone.models.indexes.requests import CreateIndexRequest
+from pinecone.models.indexes.schema import (
+    FieldEmbedConfig,
+    FieldSparseEmbedConfig,
+    IndexSchema,
+    StringField,
+)
 from pinecone.schema_builder import SchemaBuilder
 
 pytestmark = [pytest.mark.integration]
@@ -136,3 +146,58 @@ def test_bare_string_field_rejected_by_server(client: Pinecone, index_name: str)
         )
     assert filter_only.value.status_code == 400
     assert "only accepts fields used for search" in str(filter_only.value)
+
+
+def test_create_and_describe_embed_and_sparse_embed_fields(
+    client: Pinecone, index_name: str
+) -> None:
+    """One index covers ``embed``, ``sparse_embed`` and ``store_text: false``.
+
+    Describe resolves every omitted embed key from the model, reports the
+    full-text-search config a stored field gets by default, and leaves it off
+    the unstored field. The described schema converts back into the typed model
+    and into a create body without ``filterable``.
+    """
+    schema = (
+        SchemaBuilder()
+        .add_string_field("title", embed=True)
+        .add_string_field("body", sparse_embed=True, store_text=False)
+        .build()
+    )
+    created = client.indexes.create(name=index_name, schema=schema, timeout=300)
+    assert created.status.ready is True
+
+    described = client.indexes.describe(index_name)
+    title = described.schema.fields["title"]
+    body = described.schema.fields["body"]
+    assert isinstance(title, StringField)
+    assert isinstance(body, StringField)
+
+    assert isinstance(title.embed, FieldEmbedConfig)
+    assert title.embed.model
+    assert isinstance(title.embed.dimension, int) and title.embed.dimension > 0
+    assert title.embed.metric in {"cosine", "dotproduct", "euclidean"}
+    assert title.embed.write_parameters
+    assert title.embed.read_parameters
+    assert title.sparse_embed is None
+    assert title.store_text is True
+    assert title.full_text_search is not None
+
+    assert isinstance(body.sparse_embed, FieldSparseEmbedConfig)
+    assert body.sparse_embed.model
+    assert body.sparse_embed.write_parameters
+    assert body.sparse_embed.read_parameters
+    assert body.embed is None
+    assert body.store_text is False
+    assert body.full_text_search is None
+
+    assert msgspec.convert(described.schema.to_dict(), type=IndexSchema) == described.schema
+    resent = orjson.loads(
+        IndexesAdapter.to_create_request(
+            CreateIndexRequest(name=index_name, schema=described.schema)
+        )
+    )["schema"]["fields"]
+    assert resent["title"]["embed"]["model"] == title.embed.model
+    assert resent["body"]["store_text"] is False
+    assert "filterable" not in resent["title"]
+    assert "filterable" not in resent["body"]
