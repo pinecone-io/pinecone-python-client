@@ -186,7 +186,7 @@ class IndexSpec(StructDictMixin, Struct, kw_only=True):
 
 
 class ModelIndexEmbed(StructDictMixin, Struct, kw_only=True):
-    """A 9.x-shaped view of an index's integrated-embedding configuration.
+    """A 9.x-shaped view of a legacy integrated index's embedding configuration.
 
     What :attr:`IndexModel.embed` returns, built from the single
     :class:`~pinecone.models.indexes.schema.SemanticTextField` in the index's
@@ -548,13 +548,15 @@ class IndexModel(Struct, kw_only=True):
 
     @property
     def embed(self) -> ModelIndexEmbed | None:
-        """Integrated-embedding configuration, in the 9.x ``embed`` shape.
+        """Embedding configuration of a legacy integrated index, in the 9.x ``embed`` shape.
 
         A :class:`ModelIndexEmbed` built from the schema's sole
         :class:`~pinecone.models.indexes.schema.SemanticTextField`, so 9.x
         reads like ``index.embed.model`` and ``index.embed.field_map`` keep
         working. ``None`` for an index with no semantic text field, which is
-        what 9.x reported for a non-integrated index.
+        what 9.x reported for a non-integrated index. That includes a document
+        index whose string fields use integrated embedding: read those from
+        :attr:`schema`.
 
         ``dimension`` and ``vector_type`` are always ``None``: a 2026-07
         ``semantic_text`` field reports neither, and inventing them would mean
@@ -563,7 +565,7 @@ class IndexModel(Struct, kw_only=True):
         is no single field to resolve to.
 
         Examples:
-            >>> idx = pc.indexes.describe("my-integrated-index")
+            >>> idx = pc.indexes.describe("semantic-search")
             >>> idx.embed.model, idx.embed.field_map
             ('multilingual-e5-large', {'text': 'chunk_text'})
 

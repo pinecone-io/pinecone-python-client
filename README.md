@@ -26,7 +26,7 @@ pc = Pinecone(api_key="your-api-key")  # or omit and set PINECONE_API_KEY
 # Create an index. This blocks until the index is ready.
 pc.indexes.create(
     name="movie-recommendations",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 3, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 3, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
 
@@ -38,8 +38,8 @@ index = pc.index("movie-recommendations")
 index.documents.upsert(
     namespace="movies-en",
     documents=[
-        {"_id": "movie-001", "embedding": [0.1, 0.2, 0.3], "title": "Arrival"},
-        {"_id": "movie-002", "embedding": [0.4, 0.5, 0.6], "title": "Interstellar"},
+        {"_id": "movie-001", "your_vector": [0.1, 0.2, 0.3], "title": "Arrival"},
+        {"_id": "movie-002", "your_vector": [0.4, 0.5, 0.6], "title": "Interstellar"},
     ],
 )
 
@@ -47,7 +47,7 @@ index.documents.upsert(
 results = index.documents.search(
     namespace="movies-en",
     top_k=5,
-    score_by=[DenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3])],
+    score_by=[DenseVectorQuery(field="your_vector", values=[0.1, 0.2, 0.3])],
     include_fields=["title"],
 )
 for doc in results.matches:
@@ -59,11 +59,12 @@ immediately.
 
 Two other data-plane interfaces exist, and the way the index was created decides
 which one applies: an index created with the deprecated top-level vector
-arguments answers on `index.upsert` / `index.query`, and one created with
-`pc.indexes.create_for_model(...)` embeds text server-side and answers on
-`index.upsert_records` / `index.search`. See the
-[quickstart](https://sdk.pinecone.io/python/getting-started/quickstart.html) and
-the rest of the [documentation](https://sdk.pinecone.io/python/) for the full
+arguments answers on `index.upsert` / `index.query`, and a legacy integrated
+index, created with `pc.indexes.create_for_model(...)`, requires the legacy
+Records API: `index.upsert_records` / `index.search`. For new indexes that should
+embed text for you, give a document index a field with integrated embedding. See
+the [quickstart](https://sdk.pinecone.io/python/getting-started/quickstart.html)
+and the rest of the [documentation](https://sdk.pinecone.io/python/) for the full
 picture.
 
 ## Async usage
@@ -84,7 +85,7 @@ async def main():
             results = await index.documents.search(
                 namespace="movies-en",
                 top_k=5,
-                score_by=[DenseVectorQuery(field="embedding", values=[0.1, 0.2, 0.3])],
+                score_by=[DenseVectorQuery(field="your_vector", values=[0.1, 0.2, 0.3])],
                 include_fields=["title"],
             )
             for doc in results.matches:

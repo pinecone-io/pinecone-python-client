@@ -150,7 +150,7 @@ pc = Pinecone(
     )
 )
 
-schema = {"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}}
+schema = {"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}}
 
 try:
     pc.indexes.create(name="product-search", schema=schema)

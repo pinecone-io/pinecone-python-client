@@ -221,10 +221,14 @@ class AsyncIndex:
         namespace: str,
         timeout: float | None = None,
     ) -> UpsertRecordsResponse:
-        """Upsert records for indexes with integrated inference.
+        """Upsert records for legacy integrated indexes (legacy Records API).
 
         Records are sent as newline-delimited JSON (NDJSON). Embeddings are
         generated server-side.
+
+        Part of the legacy Records API. For a new index, give a document index a
+        ``string`` field that uses integrated embedding and write through
+        ``documents.upsert`` instead.
 
         Args:
             records: Record dicts, each carrying an ``_id`` (or ``id``) plus the
@@ -232,7 +236,7 @@ class AsyncIndex:
                 embeds. A record giving both ``_id`` and ``id`` keeps ``_id`` and
                 the client drops the ``id`` before sending.
             namespace (str): Target namespace, e.g. ``"articles-en"``. Required and
-                non-empty — unlike :meth:`upsert`, the records API has no default
+                non-empty — unlike :meth:`upsert`, the legacy Records API has no default
                 namespace to fall back on.
             timeout (float | None): Per-request timeout in seconds. Overrides the
                 client-level default for this call only.
@@ -259,7 +263,7 @@ class AsyncIndex:
                 print(response.record_count)
 
         .. seealso::
-           - :meth:`search` — the read side of an integrated-inference index: text
+           - :meth:`search` — the read side of a legacy integrated index: text
              in, embedded server-side.
            - :meth:`upsert` — for an index where you embed the text yourself and
              send vectors.
@@ -414,8 +418,8 @@ class AsyncIndex:
            batch; see :doc:`/guides/retries`.
 
         .. seealso::
-           - :meth:`upsert_records` — text in, embedded server-side, for an index
-             with integrated inference.
+           - :meth:`upsert_records` — text in, embedded server-side, for a legacy
+             integrated index.
            - :meth:`upsert_from_dataframe` — the same write from a pandas
              DataFrame, batched for you.
            - :meth:`start_import` — millions of vectors from cloud storage,
@@ -611,8 +615,8 @@ class AsyncIndex:
         .. seealso::
            - :meth:`upsert` — the same write from a list of vectors, with the same
              ``batch_size`` and no ``pandas`` dependency.
-           - :meth:`upsert_records` — text in, embedded server-side, for an index
-             with integrated inference.
+           - :meth:`upsert_records` — text in, embedded server-side, for a legacy
+             integrated index.
            - :meth:`start_import` — millions of vectors from cloud storage,
              server-side and asynchronous.
         """
@@ -746,7 +750,7 @@ class AsyncIndex:
                     print(match.id, match.score, match.metadata["genre"])
 
         .. seealso::
-           - :meth:`search` — the same search on an integrated-inference index:
+           - :meth:`search` — the same search on a legacy integrated index:
              you pass text, the server embeds it.
            - :attr:`documents` — ``documents.search`` for a schema-based index,
              which stores JSON records rather than raw vectors.
@@ -1340,12 +1344,15 @@ class AsyncIndex:
         query: SearchQuery | Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> SearchRecordsResponse:
-        """Search records by text, vector, or ID, optionally reranking the hits.
+        """Search records by text, vector, or ID, optionally reranking (legacy Records API).
 
         Pass *inputs* and the index's own embedding model turns your text into the
         query vector server-side — that is what separates this from :meth:`query`,
         where you supply the vector. A *vector* or an *id* works here too, for the
         cases where you already have one.
+
+        Part of the legacy Records API. On a document index, including one with
+        an integrated-embedding field, search through ``documents.search`` instead.
 
         Args:
             namespace (str): Namespace to search, e.g. ``"articles-en"``. Required
@@ -1476,7 +1483,7 @@ class AsyncIndex:
         query: SearchQuery | Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> SearchRecordsResponse:
-        """Alias for :meth:`search`, kept for callers written against 9.x.
+        """Alias for :meth:`search` (legacy Records API), kept for callers written against 9.x.
 
         Every argument, return value and error is :meth:`search`'s. Call that one in
         new code; nothing here differs.

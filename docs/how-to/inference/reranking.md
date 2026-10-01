@@ -210,9 +210,9 @@ reorder what stage one found.
 An empty `documents` list is rejected client-side, so guard the second stage when stage
 one can return nothing.
 
-For an index with integrated inference, `rerank` is an argument to
+For a legacy integrated index, `rerank` is an argument to
 {meth}`~pinecone.index.Index.search` and both stages happen in one request. See
-[Integrated records](../integrated-records.md#rerank-in-a-single-search-call). Reach for
+[Legacy integrated indexes](../integrated-records.md#rerank-in-a-single-search-call). Reach for
 `pc.inference.rerank` when the candidates came from somewhere other than that index.
 
 ## List available reranking models

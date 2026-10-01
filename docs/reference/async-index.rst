@@ -49,7 +49,7 @@ to release the underlying HTTP connection pool.
   lazily-instantiated :class:`~pinecone.async_client.documents.AsyncDocuments`
   namespace for schema-based indexes (``index.documents.upsert``, ``.search``,
   ``.fetch``, ``.delete``, ``.update``, ``.list``, ``.batch_upsert``).
-- **Integrated Inference** — :meth:`~pinecone.async_client.async_index.AsyncIndex.search`,
+- **Legacy Records API** (legacy integrated indexes) — :meth:`~pinecone.async_client.async_index.AsyncIndex.search`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.search_records`
 - **Namespaces** — :meth:`~pinecone.async_client.async_index.AsyncIndex.create_namespace`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.describe_namespace`,

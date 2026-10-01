@@ -67,7 +67,7 @@ next, that is the whole of the import work the upgrade asks of you.
 (documents-api)=
 ## Documents API
 
-Preview graduated into this release, and every 2026-07 index (dense, sparse, hybrid, or full-text-search) is created with a schema and served through the documents API. This section covers migrating off preview and what changed about creating and configuring an index.
+Preview graduated into this release, and every 2026-07 index (dense, sparse, hybrid, or full-text-search) is created with a schema and served through the Documents API. This section covers migrating off preview and what changed about creating and configuring an index.
 
 (preview-graduation)=
 ### Preview namespace removed
@@ -424,7 +424,7 @@ pc = Pinecone(api_key="your-api-key")
 
 schema = (
     SchemaBuilder()
-    .add_dense_vector_field("embedding", dimension=1536, metric="cosine")
+    .add_dense_vector_field("your_vector", dimension=1536, metric="cosine")
     .build()
 )
 
@@ -446,7 +446,8 @@ behavior); `create()` no longer accepts `source_collection` or
 `source_backup_id` (the backend rejects both with a 400, use
 `pc.create_index_from_backup(...)` to restore a backup instead); `create()`
 and `configure()` accept a typed `IndexSchema` as well as a plain dict; and
-`create_for_model()` is new, replacing the old integrated-embedding path.
+`create_for_model()` is new, replacing the old `spec=IntegratedSpec(...)` path for
+legacy integrated indexes.
 
 Everything else about the `2026-07` create/configure contract, including the
 schema rules and field removals, is the same for you as for a `9.x` caller
@@ -653,7 +654,7 @@ pc.create_index(
 # Schema form: what new code should use; pick your own field name.
 pc.indexes.create(
     name="movies",
-    schema={"fields": {"embedding": {
+    schema={"fields": {"your_vector": {
         "type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
@@ -702,7 +703,7 @@ shape used throughout this section:
 ```python
 pc.indexes.create(
     name="movies",
-    schema={"fields": {"embedding": {
+    schema={"fields": {"your_vector": {
         "type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
@@ -730,12 +731,15 @@ to every request that client makes, and `10.x` models decode `2026-07`
 response shapes, so keep a pinned client scoped to the pod and collection
 calls that need it rather than using it as a general downgrade.
 
-Integrated-embedding creation moved from `create(spec=IntegratedSpec(...))`
+Creating a legacy integrated index moved from `create(spec=IntegratedSpec(...))`
 to a dedicated `pc.indexes.create_for_model(name=..., cloud=..., region=...,
 embed={"model": ..., "field_map": {"text": ...}})`. The embedding
 configuration now surfaces as a `semantic_text` field in the returned
 `index.schema`, named after the `field_map` text entry; `index.embed` is a
-deprecated view rebuilt from that field.
+deprecated view rebuilt from that field. Legacy integrated indexes require the
+legacy Records API; for a new index, give a document index a `string` field with
+integrated embedding instead (see
+[How Pinecone Works](../guides/concepts.md#integrated-embedding)).
 
 `ConfigureIndexRequest` rejects an unknown PATCH field rather than ignoring
 it.
@@ -802,7 +806,7 @@ pc.indexes.create(
     name="movies",
     schema={
         "fields": {
-            "embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}
+            "your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}
         }
     },
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
@@ -817,7 +821,7 @@ await pc.indexes.create(
     name="movies",
     schema={
         "fields": {
-            "embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}
+            "your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}
         }
     },
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
@@ -943,11 +947,11 @@ A field `description` is capped at 256 bytes of UTF-8, not 256 characters, so
 emoji and CJK text reach the cap at a fraction of their character count — 64
 emoji fit, 65 don't. A field *name* is capped the same way, at 64 bytes.
 `SchemaBuilder` enforces both and names the byte count it measured, so
-`add_dense_vector_field("embedding", ..., description="🙂" * 65)` raises
+`add_dense_vector_field("your_vector", ..., description="🙂" * 65)` raises
 before any request:
 
 ```text
-PineconeValueError: Field 'embedding' description is too long: 260 bytes (max 256)
+PineconeValueError: Field 'your_vector' description is too long: 260 bytes (max 256)
 ```
 
 A schema is also capped on how many `full_text_search` fields it may declare.
@@ -958,7 +962,7 @@ pc.indexes.create(
     name="movies",
     schema={
         "fields": {
-            "embedding": {
+            "your_vector": {
                 "type": "dense_vector",
                 "dimension": 1536,
                 "metric": "cosine",
@@ -1016,7 +1020,7 @@ ASCII within 120 characters.
 # index carries exactly one tag.
 index = pc.indexes.create(
     name="movies",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
     tags={"env": "prod", "owner": ""},
 )
@@ -1046,7 +1050,7 @@ index = await pc.indexes.configure("movies", tags={"team": "search", "owner": ""
 
 This covers the classic `upsert`/`query`/`fetch` vector operations, which
 keep serving indexes created before `2026-07` unchanged. Nothing here is
-about the documents API above.
+about the Documents API above.
 
 Every snippet in this section takes `idx` from one call, unchanged from
 `9.x`:
@@ -1160,7 +1164,7 @@ pc.indexes.create(
     name="hybrid",
     schema={
         "fields": {
-            "embedding": {"type": "dense_vector", "dimension": 1536, "metric": "dotproduct"},
+            "your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "dotproduct"},
             "sparse_terms": {"type": "sparse_vector"},
         }
     },
@@ -1176,7 +1180,7 @@ await pc.indexes.create(
     name="hybrid",
     schema={
         "fields": {
-            "embedding": {"type": "dense_vector", "dimension": 1536, "metric": "dotproduct"},
+            "your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "dotproduct"},
             "sparse_terms": {"type": "sparse_vector"},
         }
     },
@@ -1204,9 +1208,9 @@ index you create with `2026-07`, a vectors-API upsert is refused before the
 sparse check is ever reached, with a message that begins "This index has a
 document schema, so writes must go through the documents API." Declaring the
 sparse field doesn't satisfy that gate on its own; a hybrid schema is routed
-to the documents API rather than the vectors API. If you're debugging a
+to the Documents API rather than the vectors API. If you're debugging a
 hybrid upsert against a freshly created `2026-07` index, that document-schema
-message is the string to search for. On the documents API, where a
+message is the string to search for. On the Documents API, where a
 `2026-07` index is routed today, the same requirement shows up at search
 time instead, with a clearer message: `Scoring field '<name>' not found in
 index schema`.
@@ -1231,7 +1235,7 @@ from pinecone import SchemaBuilder
 
 schema = (
     SchemaBuilder()
-    .add_dense_vector_field("embedding", dimension=1536, metric="dotproduct")
+    .add_dense_vector_field("your_vector", dimension=1536, metric="dotproduct")
     .add_sparse_vector_field("sparse_terms")
     .build()
 )
@@ -1724,7 +1728,7 @@ metric = backup.metric
 
 # 10.x
 dim = backup.dense_dimension
-metric = backup.schema.fields["embedding"].metric
+metric = backup.schema.fields["your_vector"].metric
 ```
 
 `dense_dimension` is a convenience for the common one-vector-field case. It

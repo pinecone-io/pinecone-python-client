@@ -361,7 +361,7 @@ class Documents:
 
         .. seealso::
            - :meth:`~pinecone.index.Index.search` — record search for
-             integrated-inference indexes.
+             legacy integrated indexes, through the legacy Records API.
            - :meth:`~pinecone.index.Index.query` — nearest-neighbor search
              over vectors you provide.
         """

@@ -208,7 +208,7 @@ pc = Pinecone()
 if not pc.indexes.exists("my-index"):
     pc.indexes.create(
         name="my-index",
-        schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+        schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
         deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
     )
 ```
@@ -227,7 +227,7 @@ pc = Pinecone()
 try:
     pc.indexes.create(
         name="my-index",
-        schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+        schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
         deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
     )
 except ConflictError:

@@ -148,7 +148,7 @@ print(backup.size_bytes)
 print(backup.source_index_deleted_at)
 
 if backup.schema is not None:
-    print(backup.schema.fields["embedding"].metric)
+    print(backup.schema.fields["your_vector"].metric)
 ```
 
 `schema` is an {class}`~pinecone.models.indexes.schema.IndexSchema`, the same

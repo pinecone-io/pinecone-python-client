@@ -37,7 +37,7 @@ methods.
   :meth:`~pinecone.grpc.GrpcIndex.list`,
   :meth:`~pinecone.grpc.GrpcIndex.list_paginated`
 - **Stats** — :meth:`~pinecone.grpc.GrpcIndex.describe_index_stats`
-- **Integrated Inference** — :meth:`~pinecone.grpc.GrpcIndex.search`,
+- **Legacy Records API** (legacy integrated indexes) — :meth:`~pinecone.grpc.GrpcIndex.search`,
   :meth:`~pinecone.grpc.GrpcIndex.search_records`
 - **Namespaces** — :meth:`~pinecone.grpc.GrpcIndex.create_namespace`,
   :meth:`~pinecone.grpc.GrpcIndex.describe_namespace`,

@@ -90,12 +90,12 @@ class DenseVectorField(Struct, tag="dense_vector", tag_field="type", kw_only=Tru
             given. Always present in responses.
 
     Examples:
-        The ``schema=`` entry that declares one:
+        A ``schema=`` that declares one:
 
         .. code-block:: python
 
-            {"embedding": {"type": "dense_vector", "dimension": 1536,
-                           "metric": "cosine"}}
+            {"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536,
+                                        "metric": "cosine"}}}
     """
 
     dimension: int
@@ -120,26 +120,27 @@ class SparseVectorField(Struct, tag="sparse_vector", tag_field="type", kw_only=T
         description: Free-text note about the field, or ``None``.
 
     Examples:
-        The ``schema=`` entry that declares one:
+        A ``schema=`` that declares one:
 
         .. code-block:: python
 
-            {"keywords": {"type": "sparse_vector"}}
+            {"fields": {"keywords": {"type": "sparse_vector"}}}
     """
 
     description: str | None = None
 
 
 class SemanticTextField(Struct, tag="semantic_text", tag_field="type", kw_only=True):
-    """The embedded text field of an index made by the legacy create-for-model path.
+    """The embedded text field of a legacy integrated index, created via create-for-model.
 
     With a semantic text field you upsert and query plain text and never
     handle a vector yourself — the difference from :class:`DenseVectorField`,
-    where producing the embedding is your job. Such an index is read and
-    written through the legacy records API (``upsert_records`` and
-    ``search``). For new work, declare a :class:`StringField` with ``embed``
-    or ``sparse_embed`` instead: that index is read and written through
-    ``index.documents``, and describe reports the field as a ``string``.
+    where producing the embedding is your job. Legacy integrated indexes
+    require the legacy Records API (``upsert_records`` and ``search``). For
+    new work, create a document index with a :class:`StringField` that uses
+    integrated embedding (``embed`` or ``sparse_embed``) instead: a document
+    index is read and written through ``index.documents``, and describe
+    reports the field as a ``string``.
 
     **Response-only, and there is exactly one way to get one:**
     :meth:`~pinecone.client.indexes.Indexes.create_for_model`, which names the
@@ -194,8 +195,8 @@ class NgramConfig(Struct, kw_only=True):
 
         .. code-block:: python
 
-            {"title": {"type": "string", "full_text_search": {
-                "ngram": {"min_gram": 2, "max_gram": 3}}}}
+            {"fields": {"title": {"type": "string", "full_text_search": {
+                "ngram": {"min_gram": 2, "max_gram": 3}}}}}
     """
 
     min_gram: int
@@ -235,7 +236,7 @@ class FullTextSearchConfig(Struct, kw_only=True):
 
 
 class FieldEmbedConfig(Struct, kw_only=True):
-    """Have Pinecone embed a string field's text into a dense vector.
+    """Dense integrated embedding for a string field of a document index.
 
     Set on a :class:`StringField` as ``embed``. Pinecone embeds the field's
     text with a hosted model when you upsert or update a document, and embeds
@@ -248,6 +249,12 @@ class FieldEmbedConfig(Struct, kw_only=True):
     resolved configuration, with every omitted key filled in from the model.
     The configuration is fixed at creation.
 
+    The parameter defaults are chosen per model and are rarely worth changing.
+    ``pc.inference.get_model(model).supported_parameters`` lists the keys a
+    model accepts, and the `model guide
+    <https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models>`_ describes
+    each model.
+
     An ``embed`` field takes the index's one dense vector slot, so it cannot
     sit alongside a ``dense_vector`` field or ``embed`` on another field.
 
@@ -259,18 +266,20 @@ class FieldEmbedConfig(Struct, kw_only=True):
         metric: ``"cosine"``, ``"dotproduct"`` or ``"euclidean"``. ``None`` on
             create takes the model's default.
         write_parameters: Model parameters used when embedding document text,
-            e.g. ``{"truncate": "END"}``. Describe reports them merged with
-            the model's defaults.
-        read_parameters: Model parameters used when embedding query text.
-            Describe reports them merged with the model's defaults.
+            e.g. ``{"dimension": 1024}``. Describe reports them merged with the
+            model's defaults.
+        read_parameters: Model parameters used when embedding query text,
+            e.g. ``{"dimension": 1024}``. Describe reports them merged with the
+            model's defaults.
 
     Examples:
-        The ``schema=`` entry that declares one:
+        A ``schema=`` that declares one:
 
         .. code-block:: python
 
-            {"body": {"type": "string",
-                      "embed": {"model": "llama-text-embed-v2", "dimension": 512}}}
+            {"fields": {"body": {"type": "string",
+                                 "embed": {"model": "llama-text-embed-v2",
+                                           "dimension": 512}}}}
     """
 
     model: str | None = None
@@ -281,13 +290,18 @@ class FieldEmbedConfig(Struct, kw_only=True):
 
 
 class FieldSparseEmbedConfig(Struct, kw_only=True):
-    """Have Pinecone embed a string field's text into a learned-sparse vector.
+    """Learned-sparse integrated embedding for a string field of a document index.
 
     Set on a :class:`StringField` as ``sparse_embed``. It works like
     :class:`FieldEmbedConfig`, with a sparse model, and is searched with a
     :class:`~pinecone.models.documents.score_by.SparseEmbedQuery`. A sparse
     embedding has no dimension and no metric, so there is nothing to set but
-    the model and its parameters.
+    the model and its parameters. As with :class:`FieldEmbedConfig`, the
+    parameter defaults are chosen per model and are rarely worth changing;
+    ``pc.inference.get_model(model).supported_parameters`` lists the keys a
+    model accepts, and the `model guide
+    <https://docs.pinecone.io/guides/index-data/create-an-index#embedding-models>`_ describes
+    each model.
 
     A ``sparse_embed`` field takes the index's one sparse vector slot, so it
     cannot sit alongside a ``sparse_vector`` field or ``sparse_embed`` on
@@ -303,11 +317,11 @@ class FieldSparseEmbedConfig(Struct, kw_only=True):
             Describe reports them merged with the model's defaults.
 
     Examples:
-        The ``schema=`` entry that declares one:
+        A ``schema=`` that declares one:
 
         .. code-block:: python
 
-            {"body": {"type": "string", "sparse_embed": {}}}
+            {"fields": {"body": {"type": "string", "sparse_embed": {}}}}
     """
 
     model: str | None = None
@@ -316,7 +330,7 @@ class FieldSparseEmbedConfig(Struct, kw_only=True):
 
 
 class StringField(Struct, tag="string", tag_field="type", kw_only=True):
-    """Text that is searched — by full-text search, by embeddings, or both.
+    """Text that is searched — by full-text search, by integrated embedding, or both.
 
     A string field you declare on create must carry at least one search
     configuration, because search is the only reason the schema takes a string
@@ -327,14 +341,23 @@ class StringField(Struct, tag="string", tag_field="type", kw_only=True):
     the documents you upsert. Its ``type`` in a ``schema=`` dict is
     ``"string"``.
 
-    **Stored text.** By default the field's text is stored, and stored text is
-    always indexed for full-text search: declare only ``embed`` and describe
-    reports ``full_text_search`` with default settings as well. Set
-    ``store_text=False`` to embed the text and keep it nowhere. Such a field
-    needs ``embed`` or ``sparse_embed`` and cannot take ``full_text_search``;
-    it cannot be returned, so a fetch or search whose ``include_fields`` names
-    it is rejected with a ``400`` (``["*"]`` leaves it out); and it cannot be
-    scored by ``text`` or ``query_string`` or matched by ``$match_*`` filters.
+    **Stored text.** ``store_text`` is only meaningful as ``False``, on a field
+    with ``embed`` or ``sparse_embed``. The server rejects ``store_text=False``
+    on a field without ``embed`` or ``sparse_embed``, and together with
+    ``full_text_search``, each with a ``400``. By default the field's text is
+    stored, and stored text is always indexed for full-text search: declare
+    only ``embed`` and describe reports ``full_text_search`` with default
+    settings as well.
+
+    Turning off text storage can save space when the field is only used for
+    similarity search, or keep sensitive text out of Pinecone. It also means
+    the field has no full-text search: it cannot be returned, so a fetch or
+    search whose ``include_fields`` names it is rejected with a ``400``
+    (``["*"]`` leaves it out), and it cannot be scored by ``text`` or
+    ``query_string`` or matched by ``$match_*`` filters. If you're not sure
+    whether you'll need full-text search, keep text storage on, for more
+    search flexibility later.
+
     Each value is at most 100 KB; with ``store_text`` true, the full-text
     limit of 10,000 tokens per value also applies. The setting is fixed at
     creation.
@@ -357,18 +380,20 @@ class StringField(Struct, tag="string", tag_field="type", kw_only=True):
             into a dense vector, or ``None``.
         sparse_embed: A :class:`FieldSparseEmbedConfig` to have Pinecone embed
             the text into a sparse vector, or ``None``.
-        store_text: Whether the text is stored, ``True`` by default. ``None``
-            on create leaves it to the server default; describe always
-            reports it for a search field.
+        store_text: Whether the text is stored, ``True`` by default. Only
+            meaningful as ``False``, on a field with ``embed`` or
+            ``sparse_embed``; see **Stored text** above. ``None`` on create
+            leaves it to the server default; describe always reports it for a
+            search field.
 
     Examples:
-        The ``schema=`` entries that declare one:
+        ``schema=`` values that declare one:
 
         .. code-block:: python
 
-            {"title": {"type": "string", "full_text_search": {}}}
-            {"body": {"type": "string", "embed": {}, "sparse_embed": {}}}
-            {"body": {"type": "string", "store_text": False, "embed": {}}}
+            {"fields": {"title": {"type": "string", "full_text_search": {}}}}
+            {"fields": {"body": {"type": "string", "embed": {}, "sparse_embed": {}}}}
+            {"fields": {"body": {"type": "string", "store_text": False, "embed": {}}}}
     """
 
     description: str | None = None
@@ -539,18 +564,19 @@ class IndexSchema(Struct, kw_only=True):
         Variable-length index/value pairs for keyword-style scoring, with no
         dimension and no choice of metric — see :class:`SparseVectorField`.
     ``string``
-        Text searched by full-text search (``full_text_search``), by a dense
-        embedding Pinecone makes from it (``embed``), by a sparse one
+        Text searched by full-text search (``full_text_search``), by
+        dense integrated embedding (``embed``), by sparse integrated embedding
         (``sparse_embed``), or any mix of the three — see
         :class:`StringField`.
 
     Read back but not declarable — sending one on create is rejected:
 
     ``semantic_text``
-        The embedded text field of an index made by
+        The embedded text field of a legacy integrated index, created via
         :meth:`~pinecone.client.indexes.Indexes.create_for_model`, the only
-        way to get one — see :class:`SemanticTextField`. A ``string`` field
-        with ``embed`` is the way to embed text in an index you create.
+        way to get one — see :class:`SemanticTextField`. In a document index,
+        a ``string`` field with integrated embedding (``embed`` /
+        ``sparse_embed``) takes its place.
     ``float``, ``boolean``, ``string_list``
         Numeric, boolean and tag-style metadata, indexed for filtering
         automatically at upsert time — see :class:`FloatField`,

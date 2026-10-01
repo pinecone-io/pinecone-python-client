@@ -17,7 +17,7 @@ HTTP request:
   ``metadata_config=`` (metadata is indexed automatically at upsert, so
   there's nothing to declare), ``source_collection=``/``source_backup_id=``
   (rejected by the backend with a 400), and ``spec=IntegratedSpec(...)``
-  (integrated-embedding indexes are created through ``create_for_model()``
+  (legacy integrated indexes are created through ``create_for_model()``
   instead). ``metadata_config`` and ``source_collection`` are also
   rejected when they arrive as ``PodSpec`` attributes rather than as
   kwargs, so ``spec=`` gets the same answer as the kwarg spelling.
@@ -93,7 +93,7 @@ def _integrated_spec_error(spec: Any, name: Any) -> PineconeTypeError:
     )
     lines = [
         "Indexes.create() no longer accepts spec=IntegratedSpec(...) — the 2026-07 API",
-        "creates integrated-embedding indexes through create_for_model instead:",
+        "creates legacy integrated indexes through create_for_model instead:",
         "",
         "    pc.indexes.create_for_model(",
         f"        name={_fmt(name) if name else '<name>'},",

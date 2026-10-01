@@ -150,9 +150,11 @@ class Inference:
     Reached as ``pc.inference``. Call these when you want the vectors or the
     scores in your own hands — to store somewhere else, to embed a query
     yourself, or to rerank candidates that came from another system. If instead
-    you want Pinecone to embed on your behalf, build an index with
-    :class:`~pinecone.models.indexes.specs.IntegratedSpec` and use
-    :meth:`~pinecone.Index.upsert_records`, which needs no explicit embed step.
+    you want Pinecone to embed on your behalf, give a document index a
+    ``string`` field with integrated embedding (``embed`` / ``sparse_embed``),
+    which needs no explicit embed step. Legacy integrated indexes, created via
+    :meth:`~pinecone.client.indexes.Indexes.create_for_model`, do the same
+    through the legacy Records API (:meth:`~pinecone.Index.upsert_records`).
     Not constructed directly.
 
     Examples:
@@ -300,9 +302,10 @@ class Inference:
            fixed in advance.
 
         .. seealso::
-           :meth:`~pinecone.Index.upsert_records` — on an index built with
-           :class:`~pinecone.models.indexes.specs.IntegratedSpec`, Pinecone
-           embeds the records for you and no call here is needed.
+           :meth:`~pinecone.index.Index.documents` — on a document index
+           whose ``string`` field uses integrated embedding, Pinecone embeds
+           the text for you and no call here is needed. Legacy integrated
+           indexes do the same through :meth:`~pinecone.Index.upsert_records`.
         """
         model_id = resolve_model_id(model)
         require_non_empty("model", model_id)

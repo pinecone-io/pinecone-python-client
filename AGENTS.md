@@ -15,7 +15,7 @@ pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
 # Create an index. This blocks until the index is ready.
 pc.indexes.create(
     name="movie-recommendations",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
 
@@ -27,8 +27,8 @@ index = pc.index("movie-recommendations")
 index.documents.upsert(
     namespace="movies-en",
     documents=[
-        {"_id": "movie-42", "embedding": [0.012, -0.087, 0.153]},  # 1536-dim vector
-        {"_id": "movie-43", "embedding": [0.045, 0.021, -0.064]},  # 1536-dim vector
+        {"_id": "movie-42", "your_vector": [0.012, -0.087, 0.153]},  # 1536-dim vector
+        {"_id": "movie-43", "your_vector": [0.045, 0.021, -0.064]},  # 1536-dim vector
     ],
 )
 
@@ -36,7 +36,7 @@ index.documents.upsert(
 results = index.documents.search(
     namespace="movies-en",
     top_k=5,
-    score_by=[DenseVectorQuery(field="embedding", values=[0.012, -0.087, 0.153])],  # 1536-dim vector
+    score_by=[DenseVectorQuery(field="your_vector", values=[0.012, -0.087, 0.153])],  # 1536-dim vector
 )
 for doc in results.matches:
     print(doc.id, doc.score)
@@ -44,7 +44,7 @@ for doc in results.matches:
 
 Upserts apply asynchronously, so a document may not be visible to the next search immediately.
 
-Two other data-plane interfaces exist, and the way the index was created decides which one applies: an index created with the deprecated top-level `dimension=`/`metric=` answers on `index.upsert`/`index.query` (see "Store and retrieve vectors" below), and one created with `pc.indexes.create_for_model(...)` embeds text server-side and answers on `index.upsert_records`/`index.search` (see "Semantic search with integrated embeddings" below). See the [quickstart](https://sdk.pinecone.io/python/getting-started/quickstart.html) for the full picture.
+Two other data-plane interfaces exist, and the way the index was created decides which one applies: an index created with the deprecated top-level `dimension=`/`metric=` answers on `index.upsert`/`index.query` (see "Store and retrieve vectors" below), and a legacy integrated index, created with `pc.indexes.create_for_model(...)`, requires the legacy Records API: `index.upsert_records`/`index.search` (see "Legacy integrated indexes" below). See the [quickstart](https://sdk.pinecone.io/python/getting-started/quickstart.html) for the full picture.
 
 ## Key Classes
 
@@ -83,7 +83,7 @@ results = index.query(
 )
 ```
 
-Use `query()` for raw vector search on standard indexes. Use `search()` for text or vector search on indexes with integrated inference (server-side embeddings).
+Use `query()` for raw vector search on standard indexes. Use `search()` for text or vector search on legacy integrated indexes (created with `create_for_model`).
 
 ### Data loading methods
 
@@ -92,14 +92,14 @@ Use `query()` for raw vector search on standard indexes. Use `search()` for text
 | `index.documents.upsert(namespace=, documents=[...])` | Your index declares a `schema=` (document index) | Manual — all documents in one request |
 | `index.upsert(vectors=[...])` | You have pre-computed vectors (<1000 per call) | Manual — all vectors in one request |
 | `index.upsert_from_dataframe(df)` | You have a pandas DataFrame of vectors | Automatic — batches of 500 (configurable) |
-| `index.upsert_records(records=[...])` | Your index uses integrated inference (server-side embedding) | Manual — all records in one request |
+| `index.upsert_records(records=[...])` | Your index is a legacy integrated index (created with `create_for_model`) | Manual — all records in one request |
 | `index.start_import(uri="s3://...")` | Millions of vectors in cloud storage (Parquet) | Server-side — fully async |
 
 For datasets larger than ~1000 vectors, use `upsert_from_dataframe()` or `start_import()`. Do not pass more than ~1000 vectors to a single `upsert()` call.
 
-### Embed text server-side on a document index
+### Integrated embedding on a document index
 
-A `string` field with `embed` (dense) and/or `sparse_embed` (sparse) has Pinecone embed its text on write and the query text on search. Search it with `EmbedQuery` / `SparseEmbedQuery`, which must be the only clause in `score_by`.
+Document indexes support fields with integrated embedding: a `string` field with `embed` (dense) and/or `sparse_embed` (sparse) has Pinecone embed its text on write and the query text on search. Search it with `EmbedQuery` / `SparseEmbedQuery`, which must be the only clause in `score_by`.
 
 ```python
 from pinecone import EmbedQuery, Pinecone, SchemaBuilder
@@ -118,9 +118,9 @@ results = index.documents.search(
 
 Text is stored (and full-text searchable) by default. `store_text=False` embeds it without storing it: the field can then be searched only with an embed clause, and naming it in `include_fields` fails with a 400.
 
-### Semantic search with integrated embeddings (legacy)
+### Legacy integrated indexes
 
-`create_for_model` is the legacy integrated-inference path, served by the records API. Prefer `embed` on a string field (above) for new indexes.
+`create_for_model` creates a legacy integrated index, and legacy integrated indexes require the legacy Records API (`upsert_records`, `search`). For new indexes, use a document index with integrated embedding (above).
 
 ```python
 from pinecone import EmbedConfig, Pinecone
@@ -246,7 +246,7 @@ key = admin.api_keys.create(project_id=project.id, name="my-key")
 pc = Pinecone(api_key=key.value)
 pc.indexes.create(
     name="my-index",
-    schema={"fields": {"embedding": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
+    schema={"fields": {"your_vector": {"type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
 )
 ```
@@ -268,7 +268,7 @@ async with AsyncPinecone(api_key="your-api-key") as pc:
 ```
 
 ```python
-# Async with integrated inference
+# Async with a legacy integrated index (legacy Records API)
 async with AsyncPinecone(api_key="your-api-key") as pc:
     desc = await pc.indexes.describe("my-index")
     index = pc.index(host=desc.host)
@@ -346,7 +346,7 @@ for match in results.matches:
     print(match.values)             # vector values (if include_values=True)
     print(match.metadata)           # metadata dict (if include_metadata=True)
 
-# SearchRecordsResponse — from index.search() with integrated embeddings
+# SearchRecordsResponse — from index.search() on a legacy integrated index
 results = index.search(namespace="products", top_k=5, inputs={"text": "..."})
 for hit in results.result.hits:
     print(hit.id, hit.score)        # id and similarity score

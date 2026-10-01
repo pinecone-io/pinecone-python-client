@@ -356,7 +356,8 @@ class AsyncDocuments:
 
         .. seealso::
            - :meth:`~pinecone.async_client.async_index.AsyncIndex.search` —
-             record search for integrated-inference indexes.
+             record search for legacy integrated indexes, through the legacy
+             Records API.
            - :meth:`~pinecone.async_client.async_index.AsyncIndex.query` —
              nearest-neighbor search over vectors you provide.
         """

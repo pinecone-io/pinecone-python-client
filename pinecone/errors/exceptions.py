@@ -511,8 +511,8 @@ class PineconeValueError(PineconeError, ValueError):
 
     Examples:
         >>> from pinecone import PineconeValueError
-        >>> print(PineconeValueError("dimension must be positive", "fields.embedding"))
-        at fields.embedding: dimension must be positive
+        >>> print(PineconeValueError("dimension must be positive", "fields.your_vector"))
+        at fields.your_vector: dimension must be positive
     """
 
     def __init__(self, message: str, path: str | None = None) -> None:
@@ -536,7 +536,7 @@ class PineconeTypeError(PineconeError, TypeError):
     with a message naming the current argument to use instead.
 
     When the failure is a value inside a request body that will not
-    JSON-encode, ``path`` locates it — ``records[2].embedding`` — which is
+    JSON-encode, ``path`` locates it — ``records[2].your_vector`` — which is
     the part worth reading on a bulk call. ``str(exc)`` prefixes the message
     with ``at <path>:``. Also derives from :class:`TypeError`.
     """

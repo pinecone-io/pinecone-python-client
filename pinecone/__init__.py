@@ -14,7 +14,7 @@ and set ``PINECONE_API_KEY``::
 
     pc.indexes.create(
         name="movie-recommendations",
-        schema={"fields": {"embedding": {
+        schema={"fields": {"your_vector": {
             "type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
         deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
     )
@@ -27,21 +27,23 @@ in for a full 1536-dimensional embedding::
     index = pc.index("movie-recommendations")
     index.documents.upsert(
         namespace="movies-en",
-        documents=[{"_id": "movie-42", "embedding": [0.012, -0.087, 0.153]}],
+        documents=[{"_id": "movie-42", "your_vector": [0.012, -0.087, 0.153]}],
     )
     results = index.documents.search(
         namespace="movies-en",
         top_k=5,
-        score_by=[DenseVectorQuery(field="embedding", values=[0.012, -0.087, 0.153])],
+        score_by=[DenseVectorQuery(field="your_vector", values=[0.012, -0.087, 0.153])],
     )
 
 How the index was created decides which data-plane interface it answers on. An
 index declaring a ``schema`` of your own field names stores documents, read and
 written through ``index.documents``. The vector methods :meth:`Index.upsert` and
 :meth:`Index.query` serve indexes created with top-level ``dimension`` and
-``metric``, and the server rejects them on a schema-based index. An index built
-by ``pc.indexes.create_for_model()`` embeds text server-side, so you search it
-with text rather than with a vector::
+``metric``, and the server rejects them on a schema-based index. A legacy
+integrated index, built by ``pc.indexes.create_for_model()``, requires the legacy
+Records API: it embeds text server-side, so you search it with text rather than
+with a vector (for a new index, give a document index a field with integrated
+embedding instead)::
 
     index = pc.index("semantic-search")
     results = index.search(
@@ -63,7 +65,7 @@ with text rather than with a vector::
             results = await index.documents.search(
                 namespace="movies-en",
                 top_k=5,
-                score_by=[DenseVectorQuery(field="embedding",
+                score_by=[DenseVectorQuery(field="your_vector",
                                            values=[0.012, -0.087, 0.153])],
             )
 

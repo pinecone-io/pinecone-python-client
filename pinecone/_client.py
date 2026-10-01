@@ -169,7 +169,7 @@ class Pinecone:
             if not pc.indexes.exists("product-search"):
                 pc.indexes.create(
                     name="product-search",
-                    schema={"fields": {"embedding": {
+                    schema={"fields": {"your_vector": {
                         "type": "dense_vector", "dimension": 1536, "metric": "cosine"}}},
                 )
 
