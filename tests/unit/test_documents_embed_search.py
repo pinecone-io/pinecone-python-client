@@ -92,12 +92,11 @@ class TestClauses:
     @pytest.mark.parametrize(
         "extra",
         [
-            {"fields": ["body"]},
             {"values": [0.1]},
             {"sparse_values": {"indices": [1], "values": [0.5]}},
             {"top_k": 3},
         ],
-        ids=["fields", "values", "sparse_values", "typo"],
+        ids=["values", "sparse_values", "typo"],
     )
     def test_dict_clause_with_an_unknown_key_rejected(
         self, kind: str, extra: dict[str, Any]
@@ -109,15 +108,8 @@ class TestClauses:
                 score_by=[{"type": kind, "field": "body", "query": "fox", **extra}], top_k=4
             )
 
-    @pytest.mark.parametrize("kind", ["embed", "sparse_embed"])
-    def test_spec_fields_form_rejected_not_rewritten(self, kind: str) -> None:
-        with pytest.raises(msgspec.ValidationError, match="unknown field `fields`"):
-            msgspec.convert(
-                {"type": kind, "fields": ["body"], "query": "fox"}, type=DocumentScoringMethod
-            )
-
     @pytest.mark.parametrize("cls", [EmbedQuery, SparseEmbedQuery])
-    @pytest.mark.parametrize("kwarg", ["fields", "values", "sparse_values"])
+    @pytest.mark.parametrize("kwarg", ["values", "sparse_values"])
     def test_typed_clause_takes_only_field_and_query(self, cls: type, kwarg: str) -> None:
         with pytest.raises(TypeError, match=kwarg):
             cls(field="body", query="fox", **{kwarg: ["body"]})

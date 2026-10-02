@@ -33,6 +33,16 @@ __all__ = [
 ]
 
 
+def _single_field(kind: str, field: str | None, fields: list[str] | None) -> str | None:
+    if fields is None:
+        return field
+    if field is not None:
+        raise ValueError(f"{kind} scoring accepts 'field' or 'fields', but not both")
+    if len(fields) != 1:
+        raise ValueError(f"{kind} scoring requires specifying the name of exactly one field")
+    return fields[0]
+
+
 class TextQuery(Struct, tag="text", tag_field="type", kw_only=True, omit_defaults=True):
     """Score documents by BM25 keyword relevance over named text fields.
 
@@ -119,7 +129,9 @@ class QueryStringQuery(
             )
 
 
-class DenseVectorQuery(Struct, tag="dense_vector", tag_field="type", kw_only=True):
+class DenseVectorQuery(
+    Struct, tag="dense_vector", tag_field="type", kw_only=True, omit_defaults=True
+):
     """Score documents by dense vector similarity to a query embedding.
 
     The clause for finding documents by meaning. It scores against one field, so the
@@ -130,9 +142,12 @@ class DenseVectorQuery(Struct, tag="dense_vector", tag_field="type", kw_only=Tru
     Attributes:
         field: The dense vector field to score against, e.g. ``"your_vector"``.
         values: The query embedding, one float per dimension of that field.
+        fields: The same field as a one-element list, e.g. ``["your_vector"]``, in place
+            of ``field``. It is moved into ``field`` and reads back as ``None``.
 
     Raises:
-        ValueError: If ``field`` is empty, or ``values`` is empty.
+        ValueError: If ``field`` is empty, ``values`` is empty, ``fields`` does not hold
+            exactly one name, or both ``field`` and ``fields`` are given.
 
     Examples:
         The three floats here stand in for a full-length embedding.
@@ -145,10 +160,13 @@ class DenseVectorQuery(Struct, tag="dense_vector", tag_field="type", kw_only=Tru
        :class:`SparseVectorQuery` — the same idea against a sparse field.
     """
 
-    field: str
     values: list[float]
+    field: str | None = None
+    fields: list[str] | None = None
 
     def __post_init__(self) -> None:
+        self.field = _single_field("dense_vector", self.field, self.fields)
+        self.fields = None
         if not self.field:
             raise ValueError(
                 "dense_vector scoring requires specifying the name of exactly one field"
@@ -157,7 +175,9 @@ class DenseVectorQuery(Struct, tag="dense_vector", tag_field="type", kw_only=Tru
             raise ValueError("dense_vector scoring requires a non-empty 'values' array")
 
 
-class SparseVectorQuery(Struct, tag="sparse_vector", tag_field="type", kw_only=True):
+class SparseVectorQuery(
+    Struct, tag="sparse_vector", tag_field="type", kw_only=True, omit_defaults=True
+):
     """Score documents by sparse vector similarity to a query sparse vector.
 
     The clause for finding documents by term overlap when you already hold a sparse
@@ -169,9 +189,12 @@ class SparseVectorQuery(Struct, tag="sparse_vector", tag_field="type", kw_only=T
         field: The sparse vector field to score against, e.g. ``"keywords"``.
         sparse_values: The query's sparse vector, as
             :class:`~pinecone.models.vectors.sparse.SparseValues`.
+        fields: The same field as a one-element list, e.g. ``["keywords"]``, in place of
+            ``field``. It is moved into ``field`` and reads back as ``None``.
 
     Raises:
-        ValueError: If ``field`` is empty.
+        ValueError: If ``field`` is empty, ``fields`` does not hold exactly one name, or
+            both ``field`` and ``fields`` are given.
 
     Examples:
         >>> from pinecone import SparseValues
@@ -186,17 +209,27 @@ class SparseVectorQuery(Struct, tag="sparse_vector", tag_field="type", kw_only=T
        :class:`TextQuery` — when you have the words rather than a sparse encoding of them.
     """
 
-    field: str
     sparse_values: SparseValues
+    field: str | None = None
+    fields: list[str] | None = None
 
     def __post_init__(self) -> None:
+        self.field = _single_field("sparse_vector", self.field, self.fields)
+        self.fields = None
         if not self.field:
             raise ValueError(
                 "sparse_vector scoring requires specifying the name of exactly one field"
             )
 
 
-class EmbedQuery(Struct, tag="embed", tag_field="type", kw_only=True, forbid_unknown_fields=True):
+class EmbedQuery(
+    Struct,
+    tag="embed",
+    tag_field="type",
+    kw_only=True,
+    omit_defaults=True,
+    forbid_unknown_fields=True,
+):
     """Score documents by dense similarity to query text that Pinecone embeds.
 
     The clause for searching a ``string`` field declared with ``embed``: pass the query
@@ -204,16 +237,19 @@ class EmbedQuery(Struct, tag="embed", tag_field="type", kw_only=True, forbid_unk
     scores it against the field's stored embeddings. You never handle a vector. Like a
     dense clause, it has to stand alone in ``score_by``.
 
-    A dict clause is checked strictly: a key other than ``type``, ``field`` and
-    ``query`` is rejected rather than dropped, so a vector passed as ``values`` cannot be
-    silently ignored.
+    A dict clause is checked strictly: a key other than ``type``, ``field``, ``fields``
+    and ``query`` is rejected rather than dropped, so a vector passed as ``values``
+    cannot be silently ignored.
 
     Attributes:
         field: The ``string`` field that declares ``embed``, e.g. ``"body"``.
         query: The text to search for, e.g. ``"how do vector indexes scale"``.
+        fields: The same field as a one-element list, e.g. ``["body"]``, in place of
+            ``field``. It is moved into ``field`` and reads back as ``None``.
 
     Raises:
-        ValueError: If ``field`` or ``query`` is empty.
+        ValueError: If ``field`` or ``query`` is empty, ``fields`` does not hold exactly
+            one name, or both ``field`` and ``fields`` are given.
 
     Examples:
         >>> from pinecone.models.documents.score_by import EmbedQuery
@@ -225,10 +261,13 @@ class EmbedQuery(Struct, tag="embed", tag_field="type", kw_only=True, forbid_unk
        embedded yourself.
     """
 
-    field: str
     query: str
+    field: str | None = None
+    fields: list[str] | None = None
 
     def __post_init__(self) -> None:
+        self.field = _single_field("embed", self.field, self.fields)
+        self.fields = None
         if not self.field:
             raise ValueError("embed scoring requires specifying the name of exactly one field")
         if not self.query:
@@ -236,7 +275,12 @@ class EmbedQuery(Struct, tag="embed", tag_field="type", kw_only=True, forbid_unk
 
 
 class SparseEmbedQuery(
-    Struct, tag="sparse_embed", tag_field="type", kw_only=True, forbid_unknown_fields=True
+    Struct,
+    tag="sparse_embed",
+    tag_field="type",
+    kw_only=True,
+    omit_defaults=True,
+    forbid_unknown_fields=True,
 ):
     """Score documents by sparse similarity to query text that Pinecone embeds.
 
@@ -244,16 +288,19 @@ class SparseEmbedQuery(
     query as text, and Pinecone embeds it with that field's sparse model and read
     parameters. It has to stand alone in ``score_by``.
 
-    A dict clause is checked strictly: a key other than ``type``, ``field`` and
-    ``query`` is rejected rather than dropped, so a vector passed as ``sparse_values``
-    cannot be silently ignored.
+    A dict clause is checked strictly: a key other than ``type``, ``field``, ``fields``
+    and ``query`` is rejected rather than dropped, so a vector passed as
+    ``sparse_values`` cannot be silently ignored.
 
     Attributes:
         field: The ``string`` field that declares ``sparse_embed``, e.g. ``"body"``.
         query: The text to search for, e.g. ``"vector database"``.
+        fields: The same field as a one-element list, e.g. ``["body"]``, in place of
+            ``field``. It is moved into ``field`` and reads back as ``None``.
 
     Raises:
-        ValueError: If ``field`` or ``query`` is empty.
+        ValueError: If ``field`` or ``query`` is empty, ``fields`` does not hold exactly
+            one name, or both ``field`` and ``fields`` are given.
 
     Examples:
         >>> from pinecone.models.documents.score_by import SparseEmbedQuery
@@ -265,10 +312,13 @@ class SparseEmbedQuery(
        vector you encoded yourself.
     """
 
-    field: str
     query: str
+    field: str | None = None
+    fields: list[str] | None = None
 
     def __post_init__(self) -> None:
+        self.field = _single_field("sparse_embed", self.field, self.fields)
+        self.fields = None
         if not self.field:
             raise ValueError(
                 "sparse_embed scoring requires specifying the name of exactly one field"
