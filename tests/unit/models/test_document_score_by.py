@@ -10,7 +10,9 @@ import pytest
 from pinecone.models.documents import (
     DenseVectorQuery,
     DocumentScoringMethod,
+    EmbedQuery,
     QueryStringQuery,
+    SparseEmbedQuery,
     SparseVectorQuery,
     TextQuery,
 )
@@ -203,3 +205,31 @@ def test_union_importable_from_canonical_paths() -> None:
 
     assert pinecone.DocumentScoringMethod is score_by.DocumentScoringMethod
     assert pinecone.models.DocumentScoringMethod is score_by.DocumentScoringMethod
+
+
+@pytest.mark.parametrize(
+    ("cls", "rest"),
+    [
+        (DenseVectorQuery, {"values": [0.1]}),
+        (SparseVectorQuery, {"sparse_values": {"indices": [1], "values": [0.9]}}),
+        (EmbedQuery, {"query": "fox"}),
+        (SparseEmbedQuery, {"query": "fox"}),
+    ],
+    ids=["dense_vector", "sparse_vector", "embed", "sparse_embed"],
+)
+def test_single_field_clause_accepts_one_element_fields(
+    cls: type[DocumentScoringMethod], rest: dict[str, object]
+) -> None:
+    kind = cls.__struct_config__.tag
+    from_dict = msgspec.convert({"type": kind, "fields": ["body"], **rest}, type=cls)
+    typed = cls(**msgspec.structs.asdict(from_dict) | {"field": None, "fields": ["body"]})
+    for clause in (from_dict, typed):
+        assert (clause.field, clause.fields) == ("body", None)
+        assert msgspec.to_builtins(clause) == {"type": kind, "field": "body", **rest}
+
+    with pytest.raises(msgspec.ValidationError, match="'field' or 'fields', but not both"):
+        msgspec.convert({"type": kind, "field": "body", "fields": ["body"], **rest}, type=cls)
+    with pytest.raises(msgspec.ValidationError, match="exactly one field"):
+        msgspec.convert({"type": kind, "fields": ["body", "title"], **rest}, type=cls)
+    with pytest.raises(msgspec.ValidationError, match="exactly one field"):
+        msgspec.convert({"type": kind, "fields": [], **rest}, type=cls)
