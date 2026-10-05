@@ -163,7 +163,7 @@ skip_covered = false
 
 [dependency-groups]
 dev = [
-    "anyio>=4.13.0",
+    "anyio>=4.14.2",
     # pandas/numpy back the DataFrame ingest tests, which importorskip and would
     # otherwise skip silently in CI. numpy is what makes them representative of a
     # real embedding frame.
