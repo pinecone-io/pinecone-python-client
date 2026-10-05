@@ -115,7 +115,9 @@ class Documents:
 
         Returns:
             :class:`UpsertDocumentsResponse` with the count of documents
-            accepted for upsert.
+            accepted for upsert. ``usage.embed_total_tokens`` counts the tokens
+            Pinecone embedded for ``embed`` and ``sparse_embed`` fields;
+            ``usage`` is ``None`` when the upsert embedded no text.
 
         Raises:
             :exc:`PineconeValueError`: If ``namespace`` is empty, ``documents``
@@ -630,6 +632,9 @@ class Documents:
             :class:`UpdateDocumentsResponse` — ``matched_records`` is
             populated only for filtered updates (``None`` for per-ID updates,
             and when the count could not be read in time).
+            ``usage.embed_total_tokens`` counts the tokens Pinecone embedded
+            for ``embed`` and ``sparse_embed`` fields; ``usage`` is ``None``
+            when the update embedded no text.
 
         Raises:
             :exc:`PineconeValueError`: If ``namespace`` is empty,

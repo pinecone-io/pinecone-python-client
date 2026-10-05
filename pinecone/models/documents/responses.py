@@ -23,6 +23,8 @@ __all__ = [
     "DocumentFetchUsage",
     "DocumentListUsage",
     "DocumentSearchUsage",
+    "DocumentUpdateUsage",
+    "DocumentUpsertUsage",
     "FetchDocumentsResponse",
     "ListDocumentsResponse",
     "ListedDocumentRecord",
@@ -66,16 +68,43 @@ class DocumentListUsage(Struct, kw_only=True, gc=False):
     read_units: int
 
 
+class DocumentUpsertUsage(Struct, kw_only=True, gc=False):
+    """What one document upsert cost in embedding.
+
+    Attributes:
+        embed_total_tokens: Tokens Pinecone embedded for the ``embed`` and
+            ``sparse_embed`` fields of the upserted documents, summed across every
+            field and model.
+    """
+
+    embed_total_tokens: int
+
+
+class DocumentUpdateUsage(Struct, kw_only=True, gc=False):
+    """What one document update cost in embedding.
+
+    Attributes:
+        embed_total_tokens: Tokens Pinecone embedded for the ``embed`` and
+            ``sparse_embed`` fields the update set, summed across every field and
+            model.
+    """
+
+    embed_total_tokens: int
+
+
 class UpsertDocumentsResponse(Struct, kw_only=True):
     """What a document upsert wrote.
 
     Attributes:
         upserted_count: Documents the server accepted.
+        usage: What the upsert cost in embedding, or ``None`` when Pinecone embedded
+            no text for it.
         response_info: HTTP response metadata (request ID and LSN headers), or ``None``
             when not present.
     """
 
     upserted_count: int
+    usage: DocumentUpsertUsage | None = None
     response_info: ResponseInfo | None = None
 
 
@@ -108,11 +137,14 @@ class UpdateDocumentsResponse(Struct, kw_only=True):
             not be read in time. The patch is applied asynchronously, so
             this is a point-in-time count rather than a guarantee of the
             number of documents ultimately patched.
+        usage: What the update cost in embedding, or ``None`` when Pinecone
+            embedded no text for it.
         response_info: HTTP response metadata (request ID and LSN headers),
             or ``None`` when not present.
     """
 
     matched_records: int | None = None
+    usage: DocumentUpdateUsage | None = None
     response_info: ResponseInfo | None = None
 
 
