@@ -153,6 +153,22 @@ class Backups:
         following ``pagination`` on your behalf. Drive the token yourself to
         walk the rest — see :doc:`/guides/pagination`.
 
+        ``list`` returns a page rather than a
+        :class:`~pinecone.models.pagination.Paginator` because that is how
+        the backup endpoints are shaped throughout: so do
+        :meth:`~pinecone.client.restore_jobs.RestoreJobs.list`,
+        :meth:`~pinecone.client.backup_schedules.BackupSchedules.list` and
+        :meth:`~pinecone.client.backup_schedules.BackupSchedules.history`.
+        Where a page-walking companion exists it is a separate method —
+        :meth:`~pinecone.client.backup_schedules.BackupSchedules.iter_schedules`
+        and
+        :meth:`~pinecone.client.backup_schedules.BackupSchedules.iter_history`.
+        Neither this listing nor
+        :meth:`~pinecone.client.restore_jobs.RestoreJobs.list` has one, so
+        walking those is the caller's job;
+        :meth:`~pinecone.client.indexes.Indexes.list_backups` is the
+        page-walking shape for one index at a time.
+
         Args:
             index_name (str | None): Index name to scope the listing to, or
                 ``None`` for every backup in the project.
