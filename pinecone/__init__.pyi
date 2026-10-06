@@ -43,7 +43,7 @@ from pinecone.models.collections.list import CollectionList as CollectionList
 from pinecone.models.collections.model import CollectionModel as CollectionModel
 from pinecone.models.documents.document import Document as Document, DocumentRecord as DocumentRecord, UpdateDocumentRecord as UpdateDocumentRecord
 from pinecone.models.documents.requests import DeleteDocumentsRequest as DeleteDocumentsRequest, FetchDocumentsRequest as FetchDocumentsRequest, ListDocumentsRequest as ListDocumentsRequest, SearchDocumentsRequest as SearchDocumentsRequest, UpdateDocumentsRequest as UpdateDocumentsRequest, UpsertDocumentsRequest as UpsertDocumentsRequest
-from pinecone.models.documents.responses import DeleteDocumentsResponse as DeleteDocumentsResponse, DocumentFetchUsage as DocumentFetchUsage, DocumentListUsage as DocumentListUsage, DocumentSearchUsage as DocumentSearchUsage, FetchDocumentsResponse as FetchDocumentsResponse, ListDocumentsResponse as ListDocumentsResponse, ListedDocumentRecord as ListedDocumentRecord, SearchDocumentsResponse as SearchDocumentsResponse, UpdateDocumentsResponse as UpdateDocumentsResponse, UpsertDocumentsResponse as UpsertDocumentsResponse
+from pinecone.models.documents.responses import DeleteDocumentsResponse as DeleteDocumentsResponse, DocumentFetchUsage as DocumentFetchUsage, DocumentListUsage as DocumentListUsage, DocumentSearchUsage as DocumentSearchUsage, DocumentUpdateUsage as DocumentUpdateUsage, DocumentUpsertUsage as DocumentUpsertUsage, FetchDocumentsResponse as FetchDocumentsResponse, ListDocumentsResponse as ListDocumentsResponse, ListedDocumentRecord as ListedDocumentRecord, SearchDocumentsResponse as SearchDocumentsResponse, UpdateDocumentsResponse as UpdateDocumentsResponse, UpsertDocumentsResponse as UpsertDocumentsResponse
 from pinecone.models.documents.score_by import DenseVectorQuery as DenseVectorQuery, DocumentScoringMethod as DocumentScoringMethod, EmbedQuery as EmbedQuery, QueryStringQuery as QueryStringQuery, SparseEmbedQuery as SparseEmbedQuery, SparseVectorQuery as SparseVectorQuery, TextQuery as TextQuery
 from pinecone.models.enums import CloudProvider as CloudProvider, DeletionProtection as DeletionProtection, EmbedModel as EmbedModel, Metric as Metric, PodIndexEnvironment as PodIndexEnvironment, PodType as PodType, RerankModel as RerankModel, VectorType as VectorType
 from pinecone.models.imports.error_mode import ImportErrorMode as ImportErrorMode
@@ -133,6 +133,8 @@ __all__ = [
     "DocumentRecord",
     "DocumentScoringMethod",
     "DocumentSearchUsage",
+    "DocumentUpdateUsage",
+    "DocumentUpsertUsage",
     "EmbedConfig",
     "EmbedModel",
     "EmbedQuery",

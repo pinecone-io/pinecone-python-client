@@ -429,6 +429,14 @@ Document Responses
    :members:
    :show-inheritance:
 
+.. autoclass:: pinecone.models.documents.responses.DocumentUpsertUsage
+   :members:
+   :show-inheritance:
+
+.. autoclass:: pinecone.models.documents.responses.DocumentUpdateUsage
+   :members:
+   :show-inheritance:
+
 Document Requests
 ~~~~~~~~~~~~~~~~~
 
