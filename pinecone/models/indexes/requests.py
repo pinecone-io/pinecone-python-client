@@ -21,31 +21,41 @@ from pinecone.models.indexes.schema import IndexSchema
 __all__ = ["ConfigureIndexRequest", "CreateIndexRequest"]
 
 _ALLOWED_DEPLOYMENT_TYPES = ("managed", "pod", "byoc")
-_MAX_FIELD_NAME_LENGTH = 64
+_MAX_FIELD_NAME_BYTES = 64
 
 
 def validate_schema_field_name(name: str) -> None:
     """Check one schema field name for length before the request is sent.
 
-    Names must be 1-64 characters. Which names are reserved (``_id``,
-    ``_values``, ``_sparse_values``) or otherwise special (a leading ``$``) is
-    the server's call rather than the SDK's — a client-side copy of that list
-    would drift the moment the server's rules changed — so only length is
-    checked here.
+    Names must be 1-64 bytes once encoded as UTF-8, the same unit the server
+    measures, so a name of multibyte characters fits far fewer of them than an
+    ASCII name does. Which names are reserved (``_id``, ``_values``,
+    ``_sparse_values``) or otherwise special (a leading ``$``) is the server's
+    call rather than the SDK's — a client-side copy of that list would drift
+    the moment the server's rules changed — so only length is checked here.
 
     Raises:
-        PineconeValueError: If the name is empty or too long. The message
+        PineconeValueError: If the name is empty, too long, or holds a
+            surrogate character and so cannot be encoded as UTF-8. The message
             names the field, the rule it broke, and the fix.
     """
     if not name:
         raise PineconeValueError(
-            "Invalid schema field name '': field names must be 1-64 characters. "
+            "Invalid schema field name '': field names must be 1-64 bytes. "
             "Provide a non-empty field name."
         )
-    if len(name) > _MAX_FIELD_NAME_LENGTH:
+    try:
+        name_bytes = len(name.encode("utf-8"))
+    except UnicodeEncodeError:
         raise PineconeValueError(
-            f"Invalid schema field name {name!r}: {len(name)} characters exceeds "
-            f"the maximum length of {_MAX_FIELD_NAME_LENGTH}. Shorten the field name."
+            f"Invalid schema field name {name!r}: field names must encode as "
+            "UTF-8, and surrogate characters cannot. Remove the surrogate "
+            "characters from the field name."
+        ) from None
+    if name_bytes > _MAX_FIELD_NAME_BYTES:
+        raise PineconeValueError(
+            f"Invalid schema field name {name!r}: {name_bytes} UTF-8 bytes exceeds "
+            f"the maximum length of {_MAX_FIELD_NAME_BYTES}. Shorten the field name."
         )
 
 
@@ -86,7 +96,8 @@ class CreateIndexRequest(Struct, kw_only=True, omit_defaults=True):
             :class:`~pinecone.models.indexes.schema.IndexSchema` or the
             equivalent dict. Only searchable fields are declared —
             ``dense_vector``, ``sparse_vector``, or ``string`` with a
-            ``full_text_search`` config.
+            ``full_text_search`` config. Each field name is limited to 64
+            UTF-8 bytes.
         name: Name for the index; the server assigns one when omitted.
         deployment: Where the index runs, discriminated on
             ``deployment_type`` (``managed``, ``pod`` or ``byoc``). Omitted
