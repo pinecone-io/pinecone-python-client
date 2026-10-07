@@ -355,7 +355,7 @@ if TYPE_CHECKING:
     from pinecone.schema_builder import SchemaBuilder
     from pinecone.utils.filter_builder import Field, FilterBuilder
 
-__version__ = "10.0.0"
+__version__ = "10.1.0rc1"
 
 if _os.environ.get("PINECONE_DEBUG"):
     import logging as _logging
