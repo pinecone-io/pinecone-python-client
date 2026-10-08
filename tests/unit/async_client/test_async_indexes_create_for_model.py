@@ -186,6 +186,27 @@ async def test_create_for_model_accepts_embed_config(indexes: AsyncIndexes) -> N
 
 
 @respx.mock
+async def test_create_for_model_serialized_embed_config_keeps_dimension(
+    indexes: AsyncIndexes,
+) -> None:
+    route = _mock_route()
+    config = EmbedConfig(
+        model="multilingual-e5-large", field_map={"text": "chunk_text"}, dimension=1024
+    )
+
+    await indexes.create_for_model(
+        name="semantic-index",
+        cloud="aws",
+        region="us-east-1",
+        embed=config.to_dict(),
+        timeout=-1,
+    )
+
+    body = json.loads(route.calls.last.request.content)
+    assert body["embed"]["dimension"] == 1024
+
+
+@respx.mock
 async def test_create_for_model_accepts_index_embed(indexes: AsyncIndexes) -> None:
     from pinecone.inference.models.index_embed import IndexEmbed
 

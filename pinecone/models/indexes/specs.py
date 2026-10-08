@@ -33,10 +33,7 @@ class EmbedConfig(Struct, frozen=True, kw_only=True):
             ``{"text": "<your field name>"}`` — e.g.
             ``{"text": "chunk_text"}``.
         dimension: Output width to ask the model for, when it supports more
-            than one. ``None`` takes the model's own dimension. Note that
-            :meth:`to_dict` omits this field; ``create_for_model`` reads the
-            attribute directly, so the create path is unaffected, but a dict
-            you build with :meth:`to_dict` loses it.
+            than one. ``None`` takes the model's own dimension.
         metric: How similarity is scored, or ``None`` for the model default.
         read_parameters: Extra arguments passed to the model when embedding a
             query, e.g. ``{"input_type": "query"}``.
@@ -52,18 +49,35 @@ class EmbedConfig(Struct, frozen=True, kw_only=True):
     write_parameters: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        """Serialize to a plain dict of ``model``, ``field_map`` and metric.
+        """Serialize to a plain dict of this config's fields.
 
-        ``read_parameters`` and ``write_parameters`` come out as empty dicts
-        rather than being omitted when they were never set, and ``dimension``
-        is left out entirely — pass the :class:`EmbedConfig` itself to
-        ``create_for_model``, which reads the attribute, rather than the
-        output of this method.
+        The result is one of the shapes
+        :meth:`~pinecone.client.indexes.Indexes.create_for_model` accepts for
+        ``embed=``.
+
+        Returns:
+            Dictionary with ``model`` and ``field_map`` always present, and
+            ``dimension`` and ``metric`` present only when they are set.
+            ``read_parameters`` and ``write_parameters`` come out as empty
+            dicts rather than being omitted, which is the one difference an
+            ``EmbedConfig(**config.to_dict())`` round trip shows.
+
+        Examples:
+            >>> from pinecone import EmbedConfig
+            >>> config = EmbedConfig(
+            ...     model="multilingual-e5-large",
+            ...     field_map={"text": "chunk_text"},
+            ...     dimension=1024,
+            ... )
+            >>> config.to_dict()["dimension"]
+            1024
         """
         result: dict[str, Any] = {
             "model": self.model.value if hasattr(self.model, "value") else self.model,
             "field_map": self.field_map,
         }
+        if self.dimension is not None:
+            result["dimension"] = self.dimension
         if self.metric is not None:
             result["metric"] = self.metric.value if hasattr(self.metric, "value") else self.metric
         result["read_parameters"] = self.read_parameters if self.read_parameters is not None else {}

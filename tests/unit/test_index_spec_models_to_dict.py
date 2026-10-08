@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+import pytest
+
 from pinecone.models.indexes.index import IndexStatus
 from pinecone.models.indexes.read_capacity import (
     ReadCapacityDedicatedConfig,
@@ -16,6 +20,7 @@ from pinecone.models.indexes.schema import (
     StringField,
 )
 from pinecone.models.indexes.specs import (
+    ByocSpec,
     EmbedConfig,
     IntegratedSpec,
     PodSpec,
@@ -93,6 +98,41 @@ def test_integrated_spec_to_dict_nested_embed() -> None:
     assert isinstance(result["embed"], dict)
     assert result["embed"]["model"] == "multilingual-e5-large"
     assert result["cloud"] == "aws"
+
+
+@pytest.mark.parametrize(
+    ("spec", "wrapper"),
+    [
+        (
+            ServerlessSpec(
+                cloud="aws",
+                region="us-east-1",
+                read_capacity={"mode": "OnDemand"},
+                schema={"fields": {"genre": {"filterable": True}}},
+            ),
+            "serverless",
+        ),
+        (
+            PodSpec(
+                environment="us-east-1-aws",
+                metadata_config={"indexed": ["genre"]},
+                source_collection="film-archive",
+            ),
+            "pod",
+        ),
+        (
+            ByocSpec(
+                environment="aws-us-east-1-b921",
+                read_capacity={"mode": "OnDemand"},
+                schema={"fields": {"genre": {"filterable": True}}},
+            ),
+            "byoc",
+        ),
+    ],
+    ids=["serverless", "pod", "byoc"],
+)
+def test_asdict_covers_every_declared_field(spec: Any, wrapper: str) -> None:
+    assert set(spec.asdict()[wrapper]) == set(type(spec).__struct_fields__)
 
 
 def test_to_dict_is_pure_read() -> None:
