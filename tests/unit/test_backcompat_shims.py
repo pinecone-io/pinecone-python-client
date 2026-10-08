@@ -356,6 +356,184 @@ class TestPineconeAsyncioModuleShim:
         assert set(shim.__all__) == {"AsyncPinecone", "PineconeAsyncio"}
 
 
+_SHIM_PACKAGE_EXPORTS: dict[str, set[str]] = {
+    "pinecone.config": {"Config", "PineconeConfig"},
+    "pinecone.db_control": {
+        "AwsRegion",
+        "AzureRegion",
+        "BackupList",
+        "BackupModel",
+        "ByocSpec",
+        "CloudProvider",
+        "CollectionDescription",
+        "CollectionList",
+        "DeletionProtection",
+        "GcpRegion",
+        "IndexEmbed",
+        "IndexList",
+        "IndexModel",
+        "Metric",
+        "PodIndexEnvironment",
+        "PodSpec",
+        "PodType",
+        "RestoreJobList",
+        "RestoreJobModel",
+        "ServerlessSpec",
+        "VectorType",
+    },
+    "pinecone.db_control.enums": {
+        "AwsRegion",
+        "AzureRegion",
+        "CloudProvider",
+        "DeletionProtection",
+        "GcpRegion",
+        "Metric",
+        "PodIndexEnvironment",
+        "PodType",
+        "VectorType",
+    },
+    "pinecone.db_control.models": {
+        "BackupList",
+        "BackupModel",
+        "ByocSpec",
+        "CollectionDescription",
+        "CollectionList",
+        "IndexEmbed",
+        "IndexList",
+        "IndexModel",
+        "PodSpec",
+        "RestoreJobList",
+        "RestoreJobModel",
+        "ServerlessSpec",
+    },
+    "pinecone.db_data": {
+        "DescribeIndexStatsResponse",
+        "FetchResponse",
+        "ImportErrorMode",
+        "Index",
+        "IndexAsyncio",
+        "QueryResponse",
+        "SearchQuery",
+        "SearchQueryVector",
+        "SearchRerank",
+        "SparseValues",
+        "UpsertResponse",
+        "Vector",
+        "_Index",
+        "_IndexAsyncio",
+    },
+    "pinecone.exceptions": {
+        "ForbiddenException",
+        "ListConversionException",
+        "NotFoundException",
+        "PineconeApiAttributeError",
+        "PineconeApiException",
+        "PineconeApiKeyError",
+        "PineconeApiTypeError",
+        "PineconeApiValueError",
+        "PineconeConfigurationError",
+        "PineconeException",
+        "PineconeProtocolError",
+        "RateLimitException",
+        "ServiceException",
+        "UnauthorizedException",
+        "ValidationError",
+    },
+    "pinecone.inference.models": {
+        "EmbeddingsList",
+        "IndexEmbed",
+        "ModelInfo",
+        "ModelInfoList",
+        "RerankResult",
+    },
+}
+
+
+@pytest.mark.parametrize("module_path", sorted(_SHIM_PACKAGE_EXPORTS))
+def test_shim_package_all_is_exhaustive(module_path: str) -> None:
+    module = importlib.import_module(module_path)
+    assert set(module.__all__) == _SHIM_PACKAGE_EXPORTS[module_path]
+
+
+@pytest.mark.parametrize(
+    "module_path,symbol_name",
+    sorted(
+        (module_path, symbol_name)
+        for module_path, names in _SHIM_PACKAGE_EXPORTS.items()
+        for symbol_name in names
+    ),
+)
+def test_shim_package_all_names_import(module_path: str, symbol_name: str) -> None:
+    module = importlib.import_module(module_path)
+    assert getattr(module, symbol_name) is not None
+
+
+def test_db_control_matches_control_shim() -> None:
+    import pinecone.control as control
+    import pinecone.db_control as db_control
+
+    assert set(db_control.__all__) == set(control.__all__)
+    for name in control.__all__:
+        assert getattr(db_control, name) is getattr(control, name)
+
+
+def test_db_data_matches_data_shim() -> None:
+    import pinecone.data as data
+    import pinecone.db_data as db_data
+
+    for name in data.__all__:
+        assert getattr(db_data, name) is getattr(data, name)
+
+
+def test_db_data_underscore_aliases_are_the_index_classes() -> None:
+    import pinecone.db_data as db_data
+
+    assert db_data._Index is db_data.Index
+    assert db_data._IndexAsyncio is db_data.IndexAsyncio
+
+
+def test_config_shim_package_reexports_own_submodules() -> None:
+    import pinecone.config as config
+    import pinecone.config.config as config_module
+    import pinecone.config.pinecone_config as pinecone_config_module
+
+    assert config.Config is config_module.Config
+    assert config.PineconeConfig is pinecone_config_module.PineconeConfig
+
+
+def test_exceptions_shim_names_are_the_canonical_classes() -> None:
+    import pinecone.errors.exceptions as canonical
+    import pinecone.exceptions as shim
+
+    for name in shim.__all__:
+        assert getattr(shim, name) is getattr(canonical, name)
+
+
+def test_inference_models_shim_reexports_canonical() -> None:
+    import pinecone.inference.models as shim
+    import pinecone.inference.models.index_embed as index_embed
+    import pinecone.models.inference.embed as embed
+    import pinecone.models.inference.model_list as model_list
+    import pinecone.models.inference.models as models
+    import pinecone.models.inference.rerank as rerank
+
+    assert shim.EmbeddingsList is embed.EmbeddingsList
+    assert shim.ModelInfo is models.ModelInfo
+    assert shim.ModelInfoList is model_list.ModelInfoList
+    assert shim.RerankResult is rerank.RerankResult
+    assert shim.IndexEmbed is index_embed.IndexEmbed
+
+
+def test_index_embed_is_not_marked_private() -> None:
+    import pinecone.inference.models.index_embed as module
+    from pinecone.inference.models.index_embed import IndexEmbed
+
+    assert IndexEmbed.__doc__ is not None
+    assert ":meta private:" not in IndexEmbed.__doc__
+    assert module.__doc__ is not None
+    assert ":meta private:" not in module.__doc__
+
+
 def test_data_shim_omits_removed_vector_errors() -> None:
     import pinecone.data as data_shim
 
