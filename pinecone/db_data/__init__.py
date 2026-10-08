@@ -10,6 +10,7 @@ import these from the top-level :mod:`pinecone` namespace, except
 errors (``VectorDictionaryMissingKeysError`` and the rest) also used to live
 here and have no replacement; vector validation now raises
 :class:`pinecone.PineconeValueError` or :class:`pinecone.PineconeTypeError`.
+``Inference`` is not re-exported here; import it from :mod:`pinecone.inference`.
 
 :meta private:
 """
