@@ -141,10 +141,15 @@ class ConfigureIndexRequest(Struct, kw_only=True, omit_defaults=True):
     named.
 
     Attributes:
-        schema: Schema changes. Only a ``semantic_text`` field's parameters
-            can be changed; fields cannot be added or removed.
-        deployment: Deployment changes, for pod-based indexes only —
-            ``replicas`` and ``pod_type``, with no ``deployment_type`` key.
+        schema: Schema changes. On an index created with
+            ``create(schema=...)`` the schema is fixed: nothing in it can be
+            changed, including ``embed``/``sparse_embed`` parameters. On an
+            index created with ``create_for_model``, only a ``semantic_text``
+            field's parameters can be changed, and fields cannot be added or
+            removed.
+        deployment: Deployment changes, for pod-based indexes only. Only
+            ``replicas`` and ``pod_type`` are accepted; any other key is
+            rejected by the server.
         read_capacity: Replacement read capacity configuration.
         deletion_protection: ``"enabled"`` or ``"disabled"``.
         tags: Tags to merge into the existing ones. Setting a key to ``""``

@@ -756,13 +756,18 @@ class Indexes:
         Args:
             name: Name of the index to configure.
             deployment: Pod-scaling updates for pod-based indexes —
-                ``{"replicas": int, "pod_type": str}`` (either or both). Must
-                not include ``"deployment_type"``: deployment type,
-                cloud/region, and environment cannot be changed after
-                creation.
-            schema: Schema updates. Only ``semantic_text`` field parameters
-                (``read_parameters``/``write_parameters``) are updatable
-                server-side; see the note after the examples.
+                ``{"replicas": int, "pod_type": str}`` (either or both). Only
+                those two keys are accepted; any other key is rejected by the
+                server. ``"deployment_type"`` raises :exc:`PineconeValueError`
+                client-side, since deployment type, cloud/region, and
+                environment cannot be changed after creation.
+            schema: Schema updates. On an index created with
+                ``create(schema=...)`` the schema is fixed: nothing in it can
+                be changed, including the ``embed``/``sparse_embed``
+                parameters of a ``string`` field. On an index created with
+                :meth:`create_for_model`, only ``semantic_text`` field
+                parameters (``read_parameters``/``write_parameters``) can be
+                updated; see the note after the examples.
             read_capacity: Updated read capacity dict —
                 ``{"mode": "OnDemand"}`` or ``{"mode": "Dedicated",
                 "dedicated": {...}}``. Applies to managed and BYOC indexes.
@@ -801,6 +806,12 @@ class Indexes:
                 neither has a translation here, and the message shows the
                 equivalent current call where one exists.
             :exc:`NotFoundError`: If the index does not exist.
+            :exc:`ApiError`: Typically status 422 or 400, if *schema* is passed
+                for an index created with ``create(schema=...)`` (even
+                unchanged fields are refused), or if *deployment* has a key
+                other than ``replicas`` or ``pod_type``. The message comes
+                from the server and can read as a raw deserialization error
+                rather than naming the field.
 
         Examples:
             Scale a pod-based index. Pod scaling is applied in the
@@ -825,7 +836,9 @@ class Indexes:
            field types can't be added, removed, or retyped after creation.
            Since :meth:`create` cannot declare a ``semantic_text`` field
            directly, this only applies to indexes created with
-           :meth:`create_for_model`.
+           :meth:`create_for_model`. On an index created with
+           ``create(schema=...)`` the schema is fixed, and passing ``schema=``
+           is rejected.
 
         .. versionchanged:: 10.0
            Before/after:
