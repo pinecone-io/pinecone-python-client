@@ -340,7 +340,8 @@ class AsyncIndexes:
                             "your_vector": {"type": "dense_vector",
                                             "dimension": 1536, "metric": "cosine"},
                             "body": {"type": "string",
-                                     "full_text_search": {"language": "en"}},
+                                     "full_text_search": {"language": "en",
+                                                          "stemming": True}},
                         }
                     }
 
@@ -453,7 +454,8 @@ class AsyncIndexes:
                                             "dimension": 1024, "metric": "cosine"},
                             "keywords": {"type": "sparse_vector"},
                             "body": {"type": "string",
-                                     "full_text_search": {"language": "en"}},
+                                     "full_text_search": {"language": "en",
+                                                          "stemming": True}},
                         }},
                         deployment={"deployment_type": "managed",
                                     "cloud": "aws", "region": "us-west-2"},

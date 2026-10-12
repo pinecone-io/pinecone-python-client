@@ -252,7 +252,9 @@ class SchemaBuilder:
         >>> schema = (
         ...     SchemaBuilder()
         ...     .add_dense_vector_field("your_vector", dimension=768, metric="cosine")
-        ...     .add_string_field("title", full_text_search={"language": "en"})
+        ...     .add_string_field(
+        ...         "title", full_text_search={"language": "en", "stemming": True}
+        ...     )
         ...     .build()
         ... )
         >>> sorted(schema["fields"])

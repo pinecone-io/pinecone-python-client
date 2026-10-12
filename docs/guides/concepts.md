@@ -29,7 +29,7 @@ pc.indexes.create(
         "fields": {
             "your_vector": {"type": "dense_vector", "dimension": 1024, "metric": "cosine"},
             "keywords": {"type": "sparse_vector"},
-            "body": {"type": "string", "full_text_search": {"language": "en"}},
+            "body": {"type": "string", "full_text_search": {"language": "en", "stemming": True}},
         }
     },
     deployment={"deployment_type": "managed", "cloud": "aws", "region": "us-east-1"},
@@ -59,7 +59,7 @@ pc = Pinecone()
 schema = (
     SchemaBuilder()
     .add_dense_vector_field("your_vector", dimension=1024, metric="cosine")
-    .add_string_field("body", full_text_search={"language": "en"})
+    .add_string_field("body", full_text_search={"language": "en", "stemming": True})
     .build()
 )
 pc.indexes.create(name="movie-recommendations", schema=schema)

@@ -216,7 +216,9 @@ class FullTextSearchConfig(Struct, kw_only=True):
     Attributes:
         language: Language whose analysis rules to use, as a two-letter code
             or its English name — ``"en"`` and ``"english"`` are both
-            accepted. ``None`` takes the server default of English.
+            accepted. ``None`` takes the server default of English. Setting it
+            does not turn on ``stemming`` or ``stop_words``: ``{"language": "en"}``
+            on its own matches exact words only, the same as ``{}``.
         stemming: Fold tokens to their root form, so ``running`` matches
             ``run``. ``None`` takes the server default of off.
         stop_words: Drop common words like ``the`` from the index. Requires

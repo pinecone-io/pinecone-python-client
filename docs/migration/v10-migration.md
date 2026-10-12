@@ -991,7 +991,8 @@ pc.indexes.create(
     name="articles",
     schema={
         "fields": {
-            # Valid on its own: `tr` is one of the 18 `language` values.
+            # Valid on its own: `tr` is one of the 18 `language` values. Alone it
+            # matches exact words only; add `"stemming": True` to stem.
             "body": {"type": "string", "full_text_search": {"language": "tr"}},
             # Accepted, then stored as `en`: ngram discards the language.
             "title": {
