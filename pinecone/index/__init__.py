@@ -212,13 +212,17 @@ class Index:
             :class:`~pinecone.client.documents.Documents` namespace instance.
 
         Examples:
+            On an index whose schema declares ``embedding`` as a 1536-dimension
+            ``dense_vector`` and ``title`` as a full-text ``string``:
 
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
             >>> idx = pc.index(name="article-search")
             >>> response = idx.documents.upsert(
             ...     namespace="published",
-            ...     documents=[{"_id": "article-101", "title": "Intro to vectors"}],
+            ...     documents=[
+            ...         {"_id": "article-101", "embedding": [0.1] * 1536, "title": "Vector basics"}
+            ...     ],
             ... )
             >>> response.upserted_count
             1

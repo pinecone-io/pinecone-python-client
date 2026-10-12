@@ -59,6 +59,9 @@ class Documents:
     keyword raises :exc:`TypeError` suggesting the one you meant.
 
     Examples:
+        On an index whose schema declares ``embedding`` as a 1536-dimension
+        ``dense_vector`` and ``title`` as a full-text ``string``:
+
         .. code-block:: python
 
             from pinecone import Pinecone
@@ -67,7 +70,13 @@ class Documents:
             with pc.index(name="articles-en") as idx:
                 idx.documents.upsert(
                     namespace="published",
-                    documents=[{"_id": "article-101", "title": "Intro to vectors"}],
+                    documents=[
+                        {
+                            "_id": "article-101",
+                            "embedding": [0.1] * 1536,
+                            "title": "Intro to vectors",
+                        }
+                    ],
                 )
 
     .. seealso::
@@ -97,9 +106,19 @@ class Documents:
         """Upsert documents into a namespace.
 
         Each document must include an ``_id`` field (a unique, non-empty
-        ASCII string of at most 512 characters) along with fields defined in
-        the index schema or arbitrary metadata fields. If a document with the
-        same ``_id`` already exists in the namespace, it is overwritten.
+        ASCII string of at most 512 characters). If a document with the same
+        ``_id`` already exists in the namespace, it is overwritten.
+
+        The index schema decides which other fields a document must carry;
+        read it with ``pc.indexes.describe(name).schema``. Every
+        ``dense_vector`` field is required, and so is every ``string`` field
+        declared with ``embed``, because Pinecone embeds its text on write.
+        ``sparse_vector`` fields, ``string`` fields with only ``sparse_embed``
+        or full-text search, and metadata are optional. Each document also
+        needs at least one searchable schema field: a vector field, or a
+        ``string`` field with full-text search, ``embed`` or ``sparse_embed``.
+        The server rejects a document that breaks either rule with a 400 that
+        names the document and the fields it needs.
 
         Pinecone applies the upsert asynchronously, so documents may not be
         immediately visible to :meth:`search` or :meth:`fetch`.
@@ -124,14 +143,17 @@ class Documents:
                 is empty or over 1000 entries, or any document has a missing,
                 empty, non-string, non-ASCII, over-512-character, or duplicate
                 ``_id`` — the message names the offending document's position.
-            :exc:`ApiError`: If one request exceeds the server's cap on encoded
+            :exc:`ApiError`: If a document lacks a field its schema requires
+                (400), or one request exceeds the server's cap on encoded
                 request size — a document count inside the accepted range can
                 still be too large. Send fewer documents per request, or use
                 :meth:`batch_upsert`.
 
         Examples:
-            ``_id`` is the only reserved key; ``title`` here is a field of
-            your own, and every document may carry a different set of them:
+            On an index whose schema declares ``embedding`` as a
+            1536-dimension ``dense_vector`` and ``title`` as a full-text
+            ``string``, every document carries ``embedding`` and ``title`` is
+            optional:
 
             >>> from pinecone import Pinecone
             >>> pc = Pinecone(api_key="your-api-key")
@@ -139,8 +161,8 @@ class Documents:
             >>> response = idx.documents.upsert(
             ...     namespace="published",
             ...     documents=[
-            ...         {"_id": "article-101", "title": "Intro to vectors"},
-            ...         {"_id": "article-102", "title": "Advanced retrieval"},
+            ...         {"_id": "article-101", "embedding": [0.1] * 1536, "title": "Vector basics"},
+            ...         {"_id": "article-102", "embedding": [0.2] * 1536},
             ...     ],
             ... )
             >>> response.upserted_count
@@ -189,7 +211,15 @@ class Documents:
             namespace (str): Target namespace (required, non-empty).
             documents: Documents to upsert. Each element is a dict with an
                 ``_id`` key or a :class:`~pinecone.models.documents.document.DocumentRecord`;
-                IDs must be unique across the whole list.
+                IDs must be unique across the whole list. Each document must
+                also carry every ``dense_vector`` field and every ``string``
+                field declared with ``embed``; ``sparse_vector`` fields,
+                ``sparse_embed``-only or full-text-only ``string`` fields, and
+                metadata are optional, but each document needs at least one
+                searchable schema field (see :meth:`upsert`). One document that
+                breaks these rules fails its whole batch with a 400, recorded
+                in ``result.errors`` with ``retryable=False``; fix the
+                documents before resending.
             batch_size (int): Maximum documents per request (1-1000, default 50).
             max_concurrency (int | None): Upper bound on concurrent requests
                 (1-64). Defaults to ``None``, which lets the admission gate
@@ -220,11 +250,15 @@ class Documents:
                 outside [1, 64].
 
         Examples:
+            On an index whose schema declares ``embedding`` as a
+            ``dense_vector`` and ``title`` as a full-text ``string``, where
+            ``vectors`` holds one embedding per article:
+
             .. code-block:: python
 
                 documents = [
-                    {"_id": f"article-{i}", "title": f"Article {i}"}
-                    for i in range(5000)
+                    {"_id": f"article-{i}", "embedding": vector, "title": f"Article {i}"}
+                    for i, vector in enumerate(vectors)
                 ]
                 result = idx.documents.batch_upsert(
                     namespace="published",

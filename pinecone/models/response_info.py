@@ -41,7 +41,9 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
             nothing.
 
     Examples:
-        Write, then read back only once the index has caught up to the write:
+        Write, then read back only once the index has caught up to the write,
+        on an index whose schema declares ``chunk_text`` as a ``string`` field
+        with ``embed``, the field each document must carry besides ``_id``:
 
         .. code-block:: python
 
@@ -166,7 +168,9 @@ class BatchResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
             to check a later read against.
 
     Examples:
-        Keep the position a bulk write reached, to check a later read against:
+        Keep the position a bulk write reached, to check a later read against,
+        on an index whose schema declares ``chunk_text`` as a ``string`` field
+        with ``embed``:
 
         .. code-block:: python
 

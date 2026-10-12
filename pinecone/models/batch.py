@@ -128,6 +128,9 @@ class BatchResult(Struct, kw_only=True):
             itself re-probes after a cool-down.
 
     Examples:
+        On an index whose schema declares ``chunk_text`` as a ``string`` field with
+        ``embed``, the field each document must carry besides ``_id``:
+
         >>> index = pc.index(name="product-search")
         >>> documents = [
         ...     {"_id": f"article-{i:05d}", "chunk_text": f"Paragraph {i}"}
