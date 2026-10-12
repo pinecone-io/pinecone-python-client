@@ -503,15 +503,13 @@ class SchemaBuilder:
                 flexibility later. Each value is at most 100 KB; with the text
                 stored, the full-text limit of 10,000 tokens per value also
                 applies. Fixed at creation.
-            filterable: Make the field filterable instead of searched.
-                Requesting it together with a search key is the trap: a
-                string field is one or the other. Alongside ``embed`` or
-                ``sparse_embed`` the server rejects it; alongside only
-                ``full_text_search`` it keeps the filter, silently discards
-                the search configuration, and reports no error. Sent on the
-                wire including its ``False`` default, except when
-                ``full_text_search``, ``embed``, ``sparse_embed`` or
-                ``store_text`` is set and you did not ask to be filterable.
+            filterable: Make the field filterable instead of searched. A
+                string field is one or the other: the server rejects
+                ``filterable=True`` alongside ``full_text_search``, ``embed``
+                or ``sparse_embed`` with a ``400``. Sent on the wire including
+                its ``False`` default, except when ``full_text_search``,
+                ``embed``, ``sparse_embed`` or ``store_text`` is set and you
+                did not ask to be filterable.
             description: Human-readable note stored with the field, up to 256
                 bytes. Optional.
             **additional_options: Extra parameters merged into the field dict

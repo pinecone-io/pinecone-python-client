@@ -369,9 +369,9 @@ class StringField(Struct, tag="string", tag_field="type", kw_only=True):
         description: Free-text note about the field, or ``None``.
         filterable: Whether the field can be used in metadata filters.
             Defaults to ``False``. A field is filtered or searched, not both:
-            the server rejects ``filterable=True`` alongside ``embed`` or
-            ``sparse_embed``, and alongside only ``full_text_search`` it keeps
-            the filter and silently discards the search configuration.
+            the server rejects ``filterable=True`` alongside
+            ``full_text_search``, ``embed`` or ``sparse_embed`` with a
+            ``400``.
         full_text_search: A :class:`FullTextSearchConfig` — its presence, even
             empty, makes the field full-text searchable; ``None`` means it is
             not, unless the text is stored, in which case responses report
@@ -632,11 +632,10 @@ def _encode_schema_for_request(schema: IndexSchema) -> dict[str, Any]:
     ``filterable`` is omitted from a :class:`StringField` that carries a
     search configuration (``full_text_search``, ``embed`` or
     ``sparse_embed``) or ``store_text`` and did not ask to be filterable.
-    The server reads a string field as filter-only metadata as soon as
-    ``filterable`` is present: it discards a full-text-search configuration
-    and rejects the embedding ones, so emitting the ``False`` default would
-    break every search field.  An explicit ``filterable=True`` is still sent
-    as given.
+    The server rejects ``filterable`` on a search field with a ``400``, even
+    ``"filterable": false``, so emitting the ``False`` default would break
+    every search field.  An explicit ``filterable=True`` is still sent as
+    given, and the server rejects it.
 
     Every other field type, and a schema passed as a plain dict, is
     encoded unchanged.
