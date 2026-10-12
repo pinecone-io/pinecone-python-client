@@ -606,7 +606,9 @@ class IndexSchema(Struct, kw_only=True):
     .. seealso::
        :class:`~pinecone.schema_builder.SchemaBuilder` — assembles the
        ``schema=`` dict with one validated method per declarable field type,
-       and refuses the response-only ones before you spend a round trip.
+       and refuses ``integer`` locally before you spend a round trip. The other
+       types in that group (``float``, ``boolean``, ``string_list``) have
+       builder methods, but the server rejects them on create.
     """
 
     fields: dict[str, IndexSchemaField]

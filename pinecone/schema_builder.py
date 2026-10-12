@@ -238,9 +238,14 @@ class SchemaBuilder:
     definition rather than raising, so a later call wins.
 
     Building the ``{"fields": {...}}`` dict by hand is equally valid and
-    equally supported; the builder exists so the field types, their required
-    keys, and the declarations the server refuses are checked as you write
-    rather than on the create call.
+    equally supported; the builder exists so the field types and their
+    required keys are checked as you write rather than on the create call. It
+    checks names, byte limits, the dimension range and the required keys, and
+    refuses the response-only ``integer`` type when a raw ``type`` key reaches
+    a field dict (:meth:`add_custom_field`, ``additional_options``). It does
+    not check which field combinations the server accepts: the metadata-only
+    methods or a second dense vector field are built as written and the
+    server rejects them with a ``400``.
 
     Examples:
         >>> from pinecone.schema_builder import SchemaBuilder
@@ -289,7 +294,9 @@ class SchemaBuilder:
         """Add the field that holds an embedding, for vector similarity search.
 
         This is the field most indexes are built around, and a schema may
-        hold at most one of them. ``dimension`` and ``metric`` are fixed for
+        hold at most one of them. The builder does not count them: a second
+        dense vector field is built as written and the server rejects it on
+        create with a ``400``. ``dimension`` and ``metric`` are fixed for
         the life of the field, so they have to match the embedding model you
         intend to use.
 
