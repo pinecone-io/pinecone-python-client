@@ -45,12 +45,11 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import msgspec
 
-if TYPE_CHECKING:
-    from pinecone.models.indexes.schema import FieldEmbedConfig, FieldSparseEmbedConfig
+from pinecone.models.indexes.schema import FieldEmbedConfig, FieldSparseEmbedConfig
 
 _FTS_LANGUAGES_SHORT = frozenset(
     [
