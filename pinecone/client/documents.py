@@ -371,8 +371,28 @@ class Documents:
                 declared with ``store_text: false`` is rejected by the server
                 with a ``400``, since its text is not stored; ``["*"]`` leaves
                 it out.
-            filter: Metadata filter expression restricting the documents
-                searched, or ``None``.
+            filter: Filter expression restricting the documents searched, or
+                ``None``.
+                Which operators a predicate may use depends on the field it names:
+
+                - A data field, one the schema declares to be searched (a vector field, or
+                  a string declared with ``full_text_search``, ``embed`` or
+                  ``sparse_embed``), rejects comparison operators such as ``$eq`` with a
+                  ``400``. Of these, a string whose text is stored and searchable takes
+                  the text-match operators: one declared with ``full_text_search``, or
+                  with ``embed`` or ``sparse_embed`` and the default ``store_text``
+                  (the server turns full-text search on for it). A ``store_text=False``
+                  string does not, and neither does a vector field. The operators are
+                  ``$match_phrase`` (the words as a contiguous, ordered phrase),
+                  ``$match_all`` (every word, in any order) and ``$match_any`` (at least
+                  one word).
+                - A metadata field, one the schema does not declare or declares only for
+                  filtering (an integer, float, boolean, string list, or a string with no
+                  search configuration), takes the comparison, set and logical operators
+                  (``$eq``, ``$in``, ``$gte`` and so on). A text-match operator on it is
+                  rejected with a ``400``.
+
+                The two kinds combine under ``$and``.
             timeout (float | None): Per-request timeout in seconds. Overrides
                 the client-level default for this call only.
 
@@ -401,6 +421,20 @@ class Documents:
             ...     score_by=[TextQuery(query="machine learning", fields=["content"])],
             ...     include_fields=["title", "content"],
             ...     filter={"category": {"$eq": "tech"}},
+            ... )
+            >>> for doc in response.matches:
+            ...     print(doc.id, doc.score)
+            article-101 0.92
+            article-102 0.74
+
+            Filter on a schema field with a text-match operator (here ``title``
+            is a string field declared with ``full_text_search``):
+
+            >>> response = idx.documents.search(
+            ...     namespace="published",
+            ...     top_k=5,
+            ...     score_by=[TextQuery(query="machine learning", fields=["content"])],
+            ...     filter={"title": {"$match_phrase": "machine learning"}},
             ... )
             >>> for doc in response.matches:
             ...     print(doc.id, doc.score)
@@ -450,8 +484,28 @@ class Documents:
             ids: Document IDs to fetch (1-1000). IDs that do not exist are
                 omitted from the result rather than raising. Mutually
                 exclusive with ``filter``.
-            filter: Non-empty metadata filter expression selecting the
-                documents to fetch. Mutually exclusive with ``ids``.
+            filter: Non-empty filter expression selecting the documents to
+                fetch. Mutually exclusive with ``ids``.
+                Which operators a predicate may use depends on the field it names:
+
+                - A data field, one the schema declares to be searched (a vector field, or
+                  a string declared with ``full_text_search``, ``embed`` or
+                  ``sparse_embed``), rejects comparison operators such as ``$eq`` with a
+                  ``400``. Of these, a string whose text is stored and searchable takes
+                  the text-match operators: one declared with ``full_text_search``, or
+                  with ``embed`` or ``sparse_embed`` and the default ``store_text``
+                  (the server turns full-text search on for it). A ``store_text=False``
+                  string does not, and neither does a vector field. The operators are
+                  ``$match_phrase`` (the words as a contiguous, ordered phrase),
+                  ``$match_all`` (every word, in any order) and ``$match_any`` (at least
+                  one word).
+                - A metadata field, one the schema does not declare or declares only for
+                  filtering (an integer, float, boolean, string list, or a string with no
+                  search configuration), takes the comparison, set and logical operators
+                  (``$eq``, ``$in``, ``$gte`` and so on). A text-match operator on it is
+                  rejected with a ``400``.
+
+                The two kinds combine under ``$and``.
             include_fields: Document fields to include in each document.
                 Omitting it (the default), ``[]``, or ``["*"]`` each return
                 every field; a list of names returns just those.
@@ -514,6 +568,19 @@ class Documents:
             ...     if response.pagination is None:
             ...         break
             ...     pagination_token = response.pagination.next
+            article-101 Intro to vectors
+            article-102 Advanced retrieval
+
+            A filter can use a text-match operator on a schema field, here
+            ``title``, a string field declared with ``full_text_search``,
+            instead of a comparison on a metadata field:
+
+            >>> response = idx.documents.fetch(
+            ...     namespace="published",
+            ...     filter={"title": {"$match_any": "vectors retrieval"}},
+            ... )
+            >>> for doc_id, doc in response.documents.items():
+            ...     print(doc_id, doc.title)
             article-101 Intro to vectors
             article-102 Advanced retrieval
 

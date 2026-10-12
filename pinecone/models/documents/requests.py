@@ -111,9 +111,18 @@ class SearchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
             back. Pass ``["*"]`` for every field, or name the ones you need. Naming a
             field declared with ``store_text: false`` is rejected by the server with a
             ``400``, since its text is not stored; ``["*"]`` leaves such fields out.
-        filter: A metadata filter narrowing which documents are searched at all, or
-            ``None`` to search the whole namespace. It restricts the candidates; it does
-            not contribute to the score.
+        filter: A filter narrowing which documents are searched at all, or ``None`` to
+            search the whole namespace. It restricts the candidates; it does not
+            contribute to the score. A data field (a vector field, or a string the schema
+            declares with ``full_text_search``, ``embed`` or ``sparse_embed``) rejects
+            comparison operators such as ``$eq`` with a ``400``. A string whose text is stored
+            and searchable takes the text-match operators ``$match_phrase``, ``$match_all`` and
+            ``$match_any``: one declared with ``full_text_search``, or with ``embed`` or
+            ``sparse_embed`` and the default ``store_text``. A ``store_text=False`` string and a
+            vector field do not. A
+            metadata field, one the schema does not declare or declares only for filtering,
+            takes the comparison, set and logical operators and rejects a text-match
+            operator with a ``400``. The two kinds combine under ``$and``.
 
     Raises:
         ValueError: If ``score_by`` is empty or holds over 100 clauses, if a vector clause
@@ -161,8 +170,16 @@ class FetchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
 
     Attributes:
         ids: The document IDs to fetch, 1 to 1000. Mutually exclusive with ``filter``.
-        filter: A non-empty metadata filter selecting the documents to fetch. Mutually
-            exclusive with ``ids``.
+        filter: A non-empty filter selecting the documents to fetch. Mutually exclusive
+            with ``ids``. A data field (a vector field, or a string the schema declares with
+            ``full_text_search``, ``embed`` or ``sparse_embed``) rejects comparison operators
+            such as ``$eq`` with a ``400``. A string whose text is stored and searchable takes
+            the text-match operators ``$match_phrase``, ``$match_all`` and ``$match_any``: one
+            declared with ``full_text_search``, or with ``embed`` or ``sparse_embed`` and the
+            default ``store_text``. A ``store_text=False`` string and a vector field do not. A
+            metadata field, one the schema does not declare or declares only for filtering,
+            takes the comparison, set and logical operators and rejects a text-match
+            operator with a ``400``. The two kinds combine under ``$and``.
         include_fields: Which of your fields to return. Omitting it, passing ``[]``, and
             passing ``["*"]`` all return every field — the opposite of the default on a
             search, which returns none of them. Every field here means every field the
