@@ -33,6 +33,14 @@ from pinecone.models.documents.score_by import DocumentScoringMethod
 _MAX_DOCUMENTS_PER_REQUEST = 1000
 
 
+def _to_wire_fields(item: dict[str, Any]) -> dict[str, Any]:
+    """Return *item* with every SDK struct value (e.g. ``SparseValues``) as a plain dict."""
+    return {
+        key: msgspec.to_builtins(value) if isinstance(value, msgspec.Struct) else value
+        for key, value in item.items()
+    }
+
+
 def _encode_document_namespace(namespace: str) -> str:
     """Validate a documents-operation namespace and URL-encode it as a path segment.
 
@@ -106,7 +114,7 @@ def _validate_documents(
                 "document IDs must be unique within a request."
             )
         seen.add(doc_id)
-        normalized.append(item)
+        normalized.append(_to_wire_fields(item))
     return normalized
 
 
