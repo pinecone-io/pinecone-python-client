@@ -10,7 +10,12 @@ checks its required fields on construction, so a malformed clause is rejected at
 call site.
 
 ``text`` and ``query_string`` clauses can be combined in one search to score on several
-signals at once. A vector clause, and an ``embed`` or ``sparse_embed`` clause, has to
+signals at once. The clauses are OR'd: a document matching any of them is returned, and
+one matching several scores the sum of the scores from each clause it matches. Repeating
+a clause, naming a field twice, or writing one query as both a ``text`` and a
+``query_string`` clause has been observed to score once (API 2026-07), so repeating a
+clause does not up-weight it; a ``^N`` boost in a ``query_string`` clause does up-weight
+a term. A vector clause, and an ``embed`` or ``sparse_embed`` clause, has to
 stand alone.
 """
 
@@ -48,6 +53,10 @@ class TextQuery(Struct, tag="text", tag_field="type", kw_only=True, omit_default
 
     The clause to reach for when the words themselves matter — exact terms, names, codes
     — rather than meaning. Scoring is per field, so name every field you want searched.
+    A document matches if the query matches in any one of the named fields, and its score
+    is the sum of its BM25 scores in the fields that matched, so naming another field
+    widens the results and can raise scores. The text is matched literally, so a ``^N``
+    inside ``query`` is not a boost; to weight a term, use :class:`QueryStringQuery`.
 
     Attributes:
         query: The words to search for, e.g. ``"sparse index scoring"``.
@@ -103,6 +112,8 @@ class QueryStringQuery(
 
     Attributes:
         query: The Lucene expression, e.g. ``'title:(sparse OR hybrid) NOT draft'``.
+            Weight a term with a ``^N`` boost after it, e.g. ``title:entropy^5``: the
+            term's score is multiplied by ``N``.
         field: Not accepted here — use a qualifier in ``query`` instead.
         fields: Not accepted here — use a qualifier in ``query`` instead.
 
@@ -114,6 +125,8 @@ class QueryStringQuery(
         >>> from pinecone.models.documents.score_by import QueryStringQuery
         >>> QueryStringQuery(query="title:(sparse OR hybrid) NOT draft").query
         'title:(sparse OR hybrid) NOT draft'
+        >>> QueryStringQuery(query="title:entropy^5 abstract:entropy").query
+        'title:entropy^5 abstract:entropy'
     """
 
     query: str

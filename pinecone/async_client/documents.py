@@ -345,7 +345,19 @@ class AsyncDocuments:
                 or plain dicts with a ``type`` key. ``text`` and
                 ``query_string`` clauses may be combined; a ``dense_vector``,
                 ``sparse_vector``, ``embed`` or ``sparse_embed`` clause must
-                appear alone.
+                appear alone. Combined clauses are OR'd, not AND'd: a document
+                that matches any clause is returned, and one that matches
+                several scores the sum of the scores from each clause it
+                matches. A ``text`` clause naming several ``fields`` works the
+                same way across those fields. Repeating a clause, naming a
+                field twice, or writing one query as both a ``text`` and a
+                ``query_string`` clause has been observed to score once (API
+                2026-07), so repeating a clause does not up-weight it. To
+                weight a term, give it a ``^N`` boost in a
+                :class:`~pinecone.models.documents.score_by.QueryStringQuery`,
+                such as ``title:entropy^5``; a ``text`` clause has no boost. To
+                require several terms together, use ``AND`` inside one
+                ``QueryStringQuery``.
             top_k (int): Number of top-ranked documents to return (1-10000).
             include_fields: Document fields to include in each match.
                 Omitting it (the default) or passing ``[]`` returns only
