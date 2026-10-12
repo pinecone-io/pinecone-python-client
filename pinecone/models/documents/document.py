@@ -72,9 +72,12 @@ class Document:
     operation asked for. An absent field raises :exc:`AttributeError` on attribute
     access, so use :meth:`get` when a field is optional.
 
-    The ``id``, ``_id``, ``score`` and ``_score`` properties always win over a document
-    field of the same name. If your data genuinely has a field called ``_score``, reach it
-    with ``doc.get("_score")`` or ``doc.to_dict()["_score"]``.
+    Seven attributes always win over a document field of the same name: the properties
+    ``id``, ``_id``, ``score`` and ``_score``, and the methods ``get``, ``to_dict`` and
+    ``to_json``. Python resolves a field through attribute access only when nothing else
+    has that name, so ``doc.get`` on a document with a ``get`` field is the method, not
+    your value. Read such a field with ``doc.get("name")`` or ``doc.to_dict()["name"]``,
+    for example ``doc.get("_score")`` for a field called ``_score``.
 
     Attributes:
         id (str): The document's identifier — the value the document was upserted under.

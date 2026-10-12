@@ -165,3 +165,46 @@ def test_property_get_to_dict_and_attribute_access_agree(data: dict[str, object]
     if isinstance(raw_score, (int, float)) and not isinstance(raw_score, bool):
         assert doc.score == float(raw_score)
         assert doc._score == float(raw_score)
+
+
+def _shadowing_names() -> set[str]:
+    return {
+        name
+        for name in vars(Document)
+        if not (name.startswith("__") and name.endswith("__")) and name != "_data"
+    }
+
+
+def _shadowing_paragraph() -> str:
+    doc = Document.__doc__ or ""
+    start = doc.index("always win over a document field")
+    paragraph_start = doc.rfind("\n\n", 0, start) + 2
+    paragraph_end = doc.index("\n\n", start)
+    return doc[paragraph_start:paragraph_end]
+
+
+def test_shadowing_names_cover_the_known_attributes() -> None:
+    expected = {"id", "_id", "score", "_score", "get", "to_dict", "to_json"}
+    assert _shadowing_names() == expected, (
+        "Document gained or lost a public attribute: update the shadowing paragraph in the "
+        "Document docstring and this set together"
+    )
+
+
+@pytest.mark.parametrize("name", sorted(_shadowing_names()))
+def test_docstring_names_every_attribute_that_shadows_a_field(name: str) -> None:
+    assert f"``{name}``" in _shadowing_paragraph()
+
+
+def test_docstring_says_how_to_read_a_shadowed_field() -> None:
+    paragraph = _shadowing_paragraph()
+    assert 'doc.get("name")' in paragraph
+    assert 'doc.to_dict()["name"]' in paragraph
+
+
+@pytest.mark.parametrize("name", ["get", "to_dict", "to_json"])
+def test_method_wins_over_a_same_named_field_but_get_reads_it(name: str) -> None:
+    doc = Document({"_id": "1", name: "field-value"})
+    assert callable(getattr(doc, name))
+    assert doc.get(name) == "field-value"
+    assert doc.to_dict()[name] == "field-value"
