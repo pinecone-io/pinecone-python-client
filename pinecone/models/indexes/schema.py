@@ -265,8 +265,13 @@ class FieldEmbedConfig(Struct, kw_only=True):
             the server default. ``None`` on create takes the default.
         dimension: Width of the embeddings, one the model supports, e.g.
             ``512``. ``None`` on create takes the model's default.
-        metric: ``"cosine"``, ``"dotproduct"`` or ``"euclidean"``. ``None`` on
-            create takes the model's default.
+        metric: ``"cosine"``, ``"dotproduct"`` or ``"euclidean"``, though which
+            of them work depends on the model, and the server rejects an
+            unsupported one with a 400. For example, ``"llama-text-embed-v2"``
+            (the default model) takes ``"cosine"`` and ``"dotproduct"``, and
+            ``"multilingual-e5-large"`` takes ``"cosine"`` and
+            ``"euclidean"``. ``None`` on create takes the model's default
+            (``"cosine"`` for those two).
         write_parameters: Model parameters used when embedding document text,
             e.g. ``{"dimension": 1024}``. Describe reports them merged with the
             model's defaults.
@@ -449,9 +454,10 @@ class IntegerField(Struct, tag="integer", tag_field="type", kw_only=True):
     **Response-only, and the one field type with a sharp edge.** Numbers are
     normalised to ``float`` at upsert time now, so ``integer`` only ever comes
     back from an older index. There is no ``integer`` type in the create
-    schema, and sending one is rejected with a plain-text body rather than a
-    structured API error — so the exception you catch will not tell you which
-    field was at fault.
+    schema, and sending one is rejected with a 422 whose body is plain text
+    rather than a structured API error, so it carries no error code. The
+    message does name the field path, as in ``schema.fields.<name>.type``, so it
+    tells you which field to drop.
 
     This matters for describe-then-create: a schema read off an old index
     cannot be handed straight to :meth:`create
