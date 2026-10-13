@@ -210,6 +210,7 @@ if TYPE_CHECKING:
         CreateBackupScheduleRequest,
         UpdateBackupScheduleRequest,
     )
+    from pinecone.models.batch import BatchError, BatchResult
     from pinecone.models.collections.list import CollectionList
     from pinecone.models.collections.model import CollectionModel
     from pinecone.models.documents.document import (
@@ -353,7 +354,7 @@ if TYPE_CHECKING:
     from pinecone.models.vectors.sparse import SparseValues
     from pinecone.models.vectors.vector import ScoredVector, Vector
     from pinecone.schema_builder import SchemaBuilder
-    from pinecone.utils.filter_builder import Field, FilterBuilder
+    from pinecone.utils.filter_builder import Condition, Field, FilterBuilder
 
 __version__ = "10.0.0"
 
@@ -385,7 +386,9 @@ __all__ = [
     "BackupScheduleHistoryList",
     "BackupScheduleList",
     "BackupScheduleModel",
+    "BatchError",
     "BatchResponseInfo",
+    "BatchResult",
     "BooleanField",
     "ByocDeployment",
     "ByocSpec",
@@ -401,6 +404,7 @@ __all__ = [
     "CollectionDescription",
     "CollectionList",
     "CollectionModel",
+    "Condition",
     "ConfigureIndexRequest",
     "ConflictError",
     "ContextOptions",
@@ -629,7 +633,9 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     ),
     "BackupScheduleList": ("pinecone.models.backups.list", "BackupScheduleList"),
     "BackupScheduleModel": ("pinecone.models.backups.schedules", "BackupScheduleModel"),
+    "BatchError": ("pinecone.models.batch", "BatchError"),
     "BatchResponseInfo": ("pinecone.models.response_info", "BatchResponseInfo"),
+    "BatchResult": ("pinecone.models.batch", "BatchResult"),
     "BooleanField": ("pinecone.models.indexes.schema", "BooleanField"),
     "ByocDeployment": ("pinecone.models.indexes.deployment", "ByocDeployment"),
     "ByocSpec": ("pinecone.models.indexes.specs", "ByocSpec"),
@@ -648,6 +654,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
     "CollectionDescription": ("pinecone.models.collections.description", "CollectionDescription"),
     "CollectionList": ("pinecone.models.collections.list", "CollectionList"),
     "CollectionModel": ("pinecone.models.collections.model", "CollectionModel"),
+    "Condition": ("pinecone.utils.filter_builder", "Condition"),
     "ConfigureIndexRequest": ("pinecone.models.indexes.requests", "ConfigureIndexRequest"),
     "ConflictError": ("pinecone.errors.exceptions", "ConflictError"),
     "ContextOptions": ("pinecone.models.assistant.options", "ContextOptions"),

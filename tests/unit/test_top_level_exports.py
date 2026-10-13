@@ -124,3 +124,39 @@ def test_model_types_in_all() -> None:
         "Vector",
     }
     assert expected.issubset(set(pinecone.__all__))
+
+
+def test_batch_and_condition_types_importable_from_pinecone() -> None:
+    from pinecone import BatchError, BatchResult, Condition
+    from pinecone.models.batch import BatchError as _BatchError
+    from pinecone.models.batch import BatchResult as _BatchResult
+    from pinecone.utils.filter_builder import Condition as _Condition
+
+    assert BatchResult is _BatchResult
+    assert BatchError is _BatchError
+    assert Condition is _Condition
+
+
+def test_batch_and_condition_types_listed_in_all() -> None:
+    import pinecone
+
+    for name in ("BatchResult", "BatchError", "Condition"):
+        assert name in pinecone.__all__
+        assert name in dir(pinecone)
+
+
+def test_batch_and_condition_types_in_stub() -> None:
+    from pathlib import Path
+
+    import pinecone
+
+    stub = (Path(pinecone.__file__).parent / "__init__.pyi").read_text()
+    for name in ("BatchResult", "BatchError", "Condition"):
+        assert f"{name} as {name}" in stub
+        assert f'"{name}",' in stub
+
+
+def test_field_comparison_returns_exported_condition() -> None:
+    import pinecone
+
+    assert isinstance(pinecone.Field("year").gte(2020), pinecone.Condition)

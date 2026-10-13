@@ -35,6 +35,7 @@ from pinecone.models.assistant.streaming import AsyncChatCompletionStream as Asy
 from pinecone.models.backups.list import BackupList as BackupList, BackupScheduleHistoryList as BackupScheduleHistoryList, BackupScheduleList as BackupScheduleList, RestoreJobList as RestoreJobList
 from pinecone.models.backups.model import BackupModel as BackupModel, CreateIndexFromBackupRequest as CreateIndexFromBackupRequest, CreateIndexFromBackupResponse as CreateIndexFromBackupResponse, RestoreJobModel as RestoreJobModel
 from pinecone.models.backups.schedules import BackupScheduleHistoryItem as BackupScheduleHistoryItem, BackupScheduleModel as BackupScheduleModel, CreateBackupScheduleRequest as CreateBackupScheduleRequest, UpdateBackupScheduleRequest as UpdateBackupScheduleRequest
+from pinecone.models.batch import BatchError as BatchError, BatchResult as BatchResult
 from pinecone.models.collections.description import CollectionDescription as CollectionDescription
 from pinecone.models.collections.list import CollectionList as CollectionList
 from pinecone.models.collections.model import CollectionModel as CollectionModel
@@ -66,7 +67,7 @@ from pinecone.models.vectors.search import Hit as Hit, RerankConfig as RerankCon
 from pinecone.models.vectors.sparse import SparseValues as SparseValues
 from pinecone.models.vectors.vector import ScoredVector as ScoredVector, Vector as Vector
 from pinecone.schema_builder import SchemaBuilder as SchemaBuilder
-from pinecone.utils.filter_builder import Field as Field, FilterBuilder as FilterBuilder
+from pinecone.utils.filter_builder import Condition as Condition, Field as Field, FilterBuilder as FilterBuilder
 
 __version__: str
 
@@ -93,7 +94,9 @@ __all__ = [
     "BackupScheduleHistoryList",
     "BackupScheduleList",
     "BackupScheduleModel",
+    "BatchError",
     "BatchResponseInfo",
+    "BatchResult",
     "BooleanField",
     "ByocDeployment",
     "ByocSpec",
@@ -109,6 +112,7 @@ __all__ = [
     "CollectionDescription",
     "CollectionList",
     "CollectionModel",
+    "Condition",
     "ConfigureIndexRequest",
     "ConflictError",
     "ContextOptions",
