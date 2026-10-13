@@ -496,6 +496,24 @@ class TestListDocuments:
         assert _body(route) == {"prefix": "doc-", "limit": 20}
 
     @respx.mock
+    async def test_page_size_limit_is_not_a_total_cap(self, index: AsyncIndex) -> None:
+        respx.post(f"{BASE_URL}/namespaces/{NS}/documents/list").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "documents": [{"_id": "doc-1"}, {"_id": "doc-2"}, {"_id": "doc-3"}],
+                    "namespace": NS,
+                    "usage": {"read_units": 1},
+                },
+            )
+        )
+        paginator = index.documents.list(namespace=NS, limit=1)
+        assert repr(paginator) == "AsyncPaginator(has_more=None)"
+        records = await paginator.to_list()
+        assert [record.id for record in records] == ["doc-1", "doc-2", "doc-3"]
+        assert repr(paginator) == "AsyncPaginator(has_more=False)"
+
+    @respx.mock
     async def test_pagination_is_followed_across_pages(self, index: AsyncIndex) -> None:
         route = respx.post(f"{BASE_URL}/namespaces/{NS}/documents/list").mock(
             side_effect=[

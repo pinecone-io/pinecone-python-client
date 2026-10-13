@@ -103,6 +103,7 @@ class Paginator(Generic[T]):
         self._initial_token = initial_token
         self._limit = limit
         self._pagination_token: str | None = initial_token
+        self._fetched = False
 
     @property
     def pagination_token(self) -> str | None:
@@ -112,6 +113,9 @@ class Paginator(Generic[T]):
         the list method's ``pagination_token``. It reflects only what has been
         fetched so far: before you iterate it is whatever token the paginator
         was built with, and it is ``None`` once the walk reaches the last page.
+        A paginator built without ``initial_token`` therefore also reports
+        ``None`` before the first fetch, which does not mean the listing is
+        empty; the repr shows ``has_more=None`` until a page has been fetched.
         """
         return self._pagination_token
 
@@ -121,6 +125,7 @@ class Paginator(Generic[T]):
         while True:
             page = self._fetch_page(token)
             self._pagination_token = page.pagination_token
+            self._fetched = True
             for item in page.items:
                 if self._limit is not None and count >= self._limit:
                     return
@@ -155,6 +160,7 @@ class Paginator(Generic[T]):
         while True:
             page = self._fetch_page(token)
             self._pagination_token = page.pagination_token
+            self._fetched = True
             if self._limit is not None:
                 remaining = self._limit - count
                 if remaining <= 0:
@@ -188,7 +194,11 @@ class Paginator(Generic[T]):
         return list(self)
 
     def __repr__(self) -> str:
-        has_more = self._pagination_token is not None
+        has_more = (
+            None
+            if not self._fetched and self._pagination_token is None
+            else (self._pagination_token is not None)
+        )
         parts = [f"has_more={has_more!r}"]
         if self._limit is not None:
             parts.append(f"limit={self._limit!r}")
@@ -236,6 +246,7 @@ class AsyncPaginator(Generic[T]):
         self._initial_token = initial_token
         self._limit = limit
         self._pagination_token: str | None = initial_token
+        self._fetched = False
 
     @property
     def pagination_token(self) -> str | None:
@@ -245,6 +256,9 @@ class AsyncPaginator(Generic[T]):
         the list method's ``pagination_token``. It reflects only what has been
         fetched so far: before you iterate it is whatever token the paginator
         was built with, and it is ``None`` once the walk reaches the last page.
+        A paginator built without ``initial_token`` therefore also reports
+        ``None`` before the first fetch, which does not mean the listing is
+        empty; the repr shows ``has_more=None`` until a page has been fetched.
         """
         return self._pagination_token
 
@@ -254,6 +268,7 @@ class AsyncPaginator(Generic[T]):
         while True:
             page = await self._fetch_page(token)
             self._pagination_token = page.pagination_token
+            self._fetched = True
             for item in page.items:
                 if self._limit is not None and count >= self._limit:
                     return
@@ -289,6 +304,7 @@ class AsyncPaginator(Generic[T]):
         while True:
             page = await self._fetch_page(token)
             self._pagination_token = page.pagination_token
+            self._fetched = True
             if self._limit is not None:
                 remaining = self._limit - count
                 if remaining <= 0:
@@ -321,7 +337,11 @@ class AsyncPaginator(Generic[T]):
         return [item async for item in self]
 
     def __repr__(self) -> str:
-        has_more = self._pagination_token is not None
+        has_more = (
+            None
+            if not self._fetched and self._pagination_token is None
+            else (self._pagination_token is not None)
+        )
         parts = [f"has_more={has_more!r}"]
         if self._limit is not None:
             parts.append(f"limit={self._limit!r}")

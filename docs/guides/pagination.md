@@ -60,7 +60,7 @@ iteration reaches it. They share one interface.
 | `__iter__` / `__aiter__` | Individual items, pages hidden |
 | `.pages()` | {class}`Page <pinecone.models.pagination.Page>` objects, one per request |
 | `.to_list()` | Every item, in one list |
-| `.pagination_token` | Where iteration got to; `None` once the last page has been fetched |
+| `.pagination_token` | Where iteration got to; `None` before the first fetch (without a resume token) and once the last page has been fetched |
 
 A paginator is not a list and not a snapshot. It has no `len()`, and iterating it
 twice sends the requests twice.

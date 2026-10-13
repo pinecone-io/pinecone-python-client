@@ -120,6 +120,7 @@ def test_paginator_pagination_token_updated() -> None:
 def test_paginator_repr() -> None:
     fetch = MagicMock(return_value=Page(items=[], pagination_token=None))
     pag: Paginator[int] = Paginator(fetch_page=fetch)
+    list(pag)
     assert repr(pag) == "Paginator(has_more=False)"
 
 
@@ -236,9 +237,10 @@ async def test_async_paginator_to_list() -> None:
     assert result == [1, 2, 3]
 
 
-def test_async_paginator_repr() -> None:
+async def test_async_paginator_repr() -> None:
     fetch = AsyncMock(return_value=Page(items=[], pagination_token=None))
     pag: AsyncPaginator[int] = AsyncPaginator(fetch_page=fetch)
+    await pag.to_list()
     assert repr(pag) == "AsyncPaginator(has_more=False)"
 
 
@@ -275,6 +277,7 @@ def test_paginator_repr_shows_limit() -> None:
     """limit shown when set."""
     fetch = MagicMock(return_value=Page(items=[], pagination_token=None))
     pag: Paginator[int] = Paginator(fetch_page=fetch, limit=100)
+    list(pag)
     r = repr(pag)
     assert "limit=100" in r
     assert "has_more=False" in r
@@ -294,10 +297,87 @@ def test_async_paginator_repr_shows_has_more() -> None:
     assert "has_more=True" in repr(pag)
 
 
-def test_async_paginator_repr_shows_limit() -> None:
+async def test_async_paginator_repr_shows_limit() -> None:
     """limit shown when set."""
     fetch = AsyncMock(return_value=Page(items=[], pagination_token=None))
     pag: AsyncPaginator[int] = AsyncPaginator(fetch_page=fetch, limit=100)
+    await pag.to_list()
     r = repr(pag)
     assert "limit=100" in r
     assert "has_more=False" in r
+
+
+def _two_pages() -> list[Page[int]]:
+    return [
+        Page(items=[1], pagination_token="p2"),
+        Page(items=[2], pagination_token=None),
+    ]
+
+
+def test_paginator_repr_before_first_fetch_does_not_claim_exhausted() -> None:
+    fetch = MagicMock(side_effect=_two_pages())
+    pag: Paginator[int] = Paginator(fetch_page=fetch)
+    assert repr(pag) == "Paginator(has_more=None)"
+    assert len(fetch.call_args_list) == 0
+
+
+def test_paginator_repr_across_walk() -> None:
+    fetch = MagicMock(side_effect=_two_pages())
+    pag: Paginator[int] = Paginator(fetch_page=fetch)
+    it = iter(pag)
+    next(it)
+    assert repr(pag) == "Paginator(has_more=True)"
+    list(it)
+    assert repr(pag) == "Paginator(has_more=False)"
+
+
+def test_paginator_repr_after_pages_walk() -> None:
+    fetch = MagicMock(side_effect=_two_pages())
+    pag: Paginator[int] = Paginator(fetch_page=fetch)
+    next(iter(pag.pages()))
+    assert repr(pag) == "Paginator(has_more=True)"
+
+
+def test_paginator_repr_empty_listing_after_fetch_is_exhausted() -> None:
+    fetch = MagicMock(return_value=Page(items=[], pagination_token=None))
+    pag: Paginator[int] = Paginator(fetch_page=fetch)
+    assert repr(pag) == "Paginator(has_more=None)"
+    list(pag)
+    assert repr(pag) == "Paginator(has_more=False)"
+
+
+def test_paginator_repr_before_first_fetch_keeps_limit() -> None:
+    fetch = MagicMock(side_effect=_two_pages())
+    pag: Paginator[int] = Paginator(fetch_page=fetch, limit=5)
+    assert repr(pag) == "Paginator(has_more=None, limit=5)"
+
+
+async def test_async_paginator_repr_before_first_fetch_does_not_claim_exhausted() -> None:
+    fetch = AsyncMock(side_effect=_two_pages())
+    pag: AsyncPaginator[int] = AsyncPaginator(fetch_page=fetch)
+    assert repr(pag) == "AsyncPaginator(has_more=None)"
+    assert len(fetch.call_args_list) == 0
+
+
+async def test_async_paginator_repr_across_walk() -> None:
+    fetch = AsyncMock(side_effect=_two_pages())
+    pag: AsyncPaginator[int] = AsyncPaginator(fetch_page=fetch)
+    it = pag.__aiter__()
+    await it.__anext__()
+    assert repr(pag) == "AsyncPaginator(has_more=True)"
+    async for _ in it:
+        pass
+    assert repr(pag) == "AsyncPaginator(has_more=False)"
+
+
+async def test_async_paginator_repr_after_pages_walk() -> None:
+    fetch = AsyncMock(side_effect=_two_pages())
+    pag: AsyncPaginator[int] = AsyncPaginator(fetch_page=fetch)
+    await pag.pages().__anext__()
+    assert repr(pag) == "AsyncPaginator(has_more=True)"
+
+
+async def test_async_paginator_repr_before_first_fetch_keeps_limit() -> None:
+    fetch = AsyncMock(side_effect=_two_pages())
+    pag: AsyncPaginator[int] = AsyncPaginator(fetch_page=fetch, limit=5)
+    assert repr(pag) == "AsyncPaginator(has_more=None, limit=5)"
