@@ -96,6 +96,40 @@ class TestUpsertResponseRepr:
         assert "900/1000 items" in rep
         assert "9/10 batches" in rep
 
+    def test_repr_total_failure_is_not_partial(self) -> None:
+        """Nothing landed, so the label must not read as a partial success."""
+        r = UpsertResponse(
+            upserted_count=0,
+            total_item_count=1,
+            total_batch_count=1,
+            successful_batch_count=0,
+            failed_batch_count=1,
+            failed_item_count=1,
+            errors=[_make_batch_error(0, 1)],
+        )
+        rep = repr(r)
+        assert "PARTIAL" not in rep
+        assert rep.startswith("UpsertResponse(FAILURE:")
+        assert "0/1 items" in rep
+
+    def test_repr_includes_first_error_message(self) -> None:
+        r = UpsertResponse(
+            upserted_count=900,
+            total_item_count=1000,
+            total_batch_count=10,
+            successful_batch_count=8,
+            failed_batch_count=2,
+            failed_item_count=200,
+            errors=[_make_batch_error(2, 100), _make_batch_error(5, 100)],
+        )
+        assert "first error: batch 2 failed" in repr(r)
+
+    def test_repr_without_errors_has_no_error_text(self) -> None:
+        r = UpsertResponse(
+            upserted_count=10, total_item_count=10, total_batch_count=1, successful_batch_count=1
+        )
+        assert "first error" not in repr(r)
+
     def test_repr_full_success_batched(self) -> None:
         """Batched repr with no errors shows SUCCESS."""
         r = UpsertResponse(
@@ -151,3 +185,35 @@ class TestUpsertResponsePropertyAliasesMatchBatchResult:
         assert upsert_response.error_count == batch_result.error_count
         assert upsert_response.success_count == batch_result.success_count
         assert upsert_response.failed_items == batch_result.failed_items
+
+
+class TestOnErrorDocstringsNameTotalFailure:
+    def test_collect_docs_say_total_failure_returns_and_point_at_has_errors(self) -> None:
+        from pinecone.async_client.async_index import AsyncIndex
+        from pinecone.grpc import GrpcIndex
+        from pinecone.index import Index
+
+        for cls in (Index, AsyncIndex, GrpcIndex):
+            doc = " ".join((cls.upsert_from_dataframe.__doc__ or "").split())
+            assert "every batch fails" in doc, cls.__name__
+            assert "has_errors" in doc, cls.__name__
+
+    def test_repr_first_error_is_single_line_and_bounded(self) -> None:
+        err = BatchError(
+            batch_index=0,
+            items=[{"id": "a"}],
+            error=RuntimeError("x"),
+            error_message="line one\nline two " + "z" * 500,
+        )
+        r = UpsertResponse(
+            upserted_count=0,
+            total_item_count=1,
+            total_batch_count=1,
+            failed_batch_count=1,
+            failed_item_count=1,
+            errors=[err],
+        )
+        rep = repr(r)
+        assert "\n" not in rep
+        assert len(rep) < 400
+        assert rep.endswith("...)")

@@ -213,7 +213,12 @@ class BatchResult(Struct, kw_only=True):
         return counts.most_common()
 
     def __repr__(self) -> str:
-        status = "PARTIAL FAILURE" if self.has_errors else "SUCCESS"
+        if not self.has_errors:
+            status = "SUCCESS"
+        elif self.total_batch_count > 0 and self.successful_batch_count == 0:
+            status = "FAILURE"
+        else:
+            status = "PARTIAL FAILURE"
         header = (
             f"BatchResult({status}: "
             f"{self.successful_item_count}/{self.total_item_count} items, "

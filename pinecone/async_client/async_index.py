@@ -557,8 +557,10 @@ class AsyncIndex:
                 (default) means no deadline.
             on_error: What to do when some batches fail. ``"collect"`` (the
                 default) returns an :class:`UpsertResponse` carrying
-                ``failed_item_count``, ``errors`` and ``failed_items``.
-                ``"raise"`` re-raises the lowest-indexed batch failure once
+                ``failed_item_count``, ``errors`` and ``failed_items``. This
+                holds when every batch fails too: nothing raises, so check
+                ``if response.has_errors:`` rather than assuming the call
+                succeeded. ``"raise"`` re-raises the lowest-indexed batch failure once
                 every batch has settled, with the partial result attached to
                 the exception's ``response`` attribute.
 

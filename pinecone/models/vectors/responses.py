@@ -111,12 +111,23 @@ class UpsertResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=Fa
     def __repr__(self) -> str:
         if not self.has_errors and self.total_batch_count == 0:
             return f"UpsertResponse(upserted_count={self.upserted_count})"
-        status = "PARTIAL FAILURE" if self.has_errors else "SUCCESS"
-        return (
+        if not self.has_errors:
+            status = "SUCCESS"
+        elif self.total_batch_count > 0 and self.successful_batch_count == 0:
+            status = "FAILURE"
+        else:
+            status = "PARTIAL FAILURE"
+        text = (
             f"UpsertResponse({status}: "
             f"{self.upserted_count}/{self.total_item_count} items, "
-            f"{self.successful_batch_count}/{self.total_batch_count} batches)"
+            f"{self.successful_batch_count}/{self.total_batch_count} batches"
         )
+        if self.has_errors:
+            first = " ".join(self.errors[0].error_message.split())
+            if len(first) > 200:
+                first = first[:197] + "..."
+            text += f"; first error: {first}"
+        return text + ")"
 
 
 class QueryResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=False):

@@ -1525,7 +1525,10 @@ class GrpcIndex:
                 an :class:`~pinecone.models.vectors.responses.UpsertResponse`
                 carrying ``failed_item_count``, ``errors`` and
                 ``failed_items``, so the caller can retry only what failed —
-                the same contract the REST client has had since v9.0.0.
+                the same contract the REST client has had since v9.0.0. This
+                holds when every batch fails too: nothing raises, so check
+                ``if response.has_errors:`` rather than assuming the call
+                succeeded.
                 ``"raise"`` re-raises the lowest-indexed batch failure, after all
                 batches have settled, with the partial result attached to the
                 exception's ``response`` attribute. ``None`` (default) behaves as

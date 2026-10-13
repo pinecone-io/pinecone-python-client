@@ -163,6 +163,24 @@ class TestBatchResultPartialFailure:
         assert "SUCCESS" not in r
 
 
+class TestBatchResultTotalFailureRepr:
+    def test_all_batches_failed_is_not_partial(self) -> None:
+        err = make_batch_error(error_message="[400] bad")
+        result = make_batch_result(
+            total_item_count=1,
+            successful_item_count=0,
+            failed_item_count=1,
+            total_batch_count=1,
+            successful_batch_count=0,
+            failed_batch_count=1,
+            errors=[err],
+        )
+        r = repr(result)
+        assert "PARTIAL" not in r
+        assert r.startswith("BatchResult(FAILURE:")
+        assert "[400] bad" in r
+
+
 class TestBatchResultReprHtml:
     def test_batch_result_repr_html_success(self) -> None:
         result = make_batch_result()
