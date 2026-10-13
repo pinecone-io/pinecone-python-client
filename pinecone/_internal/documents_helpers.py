@@ -89,7 +89,7 @@ def _validate_documents(
     if max_documents is not None and len(docs) > max_documents:
         raise ValidationError(
             f"Number of documents ({len(docs)}) exceeds the maximum limit of "
-            f"{max_documents} documents per request. Use batch_upsert_documents "
+            f"{max_documents} documents per request. Use index.documents.batch_upsert "
             "to split a larger list into multiple requests."
         )
     normalized: list[dict[str, Any]] = []

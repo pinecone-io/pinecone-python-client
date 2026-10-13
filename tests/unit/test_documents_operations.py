@@ -13,6 +13,7 @@ page-following over the ``pagination`` envelope.
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Iterator
 from typing import Any
 
@@ -131,6 +132,14 @@ class TestUpsertDocumentsValidation:
         docs = [{"_id": f"doc-{i}"} for i in range(1001)]
         with pytest.raises(PineconeValueError, match="1000"):
             index.documents.upsert(namespace=NS, documents=docs)
+
+    def test_over_1000_error_names_a_method_that_exists(self, index: Index) -> None:
+        docs = [{"_id": f"doc-{i}"} for i in range(1001)]
+        with pytest.raises(PineconeValueError) as excinfo:
+            index.documents.upsert(namespace=NS, documents=docs)
+        hint = re.search(r"Use index\.documents\.(\w+)", str(excinfo.value))
+        assert hint is not None, str(excinfo.value)
+        assert callable(getattr(index.documents, hint.group(1), None))
 
     @pytest.mark.parametrize(
         ("bad_doc", "fragment"),
