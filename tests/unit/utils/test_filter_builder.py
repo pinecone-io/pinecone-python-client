@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from pinecone.errors import PineconeError, PineconeTypeError, PineconeValueError
 from pinecone.utils.filter_builder import Condition, Field
 
 
@@ -52,7 +53,7 @@ class TestFieldNumericComparison:
 
     def test_numeric_only_lt(self) -> None:
         with pytest.raises(TypeError, match="numeric"):
-            Field("x").lt(True)  # type: ignore[arg-type]
+            Field("x").lt(True)
 
 
 class TestFieldSetOperators:
@@ -105,3 +106,38 @@ class TestConditionEdgeCases:
     def test_empty_condition_raises(self) -> None:
         with pytest.raises(ValueError, match="empty"):
             Condition({}).to_dict()
+
+
+class TestExceptionTypes:
+    @pytest.mark.parametrize("op", ["gt", "gte", "lt", "lte"])
+    def test_non_numeric_raises_pinecone_type_error(self, op: str) -> None:
+        with pytest.raises(PineconeTypeError, match="numeric"):
+            getattr(Field("x"), op)("text")
+
+    @pytest.mark.parametrize("op", ["gt", "gte", "lt", "lte"])
+    def test_non_numeric_is_catchable_as_pinecone_error(self, op: str) -> None:
+        with pytest.raises(PineconeError):
+            getattr(Field("x"), op)(True)
+
+    @pytest.mark.parametrize("op", ["gt", "gte", "lt", "lte"])
+    def test_non_numeric_is_still_catchable_as_type_error(self, op: str) -> None:
+        with pytest.raises(TypeError):
+            getattr(Field("x"), op)("text")
+
+    def test_non_numeric_message_is_unchanged(self) -> None:
+        with pytest.raises(PineconeTypeError) as excinfo:
+            Field("x").gt("text")  # type: ignore[arg-type]
+        assert str(excinfo.value) == "gt requires a numeric value (int or float), got str"
+
+    def test_empty_condition_raises_pinecone_value_error(self) -> None:
+        with pytest.raises(PineconeValueError, match="empty"):
+            Condition({}).to_dict()
+
+    def test_empty_condition_is_catchable_as_pinecone_error(self) -> None:
+        with pytest.raises(PineconeError):
+            Condition({}).to_dict()
+
+    def test_empty_condition_message_is_unchanged(self) -> None:
+        with pytest.raises(PineconeValueError) as excinfo:
+            Condition({}).to_dict()
+        assert str(excinfo.value) == "Cannot convert an empty condition to a filter dict"

@@ -119,7 +119,8 @@ def test_field_comparison_raises_type_error_for_a_non_numeric_value(op: str, val
 @pytest.mark.parametrize("op", NUMERIC_OPS)
 def test_field_comparison_documents_that_type_error(op: str) -> None:
     block = _raises_block(getattr(Field, op))
-    assert ":exc:`TypeError`:" in block
+    assert "PineconeTypeError`:" in block
+    assert ":class:`TypeError`" in block, f"Field.{op} does not say it derives from TypeError"
     assert "bool" in block, f"Field.{op} does not say that a bool is rejected"
 
 

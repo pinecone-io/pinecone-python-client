@@ -15,6 +15,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from pinecone.errors.exceptions import PineconeTypeError, PineconeValueError
+
 # Value types accepted by equality / set operators.
 ScalarValue = str | int | float | bool
 
@@ -70,9 +72,12 @@ class Condition:
             The filter, e.g. ``{"year": {"$gte": 2020}}``.
 
         Raises:
-            :exc:`ValueError`: If the condition is empty — reachable only by
-                constructing :class:`Condition` directly with ``{}``, which
-                no :class:`Field` operator does.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If the
+                condition is empty — reachable only by constructing
+                :class:`Condition` directly with ``{}``, which no
+                :class:`Field` operator does. It derives from
+                :class:`ValueError`, so an existing ``except ValueError``
+                still catches it.
 
         Examples:
             >>> from pinecone import Field
@@ -80,7 +85,7 @@ class Condition:
             {'year': {'$gte': 2020}}
         """
         if not self._filter:
-            raise ValueError("Cannot convert an empty condition to a filter dict")
+            raise PineconeValueError("Cannot convert an empty condition to a filter dict")
         return self._filter
 
     def __repr__(self) -> str:
@@ -124,7 +129,7 @@ class Field:
 
     def _require_numeric(self, op: str, value: Any) -> None:
         if not isinstance(value, (int, float)) or isinstance(value, bool):
-            raise TypeError(
+            raise PineconeTypeError(
                 f"{op} requires a numeric value (int or float), got {type(value).__name__}"
             )
 
@@ -132,9 +137,11 @@ class Field:
         """``$gt`` — the field is greater than *value* (numeric only).
 
         Raises:
-            :exc:`TypeError`: If *value* is not an :class:`int` or :class:`float`.
-                A :class:`bool` is rejected as well, though Python counts it as an
-                ``int``; compare a boolean field with ``==`` instead.
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *value* is
+                not an :class:`int` or :class:`float`. A :class:`bool` is rejected
+                as well, though Python counts it as an ``int``; compare a boolean
+                field with ``==`` instead. It derives from :class:`TypeError`, so
+                an existing ``except TypeError`` still catches it.
 
         Examples:
             >>> from pinecone import Field
@@ -148,9 +155,11 @@ class Field:
         """``$gte`` — the field is greater than or equal to *value* (numeric only).
 
         Raises:
-            :exc:`TypeError`: If *value* is not an :class:`int` or :class:`float`.
-                A :class:`bool` is rejected as well, though Python counts it as an
-                ``int``; compare a boolean field with ``==`` instead.
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *value* is
+                not an :class:`int` or :class:`float`. A :class:`bool` is rejected
+                as well, though Python counts it as an ``int``; compare a boolean
+                field with ``==`` instead. It derives from :class:`TypeError`, so
+                an existing ``except TypeError`` still catches it.
 
         Examples:
             >>> from pinecone import Field
@@ -164,9 +173,11 @@ class Field:
         """``$lt`` — the field is less than *value* (numeric only).
 
         Raises:
-            :exc:`TypeError`: If *value* is not an :class:`int` or :class:`float`.
-                A :class:`bool` is rejected as well, though Python counts it as an
-                ``int``; compare a boolean field with ``==`` instead.
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *value* is
+                not an :class:`int` or :class:`float`. A :class:`bool` is rejected
+                as well, though Python counts it as an ``int``; compare a boolean
+                field with ``==`` instead. It derives from :class:`TypeError`, so
+                an existing ``except TypeError`` still catches it.
 
         Examples:
             >>> from pinecone import Field
@@ -180,9 +191,11 @@ class Field:
         """``$lte`` — the field is less than or equal to *value* (numeric only).
 
         Raises:
-            :exc:`TypeError`: If *value* is not an :class:`int` or :class:`float`.
-                A :class:`bool` is rejected as well, though Python counts it as an
-                ``int``; compare a boolean field with ``==`` instead.
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *value* is
+                not an :class:`int` or :class:`float`. A :class:`bool` is rejected
+                as well, though Python counts it as an ``int``; compare a boolean
+                field with ``==`` instead. It derives from :class:`TypeError`, so
+                an existing ``except TypeError`` still catches it.
 
         Examples:
             >>> from pinecone import Field
