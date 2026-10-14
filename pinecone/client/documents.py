@@ -338,7 +338,8 @@ class Documents:
 
         Args:
             namespace (str): Namespace to search (required, non-empty).
-            score_by: Scoring methods to rank documents by (1-100 clauses).
+            score_by: Scoring methods to rank documents by (1-100 clauses),
+                as a list. Wrap a single clause as ``[clause]``.
                 Items are typed variants
                 (:class:`~pinecone.models.documents.score_by.TextQuery`,
                 :class:`~pinecone.models.documents.score_by.QueryStringQuery`,
@@ -410,6 +411,10 @@ class Documents:
                 is empty, over 100 clauses, or combines a vector, ``embed``
                 or ``sparse_embed`` clause with any other clause, or ``top_k``
                 is outside [1, 10000].
+            :exc:`PineconeTypeError`: If ``score_by`` is not a list of
+                clauses (wrap a single clause as ``[clause]``), or ``filter`` is
+                not a dict (call ``.to_dict()`` on a filter-builder
+                :class:`~pinecone.utils.filter_builder.Condition`).
 
         Examples:
             >>> from pinecone import Pinecone, TextQuery
@@ -535,6 +540,9 @@ class Documents:
                 an empty dict, ``ids`` exceeds 1000 entries,
                 ``pagination_token`` is passed without ``filter``, or
                 ``limit`` is outside 1-10000.
+            :exc:`PineconeTypeError`: If ``filter`` is not a dict (call
+                ``.to_dict()`` on a filter-builder
+                :class:`~pinecone.utils.filter_builder.Condition`).
 
         Examples:
             Fetch specific documents by ID. IDs that do not exist are absent
@@ -637,6 +645,8 @@ class Documents:
                 Mutually exclusive with ``ids`` and ``delete_all``. Not
                 available on an index with dedicated read capacity scaled to
                 0 replicas — scale up replicas first.
+                Pass a dict; for a filter-builder ``Condition``, pass
+                ``condition.to_dict()``.
             delete_all (bool): If ``True``, delete all documents in the
                 namespace. Mutually exclusive with ``ids`` and ``filter``.
             timeout (float | None): Per-request timeout in seconds. Overrides
@@ -651,6 +661,9 @@ class Documents:
             :exc:`PineconeValueError`: If ``namespace`` is empty, zero or more
                 than one of ``ids``/``filter``/``delete_all`` is provided,
                 ``filter`` is an empty dict, or ``ids`` exceeds 1000 entries.
+            :exc:`PineconeTypeError`: If ``filter`` is not a dict (call
+                ``.to_dict()`` on a filter-builder
+                :class:`~pinecone.utils.filter_builder.Condition`).
 
         Examples:
             Delete specific documents by ID:
@@ -734,6 +747,8 @@ class Documents:
                 Mutually exclusive with ``documents``. Not available on an
                 index with dedicated read capacity scaled to 0 replicas —
                 scale up replicas first.
+                Pass a dict; for a filter-builder ``Condition``, pass
+                ``condition.to_dict()``.
             set_fields: Fields to set on every document matching ``filter``,
                 and the values to set them to. Only valid with ``filter``.
             remove_fields: Names of the fields to remove from every document
@@ -760,6 +775,9 @@ class Documents:
             :exc:`ApiError`: If a field value is ``None``, which the server
                 rejects — use ``_remove_fields`` (per-ID) or ``remove_fields``
                 (by-filter) to remove a field instead.
+            :exc:`PineconeTypeError`: If ``filter`` is not a dict (call
+                ``.to_dict()`` on a filter-builder
+                :class:`~pinecone.utils.filter_builder.Condition`).
 
         Examples:
             Patch documents by ID. Each key other than the reserved ``_id`` and

@@ -13,13 +13,13 @@ context) the models cannot see.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 from urllib.parse import quote
 
 import msgspec
 
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import PineconeTypeError, ValidationError
 from pinecone.models.documents.document import DocumentRecord, UpdateDocumentRecord
 from pinecone.models.documents.requests import (
     DeleteDocumentsRequest,
@@ -29,6 +29,7 @@ from pinecone.models.documents.requests import (
     UpdateDocumentsRequest,
 )
 from pinecone.models.documents.score_by import DocumentScoringMethod
+from pinecone.utils.filter_builder import Condition
 
 _MAX_DOCUMENTS_PER_REQUEST = 1000
 
@@ -176,6 +177,27 @@ def _validate_update_documents(
     return normalized
 
 
+def _check_filter(filter: object) -> None:
+    """Reject a ``filter`` that is not a mapping, naming ``.to_dict()`` for a ``Condition``."""
+    if filter is None or isinstance(filter, Mapping):
+        return
+    hint = (
+        "call .to_dict() on a filter-builder Condition to get one"
+        if isinstance(filter, Condition)
+        else "pass a dict such as {'field': {'$eq': 'value'}}"
+    )
+    raise PineconeTypeError(f"filter must be a dict, got {type(filter).__name__}; {hint}")
+
+
+def _check_score_by(score_by: object) -> None:
+    """Reject a ``score_by`` that is a lone clause, a mapping, or a string."""
+    if isinstance(score_by, (str, bytes, Mapping)) or not isinstance(score_by, Iterable):
+        raise PineconeTypeError(
+            f"score_by must be a list of scoring clauses, got {type(score_by).__name__}; "
+            "wrap a single clause in a list, as in score_by=[clause]"
+        )
+
+
 def _build_search_documents_body(
     *,
     score_by: Sequence[DocumentScoringMethod | Mapping[str, Any]],
@@ -190,7 +212,11 @@ def _build_search_documents_body(
             combines a ``dense_vector``/``sparse_vector`` clause with any other
             clause, or contains an invalid clause; or if ``top_k`` is outside
             [1, 10000].
+        :exc:`PineconeTypeError`: If ``score_by`` is a single clause, mapping, or string
+            rather than a list, or ``filter`` is not a dict.
     """
+    _check_score_by(score_by)
+    _check_filter(filter)
     try:
         request = SearchDocumentsRequest(
             score_by=[dict(item) if isinstance(item, Mapping) else item for item in score_by],
@@ -220,6 +246,7 @@ def _build_fetch_documents_body(
             ``pagination_token`` is passed without ``filter``, or ``limit``
             falls outside 1-10000.
     """
+    _check_filter(filter)
     try:
         request = FetchDocumentsRequest(
             ids=list(ids) if ids is not None else None,
@@ -247,6 +274,7 @@ def _build_delete_documents_body(
             ``filter``, and ``delete_all`` are provided, ``filter`` is empty,
             or ``ids`` exceeds 1000 entries.
     """
+    _check_filter(filter)
     try:
         request = DeleteDocumentsRequest(
             ids=list(ids) if ids is not None else None,
@@ -279,6 +307,7 @@ def _build_update_documents_body(
             ``filter``, ``filter`` is empty or carries no patch, or any
             per-ID patch is malformed.
     """
+    _check_filter(filter)
     normalized = _validate_update_documents(documents) if documents is not None else None
     try:
         request = UpdateDocumentsRequest(
