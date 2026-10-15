@@ -1,16 +1,26 @@
 # How Bulk Ingest Behaves
 
 This page explains what actually happens when you hand the SDK a large amount
-of data — `upsert(vectors=..., batch_size=...)` with a million vectors, or
-`upsert_from_dataframe()` with a large DataFrame — and what the knobs really
-control. For benchmark numbers and transport comparisons, see
+of data — `upsert(vectors=..., batch_size=...)` with a million vectors,
+`upsert_from_dataframe()` with a large DataFrame, or
+`documents.batch_upsert()` with a long list of documents — and what the knobs
+really control. For benchmark numbers and transport comparisons, see
 [Performance](performance.md); for per-request retry configuration, see
 [Retries](retries.md); for DataFrame-specific recipes, see
 [Reliable Large Ingests with upsert_from_dataframe](../how-to/vectors/upsert-from-dataframe.md).
 
 Everything here applies identically to the REST sync client, the asyncio
-client, and the gRPC client, and to `documents.upsert()` as well as
-`upsert()`. Bulk behavior is one shared engine underneath all of them.
+client, and the gRPC client. Bulk behavior is one shared engine underneath all
+of them, and vectors and documents name things differently:
+
+| | Vectors | Documents |
+|---|---|---|
+| Batched call | `upsert(vectors=..., batch_size=...)`, `upsert_from_dataframe()` | `documents.batch_upsert()` |
+| Returns | `UpsertResponse` | `BatchResult` |
+| Accepted-item count | `upserted_count` | `successful_item_count` (alias `success_count`) |
+| Default `batch_size` | unbatched for `upsert`; 500 for `upsert_from_dataframe` | 50; the server accepts at most 1000 per request |
+
+`documents.upsert()` is a single request, so nothing on this page applies to it.
 
 ## The four stations
 
@@ -63,15 +73,14 @@ Two consequences worth knowing:
 
 ### `batch_size`
 
-How many items go in one request. Defaults: 500 rows for
-`upsert_from_dataframe`, unbatched for `upsert` unless you pass it.
+How many items go in one request. Defaults are in the table above.
 
 Bigger batches mean fewer requests but heavier ones: more per-request
 payload, longer per-request time, and a larger unit of failure (a batch
-fails or succeeds as a whole). The SDK only requires `batch_size >= 1`; the
-ceiling is the server's request size limit, which a batch of unusually
-large vectors reaches sooner than the item count suggests. Lower it when
-your vectors are large, raise it when they are tiny.
+fails or succeeds as a whole). The ceiling is the server's request size
+limit, which a batch of unusually large items reaches sooner than the item
+count suggests. Lower it when your items are large, raise it when they are
+tiny.
 
 ### `max_concurrency`
 
@@ -135,7 +144,8 @@ never trips on a backend that is slow but working.
 Batched calls **do not raise** on per-batch failures. The response tells
 you what happened:
 
-- `upserted_count` — items the server accepted.
+- `upserted_count` (vectors) or `successful_item_count` (documents) — items
+  the server accepted.
 - `failed_item_count` and `failed_items` — exactly what did not land, ready
   to feed back into a retry call.
 - `errors` — one entry per failed batch. Each carries the items, the error,
@@ -153,9 +163,21 @@ you what happened:
 lowest-indexed batch failure be re-raised after all batches settle; the
 partial result rides on the exception's `response` attribute.)
 
+## Reading the gate counters on the result
+
+`documents.batch_upsert()` also reports what the admission gate did during the
+call. The gate is shared by every bulk call to the same host in the process.
+
+| Field | Meaning | How to read it |
+|---|---|---|
+| `throttle_event_count` | Throttle signals (HTTP 429, gRPC "slow down") the host's gate saw during the call | Includes throttles from concurrent calls to the same host. Nonzero means the backend pushed back, not that the call failed. |
+| `peak_inflight` | Most batches this call had in flight at once | Never exceeds `max_concurrency`. Well below it means the gate or a small batch count held the call back. |
+| `final_limit` | The host gate's concurrency limit when the call finished, from 1 to 64; `None` if the call never used the gate | Compare with 64, not `max_concurrency`: the gate starts at 64 regardless. Lower means the gate backed off, possibly during an earlier call in the same process. |
+| `stalled` | `True` if the stall detector (above) fired and the rest of the call was abandoned | Abandoned batches are in `errors` with `disposition="abandoned"`. |
+
 ## Retrying safely
 
-Upserts are idempotent by vector id — re-sending an item that already
+Upserts are idempotent by id — re-sending an item that already
 landed simply overwrites it with identical data. So retrying `failed_items`
 is always safe. What is *not* safe is retrying in an unbounded loop:
 
@@ -192,6 +214,10 @@ for attempt in range(3):
     time.sleep(2**attempt)
     response = index.upsert(vectors=retryable, batch_size=200)
 ```
+
+For documents, replace both `index.upsert(...)` calls with
+`index.documents.batch_upsert(namespace=..., documents=...)`; the loop reads
+`has_errors` and `errors` the same way on a `BatchResult`.
 
 A batch marked `retryable=False` was rejected for a reason a retry cannot
 fix (malformed data, dimension mismatch, auth) — re-sending it just burns
