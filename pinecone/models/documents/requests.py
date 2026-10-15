@@ -41,6 +41,20 @@ _MAX_TOP_K = 10000
 _MAX_FETCH_LIMIT = 10000
 _MAX_LIST_LIMIT = 100
 _MAX_PREFIX_LENGTH = 512
+
+
+class _NotAnIntegerError(TypeError):
+    """``top_k`` or ``limit`` was not an ``int``; re-raised as ``PineconeTypeError``."""
+
+
+def _require_int(name: str, value: Any) -> None:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise _NotAnIntegerError(
+            f"'{name}' must be an integer, not {type(value).__name__} ({value!r}); "
+            "booleans are not accepted."
+        )
+
+
 _STANDALONE_CLAUSES = (DenseVectorQuery, SparseVectorQuery, EmbedQuery, SparseEmbedQuery)
 
 _FILTER_EMPTY_ERR = (
@@ -125,6 +139,7 @@ class SearchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
             operator with a ``400``. The two kinds combine under ``$and``.
 
     Raises:
+        TypeError: If ``top_k`` is not an integer (a bool is not accepted).
         ValueError: If ``score_by`` is empty or holds over 100 clauses, if a vector clause
             is combined with another clause, or if ``top_k`` is outside 1 to 10000.
     """
@@ -157,6 +172,7 @@ class SearchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
                 "clauses must appear alone in 'score_by'"
             )
         self.score_by = normalized
+        _require_int("top_k", self.top_k)
         if not 1 <= self.top_k <= _MAX_TOP_K:
             raise ValueError(f"'top_k' must be between 1 and {_MAX_TOP_K} (got {self.top_k}).")
 
@@ -191,6 +207,7 @@ class FetchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
             of 100. Only a ``filter`` fetch pages; an ``ids`` fetch ignores it.
 
     Raises:
+        TypeError: If ``limit`` is not an integer (a bool is not accepted).
         ValueError: If both or neither of ``ids`` and ``filter`` are given, if ``filter``
             is an empty object, if ``ids`` holds over 1000 IDs, if ``pagination_token``
             is given without ``filter``, or if ``limit`` is outside 1 to 10000.
@@ -224,6 +241,8 @@ class FetchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
         _validate_filter_not_empty(self.filter)
         if self.ids is not None:
             _validate_id_count(len(self.ids))
+        if self.limit is not None:
+            _require_int("limit", self.limit)
         if self.limit is not None and not 1 <= self.limit <= _MAX_FETCH_LIMIT:
             raise ValueError(
                 f"'limit' must be between 1 and {_MAX_FETCH_LIMIT} (got {self.limit})."
@@ -371,6 +390,7 @@ class ListDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
         pagination_token: The token from a previous list response, to get the next page.
 
     Raises:
+        TypeError: If ``limit`` is not an integer (a bool is not accepted).
         ValueError: If ``prefix`` is over 512 characters or contains a non-ASCII character
             or NUL, or if ``limit`` is outside 1 to 100.
     """
@@ -391,5 +411,7 @@ class ListDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
                     "'prefix' must contain only ASCII characters in the range "
                     "\\x01-\\x7F (no NUL byte, no non-ASCII characters)."
                 )
+        if self.limit is not None:
+            _require_int("limit", self.limit)
         if self.limit is not None and not 1 <= self.limit <= _MAX_LIST_LIMIT:
             raise ValueError(f"'limit' must be between 1 and {_MAX_LIST_LIMIT} (got {self.limit}).")

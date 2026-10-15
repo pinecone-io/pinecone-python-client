@@ -27,6 +27,7 @@ from pinecone.models.documents.requests import (
     ListDocumentsRequest,
     SearchDocumentsRequest,
     UpdateDocumentsRequest,
+    _NotAnIntegerError,
 )
 from pinecone.models.documents.score_by import DocumentScoringMethod
 from pinecone.utils.filter_builder import Condition
@@ -208,6 +209,8 @@ def _build_search_documents_body(
     """Build and validate a ``search_documents`` request body.
 
     Raises:
+        :exc:`PineconeTypeError`: If ``top_k`` is not an integer (a bool is not
+            accepted).
         :exc:`PineconeValueError`: If ``score_by`` is empty, over 100 clauses,
             combines a ``dense_vector``/``sparse_vector`` clause with any other
             clause, or contains an invalid clause; or if ``top_k`` is outside
@@ -224,6 +227,8 @@ def _build_search_documents_body(
             include_fields=list(include_fields) if include_fields is not None else None,
             filter=dict(filter) if filter is not None else None,
         )
+    except _NotAnIntegerError as exc:
+        raise PineconeTypeError(str(exc)) from exc
     except (ValueError, msgspec.ValidationError) as exc:
         raise ValidationError(str(exc)) from exc
     body: dict[str, Any] = msgspec.to_builtins(request)
@@ -241,6 +246,8 @@ def _build_fetch_documents_body(
     """Build and validate a ``fetch_documents`` request body.
 
     Raises:
+        :exc:`PineconeTypeError`: If ``limit`` is not an integer (a bool is not
+            accepted).
         :exc:`PineconeValueError`: If both or neither of ``ids`` and ``filter``
             are provided, ``filter`` is empty, ``ids`` exceeds 1000 entries,
             ``pagination_token`` is passed without ``filter``, or ``limit``
@@ -255,6 +262,8 @@ def _build_fetch_documents_body(
             pagination_token=pagination_token,
             limit=limit,
         )
+    except _NotAnIntegerError as exc:
+        raise PineconeTypeError(str(exc)) from exc
     except ValueError as exc:
         raise ValidationError(str(exc)) from exc
     body: dict[str, Any] = msgspec.to_builtins(request)
@@ -331,6 +340,8 @@ def _build_list_documents_body(
     """Build and validate a ``list_documents`` request body.
 
     Raises:
+        :exc:`PineconeTypeError`: If ``limit`` is not an integer (a bool is not
+            accepted).
         :exc:`PineconeValueError`: If ``prefix`` is over 512 characters or
             contains a character outside ``\\x01``-``\\x7F``, or ``limit``
             falls outside 1-100.
@@ -341,6 +352,8 @@ def _build_list_documents_body(
             limit=limit,
             pagination_token=pagination_token,
         )
+    except _NotAnIntegerError as exc:
+        raise PineconeTypeError(str(exc)) from exc
     except ValueError as exc:
         raise ValidationError(str(exc)) from exc
     body: dict[str, Any] = msgspec.to_builtins(request)

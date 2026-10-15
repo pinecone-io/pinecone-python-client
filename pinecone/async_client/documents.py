@@ -409,9 +409,10 @@ class AsyncDocuments:
                 is empty, over 100 clauses, or combines a vector, ``embed``
                 or ``sparse_embed`` clause with any other clause, or ``top_k``
                 is outside [1, 10000].
-            :exc:`PineconeTypeError`: If ``score_by`` is not a list of
-                clauses (wrap a single clause as ``[clause]``), or ``filter`` is
-                not a dict (call ``.to_dict()`` on a filter-builder
+            :exc:`PineconeTypeError`: If ``top_k`` is not an integer (a bool is
+                not accepted), ``score_by`` is not a list of clauses (wrap a
+                single clause as ``[clause]``), or ``filter`` is not a dict
+                (call ``.to_dict()`` on a filter-builder
                 :class:`~pinecone.utils.filter_builder.Condition`).
 
         Examples:
@@ -536,7 +537,8 @@ class AsyncDocuments:
                 an empty dict, ``ids`` exceeds 1000 entries,
                 ``pagination_token`` is passed without ``filter``, or
                 ``limit`` is outside 1-10000.
-            :exc:`PineconeTypeError`: If ``filter`` is not a dict (call
+            :exc:`PineconeTypeError`: If ``limit`` is not an integer (a bool is
+                not accepted), or ``filter`` is not a dict (call
                 ``.to_dict()`` on a filter-builder
                 :class:`~pinecone.utils.filter_builder.Condition`).
 
@@ -863,6 +865,8 @@ class AsyncDocuments:
             :meth:`~pinecone.models.pagination.AsyncPaginator.pages`.
 
         Raises:
+            :exc:`PineconeTypeError`: If ``limit`` is not an integer (a bool is
+                not accepted).
             :exc:`PineconeValueError`: If ``namespace`` is empty, ``prefix``
                 violates the rules above, or ``limit`` falls outside 1-100.
                 Raised by this call, before the paginator is returned.
