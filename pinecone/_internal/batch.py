@@ -102,15 +102,14 @@ class _Deadline:
 def _abandoned_error(batch_index: int, batch: list[dict[str, Any]], total_timeout: float) -> Any:
     from pinecone.errors.exceptions import PineconeTimeoutError
 
-    message = (
-        f"total_timeout of {total_timeout}s expired before this batch was submitted; "
-        f"{len(batch)} items in batch {batch_index} were not sent"
-    )
+    group_key = f"total_timeout of {total_timeout}s expired before this batch was submitted"
+    message = f"{group_key}; {len(batch)} items in batch {batch_index} were not sent"
     return BatchError(
         batch_index=batch_index,
         items=batch,
         error=PineconeTimeoutError(message),
         error_message=message,
+        group_key=group_key,
         disposition="unsent",
     )
 

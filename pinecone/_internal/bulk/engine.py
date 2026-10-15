@@ -44,16 +44,20 @@ logger = logging.getLogger(__name__)
 def _stalled_error(batch_index: int, batch: list[dict[str, Any]]) -> BatchError:
     from pinecone.errors.exceptions import PineconeError
 
+    group_key = (
+        "backend appears unavailable: the adaptive limiter reached its floor with "
+        "consecutive failures, so the batch was abandoned without being sent"
+    )
     message = (
-        f"backend appears unavailable: the adaptive limiter reached its floor with "
-        f"consecutive failures, so {len(batch)} items in batch {batch_index} were "
-        f"abandoned without being sent; retry later with response.failed_items"
+        f"{group_key} ({len(batch)} items in batch {batch_index}); "
+        f"retry later with response.failed_items"
     )
     return BatchError(
         batch_index=batch_index,
         items=batch,
         error=PineconeError(message),
         error_message=message,
+        group_key=group_key,
         disposition=DISPOSITION_ABANDONED,
     )
 

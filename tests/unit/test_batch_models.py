@@ -281,3 +281,73 @@ class TestBatchResultErrorSummary:
         result = make_batch_result(errors=[err])
         r = repr(result)
         assert "1 batch)" in r
+
+
+class TestBatchResultGroupsPerBatchMessages:
+    """Timeout and stall messages name the batch, yet must print as one line."""
+
+    @staticmethod
+    def _result(errors: list[BatchError]) -> BatchResult:
+        return make_batch_result(
+            total_item_count=60,
+            successful_item_count=20,
+            failed_item_count=40,
+            total_batch_count=6,
+            successful_batch_count=2,
+            failed_batch_count=len(errors),
+            errors=errors,
+        )
+
+    def test_timeout_errors_for_different_batches_print_one_line(self) -> None:
+        from pinecone._internal.batch import _abandoned_error
+
+        errs = [_abandoned_error(i, [{"_id": str(i)}] * 10, 0.5) for i in range(2, 6)]
+        lines = repr(self._result(errs)).splitlines()
+        error_lines = lines[2:-1]
+        assert error_lines == [
+            "    total_timeout of 0.5s expired before this batch was submitted (4 batches)"
+        ]
+
+    def test_stall_errors_for_different_batches_print_one_line(self) -> None:
+        from pinecone._internal.bulk.engine import _stalled_error
+
+        errs = [_stalled_error(i, [{"_id": str(i)}] * (i + 1)) for i in range(2, 6)]
+        error_lines = repr(self._result(errs)).splitlines()[2:-1]
+        assert len(error_lines) == 1
+        assert error_lines[0].endswith("(4 batches)")
+        assert "items in batch" not in error_lines[0]
+
+    def test_per_batch_detail_stays_on_the_error(self) -> None:
+        from pinecone._internal.batch import _abandoned_error
+
+        err = _abandoned_error(7, [{"_id": "a"}, {"_id": "b"}], 0.5)
+        assert err.batch_index == 7
+        assert err.items == [{"_id": "a"}, {"_id": "b"}]
+        assert "2 items in batch 7 were not sent" in err.error_message
+        assert "2 items in batch 7 were not sent" in str(err.error)
+
+    def test_different_kinds_still_print_separately(self) -> None:
+        from pinecone._internal.batch import _abandoned_error
+
+        errs = [
+            _abandoned_error(2, [{"_id": "a"}], 0.5),
+            _abandoned_error(3, [{"_id": "b"}], 0.5),
+            make_batch_error(batch_index=4, error_message="[400] bad"),
+        ]
+        error_lines = repr(self._result(errs)).splitlines()[2:-1]
+        assert len(error_lines) == 2
+        assert error_lines[0].endswith("(2 batches)")
+        assert error_lines[1] == "    [400] bad (1 batch)"
+
+    def test_html_summary_groups_the_same_way(self) -> None:
+        from pinecone._internal.batch import _abandoned_error
+
+        errs = [_abandoned_error(i, [{"_id": str(i)}], 0.5) for i in range(2, 6)]
+        html = self._result(errs)._repr_html_()
+        assert html.count("expired before this batch was submitted") == 1
+        assert "items in batch" not in html
+
+    def test_group_key_defaults_to_error_message_and_is_serialized(self) -> None:
+        err = make_batch_error(error_message="[400] bad")
+        assert err.group_key == "[400] bad"
+        assert err.to_dict()["group_key"] == "[400] bad"

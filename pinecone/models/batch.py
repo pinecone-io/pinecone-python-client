@@ -30,8 +30,13 @@ class BatchError(Struct, kw_only=True):
         items: The items this batch was carrying, ready to be resent.
         error: The exception that ended the attempt — the thing to log or
             re-raise when you want the underlying cause.
-        error_message: The same failure as a readable string, which is what
-            :class:`BatchResult` groups and counts by.
+        error_message: The same failure as a readable string. A timeout or
+            stall message names this batch's item count and index.
+        group_key: The failure with that per-batch detail left out, which is
+            what :class:`BatchResult` groups and counts by, so that failures
+            of one kind print as one line however many batches they hit.
+            Equal to ``error_message`` unless you set it. Group failures of
+            your own on this rather than on ``error_message``.
         disposition: How far this batch got before failing, which is what
             tells you whether a retry could double-write. ``"rejected"`` means
             the attempt reached the server and came back with an error, so the
@@ -53,6 +58,11 @@ class BatchError(Struct, kw_only=True):
     error_message: str
     disposition: str = "rejected"
     retryable: bool = True
+    group_key: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.group_key:
+            self.group_key = self.error_message
 
     def __repr__(self) -> str:
         return (
@@ -75,6 +85,7 @@ class BatchError(Struct, kw_only=True):
             "error_message": self.error_message,
             "disposition": self.disposition,
             "retryable": self.retryable,
+            "group_key": self.group_key,
         }
 
     def to_json(self) -> str:
@@ -209,7 +220,7 @@ class BatchResult(Struct, kw_only=True):
         """Distinct error messages with batch counts, most frequent first."""
         counts: Counter[str] = Counter()
         for err in self.errors:
-            counts[err.error_message] += 1
+            counts[err.group_key] += 1
         return counts.most_common()
 
     def __repr__(self) -> str:
