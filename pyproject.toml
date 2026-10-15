@@ -58,7 +58,7 @@ docs = [
 
 [project.urls]
 Homepage = "https://www.pinecone.io"
-Documentation = "https://docs.pinecone.io"
+Documentation = "https://sdk.pinecone.io/python/"
 Source = "https://github.com/pinecone-io/python-sdk"
 Issues = "https://github.com/pinecone-io/python-sdk/issues"
 Changelog = "https://sdk.pinecone.io/python/migration/v10-migration.html"
