@@ -31,6 +31,7 @@ from pinecone.errors.exceptions import (
     FailedPreconditionError,
     ForbiddenError,
     NotFoundError,
+    PayloadTooLargeError,
     PaymentRequiredError,
     PineconeConnectionError,
     PineconeTimeoutError,
@@ -802,6 +803,16 @@ def _raise_for_status(response: httpx.Response) -> None:
         )
     if status == 412:
         raise FailedPreconditionError(
+            message=message,
+            status_code=status,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
+        )
+    if status == 413:
+        raise PayloadTooLargeError(
             message=message,
             status_code=status,
             body=body,

@@ -371,8 +371,11 @@ class AsyncIndex:
                 listed above.
             :exc:`PineconeValueError`: If a vector element is malformed, *batch_size*
                 is not a positive integer, or *max_concurrency* falls outside 1-64.
+            :exc:`~pinecone.errors.exceptions.PayloadTooLargeError`: If one request
+                exceeds the server's cap on encoded request size — lower
+                ``batch_size`` and retry.
             :exc:`ApiError`: If one request exceeds the server's cap on vectors per
-                request or on encoded request size — lower ``batch_size`` and retry.
+                request.
 
         Examples:
             All three vector forms are interchangeable within one call. The values

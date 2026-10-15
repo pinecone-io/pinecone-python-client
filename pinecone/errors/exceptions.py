@@ -346,6 +346,49 @@ class FailedPreconditionError(ApiError):
         )
 
 
+class PayloadTooLargeError(ApiError):
+    """413 — the request body is over the size the server accepts.
+
+    The cap is on the encoded body, not on a count of items, so a count that
+    fits one time can exceed it the next when the items are larger. The
+    request was well-formed and a retry unchanged answers ``413`` again; send
+    fewer items per request. A batch of one that still raises this cannot be
+    shrunk further. Only the REST clients raise it; the gRPC transport reports
+    an oversize message with its own status.
+
+    The class keys on the status code alone. A proxy in front of the service
+    rejects the largest bodies with a bare ``413`` and no JSON error code, so
+    ``error_code`` may be ``None`` and ``body`` may be ``None`` here.
+
+    Examples:
+        >>> from pinecone import ApiError, PayloadTooLargeError
+        >>> exc = PayloadTooLargeError("Request body is too large")
+        >>> exc.status_code, isinstance(exc, ApiError)
+        (413, True)
+    """
+
+    def __init__(
+        self,
+        message: str = "Payload too large",
+        status_code: int = 413,
+        body: dict[str, Any] | None = None,
+        *,
+        reason: str | None = None,
+        headers: dict[str, str] | None = None,
+        error_code: str | None = None,
+        request_id: str | None = None,
+    ) -> None:
+        super().__init__(
+            message=message,
+            status_code=status_code,
+            body=body,
+            reason=reason,
+            headers=headers,
+            error_code=error_code,
+            request_id=request_id,
+        )
+
+
 class RateLimitError(ApiError):
     """429 — the request was throttled.
 

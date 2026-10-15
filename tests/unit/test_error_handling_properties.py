@@ -29,6 +29,7 @@ from pinecone.errors.exceptions import (
     FailedPreconditionError,
     ForbiddenError,
     NotFoundError,
+    PayloadTooLargeError,
     PaymentRequiredError,
     PineconeError,
     PineconeTypeError,
@@ -56,6 +57,7 @@ def _expected_type(status: int) -> type[ApiError]:
         404: NotFoundError,
         409: ConflictError,
         412: FailedPreconditionError,
+        413: PayloadTooLargeError,
         429: RateLimitError,
     }.get(status)
     if specific is not None:
@@ -69,6 +71,7 @@ def _expected_type(status: int) -> type[ApiError]:
 @example(status=403)
 @example(status=404)
 @example(status=409)
+@example(status=413)
 @example(status=429)
 @example(status=500)
 def test_raise_for_status_maps_each_status_to_its_type(status: int) -> None:

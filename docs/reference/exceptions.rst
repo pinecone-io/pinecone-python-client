@@ -28,6 +28,7 @@ Class Hierarchy
        ├── UnauthorizedError (401)
        ├── PaymentRequiredError (402)
        ├── FailedPreconditionError (412)
+       ├── PayloadTooLargeError (413)
        ├── RateLimitError (429)
        └── ServiceError (5xx)
 
@@ -97,6 +98,10 @@ API Errors
    :show-inheritance:
 
 .. autoexception:: pinecone.errors.exceptions.FailedPreconditionError
+   :members:
+   :show-inheritance:
+
+.. autoexception:: pinecone.errors.exceptions.PayloadTooLargeError
    :members:
    :show-inheritance:
 

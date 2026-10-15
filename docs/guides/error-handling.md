@@ -36,6 +36,7 @@ PineconeError
 │   ├── NotFoundError             # 404
 │   ├── ConflictError             # 409
 │   ├── FailedPreconditionError   # 412
+│   ├── PayloadTooLargeError      # 413
 │   ├── RateLimitError            # 429
 │   └── ServiceError              # 5xx
 ├── PineconeValueError            # also a built-in ValueError
@@ -96,6 +97,7 @@ from pinecone.errors import (
     ForbiddenError,
     PaymentRequiredError,
     FailedPreconditionError,
+    PayloadTooLargeError,
     RateLimitError,
     ServiceError,
     PineconeConnectionError,
@@ -118,6 +120,8 @@ except PaymentRequiredError as exc:
     print(f"Billing blocks this operation: {exc.message}")
 except FailedPreconditionError as exc:
     print(f"Resource is not in a state that permits this: {exc.message}")
+except PayloadTooLargeError:
+    print("Request body over the size cap; send fewer items per request")
 except RateLimitError:
     print("Rate limited; backing off before retrying")
 except ServiceError as exc:
@@ -176,6 +180,7 @@ the call site:
 | `RateLimitError` | Yes, after `retry_after` if it is set |
 | `ServiceError` | Yes |
 | `FailedPreconditionError` | Yes, once you satisfy the precondition — `message` names what is in the way |
+| `PayloadTooLargeError` | Only after shrinking the request; a bare retry answers 413 again |
 | `ConflictError` | Only after resolving the conflict; a bare retry answers 409 again |
 | `NotFoundError` | No, with one exception — see [When 404 does not mean "not found"](#when-404-does-not-mean-not-found) |
 | `UnauthorizedError`, `ForbiddenError` | No. Fix the key or its permissions |

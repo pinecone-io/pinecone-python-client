@@ -152,7 +152,7 @@ class TestRaiseForStatusMapping:
         assert exc.value.message == expected_message
 
     def test_neighbouring_statuses_unchanged(self) -> None:
-        for status in (400, 405, 411, 413):
+        for status in (400, 405, 411, 414):
             response = httpx.Response(status, json={"message": "generic"})
             with pytest.raises(ApiError) as exc:
                 _raise_for_status(response)

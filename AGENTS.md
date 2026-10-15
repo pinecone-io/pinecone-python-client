@@ -303,6 +303,7 @@ PineconeError
 │   ├── ForbiddenError    # 403
 │   ├── PaymentRequiredError      # 402
 │   ├── FailedPreconditionError   # 412
+│   ├── PayloadTooLargeError      # 413
 │   ├── ConflictError     # 409
 │   ├── RateLimitError    # 429
 │   └── ServiceError      # 5xx

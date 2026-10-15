@@ -145,9 +145,11 @@ class Documents:
                 empty, non-string, non-ASCII, over-512-character, or duplicate
                 ``_id`` — the message names the offending document's position.
             :exc:`ApiError`: If a document lacks a field its schema requires
-                (400), or one request exceeds the server's cap on encoded
-                request size — a document count inside the accepted range can
-                still be too large. Send fewer documents per request, or use
+                (400).
+            :exc:`~pinecone.errors.exceptions.PayloadTooLargeError`: If one
+                request exceeds the server's cap on encoded request size — a
+                document count inside the accepted range can still be too
+                large. Send fewer documents per request, or use
                 :meth:`batch_upsert`.
 
         Examples:
@@ -249,6 +251,12 @@ class Documents:
                 is empty or contains an invalid or duplicate ``_id``,
                 ``batch_size`` is outside [1, 1000], or ``max_concurrency`` is
                 outside [1, 64].
+
+        Per-batch server rejections are not raised, including a
+        :exc:`~pinecone.errors.exceptions.PayloadTooLargeError` for a request
+        over the server's size cap. Each is recorded in ``result.errors`` as
+        that batch's ``error``; resend ``result.failed_items`` with a smaller
+        *batch_size*.
 
         Examples:
             On an index whose schema declares ``embedding`` as a
