@@ -417,10 +417,13 @@ class StringListField(Struct, tag="string_list", tag_field="type", kw_only=True)
     A filter on this field matches if any element matches, which is what makes
     it right for tags like ``["sci-fi", "mystery"]``.
 
-    **Response-only.** You read one back for a field the server indexed for
-    you at upsert time; sending ``string_list`` in a ``schema=`` on create is
-    rejected, and one rejected field fails the whole schema. Upsert the list
-    as an ordinary document value instead.
+    **Response-only.** On a documents index, ``describe`` lists only the
+    fields you declared, even after you upsert undeclared metadata of this
+    kind. The server keeps this type so it can read schemas stored earlier, so
+    an index that already stores one may still return it. Sending
+    ``string_list`` in a ``schema=`` on create is rejected, and one rejected
+    field fails the whole schema. Upsert the list as an ordinary document
+    value instead.
 
     Attributes:
         description: Free-text note about the field, or ``None``.
@@ -434,10 +437,12 @@ class StringListField(Struct, tag="string_list", tag_field="type", kw_only=True)
 class BooleanField(Struct, tag="boolean", tag_field="type", kw_only=True):
     """Boolean metadata, filterable.
 
-    **Response-only.** You read one back for a field the server indexed for
-    you at upsert time; sending ``boolean`` in a ``schema=`` on create is
-    rejected, and one rejected field fails the whole schema. Upsert the value
-    as an ordinary document value instead.
+    **Response-only.** On a documents index, ``describe`` lists only the
+    fields you declared, even after you upsert undeclared metadata of this
+    kind. The server keeps this type so it can read schemas stored earlier, so
+    an index that already stores one may still return it. Sending ``boolean``
+    in a ``schema=`` on create is rejected, and one rejected field fails the
+    whole schema. Upsert the value as an ordinary document value instead.
 
     Attributes:
         description: Free-text note about the field, or ``None``.
@@ -486,10 +491,12 @@ class FloatField(Struct, tag="float", tag_field="type", kw_only=True):
     integers are stored and filtered as floats, and ``float`` is the only
     numeric type name the API uses.
 
-    **Response-only.** You read one back for a field the server indexed for
-    you at upsert time; sending ``float`` in a ``schema=`` on create is
-    rejected, and one rejected field fails the whole schema. Upsert the number
-    as an ordinary document value instead.
+    **Response-only.** On a documents index, ``describe`` lists only the
+    fields you declared, even after you upsert undeclared metadata of this
+    kind. The server keeps this type so it can read schemas stored earlier, so
+    an index that already stores one may still return it. Sending ``float`` in
+    a ``schema=`` on create is rejected, and one rejected field fails the
+    whole schema. Upsert the number as an ordinary document value instead.
 
     Attributes:
         description: Free-text note about the field, or ``None``.
@@ -557,11 +564,12 @@ class IndexSchema(Struct, kw_only=True):
     "looks like a 9.x metadata schema" because none of its fields carry a
     ``type``.
 
-    The remaining types are things you read back, never things you ask for.
-    Declaring one is rejected, and because one bad field fails the whole
-    schema, a single response-only field turns the entire create call into an
-    error rather than being ignored — which is what makes a describe-then-create
-    round-trip fail.
+    The remaining types are never accepted on create; ``describe`` returns
+    them only from an index that already stores them. Declaring one is
+    rejected, and because one bad field fails the whole schema, a single
+    response-only field turns the entire create call into an error rather than
+    being ignored — which is what makes a describe-then-create round-trip
+    fail.
 
     Declarable when you create an index:
 
@@ -586,8 +594,10 @@ class IndexSchema(Struct, kw_only=True):
         a ``string`` field with integrated embedding (``embed`` /
         ``sparse_embed``) takes its place.
     ``float``, ``boolean``, ``string_list``
-        Numeric, boolean and tag-style metadata, indexed for filtering
-        automatically at upsert time — see :class:`FloatField`,
+        Numeric, boolean and tag-style metadata. Upserted metadata is indexed
+        for filtering automatically, but ``describe`` on a documents index
+        lists only the fields you declared; an index that already stores one
+        of these types may still return it — see :class:`FloatField`,
         :class:`BooleanField`, :class:`StringListField`.
     ``integer``
         Numeric metadata on indexes predating the normalisation of numbers to
