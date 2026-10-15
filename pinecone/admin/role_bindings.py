@@ -52,7 +52,9 @@ class RoleBindings:
     server's own error messages — which name the role, the scope, and the plan —
     explain the rest.
 
-    See :doc:`/guides/error-handling` for the exceptions every operation here
+    See
+    `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+    for the exceptions every operation here
     can raise.
 
     Examples:
@@ -98,7 +100,8 @@ class RoleBindings:
         authorization state.
 
         No request is sent until the returned paginator is iterated; see
-        :doc:`/guides/pagination`. The filters and *limit* are carried onto every
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
+        The filters and *limit* are carried onto every
         later page, so a cursor is always replayed with the query that produced
         it.
 

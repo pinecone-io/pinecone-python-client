@@ -16,7 +16,8 @@ matching :meth:`~pinecone.client.backups.Backups.list`.
 :meth:`BackupSchedules.iter_history` return a
 :class:`~pinecone.models.pagination.Paginator` that walks every page, matching
 :meth:`~pinecone.client.indexes.Indexes.list_backups`. Prefer the iterators
-unless you are driving the token yourself — see :doc:`/guides/pagination`.
+unless you are driving the token yourself — see
+`Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 """
 
 from __future__ import annotations
@@ -90,7 +91,8 @@ class BackupSchedules:
         a1b2c3d4-e5f6-7890-abcd-ef1234567890 Ready
 
     .. seealso::
-       :doc:`/guides/error-handling` — the exceptions any of these methods
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+       — the exceptions any of these methods
        can raise, and which ones are worth retrying.
     """
 
@@ -199,7 +201,8 @@ class BackupSchedules:
         Schedules are always listed per index; there is no project-wide
         schedule listing. Disabled schedules are included, so a listing can
         hold several rows even though at most one may be enabled. One call
-        returns one page — see :doc:`/guides/pagination`.
+        returns one page — see
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             index_name (str): Name of the index whose schedules to list.
@@ -535,7 +538,8 @@ class BackupSchedules:
         as soon as a run is planned -- so the listing mixes runs that have
         already completed with ones that have not started. One call returns
         one page, and a frequent cadence with a long retention window has far
-        more rows than one page holds — see :doc:`/guides/pagination`.
+        more rows than one page holds — see
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             schedule_id (str): The identifier of the schedule whose history

@@ -83,7 +83,8 @@ class AsyncDocuments:
                 )
 
     .. seealso::
-       :doc:`/guides/error-handling` — the exceptions any of these methods can
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+       — the exceptions any of these methods can
        raise, and which ones are worth retrying.
     """
 
@@ -284,7 +285,8 @@ class AsyncDocuments:
         .. seealso::
            - :meth:`upsert` — for a single-request upsert of up to
              1000 documents.
-           - :doc:`/guides/bulk-ingest` — choosing a batch size and
+           - `How bulk ingest behaves <https://sdk.pinecone.io/python/guides/bulk-ingest.html>`__
+             — choosing a batch size and
              concurrency, and reading the gate counters on the result.
         """
         effective_max_concurrency = (
@@ -586,7 +588,8 @@ class AsyncDocuments:
              rather than every document that satisfies a filter.
            - :meth:`~pinecone.async_client.async_index.AsyncIndex.fetch` — for
              indexes where you provide your own vectors.
-           - :doc:`/guides/pagination` — the pagination shapes the SDK uses
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+             — the pagination shapes the SDK uses
              and when each applies.
         """
         segment = _encode_document_namespace(namespace)
@@ -887,7 +890,8 @@ class AsyncDocuments:
              their IDs.
            - :meth:`~pinecone.async_client.async_index.AsyncIndex.list` — for
              indexes where you provide your own vectors.
-           - :doc:`/guides/pagination` — the pagination shapes the SDK uses
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+             — the pagination shapes the SDK uses
              and when each applies.
         """
         segment = _encode_document_namespace(namespace)

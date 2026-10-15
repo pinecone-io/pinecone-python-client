@@ -49,7 +49,8 @@ class AsyncBackups:
     .. seealso::
        - :meth:`~pinecone.async_client.indexes.AsyncIndexes.list_backups` —
          the index-scoped listing, which walks every page for you.
-       - :doc:`/guides/error-handling` — the exceptions any of these methods
+       - `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+         — the exceptions any of these methods
          can raise, and which ones are worth retrying.
     """
 
@@ -161,7 +162,7 @@ class AsyncBackups:
         Otherwise lists every backup in the project. One call returns one
         page: iterating the result walks that page and stops rather than
         following ``pagination`` on your behalf. Drive the token yourself to
-        walk the rest — see :doc:`/guides/pagination`.
+        walk the rest — see `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         ``list`` returns a page rather than a
         :class:`~pinecone.models.pagination.Paginator` because that is how

@@ -55,7 +55,8 @@ class ApiKeys:
        :class:`~pinecone.admin.service_accounts.ServiceAccounts` — the organization-scoped
        OAuth credentials an :class:`~pinecone.Admin` client itself uses.
 
-       :doc:`/guides/error-handling` — what each exception these calls raise means.
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+       — what each exception these calls raise means.
     """
 
     def __init__(self, *, http: HTTPClient) -> None:

@@ -6,7 +6,9 @@ pre-rewrite callers working. New code should import them from the top-level
 :mod:`pinecone` namespace. ``DBControl``, ``DBControlAsyncio``,
 ``PodSpecDefinition``, ``ServerlessSpecDefinition``, ``ConfigureIndexEmbed``,
 and ``CreateIndexForModelEmbedTypedDict`` also used to live here and are not
-re-exported; :doc:`/migration/v10-migration` covers what replaces each.
+re-exported;
+`Migrating to V10 <https://sdk.pinecone.io/python/migration/v10-migration.html>`__
+covers what replaces each.
 
 :meta private:
 """

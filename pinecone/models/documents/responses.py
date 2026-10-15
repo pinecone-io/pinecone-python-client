@@ -191,7 +191,8 @@ class ListDocumentsResponse(Struct, kw_only=True):
             when not present.
 
     .. seealso::
-       :doc:`/guides/pagination` — which pagination shape applies where, and the
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+       — which pagination shape applies where, and the
        paginator that saves you writing the loop.
     """
 

@@ -101,7 +101,8 @@ class ListNamespacesResponse(StructDictMixin, Struct, kw_only=True):
         total_count: Namespaces matching the request, across every page.
 
     .. seealso::
-       :doc:`/guides/pagination` — the paging loop used across the SDK.
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+       — the paging loop used across the SDK.
     """
 
     namespaces: list[NamespaceDescription] = []

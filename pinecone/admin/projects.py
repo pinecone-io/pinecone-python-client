@@ -90,7 +90,8 @@ class Projects:
        :class:`~pinecone.admin.api_keys.ApiKeys` — the keys that let
        :class:`~pinecone.Pinecone` reach a project's data.
 
-       :doc:`/guides/error-handling` — what each exception these calls raise means.
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+       — what each exception these calls raise means.
     """
 
     def __init__(self, *, http: HTTPClient, admin: Admin | None = None) -> None:

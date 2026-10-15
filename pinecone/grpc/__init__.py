@@ -379,7 +379,8 @@ class GrpcIndex:
     something you ``await``; ``retry_config.retryable_status_codes`` has no
     effect, since this transport retries gRPC status codes rather than HTTP
     ones; and :meth:`upsert_records` and :meth:`search` still travel over REST,
-    because the gRPC API has no records operations. See :doc:`/guides/grpc`.
+    because the gRPC API has no records operations. See
+    `Using the gRPC client <https://sdk.pinecone.io/python/guides/grpc.html>`__.
 
     Args:
         host (str): The index-specific data plane host URL.
@@ -415,7 +416,7 @@ class GrpcIndex:
             unset on :class:`~pinecone.Pinecone` does not carry over here. Its
             ``retryable_status_codes`` field is **ignored on this transport**: it carries
             HTTP statuses, and the codes retried here are gRPC ones. See
-            :doc:`/guides/retries`.
+            `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__.
         proxy_url (str | None): HTTP proxy URL. gRPC traffic is tunnelled through it with
             HTTP CONNECT.
         limiter_registry (_AdaptiveLimiterRegistry | None): SDK-internal. Registry the
@@ -471,8 +472,12 @@ class GrpcIndex:
 
     .. seealso::
        :class:`~pinecone.index.Index` — the REST client, and the better default
-       unless you are ingesting at volume. :doc:`/guides/grpc` compares the
-       two, and :doc:`/guides/retries` gives the full retry policy for both.
+       unless you are ingesting at volume.
+       `Using the gRPC client <https://sdk.pinecone.io/python/guides/grpc.html>`__
+       compares the
+       two, and
+       `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__
+       gives the full retry policy for both.
     """
 
     def __init__(
@@ -685,7 +690,8 @@ class GrpcIndex:
            where you send text and the server embeds it.
            :meth:`start_import` — for a one-off load of millions of vectors
            already sitting in cloud storage.
-           :doc:`/migration/v10-grpc-partial-failures` — how to read the
+           `gRPC partial failures <https://sdk.pinecone.io/python/migration/v10-grpc-partial-failures.html>`__
+           — how to read the
            partial-failure fields, and what changed for callers who expected a
            raise.
         """
@@ -1051,7 +1057,8 @@ class GrpcIndex:
         .. seealso::
            :meth:`fetch` — when you already know the IDs, and want them all in
            one response rather than a page at a time.
-           :doc:`/guides/pagination` — following ``pagination.next``.
+           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+           — following ``pagination.next``.
         """
         if limit is not None:
             require_valid_fetch_by_metadata_limit("limit", limit)
@@ -1316,7 +1323,8 @@ class GrpcIndex:
 
         .. seealso::
            :meth:`list` — the same walk with the tokens handled for you.
-           :doc:`/guides/pagination` — when to drive the tokens yourself.
+           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+           — when to drive the tokens yourself.
         """
         if prefix is not None:
             require_valid_id_prefix("prefix", prefix)
@@ -1382,7 +1390,8 @@ class GrpcIndex:
 
         .. seealso::
            :meth:`list_paginated` — one page at a time, when you need to
-           persist a token between calls. See :doc:`/guides/pagination`.
+           persist a token between calls. See
+           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
         """
         pagination_token: str | None = None
         while True:
@@ -1553,7 +1562,8 @@ class GrpcIndex:
                 attempt, so a larger *timeout* is the fix for a timeout and
                 ``max_retries`` is not. ``None`` (default) uses the ``timeout``
                 the index was constructed with. See the four timeout layers on
-                :class:`~pinecone.grpc.GrpcIndex` and :doc:`/guides/retries`.
+                :class:`~pinecone.grpc.GrpcIndex` and
+                `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__.
 
         Returns:
             :class:`~pinecone.models.vectors.responses.UpsertResponse`
@@ -1625,7 +1635,8 @@ class GrpcIndex:
 
         .. seealso::
            :meth:`upsert` — the same batching without the pandas dependency.
-           :doc:`/guides/bulk-ingest` — choosing ``batch_size``,
+           `How bulk ingest behaves <https://sdk.pinecone.io/python/guides/bulk-ingest.html>`__
+           — choosing ``batch_size``,
            ``max_concurrency``, and ``total_timeout``.
 
         .. versionchanged:: 10.0.0
@@ -1634,7 +1645,7 @@ class GrpcIndex:
            client. The old raise discarded the partial count, so no caller
            could tell what had landed. Pass ``on_error="raise"`` to keep the
            previous behavior. See
-           :doc:`/migration/v10-grpc-partial-failures`.
+           `gRPC partial failures <https://sdk.pinecone.io/python/migration/v10-grpc-partial-failures.html>`__.
         """
         try:
             import pandas as pd
@@ -2114,7 +2125,8 @@ class GrpcIndex:
         Use this on a legacy integrated index: you send query text and the server embeds
         it. This call travels over REST even on a ``GrpcIndex``, because the gRPC API has no records
         search — so a ``retry_config`` you passed to :class:`~pinecone.grpc.GrpcIndex` does not
-        govern it, and it retries on the REST data plane's own fixed terms (:doc:`/guides/retries`).
+        govern it, and it retries on the REST data plane's own fixed terms;
+        see `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__.
 
         Part of the legacy Records API. On a document index, including one with
         an integrated-embedding field, search through the REST
@@ -2311,7 +2323,7 @@ class GrpcIndex:
 
         .. seealso::
            :meth:`list_namespaces` — the same walk with the tokens handled for
-           you. See :doc:`/guides/pagination`.
+           you. See `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
         """
         if prefix is not None:
             require_valid_namespace_prefix("prefix", prefix)
@@ -2756,7 +2768,8 @@ class GrpcIndex:
 
         .. seealso::
            :meth:`list_imports_paginated` — one page at a time, when you need
-           to persist a token between calls. See :doc:`/guides/pagination`.
+           to persist a token between calls. See
+           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
         """
         params: dict[str, Any] = {}
         if limit is not None:
@@ -2806,7 +2819,7 @@ class GrpcIndex:
 
         .. seealso::
            :meth:`list_imports` — the same walk with the tokens handled for
-           you. See :doc:`/guides/pagination`.
+           you. See `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
         """
         params: dict[str, Any] = {}
         if limit is not None:

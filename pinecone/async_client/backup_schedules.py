@@ -19,7 +19,7 @@ token, matching :meth:`~pinecone.async_client.backups.AsyncBackups.list`.
 matching :meth:`~pinecone.async_client.indexes.AsyncIndexes.list_backups`.
 Both iterators await each page rather than blocking, so the event loop stays
 free between them. Prefer them unless you are driving the token yourself —
-see :doc:`/guides/pagination`.
+see `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 """
 
 from __future__ import annotations
@@ -93,7 +93,8 @@ class AsyncBackupSchedules:
                     print(run.backup_id, run.status)
 
     .. seealso::
-       :doc:`/guides/error-handling` — the exceptions any of these methods
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+       — the exceptions any of these methods
        can raise, and which ones are worth retrying.
     """
 
@@ -205,7 +206,8 @@ class AsyncBackupSchedules:
         Schedules are always listed per index; there is no project-wide
         schedule listing. Disabled schedules are included, so a listing can
         hold several rows even though at most one may be enabled. One call
-        returns one page — see :doc:`/guides/pagination`.
+        returns one page — see
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             index_name (str): Name of the index whose schedules to list.
@@ -563,7 +565,8 @@ class AsyncBackupSchedules:
         as soon as a run is planned -- so the listing mixes runs that have
         already completed with ones that have not started. One call returns
         one page, and a frequent cadence with a long retention window has far
-        more rows than one page holds — see :doc:`/guides/pagination`.
+        more rows than one page holds — see
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             schedule_id (str): The identifier of the schedule whose history

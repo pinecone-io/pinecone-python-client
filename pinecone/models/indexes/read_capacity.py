@@ -88,7 +88,7 @@ class ReadCapacityOnDemandResponse(Struct, tag="OnDemand", tag_field="mode", kw_
     so there is no configuration to read back — only a status. Its ``mode`` is
     ``"OnDemand"``. Reach for :class:`ReadCapacityDedicatedResponse` when you
     want to control the shards and replicas serving reads instead; see
-    :doc:`/guides/concepts`.
+    `How Pinecone works <https://sdk.pinecone.io/python/guides/concepts.html>`__.
 
     Attributes:
         status: A :class:`ReadCapacityStatus`.

@@ -41,7 +41,8 @@ class ListAssistantsResponse(StructDictMixin, Struct, kw_only=True):
         True
 
     .. seealso::
-       :doc:`/guides/pagination` — the continuation-token loop, and the
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+       — the continuation-token loop, and the
        paginator that drives it for you.
     """
 
@@ -124,7 +125,8 @@ class ListFilesResponse(StructDictMixin, Struct, kw_only=True):
                 print(file.name, file.status)
 
     .. seealso::
-       :doc:`/guides/pagination` — the continuation-token loop, and the
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+       — the continuation-token loop, and the
        paginator that drives it for you.
     """
 
@@ -210,7 +212,8 @@ class ListOperationsResponse(StructDictMixin, Struct, kw_only=True):
                     print(operation.error)
 
     .. seealso::
-       :doc:`/guides/pagination` — the continuation-token loop, and the
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+       — the continuation-token loop, and the
        paginator that drives it for you.
     """
 

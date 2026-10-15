@@ -132,7 +132,8 @@ class Indexes:
        :meth:`Pinecone.index(name) <pinecone.Pinecone.index>` — the data-plane
        client for reads and writes against one index.
 
-       :doc:`/guides/error-handling` — the exceptions any method here can
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+       — the exceptions any method here can
        raise, and how to handle them.
 
     .. versionchanged:: 10.0
@@ -171,7 +172,7 @@ class Indexes:
                 integer; ``None`` (the default) yields every index.
             pagination_token: Token from an earlier call, to resume where that
                 call stopped; ``None`` starts from the beginning. See
-                :doc:`/guides/pagination`.
+                `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Returns:
             :class:`~pinecone.models.pagination.Paginator` over
@@ -498,7 +499,7 @@ class Indexes:
            only the sparse upserts are refused later. The field
            cannot be added by ``configure()``, so an index created
            without one has to be recreated. See
-           :doc:`/migration/v10-migration`.
+           `Migrating to V10 <https://sdk.pinecone.io/python/migration/v10-migration.html>`__.
 
         .. seealso::
            :meth:`create_for_model` — creates a legacy integrated index, which
@@ -1009,7 +1010,7 @@ class Indexes:
             pagination_token: Token from an earlier call, to resume where that
                 call stopped. *limit* still caps the total yield, but it is
                 not sent alongside a token — see above. See
-                :doc:`/guides/pagination`.
+                `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
             include_deleted: When ``True``, include backups of every index
                 that has ever used *index_name*, deleted ones included; those
                 backups carry a non-``None``

@@ -29,7 +29,8 @@ class ImportErrorMode(str, Enum):
             )
 
     .. seealso::
-       :doc:`/guides/bulk-ingest` — the source-data layout an import expects.
+       `How bulk ingest behaves <https://sdk.pinecone.io/python/guides/bulk-ingest.html>`__
+       — the source-data layout an import expects.
     """
 
     CONTINUE = "continue"

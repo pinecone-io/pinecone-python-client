@@ -69,7 +69,7 @@ class PineconeFuture(Future["_T"]):
     .. seealso::
        :class:`~pinecone.async_client.async_index.AsyncIndex` — the asyncio
        client, for code that awaits rather than joining threads. See
-       :doc:`/guides/sync-vs-async`.
+       `Sync vs async clients <https://sdk.pinecone.io/python/guides/sync-vs-async.html>`__.
     """
 
     def __init__(self, underlying: Future[_T]) -> None:

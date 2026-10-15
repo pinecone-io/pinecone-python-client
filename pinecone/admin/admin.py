@@ -273,7 +273,8 @@ class Admin:
        :class:`~pinecone.Pinecone` — index and vector operations, authenticated with an API
        key created here.
 
-       :doc:`/guides/error-handling` — what each exception an admin call can raise means,
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+       — what each exception an admin call can raise means,
        and what to do about it.
     """
 

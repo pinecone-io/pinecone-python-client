@@ -41,7 +41,8 @@ class ImportModel(StructDictMixin, Struct, kw_only=True, rename="camel"):
                 print(operation.error)
 
     .. seealso::
-       :doc:`/guides/bulk-ingest` — preparing the source data and choosing an error mode.
+       `How bulk ingest behaves <https://sdk.pinecone.io/python/guides/bulk-ingest.html>`__
+       — preparing the source data and choosing an error mode.
     """
 
     id: str
@@ -66,7 +67,8 @@ class StartImportResponse(StructDictMixin, Struct, kw_only=True):
             :class:`ImportModel`, or to ``cancel_import`` to stop it.
 
     .. seealso::
-       :doc:`/guides/bulk-ingest` — the whole start-then-poll flow.
+       `How bulk ingest behaves <https://sdk.pinecone.io/python/guides/bulk-ingest.html>`__
+       — the whole start-then-poll flow.
     """
 
     id: str

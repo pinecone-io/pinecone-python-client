@@ -5,7 +5,8 @@ retryable response; the bulk paths read ``current_limit(host, ceiling)``
 before dispatching work. The limiter self-tunes effective concurrency
 between ``1`` and the user-provided ``max_concurrency`` ceiling.
 
-Not thread-coordinated across processes. See :doc:`/guides/retries`
+Not thread-coordinated across processes. See
+`Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__
 for multi-process guidance.
 """
 

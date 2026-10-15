@@ -29,7 +29,8 @@ class ImportList:
                 print(operation.id, operation.status, operation.percent_complete)
 
     .. seealso::
-       :doc:`/guides/bulk-ingest` — starting and monitoring imports.
+       `How bulk ingest behaves <https://sdk.pinecone.io/python/guides/bulk-ingest.html>`__
+       — starting and monitoring imports.
     """
 
     def __init__(

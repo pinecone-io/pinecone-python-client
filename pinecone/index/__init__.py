@@ -88,7 +88,8 @@ class Index:
     :class:`~pinecone.async_client.async_index.AsyncIndex` is the ``asyncio`` twin.
 
     Only errors specific to a single method are documented on that method. For the
-    exception hierarchy every method shares, see :doc:`/guides/error-handling`.
+    exception hierarchy every method shares, see
+    `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__.
 
     Args:
         host (str): The index-specific data plane host URL.
@@ -339,7 +340,8 @@ class Index:
            and ``response.failed_items`` report it, and ``failed_items`` can be
            passed straight back to ``upsert``. Each batch is retried on its own
            under the client's retry policy, timeouts included, so *timeout* bounds
-           one attempt rather than the batch; see :doc:`/guides/retries`.
+           one attempt rather than the batch; see
+           `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__.
 
         .. seealso::
            - :meth:`upsert_records` — text in, embedded server-side, for a legacy
@@ -1024,7 +1026,7 @@ class Index:
 
         A lookup, not a search: matches are not ranked and carry no score. One page
         is returned per call, so follow ``pagination.next`` to reach the rest — see
-        :doc:`/guides/pagination`.
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             filter (dict[str, Any]): Metadata filter expression, e.g.
@@ -1062,7 +1064,8 @@ class Index:
            - :meth:`fetch` — when you already know the IDs.
            - :meth:`query` — when you want the nearest vectors to a query rather
              than every vector a filter admits.
-           - :doc:`/guides/pagination` — walking every page.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+             — walking every page.
         """
         if limit is not None:
             require_valid_fetch_by_metadata_limit("limit", limit)
@@ -1736,7 +1739,7 @@ class Index:
 
         :meth:`list_namespaces` walks the pages for you; reach for this one when you
         need to persist the token between calls or hand it to a caller of your own.
-        See :doc:`/guides/pagination`.
+        See `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             prefix (str | None): Return only namespaces whose names start with this
@@ -1768,7 +1771,8 @@ class Index:
         .. seealso::
            - :meth:`list_namespaces` — the same listing with the token handled for
              you.
-           - :doc:`/guides/pagination` — how the SDK pages generally.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+             — how the SDK pages generally.
         """
         params: dict[str, Any] = {}
         if prefix is not None:
@@ -1826,7 +1830,8 @@ class Index:
            - :meth:`list_namespaces_paginated` — one page, with the token in your
              hands.
            - :meth:`describe_namespace` — one namespace, when you know its name.
-           - :doc:`/guides/pagination` — how the SDK pages generally.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+             — how the SDK pages generally.
         """
         pagination_token: str | None = None
         while True:
@@ -1855,7 +1860,7 @@ class Index:
 
         IDs only — no values and no metadata. :meth:`list` walks the pages for you;
         reach for this one when you need to persist the token between calls. See
-        :doc:`/guides/pagination`.
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             prefix (str | None): Return only IDs starting with this prefix, e.g.
@@ -1893,7 +1898,8 @@ class Index:
         .. seealso::
            - :meth:`list` — the same listing with the token handled for you.
            - :meth:`fetch` — the vectors behind those IDs.
-           - :doc:`/guides/pagination` — how the SDK pages generally.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+             — how the SDK pages generally.
         """
         if prefix is not None:
             require_valid_id_prefix("prefix", prefix)
@@ -1959,7 +1965,8 @@ class Index:
         .. seealso::
            - :meth:`list_paginated` — one page, with the token in your hands.
            - :meth:`fetch` — the vectors behind a page of IDs.
-           - :doc:`/guides/pagination` — how the SDK pages generally.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+             — how the SDK pages generally.
         """
         pagination_token: str | None = None
         while True:
@@ -2169,7 +2176,8 @@ class Index:
 
         Yields the :class:`ImportModel` objects themselves rather than pages, and
         fetches the next page as you exhaust the current one, so nothing is
-        requested until you iterate. See :doc:`/guides/pagination`.
+        requested until you iterate. See
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             limit (int | None): Maximum number of imports per page, e.g. ``10``.
@@ -2192,7 +2200,8 @@ class Index:
            - :meth:`list_imports_paginated` — one page, with the token in your
              hands.
            - :meth:`describe_import` — one import, when you know its ``id``.
-           - :doc:`/guides/pagination` — how the SDK pages generally.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+             — how the SDK pages generally.
         """
         params: dict[str, Any] = {}
         if limit is not None:
@@ -2218,7 +2227,8 @@ class Index:
         """Fetch one page of bulk imports, holding the token yourself.
 
         :meth:`list_imports` walks the pages for you; reach for this one when you
-        need to persist the token between calls. See :doc:`/guides/pagination`.
+        need to persist the token between calls. See
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             limit (int | None): Maximum number of imports in this page, e.g.
@@ -2245,7 +2255,8 @@ class Index:
         .. seealso::
            - :meth:`list_imports` — the same listing with the token handled for
              you.
-           - :doc:`/guides/pagination` — how the SDK pages generally.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+             — how the SDK pages generally.
         """
         params: dict[str, Any] = {}
         if limit is not None:

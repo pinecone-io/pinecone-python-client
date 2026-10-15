@@ -59,7 +59,8 @@ class UpsertResponse(DictLikeStruct, Struct, rename="camel", kw_only=True, gc=Fa
                 retry = idx.upsert(vectors=response.failed_items, batch_size=100)
 
     .. seealso::
-       :doc:`/guides/performance` — choosing a ``batch_size``.
+       `Performance <https://sdk.pinecone.io/python/guides/performance.html>`__
+       — choosing a ``batch_size``.
     """
 
     upserted_count: int
@@ -263,7 +264,8 @@ class FetchByMetadataResponse(DictLikeStruct, Struct, rename="camel", kw_only=Tr
                 token = page.pagination.next
 
     .. seealso::
-       :doc:`/guides/pagination` — the paging pattern used across the SDK.
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+       — the paging pattern used across the SDK.
     """
 
     vectors: dict[str, Vector] = {}
@@ -371,7 +373,8 @@ class Pagination(StructDictMixin, Struct, kw_only=True, gc=False):
             opaque: it is not an ID, an offset, or anything you can construct yourself.
 
     .. seealso::
-       :doc:`/guides/pagination` — the paging loop, and the paginated helpers that run it
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+       — the paging loop, and the paginated helpers that run it
        for you.
     """
 
@@ -415,7 +418,8 @@ class ListResponse(StructDictMixin, Struct, rename="camel", kw_only=True, gc=Fal
                 print(item.id)
 
     .. seealso::
-       :doc:`/guides/pagination` — and ``Index.list``, which yields every page for you.
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+       — and ``Index.list``, which yields every page for you.
     """
 
     vectors: list[ListItem] = []

@@ -66,13 +66,17 @@ class AsyncPinecone:
     hands back.
 
     :class:`~pinecone.Pinecone` is the blocking twin, and
-    :doc:`/guides/sync-vs-async` compares the two. The one shape difference is
+    `Sync vs async clients <https://sdk.pinecone.io/python/guides/sync-vs-async.html>`__
+    compares the two. The one shape difference is
     :meth:`index`: here it is a coroutine you await, so the one describe request a
     cache-missing name costs does not block the event loop, and it takes no
     ``grpc=`` argument, the gRPC transport being sync-only. Any call can raise the
     connection, timeout, and API errors catalogued in
-    :doc:`/guides/error-handling`, and every ``Raises:`` section below names only
-    what is specific to that method. :doc:`/guides/retries` covers what the client
+    `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__,
+    and every ``Raises:`` section below names only
+    what is specific to that method.
+    `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__
+    covers what the client
     retries on your behalf and what *retry_config* changes.
 
     Args:
@@ -107,7 +111,9 @@ class AsyncPinecone:
             raise it for a process issuing many concurrent control-plane calls.
         retry_config (RetryConfig | None): Retry policy for control-plane requests.
             ``None`` (default) uses the built-in policy, which suits most callers;
-            see :doc:`/guides/retries` for the defaults, for how to switch retries
+            see
+            `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__
+            for the defaults, for how to switch retries
             off, and for why it does not reach data-plane REST.
 
     Raises:

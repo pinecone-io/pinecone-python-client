@@ -38,7 +38,9 @@ class Invites:
     :class:`~pinecone.admin.role_bindings.RoleBindings` with
     ``principal_type="invite"``.
 
-    See :doc:`/guides/error-handling` for the exceptions every operation here
+    See
+    `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+    for the exceptions every operation here
     can raise.
 
     Examples:
@@ -74,7 +76,8 @@ class Invites:
 
         Accepted invites are omitted, so absence from this list does not mean an
         invite never existed — see the note below. No request is sent until the
-        returned paginator is iterated; see :doc:`/guides/pagination`.
+        returned paginator is iterated; see
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             limit (int | None): Number of invites the server returns **per
@@ -363,7 +366,9 @@ class Invites:
         .. note::
             A :exc:`~pinecone.errors.exceptions.RateLimitError` that reaches you
             has already survived the SDK's own retries, which honor
-            ``Retry-After`` (see :doc:`/guides/retries`) — so an immediate retry
+            ``Retry-After`` (see
+            `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__)
+            — so an immediate retry
             of your own will just fail again. Honor ``exc.retry_after`` when the
             server supplies one, and back off generously otherwise.
         """

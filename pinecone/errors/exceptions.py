@@ -36,7 +36,8 @@ class PineconeError(Exception):
         NotFoundError No index named 'movie-recommendations'
 
     .. seealso::
-       :doc:`/guides/error-handling` — which errors a given call produces, what
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+       — which errors a given call produces, what
        the SDK retries before raising, and how to order handlers.
     """
 
@@ -74,7 +75,8 @@ class ApiError(PineconeError):
         (404, 'NOT_FOUND')
 
     .. seealso::
-       :doc:`/guides/error-handling` — the full attribute table, and the
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+       — the full attribute table, and the
        handler shape for each status.
     """
 
@@ -357,7 +359,8 @@ class RateLimitError(ApiError):
     value is not parsed, and leaves ``retry_after`` as ``None``.
 
     .. seealso::
-       :doc:`/guides/retries` — what the SDK retries by default and how to
+       `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__
+       — what the SDK retries by default and how to
        change it.
     """
 
@@ -397,7 +400,8 @@ class ServiceError(ApiError):
     the failure persists.
 
     .. seealso::
-       :doc:`/guides/retries` — which statuses are retried by default.
+       `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__
+       — which statuses are retried by default.
     """
 
     def __init__(

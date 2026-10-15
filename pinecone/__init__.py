@@ -72,11 +72,13 @@ embedding instead)::
 Organizations, projects, and API keys are managed through :class:`Admin`, which
 authenticates with OAuth2 client credentials rather than an API key. Every
 error the SDK raises derives from :class:`PineconeError`; see
-:doc:`/guides/error-handling` for which call produces which.
+`Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+for which call produces which.
 
 Upgrading from 9.x? ``create`` and ``configure`` moved from
 ``spec=``/``dimension=`` to ``schema=``/``deployment=``; see
-:doc:`/migration/v10-migration` for the field-by-field mapping and
+`Migrating to V10 <https://sdk.pinecone.io/python/migration/v10-migration.html>`__
+for the field-by-field mapping and
 before/after code for each flow.
 """
 

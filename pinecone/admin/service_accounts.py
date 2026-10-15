@@ -46,7 +46,9 @@ class ServiceAccounts:
     ``principal_type="service_account"`` and the account's ``id`` as
     ``principal_id`` to read or change them afterwards.
 
-    See :doc:`/guides/error-handling` for the exceptions every operation here
+    See
+    `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+    for the exceptions every operation here
     can raise.
 
     Examples:
@@ -83,7 +85,7 @@ class ServiceAccounts:
         """List the organization's service accounts, with lazy pagination.
 
         No request is sent until the returned paginator is iterated; see
-        :doc:`/guides/pagination`.
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             limit (int | None): Number of service accounts the server returns

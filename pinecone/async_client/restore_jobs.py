@@ -42,7 +42,8 @@ class AsyncRestoreJobs:
                 print(job.status, job.target_index_name)
 
     .. seealso::
-       :doc:`/guides/error-handling` — the exceptions any of these methods
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+       — the exceptions any of these methods
        can raise, and which ones are worth retrying.
     """
 
@@ -65,7 +66,9 @@ class AsyncRestoreJobs:
         One call returns one page: :class:`RestoreJobList` carries a
         ``pagination`` token but never follows it, so iterating the return
         value sees at most one page. Drive the token yourself to walk the
-        rest — see :doc:`/guides/pagination`. The result is a best-effort
+        rest — see
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
+        The result is a best-effort
         sample rather than an inventory; the warning below says why that
         matters.
 

@@ -156,7 +156,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                 print(assistant.name, assistant.status)
 
     .. seealso::
-       :doc:`/guides/error-handling` — the exceptions any of these methods can
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+       — the exceptions any of these methods can
        raise, and which ones are worth retrying.
     """
 
@@ -566,7 +567,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
              is still retrievable there.
            - :meth:`list_files_page` — one page at a time, when you want to
              hold the continuation token yourself.
-           - :doc:`/guides/pagination` — how the paginator and the
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+             — how the paginator and the
              continuation tokens work.
         """
         logger.info("Listing files for assistant %r", assistant_name)
@@ -634,7 +636,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                     )
 
         .. seealso::
-           :doc:`/guides/pagination` — the continuation-token loop this method
+           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+           — the continuation-token loop this method
            expects you to drive, and the paginator that drives it for you.
         """
         from pinecone._internal.kwargs_aliases import (
@@ -856,7 +859,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
              the id a ``timeout=-1`` call handed back.
            - :meth:`list_operations_page` — one page at a time, when you want
              to hold the continuation token yourself.
-           - :doc:`/guides/pagination` — how the paginator and the
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+             — how the paginator and the
              continuation tokens work.
         """
         logger.info("Listing operations for assistant %r", assistant_name)
@@ -930,7 +934,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                     )
 
         .. seealso::
-           :doc:`/guides/pagination` — the continuation-token loop this method
+           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+           — the continuation-token loop this method
            expects you to drive, and the paginator that drives it for you.
         """
         params: dict[str, str | int] = {}
@@ -1160,7 +1165,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         .. seealso::
            - :meth:`list_page` — one page at a time, when you want to hold
              the continuation token yourself.
-           - :doc:`/guides/pagination` — how the paginator and the
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+             — how the paginator and the
              continuation tokens work.
         """
         logger.info("Listing assistants")
@@ -1211,7 +1217,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                     )
 
         .. seealso::
-           :doc:`/guides/pagination` — the continuation-token loop this method
+           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+           — the continuation-token loop this method
            expects you to drive, and the paginator that drives it for you.
         """
         from pinecone._internal.kwargs_aliases import (

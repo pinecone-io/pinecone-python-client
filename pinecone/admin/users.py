@@ -31,7 +31,9 @@ class Users:
     only from role bindings, so :class:`~pinecone.admin.role_bindings.RoleBindings`
     is where a user's access is read and changed.
 
-    See :doc:`/guides/error-handling` for the exceptions every operation here
+    See
+    `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+    for the exceptions every operation here
     can raise.
 
     Examples:
@@ -66,7 +68,7 @@ class Users:
         """List the users in the organization, with lazy pagination.
 
         No request is sent until the returned paginator is iterated; see
-        :doc:`/guides/pagination`.
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             email (str | None): Filter on the user's email address, e.g.

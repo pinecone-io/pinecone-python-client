@@ -169,7 +169,8 @@ class Inference:
         1
 
     .. seealso::
-       :doc:`/guides/error-handling` — the exceptions every method here can
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
+       — the exceptions every method here can
        raise, and how to retry them.
     """
 

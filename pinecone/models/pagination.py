@@ -1,7 +1,8 @@
 """Lazy cursors over paged listing endpoints.
 
 The canonical account of the mechanics lives on :class:`Paginator`; the
-narrative version, with async examples, is :doc:`/guides/pagination`.
+narrative version, with async examples, is
+`Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 """
 
 from __future__ import annotations
@@ -37,7 +38,8 @@ class Page(Generic[T]):
         (1, True)
 
     .. seealso::
-       :doc:`/guides/pagination` — walking, limiting, and resuming a listing.
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+       — walking, limiting, and resuming a listing.
     """
 
     def __init__(
@@ -88,7 +90,8 @@ class Paginator(Generic[T]):
         ...     print(index.name, index.status.state)
 
     .. seealso::
-       :doc:`/guides/pagination` — the same mechanics with async examples, plus
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+       — the same mechanics with async examples, plus
        the separate ``list_paginated`` interface for vector IDs.
     """
 
@@ -232,7 +235,8 @@ class AsyncPaginator(Generic[T]):
                     print(index.name, index.status.state)
 
     .. seealso::
-       :doc:`/guides/pagination` — walking, limiting, and resuming a listing.
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
+       — walking, limiting, and resuming a listing.
     """
 
     def __init__(

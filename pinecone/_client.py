@@ -90,11 +90,17 @@ class Pinecone:
     instead, through the separate client :meth:`index` hands back.
 
     :class:`~pinecone.async_client.AsyncPinecone` covers the same surface for
-    ``asyncio`` code, and :doc:`/guides/sync-vs-async` compares the two; the one
+    ``asyncio`` code, and
+    `Sync vs async clients <https://sdk.pinecone.io/python/guides/sync-vs-async.html>`__
+    compares the two; the one
     shape difference is :meth:`index`, which is a plain call here and a coroutine
     there. Any call can raise the connection, timeout, and API errors catalogued
-    in :doc:`/guides/error-handling`, and every ``Raises:`` section below names
-    only what is specific to that method. :doc:`/guides/retries` covers what the
+    in
+    `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__,
+    and every ``Raises:`` section below names
+    only what is specific to that method.
+    `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__
+    covers what the
     client retries on your behalf and what *retry_config* changes.
 
     Args:
@@ -136,7 +142,8 @@ class Pinecone:
         retry_config (RetryConfig | None): Retry policy for control-plane requests,
             and for gRPC data-plane clients when you set it explicitly. ``None``
             (default) uses the built-in policy, which suits most callers; see
-            :doc:`/guides/retries` for the defaults, for how to switch retries off,
+            `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__
+            for the defaults, for how to switch retries off,
             and for why it does not reach data-plane REST.
         pool_threads (int | None): Opt-in for the legacy ``async_req=True`` execution
             model on data-plane methods. When set, indexes created via
@@ -527,7 +534,9 @@ class Pinecone:
             grpc (bool): Return a :class:`~pinecone.grpc.GrpcIndex` that carries
                 data-plane operations over gRPC rather than HTTP. The scheme it
                 dials comes from the ``grpc_scheme`` given to :class:`Pinecone`.
-                Defaults to ``False``; see :doc:`/guides/grpc` for when it pays off.
+                Defaults to ``False``; see
+                `Using the gRPC client <https://sdk.pinecone.io/python/guides/grpc.html>`__
+                for when it pays off.
             pool_threads (int | None): Size of the thread pool backing
                 ``async_req=True`` calls on the returned index. ``None`` (default)
                 uses the client-level ``pool_threads``. No effect when ``grpc=True``.
