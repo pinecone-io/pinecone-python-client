@@ -121,3 +121,61 @@ def test_non_keyword_only_real_method_is_untouched() -> None:
 
 def test_property_is_untouched() -> None:
     assert isinstance(inspect.getattr_static(Index, "host"), property)
+
+
+@keyword_only_methods
+class _Open:
+    def takes_kwargs(self, *, a: int, **extra: int) -> int:
+        return a + sum(extra.values())
+
+
+def test_misspelled_keyword_suggests_the_intended_one() -> None:
+    with pytest.raises(TypeError) as exc:
+        _Toy().kw_only(aa=1)  # type: ignore[call-arg]
+    assert str(exc.value) == (
+        "_Toy.kw_only() got an unexpected keyword argument 'aa'. Did you mean 'a'?"
+    )
+
+
+async def test_async_misspelled_keyword_suggests_the_intended_one() -> None:
+    with pytest.raises(TypeError) as exc:
+        await _Toy().async_kw_only(aa=1)  # type: ignore[call-arg]
+    assert str(exc.value) == (
+        "_Toy.async_kw_only() got an unexpected keyword argument 'aa'. Did you mean 'a'?"
+    )
+
+
+def test_unrelated_keyword_gets_no_suggestion() -> None:
+    with pytest.raises(TypeError) as exc:
+        _Toy().kw_only(a=1, zzzzzz=2)  # type: ignore[call-arg]
+    assert "zzzzzz" in str(exc.value)
+    assert "Did you mean" not in str(exc.value)
+
+
+def test_suggestion_survives_an_unrelated_keyword_before_it() -> None:
+    with pytest.raises(TypeError, match=r"'aa'\. Did you mean 'a'\?"):
+        _Toy().kw_only(zzzzzz=2, aa=1)  # type: ignore[call-arg]
+
+
+def test_method_with_var_keyword_accepts_any_name() -> None:
+    assert _Open().takes_kwargs(a=1, aa=2) == 3
+
+
+def test_documents_namespace_suggests_namespace() -> None:
+    from pinecone import Pinecone
+
+    docs = Pinecone(api_key="x").index(host="https://example.invalid").documents
+    with pytest.raises(TypeError, match=r"Did you mean 'namespace'\?"):
+        docs.upsert(namepsace="ns", documents=[{"_id": "a"}])  # type: ignore[call-arg]
+
+
+async def test_async_documents_namespace_suggests_namespace() -> None:
+    from pinecone import AsyncPinecone
+
+    async with AsyncPinecone(api_key="x") as pc:
+        index = await pc.index(host="https://example.invalid")
+        async with index:
+            with pytest.raises(TypeError, match=r"Did you mean 'namespace'\?"):
+                await index.documents.upsert(  # type: ignore[call-arg]
+                    namepsace="ns", documents=[{"_id": "a"}]
+                )
