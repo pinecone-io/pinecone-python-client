@@ -129,7 +129,11 @@ class Documents:
             documents: The documents to upsert (1-1000 per request). Each
                 element is a dict with an ``_id`` key or a
                 :class:`~pinecone.models.documents.document.DocumentRecord`.
-                For larger lists, use :meth:`batch_upsert`.
+                A request is also limited by its encoded size, so documents
+                that carry large fields, such as high-dimensional dense
+                vectors, fit in fewer than 1000 per request. For larger lists,
+                or documents of unknown size, use :meth:`batch_upsert`, which
+                handles the size limit.
             timeout (float | None): Per-request timeout in seconds. Overrides
                 the client-level default for this call only.
 
@@ -210,6 +214,16 @@ class Documents:
         failed batch does not abort the rest; retry only the failures by
         passing ``result.failed_items`` back in.
 
+        Requests are limited by encoded size as well as document count. When
+        the server rejects a batch as too large (HTTP 413), the batch is
+        halved and each half resent, recursively, so documents of any size
+        are sent without choosing a *batch_size* by trial and error. A single
+        document that is itself over the limit cannot be split: it is
+        reported in ``result.failed_items`` with ``retryable=False``. A split
+        batch can land in part: ``failed_items`` lists only the pieces that
+        were rejected, and several ``result.errors`` rows can share one
+        ``batch_index``.
+
         Args:
             namespace (str): Target namespace (required, non-empty).
             documents: Documents to upsert. Each element is a dict with an
@@ -224,6 +238,10 @@ class Documents:
                 in ``result.errors`` with ``retryable=False``; fix the
                 documents before resending.
             batch_size (int): Maximum documents per request (1-1000, default 50).
+                Requests are limited by encoded size as well as count; a batch
+                the server rejects as too large is halved and resent, so a
+                *batch_size* above what fits is safe, at the cost of the
+                rejected requests.
             max_concurrency (int | None): Upper bound on concurrent requests
                 (1-64). Defaults to ``None``, which lets the admission gate
                 use ``DEFAULT_MAX_CONCURRENCY`` (8); the gate's own adaptive
@@ -252,11 +270,13 @@ class Documents:
                 ``batch_size`` is outside [1, 1000], or ``max_concurrency`` is
                 outside [1, 64].
 
-        Per-batch server rejections are not raised, including a
-        :exc:`~pinecone.errors.exceptions.PayloadTooLargeError` for a request
-        over the server's size cap. Each is recorded in ``result.errors`` as
-        that batch's ``error``; resend ``result.failed_items`` with a smaller
-        *batch_size*.
+        Per-batch server rejections are not raised; each is recorded in
+        ``result.errors`` as that batch's ``error``. A batch rejected as too
+        large is halved and resent before anything is recorded, so a
+        :exc:`~pinecone.errors.exceptions.PayloadTooLargeError` in
+        ``result.errors`` belongs to a single document over the server's size
+        cap. Resending it, or lowering *batch_size*, fails the same way;
+        shrink that document instead.
 
         Examples:
             On an index whose schema declares ``embedding`` as a
@@ -326,6 +346,7 @@ class Documents:
             desc="Upserting documents",
             host=self._host,
             total_timeout=total_timeout,
+            split_on_payload_too_large=True,
         )
 
     def search(

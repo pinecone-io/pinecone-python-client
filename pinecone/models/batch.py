@@ -99,8 +99,11 @@ class BatchResult(Struct, kw_only=True):
     A bulk method splits your items into batches and reports the outcome of
     all of them here, so a partial failure is a value you inspect rather than
     an exception that loses the successes. Start with :attr:`has_errors`; if
-    it is ``True``, :attr:`errors` holds one
-    :class:`BatchError` per failed batch, each carrying its own items back.
+    it is ``True``, :attr:`errors` holds the
+    :class:`BatchError` rows for the failed batches, each carrying its own
+    items back. A batch the server rejected as too large is split and resent
+    in pieces, so one batch can yield several rows sharing a ``batch_index``,
+    each holding only the items of the piece that failed.
 
     The last five attributes are backpressure telemetry rather than results.
     Read them when a bulk write was slower than expected: they say whether the
@@ -113,7 +116,11 @@ class BatchResult(Struct, kw_only=True):
         total_batch_count: How many batches the items were split into.
         successful_batch_count: How many of those landed.
         failed_batch_count: How many did not.
-        errors: One :class:`BatchError` per failed batch.
+        errors: The :class:`BatchError` rows, ordered by ``batch_index``: one
+            per failed batch, or several sharing a ``batch_index`` when a
+            batch was split and only some pieces failed. A batch with any
+            failed piece counts in ``failed_batch_count`` even though its
+            other pieces count in ``successful_item_count``.
         response_info: A :class:`BatchResponseInfo` carrying the log position
             the batch is durable through, or ``None`` when no batch reported
             one. Use it to check that a later search sees these writes.
@@ -217,16 +224,17 @@ class BatchResult(Struct, kw_only=True):
         return items
 
     def _error_summary(self) -> list[tuple[str, int]]:
-        """Distinct error messages with batch counts, most frequent first."""
-        counts: Counter[str] = Counter()
+        """Distinct error groups with distinct-batch counts, most frequent first."""
+        batches: dict[str, set[int]] = {}
         for err in self.errors:
-            counts[err.group_key] += 1
+            batches.setdefault(err.group_key, set()).add(err.batch_index)
+        counts = Counter({key: len(idx) for key, idx in batches.items()})
         return counts.most_common()
 
     def __repr__(self) -> str:
         if not self.has_errors:
             status = "SUCCESS"
-        elif self.total_batch_count > 0 and self.successful_batch_count == 0:
+        elif self.total_batch_count > 0 and self.successful_item_count == 0:
             status = "FAILURE"
         else:
             status = "PARTIAL FAILURE"

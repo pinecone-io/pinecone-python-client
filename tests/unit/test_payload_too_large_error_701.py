@@ -95,16 +95,17 @@ class TestSyncDocuments:
 
     @pytest.mark.parametrize("response", [JSON_413, PLAIN_413], ids=["json", "plain-text"])
     @respx.mock
-    def test_batch_upsert_records_it_in_the_result(
+    def test_batch_upsert_halves_then_records_each_document(
         self, index: Index, response: httpx.Response
     ) -> None:
         respx.post(UPSERT_URL).mock(return_value=response)
         result = index.documents.batch_upsert(
             namespace="n", documents=DOCS, batch_size=2, show_progress=False
         )
-        assert len(result.errors) == 1
-        assert isinstance(result.errors[0].error, PayloadTooLargeError)
-        assert result.errors[0].retryable is False
+        assert [len(e.items) for e in result.errors] == [1, 1]
+        assert all(isinstance(e.error, PayloadTooLargeError) for e in result.errors)
+        assert all(e.retryable is False for e in result.errors)
+        assert sorted(d["_id"] for d in result.failed_items) == ["a", "b"]
 
 
 class TestAsyncDocuments:
@@ -119,13 +120,14 @@ class TestAsyncDocuments:
     @pytest.mark.parametrize("response", [JSON_413, PLAIN_413], ids=["json", "plain-text"])
     @respx.mock
     @pytest.mark.asyncio
-    async def test_batch_upsert_records_it_in_the_result(
+    async def test_batch_upsert_halves_then_records_each_document(
         self, aindex: AsyncIndex, response: httpx.Response
     ) -> None:
         respx.post(UPSERT_URL).mock(return_value=response)
         result = await aindex.documents.batch_upsert(
             namespace="n", documents=DOCS, batch_size=2, show_progress=False
         )
-        assert len(result.errors) == 1
-        assert isinstance(result.errors[0].error, PayloadTooLargeError)
-        assert result.errors[0].retryable is False
+        assert [len(e.items) for e in result.errors] == [1, 1]
+        assert all(isinstance(e.error, PayloadTooLargeError) for e in result.errors)
+        assert all(e.retryable is False for e in result.errors)
+        assert sorted(d["_id"] for d in result.failed_items) == ["a", "b"]

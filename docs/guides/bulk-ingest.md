@@ -148,7 +148,9 @@ you what happened:
   the server accepted.
 - `failed_item_count` and `failed_items` — exactly what did not land, ready
   to feed back into a retry call.
-- `errors` — one entry per failed batch. Each carries the items, the error,
+- `errors` — one entry per failed batch (several sharing a `batch_index` when
+  `documents.batch_upsert` split an oversize batch and only some pieces
+  failed). Each carries the items, the error,
   a `retryable` hint, and a `disposition` telling you *how* it failed:
   - `rejected` — the attempt completed with an error, after retries. The
     write may still have landed: a response can be lost after the server

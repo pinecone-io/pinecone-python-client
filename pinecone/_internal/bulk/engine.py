@@ -29,9 +29,14 @@ from pinecone._internal.batch import (
     _empty_result,
     _validate_batch_params,
 )
-from pinecone._internal.bulk.classify import DISPOSITION_ABANDONED, is_retryable
+from pinecone._internal.bulk.classify import (
+    DISPOSITION_ABANDONED,
+    DISPOSITION_UNSENT,
+    is_retryable,
+)
 from pinecone._internal.bulk.core import AcquireOutcome
 from pinecone._internal.bulk.registry import GateRegistry, get_registry
+from pinecone._internal.bulk.split import UNSENT_PIECE_GROUP_KEY, SplitOutcome, send_halving
 from pinecone._internal.constants import DEFAULT_MAX_CONCURRENCY
 from pinecone.models.batch import BatchError, BatchResult
 
@@ -73,6 +78,7 @@ def bulk_execute_sync(
     host: str,
     registry: GateRegistry | None = None,
     total_timeout: float | None = None,
+    split_on_payload_too_large: bool = False,
 ) -> BatchResult:
     """Execute *operation* over *items* in gate-admitted parallel batches.
 
@@ -81,6 +87,11 @@ def bulk_execute_sync(
     left unsent, errors are ordered by batch index. Batches abandoned by the
     stall detector arrive as errors with an explicit backend-unavailable
     message rather than a timeout.
+
+    With *split_on_payload_too_large*, a batch the server rejects with 413 is
+    halved and each half resent, recursively; only pieces that still fail
+    (a single item over the cap) are reported, each as its own error under
+    the original batch index.
     """
     _validate_batch_params(batch_size, max_concurrency)
     if not items:
@@ -109,27 +120,29 @@ def bulk_execute_sync(
         thread_name_prefix="pinecone-bulk",
     )
 
-    def _wrapped_op(batch: list[dict[str, Any]]) -> Any:
+    def _wrapped_op(batch: list[dict[str, Any]]) -> SplitOutcome:
         nonlocal peak_inflight, outstanding_now
         with counter_lock:
             outstanding_now += 1
             peak_inflight = max(peak_inflight, outstanding_now)
         try:
-            result = operation(batch)
-        except Exception:
-            gate.report_failure()
-            raise
+            outcome = send_halving(
+                operation, batch, split=split_on_payload_too_large, expired=deadline.expired
+            )
         finally:
             with counter_lock:
                 outstanding_now -= 1
-        gate.report_success()
-        return result
+        if outcome.results:
+            gate.report_success()
+        else:
+            gate.report_failure()
+        return outcome
 
     def _collect(future: Future[Any]) -> None:
-        nonlocal successful_item_count
+        nonlocal successful_item_count, timed_out
         batch_idx, batch = future_to_batch[future]
         try:
-            batch_result = future.result()
+            outcome = future.result()
         except Exception as exc:
             errors.append(
                 BatchError(
@@ -141,8 +154,25 @@ def bulk_execute_sync(
                 )
             )
         else:
-            successful_item_count += len(batch)
-            _collect_lsn(batch_result, lsn_reconciled_values, lsn_committed_values)
+            successful_item_count += outcome.sent_item_count
+            for batch_result in outcome.results:
+                _collect_lsn(batch_result, lsn_reconciled_values, lsn_committed_values)
+            for items_failed, failure, disposition in outcome.failures:
+                if disposition == DISPOSITION_UNSENT:
+                    timed_out = True
+                errors.append(
+                    BatchError(
+                        batch_index=batch_idx,
+                        items=items_failed,
+                        error=failure,
+                        error_message=str(failure),
+                        group_key=(
+                            UNSENT_PIECE_GROUP_KEY if disposition == DISPOSITION_UNSENT else ""
+                        ),
+                        retryable=is_retryable(failure),
+                        disposition=disposition,
+                    )
+                )
         progress.update(1)
 
     def _abandon_from(idx: int) -> None:
@@ -214,13 +244,14 @@ def bulk_execute_sync(
         executor.shutdown(wait=True, cancel_futures=True)
 
     failed_item_count = sum(len(e.items) for e in errors)
+    failed_batch_count = len({e.batch_index for e in errors})
     return BatchResult(
         total_item_count=len(items),
         successful_item_count=successful_item_count,
         failed_item_count=failed_item_count,
         total_batch_count=total_batches,
-        successful_batch_count=total_batches - len(errors),
-        failed_batch_count=len(errors),
+        successful_batch_count=total_batches - failed_batch_count,
+        failed_batch_count=failed_batch_count,
         errors=sorted(errors, key=lambda err: err.batch_index),
         response_info=_build_aggregate(lsn_reconciled_values, lsn_committed_values),
         timed_out=timed_out,
