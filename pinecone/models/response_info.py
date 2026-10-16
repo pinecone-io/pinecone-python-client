@@ -14,10 +14,11 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
 
     Every data-plane response carries one as ``response_info``, and there are
     two reasons to reach for it. :attr:`request_id` is what a Pinecone support
-    conversation asks you for. The two LSN properties are how you check
-    read-your-writes: an upsert reports the log position it committed at, and
-    a later read reports how far the index has caught up, so you can tell
-    whether a query was allowed to see your write yet.
+    conversation asks you for, when the server sends one. The two LSN
+    properties are how you check read-your-writes: an upsert reports the log
+    position it committed at, and a search reports how far the index has
+    caught up, so you can tell whether a search was allowed to see your write
+    yet.
 
     Reads are eventually consistent, so a query issued immediately after a
     write can legitimately miss it. :meth:`is_reconciled` is the check that
@@ -30,24 +31,31 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
             surfaced by the typed properties below. Prefer the typed
             properties when available — wire header names may change,
             but property semantics are stable.
-        request_id (str | None): Identifier the server assigned this request.
-            Quote it when reporting a problem. ``None`` when the header is
-            absent.
+        request_id (str | None): Identifier the server assigned this request,
+            from the ``x-pinecone-request-id`` header. ``None`` when the
+            header is absent, which is always the case on documents-API
+            responses today.
         lsn_reconciled (int | None): How far the index has caught up, as a log
-            position. ``None`` when the header is absent, so a ``None`` here
+            position. Documents search responses report it; fetch responses
+            do not. ``None`` when the header is absent, so a ``None`` here
             means *unknown*, not position zero.
-        lsn_committed (int | None): Log position this write landed at. ``None``
-            when the header is absent — including on reads, which commit
-            nothing.
+        lsn_committed (int | None): Log position this write landed at. Upsert,
+            update and delete responses report it. ``None`` when the header is
+            absent, including on reads, which commit nothing.
 
     Examples:
-        Write, then read back only once the index has caught up to the write,
-        on an index whose schema declares ``chunk_text`` as a ``string`` field
-        with ``embed``, the field each document must carry besides ``_id``:
+        Write, then search only once the index has caught up to the write.
+        Poll ``search``: a fetch response carries no reconciled position, and
+        fetch and search see a new write at different times, so a fetch that
+        sees the write does not mean a search will. The index's schema declares
+        ``chunk_text`` as a ``string`` field with ``embed``, the field each
+        document must carry besides ``_id``:
 
         .. code-block:: python
 
             import time
+
+            from pinecone import TextQuery
 
             index = pc.index(name="product-search")
             written = index.documents.upsert(
@@ -57,10 +65,14 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
             target = written.response_info.lsn_committed
 
             while True:
-                fetched = index.documents.fetch(
-                    namespace="published", ids=["article-00042"]
+                found = index.documents.search(
+                    namespace="published",
+                    top_k=1,
+                    score_by=[TextQuery(query="revenue", fields=["chunk_text"])],
                 )
-                if target is None or fetched.response_info.is_reconciled(target):
+                if target is None:
+                    break  # no position reported: caught-up cannot be confirmed
+                if found.response_info.is_reconciled(target):
                     break
                 time.sleep(0.5)
 
@@ -81,6 +93,7 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
 
         Returns:
             The request ID, or ``None`` when the server sent no such header.
+            Documents-API responses do not carry one today.
         """
         return self.raw_headers.get("x-pinecone-request-id")
 
@@ -94,10 +107,16 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
 
         Returns:
             The reconciled position, or ``None`` when the header is absent or
-            not an integer. ``None`` means *unknown*, not position zero, so
-            never treat it as "nothing reconciled".
+            not an integer. Search responses report it; fetch responses do
+            not. ``None`` means *unknown*, not position zero, so
+            never treat it as "nothing reconciled". Read from
+            ``x-pinecone-max-indexed-lsn``, falling back to
+            ``x-pinecone-lsn-reconciled`` (the vectors API) when the first is
+            absent or unparseable.
         """
-        return _parse_int(self.raw_headers.get("x-pinecone-lsn-reconciled"))
+        return _first_int(
+            self.raw_headers, "x-pinecone-max-indexed-lsn", "x-pinecone-lsn-reconciled"
+        )
 
     @property
     def lsn_committed(self) -> int | None:
@@ -109,9 +128,12 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
 
         Returns:
             The committed position, or ``None`` when the header is absent or
-            not an integer — including on a read, which commits nothing.
+            not an integer — including on a read, which commits nothing. Read
+            from ``x-pinecone-request-lsn``, falling back to
+            ``x-pinecone-lsn-committed`` (the vectors API) when the first is
+            absent or unparseable.
         """
-        return _parse_int(self.raw_headers.get("x-pinecone-lsn-committed"))
+        return _first_int(self.raw_headers, "x-pinecone-request-lsn", "x-pinecone-lsn-committed")
 
     def is_reconciled(self, target: int) -> bool:
         """Has this response's index caught up to *target* yet?
@@ -120,10 +142,21 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
         earlier write and get back whether the read that produced *this*
         response was able to see it.
 
+        Call it on a search response: a fetch response carries no reconciled
+        position, so it is always ``False`` there.
+
         A ``False`` means "not yet, as of this response" — it is a reason to
         read again, not an error. ``False`` is also what you get when this
         response carried no reconciled position at all, since an unknown
         position cannot be shown to have caught up.
+
+        .. warning::
+           The v10.0.0 example for this method polled ``fetch``. A fetch
+           response never reports a reconciled position, and 10.0.0 never
+           read the LSN headers at all, so that loop now runs forever. Poll
+           ``search`` instead, or bound the loop with a timeout. Code that
+           skipped waiting because :attr:`lsn_committed` was ``None`` now
+           waits.
 
         Args:
             target (int): Log position to compare against, normally the
@@ -136,6 +169,15 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
         """
         lsn = self.lsn_reconciled
         return lsn is not None and lsn >= target
+
+
+def _first_int(headers: dict[str, str], *names: str) -> int | None:
+    """First of *names* whose header parses as an integer, else ``None``."""
+    for name in names:
+        parsed = _parse_int(headers.get(name))
+        if parsed is not None:
+            return parsed
+    return None
 
 
 def _parse_int(value: str | None) -> int | None:
@@ -151,9 +193,12 @@ class BatchResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
     """The same durability signal as :class:`ResponseInfo`, for a whole batch.
 
     A bulk method makes many requests, each with its own headers, and reports
-    one of these as its result's ``response_info``. It keeps the highest log
-    position any successful sub-request reported, which is the position the
-    whole batch is durable through.
+    one of these as its result's ``response_info``. Check it against a
+    ``search`` response's ``is_reconciled``, not a fetch: only search reports
+    how far the index has caught up. For a documents ``batch_upsert``,
+    ``lsn_reconciled`` stays ``None``; only ``lsn_committed`` is set. It
+    keeps the highest log position any successful sub-request reported, which
+    is the position the whole batch is durable through.
 
     It has no ``raw_headers`` and no ``request_id``: there is no single
     response to point at. When a sub-batch failed, its own exception is on
@@ -185,6 +230,8 @@ class BatchResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
             target = None
             if result.response_info is not None:
                 target = result.response_info.lsn_committed
+            # Then poll ``index.documents.search(...)`` until
+            # ``response_info.is_reconciled(target)``, as in ResponseInfo.
     """
 
     lsn_reconciled: int | None = None

@@ -116,7 +116,7 @@ class BatchResult(Struct, kw_only=True):
         errors: One :class:`BatchError` per failed batch.
         response_info: A :class:`BatchResponseInfo` carrying the log position
             the batch is durable through, or ``None`` when no batch reported
-            one. Use it to check that a later read sees these writes.
+            one. Use it to check that a later search sees these writes.
         timed_out: Whether a ``total_timeout`` expired with work left unsent. The
             batches that were never attempted appear in ``errors``, so
             ``failed_items`` is what remains to be sent. A deadline that elapses
