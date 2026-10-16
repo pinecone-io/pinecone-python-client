@@ -19,7 +19,7 @@ from pinecone._internal.adapters.vectors_adapter import VectorsAdapter, extract_
 from pinecone._internal.adaptive import _AdaptiveLimiterRegistry
 from pinecone._internal.batching import validate_batch_size
 from pinecone._internal.bulk import bulk_execute_async
-from pinecone._internal.config import PineconeConfig
+from pinecone._internal.config import PineconeConfig, check_api_key_is_header_safe
 from pinecone._internal.constants import DATA_PLANE_API_VERSION, DEFAULT_MAX_CONCURRENCY
 from pinecone._internal.data_plane_helpers import (
     _build_search_records_body,
@@ -106,7 +106,8 @@ class AsyncIndex:
             ``0`` (default) uses httpx defaults.
 
     Raises:
-        :exc:`PineconeValueError`: If no API key can be resolved or the host is invalid.
+        :exc:`PineconeValueError`: If no API key can be resolved or the host is invalid,
+            or the key is not a valid HTTP header value (blank, or with a trailing newline).
         :exc:`FileNotFoundError`: If ``ssl_ca_certs`` names a path that does not
             exist, so a mistyped path cannot leave you silently verifying against
             the default trust store instead. The connection pool is built lazily,
@@ -169,6 +170,7 @@ class AsyncIndex:
             source_tag=source_tag or "",
             connection_pool_maxsize=connection_pool_maxsize,
         )
+        check_api_key_is_header_safe(config.api_key)
         self._config = config
         self._limiter_registry = _limiter_registry
 

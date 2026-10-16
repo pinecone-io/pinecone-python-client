@@ -24,6 +24,7 @@ from pinecone._internal.config import (
     GRPC_SCHEMES,
     PineconeConfig,
     RetryConfig,
+    check_api_key_is_header_safe,
     resolve_grpc_scheme,
 )
 from pinecone._internal.constants import DATA_PLANE_API_VERSION, DEFAULT_MAX_CONCURRENCY
@@ -424,7 +425,9 @@ class GrpcIndex:
             :meth:`Pinecone.index`; not intended for user configuration.
 
     Raises:
-        :exc:`PineconeValueError`: If no API key can be resolved, the host is invalid,
+        :exc:`PineconeValueError`: If no API key can be resolved, the key is blank or
+            contains a control or non-ASCII character (leading and trailing spaces and
+            tabs are allowed and sent as given), the host is invalid,
             ``grpc_scheme`` names a scheme other than ``http`` or ``https``, or
             ``grpc_scheme="https"`` is combined with ``secure=False``.
 
@@ -503,6 +506,8 @@ class GrpcIndex:
                 "No API key provided. Pass api_key='...' or set the "
                 "PINECONE_API_KEY environment variable."
             )
+        # gRPC metadata carries edge spaces and tabs, and the server accepts them.
+        check_api_key_is_header_safe(resolved_key.strip(" \t") or resolved_key)
 
         # Validate and normalize host
         self._request_timeout = timeout

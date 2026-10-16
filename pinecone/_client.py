@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Literal, NoReturn, overload
 from urllib.parse import quote
 
 from pinecone._internal.adaptive import _AdaptiveLimiterRegistry
-from pinecone._internal.config import PineconeConfig, RetryConfig
+from pinecone._internal.config import PineconeConfig, RetryConfig, check_api_key_is_header_safe
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
 from pinecone._internal.index_migration import (
     MIGRATION_GUIDE,
@@ -155,7 +155,9 @@ class Pinecone:
 
     Raises:
         :exc:`PineconeValueError`: If no API key is given and ``PINECONE_API_KEY``
-            is unset, since nothing would authenticate the first request.
+            is unset, since nothing would authenticate the first request. Also raised when the
+            key is not a valid HTTP header value, such as a blank key or one with a
+            trailing newline, so the failure is local and never echoes the key.
         :exc:`FileNotFoundError`: If ``ssl_ca_certs`` names a path that does not
             exist, raised when the client is constructed, so a mistyped path
             cannot leave you silently verifying against the default trust store
@@ -242,6 +244,7 @@ class Pinecone:
                 "No API key provided. Pass api_key='...' or set the "
                 "PINECONE_API_KEY environment variable."
             )
+        check_api_key_is_header_safe(config.api_key)
 
         # Apply default host if none resolved
         resolved_host = config.host or DEFAULT_BASE_URL

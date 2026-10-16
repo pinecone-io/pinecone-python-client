@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar, Literal
 
@@ -17,6 +18,27 @@ logger = logging.getLogger(__name__)
 GrpcScheme = Literal["http", "https"]
 
 GRPC_SCHEMES: tuple[str, ...] = ("http", "https")
+
+
+_VISIBLE = r"[\x21-\x7e]"
+_HEADER_VALUE = re.compile(rf"{_VISIBLE}(?:[\t ]*{_VISIBLE})*")
+
+
+def check_api_key_is_header_safe(api_key: str) -> None:
+    """Raise if *api_key* cannot be sent as an HTTP header value.
+
+    An empty key is left to the caller's own "no API key" error. The message never
+    includes the key. Called by each client after it resolves its key, not by
+    :class:`PineconeConfig`, so a clients-only check cannot reject an unrelated
+    ``PINECONE_API_KEY`` for the Admin client, which never sends it.
+    """
+    if api_key and _HEADER_VALUE.fullmatch(api_key) is None:
+        raise PineconeValueError(
+            "The API key (api_key or PINECONE_API_KEY) is not a valid HTTP header value: it is "
+            "blank or whitespace-only, has leading or "
+            "trailing whitespace (such as a newline read from a file), or contains a "
+            "control or non-ASCII character. Strip the key, for example api_key=key.strip()."
+        )
 
 
 def resolve_grpc_scheme(scheme: str | None) -> GrpcScheme | None:

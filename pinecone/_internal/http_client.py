@@ -572,6 +572,8 @@ class _RetryTransport(httpx.BaseTransport):
         for attempt in range(self._config.max_retries + 1):
             try:
                 response = self._transport.handle_request(request)
+            except httpx.LocalProtocolError:
+                raise
             except httpx.TransportError as exc:
                 last_exc = exc
                 budget.record_failure()
@@ -640,6 +642,8 @@ class _AsyncRetryTransport(httpx.AsyncBaseTransport):
         for attempt in range(self._config.max_retries + 1):
             try:
                 response = await self._transport.handle_async_request(request)
+            except httpx.LocalProtocolError:
+                raise
             except httpx.TransportError as exc:
                 last_exc = exc
                 budget.record_failure()
@@ -885,6 +889,20 @@ def _raise_transport_error(exc: httpx.TransportError) -> NoReturn:
     if isinstance(exc, httpx.TimeoutException):
         message = str(exc) or f"Request timed out ({type(exc).__name__})"
         raise PineconeTimeoutError(message) from exc
+    if isinstance(exc, httpx.LocalProtocolError) and "Illegal header value" in str(exc):
+        message = (
+            "The request could not be encoded and nothing was sent. A header value is "
+            "not valid HTTP: check api_key and additional_headers for leading or trailing "
+            "whitespace, a newline, or another control character."
+        )
+        seen: set[int] = set()
+        link: BaseException | None = exc
+        while link is not None and id(link) not in seen:
+            seen.add(id(link))
+            if "Illegal header value" in str(link):
+                link.args = (message,)
+            link = link.__cause__ or link.__context__
+        raise PineconeConnectionError(message) from exc
     message = str(exc) or f"Connection failed ({type(exc).__name__})"
     raise PineconeConnectionError(message) from exc
 
