@@ -357,7 +357,9 @@ class Documents:
                 :class:`~pinecone.models.documents.score_by.SparseVectorQuery`,
                 :class:`~pinecone.models.documents.score_by.EmbedQuery`,
                 :class:`~pinecone.models.documents.score_by.SparseEmbedQuery`)
-                or plain dicts with a ``type`` key. ``text`` and
+                or plain dicts with a ``type`` key. A dict clause with a key
+                its type does not define, such as ``boost``, is rejected with a
+                :exc:`PineconeValueError` rather than dropped. ``text`` and
                 ``query_string`` clauses may be combined; a ``dense_vector``,
                 ``sparse_vector``, ``embed`` or ``sparse_embed`` clause must
                 appear alone. Combined clauses are OR'd, not AND'd: a document

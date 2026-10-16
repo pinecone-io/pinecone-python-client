@@ -7,7 +7,8 @@ a sparse vector, and ``embed`` and ``sparse_embed`` for similarity to query text
 Pinecone embeds with the model of a ``string`` field declared with that aspect. Pass
 them as typed instances or as plain dicts with a ``type`` key — either way each one
 checks its required fields on construction, so a malformed clause is rejected at the
-call site.
+call site. A dict clause with a key the clause does not define, such as ``boost``, is
+rejected rather than dropped, so an option that has no effect cannot go unnoticed.
 
 ``text`` and ``query_string`` clauses can be combined in one search to score on several
 signals at once. The clauses are OR'd: a document matching any of them is returned, and
@@ -48,7 +49,14 @@ def _single_field(kind: str, field: str | None, fields: list[str] | None) -> str
     return fields[0]
 
 
-class TextQuery(Struct, tag="text", tag_field="type", kw_only=True, omit_defaults=True):
+class TextQuery(
+    Struct,
+    tag="text",
+    tag_field="type",
+    kw_only=True,
+    omit_defaults=True,
+    forbid_unknown_fields=True,
+):
     """Score documents by BM25 keyword relevance over named text fields.
 
     The clause to reach for when the words themselves matter — exact terms, names, codes
@@ -101,7 +109,12 @@ class TextQuery(Struct, tag="text", tag_field="type", kw_only=True, omit_default
 
 
 class QueryStringQuery(
-    Struct, tag="query_string", tag_field="type", kw_only=True, omit_defaults=True
+    Struct,
+    tag="query_string",
+    tag_field="type",
+    kw_only=True,
+    omit_defaults=True,
+    forbid_unknown_fields=True,
 ):
     """Score documents by a Lucene query string, with ``AND``, ``OR`` and ``NOT``.
 
@@ -143,7 +156,12 @@ class QueryStringQuery(
 
 
 class DenseVectorQuery(
-    Struct, tag="dense_vector", tag_field="type", kw_only=True, omit_defaults=True
+    Struct,
+    tag="dense_vector",
+    tag_field="type",
+    kw_only=True,
+    omit_defaults=True,
+    forbid_unknown_fields=True,
 ):
     """Score documents by dense vector similarity to a query embedding.
 
@@ -189,7 +207,12 @@ class DenseVectorQuery(
 
 
 class SparseVectorQuery(
-    Struct, tag="sparse_vector", tag_field="type", kw_only=True, omit_defaults=True
+    Struct,
+    tag="sparse_vector",
+    tag_field="type",
+    kw_only=True,
+    omit_defaults=True,
+    forbid_unknown_fields=True,
 ):
     """Score documents by sparse vector similarity to a query sparse vector.
 
@@ -250,9 +273,7 @@ class EmbedQuery(
     scores it against the field's stored embeddings. You never handle a vector. Like a
     dense clause, it has to stand alone in ``score_by``.
 
-    A dict clause is checked strictly: a key other than ``type``, ``field``, ``fields``
-    and ``query`` is rejected rather than dropped, so a vector passed as ``values``
-    cannot be silently ignored.
+    It takes ``query`` text, not a vector: pass a vector with :class:`DenseVectorQuery`.
 
     Attributes:
         field: The ``string`` field that declares ``embed``, e.g. ``"body"``.
@@ -301,9 +322,7 @@ class SparseEmbedQuery(
     query as text, and Pinecone embeds it with that field's sparse model and read
     parameters. It has to stand alone in ``score_by``.
 
-    A dict clause is checked strictly: a key other than ``type``, ``field``, ``fields``
-    and ``query`` is rejected rather than dropped, so a vector passed as
-    ``sparse_values`` cannot be silently ignored.
+    It takes ``query`` text, not a vector: pass one with :class:`SparseVectorQuery`.
 
     Attributes:
         field: The ``string`` field that declares ``sparse_embed``, e.g. ``"body"``.
