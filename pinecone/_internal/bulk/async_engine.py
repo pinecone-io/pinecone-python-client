@@ -65,7 +65,7 @@ async def bulk_execute_async(
     something was left unsent, dispositions and counters identical. With
     *split_on_payload_too_large*, a 413 batch is halved and resent exactly as
     the sync driver does."""
-    _validate_batch_params(batch_size, max_concurrency)
+    _validate_batch_params(batch_size, max_concurrency, total_timeout)
     if not items:
         return _empty_result()
 

@@ -93,7 +93,7 @@ def bulk_execute_sync(
     (a single item over the cap) are reported, each as its own error under
     the original batch index.
     """
-    _validate_batch_params(batch_size, max_concurrency)
+    _validate_batch_params(batch_size, max_concurrency, total_timeout)
     if not items:
         return _empty_result()
 

@@ -244,20 +244,26 @@ def test_udf_overwrite_duplicates_last_write_wins(client: Pinecone, shared_index
 def test_udf_total_timeout_expires_reports_abandoned(
     client: Pinecone, shared_index_dim8: str
 ) -> None:
-    """total_timeout=0 abandons all batches; surfaced as failed_items.
+    """A deadline that expires before the first batch abandons every batch.
 
     Verifies the whole-ingest deadline is honored: with on_error='collect'
     (default) no exception propagates and abandoned rows are reported in
-    failed_items / failed_item_count rather than silently dropped.
+    failed_items / failed_item_count rather than silently dropped. A
+    deadline of 0 is rejected up front, so a 1ns one stands in for it.
     """
     index = client.index(name=shared_index_dim8)
 
+    with pytest.raises(PineconeValueError, match="total_timeout"):
+        index.upsert_from_dataframe(
+            _frame(12), namespace=_ns("tt"), batch_size=2, total_timeout=0, show_progress=False
+        )
+
     resp = index.upsert_from_dataframe(
-        _frame(12), namespace=_ns("tt"), batch_size=2, total_timeout=0, show_progress=False
+        _frame(12), namespace=_ns("tt"), batch_size=2, total_timeout=1e-9, show_progress=False
     )
-    assert resp.upserted_count == 0, f"expected 0 upserted under 0s, got {resp.upserted_count}"
+    assert resp.upserted_count == 0, f"expected 0 upserted under 1ns, got {resp.upserted_count}"
     assert resp.failed_item_count == 12, (
-        f"expected 12 failed_items under 0s deadline, got {resp.failed_item_count}"
+        f"expected 12 failed_items under 1ns deadline, got {resp.failed_item_count}"
     )
     assert resp.has_errors
     tt_errors = [e for e in resp.errors if "total_timeout" in e.error_message]
@@ -274,7 +280,7 @@ def test_udf_on_error_raise_aggregates(client: Pinecone, shared_index_dim8: str)
             _frame(5),
             namespace=_ns("raise"),
             batch_size=5,
-            total_timeout=0,
+            total_timeout=1e-9,
             show_progress=False,
             on_error="raise",
         )

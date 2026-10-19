@@ -19,7 +19,7 @@ from pinecone._internal.documents_helpers import (
     _validate_documents,
 )
 from pinecone._internal.keyword_only import keyword_only_methods
-from pinecone._internal.validation import require_in_range
+from pinecone._internal.validation import require_in_range, validate_timeout
 from pinecone.models.batch import BatchResult
 from pinecone.models.documents.document import DocumentRecord, UpdateDocumentRecord
 from pinecone.models.documents.responses import (
@@ -135,7 +135,8 @@ class Documents:
                 or documents of unknown size, use :meth:`batch_upsert`, which
                 handles the size limit.
             timeout (float | None): Per-request timeout in seconds. Overrides
-                the client-level default for this call only.
+                the client-level default for this call only. Must be greater
+                than zero.
 
         Returns:
             :class:`UpsertDocumentsResponse` with the count of documents
@@ -148,6 +149,7 @@ class Documents:
                 is empty or over 1000 entries, or any document has a missing,
                 empty, non-string, non-ASCII, over-512-character, or duplicate
                 ``_id`` — the message names the offending document's position.
+                Also raised if ``timeout`` is zero or negative.
             :exc:`ApiError`: If a document lacks a field its schema requires
                 (400).
             :exc:`~pinecone.errors.exceptions.PayloadTooLargeError`: If one
@@ -181,6 +183,7 @@ class Documents:
            - :meth:`~pinecone.index.Index.upsert` — for indexes where you
              provide your own vectors.
         """
+        validate_timeout("timeout", timeout)
         segment = _encode_document_namespace(namespace)
         normalized = _validate_documents(documents)
         logger.info("Upserting %d documents into namespace %r", len(normalized), namespace)
@@ -249,13 +252,15 @@ class Documents:
             show_progress (bool): Display a progress bar when ``tqdm`` is
                 installed. Defaults to ``True``.
             timeout (float | None): Per-request timeout in seconds applied to
-                each batch's request — not to the whole call.
+                each batch's request — not to the whole call. Must be greater
+                than zero.
             total_timeout (float | None): Deadline in seconds for the **whole
                 batched upsert**, as opposed to *timeout*, which bounds a
                 single attempt of a single batch. On expiry no further batches
                 are submitted, and the un-submitted ones are reported in
                 ``result.failed_items`` so they can be retried. ``None``
-                (default) means no deadline. See the note below for what
+                (default) means no deadline; zero and negative values raise
+                :exc:`PineconeValueError`. See the note below for what
                 ``result.timed_out`` does and does not tell you.
 
         Returns:
@@ -269,6 +274,7 @@ class Documents:
                 is empty or contains an invalid or duplicate ``_id``,
                 ``batch_size`` is outside [1, 1000], or ``max_concurrency`` is
                 outside [1, 64].
+                Also raised if ``timeout`` or ``total_timeout`` is zero or negative.
 
         Per-batch server rejections are not raised; each is recorded in
         ``result.errors`` as that batch's ``error``. A batch rejected as too
@@ -321,6 +327,7 @@ class Documents:
              — choosing a batch size and
              concurrency, and reading the gate counters on the result.
         """
+        validate_timeout("timeout", timeout)
         effective_max_concurrency = (
             DEFAULT_MAX_CONCURRENCY if max_concurrency is None else max_concurrency
         )
@@ -428,7 +435,8 @@ class Documents:
 
                 The two kinds combine under ``$and``.
             timeout (float | None): Per-request timeout in seconds. Overrides
-                the client-level default for this call only.
+                the client-level default for this call only. Must be greater
+                than zero.
 
         Returns:
             :class:`SearchDocumentsResponse` with ``matches`` (ordered from
@@ -444,6 +452,7 @@ class Documents:
                 is empty, over 100 clauses, or combines a vector, ``embed``
                 or ``sparse_embed`` clause with any other clause, or ``top_k``
                 is outside [1, 10000].
+                Also raised if ``timeout`` is zero or negative.
             :exc:`PineconeTypeError`: If ``top_k`` is not an integer (a bool is
                 not accepted), ``score_by`` is not a list of clauses (wrap a
                 single clause as ``[clause]``), holds an item that is neither a
@@ -489,6 +498,7 @@ class Documents:
            - :meth:`~pinecone.index.Index.query` — nearest-neighbor search
              over vectors you provide.
         """
+        validate_timeout("timeout", timeout)
         segment = _encode_document_namespace(namespace)
         body = _build_search_documents_body(
             score_by=score_by,
@@ -563,7 +573,8 @@ class Documents:
                 (1-10000). Omitting it uses the server default of 100. A fetch
                 by ``ids`` ignores it.
             timeout (float | None): Per-request timeout in seconds. Overrides
-                the client-level default for this call only.
+                the client-level default for this call only. Must be greater
+                than zero.
 
         Returns:
             :class:`FetchDocumentsResponse` with ``documents`` (document ID
@@ -577,6 +588,7 @@ class Documents:
                 an empty dict, ``ids`` exceeds 1000 entries,
                 ``pagination_token`` is passed without ``filter``, or
                 ``limit`` is outside 1-10000.
+                Also raised if ``timeout`` is zero or negative.
             :exc:`PineconeTypeError`: If ``limit`` is not an integer (a bool is
                 not accepted), ``filter`` is not a dict (call
                 ``.to_dict()`` on a filter-builder
@@ -641,6 +653,7 @@ class Documents:
              — the pagination shapes the SDK uses
              and when each applies.
         """
+        validate_timeout("timeout", timeout)
         segment = _encode_document_namespace(namespace)
         body = _build_fetch_documents_body(
             ids=ids,
@@ -691,7 +704,8 @@ class Documents:
             delete_all (bool): If ``True``, delete all documents in the
                 namespace. Mutually exclusive with ``ids`` and ``filter``.
             timeout (float | None): Per-request timeout in seconds. Overrides
-                the client-level default for this call only.
+                the client-level default for this call only. Must be greater
+                than zero.
 
         Returns:
             :class:`DeleteDocumentsResponse` — ``matched_records`` is
@@ -702,6 +716,7 @@ class Documents:
             :exc:`PineconeValueError`: If ``namespace`` is empty, zero or more
                 than one of ``ids``/``filter``/``delete_all`` is provided,
                 ``filter`` is an empty dict, or ``ids`` exceeds 1000 entries.
+                Also raised if ``timeout`` is zero or negative.
             :exc:`PineconeTypeError`: If ``filter`` is not a dict (call
                 ``.to_dict()`` on a filter-builder
                 :class:`~pinecone.utils.filter_builder.Condition`), or
@@ -740,6 +755,7 @@ class Documents:
            - :meth:`~pinecone.index.Index.delete` — for indexes where you
              provide your own vectors.
         """
+        validate_timeout("timeout", timeout)
         segment = _encode_document_namespace(namespace)
         body = _build_delete_documents_body(ids=ids, filter=filter, delete_all=delete_all)
         logger.info("Deleting documents from namespace %r", namespace)
@@ -796,7 +812,8 @@ class Documents:
             remove_fields: Names of the fields to remove from every document
                 matching ``filter``. Only valid with ``filter``.
             timeout (float | None): Per-request timeout in seconds. Overrides
-                the client-level default for this call only.
+                the client-level default for this call only. Must be greater
+                than zero.
 
         Returns:
             :class:`UpdateDocumentsResponse` — ``matched_records`` is
@@ -814,6 +831,7 @@ class Documents:
                 an empty dict or carries no patch, ``documents`` is empty or
                 exceeds 1000 entries, or a patch is malformed — the message
                 names the offending position.
+                Also raised if ``timeout`` is zero or negative.
             :exc:`ApiError`: If a field value is ``None``, which the server
                 rejects — use ``_remove_fields`` (per-ID) or ``remove_fields``
                 (by-filter) to remove a field instead.
@@ -862,6 +880,7 @@ class Documents:
            - :meth:`~pinecone.index.Index.update` — for indexes where you
              provide your own vectors.
         """
+        validate_timeout("timeout", timeout)
         segment = _encode_document_namespace(namespace)
         body = _build_update_documents_body(
             documents=documents,
@@ -906,7 +925,8 @@ class Documents:
             pagination_token (str | None): Token from a previous list response
                 to resume from, rather than starting at the first page.
             timeout (float | None): Per-request timeout in seconds, applied to
-                each page request. Overrides the client-level default.
+                each page request. Overrides the client-level default. Must be
+                greater than zero.
 
         Returns:
             :class:`~pinecone.models.pagination.Paginator` over
@@ -920,6 +940,7 @@ class Documents:
             :exc:`PineconeValueError`: If ``namespace`` is empty, ``prefix``
                 violates the rules above, or ``limit`` falls outside 1-100.
                 Raised by this call, before the paginator is returned.
+                Also raised if ``timeout`` is zero or negative.
 
         Examples:
             Iterate every document ID in the namespace, letting the paginator
@@ -949,6 +970,7 @@ class Documents:
              — the pagination shapes the SDK uses
              and when each applies.
         """
+        validate_timeout("timeout", timeout)
         segment = _encode_document_namespace(namespace)
         base = _build_list_documents_body(prefix=prefix, limit=limit, pagination_token=None)
 

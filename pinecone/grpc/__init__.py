@@ -497,6 +497,16 @@ class GrpcIndex:
         self._limiter_registry = limiter_registry or _AdaptiveLimiterRegistry()
         self._source_tag = source_tag
 
+        # Built before the channel and executor so an invalid timeout raises
+        # before anything that needs closing exists.
+        rest_config = PineconeConfig(
+            api_key=resolved_key,
+            host=self._host,
+            timeout=timeout,
+            source_tag=source_tag or "",
+            ssl_verify=secure,
+        )
+
         # Build gRPC endpoint and create the Rust-backed channel
         endpoint = _build_grpc_endpoint(
             self._host, secure=secure, scheme=resolve_grpc_scheme(grpc_scheme)
@@ -546,13 +556,6 @@ class GrpcIndex:
         # upsert_records and search use REST endpoints with no gRPC equivalent.
         from pinecone._internal.http_client import HTTPClient
 
-        rest_config = PineconeConfig(
-            api_key=resolved_key,
-            host=self._host,
-            timeout=timeout,
-            source_tag=source_tag or "",
-            ssl_verify=secure,
-        )
         self._http = HTTPClient(rest_config, DATA_PLANE_API_VERSION)
         self._adapter = VectorsAdapter()
         self._imports_adapter = ImportsAdapter()
@@ -615,6 +618,7 @@ class GrpcIndex:
                 flight are awaited and never cancelled; unsent batches are
                 reported in ``failed_items``. ``None`` (default) means no
                 deadline.
+                Zero or a negative value raises :exc:`PineconeValueError`.
 
         Returns:
             :class:`~pinecone.models.vectors.responses.UpsertResponse` with ``upserted_count``. With
@@ -1537,6 +1541,7 @@ class GrpcIndex:
                 :class:`~pinecone.models.vectors.responses.UpsertResponse` on its ``response``
                 attribute, whose ``failed_items`` are the rows that were never sent. ``None``
                 (default) means the ingest is bounded only by the per-batch deadlines.
+                Zero or a negative value raises :exc:`PineconeValueError`.
             timeout: Deadline in seconds for a single *attempt* of a single
                 batch — not for the batch, and not for the DataFrame. A batch
                 that keeps failing on a retryable code is retried, so its

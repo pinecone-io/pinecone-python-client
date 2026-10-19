@@ -11,6 +11,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
+from pinecone._internal.validation import validate_timeout
 from pinecone.errors.exceptions import PineconeValueError
 from pinecone.models.batch import BatchError, BatchResult
 from pinecone.models.response_info import BatchResponseInfo
@@ -23,14 +24,17 @@ _MAX_WORKERS = 64
 # ---------------------------------------------------------------------------
 
 
-def _validate_batch_params(batch_size: int, concurrency: int) -> None:
-    """Raise ``PineconeValueError`` for invalid batch_size or concurrency values."""
+def _validate_batch_params(
+    batch_size: int, concurrency: int, total_timeout: float | None = None
+) -> None:
+    """Raise ``PineconeValueError`` for invalid batch_size, concurrency or total_timeout."""
     if batch_size < 1:
         raise PineconeValueError(f"batch_size must be >= 1, got {batch_size}")
     if concurrency < 1 or concurrency > _MAX_WORKERS:
         raise PineconeValueError(
             f"concurrency must be between 1 and {_MAX_WORKERS}, got {concurrency}"
         )
+    validate_timeout("total_timeout", total_timeout)
 
 
 # ---------------------------------------------------------------------------

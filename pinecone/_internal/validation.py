@@ -6,7 +6,7 @@ import re
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from pinecone.errors.exceptions import PineconeTypeError, ValidationError
+from pinecone.errors.exceptions import PineconeTypeError, PineconeValueError, ValidationError
 
 
 def require_str(name: str, value: Any) -> None:
@@ -461,3 +461,14 @@ def validate_index_tags(tags: Mapping[str, str] | None) -> None:
                 f"Tag value for key {key!r} contains invalid characters. "
                 "Only printable ASCII characters are allowed."
             )
+
+
+def validate_timeout(name: str, value: float | None) -> None:
+    """Raise ``PineconeValueError`` if *value* is a number that is not positive.
+
+    ``None`` and non-numeric values (such as an ``httpx.Timeout``) pass through.
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return
+    if not value > 0:
+        raise PineconeValueError(f"{name} must be a positive number of seconds, got {value!r}")

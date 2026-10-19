@@ -295,6 +295,7 @@ class Index:
                 batch. On expiry no further batches are submitted; batches already
                 in flight are awaited and never cancelled; unsent batches are
                 reported in ``failed_items``. ``None`` (default) means no deadline.
+                Zero or a negative value raises :exc:`PineconeValueError`.
 
         Returns:
             :class:`UpsertResponse` with ``upserted_count``. When ``batch_size``
@@ -488,6 +489,7 @@ class Index:
                 batches already in flight are awaited and never cancelled;
                 unsent batches are reported in ``failed_items``. ``None``
                 (default) means no deadline.
+                Zero or a negative value raises :exc:`PineconeValueError`.
             on_error: What to do when some batches fail. ``"collect"`` (the
                 default) returns an :class:`UpsertResponse` carrying
                 ``failed_item_count``, ``errors`` and ``failed_items``. This

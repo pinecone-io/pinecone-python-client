@@ -108,7 +108,8 @@ class AsyncPinecone:
         ssl_verify (bool): Whether to verify the server's certificate. ``True``
             (default) is right everywhere but a throwaway test endpoint.
         timeout (float): Deadline in seconds for a single HTTP attempt, not for the
-            whole call — each retry gets its own. Defaults to ``30.0``.
+            whole call — each retry gets its own. Must be greater than zero.
+            Defaults to ``30.0``.
         connection_pool_maxsize (int): Ceiling on connections held open to the
             control plane. ``0`` (default) leaves httpx's own ceiling in place;
             raise it for a process issuing many concurrent control-plane calls.

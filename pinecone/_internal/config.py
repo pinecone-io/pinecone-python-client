@@ -8,6 +8,7 @@ import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, ClassVar, Literal
 
+from pinecone._internal.validation import validate_timeout
 from pinecone.errors.exceptions import PineconeValueError
 
 if TYPE_CHECKING:
@@ -225,6 +226,7 @@ class PineconeConfig:
         )
 
     def __post_init__(self) -> None:
+        validate_timeout("timeout", self.timeout)
         if not self.api_key:
             env_key = os.environ.get("PINECONE_API_KEY", "")
             object.__setattr__(self, "api_key", env_key)
