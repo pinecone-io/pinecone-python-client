@@ -15,7 +15,7 @@ from pinecone._internal.index_migration import (
     reject_new_only_create_kwargs,
 )
 from pinecone._internal.indexes_helpers import IndexKwargs, async_poll_index_until_ready
-from pinecone._internal.keyword_only import keyword_only_methods
+from pinecone._internal.keyword_only import keyword_only_methods, unexpected_keywords_error
 from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import ValidationError
 from pinecone.models.indexes.list import IndexList
@@ -122,6 +122,10 @@ class AsyncPinecone:
             key is not a valid HTTP header value, such as a blank key or one with a
             trailing newline, so the failure is local and never echoes the key.
         :exc:`NotImplementedError`: If *proxy_headers* is non-empty.
+        :exc:`PineconeTypeError`: If a keyword argument other than those listed
+            above is passed, which is how a misspelled parameter name surfaces.
+            It derives from :exc:`TypeError`, so ``except TypeError`` catches it
+            too.
         :exc:`FileNotFoundError`: If ``ssl_ca_certs`` names a path that does not
             exist, raised on the first request rather than when the client is
             constructed, so a mistyped path cannot leave you silently verifying
@@ -181,7 +185,10 @@ class AsyncPinecone:
         timeout: float = 30.0,
         connection_pool_maxsize: int = 0,
         retry_config: RetryConfig | None = None,
+        **kwargs: NoReturn,
     ) -> None:
+        if kwargs:
+            raise unexpected_keywords_error("AsyncPinecone", AsyncPinecone.__init__, kwargs)
         if proxy_headers:
             raise NotImplementedError("proxy_headers is not yet supported for the async client")
 

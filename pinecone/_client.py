@@ -16,7 +16,7 @@ from pinecone._internal.index_migration import (
     reject_new_only_create_kwargs,
 )
 from pinecone._internal.indexes_helpers import _LegacyIndexKwargs, poll_index_until_ready
-from pinecone._internal.keyword_only import keyword_only_methods
+from pinecone._internal.keyword_only import keyword_only_methods, unexpected_keywords_error
 from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import ValidationError
 from pinecone.models.indexes.list import IndexList
@@ -158,6 +158,10 @@ class Pinecone:
             is unset, since nothing would authenticate the first request. Also raised when the
             key is not a valid HTTP header value, such as a blank key or one with a
             trailing newline, so the failure is local and never echoes the key.
+        :exc:`PineconeTypeError`: If a keyword argument other than those listed
+            above is passed, which is how a misspelled parameter name surfaces.
+            It derives from :exc:`TypeError`, so ``except TypeError`` catches it
+            too.
         :exc:`FileNotFoundError`: If ``ssl_ca_certs`` names a path that does not
             exist, raised when the client is constructed, so a mistyped path
             cannot leave you silently verifying against the default trust store
@@ -214,7 +218,7 @@ class Pinecone:
     ) -> None:
         legacy_pool_threads = kwargs.pop("pool_threads", None)
         if kwargs:
-            raise TypeError(f"Pinecone() got unexpected keyword arguments: {sorted(kwargs)!r}")
+            raise unexpected_keywords_error("Pinecone", Pinecone.__init__, kwargs)
         self._limiter_registry = _AdaptiveLimiterRegistry()
         augmented_retry_config = replace(
             retry_config or RetryConfig(),

@@ -4,18 +4,27 @@ Every exception the SDK defines derives from `PineconeError`, so `except Pinecon
 is the one blanket catch, and it is the right catch for anything that reaches the
 network.
 
-It is not a catch for calling the SDK wrongly. A misspelled or unsupported keyword
-argument raises a plain built-in `TypeError` naming the argument, not a
-`PineconeTypeError`:
+It is not the catch for calling the SDK wrongly. A misspelled or unsupported keyword
+argument fails the call before anything is sent, with the argument named:
 
 ```
 TypeError: Index() got unexpected keyword arguments: ['retry_config']
 ```
 
-`AsyncPinecone(proxy_headers=...)` likewise raises `NotImplementedError` — the sync
-`Pinecone` accepts that argument and the async client does not. Neither is a
-`PineconeError`. Both are programming mistakes that fail on the first call, so they
-belong in your tests rather than in an `except` block.
+Which exception you get varies by call, because the rejection happens in more than one
+place. Python raises its own `TypeError` for any method that declares its parameters
+exactly. Methods that take open keyword arguments reject unknown ones in SDK code
+instead: the `Pinecone` and `AsyncPinecone` constructors and the index create and
+configure calls raise `PineconeTypeError`; `Index()`, `Pinecone.Index()`,
+`PineconeGRPC.Index()`, `describe_namespace()`, `delete_namespace()`,
+`inference.get_model()`, and `inference.model.get()` raise a plain `TypeError`; and the
+assistants methods, which accept 9.x parameter aliases, raise `PineconeValueError`.
+`AsyncPinecone(proxy_headers=...)` raises `NotImplementedError` — the sync `Pinecone`
+accepts that argument and the async client does not.
+
+No one handler covers all of that, and none of it is worth building a handler around.
+These are programming mistakes that fail on the first call, so they belong in your
+tests rather than in an `except` block.
 
 Every class below is importable from the package root or from `pinecone.errors`;
 the two paths reach the same class.

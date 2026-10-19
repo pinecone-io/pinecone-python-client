@@ -27,7 +27,7 @@ import inspect
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from pinecone.errors.exceptions import PineconeValueError
+from pinecone.errors.exceptions import PineconeTypeError, PineconeValueError
 
 _ClassT = TypeVar("_ClassT", bound=type)
 
@@ -62,6 +62,24 @@ def _misspelled_keyword_error(
             f"{qualname}() got an unexpected keyword argument {given!r}. Did you mean {close[0]!r}?"
         )
     return None
+
+
+def unexpected_keywords_error(
+    name: str, func: Callable[..., Any], kwargs: dict[str, Any]
+) -> PineconeTypeError:
+    """Reject *kwargs* that *func* does not take, naming the closest keyword it does."""
+    message = f"{name}() got unexpected keyword arguments: {sorted(kwargs)!r}"
+    accepted = [
+        param_name
+        for param_name, param in inspect.signature(func).parameters.items()
+        if param_name != "self"
+        and param.kind in (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
+    ]
+    for given in sorted(kwargs):
+        close = difflib.get_close_matches(given, accepted, n=1)
+        if close:
+            return PineconeTypeError(f"{message}. Did you mean {close[0]!r}?")
+    return PineconeTypeError(message)
 
 
 def _positional_misuse_message(method: str, kw_names: list[str], owner: str, count: int) -> str:

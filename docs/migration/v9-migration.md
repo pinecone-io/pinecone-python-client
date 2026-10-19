@@ -113,7 +113,8 @@ pc = Pinecone(
 ```
 
 Unlike the control-plane methods above, this one is not shimmed: an unrecognised keyword
-raises `TypeError: Pinecone() got unexpected keyword arguments: ['retries']`. See
+raises `PineconeTypeError: Pinecone() got unexpected keyword arguments: ['retries']`,
+which an `except TypeError` handler catches as well. See
 [Retries and Resilience](../guides/retries.md) for what `retry_config` reaches and what
 it does not.
 
