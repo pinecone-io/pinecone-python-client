@@ -61,6 +61,37 @@ def resolve_enum_value(value: Any) -> Any:
     return value.value if hasattr(value, "value") else value
 
 
+def lowercase_metric(value: Any) -> Any:
+    """Return a similarity metric in the lowercase form the server writes with.
+
+    The server accepts a mixed-case metric such as ``"EUCLIDEAN"`` when an
+    index is created but cannot derive a data schema from it, so every write
+    to that index then fails. An enum member is resolved to its value first;
+    anything that is not a string passes through for the server to judge.
+    """
+    resolved = resolve_enum_value(value)
+    return resolved.lower() if isinstance(resolved, str) else resolved
+
+
+def lowercase_schema_metrics(fields: Any) -> None:
+    """Lowercase, in place, every ``metric`` a ``schema.fields`` mapping declares.
+
+    Covers the dense vector field's own ``metric`` and the ``metric`` inside a
+    string field's ``embed`` config. Anything that is not shaped like a field
+    is left alone.
+    """
+    if not isinstance(fields, dict):
+        return
+    for field in fields.values():
+        if not isinstance(field, dict):
+            continue
+        if "metric" in field:
+            field["metric"] = lowercase_metric(field["metric"])
+        embed = field.get("embed")
+        if isinstance(embed, dict) and "metric" in embed:
+            embed["metric"] = lowercase_metric(embed["metric"])
+
+
 def validate_read_capacity(read_capacity: dict[str, Any]) -> None:
     """Validate read_capacity structure for index configure."""
     if "mode" not in read_capacity:

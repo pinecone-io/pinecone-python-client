@@ -400,6 +400,18 @@ async def test_configure_non_semantic_text_schema_passes_through_to_server(
 
 
 @respx.mock
+async def test_configure_lowercases_a_mixed_case_metric(indexes: AsyncIndexes) -> None:
+    route = _mock_patch()
+    schema = {"fields": {"extra": {"type": "dense_vector", "dimension": 3, "metric": "EUCLIDEAN"}}}
+
+    await indexes.configure("test-index", schema=schema)
+
+    body = json.loads(route.calls.last.request.content)
+    assert body["schema"]["fields"]["extra"]["metric"] == "euclidean"
+    assert schema["fields"]["extra"]["metric"] == "EUCLIDEAN"
+
+
+@respx.mock
 async def test_configure_schema_server_rejection_surfaced_verbatim(indexes: AsyncIndexes) -> None:
     server_message = "Only fields of type 'semantic_text' may be specified"
     respx.patch(f"{BASE_URL}/indexes/test-index").mock(

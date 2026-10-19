@@ -49,6 +49,7 @@ from typing import Any
 
 import msgspec
 
+from pinecone._internal.indexes_helpers import lowercase_metric
 from pinecone.models.indexes.schema import FieldEmbedConfig, FieldSparseEmbedConfig
 
 _FTS_LANGUAGES_SHORT = frozenset(
@@ -205,8 +206,12 @@ def _embed_aspect(
     if value is True:
         return {}
     if isinstance(value, msgspec.Struct):
-        return {k: v for k, v in msgspec.to_builtins(value).items() if v is not None}
-    return dict(value)
+        config = {k: v for k, v in msgspec.to_builtins(value).items() if v is not None}
+    else:
+        config = dict(value)
+    if "metric" in config:
+        config["metric"] = lowercase_metric(config["metric"])
+    return config
 
 
 def _normalize_fts_language(language: str) -> str:
@@ -311,7 +316,10 @@ class SchemaBuilder:
                 the request goes out.
             metric: How similarity is scored — ``"cosine"``, ``"euclidean"``,
                 or ``"dotproduct"``. ``"cosine"`` is what most text embedding
-                models are trained for. See
+                models are trained for. Capitals are lowercased, so
+                ``"EUCLIDEAN"`` is sent as ``"euclidean"``: the server accepts
+                a mixed-case metric at create but cannot write to the index
+                afterwards. See
                 :class:`~pinecone.models.enums.Metric`.
             description: Human-readable note stored with the field, up to 256
                 bytes. Optional.
@@ -348,7 +356,7 @@ class SchemaBuilder:
         field: dict[str, Any] = {
             "type": "dense_vector",
             "dimension": dimension,
-            "metric": metric,
+            "metric": lowercase_metric(metric),
         }
         if description is not None:
             field["description"] = description
@@ -481,7 +489,8 @@ class SchemaBuilder:
             embed: ``True`` or ``{}`` to embed the text with the default dense
                 model at its default dimension and metric, or a dict or
                 :class:`~pinecone.models.indexes.schema.FieldEmbedConfig` of
-                ``model``, ``dimension``, ``metric``, ``write_parameters`` and
+                ``model``, ``dimension``, ``metric`` (lowercased, as for a
+                dense vector field), ``write_parameters`` and
                 ``read_parameters``. The field takes the index's one dense
                 slot. Fixed at creation.
             sparse_embed: ``True`` or ``{}`` to embed the text with the
@@ -841,7 +850,9 @@ class SchemaBuilder:
         offers that this SDK does not model yet. The name is checked and the
         definition's ``type`` is rejected if it is response-only; the rest of
         the definition goes through untouched, so anything else wrong with it
-        surfaces as a server error on create rather than here.
+        surfaces as a server error on create rather than here. The one
+        exception is a ``metric`` in capitals, which is lowercased when the
+        create request is sent, not in the schema this builder returns.
 
         Args:
             name: Field name, up to 64 bytes. Replaces any existing field

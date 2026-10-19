@@ -378,6 +378,12 @@ class Indexes:
                         }
                     }
 
+                A ``metric`` written in capitals, on a dense vector field or in
+                a string field's ``embed`` config, is lowercased before the
+                request goes out. The server accepts ``"EUCLIDEAN"`` at create
+                but then fails every write to the index with a ``500``, and a
+                field's metric cannot be changed afterwards.
+
                 Also accepts the dict produced by
                 :class:`~pinecone.schema_builder.SchemaBuilder` or an
                 :class:`~pinecone.models.indexes.schema.IndexSchema`. A

@@ -11,6 +11,8 @@ from typing import Any
 
 import pytest
 
+from pinecone.models.enums import Metric
+from pinecone.models.indexes.schema import FieldEmbedConfig
 from pinecone.schema_builder import SchemaBuilder
 
 # ---------------------------------------------------------------------------
@@ -893,3 +895,34 @@ def test_metadata_fields_agree_with_the_response_side_models() -> None:
     for name in ("b", "f", "t"):
         assert built["fields"][name]["filterable"] is False
         assert modelled["fields"][name]["filterable"] is False
+
+
+# ---------------------------------------------------------------------------
+# metric is lowercased
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("given", "expected"),
+    [
+        ("EUCLIDEAN", "euclidean"),
+        ("COSINE", "cosine"),
+        ("DotProduct", "dotproduct"),
+        ("cosine", "cosine"),
+        (Metric.EUCLIDEAN, "euclidean"),
+        ("L2", "l2"),
+    ],
+)
+def test_dense_vector_field_lowercases_metric(given: Any, expected: str) -> None:
+    schema = SchemaBuilder().add_dense_vector_field("vec", dimension=4, metric=given).build()
+    assert schema["fields"]["vec"]["metric"] == expected
+
+
+@pytest.mark.parametrize(
+    "embed",
+    [{"metric": "COSINE"}, FieldEmbedConfig(metric="COSINE")],
+    ids=["dict", "struct"],
+)
+def test_string_field_embed_lowercases_metric(embed: Any) -> None:
+    schema = SchemaBuilder().add_string_field("body", embed=embed).build()
+    assert schema["fields"]["body"]["embed"]["metric"] == "cosine"

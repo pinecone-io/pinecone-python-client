@@ -24,7 +24,9 @@ from pinecone.errors.exceptions import (
     PineconeTypeError,
     PineconeValueError,
 )
+from pinecone.models.enums import Metric
 from pinecone.models.indexes.index import IndexModel
+from pinecone.models.indexes.schema import DenseVectorField, IndexSchema
 from pinecone.models.indexes.specs import (
     ByocSpec,
     EmbedConfig,
@@ -32,6 +34,7 @@ from pinecone.models.indexes.specs import (
     PodSpec,
     ServerlessSpec,
 )
+from pinecone.schema_builder import SchemaBuilder
 from tests.factories import make_error_response, make_index_response
 
 BASE_URL = "https://api.test.pinecone.io"
@@ -805,3 +808,80 @@ def test_create_timeout_negative_one_skips_polling(indexes: Indexes) -> None:
 
     assert result.status.ready is False
     assert describe_route.call_count == 0
+
+
+# ---------------------------------------------------------------------------
+# Mixed-case metric is lowercased before the request
+# ---------------------------------------------------------------------------
+
+_MIXED_METRIC_SCHEMAS: list[Any] = [
+    pytest.param(
+        SchemaBuilder().add_dense_vector_field("v", dimension=4, metric="EUCLIDEAN").build(),
+        {"v": {"type": "dense_vector", "dimension": 4, "metric": "euclidean"}},
+        id="schema-builder",
+    ),
+    pytest.param(
+        {"fields": {"v": {"type": "dense_vector", "dimension": 4, "metric": "DotProduct"}}},
+        {"v": {"type": "dense_vector", "dimension": 4, "metric": "dotproduct"}},
+        id="raw-dict",
+    ),
+    pytest.param(
+        IndexSchema(fields={"v": DenseVectorField(dimension=4, metric="COSINE")}),
+        {"v": {"type": "dense_vector", "dimension": 4, "metric": "cosine"}},
+        id="typed-schema",
+    ),
+    pytest.param(
+        {"fields": {"t": {"type": "string", "embed": {"metric": "COSINE"}}}},
+        {"t": {"type": "string", "embed": {"metric": "cosine"}}},
+        id="raw-dict-embed",
+    ),
+    pytest.param(
+        {
+            "fields": {
+                "v": {"type": "dense_vector", "dimension": 4, "metric": Metric.EUCLIDEAN},
+            }
+        },
+        {"v": {"type": "dense_vector", "dimension": 4, "metric": "euclidean"}},
+        id="enum-member",
+    ),
+]
+
+
+@pytest.mark.parametrize(("schema", "expected_fields"), _MIXED_METRIC_SCHEMAS)
+@respx.mock
+def test_create_lowercases_a_mixed_case_metric(
+    indexes: Indexes, schema: Any, expected_fields: dict[str, Any]
+) -> None:
+    route = respx.post(f"{BASE_URL}/indexes").mock(return_value=_mock_created())
+
+    indexes.create(name="idx", schema=schema, timeout=-1)
+
+    body = json.loads(route.calls.last.request.content)
+    assert body["schema"]["fields"] == expected_fields
+
+
+@respx.mock
+def test_create_does_not_mutate_the_callers_schema(
+    indexes: Indexes,
+) -> None:
+    route = respx.post(f"{BASE_URL}/indexes").mock(return_value=_mock_created())
+    schema = {"fields": {"v": {"type": "dense_vector", "dimension": 4, "metric": "EUCLIDEAN"}}}
+
+    indexes.create(name="idx", schema=schema, timeout=-1)
+
+    assert schema["fields"]["v"]["metric"] == "EUCLIDEAN"
+    assert json.loads(route.calls.last.request.content)["schema"]["fields"]["v"]["metric"] == (
+        "euclidean"
+    )
+
+
+@respx.mock
+def test_create_leaves_an_unknown_metric_to_the_server(
+    indexes: Indexes,
+) -> None:
+    route = respx.post(f"{BASE_URL}/indexes").mock(return_value=_mock_created())
+    schema = {"fields": {"v": {"type": "dense_vector", "dimension": 4, "metric": "L2"}}}
+
+    indexes.create(name="idx", schema=schema, timeout=-1)
+
+    assert json.loads(route.calls.last.request.content)["schema"]["fields"]["v"]["metric"] == "l2"

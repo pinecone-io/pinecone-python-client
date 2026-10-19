@@ -9,6 +9,7 @@ import msgspec
 import orjson
 
 from pinecone._internal.adapters._decode import convert_response, decode_response
+from pinecone._internal.indexes_helpers import lowercase_schema_metrics
 from pinecone.errors.exceptions import ResponseParsingError
 from pinecone.models.indexes.index import IndexModel
 from pinecone.models.indexes.list import IndexList
@@ -65,6 +66,9 @@ def _encode_index_request(
     body: dict[str, Any] = msgspec.to_builtins(request)
     if isinstance(schema, IndexSchema):
         body["schema"] = _encode_schema_for_request(schema)
+    schema_body = body.get("schema")
+    if isinstance(schema_body, dict):
+        lowercase_schema_metrics(schema_body.get("fields"))
     return orjson.dumps(_drop_none(body))
 
 

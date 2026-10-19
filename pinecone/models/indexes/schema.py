@@ -84,7 +84,8 @@ class DenseVectorField(Struct, tag="dense_vector", tag_field="type", kw_only=Tru
             :class:`~pinecone.schema_builder.SchemaBuilder` rejects anything
             outside that range before the request leaves the client.
         metric: How similarity is scored — ``"cosine"``, ``"dotproduct"``, or
-            ``"euclidean"``. Fixed for the life of the field; see
+            ``"euclidean"``. Capitals are lowercased when the index is
+            created. Fixed for the life of the field; see
             :class:`~pinecone.models.enums.Metric` for how to choose.
         description: Free-text note about the field, or ``None`` when none was
             given. Always present in responses.
@@ -267,8 +268,9 @@ class FieldEmbedConfig(Struct, kw_only=True):
             ``512``. ``None`` on create takes the model's default.
         metric: ``"cosine"``, ``"dotproduct"`` or ``"euclidean"``, though which
             of them work depends on the model, and the server rejects an
-            unsupported one with a 400. For example, ``"llama-text-embed-v2"``
-            (the default model) takes ``"cosine"`` and ``"dotproduct"``, and
+            unsupported one with a 400. Capitals are lowercased when the index
+            is created. For example, ``"llama-text-embed-v2"`` (the default
+            model) takes ``"cosine"`` and ``"dotproduct"``, and
             ``"multilingual-e5-large"`` takes ``"cosine"`` and
             ``"euclidean"``. ``None`` on create takes the model's default
             (``"cosine"`` for those two).
