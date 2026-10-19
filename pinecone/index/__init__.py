@@ -50,7 +50,7 @@ from pinecone._internal.validation import (
     require_valid_vector_ids,
 )
 from pinecone._internal.vector_factory import VectorFactory
-from pinecone.errors.exceptions import PineconeValueError, ValidationError
+from pinecone.errors.exceptions import PineconeTypeError, PineconeValueError, ValidationError
 from pinecone.models.imports.list import ImportList
 from pinecone.models.imports.model import ImportModel, StartImportResponse
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
@@ -2004,8 +2004,11 @@ class Index:
             The validated string ID.
 
         Raises:
+            :exc:`PineconeTypeError`: If the ID is not a ``str`` or an ``int``.
             :exc:`PineconeValueError`: If the ID is empty or exceeds 1000 characters.
         """
+        if not isinstance(id, (str, int)):
+            raise PineconeTypeError(f"id must be a string or an integer, got {type(id).__name__}")
         str_id = str(id) if isinstance(id, int) else id
         if not str_id or len(str_id) > 1000:
             raise ValidationError(
@@ -2122,6 +2125,7 @@ class Index:
             ``uri``, and ``error`` when it failed.
 
         Raises:
+            :exc:`PineconeTypeError`: If *id* is neither a ``str`` nor an ``int``.
             :exc:`PineconeValueError`: If *id* is empty or over 1000 characters.
                 Raised before any HTTP request is made.
 
@@ -2161,6 +2165,7 @@ class Index:
             :meth:`describe_import` to see the operation reach ``"Cancelled"``.
 
         Raises:
+            :exc:`PineconeTypeError`: If *id* is neither a ``str`` nor an ``int``.
             :exc:`PineconeValueError`: If *id* is empty or over 1000 characters.
                 Raised before any HTTP request is made.
 

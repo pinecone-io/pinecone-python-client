@@ -4,27 +4,28 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping, Sequence
-from typing import Any, overload
+from typing import Any
 
-from pinecone.errors.exceptions import ValidationError
-
-
-@overload
-def require_non_empty(name: str, value: str) -> None: ...
+from pinecone.errors.exceptions import PineconeTypeError, ValidationError
 
 
-@overload
-def require_non_empty(name: str, value: list[Any]) -> None: ...
+def require_str(name: str, value: Any) -> None:
+    """Raise PineconeTypeError unless *value* is a ``str``.
+
+    Path parameters are interpolated into a URL and then percent-encoded, so a
+    value of any other type either reaches :func:`urllib.parse.quote` and dies
+    there or addresses a resource nobody named. Rejecting it here reports the
+    parameter that carried it.
+    """
+    if not isinstance(value, str):
+        raise PineconeTypeError(f"{name} must be a string, got {type(value).__name__}")
 
 
-def require_non_empty(name: str, value: str | list[Any]) -> None:
-    """Raise ValidationError if value is empty, whitespace-only, or an empty list."""
-    if isinstance(value, list):
-        if not value:
-            raise ValidationError(f"{name} must be a non-empty list")
-    else:
-        if not value or not value.strip():
-            raise ValidationError(f"{name} must be a non-empty string")
+def require_non_empty(name: str, value: str) -> None:
+    """Raise PineconeTypeError unless *value* is a ``str``, ValidationError if it is blank."""
+    require_str(name, value)
+    if not value.strip():
+        raise ValidationError(f"{name} must be a non-empty string")
 
 
 def require_positive(name: str, value: int) -> None:

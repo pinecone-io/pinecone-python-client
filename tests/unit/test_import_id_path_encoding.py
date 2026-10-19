@@ -31,6 +31,7 @@ import pytest
 import respx
 
 from pinecone import AsyncIndex, Index
+from pinecone.errors.exceptions import PineconeTypeError
 from pinecone.grpc import GrpcIndex
 
 INDEX_HOST = "import-id-path-encoding-abc123.svc.pinecone.io"
@@ -173,3 +174,78 @@ def test_grpc_cancel_import_encodes_id_as_one_path_segment(
 
     assert route.called
     assert route.calls.last.request.url.raw_path.decode() == f"/bulk/imports/{encoded}"
+
+
+# ---------------------------------------------------------------------------
+# A value the encoder cannot take is refused, not interpolated (#626)
+# ---------------------------------------------------------------------------
+
+UNENCODABLE_IDS = [
+    pytest.param(["a", "b"], "list", id="list"),
+    pytest.param(1.5, "float", id="float"),
+    pytest.param(None, "NoneType", id="none"),
+    pytest.param({"id": "a"}, "dict", id="dict"),
+]
+"""Types that reached ``quote`` or ``len`` and died there, and their type names.
+
+``describe_import(101)`` is documented to work and still does: the ``int`` is
+stringified, which is the contract these routes advertise. Everything else was
+a crash several frames from the call — a ``TypeError`` from
+:func:`urllib.parse.quote` for a list, a ``TypeError`` from ``len`` for a
+float — neither catchable as a Pinecone error.
+"""
+
+
+@pytest.mark.parametrize(("import_id", "type_name"), UNENCODABLE_IDS)
+@respx.mock
+def test_describe_import_refuses_an_id_it_cannot_encode(
+    index: Index, import_id: Any, type_name: str
+) -> None:
+    respx.route().mock(return_value=httpx.Response(200, json=IMPORT_PAYLOAD))
+
+    with pytest.raises(
+        PineconeTypeError, match=f"id must be a string or an integer, got {type_name}"
+    ):
+        index.describe_import(import_id)
+
+    assert not respx.calls, "the request must not reach the wire"
+
+
+@pytest.mark.parametrize(("import_id", "type_name"), UNENCODABLE_IDS)
+async def test_async_cancel_import_refuses_an_id_it_cannot_encode(
+    async_index: AsyncIndex, import_id: Any, type_name: str, respx_mock: respx.MockRouter
+) -> None:
+    respx_mock.route().mock(return_value=httpx.Response(202))
+
+    with pytest.raises(
+        PineconeTypeError, match=f"id must be a string or an integer, got {type_name}"
+    ):
+        await async_index.cancel_import(import_id)
+
+    assert not respx_mock.calls, "the request must not reach the wire"
+
+
+@pytest.mark.parametrize(("import_id", "type_name"), UNENCODABLE_IDS)
+@respx.mock
+def test_grpc_describe_import_refuses_an_id_it_cannot_encode(
+    grpc_index: GrpcIndex, import_id: Any, type_name: str
+) -> None:
+    respx.route().mock(return_value=httpx.Response(200, json=IMPORT_PAYLOAD))
+
+    with pytest.raises(
+        PineconeTypeError, match=f"id must be a string or an integer, got {type_name}"
+    ):
+        grpc_index.describe_import(import_id)
+
+    assert not respx.calls, "the request must not reach the wire"
+
+
+@pytest.mark.parametrize("import_id", [101, True])
+@respx.mock
+def test_describe_import_still_stringifies_an_int(index: Index, import_id: Any) -> None:
+    """The documented ``int`` coercion survives; ``bool`` is an ``int`` subclass."""
+    respx.route().mock(return_value=httpx.Response(200, json=IMPORT_PAYLOAD))
+
+    index.describe_import(import_id)
+
+    assert respx.calls[0].request.url.raw_path.decode() == f"/bulk/imports/{import_id}"

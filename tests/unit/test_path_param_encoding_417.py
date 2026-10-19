@@ -26,6 +26,11 @@ Three kinds of test live here, and only the first states the invariant:
   unencoded site appears anywhere. #417 converted the DB control-plane sites and
   #460 the assistants and admin ones, so the scan now asserts the tree is clean
   rather than matching an inventory of exceptions.
+- a sweep of the same operation tables with a value of the wrong type, asserting
+  that every path parameter refuses a non-``str`` with a ``PineconeTypeError``
+  naming the parameter, and that nothing reaches the wire (#626). Encoding is
+  only defined for a ``str``, so this is the guard that keeps the rows above
+  honest about what they are encoding.
 """
 
 from __future__ import annotations
@@ -37,6 +42,7 @@ import inspect
 import io
 import pathlib
 import re
+import uuid
 from collections import Counter
 from collections.abc import AsyncIterator, Callable, Iterator
 from typing import Any
@@ -51,6 +57,7 @@ from hypothesis import strategies as st
 from pinecone import Pinecone, PineconeAsyncio
 from pinecone._internal.http_client import _prepare_path
 from pinecone.admin.admin import _OAUTH_URL, Admin
+from pinecone.errors.exceptions import PineconeTypeError
 from tests.unit.test_import_id_path_encoding import ENCODING_CASES
 
 # ---------------------------------------------------------------------------
@@ -411,36 +418,34 @@ def test_a_str_subclass_is_encoded_as_its_str_data(client: Pinecone) -> None:
 
 
 @respx.mock
-def test_backups_list_coerces_a_non_str_index_name(client: Pinecone) -> None:
-    """The one site pair that had no ``str`` guard keeps accepting a non-``str``.
+def test_backups_list_refuses_a_non_str_index_name(client: Pinecone) -> None:
+    """An index-scoped listing refuses a non-``str`` name instead of coercing it.
 
-    Every other converted site already raised on a non-``str``, because
-    ``require_non_empty`` calls ``.strip()`` on it. These two never did, so bare
-    ``quote`` would have turned a call that worked into a ``TypeError`` -- a new
-    client-side refusal, which the minimal-validation decision forbids
-    regardless of what the annotation says. Coercing sends what the caller
-    asked for and leaves the verdict to the server.
-
-    Deleting the ``str()`` is what this test exists to catch.
+    This pair used to coerce, on the reading that minimal validation forbids a
+    client-side refusal the server has not asked for. Type-correctness is not
+    value-validation: the rule governs *what values* the SDK second-guesses and
+    does not require accepting an argument of the wrong type, so a non-``str``
+    is refused here as it is everywhere else. ``GET /indexes/1234/backups``
+    named an index nobody can have created.
     """
     respx.route().mock(return_value=httpx.Response(200, json={}))
 
-    with _ignoring_the_stub_response_body():
+    with pytest.raises(PineconeTypeError, match="index_name must be a string, got int"):
         client.backups.list(index_name=1234)  # type: ignore[arg-type]
 
-    assert respx.calls[0].request.url.raw_path.decode() == "/indexes/1234/backups"
+    assert not respx.calls, "the request must not reach the wire"
 
 
-async def test_async_backups_list_coerces_a_non_str_index_name(
+async def test_async_backups_list_refuses_a_non_str_index_name(
     async_client: PineconeAsyncio, respx_mock: respx.MockRouter
 ) -> None:
     """The async mirror; the two lanes must refuse and accept the same inputs."""
     respx_mock.route().mock(return_value=httpx.Response(200, json={}))
 
-    with _ignoring_the_stub_response_body():
+    with pytest.raises(PineconeTypeError, match="index_name must be a string, got int"):
         await async_client.backups.list(index_name=1234)  # type: ignore[arg-type]
 
-    assert respx_mock.calls[0].request.url.raw_path.decode() == "/indexes/1234/backups"
+    assert not respx_mock.calls, "the request must not reach the wire"
 
 
 @respx.mock
@@ -717,10 +722,14 @@ def _seeded(pc: Any, assistant_name: str) -> Any:
     control-plane client stands in for the cached one: it carries the same
     ``/assistant`` path prefix a real data-plane client does, so the request
     line has the shape the operation actually produces.
+
+    An unhashable name cannot key the cache, so seeding is skipped for one; the
+    type sweep passes such values and is refused before the cache is consulted.
     """
     assistants = pc.assistants
     assistants._data_plane_clients.clear()
-    assistants._data_plane_clients[assistant_name] = assistants._http
+    with contextlib.suppress(TypeError):
+        assistants._data_plane_clients[assistant_name] = assistants._http
     return assistants
 
 
@@ -1007,35 +1016,34 @@ def test_an_empty_admin_id_is_still_rejected_before_encoding(admin: Admin, value
 
 
 @respx.mock
-def test_an_assistant_name_is_coerced_rather_than_refused(client: Pinecone) -> None:
-    """A non-``str`` still reaches the wire as its ``str`` data.
+def test_an_assistant_name_is_refused_rather_than_coerced(client: Pinecone) -> None:
+    """A non-``str`` assistant name is refused before it reaches the wire.
 
-    No assistants path parameter has ever had a ``str`` guard in front of it --
-    the f-string coerced whatever it was handed, so a ``UUID`` file id or an
-    ``int`` name worked. Bare ``quote`` would turn those calls into a
-    ``TypeError``: a new client-side refusal, which the minimal-validation
-    decision forbids regardless of what the annotation says.
-
-    Deleting the ``str()`` is what this test exists to catch.
+    No assistants path parameter had a ``str`` guard in front of it -- the
+    f-string coerced whatever it was handed, so a ``UUID`` file id or an ``int``
+    name reached the API as its ``str`` data. That was read as what minimal
+    validation requires. Type-correctness is not value-validation: the rule
+    governs *what values* the SDK second-guesses and does not require accepting
+    an argument of the wrong type.
     """
     respx.route().mock(return_value=httpx.Response(200, json={}))
 
-    with _ignoring_the_stub_response_body():
+    with pytest.raises(PineconeTypeError, match="name must be a string, got int"):
         client.assistants.describe(name=1234)  # type: ignore[arg-type]
 
-    assert respx.calls[0].request.url.raw_path.decode() == "/assistant/assistants/1234"
+    assert not respx.calls, "the request must not reach the wire"
 
 
-async def test_an_async_assistant_name_is_coerced_rather_than_refused(
+async def test_an_async_assistant_name_is_refused_rather_than_coerced(
     async_client: PineconeAsyncio, respx_mock: respx.MockRouter
 ) -> None:
     """The async mirror; the two lanes must refuse and accept the same inputs."""
     respx_mock.route().mock(return_value=httpx.Response(200, json={}))
 
-    with _ignoring_the_stub_response_body():
+    with pytest.raises(PineconeTypeError, match="name must be a string, got int"):
         await async_client.assistants.describe(name=1234)  # type: ignore[arg-type]
 
-    assert respx_mock.calls[0].request.url.raw_path.decode() == "/assistant/assistants/1234"
+    assert not respx_mock.calls, "the request must not reach the wire"
 
 
 _READY_ASSISTANT = {
@@ -1099,11 +1107,12 @@ ADMIN_PROPERTY_OPS = _named(
 
 
 def _check_unguarded(template: str, value: str, paths: list[Any]) -> None:
-    """The assistants variant of :func:`_check`: nothing is refused client-side.
+    """The assistants variant of :func:`_check`: no ``str`` is refused client-side.
 
-    No assistants path parameter is validated before the request is built, so
-    every value -- the empty string included -- has to reach the wire and
-    address the named endpoint. There is no second branch to assert.
+    No assistants path parameter has a value guard in front of it, so every
+    ``str`` -- the empty one included -- has to reach the wire and address the
+    named endpoint. There is no second branch to assert. A value of the wrong
+    type is refused, which the type sweep covers.
     """
     assert paths, f"{value!r} produced no request"
     assert_addresses_the_named_endpoint(template, value, paths[0])
@@ -1158,3 +1167,168 @@ def test_any_value_addresses_the_named_admin_endpoint(
     shared_admin: Admin, invoke: Op, template: str, value: str
 ) -> None:
     _check(template, value, _drive(invoke, shared_admin, value))
+
+
+# ---------------------------------------------------------------------------
+# A path parameter of the wrong type is refused, never encoded (#626)
+# ---------------------------------------------------------------------------
+
+NON_STR_VALUES = [
+    pytest.param(1234, "int", id="int"),
+    pytest.param(True, "bool", id="bool"),
+    pytest.param(["a", "b"], "list", id="list"),
+    pytest.param(uuid.UUID("0f8fad5b-d9cb-469f-a165-70867728950e"), "UUID", id="uuid"),
+]
+"""Types a caller reaches for where a name belongs, paired with their type names.
+
+An ``int`` id and a ``UUID`` are the two the field has actually produced. A
+``bool`` is an ``int`` subclass, so it has to be listed separately to prove the
+guard reports ``bool`` rather than silently taking the numeric branch. A
+non-empty ``list`` is the value that used to pass the emptiness guard and die
+inside :func:`urllib.parse.quote`.
+"""
+
+_REFUSAL = re.compile(r"\A(\w+) must be a string, got (\w+)\Z")
+
+
+def _assert_names_a_parameter_and_the_type(error: Exception, type_name: str) -> None:
+    """The refusal reads as ``<parameter> must be a string, got <type>``.
+
+    Which parameter is named is asserted row by row in
+    :data:`REFUSED_PARAMETERS`, where the expected name is written down
+    alongside the call; here the shape and the reported type are what the whole
+    table can check.
+    """
+    match = _REFUSAL.match(str(error))
+    assert match, f"the refusal names neither the parameter nor the type it got: {error}"
+    assert match.group(2) == type_name, f"reported {match.group(2)!r}, got {type_name!r}"
+
+
+def _invocations(ops: list[tuple[str, Op, str]]) -> list[Any]:
+    return [pytest.param(op, id=name) for name, op, _ in ops]
+
+
+@pytest.mark.parametrize(("value", "type_name"), NON_STR_VALUES)
+@pytest.mark.parametrize("invoke", _invocations(OPS + ASSISTANT_OPS))
+@respx.mock
+def test_a_non_str_path_parameter_is_refused(
+    client: Pinecone, invoke: Op, value: Any, type_name: str
+) -> None:
+    """Every control-plane and assistants path parameter refuses a non-``str``.
+
+    Before this, the same mistake produced one of three outcomes depending on
+    which method carried it: an ``AttributeError`` naming ``strip`` from the
+    emptiness guard, a ``TypeError`` from ``quote`` when the value was a
+    non-empty list, or a request against a path the caller never meant. None
+    was catchable as an SDK error.
+
+    The data-plane import id takes a ``str`` or an ``int`` by contract and is
+    covered in ``test_import_id_path_encoding``.
+    """
+    respx.route().mock(return_value=httpx.Response(200, json={}))
+
+    with pytest.raises(PineconeTypeError) as error:
+        invoke(client, value)
+
+    _assert_names_a_parameter_and_the_type(error.value, type_name)
+    assert not respx.calls, f"{value!r} addressed {respx.calls[0].request.url.raw_path!r}"
+
+
+@pytest.mark.parametrize(("value", "type_name"), NON_STR_VALUES)
+@pytest.mark.parametrize("invoke", _invocations(OPS + ASSISTANT_OPS))
+async def test_a_non_str_path_parameter_is_refused_async(
+    async_client: PineconeAsyncio,
+    invoke: Op,
+    value: Any,
+    type_name: str,
+    respx_mock: respx.MockRouter,
+) -> None:
+    """The async mirror; the two lanes must refuse the same inputs."""
+    respx_mock.route().mock(return_value=httpx.Response(200, json={}))
+
+    with pytest.raises(PineconeTypeError) as error:
+        await invoke(async_client, value)
+
+    _assert_names_a_parameter_and_the_type(error.value, type_name)
+    assert not respx_mock.calls, f"{value!r} addressed {respx_mock.calls[0].request.url.raw_path!r}"
+
+
+@pytest.mark.parametrize(("value", "type_name"), NON_STR_VALUES)
+@pytest.mark.parametrize("invoke", _invocations(ADMIN_OPS))
+@respx.mock
+def test_a_non_str_admin_path_parameter_is_refused(
+    admin: Admin, invoke: Op, value: Any, type_name: str
+) -> None:
+    respx.route().mock(return_value=httpx.Response(200, json={}))
+
+    with pytest.raises(PineconeTypeError) as error:
+        invoke(admin, value)
+
+    _assert_names_a_parameter_and_the_type(error.value, type_name)
+    assert not respx.calls, f"{value!r} addressed {respx.calls[0].request.url.raw_path!r}"
+
+
+@pytest.mark.parametrize("invoke", _invocations(OPS + ASSISTANT_OPS))
+async def test_both_lanes_word_the_refusal_identically(
+    client: Pinecone, async_client: PineconeAsyncio, invoke: Op, respx_mock: respx.MockRouter
+) -> None:
+    """A caller who reads one lane's error learns nothing lane-specific."""
+    respx_mock.route().mock(return_value=httpx.Response(200, json={}))
+
+    with pytest.raises(PineconeTypeError) as sync_error:
+        invoke(client, 1234)
+    with pytest.raises(PineconeTypeError) as async_error:
+        await invoke(async_client, 1234)
+
+    assert str(sync_error.value) == str(async_error.value)
+
+
+REFUSED_PARAMETERS: list[tuple[str, Op, str]] = [
+    ("index_describe", lambda pc, v: pc.indexes.describe(v), "name"),
+    (
+        "index_create_backup",
+        lambda pc, v: pc.indexes.create_backup(index_name=v, name="b"),
+        "index_name",
+    ),
+    ("backup_list", lambda pc, v: pc.backups.list(index_name=v), "index_name"),
+    ("backup_describe", lambda pc, v: pc.backups.describe(backup_id=v), "backup_id"),
+    ("collection_describe", lambda pc, v: pc.collections.describe(v), "name"),
+    ("restore_job_describe", lambda pc, v: pc.restore_jobs.describe(job_id=v), "job_id"),
+    ("schedule_describe", lambda pc, v: pc.backup_schedules.describe(schedule_id=v), "schedule_id"),
+    ("assistant_describe", lambda pc, v: pc.assistants.describe(name=v), "name"),
+    (
+        "assistant_describe_file",
+        lambda pc, v: pc.assistants.describe_file(assistant_name="an-assistant", file_id=v),
+        "file_id",
+    ),
+    (
+        "assistant_describe_operation",
+        lambda pc, v: pc.assistants.describe_operation(
+            assistant_name="an-assistant", operation_id=v
+        ),
+        "operation_id",
+    ),
+    (
+        "assistant_chat",
+        lambda pc, v: pc.assistants.chat(assistant_name=v, messages=_MESSAGES),
+        "assistant_name",
+    ),
+]
+"""Calls paired with the parameter their refusal has to name.
+
+One row per distinct parameter name across the surfaces, so a guard wired to
+the wrong argument -- reporting ``name`` for a ``file_id``, say -- fails here
+rather than passing the shape check in the sweep above.
+"""
+
+
+@pytest.mark.parametrize(
+    ("invoke", "parameter"), [pytest.param(op, p, id=n) for n, op, p in REFUSED_PARAMETERS]
+)
+def test_the_refusal_names_the_parameter_that_carried_the_value(
+    client: Pinecone, invoke: Op, parameter: str
+) -> None:
+    with pytest.raises(PineconeTypeError) as error:
+        invoke(client, 1234)
+
+    assert str(error.value) == f"{parameter} must be a string, got int"

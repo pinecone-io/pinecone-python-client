@@ -19,7 +19,7 @@ from pinecone._internal.validation import (
     require_positive,
     require_valid_resource_name,
 )
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import PineconeTypeError, ValidationError
 
 _NAME_EDGE_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789"
 _NAME_INNER_CHARS = _NAME_EDGE_CHARS + "-"
@@ -82,12 +82,15 @@ def test_require_non_empty_string_contract(value: str) -> None:
 
 
 @given(value=st.lists(st.integers(), max_size=10))
-def test_require_non_empty_list_contract(value: list[int]) -> None:
-    if value:
-        require_non_empty("field", value)
-    else:
-        with pytest.raises(ValidationError):
-            require_non_empty("field", value)
+def test_require_non_empty_rejects_a_list(value: list[int]) -> None:
+    """A list used to satisfy the guard when it was non-empty.
+
+    Nothing in the SDK passes one: every caller is a path parameter or another
+    single string, and a list that got through died inside
+    :func:`urllib.parse.quote` several frames later (#626).
+    """
+    with pytest.raises(PineconeTypeError, match="field must be a string, got list"):
+        require_non_empty("field", value)  # type: ignore[arg-type]
 
 
 @given(value=st.integers(min_value=1))

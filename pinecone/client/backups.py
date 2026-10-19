@@ -11,7 +11,7 @@ from pinecone._internal.backups_helpers import (
     backup_list_params,
     require_index_scope_for_include_deleted,
 )
-from pinecone._internal.validation import require_non_empty
+from pinecone._internal.validation import require_non_empty, require_str
 from pinecone.models.backups.list import BackupList
 from pinecone.models.backups.model import BackupModel
 
@@ -194,6 +194,7 @@ class Backups:
             de-duplicate by ``backup_id`` rather than relying on page order.
 
         Raises:
+            :exc:`PineconeTypeError`: If *index_name* is given and is not a ``str``.
             :exc:`PineconeValueError`: If *include_deleted* is given without
                 *index_name*.
             :exc:`NotFoundError`: If *index_name* does not resolve to an
@@ -254,7 +255,8 @@ class Backups:
         )
 
         if index_name is not None:
-            path = f"/indexes/{quote(str(index_name), safe='')}/backups"
+            require_str("index_name", index_name)
+            path = f"/indexes/{quote(index_name, safe='')}/backups"
         else:
             path = "/backups"
 

@@ -58,6 +58,7 @@ from pinecone._internal.validation import (
 from pinecone._internal.vector_factory import VectorFactory, validate_vector_dict
 from pinecone.errors.exceptions import (
     PineconeTimeoutError,
+    PineconeTypeError,
     PineconeValueError,
     ValidationError,
 )
@@ -2564,8 +2565,11 @@ class GrpcIndex:
             The validated string ID.
 
         Raises:
+            :exc:`PineconeTypeError`: If the ID is not a ``str`` or an ``int``.
             :exc:`PineconeValueError`: If the ID is empty or exceeds 1000 characters.
         """
+        if not isinstance(id, (str, int)):
+            raise PineconeTypeError(f"id must be a string or an integer, got {type(id).__name__}")
         str_id = str(id) if isinstance(id, int) else id
         if not str_id or len(str_id) > 1000:
             raise ValidationError(
@@ -2678,6 +2682,7 @@ class GrpcIndex:
             :class:`~pinecone.models.imports.model.ImportModel` with the import operation details.
 
         Raises:
+            :exc:`PineconeTypeError`: If the ID is not a ``str`` or an ``int``.
             :exc:`PineconeValueError`: If the ID is empty or exceeds 1000 characters.
 
         Examples:
@@ -2706,6 +2711,7 @@ class GrpcIndex:
             None — a successful cancellation returns no payload.
 
         Raises:
+            :exc:`PineconeTypeError`: If the ID is not a ``str`` or an ``int``.
             :exc:`PineconeValueError`: If the ID is empty or exceeds 1000 characters.
 
         Examples:

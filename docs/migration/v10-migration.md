@@ -13,6 +13,7 @@ that section and start with [Index creation and configuration](#index-model).
 ## Contents
 
 - [Import paths](#import-paths)
+- [Path parameters must be strings](#path-parameter-types)
 - [Documents API](#documents-api)
   - [Preview namespace removed](#preview-graduation)
   - [Index creation and configuration](#index-model)
@@ -67,6 +68,62 @@ those are the lines to fix:
 
 Apart from those and the `Preview*` names covered next, that is the whole of
 the import work the upgrade asks of you.
+
+(path-parameter-types)=
+## Path parameters must be strings
+
+Names and IDs the SDK interpolates into a URL — an index name, a backup ID, an
+assistant name, an assistant file ID, an admin resource ID — must be a `str`.
+Passing another type raises `PineconeTypeError` naming the parameter and the
+type it received, before any request is sent. The SDK raises `PineconeTypeError`
+when it refuses an argument because of its type, and keeps `PineconeValueError`
+for a value of the right type it cannot use, such as an empty string:
+
+```python
+pc.backups.list(index_name=1234)
+# PineconeTypeError: index_name must be a string, got int
+
+pc.assistants.describe(name=uuid.uuid4())
+# PineconeTypeError: name must be a string, got UUID
+```
+
+`9.x` and `10.0.0` interpolated those two calls with `str()` and sent
+`GET /indexes/1234/backups` and `GET /assistants/0f8fad5b-…`, which named
+resources that cannot exist. Elsewhere in `10.0.0` the same mistake escaped as
+a bare `AttributeError` (`'int' object has no attribute 'strip'`) or a bare
+`TypeError` from the URL encoder, neither catchable as a Pinecone error. All
+three now read the same way, and `except PineconeTypeError` catches them.
+`PineconeTypeError` derives from `TypeError`, so an `except TypeError` that
+wrapped the old URL-encoder failure still catches it; an `except AttributeError`
+does not, and neither does an `except PineconeValueError` written for the
+empty-string check.
+
+Convert at the call site — `str(uuid_value)`, `str(numeric_id)` — where you can
+see which resource you meant.
+
+The same guard covers twelve arguments that never reach the URL, and those move
+from `AttributeError` to `PineconeTypeError` with the rest:
+`create_index_from_backup(name=)`, `indexes.create_for_model(cloud=, region=)`,
+`collections.create(source=)`, `backup_schedules.create(name=)`,
+`inference.rerank(query=)`, and, on the `Admin` client,
+`api_keys.create(name=)`, `invites.create(email=)`, `projects.create(name=)`,
+`projects.describe_by_name(name=)`, `role_bindings.create(principal_id=)` and
+`service_accounts.create(name=)`.
+
+Two carve-outs are unchanged. An optional path parameter still accepts `None`
+for its documented meaning, so `pc.backups.list()` and
+`pc.backups.list(index_name=None)` both list backups across every index. And
+the bulk-import ID on `describe_import()` and `cancel_import()` is documented
+as `str | int` and still stringifies an `int`; anything else there — a `list`,
+a `float`, `None` — now raises `PineconeTypeError` instead of crashing inside
+the URL encoder.
+
+One more change comes with this: a `None` name or ID used to raise
+`PineconeValueError: <parameter> must be a non-empty string`, and now raises
+`PineconeTypeError: <parameter> must be a string, got NoneType`. An
+`except PineconeValueError` (or `except ValueError`) around a call that might
+receive `None` stops catching that case; catch `PineconeTypeError` too. A
+blank string such as `""` still raises `PineconeValueError`.
 
 (documents-api)=
 ## Documents API

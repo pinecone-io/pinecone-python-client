@@ -19,6 +19,7 @@ from pinecone._internal.constants import (
     ASSISTANT_EVALUATION_BASE_URL,
     DEFAULT_BASE_URL,
 )
+from pinecone._internal.validation import require_str
 from pinecone.client._assistants_legacy import AssistantsLegacyNamespaceMixin
 from pinecone.errors.exceptions import (
     NotFoundError,
@@ -245,6 +246,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
 
         Caches clients by assistant name to avoid repeated describe calls.
         """
+        require_str("assistant_name", assistant_name)
         if assistant_name not in self._data_plane_clients:
             from pinecone._internal.config import PineconeConfig as _PineconeConfig
             from pinecone._internal.http_client import HTTPClient as _HTTPClient
@@ -357,6 +359,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             processing completes.
 
         Raises:
+            :exc:`PineconeTypeError`: If *assistant_name* is not a ``str``, or
+                *file_id* is given and is not a ``str``.
             :exc:`PineconeValueError`: If both or neither of *file_path*
                 and *file_stream* are provided, if *file_path* does not
                 exist, or if *file_stream* is used without a *file_name*
@@ -396,6 +400,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
 
         if (file_path is None) == (file_stream is None):
             raise PineconeValueError("Exactly one of file_path or file_stream must be provided")
+        if file_id is not None:
+            require_str("file_id", file_id)
 
         opened_file: IO[bytes] | None = None
         if file_path is not None:
@@ -429,7 +435,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                     assistant_name,
                 )
                 response = data_http.put(
-                    f"/files/{quote(str(assistant_name), safe='')}/{quote(str(file_id), safe='')}",
+                    f"/files/{quote(assistant_name, safe='')}/{quote(file_id, safe='')}",
                     files=form,
                     params=params,
                 )
@@ -437,7 +443,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
                 action = "Upload"
                 logger.info("Uploading file %r to assistant %r", upload_name, assistant_name)
                 response = data_http.post(
-                    f"/files/{quote(str(assistant_name), safe='')}", files=form, params=params
+                    f"/files/{quote(assistant_name, safe='')}", files=form, params=params
                 )
             operation = self._adapter.to_operation(response.content)
         finally:
@@ -491,6 +497,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :class:`AssistantFileModel` with file metadata and status.
 
         Raises:
+            :exc:`PineconeTypeError`: If *assistant_name* or *file_id* is not a
+                ``str``.
             :exc:`NotFoundError`: If the file does not exist.
 
         Examples:
@@ -506,13 +514,14 @@ class Assistants(AssistantsLegacyNamespaceMixin):
            drops a ``"ProcessingFailed"`` file once it is old enough; this
            method still returns it by id.
         """
+        require_str("file_id", file_id)
         data_http = self._data_plane_http(assistant_name)
         params: dict[str, str] = {}
         if include_url:
             params["include_url"] = "true"
         logger.info("Describing file %r in assistant %r", file_id, assistant_name)
         response = data_http.get(
-            f"/files/{quote(str(assistant_name), safe='')}/{quote(str(file_id), safe='')}",
+            f"/files/{quote(assistant_name, safe='')}/{quote(file_id, safe='')}",
             params=params,
         )
         return self._adapter.to_file(response.content)
@@ -545,6 +554,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             ``limit``.
 
         Raises:
+            :exc:`PineconeTypeError`: If *assistant_name* is not a ``str``.
             :exc:`NotFoundError`: If the assistant does not exist.
 
         Examples:
@@ -617,6 +627,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             ``next`` continuation token.
 
         Raises:
+            :exc:`PineconeTypeError`: If *assistant_name* is not a ``str``.
             :exc:`NotFoundError`: If the assistant does not exist.
 
         Examples:
@@ -671,7 +682,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             params["filter"] = _json.dumps(filter)
 
         logger.info("Listing files page for assistant %r", assistant_name)
-        response = list_http.get(f"/files/{quote(str(assistant_name), safe='')}", params=params)
+        response = list_http.get(f"/files/{quote(assistant_name, safe='')}", params=params)
         result = self._adapter.to_file_list(response.content)
         logger.debug(
             "Listed %d files for assistant %r (has_next=%s)",
@@ -708,6 +719,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             ``None``
 
         Raises:
+            :exc:`PineconeTypeError`: If *assistant_name* or *file_id* is not a
+                ``str``.
             :exc:`NotFoundError`: If *file_id* does not name a file on this
                 assistant. Deleting an id that is already gone raises rather
                 than returning silently.
@@ -721,10 +734,11 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             ...     file_id="file-abc123",
             ... )
         """
+        require_str("file_id", file_id)
         data_http = self._data_plane_http(assistant_name)
         logger.info("Deleting file %r from assistant %r", file_id, assistant_name)
         response = data_http.delete(
-            f"/files/{quote(str(assistant_name), safe='')}/{quote(str(file_id), safe='')}"
+            f"/files/{quote(assistant_name, safe='')}/{quote(file_id, safe='')}"
         )
 
         if response.status_code == 204 or not response.content:
@@ -778,6 +792,8 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             itself evidence of failure.
 
         Raises:
+            :exc:`PineconeTypeError`: If *assistant_name* or *operation_id* is
+                not a ``str``.
             :exc:`NotFoundError`: If the assistant or the operation does not
                 exist. A finished operation stays describable until it ages out
                 of the API's retention window, and 404s from then on.
@@ -794,10 +810,11 @@ class Assistants(AssistantsLegacyNamespaceMixin):
            :meth:`list_operations` — every operation on the assistant, when
            you did not keep the operation id.
         """
+        require_str("operation_id", operation_id)
         data_http = self._data_plane_http(assistant_name)
         logger.info("Describing operation %r in assistant %r", operation_id, assistant_name)
         response = data_http.get(
-            f"/operations/{quote(str(assistant_name), safe='')}/{quote(str(operation_id), safe='')}"
+            f"/operations/{quote(assistant_name, safe='')}/{quote(operation_id, safe='')}"
         )
         return self._adapter.to_operation(response.content)
 
@@ -833,6 +850,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             ``for`` loops, ``.to_list()``, ``.pages()``, and ``limit``.
 
         Raises:
+            :exc:`PineconeTypeError`: If *assistant_name* is not a ``str``.
             :exc:`PineconeValueError`: If *operation_type* or *status* is not
                 one of the values above.
             :exc:`NotFoundError`: If the assistant does not exist.
@@ -911,6 +929,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             optional ``next`` continuation token.
 
         Raises:
+            :exc:`PineconeTypeError`: If *assistant_name* is not a ``str``.
             :exc:`PineconeValueError`: If *operation_type* or *status* is not
                 one of the values above.
             :exc:`NotFoundError`: If the assistant does not exist.
@@ -952,9 +971,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
 
         data_http = self._data_plane_http(assistant_name)
         logger.info("Listing operations page for assistant %r", assistant_name)
-        response = data_http.get(
-            f"/operations/{quote(str(assistant_name), safe='')}", params=params
-        )
+        response = data_http.get(f"/operations/{quote(assistant_name, safe='')}", params=params)
         result = self._adapter.to_operation_list(response.content)
         logger.debug(
             "Listed %d operations for assistant %r (has_next=%s)",
@@ -1007,6 +1024,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :class:`AssistantModel` describing the created assistant.
 
         Raises:
+            :exc:`PineconeTypeError`: If *name* is not a ``str``.
             :exc:`PineconeValueError`: If *region* is not ``"us"`` or ``"eu"``.
             :exc:`PineconeTimeoutError`: If the assistant does not become ready
                 before the deadline.
@@ -1056,6 +1074,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             raise PineconeValueError(
                 "create() missing required argument: 'name' (or legacy alias 'assistant_name')."
             )
+        require_str("name", name)
 
         if region not in _VALID_REGIONS:
             raise PineconeValueError(f"region must be one of {_VALID_REGIONS!r}, got {region!r}")
@@ -1094,6 +1113,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             metadata, instructions, and host.
 
         Raises:
+            :exc:`PineconeTypeError`: If *name* is not a ``str``.
             :exc:`NotFoundError`: If the assistant does not exist.
 
         Examples:
@@ -1123,9 +1143,10 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             raise PineconeValueError(
                 "describe() missing required argument: 'name' (or legacy alias 'assistant_name')."
             )
+        require_str("name", name)
 
         logger.info("Describing assistant %r", name)
-        response = self._http.get(f"/assistants/{quote(str(name), safe='')}")
+        response = self._http.get(f"/assistants/{quote(name, safe='')}")
         model = self._attach_ref(self._adapter.to_assistant(response.content))
         logger.debug("Described assistant %r (status=%s)", name, model.status)
         return model
@@ -1292,6 +1313,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :class:`AssistantModel` describing the updated assistant.
 
         Raises:
+            :exc:`PineconeTypeError`: If *name* is not a ``str``.
             :exc:`PineconeValueError`: If neither *instructions* nor
                 *metadata* is provided.
             :exc:`NotFoundError`: If the assistant does not exist.
@@ -1339,6 +1361,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             raise PineconeValueError(
                 "update() missing required argument: 'name' (or legacy alias 'assistant_name')."
             )
+        require_str("name", name)
         if instructions is None and metadata is None:
             raise PineconeValueError(
                 "update() needs at least one of 'instructions' or 'metadata'. With both "
@@ -1354,7 +1377,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             body["metadata"] = metadata
 
         logger.info("Updating assistant %r", name)
-        response = self._http.patch(f"/assistants/{quote(str(name), safe='')}", json=body)
+        response = self._http.patch(f"/assistants/{quote(name, safe='')}", json=body)
         model = self._attach_ref(self._adapter.to_assistant(response.content))
         logger.debug("Updated assistant %r", name)
         return model
@@ -1391,6 +1414,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             None
 
         Raises:
+            :exc:`PineconeTypeError`: If *name* is not a ``str``.
             :exc:`PineconeError`: If the assistant enters a terminal failure
                 state (``"Failed"``, ``"InitializationFailed"``) while being
                 deleted.
@@ -1432,9 +1456,10 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             raise PineconeValueError(
                 "delete() missing required argument: 'name' (or legacy alias 'assistant_name')."
             )
+        require_str("name", name)
 
         logger.info("Deleting assistant %r", name)
-        self._http.delete(f"/assistants/{quote(str(name), safe='')}")
+        self._http.delete(f"/assistants/{quote(name, safe='')}")
         logger.debug("Deleted assistant %r", name)
 
         if timeout == -1:
@@ -1509,6 +1534,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             ``usage``.
 
         Raises:
+            :exc:`PineconeTypeError`: If *assistant_name* is not a ``str``.
             :exc:`PineconeValueError`: If both or neither of *query* and
                 *messages* are provided, or if *top_k* or *snippet_size* is
                 negative.
@@ -1566,7 +1592,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             body["include_binary_content"] = include_binary_content
 
         http = self._data_plane_http(assistant_name)
-        response = http.post(f"/chat/{quote(str(assistant_name), safe='')}/context", json=body)
+        response = http.post(f"/chat/{quote(assistant_name, safe='')}/context", json=body)
         return self._adapter.to_context_response(response.content)
 
     def chat(
@@ -1631,6 +1657,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             ``usage``. For streaming requests, a :class:`ChatStream`.
 
         Raises:
+            :exc:`PineconeTypeError`: If *assistant_name* is not a ``str``.
             :exc:`PineconeValueError`: If both ``stream=True`` and
                 ``json_response=True`` are specified.
             :exc:`ApiError`: If the assistant has no file in ``"Available"``
@@ -1718,15 +1745,13 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             return ChatStream(
                 self._chat_streaming(
                     http=http,
-                    url=f"/chat/{quote(str(assistant_name), safe='')}",
+                    url=f"/chat/{quote(assistant_name, safe='')}",
                     body=body,
                     timeout=timeout,
                 )
             )
 
-        response = http.post(
-            f"/chat/{quote(str(assistant_name), safe='')}", timeout=timeout, json=body
-        )
+        response = http.post(f"/chat/{quote(assistant_name, safe='')}", timeout=timeout, json=body)
         return self._adapter.to_chat_response(response.content)
 
     def chat_completions(
@@ -1784,6 +1809,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             :class:`ChatCompletionStream`.
 
         Raises:
+            :exc:`PineconeTypeError`: If *assistant_name* is not a ``str``.
             :exc:`ApiError`: If the assistant has no file in ``"Available"``
                 status yet — check with :meth:`list_files` before reading this
                 as a transport failure.
@@ -1845,13 +1871,13 @@ class Assistants(AssistantsLegacyNamespaceMixin):
 
         http = self._data_plane_http(assistant_name)
         if stream:
-            url = f"/chat/{quote(str(assistant_name), safe='')}/chat/completions"
+            url = f"/chat/{quote(assistant_name, safe='')}/chat/completions"
             return ChatCompletionStream(
                 self._chat_completions_streaming(http=http, url=url, body=body, timeout=timeout)
             )
 
         response = http.post(
-            f"/chat/{quote(str(assistant_name), safe='')}/chat/completions",
+            f"/chat/{quote(assistant_name, safe='')}/chat/completions",
             timeout=timeout,
             json=body,
         )
@@ -2026,7 +2052,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
         """Poll ``GET /assistants/{name}`` until status is ``"Ready"`` or timeout."""
         start = time.monotonic()
         while True:
-            response = self._http.get(f"/assistants/{quote(str(name), safe='')}")
+            response = self._http.get(f"/assistants/{quote(name, safe='')}")
             model = self._attach_ref(self._adapter.to_assistant(response.content))
             if model.status == "Ready":
                 return model
