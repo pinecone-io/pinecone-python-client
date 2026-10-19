@@ -41,9 +41,17 @@ __all__ = [
 ]
 
 
+def _reject_bare_str(fields: object) -> None:
+    if isinstance(fields, str):
+        raise PineconeTypeError(
+            f"'fields' must be a list of field names, not a single str; pass [{fields!r}]."
+        )
+
+
 def _single_field(kind: str, field: str | None, fields: list[str] | None) -> str | None:
     if fields is None:
         return field
+    _reject_bare_str(fields)
     if field is not None:
         raise ValueError(f"{kind} scoring accepts 'field' or 'fields', but not both")
     if len(fields) != 1:
@@ -119,6 +127,7 @@ class TextQuery(
             )
             self.fields = [self.field]
             self.field = None
+        _reject_bare_str(self.fields)
         if not self.fields:
             raise ValueError("Text scoring requires specifying at least one field")
 

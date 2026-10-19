@@ -199,6 +199,18 @@ def _check_score_by(score_by: object) -> None:
         )
 
 
+def _names(name: str, value: Sequence[str] | None) -> list[str] | None:
+    """Return ``value`` as a list, rejecting a bare ``str`` that would split into characters."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        raise PineconeTypeError(
+            f"{name} must be a sequence of strings, not a single str; "
+            f"pass [{value!r}] to name one entry."
+        )
+    return list(value)
+
+
 def _build_search_documents_body(
     *,
     score_by: Sequence[DocumentScoringMethod | Mapping[str, Any]],
@@ -225,7 +237,7 @@ def _build_search_documents_body(
         request = SearchDocumentsRequest(
             score_by=[dict(item) if isinstance(item, Mapping) else item for item in score_by],
             top_k=top_k,
-            include_fields=list(include_fields) if include_fields is not None else None,
+            include_fields=_names("include_fields", include_fields),
             filter=dict(filter) if filter is not None else None,
         )
     except _NotAnIntegerError as exc:
@@ -257,9 +269,9 @@ def _build_fetch_documents_body(
     _check_filter(filter)
     try:
         request = FetchDocumentsRequest(
-            ids=list(ids) if ids is not None else None,
+            ids=_names("ids", ids),
             filter=dict(filter) if filter is not None else None,
-            include_fields=list(include_fields) if include_fields is not None else None,
+            include_fields=_names("include_fields", include_fields),
             pagination_token=pagination_token,
             limit=limit,
         )
@@ -283,11 +295,12 @@ def _build_delete_documents_body(
         :exc:`PineconeValueError`: If zero or more than one of ``ids``,
             ``filter``, and ``delete_all`` are provided, ``filter`` is empty,
             or ``ids`` exceeds 1000 entries.
+        :exc:`PineconeTypeError`: If ``ids`` is a bare ``str``.
     """
     _check_filter(filter)
     try:
         request = DeleteDocumentsRequest(
-            ids=list(ids) if ids is not None else None,
+            ids=_names("ids", ids),
             filter=dict(filter) if filter is not None else None,
             delete_all=True if delete_all else None,
         )
@@ -324,7 +337,7 @@ def _build_update_documents_body(
             documents=list(normalized) if normalized is not None else None,
             filter=dict(filter) if filter is not None else None,
             set_fields=dict(set_fields) if set_fields is not None else None,
-            remove_fields=list(remove_fields) if remove_fields is not None else None,
+            remove_fields=_names("remove_fields", remove_fields),
         )
     except ValueError as exc:
         raise ValidationError(str(exc)) from exc

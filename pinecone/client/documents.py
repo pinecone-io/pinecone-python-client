@@ -448,9 +448,10 @@ class Documents:
                 not accepted), ``score_by`` is not a list of clauses (wrap a
                 single clause as ``[clause]``), holds an item that is neither a
                 dict nor one of the six clause types (such as a
-                :class:`~pinecone.models.vectors.search.SearchQuery`), or
+                :class:`~pinecone.models.vectors.search.SearchQuery`),
                 ``filter`` is not a dict (call ``.to_dict()`` on a
-                filter-builder :class:`~pinecone.utils.filter_builder.Condition`).
+                filter-builder :class:`~pinecone.utils.filter_builder.Condition`),
+                or ``include_fields`` is a bare ``str`` rather than a list.
 
         Examples:
             >>> from pinecone import Pinecone, TextQuery
@@ -577,9 +578,11 @@ class Documents:
                 ``pagination_token`` is passed without ``filter``, or
                 ``limit`` is outside 1-10000.
             :exc:`PineconeTypeError`: If ``limit`` is not an integer (a bool is
-                not accepted), or ``filter`` is not a dict (call
+                not accepted), ``filter`` is not a dict (call
                 ``.to_dict()`` on a filter-builder
-                :class:`~pinecone.utils.filter_builder.Condition`).
+                :class:`~pinecone.utils.filter_builder.Condition`), or
+                ``ids`` or ``include_fields`` is a bare ``str`` rather than
+                a list.
 
         Examples:
             Fetch specific documents by ID. IDs that do not exist are absent
@@ -701,7 +704,8 @@ class Documents:
                 ``filter`` is an empty dict, or ``ids`` exceeds 1000 entries.
             :exc:`PineconeTypeError`: If ``filter`` is not a dict (call
                 ``.to_dict()`` on a filter-builder
-                :class:`~pinecone.utils.filter_builder.Condition`).
+                :class:`~pinecone.utils.filter_builder.Condition`), or
+                ``ids`` is a bare ``str`` rather than a list.
 
         Examples:
             Delete specific documents by ID:
@@ -815,7 +819,8 @@ class Documents:
                 (by-filter) to remove a field instead.
             :exc:`PineconeTypeError`: If ``filter`` is not a dict (call
                 ``.to_dict()`` on a filter-builder
-                :class:`~pinecone.utils.filter_builder.Condition`).
+                :class:`~pinecone.utils.filter_builder.Condition`), or
+                ``remove_fields`` is a bare ``str`` rather than a list.
 
         Examples:
             Patch documents by ID. Each key other than the reserved ``_id`` and
