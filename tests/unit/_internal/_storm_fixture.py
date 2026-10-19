@@ -12,11 +12,13 @@ _compute_backoff / _compute_retry_after_delay is reproducible across runs.
 from __future__ import annotations
 
 import asyncio
+import gc
 import random
 import threading
 import time
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterator
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Literal
 
@@ -239,6 +241,25 @@ class _AsyncFaultInjectionTransport(httpx.AsyncBaseTransport):
         return self._peak_in_flight
 
 
+@contextmanager
+def _cyclic_gc_paused() -> Iterator[None]:
+    """Keep the cyclic GC out of a timed storm run.
+
+    A full collection walks every object in the pytest process, which by the
+    time the storm tests run is the whole collected suite. On a CI runner that
+    took 0.42s, landing inside an N=200 run and widening its dispersion past
+    the bound with no change to the jitter math. The run itself allocates a
+    few thousand objects, so nothing needs collecting until it ends.
+    """
+    was_enabled = gc.isenabled()
+    gc.disable()
+    try:
+        yield
+    finally:
+        if was_enabled:
+            gc.enable()
+
+
 class StormScenario:
     """Drives N concurrent clients through `make_request` and records aggregate behavior."""
 
@@ -256,7 +277,7 @@ class StormScenario:
         now = time.monotonic()
         self.sync_transport.start_time = now
         self._active_start_time = now
-        with ThreadPoolExecutor(max_workers=self._config.n_clients) as pool:
+        with _cyclic_gc_paused(), ThreadPoolExecutor(max_workers=self._config.n_clients) as pool:
             futures = [pool.submit(make_request) for _ in range(self._config.n_clients)]
             for f in futures:
                 try:
@@ -274,10 +295,11 @@ class StormScenario:
         async def _call() -> httpx.Response:
             return await make_request()
 
-        results: list[httpx.Response | BaseException] = await asyncio.gather(
-            *[_call() for _ in range(self._config.n_clients)],
-            return_exceptions=True,
-        )
+        with _cyclic_gc_paused():
+            results: list[httpx.Response | BaseException] = await asyncio.gather(
+                *[_call() for _ in range(self._config.n_clients)],
+                return_exceptions=True,
+            )
         for r in results:
             if isinstance(r, BaseException):
                 self.exceptions.append(r)
