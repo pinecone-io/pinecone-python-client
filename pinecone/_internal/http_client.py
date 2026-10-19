@@ -359,8 +359,10 @@ def _build_headers(config: PineconeConfig, api_version: str) -> dict[str, str]:
     }
     if config.api_key:
         headers["Api-Key"] = config.api_key
-    if config.additional_headers:
-        headers.update(config.additional_headers)
+    for name, value in (config.additional_headers or {}).items():
+        for existing in [key for key in headers if key.lower() == name.lower()]:
+            del headers[existing]
+        headers[name] = value
     return headers
 
 

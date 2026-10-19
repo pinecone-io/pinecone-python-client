@@ -785,9 +785,8 @@ source. Build snapshot-and-restore workflows on
 If you genuinely need pod indexes, the server's message names the only other
 option: send an earlier `X-Pinecone-Api-Version`. `Pinecone` and
 `AsyncPinecone` take an `additional_headers=` mapping that is merged last, so
-an entry keyed exactly `"X-Pinecone-Api-Version"` replaces the header the SDK
-would otherwise send — matching is case-sensitive, and any other spelling is
-sent alongside the SDK's header instead of replacing it. The pin then applies
+an entry named `X-Pinecone-Api-Version`, in any capitalization, replaces the
+header the SDK would otherwise send. The pin then applies
 to every request that client makes, and `10.x` models decode `2026-07`
 response shapes, so keep a pinned client scoped to the pod and collection
 calls that need it rather than using it as a general downgrade.

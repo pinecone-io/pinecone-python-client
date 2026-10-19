@@ -99,6 +99,8 @@ class Index:
             loopback or RFC 1918 IP address, ``localhost``, or ``*.localhost``.
         api_key (str | None): Pinecone API key. Falls back to ``PINECONE_API_KEY`` env var.
         additional_headers (Mapping[str, str] | None): Extra headers included in every request.
+            A name matching one of the SDK's own headers, in any capitalization,
+            replaces it.
         timeout (float): Request timeout in seconds. Defaults to ``30.0``.
         proxy_url (str | None): HTTP proxy URL for outgoing requests.
         ssl_ca_certs (str | None): Path to a CA certificate bundle for SSL verification.

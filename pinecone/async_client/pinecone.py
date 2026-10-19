@@ -89,6 +89,9 @@ class AsyncPinecone:
             it elsewhere for a gateway, a private endpoint, or a local simulator.
         additional_headers (Mapping[str, str] | None): Headers added to every
             control-plane request, e.g. ``{"X-Request-Source": "nightly-reindex"}``.
+            A name matches the SDK's own headers (``X-Pinecone-Api-Version``,
+            ``User-Agent``, ``Api-Key``) regardless of case, and your value
+            replaces the SDK's, so exactly one is sent.
             When omitted, the client reads ``PINECONE_ADDITIONAL_HEADERS`` as a JSON
             object instead.
         source_tag (str | None): Attribution tag appended to the User-Agent, e.g.

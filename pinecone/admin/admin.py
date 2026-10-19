@@ -200,10 +200,10 @@ class Admin:
         client_secret (str | None): OAuth2 client secret. Falls back to ``PINECONE_CLIENT_SECRET``
             env var.
         additional_headers (dict[str, str] | None): Extra headers included in every admin API
-            request. Merged last, so an entry keyed exactly ``"Authorization"`` or
-            ``"X-Pinecone-Api-Version"`` replaces the header the SDK would otherwise send for
-            that name. Matching is case-sensitive: any other spelling is sent alongside the
-            SDK's own header rather than replacing it.
+            request. Merged last, so an entry named ``"Authorization"`` or
+            ``"X-Pinecone-Api-Version"``, in any capitalization, replaces the header the SDK
+            would otherwise send, and exactly one value goes out. A caller-supplied
+            ``Authorization`` also turns off token refresh.
         proxy_url (str | None): HTTP proxy URL for outgoing requests.
         ssl_verify (bool): Whether to verify SSL certificates. Defaults to ``True``.
         source_tag (str | None): Tag appended to the User-Agent string for request attribution.
@@ -345,7 +345,9 @@ class Admin:
         # Must follow the replace() above, which re-runs __post_init__.
         object.__setattr__(config, "api_key", "")
 
-        caller_pinned_auth = bool(additional_headers and "Authorization" in additional_headers)
+        caller_pinned_auth = any(
+            name.lower() == "authorization" for name in (additional_headers or {})
+        )
 
         self._http: HTTPClient
         if caller_pinned_auth:
