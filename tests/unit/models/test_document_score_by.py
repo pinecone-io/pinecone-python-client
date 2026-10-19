@@ -7,6 +7,7 @@ import warnings
 import msgspec
 import pytest
 
+from pinecone.errors.exceptions import PineconeTypeError
 from pinecone.models.documents import (
     DenseVectorQuery,
     DocumentScoringMethod,
@@ -233,3 +234,93 @@ def test_single_field_clause_accepts_one_element_fields(
         msgspec.convert({"type": kind, "fields": ["body", "title"], **rest}, type=cls)
     with pytest.raises(msgspec.ValidationError, match="exactly one field"):
         msgspec.convert({"type": kind, "fields": [], **rest}, type=cls)
+
+
+def _body(clause: DenseVectorQuery | SparseVectorQuery) -> dict[str, object]:
+    from pinecone._internal.documents_helpers import _build_search_documents_body
+
+    return _build_search_documents_body(
+        score_by=[clause], top_k=1, include_fields=None, filter=None
+    )
+
+
+@pytest.mark.parametrize("size", [1, 4])
+def test_dense_vector_query_accepts_numpy_values(size: int) -> None:
+    np = pytest.importorskip("numpy")
+    vec = np.array([0.5] * size, dtype=np.float32)
+    from_array = _body(DenseVectorQuery(field="embedding", values=vec))
+    from_list = _body(DenseVectorQuery(field="embedding", values=vec.tolist()))
+    assert from_array == from_list
+    assert from_array["score_by"] == [
+        {"type": "dense_vector", "field": "embedding", "values": [0.5] * size}
+    ]
+
+
+def test_dense_vector_query_values_are_plain_floats_after_numpy_input() -> None:
+    np = pytest.importorskip("numpy")
+    q = DenseVectorQuery(field="embedding", values=np.array([0.25, 0.5], dtype=np.float32))
+    assert type(q.values) is list
+    assert all(type(v) is float for v in q.values)
+
+
+def test_dense_vector_query_rejects_empty_numpy_values() -> None:
+    np = pytest.importorskip("numpy")
+    with pytest.raises(ValueError, match="non-empty 'values' array"):
+        DenseVectorQuery(field="embedding", values=np.array([], dtype=np.float32))
+
+
+def test_sparse_vector_query_accepts_numpy_sparse_values() -> None:
+    np = pytest.importorskip("numpy")
+    clause = SparseVectorQuery(
+        field="s",
+        sparse_values=SparseValues(
+            indices=np.array([1, 2]), values=np.array([0.5, 0.25], dtype=np.float32)
+        ),
+    )
+    assert _body(clause)["score_by"] == [
+        {
+            "type": "sparse_vector",
+            "field": "s",
+            "sparse_values": {"indices": [1, 2], "values": [0.5, 0.25]},
+        }
+    ]
+    assert type(clause.sparse_values.indices) is list
+    assert type(clause.sparse_values.values) is list
+
+
+@pytest.mark.parametrize("missing", [None, []])
+def test_dense_vector_query_missing_values_still_raises_value_error(missing: object) -> None:
+    with pytest.raises(ValueError, match="non-empty 'values' array"):
+        DenseVectorQuery(field="embedding", values=missing)  # type: ignore[arg-type]
+
+
+def test_sparse_vector_query_keeps_list_sparse_values_object() -> None:
+    sv = SparseValues(indices=[1], values=[0.5])
+    assert SparseVectorQuery(field="s", sparse_values=sv).sparse_values is sv
+
+
+@pytest.mark.parametrize("scalar", [5, 0, 1.5])
+def test_dense_vector_query_rejects_scalar_values_with_type_error(scalar: object) -> None:
+    with pytest.raises(
+        PineconeTypeError,
+        match=f"sequence or array of numbers, got {type(scalar).__name__}$",
+    ):
+        DenseVectorQuery(field="embedding", values=scalar)  # type: ignore[arg-type]
+
+
+def test_dense_vector_query_rejects_zero_dim_numpy_values_with_type_error() -> None:
+    np = pytest.importorskip("numpy")
+    with pytest.raises(
+        PineconeTypeError,
+        match=r"sequence or array of numbers, got ndarray whose tolist\(\) returned float$",
+    ):
+        DenseVectorQuery(field="embedding", values=np.array(5.0))
+
+
+def test_sparse_vector_query_rejects_zero_dim_numpy_with_type_error() -> None:
+    np = pytest.importorskip("numpy")
+    with pytest.raises(
+        PineconeTypeError,
+        match=r"sequence or array of numbers, got ndarray whose tolist\(\) returned int$",
+    ):
+        SparseVectorQuery(field="s", sparse_values=SparseValues(indices=np.array(1), values=[0.5]))

@@ -23,9 +23,11 @@ stand alone.
 from __future__ import annotations
 
 import warnings
+from typing import Any
 
 from msgspec import Struct
 
+from pinecone.errors.exceptions import PineconeTypeError
 from pinecone.models.vectors.sparse import SparseValues
 
 __all__ = [
@@ -47,6 +49,19 @@ def _single_field(kind: str, field: str | None, fields: list[str] | None) -> str
     if len(fields) != 1:
         raise ValueError(f"{kind} scoring requires specifying the name of exactly one field")
     return fields[0]
+
+
+def _plain_list(raw: Any, name: str) -> Any:
+    tolist = getattr(raw, "tolist", None)
+    if tolist is None:
+        return raw
+    converted = tolist()
+    if not isinstance(converted, list):
+        raise PineconeTypeError(
+            f"{name} must be a sequence or array of numbers, got {type(raw).__name__} "
+            f"whose tolist() returned {type(converted).__name__}"
+        )
+    return converted
 
 
 class TextQuery(
@@ -172,13 +187,17 @@ class DenseVectorQuery(
 
     Attributes:
         field: The dense vector field to score against, e.g. ``"your_vector"``.
-        values: The query embedding, one float per dimension of that field.
+        values: The query embedding, one float per dimension of that field: a list, or an
+            array with a ``tolist()`` method such as a numpy array, which the clause
+            converts to a list.
         fields: The same field as a one-element list, e.g. ``["your_vector"]``, in place
             of ``field``. It is moved into ``field`` and reads back as ``None``.
 
     Raises:
         ValueError: If ``field`` is empty, ``values`` is empty, ``fields`` does not hold
             exactly one name, or both ``field`` and ``fields`` are given.
+        PineconeTypeError: If ``values`` is not a sequence or array, such as a single
+            number or a 0-dimensional numpy array.
 
     Examples:
         The three floats here stand in for a full-length embedding.
@@ -202,7 +221,15 @@ class DenseVectorQuery(
             raise ValueError(
                 "dense_vector scoring requires specifying the name of exactly one field"
             )
-        if not self.values:
+        self.values = _plain_list(self.values, "DenseVectorQuery values")
+        if self.values is None:
+            raise ValueError("dense_vector scoring requires a non-empty 'values' array")
+        if not hasattr(self.values, "__len__"):
+            raise PineconeTypeError(
+                "DenseVectorQuery values must be a sequence or array of numbers, "
+                f"got {type(self.values).__name__}"
+            )
+        if len(self.values) == 0:
             raise ValueError("dense_vector scoring requires a non-empty 'values' array")
 
 
@@ -224,13 +251,18 @@ class SparseVectorQuery(
     Attributes:
         field: The sparse vector field to score against, e.g. ``"keywords"``.
         sparse_values: The query's sparse vector, as
-            :class:`~pinecone.models.vectors.sparse.SparseValues`.
+            :class:`~pinecone.models.vectors.sparse.SparseValues`. Its ``indices`` and
+            ``values`` may be lists or arrays with a ``tolist()`` method such as numpy
+            arrays; the clause keeps them as lists.
         fields: The same field as a one-element list, e.g. ``["keywords"]``, in place of
             ``field``. It is moved into ``field`` and reads back as ``None``.
 
     Raises:
         ValueError: If ``field`` is empty, ``fields`` does not hold exactly one name, or
             both ``field`` and ``fields`` are given.
+        PineconeTypeError: If the ``indices`` or ``values`` of ``sparse_values`` has a
+            ``tolist()`` method that does not return a list, such as a 0-dimensional numpy
+            array.
 
     Examples:
         >>> from pinecone import SparseValues
@@ -255,6 +287,14 @@ class SparseVectorQuery(
         if not self.field:
             raise ValueError(
                 "sparse_vector scoring requires specifying the name of exactly one field"
+            )
+        if isinstance(self.sparse_values, SparseValues) and (
+            hasattr(self.sparse_values.indices, "tolist")
+            or hasattr(self.sparse_values.values, "tolist")
+        ):
+            self.sparse_values = SparseValues(
+                indices=_plain_list(self.sparse_values.indices, "SparseValues indices"),
+                values=_plain_list(self.sparse_values.values, "SparseValues values"),
             )
 
 
