@@ -17,7 +17,12 @@ from pinecone._internal.index_migration import (
     reject_legacy_configure_kwargs,
     reject_legacy_create_kwargs,
 )
-from pinecone._internal.indexes_helpers import async_poll_index_until_ready, resolve_enum_value
+from pinecone._internal.indexes_helpers import (
+    async_poll_index_until_ready,
+    poll_sleep_seconds,
+    resolve_enum_value,
+    validate_wait_timeout,
+)
 from pinecone._internal.legacy_index_translation import (
     legacy_pod_scaling,
     legacy_vector_schema,
@@ -248,9 +253,12 @@ class AsyncIndexes:
                 Use ``None`` (default) to poll indefinitely until the index
                 is gone. Use a positive int to poll with a deadline.
                 Use ``-1`` to return immediately without polling.
+                Any other negative value raises :exc:`PineconeValueError`
+                before a request is sent.
 
         Raises:
-            :exc:`PineconeValueError`: If *name* is empty.
+            :exc:`PineconeValueError`: If *name* is empty or *timeout* is a
+                negative value other than ``-1``.
             :exc:`NotFoundError`: If the index does not exist.
             :exc:`ForbiddenError`: If deletion protection is enabled — clear
                 it with :meth:`configure` first.
@@ -278,6 +286,7 @@ class AsyncIndexes:
             down when the call returns.
         """
         require_non_empty("name", name)
+        validate_wait_timeout(timeout)
         logger.info("Deleting index %r", name)
         await self._http.delete(f"/indexes/{quote(name, safe='')}")
         self._host_cache.pop(name, None)
@@ -297,7 +306,7 @@ class AsyncIndexes:
                 elapsed = time.monotonic() - start
                 if elapsed >= timeout:
                     raise PineconeTimeoutError(f"Index '{name}' still exists after {timeout}s")
-            await asyncio.sleep(_POLL_INTERVAL_SECONDS)
+            await asyncio.sleep(poll_sleep_seconds(_POLL_INTERVAL_SECONDS, timeout, start))
 
     async def create(
         self,
@@ -385,9 +394,11 @@ class AsyncIndexes:
                 20 pairs. Pass ``None`` (the default) to attach none.
             cmek_id: ID of a customer-managed encryption key to encrypt the
                 index with, e.g. ``"key-abc123"``.
-            timeout: How long to wait, in seconds, for the index to become
-                ready before returning. ``None`` (default) waits
-                indefinitely; ``-1`` returns immediately without waiting.
+            timeout: Seconds to wait for the index to become ready before
+                returning. ``None`` (default) waits indefinitely, ``-1``
+                returns immediately without waiting, and a positive number
+                waits up to that many seconds. Any other negative value
+                raises :exc:`PineconeValueError` before a request is sent.
             spec: **Deprecated.** A
                 :class:`~pinecone.models.indexes.specs.ServerlessSpec`,
                 :class:`~pinecone.models.indexes.specs.PodSpec`,
@@ -427,7 +438,8 @@ class AsyncIndexes:
             :exc:`PineconeValueError`: If neither ``schema=`` nor
                 ``dimension=`` is given, or mutually exclusive arguments
                 (``schema=`` with a legacy vector kwarg, or ``deployment=``
-                with ``spec=``) are combined.
+                with ``spec=``) are combined, or *timeout* is a negative value
+                other than ``-1``.
             :exc:`PineconeTypeError`: If an unsupported legacy keyword (e.g.
                 ``pods=``) or ``spec=IntegratedSpec(...)`` is passed.
             :exc:`IndexInitFailedError`: If the index fails to initialize.
@@ -496,6 +508,7 @@ class AsyncIndexes:
            ``embed`` / ``sparse_embed`` on a ``string`` field for integrated
            embedding in a document index.
         """
+        validate_wait_timeout(timeout)
         reject_legacy_create_kwargs(legacy_kwargs, name)
         reject_integrated_spec_create(spec, name)
 
@@ -639,9 +652,11 @@ class AsyncIndexes:
                 ``{"fields": {"genre": {"filterable": True}}}``. A bare field
                 map is wrapped in ``{"fields": ...}`` for you.
             read_capacity: Read capacity for the index — see :meth:`create`.
-            timeout: How long to wait, in seconds, for the index to become
-                ready before returning. ``None`` (default) waits
-                indefinitely; ``-1`` returns immediately without waiting.
+            timeout: Seconds to wait for the index to become ready before
+                returning. ``None`` (default) waits indefinitely, ``-1``
+                returns immediately without waiting, and a positive number
+                waits up to that many seconds. Any other negative value
+                raises :exc:`PineconeValueError` before a request is sent.
 
         Returns:
             :class:`IndexModel` describing the created index — ready, unless
@@ -649,7 +664,8 @@ class AsyncIndexes:
 
         Raises:
             :exc:`PineconeValueError`: If *name*, *cloud*, *region*, *embed*,
-                *tags*, or *deletion_protection* fail client-side validation.
+                *tags*, *deletion_protection*, or *timeout* (a negative value
+                other than ``-1``) fail client-side validation.
 
         Examples:
             The ``field_map`` text entry names the record field Pinecone
@@ -673,6 +689,7 @@ class AsyncIndexes:
            yourself, declaring them as ``dense_vector``/``sparse_vector``
            fields in ``schema=``.
         """
+        validate_wait_timeout(timeout)
         require_valid_resource_name("name", name)
         cloud_str = resolve_enum_value(cloud)
         region_str = resolve_enum_value(region)

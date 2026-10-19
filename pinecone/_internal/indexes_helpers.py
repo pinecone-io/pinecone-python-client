@@ -17,7 +17,7 @@ from pinecone._internal.validation import require_non_empty
 
 if TYPE_CHECKING:
     from pinecone.models.indexes.index import IndexModel
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import PineconeValueError, ValidationError
 from pinecone.models.enums import DeletionProtection, Metric, VectorType
 from pinecone.models.indexes.specs import ByocSpec, IntegratedSpec
 
@@ -244,6 +244,27 @@ def _normalize_schema(raw: dict[str, Any]) -> dict[str, Any]:
     return {"fields": raw}
 
 
+def validate_wait_timeout(timeout: int | None) -> None:
+    """Reject a ``timeout`` that is neither ``None``, ``-1`` nor non-negative.
+
+    Raises:
+        PineconeValueError: If *timeout* is negative and not ``-1``.
+    """
+    if timeout is not None and timeout < 0 and timeout != -1:
+        raise PineconeValueError(
+            f"timeout must be None (wait indefinitely), -1 (do not wait), or a "
+            f"non-negative number of seconds, got {timeout}. Pass -1 to skip waiting."
+        )
+
+
+def poll_sleep_seconds(poll_interval: float, timeout: float | None, start: float) -> float:
+    """Return how long to sleep before the next poll without overshooting the deadline."""
+    if timeout is None:
+        return poll_interval
+    remaining = timeout - (time.monotonic() - start)
+    return max(0.0, min(poll_interval, remaining))
+
+
 def poll_index_until_ready(
     describe_fn: Callable[[str], IndexModel],
     name: str,
@@ -286,7 +307,7 @@ def poll_index_until_ready(
             elapsed = time.monotonic() - start
             if elapsed >= timeout:
                 raise PineconeTimeoutError(f"Index '{name}' not ready after {timeout}s")
-        time.sleep(poll_interval)
+        time.sleep(poll_sleep_seconds(poll_interval, timeout, start))
 
 
 async def async_poll_index_until_ready(
@@ -331,4 +352,4 @@ async def async_poll_index_until_ready(
             elapsed = time.monotonic() - start
             if elapsed >= timeout:
                 raise PineconeTimeoutError(f"Index '{name}' not ready after {timeout}s")
-        await asyncio.sleep(poll_interval)
+        await asyncio.sleep(poll_sleep_seconds(poll_interval, timeout, start))
