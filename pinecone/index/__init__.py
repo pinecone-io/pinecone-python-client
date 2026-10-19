@@ -24,6 +24,7 @@ from pinecone._internal.data_plane_helpers import (
     _build_search_records_body,
     _validate_host,
     _vector_to_dict,
+    _warn_if_plaintext_public_host,
 )
 from pinecone._internal.dataframe import _resolve_on_error, extract_records
 from pinecone._internal.keyword_only import keyword_only_methods
@@ -93,6 +94,9 @@ class Index:
 
     Args:
         host (str): The index-specific data plane host URL.
+            A scheme you include is kept as given; ``"http://"`` is sent in
+            cleartext and emits a :class:`RuntimeWarning` unless the host is a
+            loopback or RFC 1918 IP address, ``localhost``, or ``*.localhost``.
         api_key (str | None): Pinecone API key. Falls back to ``PINECONE_API_KEY`` env var.
         additional_headers (Mapping[str, str] | None): Extra headers included in every request.
         timeout (float): Request timeout in seconds. Defaults to ``30.0``.
@@ -162,6 +166,7 @@ class Index:
 
         # Validate and normalize host
         self._host = _validate_host(host)
+        _warn_if_plaintext_public_host(self._host)
 
         config = PineconeConfig(
             api_key=resolved_key,

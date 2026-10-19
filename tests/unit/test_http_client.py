@@ -693,7 +693,10 @@ class TestHTTPClientTransportErrors:
             respx.get(f"{BASE_URL}/indexes").mock(side_effect=httpx.ConnectTimeout(""))
             with pytest.raises(PineconeTimeoutError) as exc_info:
                 client.get("/indexes")
-            assert str(exc_info.value) == "Request timed out (ConnectTimeout)"
+            assert (
+                str(exc_info.value)
+                == "Request timed out (ConnectTimeout); request to https://api.pinecone.io"
+            )
             assert isinstance(exc_info.value.__cause__, httpx.ConnectTimeout)
 
     def test_empty_connect_error_message_falls_back_to_fault_name(self) -> None:
@@ -702,7 +705,10 @@ class TestHTTPClientTransportErrors:
             respx.get(f"{BASE_URL}/indexes").mock(side_effect=httpx.ConnectError(""))
             with pytest.raises(PineconeConnectionError) as exc_info:
                 client.get("/indexes")
-            assert str(exc_info.value) == "Connection failed (ConnectError)"
+            assert (
+                str(exc_info.value)
+                == "Connection failed (ConnectError); request to https://api.pinecone.io"
+            )
 
     def test_transport_error_during_stream_is_wrapped(self) -> None:
         client = _make_sync_client()
@@ -837,7 +843,10 @@ class TestAsyncHTTPClientTransportErrors:
             respx.get(f"{BASE_URL}/indexes").mock(side_effect=httpx.ReadTimeout(""))
             with pytest.raises(PineconeTimeoutError) as exc_info:
                 await client.get("/indexes")
-            assert str(exc_info.value) == "Request timed out (ReadTimeout)"
+            assert (
+                str(exc_info.value)
+                == "Request timed out (ReadTimeout); request to https://api.pinecone.io"
+            )
             assert isinstance(exc_info.value.__cause__, httpx.ReadTimeout)
 
     @pytest.mark.asyncio
@@ -847,7 +856,10 @@ class TestAsyncHTTPClientTransportErrors:
             respx.post(f"{BASE_URL}/v").mock(side_effect=httpx.ConnectError(""))
             with pytest.raises(PineconeConnectionError) as exc_info:
                 await client.post("/v", json={"x": 1})
-            assert str(exc_info.value) == "Connection failed (ConnectError)"
+            assert (
+                str(exc_info.value)
+                == "Connection failed (ConnectError); request to https://api.pinecone.io"
+            )
 
     @pytest.mark.asyncio
     async def test_async_transport_error_during_stream_is_wrapped(self) -> None:

@@ -537,7 +537,11 @@ class Pinecone:
                 describe request the first time, then comes from the host cache.
             host (str): The index's host, e.g.
                 ``"product-search-abc123.svc.pinecone.io"``. Pass it when you have
-                it already and the describe request is skipped entirely.
+                it already and the describe request is skipped entirely. A scheme you
+                include is kept as given: ``"https://..."`` and a bare host both use
+                TLS, while ``"http://..."`` is sent in cleartext and emits a
+                :class:`RuntimeWarning` unless the host is a loopback or RFC 1918
+                IP address, ``localhost``, or ``*.localhost``.
             grpc (bool): Return a :class:`~pinecone.grpc.GrpcIndex` that carries
                 data-plane operations over gRPC rather than HTTP. The scheme it
                 dials comes from the ``grpc_scheme`` given to :class:`Pinecone`.

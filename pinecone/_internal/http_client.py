@@ -614,6 +614,7 @@ class _RetryTransport(httpx.BaseTransport):
             else:
                 return response
         if last_exc is not None:
+            last_exc.request = request
             raise last_exc
         raise RuntimeError("max_retries must be non-negative")
 
@@ -684,6 +685,7 @@ class _AsyncRetryTransport(httpx.AsyncBaseTransport):
             else:
                 return response
         if last_exc is not None:
+            last_exc.request = request
             raise last_exc
         raise RuntimeError("max_retries must be non-negative")
 
@@ -878,17 +880,38 @@ def _raise_for_status(response: httpx.Response) -> None:
     )
 
 
+def _request_origin(exc: httpx.TransportError) -> str:
+    """The ``scheme://host[:port]`` the failed request was addressed to, or ``""``.
+
+    httpx raises ``RuntimeError`` from ``exc.request`` when the transport never
+    attached one, and a request without a host has nothing to report.
+    """
+    try:
+        url = exc.request.url
+    except RuntimeError:
+        return ""
+    if not url.host:
+        return ""
+    port = f":{url.port}" if url.port is not None else ""
+    host = f"[{url.host}]" if ":" in url.host else url.host
+    return f"{url.scheme}://{host}{port}"
+
+
 def _raise_transport_error(exc: httpx.TransportError) -> NoReturn:
     """Translate an httpx transport failure into the SDK's error type.
 
     The async transport reports timeouts with an empty message
     (``ReadTimeout('')``) where the sync transport says ``'timed out'``, so
     fall back to naming the httpx fault rather than raising an error whose
-    ``str()`` is empty.
+    ``str()`` is empty. httpx's own message never says where the request was
+    going, so the scheme and host are appended: a wrong scheme or a mistyped
+    host is the usual cause, and the message is where a caller looks first.
     """
+    origin = _request_origin(exc)
+    where = f"; request to {origin}" if origin else ""
     if isinstance(exc, httpx.TimeoutException):
         message = str(exc) or f"Request timed out ({type(exc).__name__})"
-        raise PineconeTimeoutError(message) from exc
+        raise PineconeTimeoutError(f"{message}{where}") from exc
     if isinstance(exc, httpx.LocalProtocolError) and "Illegal header value" in str(exc):
         message = (
             "The request could not be encoded and nothing was sent. A header value is "
@@ -904,7 +927,7 @@ def _raise_transport_error(exc: httpx.TransportError) -> NoReturn:
             link = link.__cause__ or link.__context__
         raise PineconeConnectionError(message) from exc
     message = str(exc) or f"Connection failed ({type(exc).__name__})"
-    raise PineconeConnectionError(message) from exc
+    raise PineconeConnectionError(f"{message}{where}") from exc
 
 
 class HTTPClient:

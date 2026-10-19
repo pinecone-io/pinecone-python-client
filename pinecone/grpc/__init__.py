@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import builtins
-import ipaddress
 import logging
 import os
 import warnings
@@ -28,7 +27,11 @@ from pinecone._internal.config import (
     resolve_grpc_scheme,
 )
 from pinecone._internal.constants import DATA_PLANE_API_VERSION, DEFAULT_MAX_CONCURRENCY
-from pinecone._internal.data_plane_helpers import _build_search_records_body, _validate_host
+from pinecone._internal.data_plane_helpers import (
+    _build_search_records_body,
+    _is_plaintext_safe_host,
+    _validate_host,
+)
 from pinecone._internal.dataframe import _resolve_on_error, extract_records
 from pinecone._internal.keyword_only import keyword_only_methods
 from pinecone._internal.validation import (
@@ -97,12 +100,6 @@ from pinecone.models.vectors.vector import ScoredVector, Vector
 logger = logging.getLogger(__name__)
 
 
-_PLAINTEXT_SAFE_NETWORKS: tuple[ipaddress.IPv4Network, ...] = (
-    ipaddress.IPv4Network("10.0.0.0/8"),
-    ipaddress.IPv4Network("172.16.0.0/12"),
-    ipaddress.IPv4Network("192.168.0.0/16"),
-)
-
 _warned_about_plaintext_grpc = False
 
 
@@ -114,26 +111,6 @@ def _endpoint_hostname(host: str) -> str:
     if bare.count(":") > 1:
         return bare
     return bare.split(":", 1)[0]
-
-
-def _is_plaintext_safe_host(hostname: str) -> bool:
-    """Whether plaintext to *hostname* stays inside the caller's own network.
-
-    Loopback and the RFC 1918 ranges qualify. A hostname that is not an IP
-    address does not, apart from ``localhost``: a name has to be resolved to
-    know where it points, and assuming the best of an unresolvable one would
-    silence the warning exactly where it matters.
-    """
-    lowered = hostname.lower().rstrip(".")
-    if lowered == "localhost" or lowered.endswith(".localhost"):
-        return True
-    try:
-        address = ipaddress.ip_address(hostname)
-    except ValueError:
-        return False
-    if address.is_loopback:
-        return True
-    return any(address in network for network in _PLAINTEXT_SAFE_NETWORKS)
 
 
 def _warn_plaintext_grpc_once(host: str) -> None:

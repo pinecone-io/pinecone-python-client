@@ -2,13 +2,70 @@
 
 from __future__ import annotations
 
+import ipaddress
+import warnings
 from collections.abc import Mapping, Sequence
 from typing import Any
+from urllib.parse import urlparse
 
 from pinecone._internal.config import normalize_host
 from pinecone.errors.exceptions import PineconeValueError, ValidationError
 from pinecone.models.vectors.search import SearchQuery
 from pinecone.models.vectors.vector import Vector
+
+_PLAINTEXT_SAFE_NETWORKS: tuple[ipaddress.IPv4Network, ...] = (
+    ipaddress.IPv4Network("10.0.0.0/8"),
+    ipaddress.IPv4Network("172.16.0.0/12"),
+    ipaddress.IPv4Network("192.168.0.0/16"),
+)
+
+
+def _is_plaintext_safe_host(hostname: str) -> bool:
+    """Whether plaintext to *hostname* stays inside the caller's own network.
+
+    Loopback and the RFC 1918 ranges qualify. A hostname that is not an IP
+    address does not, apart from ``localhost``: a name has to be resolved to
+    know where it points, and assuming the best of an unresolvable one would
+    silence the warning exactly where it matters.
+    """
+    lowered = hostname.lower().rstrip(".")
+    if lowered == "localhost" or lowered.endswith(".localhost"):
+        return True
+    try:
+        address = ipaddress.ip_address(hostname)
+    except ValueError:
+        return False
+    if address.is_loopback:
+        return True
+    return any(address in network for network in _PLAINTEXT_SAFE_NETWORKS)
+
+
+def _warn_if_plaintext_public_host(host: str) -> None:
+    """Warn when *host* is an ``http://`` URL that does not stay on a private network.
+
+    Plain ``http`` stays supported for local simulators, so this warns and
+    never rejects. The scheme is the caller's explicit choice and is not
+    rewritten.
+    """
+    parsed = urlparse(host)
+    try:
+        hostname = parsed.hostname
+        port = f":{parsed.port}" if parsed.port is not None else ""
+    except ValueError:
+        return
+    if parsed.scheme != "http" or not hostname:
+        return
+    if _is_plaintext_safe_host(hostname):
+        return
+    warnings.warn(
+        f"The index host {parsed.scheme}://{hostname}{port} uses http, so the API "
+        "key and every request and response body travel unencrypted. Pass the host "
+        'with an "https://" scheme, or without one, to encrypt the connection. Only '
+        "loopback and private IP addresses, localhost, and *.localhost are exempt "
+        "from this warning.",
+        RuntimeWarning,
+        stacklevel=3,
+    )
 
 
 def _validate_host(host: str) -> str:
