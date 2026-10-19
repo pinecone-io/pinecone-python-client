@@ -446,9 +446,11 @@ class Documents:
                 is outside [1, 10000].
             :exc:`PineconeTypeError`: If ``top_k`` is not an integer (a bool is
                 not accepted), ``score_by`` is not a list of clauses (wrap a
-                single clause as ``[clause]``), or ``filter`` is not a dict
-                (call ``.to_dict()`` on a filter-builder
-                :class:`~pinecone.utils.filter_builder.Condition`).
+                single clause as ``[clause]``), holds an item that is neither a
+                dict nor one of the six clause types (such as a
+                :class:`~pinecone.models.vectors.search.SearchQuery`), or
+                ``filter`` is not a dict (call ``.to_dict()`` on a
+                filter-builder :class:`~pinecone.utils.filter_builder.Condition`).
 
         Examples:
             >>> from pinecone import Pinecone, TextQuery

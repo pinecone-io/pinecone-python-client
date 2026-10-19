@@ -31,7 +31,7 @@ import respx
 from hypothesis import example, given, settings
 from hypothesis import strategies as st
 
-from pinecone import AsyncIndex, Index, Pinecone, PineconeAsyncio
+from pinecone import AsyncIndex, Index, Pinecone, PineconeAsyncio, TextQuery
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.http_client import AsyncHTTPClient, HTTPClient, _prepare_path
 
@@ -291,7 +291,9 @@ DATA_PLANE_OPS: list[tuple[str, Op, str]] = [
     ),
     (
         "documents_search",
-        lambda ix, v: ix.documents.search(namespace=v, score_by=["_score"], top_k=1),
+        lambda ix, v: ix.documents.search(
+            namespace=v, score_by=[TextQuery(fields=["body"], query="q")], top_k=1
+        ),
         "/namespaces/{}/documents/search",
     ),
     (

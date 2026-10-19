@@ -216,7 +216,8 @@ def _build_search_documents_body(
             clause, or contains an invalid clause; or if ``top_k`` is outside
             [1, 10000].
         :exc:`PineconeTypeError`: If ``score_by`` is a single clause, mapping, or string
-            rather than a list, or ``filter`` is not a dict.
+            rather than a list, holds an item that is neither a dict nor one of the
+            six clause types, or ``filter`` is not a dict.
     """
     _check_score_by(score_by)
     _check_filter(filter)

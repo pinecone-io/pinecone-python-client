@@ -11,11 +11,12 @@ is why "omitted" and "explicitly empty" can mean different things below.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, get_args
 
 import msgspec
 from msgspec import Struct
 
+from pinecone.errors.exceptions import PineconeTypeError
 from pinecone.models.documents.document import DocumentRecord, UpdateDocumentRecord
 from pinecone.models.documents.score_by import (
     DenseVectorQuery,
@@ -24,6 +25,7 @@ from pinecone.models.documents.score_by import (
     SparseEmbedQuery,
     SparseVectorQuery,
 )
+from pinecone.models.vectors.search import SearchQuery
 
 __all__ = [
     "DeleteDocumentsRequest",
@@ -38,6 +40,25 @@ _MAX_DOCUMENTS_PER_REQUEST = 1000
 _MAX_IDS_PER_REQUEST = 1000
 _MAX_SCORING_METHODS = 100
 _MAX_TOP_K = 10000
+_CLAUSE_TYPES = ", ".join(t.__name__ for t in get_args(DocumentScoringMethod))
+
+
+def _check_score_by_item(index: int, item: object) -> None:
+    if isinstance(item, (dict, *get_args(DocumentScoringMethod))):
+        return
+    hint = (
+        " SearchQuery belongs to the legacy records API; use TextQuery for full-text search "
+        "or EmbedQuery for a field with integrated embedding."
+        if isinstance(item, SearchQuery)
+        else " Import the clause classes from pinecone, for example "
+        "TextQuery(fields=['body'], query='...')."
+    )
+    raise PineconeTypeError(
+        f"'score_by[{index}]' must be a dict or one of {_CLAUSE_TYPES}, "
+        f"got {type(item).__name__}.{hint}"
+    )
+
+
 _MAX_FETCH_LIMIT = 10000
 _MAX_LIST_LIMIT = 100
 _MAX_PREFIX_LENGTH = 512
@@ -139,6 +160,7 @@ class SearchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
             operator with a ``400``. The two kinds combine under ``$and``.
 
     Raises:
+        PineconeTypeError: If a ``score_by`` item is neither a dict nor a clause type.
         TypeError: If ``top_k`` is not an integer (a bool is not accepted).
         ValueError: If ``score_by`` is empty or holds over 100 clauses, if a vector clause
             is combined with another clause, or if ``top_k`` is outside 1 to 10000.
@@ -157,6 +179,8 @@ class SearchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
                 f"Number of scoring methods exceeds the maximum limit of "
                 f"{_MAX_SCORING_METHODS} methods"
             )
+        for position, item in enumerate(self.score_by):
+            _check_score_by_item(position, item)
         normalized: list[DocumentScoringMethod | dict[str, Any]] = [
             item
             if not isinstance(item, dict)
