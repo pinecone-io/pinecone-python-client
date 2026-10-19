@@ -18,9 +18,11 @@ from pinecone.models.indexes.deployment import (
 from pinecone.models.indexes.read_capacity import ReadCapacityResponse
 from pinecone.models.indexes.schema import (
     DenseVectorField,
+    FieldEmbedConfig,
     IndexSchema,
     SemanticTextField,
     SparseVectorField,
+    StringField,
     _strip_untyped_tags,
 )
 
@@ -357,8 +359,17 @@ class IndexModel(Struct, kw_only=True):
             raise AttributeError(_removed_field_message(name))
         raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
 
-    def _dense_fields(self) -> list[DenseVectorField]:
-        return [f for f in self.schema.fields.values() if isinstance(f, DenseVectorField)]
+    def _dense_fields(self) -> list[DenseVectorField | FieldEmbedConfig]:
+        return [cfg for _, cfg in self._dense_field_items()]
+
+    def _dense_field_items(self) -> list[tuple[str, DenseVectorField | FieldEmbedConfig]]:
+        items: list[tuple[str, DenseVectorField | FieldEmbedConfig]] = []
+        for name, f in self.schema.fields.items():
+            if isinstance(f, DenseVectorField):
+                items.append((name, f))
+            elif isinstance(f, StringField) and f.embed is not None:
+                items.append((name, f.embed))
+        return items
 
     def _semantic_fields(self) -> list[tuple[str, SemanticTextField]]:
         return [
@@ -381,13 +392,26 @@ class IndexModel(Struct, kw_only=True):
         dense = self._dense_fields()
         if len(dense) > 1:
             names = ", ".join(
-                sorted(k for k, f in self.schema.fields.items() if isinstance(f, DenseVectorField))
+                sorted(
+                    f"{k} (string embed)" if isinstance(cfg, FieldEmbedConfig) else k
+                    for k, cfg in self._dense_field_items()
+                )
             )
             return AttributeError(
                 f"IndexModel.{name} is ambiguous: the schema has {len(dense)} dense "
                 f"vector fields ({names}); there is no single field to resolve this "
                 "deprecated accessor to. Read the specific field directly, e.g. "
-                "index.schema.fields['<field-name>']."
+                "index.schema.fields['<field-name>'] (or "
+                "index.schema.fields['<field-name>'].embed for a string embed)."
+            )
+        if len(dense) == 1 and name in ("dimension", "metric"):
+            field_name, cfg = self._dense_field_items()[0]
+            where = f"index.schema.fields[{field_name!r}]"
+            if isinstance(cfg, FieldEmbedConfig):
+                where += ".embed"
+            return AttributeError(
+                f"IndexModel.{name} could not be determined: the dense vector field "
+                f"{field_name!r} does not report a {name}. Inspect {where} directly."
             )
         if name in ("vector_type", "metric"):
             sparse = self._sparse_fields()
@@ -412,6 +436,10 @@ class IndexModel(Struct, kw_only=True):
     def dimension(self) -> int | None:
         """Width of the schema's sole dense vector field.
 
+        A string field's ``embed`` counts as a dense vector field, so an index
+        whose only dense vector comes from integrated embedding reports the
+        embedding's width.
+
         ``None`` for a sparse-only schema, since sparse vectors have no fixed
         dimension. Raises :exc:`AttributeError` when the schema has more than
         one dense field, or no vector field at all: there is no single field to
@@ -422,10 +450,12 @@ class IndexModel(Struct, kw_only=True):
         resolve exactly when this property does.
 
         .. deprecated:: 10.0
-           Read ``index.schema.fields["<field-name>"].dimension`` instead.
+           Read ``index.schema.fields["<field-name>"].dimension`` instead, or
+           ``index.schema.fields["<field-name>"].embed.dimension`` when the
+           width comes from a string field's ``embed``.
         """
         dense = self._dense_fields()
-        if len(dense) == 1:
+        if len(dense) == 1 and dense[0].dimension is not None:
             return dense[0].dimension
         if not dense and self._sparse_fields():
             return None
@@ -434,6 +464,10 @@ class IndexModel(Struct, kw_only=True):
     @property
     def metric(self) -> str:
         """Metric of the schema's sole dense vector field.
+
+        A string field's ``embed`` counts as a dense vector field, so an index
+        whose only dense vector comes from integrated embedding reports the
+        embedding's metric.
 
         Resolves to ``"dotproduct"`` for a schema whose only vector field is
         sparse, since sparse scoring is always dot product. Raises
@@ -444,10 +478,12 @@ class IndexModel(Struct, kw_only=True):
         resolve exactly when this property does.
 
         .. deprecated:: 10.0
-           Read ``index.schema.fields["<field-name>"].metric`` instead.
+           Read ``index.schema.fields["<field-name>"].metric`` instead, or
+           ``index.schema.fields["<field-name>"].embed.metric`` when the
+           metric comes from a string field's ``embed``.
         """
         dense = self._dense_fields()
-        if len(dense) == 1:
+        if len(dense) == 1 and dense[0].metric is not None:
             return dense[0].metric
         if not dense:
             sparse = self._sparse_fields()
@@ -458,6 +494,10 @@ class IndexModel(Struct, kw_only=True):
     @property
     def vector_type(self) -> str:
         """``"dense"`` or ``"sparse"``, for a schema with one vector field.
+
+        A string field's ``embed`` counts as a dense vector field, so an index
+        whose only dense vector comes from integrated embedding reports
+        ``"dense"``.
 
         Raises :exc:`AttributeError` when the schema has several fields of one
         kind — a hybrid schema has no single vector type to report.
