@@ -1,10 +1,11 @@
 """Integration tests for the document operations on AsyncIndex (#134).
 
-The async mirror of ``tests/integration/test_documents.py``, gated on the same
-``PINECONE_DOCUMENTS_INDEX_HOST`` variable and expecting the same index schema:
-a ``dense_vector`` field named ``embedding`` (dimension 4) and a
-full-text-searchable string field named ``content``. Setup instructions,
-including the minicone recipe, are in that module's docstring::
+The async mirror of ``tests/integration/test_documents.py``, using the same
+``documents_index_host`` fixture: a throwaway index with a ``dense_vector``
+field named ``embedding`` (dimension 4) and a full-text-searchable string field
+named ``content``, or the index at ``PINECONE_DOCUMENTS_INDEX_HOST`` when that
+is set. Setup instructions, including the minicone recipe, are in that
+module's docstring::
 
     PINECONE_DOCUMENTS_INDEX_HOST=http://127.0.0.1:5081 PINECONE_API_KEY=mockkey \\
       uv run pytest tests/integration/test_async_documents.py -v
@@ -22,7 +23,7 @@ search omits ``include_fields``, and treats ``["*"]`` as a literal field name).
 from __future__ import annotations
 
 import asyncio
-import os
+import contextlib
 import time
 import uuid
 from collections.abc import AsyncIterator
@@ -30,16 +31,11 @@ from collections.abc import AsyncIterator
 import pytest
 
 from pinecone.async_client.async_index import AsyncIndex
+from pinecone.errors import NotFoundError
 from pinecone.models.documents.responses import DeleteDocumentsResponse, FetchDocumentsResponse
 from pinecone.models.documents.score_by import DenseVectorQuery, TextQuery
 
-pytestmark = [
-    pytest.mark.integration,
-    pytest.mark.skipif(
-        not os.environ.get("PINECONE_DOCUMENTS_INDEX_HOST"),
-        reason="set PINECONE_DOCUMENTS_INDEX_HOST to a schema-based index data-plane host",
-    ),
-]
+pytestmark = [pytest.mark.integration]
 
 DOCS = [
     {
@@ -64,8 +60,8 @@ DOCS = [
 
 
 @pytest.fixture
-async def index() -> AsyncIterator[AsyncIndex]:
-    client = AsyncIndex(host=os.environ["PINECONE_DOCUMENTS_INDEX_HOST"])
+async def index(documents_index_host: str) -> AsyncIterator[AsyncIndex]:
+    client = AsyncIndex(host=documents_index_host)
     yield client
     await client.close()
 
@@ -74,7 +70,8 @@ async def index() -> AsyncIterator[AsyncIndex]:
 async def namespace(index: AsyncIndex) -> AsyncIterator[str]:
     name = f"it async docs/{uuid.uuid4().hex[:8]}"
     yield name
-    await index.documents.delete(namespace=name, delete_all=True)
+    with contextlib.suppress(NotFoundError):
+        await index.documents.delete(namespace=name, delete_all=True)
 
 
 async def _wait_for_ids(
@@ -90,11 +87,37 @@ async def _wait_for_ids(
         await asyncio.sleep(1)
 
 
+async def _wait_until_searchable(
+    index: AsyncIndex, namespace: str, expected: set[str], timeout: float = 120.0
+) -> None:
+    """Wait for search to see ``expected``, the namespace's full contents.
+
+    Fetch by id reads its own writes; search and filters lag several seconds
+    behind, and the first few searches to see the documents can alternate with
+    ones that miss them. Wait for three consecutive complete results.
+    """
+    deadline = time.time() + timeout
+    streak = 0
+    while True:
+        response = await index.documents.search(
+            namespace=namespace,
+            top_k=len(expected),
+            score_by=[DenseVectorQuery(field="embedding", values=[1.0, 0.0, 0.0, 0.0])],
+        )
+        streak = streak + 1 if {match._id for match in response.matches} == expected else 0
+        if streak == 3:
+            return
+        if time.time() > deadline:
+            raise TimeoutError(f"documents {expected} not searchable in {namespace!r}")
+        await asyncio.sleep(1)
+
+
 async def test_upsert_fetch_by_ids_and_filter(index: AsyncIndex, namespace: str) -> None:
     result = await index.documents.upsert(namespace=namespace, documents=DOCS)
     assert result.upserted_count == 3
 
     fetched = await _wait_for_ids(index, namespace, {"doc-1", "doc-2", "doc-3"})
+    await _wait_until_searchable(index, namespace, {"doc-1", "doc-2", "doc-3"})
     assert fetched.documents["doc-1"].category == "tech"
     assert fetched.usage is not None
 
@@ -113,7 +136,7 @@ async def test_upsert_fetch_by_ids_and_filter(index: AsyncIndex, namespace: str)
 
 async def test_search_documents_dense(index: AsyncIndex, namespace: str) -> None:
     await index.documents.upsert(namespace=namespace, documents=DOCS)
-    await _wait_for_ids(index, namespace, {"doc-1", "doc-2", "doc-3"})
+    await _wait_until_searchable(index, namespace, {"doc-1", "doc-2", "doc-3"})
 
     response = await index.documents.search(
         namespace=namespace,
@@ -139,7 +162,7 @@ async def test_include_fields_semantics_differ_between_search_and_fetch(
     sending ``[]`` are indistinguishable server-side, so both are asserted.
     """
     await index.documents.upsert(namespace=namespace, documents=DOCS)
-    await _wait_for_ids(index, namespace, {"doc-1", "doc-2", "doc-3"})
+    await _wait_until_searchable(index, namespace, {"doc-1", "doc-2", "doc-3"})
 
     score_by = [DenseVectorQuery(field="embedding", values=[1.0, 0.0, 0.0, 0.0])]
 
@@ -167,7 +190,7 @@ async def test_include_fields_semantics_differ_between_search_and_fetch(
 
 async def test_search_documents_text(index: AsyncIndex, namespace: str) -> None:
     await index.documents.upsert(namespace=namespace, documents=DOCS)
-    await _wait_for_ids(index, namespace, {"doc-1", "doc-2", "doc-3"})
+    await _wait_until_searchable(index, namespace, {"doc-1", "doc-2", "doc-3"})
 
     response = await index.documents.search(
         namespace=namespace,
@@ -180,7 +203,7 @@ async def test_search_documents_text(index: AsyncIndex, namespace: str) -> None:
 
 async def test_delete_documents_by_ids_filter_and_all(index: AsyncIndex, namespace: str) -> None:
     await index.documents.upsert(namespace=namespace, documents=DOCS)
-    await _wait_for_ids(index, namespace, {"doc-1", "doc-2", "doc-3"})
+    await _wait_until_searchable(index, namespace, {"doc-1", "doc-2", "doc-3"})
 
     by_ids = await index.documents.delete(namespace=namespace, ids=["doc-3"])
     assert by_ids.matched_records is None
@@ -217,7 +240,7 @@ async def test_delete_documents_by_ids_filter_and_all(index: AsyncIndex, namespa
 
 async def test_update_documents_per_id_and_by_filter(index: AsyncIndex, namespace: str) -> None:
     await index.documents.upsert(namespace=namespace, documents=DOCS)
-    await _wait_for_ids(index, namespace, {"doc-1", "doc-2", "doc-3"})
+    await _wait_until_searchable(index, namespace, {"doc-1", "doc-2", "doc-3"})
 
     per_id = await index.documents.update(
         namespace=namespace,
@@ -250,7 +273,10 @@ async def test_update_documents_per_id_and_by_filter(index: AsyncIndex, namespac
 
 
 async def test_list_documents_pages_and_prefix(index: AsyncIndex, namespace: str) -> None:
-    docs = [{"_id": f"list-{i:03d}", "content": f"document {i}"} for i in range(25)]
+    docs = [
+        {"_id": f"list-{i:03d}", "content": f"document {i}", "embedding": [1.0, 0.0, 0.0, 0.0]}
+        for i in range(25)
+    ]
     await index.documents.upsert(namespace=namespace, documents=docs)
     await _wait_for_ids(index, namespace, {"list-000", "list-012", "list-024"})
 

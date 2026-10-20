@@ -20,9 +20,10 @@ Every group below skips itself when its variable is unset. Only
     Gates ~543 of ~648 collected tests (~94%). Required for any meaningful
     run. Read from .env or the environment.
 ``PINECONE_DOCUMENTS_INDEX_HOST``
-    Gates 14 tests (``test_documents.py``, ``test_async_documents.py``). Needs
-    a pre-provisioned schema-based index host; out-of-band because the suite
-    cannot create one for itself.
+    Optional override for ``test_documents.py`` and ``test_async_documents.py``
+    (16 tests). Unset, those suites create a throwaway schema index with
+    ``PINECONE_API_KEY`` and delete it afterwards; set, they run against that
+    host instead (e.g. a minicone simulator).
 ``PINECONE_CLIENT_ID`` / ``PINECONE_CLIENT_SECRET``
     Gates 10 tests (``test_admin.py``). Needs a service-account OAuth client;
     out-of-band because those credentials are org-admin scoped and are
@@ -32,9 +33,6 @@ Every group below skips itself when its variable is unset. Only
     behavior and is slow by design.
 ``RUN_EXPENSIVE_TESTS=1``
     Gates 2 tests (``test_admin.py``). Opt-in: creates real cloud resources.
-
-Two further tests are skipped unconditionally pending IPV-0004
-(documents/delete returns 401 Unknown operation).
 
 A run's actual pass/skip breakdown is printed at the end of the session by
 ``pytest_terminal_summary`` — a mostly-skipped run says so out loud rather
@@ -47,7 +45,7 @@ import asyncio
 import os
 import time
 import uuid
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator, Generator, Iterator
 from pathlib import Path
 from typing import Protocol
 
@@ -55,6 +53,7 @@ import pytest
 
 from pinecone import AsyncPinecone, Pinecone
 from pinecone._internal.constants import DEFAULT_BASE_URL
+from pinecone.schema_builder import SchemaBuilder
 from tests.integration.legacy_index import (
     LegacyIndex,
     create_legacy_index,
@@ -423,6 +422,33 @@ def legacy_index_factory(api_key: str) -> Generator[LegacyIndexFactory, None, No
 def legacy_index_dim3(legacy_index_factory: LegacyIndexFactory) -> LegacyIndex:
     """A ready dim-3 cosine legacy index — the default shape for vector tests."""
     return legacy_index_factory(dimension=3)
+
+
+@pytest.fixture(scope="module")
+def documents_index_host(request: pytest.FixtureRequest) -> Iterator[str]:
+    """Data-plane host of a schema index for the documents CRUD suites.
+
+    ``PINECONE_DOCUMENTS_INDEX_HOST`` wins when set. Otherwise this creates a
+    throwaway index with a full-text-searchable ``content`` string field and a
+    4-dimension cosine ``embedding`` field, and deletes it on teardown.
+    """
+    host = os.environ.get("PINECONE_DOCUMENTS_INDEX_HOST")
+    if host:
+        yield host
+        return
+    client: Pinecone = request.getfixturevalue("client")
+    name = unique_name("docs-crud")
+    schema = (
+        SchemaBuilder()
+        .add_string_field("content", full_text_search=True)
+        .add_dense_vector_field("embedding", dimension=4, metric="cosine")
+        .build()
+    )
+    try:
+        client.indexes.create(name=name, schema=schema, timeout=300)
+        yield client.indexes.describe(name).host
+    finally:
+        ensure_index_deleted(client, name)
 
 
 @pytest.fixture
