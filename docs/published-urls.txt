@@ -46,6 +46,7 @@ inference/inference-api.html
 maintainers/debugging.html
 maintainers/releasing.html
 maintainers/testing-guide.html
+migration/v10-1-upgrade.html
 migration/v10-grpc-partial-failures.html
 migration/v10-migration.html
 migration/v9-migration.html

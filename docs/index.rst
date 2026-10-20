@@ -25,6 +25,7 @@ Pinecone Python SDK
    :maxdepth: 1
    :caption: Migration & FAQ
 
+   migration/v10-1-upgrade
    migration/v10-migration
    migration/v10-grpc-partial-failures
    migration/v9-migration

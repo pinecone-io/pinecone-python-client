@@ -47,9 +47,10 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
         Write, then search only once the index has caught up to the write.
         Poll ``search``: a fetch response carries no reconciled position, and
         fetch and search see a new write at different times, so a fetch that
-        sees the write does not mean a search will. The index's schema declares
-        ``chunk_text`` as a ``string`` field with ``embed``, the field each
-        document must carry besides ``_id``:
+        sees the write does not mean a search will. Give the loop a deadline,
+        since nothing else ends it while the index is behind. The index's
+        schema declares ``chunk_text`` as a ``string`` field with ``embed``,
+        the field each document must carry besides ``_id``:
 
         .. code-block:: python
 
@@ -64,17 +65,26 @@ class ResponseInfo(StructDictMixin, Struct, kw_only=True, gc=False):
             )
             target = written.response_info.lsn_committed
 
-            while True:
+            deadline = time.monotonic() + 30
+            while target is not None:  # None: caught-up cannot be confirmed
                 found = index.documents.search(
                     namespace="published",
                     top_k=1,
                     score_by=[TextQuery(query="revenue", fields=["chunk_text"])],
                 )
-                if target is None:
-                    break  # no position reported: caught-up cannot be confirmed
                 if found.response_info.is_reconciled(target):
                     break
+                if time.monotonic() > deadline:
+                    raise TimeoutError(f"search had not reached LSN {target} after 30s")
                 time.sleep(0.5)
+
+    .. versionchanged:: 10.1.0
+       Documents API responses now fill both LSN properties: writes report
+       :attr:`lsn_committed` and searches report :attr:`lsn_reconciled`. In
+       10.0.0 both were ``None`` there. The 10.0.0 example polled
+       ``documents.fetch`` until :meth:`is_reconciled`, and since a fetch
+       never reports a reconciled position, that loop now never exits. Poll
+       ``search`` with a deadline, as above.
 
     .. seealso::
        :class:`BatchResponseInfo` — the same durability signal for a bulk

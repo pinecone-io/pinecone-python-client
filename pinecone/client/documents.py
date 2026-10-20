@@ -129,6 +129,8 @@ class Documents:
             documents: The documents to upsert (1-1000 per request). Each
                 element is a dict with an ``_id`` key or a
                 :class:`~pinecone.models.documents.document.DocumentRecord`.
+                On an index with an ``embed`` or ``sparse_embed`` field, the
+                server takes at most 96 documents per request.
                 A request is also limited by its encoded size, so documents
                 that carry large fields, such as high-dimensional dense
                 vectors, fit in fewer than 1000 per request. For larger lists,
@@ -241,10 +243,13 @@ class Documents:
                 in ``result.errors`` with ``retryable=False``; fix the
                 documents before resending.
             batch_size (int): Maximum documents per request (1-1000, default 50).
-                Requests are limited by encoded size as well as count; a batch
-                the server rejects as too large is halved and resent, so a
-                *batch_size* above what fits is safe, at the cost of the
-                rejected requests.
+                On an index with an ``embed`` or ``sparse_embed`` field, the
+                server takes at most 96 documents per request, so keep
+                *batch_size* at 96 or below there. Requests are also limited
+                by encoded size; a batch the server rejects as too large is
+                halved and resent, so on any other index a *batch_size* above
+                what fits by size is safe, at the cost of the rejected
+                requests.
             max_concurrency (int | None): Upper bound on concurrent requests
                 (1-64). Defaults to ``None``, which lets the admission gate
                 use ``DEFAULT_MAX_CONCURRENCY`` (8); the gate's own adaptive
@@ -791,8 +796,9 @@ class Documents:
 
         Args:
             namespace (str): Namespace to update in (required, non-empty).
-            documents: Per-document patches (1-1000). Each element is a dict
-                with an ``_id`` key or an
+            documents: Per-document patches (1-1000, or at most 96 on an
+                index with an ``embed`` or ``sparse_embed`` field). Each element
+                is a dict with an ``_id`` key or an
                 :class:`~pinecone.models.documents.document.UpdateDocumentRecord`.
                 Any key other than ``_id`` and ``_remove_fields`` sets a new
                 value for that field; the names in ``_remove_fields`` are

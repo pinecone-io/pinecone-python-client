@@ -4,12 +4,12 @@ The examples are read out of the guide and run, rather than transcribed into
 Python literals here — a transcription can drift from the published text,
 which is the one thing a migration guide cannot afford.
 
-Blocks are classified by content: one opening with ``# 9.x`` must raise the
-guided ``PineconeTypeError`` (exact messages are pinned in
-``test_indexes_helpers.py`` and ``client/test_indexes_configure.py``); the
-rest must reach a stubbed control plane. Async twins are checked twice — the
-source must be its sync neighbour word-for-word modulo ``await``, and the two
-must put identical bytes on the wire.
+Every block must reach a stubbed control plane. The section's ``9.x``-shaped
+calls are the deprecated sugar, which still works, so none of them raises; the
+guided ``PineconeTypeError`` for keywords with no translation is pinned in
+``client/test_indexes_create.py`` and its async twin. Async twins are checked
+twice — the source must be its sync neighbour word-for-word modulo ``await``,
+and the two must put identical bytes on the wire.
 """
 
 from __future__ import annotations
@@ -26,7 +26,6 @@ import pytest
 import respx
 
 from pinecone import AsyncPinecone, Pinecone, ServerlessSpec
-from pinecone.errors.exceptions import PineconeTypeError
 from tests.factories import make_index_response
 
 BASE_URL = "https://api.test.pinecone.io"
@@ -62,15 +61,10 @@ Block = tuple[str, str]
 def _blocks() -> list[Block]:
     sources = [m.group(1) for m in re.finditer(r"```python\n(.*?)```", _section(), re.DOTALL)]
     assert sources, f"no python blocks found in the db-control section of {GUIDE}"
-    return [
-        ("9x" if s.lstrip().startswith("# 9.x") else "async" if "await " in s else "sync", s)
-        for s in sources
-    ]
+    return [("async" if "await " in s else "sync", s) for s in sources]
 
 
 BLOCKS = _blocks()
-LEGACY = [(i, s) for i, (kind, s) in enumerate(BLOCKS) if kind == "9x"]
-CURRENT = [(i, s) for i, (kind, s) in enumerate(BLOCKS) if kind != "9x"]
 ASYNC = [(i, s) for i, (kind, s) in enumerate(BLOCKS) if kind == "async"]
 
 
@@ -112,7 +106,11 @@ async def _async_body(source: str) -> bytes:
     return _written_body()
 
 
-@pytest.mark.parametrize(("index", "source"), CURRENT, ids=[str(i) for i, _ in CURRENT])
+@pytest.mark.parametrize(
+    ("index", "source"),
+    [(i, s) for i, (_, s) in enumerate(BLOCKS)],
+    ids=[str(i) for i in range(len(BLOCKS))],
+)
 @pytest.mark.asyncio
 @respx.mock
 async def test_current_example_reaches_the_control_plane(index: int, source: str) -> None:
@@ -120,17 +118,6 @@ async def test_current_example_reaches_the_control_plane(index: int, source: str
     body = json.loads(raw)
     assert set(body) <= CREATE_FIELDS | CONFIGURE_FIELDS, f"block {index} sent unknown fields"
     assert not set(body) & REMOVED_FIELDS, f"block {index} still sends a 2025-10 field"
-
-
-@pytest.mark.parametrize(("index", "source"), LEGACY, ids=[str(i) for i, _ in LEGACY])
-def test_9x_example_raises_the_guided_error(index: int, source: str) -> None:
-    namespace: dict[str, Any] = {
-        "pc": Pinecone(api_key="key", host=BASE_URL),
-        "ServerlessSpec": ServerlessSpec,
-    }
-    with pytest.raises(PineconeTypeError) as excinfo:
-        _run(source, namespace)
-    assert "docs/migration/" in str(excinfo.value)
 
 
 @pytest.mark.parametrize(("index", "source"), ASYNC, ids=[str(i) for i, _ in ASYNC])

@@ -8,7 +8,10 @@ fallbacks because the vectors bulk path synthesizes them.
 
 from __future__ import annotations
 
+import textwrap
+import time
 from collections.abc import AsyncIterator, Iterator
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -95,6 +98,45 @@ class TestResponseInfoHeaderNames:
         assert "Documents-API responses do not carry one today" in (
             ResponseInfo.request_id.__doc__ or ""
         )
+
+
+def _recipe() -> str:
+    doc = ResponseInfo.__doc__ or ""
+    block = doc.split(".. code-block:: python", 1)[1].split(".. versionchanged::", 1)[0]
+    return textwrap.dedent(block)
+
+
+def _run_recipe(index: Index, reconciled: list[str], monkeypatch: pytest.MonkeyPatch) -> int:
+    """Execute the class docstring's example; return how many searches it made."""
+    clock = iter(range(0, 10_000, 10))
+    monkeypatch.setattr(time, "monotonic", lambda: next(clock))
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    respx.post(f"{BASE_URL}/namespaces/published/documents/upsert").mock(
+        return_value=httpx.Response(202, json={"upserted_count": 1}, headers=WRITE_HEADERS)
+    )
+    positions = iter(reconciled)
+    search = respx.post(f"{BASE_URL}/namespaces/published/documents/search").mock(
+        side_effect=lambda request: httpx.Response(
+            200, json=SEARCH_BODY, headers={"x-pinecone-max-indexed-lsn": next(positions)}
+        )
+    )
+    exec(_recipe(), {"pc": SimpleNamespace(index=lambda name: index)})  # noqa: S102
+    return search.call_count
+
+
+class TestDocstringRecipe:
+    @respx.mock
+    def test_recipe_stops_once_search_reaches_the_write(
+        self, index: Index, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        assert _run_recipe(index, ["26", "27", "28"], monkeypatch) == 3
+
+    @respx.mock
+    def test_recipe_gives_up_at_its_deadline(
+        self, index: Index, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        with pytest.raises(TimeoutError, match="LSN 28"):
+            _run_recipe(index, ["27"] * 100, monkeypatch)
 
 
 class TestSyncDocumentsResponseInfo:

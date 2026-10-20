@@ -10,10 +10,14 @@ outright, with no shim and no deprecation window. If you were on the stable
 `9.x` surface (`pc.create_index(dimension=..., metric=..., spec=...)`), skip
 that section and start with [Index creation and configuration](#index-model).
 
+This guide describes `10.0.0`. Where `10.1.0` changed something it covers,
+a note says so; [Upgrading from 10.0 to 10.1](v10-1-upgrade.md) lists every
+behavior change since `10.0.0`.
+
 ## Contents
 
 - [Import paths](#import-paths)
-- [Path parameters must be strings](#path-parameter-types)
+- [Path parameters (changed in 10.1)](#path-parameter-types)
 - [Documents API](#documents-api)
   - [Preview namespace removed](#preview-graduation)
   - [Index creation and configuration](#index-model)
@@ -47,13 +51,17 @@ import line is not by itself something to fix:
 | Import | Names it still resolves |
 | --- | --- |
 | `from pinecone.pinecone import Pinecone` | `Pinecone` |
-| `from pinecone.exceptions import ...` | the legacy exception aliases (`PineconeException`, `NotFoundException`, `PineconeApiException`, `RateLimitException`, `ValidationError`, and the rest) |
+| `from pinecone.exceptions import ...` | the legacy exception aliases (`PineconeException`, `NotFoundException`, `PineconeApiException`, and the rest; `RateLimitException` and `ValidationError` from `10.1.0`) |
 | `from pinecone.control import ...` | the control-plane models and specs (`ServerlessSpec`, `PodSpec`, `IndexModel`, `IndexList`, `BackupModel`, the enums) |
 | `from pinecone.data import ...` | `Index`, `AsyncIndex`, `Vector`, `SparseValues`, `QueryResponse`, `UpsertResponse`, `FetchResponse`, `DescribeIndexStatsResponse`, `ImportErrorMode`, `SearchQuery`, `SearchRerank` |
-| `from pinecone.db_control import ...` | the same names as `pinecone.control`, and `pinecone.db_control.enums` / `pinecone.db_control.models` resolve their halves |
-| `from pinecone.db_data import ...` | the same names as `pinecone.data`, plus `SearchQueryVector` and the `_Index` / `_IndexAsyncio` aliases |
-| `from pinecone.config import ...` | `Config` and `PineconeConfig`, the legacy named tuple and its static builder |
-| `from pinecone.inference.models import ...` | `EmbeddingsList`, `RerankResult`, `ModelInfo`, `ModelInfoList`, `IndexEmbed` |
+| `from pinecone.db_control import ...` | from `10.1.0`: the same names as `pinecone.control`, and `pinecone.db_control.enums` / `pinecone.db_control.models` resolve their halves |
+| `from pinecone.db_data import ...` | the `_Index` / `_IndexAsyncio` aliases; from `10.1.0`, also the same names as `pinecone.data` and `SearchQueryVector` |
+| `from pinecone.config import ...` | from `10.1.0`: `Config` and `PineconeConfig`, the legacy named tuple and its static builder |
+| `from pinecone.inference.models import ...` | from `10.1.0`: `EmbeddingsList`, `RerankResult`, `ModelInfo`, `ModelInfoList`, `IndexEmbed` |
+
+In `10.0.0`, the last four paths import as modules but export nothing beyond
+the two `pinecone.db_data` aliases, so any other name read out of them raises
+`ImportError`; on `10.0.0`, import those names from `pinecone` instead.
 
 A handful of names that used to sit on those paths have no re-export, so
 those are the lines to fix:
@@ -70,60 +78,13 @@ Apart from those and the `Preview*` names covered next, that is the whole of
 the import work the upgrade asks of you.
 
 (path-parameter-types)=
-## Path parameters must be strings
+## Path parameters (changed in 10.1)
 
-Names and IDs the SDK interpolates into a URL — an index name, a backup ID, an
-assistant name, an assistant file ID, an admin resource ID — must be a `str`.
-Passing another type raises `PineconeTypeError` naming the parameter and the
-type it received, before any request is sent. The SDK raises `PineconeTypeError`
-when it refuses an argument because of its type, and keeps `PineconeValueError`
-for a value of the right type it cannot use, such as an empty string:
-
-```python
-pc.backups.list(index_name=1234)
-# PineconeTypeError: index_name must be a string, got int
-
-pc.assistants.describe(name=uuid.uuid4())
-# PineconeTypeError: name must be a string, got UUID
-```
-
-`9.x` and `10.0.0` interpolated those two calls with `str()` and sent
-`GET /indexes/1234/backups` and `GET /assistants/0f8fad5b-…`, which named
-resources that cannot exist. Elsewhere in `10.0.0` the same mistake escaped as
-a bare `AttributeError` (`'int' object has no attribute 'strip'`) or a bare
-`TypeError` from the URL encoder, neither catchable as a Pinecone error. All
-three now read the same way, and `except PineconeTypeError` catches them.
-`PineconeTypeError` derives from `TypeError`, so an `except TypeError` that
-wrapped the old URL-encoder failure still catches it; an `except AttributeError`
-does not, and neither does an `except PineconeValueError` written for the
-empty-string check.
-
-Convert at the call site — `str(uuid_value)`, `str(numeric_id)` — where you can
-see which resource you meant.
-
-The same guard covers twelve arguments that never reach the URL, and those move
-from `AttributeError` to `PineconeTypeError` with the rest:
-`create_index_from_backup(name=)`, `indexes.create_for_model(cloud=, region=)`,
-`collections.create(source=)`, `backup_schedules.create(name=)`,
-`inference.rerank(query=)`, and, on the `Admin` client,
-`api_keys.create(name=)`, `invites.create(email=)`, `projects.create(name=)`,
-`projects.describe_by_name(name=)`, `role_bindings.create(principal_id=)` and
-`service_accounts.create(name=)`.
-
-Two carve-outs are unchanged. An optional path parameter still accepts `None`
-for its documented meaning, so `pc.backups.list()` and
-`pc.backups.list(index_name=None)` both list backups across every index. And
-the bulk-import ID on `describe_import()` and `cancel_import()` is documented
-as `str | int` and still stringifies an `int`; anything else there — a `list`,
-a `float`, `None` — now raises `PineconeTypeError` instead of crashing inside
-the URL encoder.
-
-One more change comes with this: a `None` name or ID used to raise
-`PineconeValueError: <parameter> must be a non-empty string`, and now raises
-`PineconeTypeError: <parameter> must be a string, got NoneType`. An
-`except PineconeValueError` (or `except ValueError`) around a call that might
-receive `None` stops catching that case; catch `PineconeTypeError` too. A
-blank string such as `""` still raises `PineconeValueError`.
+`10.0.0` handles a name or ID of the wrong type unevenly: some calls convert
+it with `str()` and send it, others fail with an `AttributeError` or a
+`TypeError`, and `None` raises `PineconeValueError`. From `10.1.0` every such
+argument must be a `str`, and anything else raises `PineconeTypeError`; see
+[Names and IDs must be strings](v10-1-upgrade.md#names-and-ids-must-be-strings).
 
 (documents-api)=
 ## Documents API
@@ -428,7 +389,7 @@ options: exactly one of `ids`, `filter`, or `delete_all` must be given.
 
 Preview's `fetch` took `ids` only. `documents.fetch` takes exactly one of
 `ids` or `filter`, and a filtered fetch is paginated. Pages hold 100
-documents unless you pass `limit` (1-10000) — follow
+documents (from `10.1.0`, pass `limit`, 1-10000, to change that) — follow
 `response.pagination.next` until it's `None`.
 
 ```python
@@ -785,8 +746,10 @@ source. Build snapshot-and-restore workflows on
 If you genuinely need pod indexes, the server's message names the only other
 option: send an earlier `X-Pinecone-Api-Version`. `Pinecone` and
 `AsyncPinecone` take an `additional_headers=` mapping that is merged last, so
-an entry named `X-Pinecone-Api-Version`, in any capitalization, replaces the
-header the SDK would otherwise send. The pin then applies
+an entry keyed exactly `"X-Pinecone-Api-Version"` replaces the header the SDK
+would otherwise send. In `10.0.0` matching is case-sensitive, and any other
+spelling is sent alongside the SDK's header instead of replacing it; from
+`10.1.0` any capitalization replaces it. The pin then applies
 to every request that client makes, and `10.x` models decode `2026-07`
 response shapes, so keep a pinned client scoped to the pod and collection
 calls that need it rather than using it as a general downgrade.
@@ -797,8 +760,8 @@ embed={"model": ..., "field_map": {"text": ...}})`. The embedding
 configuration now surfaces as a `semantic_text` field in the returned
 `index.schema`, named after the `field_map` text entry; `index.embed` is a
 deprecated view rebuilt from that field. Legacy integrated indexes require the
-legacy Records API; for a new index, give a document index a `string` field with
-integrated embedding instead (see
+legacy Records API. From `10.1.0`, a new index can instead give a document
+index a `string` field with integrated embedding (see
 [How Pinecone Works](../guides/concepts.md#integrated-embedding)).
 
 `ConfigureIndexRequest` rejects an unknown PATCH field rather than ignoring
