@@ -6,6 +6,7 @@ import logging
 
 import pytest
 
+from pinecone._internal.config import _parse_additional_headers
 from pinecone.config.config import Config
 from pinecone.config.pinecone_config import PineconeConfig
 
@@ -47,6 +48,7 @@ def test_build_parses_additional_headers_from_env(monkeypatch: pytest.MonkeyPatc
 def test_build_ignores_invalid_json_in_additional_headers_env(
     monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
+    _parse_additional_headers.cache_clear()
     monkeypatch.setenv("PINECONE_ADDITIONAL_HEADERS", "not-json")
     with caplog.at_level(logging.WARNING):
         result = PineconeConfig.build(api_key="k")

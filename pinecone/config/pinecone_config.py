@@ -11,37 +11,17 @@ New code should import from the canonical module.
 # this shim is the only definition
 from __future__ import annotations
 
-import json
-import logging
 import os
 from typing import Any
 
+from pinecone._internal.config import _parse_additional_headers_env
 from pinecone.config.config import Config
 
 __all__ = ["PineconeConfig"]
 
-logger = logging.getLogger(__name__)
-
 _DEFAULT_HOST = "https://api.pinecone.io"
 
 _VALID_CONFIG_FIELDS = frozenset(Config._fields)
-
-
-def _parse_additional_headers_env() -> dict[str, str]:
-    """Parse PINECONE_ADDITIONAL_HEADERS env var as JSON."""
-    raw = os.environ.get("PINECONE_ADDITIONAL_HEADERS", "")
-    if not raw:
-        return {}
-    try:
-        parsed = json.loads(raw)
-        if isinstance(parsed, dict):
-            return {str(k): str(v) for k, v in parsed.items()}
-    except Exception:
-        logger.warning(
-            "Failed to parse PINECONE_ADDITIONAL_HEADERS env var, ignoring: %s",
-            raw,
-        )
-    return {}
 
 
 class PineconeConfig:

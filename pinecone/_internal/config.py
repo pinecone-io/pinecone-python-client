@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import logging
 import os
 import re
@@ -123,17 +124,26 @@ def _parse_additional_headers_env() -> dict[str, str]:
     raw = os.environ.get("PINECONE_ADDITIONAL_HEADERS", "")
     if not raw:
         return {}
+    return dict(_parse_additional_headers(raw))
+
+
+@functools.lru_cache(maxsize=8)
+def _parse_additional_headers(raw: str) -> dict[str, str]:
+    # Cached so a malformed value warns once per process rather than on every
+    # config built from the env. The value carries header secrets, so it is
+    # never logged.
     import json
 
     try:
         parsed = json.loads(raw)
-        if isinstance(parsed, dict):
-            return {str(k): str(v) for k, v in parsed.items()}
-    except Exception:
+    except Exception as exc:
         logger.warning(
-            "Failed to parse PINECONE_ADDITIONAL_HEADERS env var, ignoring: %s",
-            raw,
+            "Failed to parse PINECONE_ADDITIONAL_HEADERS env var as JSON (%s), ignoring it",
+            type(exc).__name__,
         )
+        return {}
+    if isinstance(parsed, dict):
+        return {str(k): str(v) for k, v in parsed.items()}
     return {}
 
 
