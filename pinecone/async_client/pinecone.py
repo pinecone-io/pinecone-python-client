@@ -1235,7 +1235,7 @@ class AsyncPinecone:
         """Backwards-compatibility shim for :meth:`AsyncPinecone.index`.
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New
-        code should use ``pc.index(host=...)`` (where ``pc`` is an
+        code should use ``await pc.index(host=...)`` (where ``pc`` is an
         :class:`AsyncPinecone` instance) instead of ``pc.IndexAsyncio(...)``.
         Unlike :meth:`AsyncPinecone.index`, this is a plain (non-``async def``)
         method that only accepts a host, not a name — it builds the client

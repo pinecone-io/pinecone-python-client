@@ -260,7 +260,7 @@ from pinecone import AsyncPinecone
 
 async with AsyncPinecone(api_key="your-api-key") as pc:
     desc = await pc.indexes.describe("my-index")
-    index = pc.index(host=desc.host)
+    index = await pc.index(host=desc.host)
     async with index:
         results = await index.query(vector=[0.012, -0.087, 0.153], top_k=5)
         for match in results.matches:
@@ -271,7 +271,7 @@ async with AsyncPinecone(api_key="your-api-key") as pc:
 # Async with a legacy integrated index (legacy Records API)
 async with AsyncPinecone(api_key="your-api-key") as pc:
     desc = await pc.indexes.describe("my-index")
-    index = pc.index(host=desc.host)
+    index = await pc.index(host=desc.host)
     async with index:
         await index.upsert_records(
             namespace="articles",
@@ -289,7 +289,7 @@ async with AsyncPinecone(api_key="your-api-key") as pc:
             print(hit.id, hit.score)
 ```
 
-**Note:** `AsyncPinecone.index(name=...)` is a coroutine — use `await pc.index(name="my-index")`. On cache miss it performs a non-blocking `await pc.indexes.describe(name)` to resolve the host automatically, matching sync `Pinecone.index(name=...)` behavior.
+**Note:** `AsyncPinecone.index()` is a coroutine whether you pass `name=` or `host=` — use `await pc.index(name="my-index")` or `await pc.index(host=desc.host)`. With `name=`, on cache miss it performs a non-blocking `await pc.indexes.describe(name)` to resolve the host automatically, matching sync `Pinecone.index(name=...)` behavior.
 
 ## Error Handling
 
