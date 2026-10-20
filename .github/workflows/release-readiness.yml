@@ -367,10 +367,10 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # Multi-Python install verify: exercises the abi3 promise on every supported
-  # Python version (3.10–3.14) using the dev wheel resolved above, which is
+  # Python version (3.10–3.15) using the dev wheel resolved above, which is
   # always built from main regardless of what ref this workflow runs against
   # (#431) — read this job's result as "main's latest published wheel loads
-  # its Rust extension and resolves its declared deps on py3.10-3.14", not as
+  # its Rust extension and resolves its declared deps on py3.10-3.15", not as
   # signal about any other ref. The published wheel is cp310-abi3, so it must
   # install and load the Rust extension on each Python we claim to support.
   # ---------------------------------------------------------------------------
@@ -385,7 +385,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
     env:
       GCP_REGION: ${{ vars.GCP_REGION }}
       GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}

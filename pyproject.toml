@@ -25,6 +25,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Database",
     "Topic :: Software Development",
     "Topic :: Software Development :: Libraries",
@@ -36,7 +37,9 @@ dependencies = [
     # drops symbols (e.g. httpx.BaseTransport) the SDK relies on. Without this
     # cap, `pip install --pre pinecone` resolves httpx to a broken pre-release.
     "httpx[http2]>=0.27,<1.0",
-    "msgspec>=0.19,<0.22",
+    # 0.22 is the first msgspec release with cp315 wheels; a lower cap makes
+    # `pip install pinecone` on Python 3.15 build msgspec from source.
+    "msgspec>=0.19,<0.23",
     "orjson>=3.11,<4",
     # Imported at module scope by pinecone/async_client/assistants.py for async
     # file IO. httpx happens to require it too, but every module the package

@@ -20,10 +20,9 @@ under `[tool.coverage.run]` / `[tool.coverage.report]`, so a bare `--cov`
 
 ## CI behavior
 
-- Every matrix leg (`py3.10`–`py3.14`) runs with `--cov`, but only the
-  `py3.12` leg posts a markdown table to the GitHub Actions job summary —
-  posting it five times over would just be duplicate noise on the PR
-  checks tab.
+- Every matrix leg runs with `--cov`, but only the `py3.12` leg posts a
+  markdown table to the GitHub Actions job summary — posting it once per
+  leg would just be duplicate noise on the PR checks tab.
 - There is **no failure threshold**. A floor set before there's real data
   on where coverage naturally sits gets gamed with tests that execute
   lines without asserting anything — worse than no signal. Revisit this

@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.10 or newer. Python 3.10 through 3.14 are tested and published for.
+- Python 3.10 or newer. Python 3.10 through 3.15 are tested and published for.
 - A [Pinecone account](https://app.pinecone.io) and an API key. See
   [Authentication](authentication.md) for where the SDK looks for it.
 
