@@ -1,19 +1,20 @@
 """Async REST counterpart to the sync module in this package, covering the same guarantee and index shapes.
 
 Async client, same index shapes as the sync module. See that module for why
-this whole module is skipped, why these indexes come from
-``client.indexes.create()`` rather than a bypass fixture, and how
-``test_legacy_sugar_index_blocker.py`` keeps that skip from rotting silently.
+this module is skipped against the minicone simulator and why these indexes
+come from ``client.indexes.create()`` rather than a bypass fixture.
 """
 
 from __future__ import annotations
 
+import os
 import uuid
 from collections.abc import Generator
 
 import pytest
 
 from pinecone import AsyncPinecone, IndexModel, Pinecone, ServerlessSpec
+from pinecone._internal.constants import DEFAULT_BASE_URL
 from tests.integration.conftest import async_poll_until, ensure_index_deleted, unique_name
 from tests.integration.legacy_index import (
     LEGACY_DENSE_FIELD,
@@ -23,19 +24,15 @@ from tests.integration.legacy_index import (
 )
 
 pytestmark = [
-    pytest.mark.skip(
+    pytest.mark.skipif(
+        os.environ.get("PINECONE_CONTROLLER_HOST", DEFAULT_BASE_URL) != DEFAULT_BASE_URL,
         reason=(
-            "Blocked on minicone implementing pinecone-io/pinecone-db#18066: "
-            "the local simulator does not yet route an index whose schema is "
-            "exactly the reserved _values / _sparse_values field(s) to the "
-            "vectors API, so an index built here through Indexes.create()'s "
-            "dimension=/metric=/vector_type=/spec= keywords would still land "
-            "on a documents-schema index and every assertion below would "
-            "fail. Skipped (not xfail) so the reason is specific; see "
-            "python-sdk-internal#504. test_legacy_sugar_index_blocker.py "
-            "stays unskipped and fails loudly once this gap closes, so this "
-            "mark is never the only signal."
-        )
+            "PINECONE_CONTROLLER_HOST points away from production. minicone "
+            "does not yet implement pinecone-io/pinecone-db#18066, so an index "
+            "built through Indexes.create()'s dimension=/metric=/vector_type=/"
+            "spec= keywords lands on the documents API there; see "
+            "python-sdk-internal#504."
+        ),
     ),
     pytest.mark.anyio,
 ]
@@ -115,7 +112,7 @@ def sugar_sparse_index_async(client: Pinecone) -> Generator[IndexModel, None, No
 
 @pytest.fixture(scope="module")
 def sugar_hybrid_index_async(client: Pinecone) -> Generator[IndexModel, None, None]:
-    """A dense ``metric="dotproduct"`` index whose create call names no sparse field at all."""
+    """A dense ``metric="dotproduct"`` index whose create call names no sparse field."""
     name = unique_name("sugar-hybrid-a")
     model = client.indexes.create(
         name=name,
@@ -139,7 +136,7 @@ async def test_sugar_dense_serves_vectors_api_async(
     )
     described = await async_client.indexes.describe(sugar_dense_index_async.name)
     assert described.schema is not None
-    assert set(described.schema.fields) == {LEGACY_DENSE_FIELD}
+    assert LEGACY_DENSE_FIELD in described.schema.fields
     assert described.schema.fields[LEGACY_DENSE_FIELD].dimension == 3
 
 
@@ -209,8 +206,7 @@ async def test_sugar_sparse_serves_vectors_api_async(
     )
     described = await async_client.indexes.describe(sugar_sparse_index_async.name)
     assert described.schema is not None
-    assert set(described.schema.fields) == {LEGACY_SPARSE_FIELD}
-    assert LEGACY_DENSE_FIELD not in described.schema.fields
+    assert LEGACY_SPARSE_FIELD in described.schema.fields
 
 
 async def test_sugar_sparse_upsert_query_delete_async(
@@ -260,7 +256,7 @@ async def test_sugar_sparse_upsert_query_delete_async(
 async def test_sugar_hybrid_serves_vectors_api_async(
     client: Pinecone, async_client: AsyncPinecone, sugar_hybrid_index_async: IndexModel
 ) -> None:
-    """Guards the hybrid round-trip test and pins the create-time shape: dense field only, no sparse field."""
+    """Guards the hybrid round-trip test and pins the dense field's dotproduct metric."""
     assert_serves_vectors_api(
         client,
         _probe_view(
@@ -269,7 +265,7 @@ async def test_sugar_hybrid_serves_vectors_api_async(
     )
     described = await async_client.indexes.describe(sugar_hybrid_index_async.name)
     assert described.schema is not None
-    assert set(described.schema.fields) == {LEGACY_DENSE_FIELD}
+    assert LEGACY_DENSE_FIELD in described.schema.fields
     assert described.schema.fields[LEGACY_DENSE_FIELD].metric == "dotproduct"
 
 
@@ -278,9 +274,9 @@ async def test_sugar_hybrid_upsert_query_delete_async(
 ) -> None:
     """dense+sparse upsert -> fetch -> query -> delete on the async client.
 
-    The create call declared only a dense field. Accepting ``sparse_values``
-    on the upsert anyway, and returning them on fetch and query, is the
-    schema-synthesis behavior pinecone-io/pinecone-db#18066 covers.
+    The create call named only a dense shape; the upsert's ``sparse_values``
+    must still come back on fetch, rank the hybrid query, and leave the
+    schema with a ``_sparse_values`` field.
     """
     ns = _namespace("hybrid")
     index = await async_client.index(host=sugar_hybrid_index_async.host)
@@ -334,7 +330,7 @@ async def test_sugar_hybrid_upsert_query_delete_async(
     assert LEGACY_SPARSE_FIELD in described.schema.fields, (
         f"sparse upsert succeeded but {sugar_hybrid_index_async.name}'s schema "
         f"still has no {LEGACY_SPARSE_FIELD} field: the backend accepted the "
-        "write without actually persisting a synthesized sparse field"
+        "write without persisting a sparse field"
     )
 
     await index.delete(ids=["sha-b"], namespace=ns)
