@@ -3,9 +3,10 @@
 A ``filter`` argument is a plain dict, and writing that dict out by hand is
 fully supported — ``{"genre": {"$eq": "drama"}}`` is what every method
 accepts, and what :meth:`Condition.to_dict` produces. This module is for
-filters your code assembles rather than writes: :class:`Field` exposes one
-method per operator, so the operator names are checked by your editor instead
-of typed into a string, and ``&`` / ``|`` compose conditions built in
+filters your code assembles rather than writes: :class:`Field` exposes a
+method for each operator — comparison, set, existence and text match — so
+the operator names are checked by your editor instead of typed into a
+string, and ``&`` / ``|`` compose conditions built in
 different places.
 
 Either route produces the same filter, so mixing them is fine.
@@ -107,7 +108,10 @@ class Field:
 
     The ordering operators — :meth:`gt`, :meth:`gte`, :meth:`lt`, :meth:`lte`
     — are numeric only. :meth:`is_in` and :meth:`not_in` take a list,
-    :meth:`exists` takes nothing.
+    :meth:`exists` takes nothing. The text-match operators —
+    :meth:`match_phrase`, :meth:`match_all`, :meth:`match_any` — take a string
+    and apply only to a full-text string field in documents search and fetch;
+    documents delete and update reject them.
 
     Examples:
         >>> from pinecone import Field
@@ -248,6 +252,78 @@ class Field:
             {'release_year': {'$exists': True}}
         """
         return Condition({self._name: {"$exists": True}})
+
+    # -- text-match operators -------------------------------------------------
+
+    def _text_match(self, op: str, text: Any) -> Condition:
+        if not isinstance(text, str):
+            raise PineconeTypeError(
+                f"{op} takes one string of words, got {type(text).__name__}; "
+                "join a list of words into one string"
+            )
+        return Condition({self._name: {f"${op}": text}})
+
+    def match_phrase(self, text: str) -> Condition:
+        """``$match_phrase`` — the field's text contains *text* as a contiguous, ordered phrase.
+
+        Applies to a string field with stored, searchable text (one declared
+        with ``full_text_search``, or with ``embed`` or ``sparse_embed`` and
+        the default ``store_text``). Accepted in the ``filter`` of documents
+        ``search`` and ``fetch``. Documents ``delete`` and ``update`` reject it
+        with a ``400``, as does a filter that applies it to a metadata field.
+        *text* is sent as given; the server rejects an empty or
+        punctuation-only string with a ``400``.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *text* is not a :class:`str`.
+
+        Examples:
+            >>> from pinecone import Field
+            >>> Field("title").match_phrase("black hole").to_dict()
+            {'title': {'$match_phrase': 'black hole'}}
+        """
+        return self._text_match("match_phrase", text)
+
+    def match_all(self, text: str) -> Condition:
+        """``$match_all`` — the field's text contains every word of *text*, in any order.
+
+        Applies to a string field with stored, searchable text (one declared
+        with ``full_text_search``, or with ``embed`` or ``sparse_embed`` and
+        the default ``store_text``). Accepted in the ``filter`` of documents
+        ``search`` and ``fetch``. Documents ``delete`` and ``update`` reject it
+        with a ``400``, as does a filter that applies it to a metadata field.
+        *text* is sent as given; the server rejects an empty or
+        punctuation-only string with a ``400``.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *text* is not a :class:`str`.
+
+        Examples:
+            >>> from pinecone import Field
+            >>> Field("title").match_all("black hole").to_dict()
+            {'title': {'$match_all': 'black hole'}}
+        """
+        return self._text_match("match_all", text)
+
+    def match_any(self, text: str) -> Condition:
+        """``$match_any`` — the field's text contains at least one word of *text*.
+
+        Applies to a string field with stored, searchable text (one declared
+        with ``full_text_search``, or with ``embed`` or ``sparse_embed`` and
+        the default ``store_text``). Accepted in the ``filter`` of documents
+        ``search`` and ``fetch``. Documents ``delete`` and ``update`` reject it
+        with a ``400``, as does a filter that applies it to a metadata field.
+        *text* is one string of words.
+
+        Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *text* is not a :class:`str`.
+
+        Examples:
+            >>> from pinecone import Field
+            >>> Field("title").match_any("black hole").to_dict()
+            {'title': {'$match_any': 'black hole'}}
+        """
+        return self._text_match("match_any", text)
 
     def __repr__(self) -> str:
         return f"Field({self._name!r})"

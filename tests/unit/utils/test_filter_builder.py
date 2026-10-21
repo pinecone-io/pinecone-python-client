@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from pinecone.errors import PineconeError, PineconeTypeError, PineconeValueError
@@ -141,3 +143,47 @@ class TestExceptionTypes:
         with pytest.raises(PineconeValueError) as excinfo:
             Condition({}).to_dict()
         assert str(excinfo.value) == "Cannot convert an empty condition to a filter dict"
+
+
+class TestFieldTextMatch:
+    @pytest.mark.parametrize("op", ["match_phrase", "match_all", "match_any"])
+    def test_to_dict(self, op: str) -> None:
+        cond = getattr(Field("title"), op)("black hole")
+        assert isinstance(cond, Condition)
+        assert cond.to_dict() == {"title": {f"${op}": "black hole"}}
+
+    @pytest.mark.parametrize("op", ["match_phrase", "match_all", "match_any"])
+    @pytest.mark.parametrize("bad", [1, 2.5, True, None, ["a", "b"], b"x"])
+    def test_non_str_raises(self, op: str, bad: object) -> None:
+        with pytest.raises(PineconeTypeError, match=op) as info:
+            getattr(Field("title"), op)(bad)
+        assert isinstance(info.value, TypeError)
+
+    @pytest.mark.parametrize("op", ["match_phrase", "match_all", "match_any"])
+    def test_empty_string_sent_as_given(self, op: str) -> None:
+        assert getattr(Field("title"), op)("").to_dict() == {"title": {f"${op}": ""}}
+
+    def test_composes_with_and(self) -> None:
+        cond = Field("title").match_phrase("black hole") & Field("year").gte(2010)
+        assert cond.to_dict() == {
+            "$and": [{"title": {"$match_phrase": "black hole"}}, {"year": {"$gte": 2010}}]
+        }
+
+    def test_composes_with_or(self) -> None:
+        cond = Field("title").match_all("a b") | Field("title").match_any("c")
+        assert cond.to_dict() == {
+            "$or": [{"title": {"$match_all": "a b"}}, {"title": {"$match_any": "c"}}]
+        }
+
+    @pytest.mark.parametrize("op", ["match_phrase", "match_all", "match_any"])
+    def test_docstring_names_operations(self, op: str) -> None:
+        doc = getattr(Field, op).__doc__ or ""
+        assert "search" in doc and "fetch" in doc
+        assert re.search(r"delete.*update.*reject.*400", doc, re.DOTALL)
+
+    def test_class_and_module_docs_list_the_operators(self) -> None:
+        import pinecone.utils.filter_builder as mod
+
+        for name in ("match_phrase", "match_all", "match_any"):
+            assert name in (Field.__doc__ or "")
+        assert "text match" in (mod.__doc__ or "")
