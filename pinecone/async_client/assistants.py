@@ -1815,6 +1815,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             headers={"Content-Type": "application/json"},
             timeout=_stream_timeout(self._config.timeout, timeout),
         ) as response:
+            response.encoding = "utf-8-sig"
             async for line in response.aiter_lines():
                 if not line:
                     continue
@@ -2013,6 +2014,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             headers={"Content-Type": "application/json"},
             timeout=_stream_timeout(self._config.timeout, timeout),
         ) as response:
+            response.encoding = "utf-8-sig"
             async for line in response.aiter_lines():
                 if not line:
                     continue

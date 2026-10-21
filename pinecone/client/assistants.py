@@ -1923,6 +1923,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             headers={"Content-Type": "application/json"},
             timeout=_stream_timeout(self._config.timeout, timeout),
         ) as response:
+            response.encoding = "utf-8-sig"
             for line in response.iter_lines():
                 if not line:
                     continue
@@ -1981,6 +1982,7 @@ class Assistants(AssistantsLegacyNamespaceMixin):
             headers={"Content-Type": "application/json"},
             timeout=_stream_timeout(self._config.timeout, timeout),
         ) as response:
+            response.encoding = "utf-8-sig"
             for line in response.iter_lines():
                 if not line:
                     continue
