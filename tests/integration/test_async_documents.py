@@ -27,12 +27,17 @@ import contextlib
 import time
 import uuid
 from collections.abc import AsyncIterator
+from typing import Any
 
 import pytest
 
 from pinecone.async_client.async_index import AsyncIndex
 from pinecone.errors import NotFoundError
-from pinecone.models.documents.responses import DeleteDocumentsResponse, FetchDocumentsResponse
+from pinecone.models.documents.responses import (
+    DeleteDocumentsResponse,
+    FetchDocumentsResponse,
+    SearchDocumentsResponse,
+)
 from pinecone.models.documents.score_by import DenseVectorQuery, TextQuery
 
 pytestmark = [pytest.mark.integration]
@@ -112,6 +117,26 @@ async def _wait_until_searchable(
         await asyncio.sleep(1)
 
 
+async def _search_until(
+    index: AsyncIndex, namespace: str, expected: set[str], timeout: float = 120.0, **search: Any
+) -> SearchDocumentsResponse:
+    """Run a search until it returns exactly the ``expected`` ids, and return that response.
+
+    For a few seconds after documents become searchable, any single search,
+    filtered or not, can still come back empty, even after
+    ``_wait_until_searchable`` has seen three complete results. A test that
+    asserts on a search result polls that same search instead.
+    """
+    deadline = time.time() + timeout
+    while True:
+        response = await index.documents.search(namespace=namespace, **search)
+        if {match._id for match in response.matches} == expected:
+            return response
+        if time.time() > deadline:
+            raise TimeoutError(f"search {search} never returned {expected} in {namespace!r}")
+        await asyncio.sleep(1)
+
+
 async def test_upsert_fetch_by_ids_and_filter(index: AsyncIndex, namespace: str) -> None:
     result = await index.documents.upsert(namespace=namespace, documents=DOCS)
     assert result.upserted_count == 3
@@ -136,10 +161,10 @@ async def test_upsert_fetch_by_ids_and_filter(index: AsyncIndex, namespace: str)
 
 async def test_search_documents_dense(index: AsyncIndex, namespace: str) -> None:
     await index.documents.upsert(namespace=namespace, documents=DOCS)
-    await _wait_until_searchable(index, namespace, {"doc-1", "doc-2", "doc-3"})
-
-    response = await index.documents.search(
-        namespace=namespace,
+    response = await _search_until(
+        index,
+        namespace,
+        {"doc-2", "doc-3"},
         top_k=2,
         score_by=[DenseVectorQuery(field="embedding", values=[0.0, 1.0, 0.0, 0.0])],
         include_fields=["category"],
@@ -162,20 +187,18 @@ async def test_include_fields_semantics_differ_between_search_and_fetch(
     sending ``[]`` are indistinguishable server-side, so both are asserted.
     """
     await index.documents.upsert(namespace=namespace, documents=DOCS)
-    await _wait_until_searchable(index, namespace, {"doc-1", "doc-2", "doc-3"})
-
     score_by = [DenseVectorQuery(field="embedding", values=[1.0, 0.0, 0.0, 0.0])]
 
-    omitted = await index.documents.search(namespace=namespace, top_k=1, score_by=score_by)
+    omitted = await _search_until(index, namespace, {"doc-1"}, top_k=1, score_by=score_by)
     assert set(omitted.matches[0].to_dict()) == {"_id", "_score"}
 
-    empty = await index.documents.search(
-        namespace=namespace, top_k=1, score_by=score_by, include_fields=[]
+    empty = await _search_until(
+        index, namespace, {"doc-1"}, top_k=1, score_by=score_by, include_fields=[]
     )
     assert set(empty.matches[0].to_dict()) == {"_id", "_score"}
 
-    wildcard = await index.documents.search(
-        namespace=namespace, top_k=1, score_by=score_by, include_fields=["*"]
+    wildcard = await _search_until(
+        index, namespace, {"doc-1"}, top_k=1, score_by=score_by, include_fields=["*"]
     )
     assert {"content", "category"} <= set(wildcard.matches[0].to_dict())
 
@@ -190,10 +213,10 @@ async def test_include_fields_semantics_differ_between_search_and_fetch(
 
 async def test_search_documents_text(index: AsyncIndex, namespace: str) -> None:
     await index.documents.upsert(namespace=namespace, documents=DOCS)
-    await _wait_until_searchable(index, namespace, {"doc-1", "doc-2", "doc-3"})
-
-    response = await index.documents.search(
-        namespace=namespace,
+    response = await _search_until(
+        index,
+        namespace,
+        {"doc-1", "doc-2"},
         top_k=3,
         score_by=[TextQuery(query="machine learning", fields=["content"])],
     )

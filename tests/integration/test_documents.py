@@ -34,12 +34,17 @@ import contextlib
 import time
 import uuid
 from collections.abc import Iterator
+from typing import Any
 
 import pytest
 
 from pinecone.errors import NotFoundError
 from pinecone.index import Index
-from pinecone.models.documents.responses import DeleteDocumentsResponse, FetchDocumentsResponse
+from pinecone.models.documents.responses import (
+    DeleteDocumentsResponse,
+    FetchDocumentsResponse,
+    SearchDocumentsResponse,
+)
 from pinecone.models.documents.score_by import DenseVectorQuery, TextQuery
 
 pytestmark = [pytest.mark.integration]
@@ -119,6 +124,26 @@ def _wait_until_searchable(
         time.sleep(1)
 
 
+def _search_until(
+    index: Index, namespace: str, expected: set[str], timeout: float = 120.0, **search: Any
+) -> SearchDocumentsResponse:
+    """Run a search until it returns exactly the ``expected`` ids, and return that response.
+
+    For a few seconds after documents become searchable, any single search,
+    filtered or not, can still come back empty, even after
+    ``_wait_until_searchable`` has seen three complete results. A test that
+    asserts on a search result polls that same search instead.
+    """
+    deadline = time.time() + timeout
+    while True:
+        response = index.documents.search(namespace=namespace, **search)
+        if {match._id for match in response.matches} == expected:
+            return response
+        if time.time() > deadline:
+            raise TimeoutError(f"search {search} never returned {expected} in {namespace!r}")
+        time.sleep(1)
+
+
 def test_upsert_fetch_by_ids_and_filter(index: Index, namespace: str) -> None:
     result = index.documents.upsert(namespace=namespace, documents=DOCS)
     assert result.upserted_count == 3
@@ -143,10 +168,10 @@ def test_upsert_fetch_by_ids_and_filter(index: Index, namespace: str) -> None:
 
 def test_search_documents_dense(index: Index, namespace: str) -> None:
     index.documents.upsert(namespace=namespace, documents=DOCS)
-    _wait_until_searchable(index, namespace, {"doc-1", "doc-2", "doc-3"})
-
-    response = index.documents.search(
-        namespace=namespace,
+    response = _search_until(
+        index,
+        namespace,
+        {"doc-2", "doc-3"},
         top_k=2,
         score_by=[DenseVectorQuery(field="embedding", values=[0.0, 1.0, 0.0, 0.0])],
         include_fields=["category"],
@@ -169,20 +194,18 @@ def test_include_fields_semantics_differ_between_search_and_fetch(
     sending ``[]`` are indistinguishable server-side, so both are asserted.
     """
     index.documents.upsert(namespace=namespace, documents=DOCS)
-    _wait_until_searchable(index, namespace, {"doc-1", "doc-2", "doc-3"})
-
     score_by = [DenseVectorQuery(field="embedding", values=[1.0, 0.0, 0.0, 0.0])]
 
-    omitted = index.documents.search(namespace=namespace, top_k=1, score_by=score_by)
+    omitted = _search_until(index, namespace, {"doc-1"}, top_k=1, score_by=score_by)
     assert set(omitted.matches[0].to_dict()) == {"_id", "_score"}
 
-    empty = index.documents.search(
-        namespace=namespace, top_k=1, score_by=score_by, include_fields=[]
+    empty = _search_until(
+        index, namespace, {"doc-1"}, top_k=1, score_by=score_by, include_fields=[]
     )
     assert set(empty.matches[0].to_dict()) == {"_id", "_score"}
 
-    wildcard = index.documents.search(
-        namespace=namespace, top_k=1, score_by=score_by, include_fields=["*"]
+    wildcard = _search_until(
+        index, namespace, {"doc-1"}, top_k=1, score_by=score_by, include_fields=["*"]
     )
     assert {"content", "category"} <= set(wildcard.matches[0].to_dict())
 
@@ -197,10 +220,10 @@ def test_include_fields_semantics_differ_between_search_and_fetch(
 
 def test_search_documents_text(index: Index, namespace: str) -> None:
     index.documents.upsert(namespace=namespace, documents=DOCS)
-    _wait_until_searchable(index, namespace, {"doc-1", "doc-2", "doc-3"})
-
-    response = index.documents.search(
-        namespace=namespace,
+    response = _search_until(
+        index,
+        namespace,
+        {"doc-1", "doc-2"},
         top_k=3,
         score_by=[TextQuery(query="machine learning", fields=["content"])],
     )
