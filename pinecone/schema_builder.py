@@ -5,6 +5,13 @@ A schema names the fields an index searches and says how each one is scored.
 back a plain ``{"fields": {...}}`` dict rather than a model, so a key this SDK
 version does not yet model still reaches the server unchanged.
 
+The builder helps you structure a schema and discover what each field type
+takes; it is not a full validator. It catches a few mistakes locally, passes
+dict-valued options such as ``embed`` and ``sparse_embed`` through as given,
+and leaves the rest to the server, which is the source of truth: a schema it
+rejects makes the create call raise
+:class:`~pinecone.errors.exceptions.ApiError` carrying the server's message.
+
 What belongs in a create schema is narrower than what an index stores. Declare
 the fields you search — a ``dense_vector`` field, a ``sparse_vector`` field,
 and ``string`` fields with full-text search enabled or with integrated
@@ -242,14 +249,16 @@ class SchemaBuilder:
     definition rather than raising, so a later call wins.
 
     Building the ``{"fields": {...}}`` dict by hand is equally valid and
-    equally supported; the builder exists so the field types and their
-    required keys are checked as you write rather than on the create call. It
-    checks names, byte limits, the dimension range and the required keys, and
-    refuses the response-only ``integer`` type when a raw ``type`` key reaches
-    a field dict (:meth:`add_custom_field`, ``additional_options``). It does
-    not check which field combinations the server accepts: the metadata-only
-    methods or a second dense vector field are built as written and the
-    server rejects them with a ``400``.
+    equally supported; the builder exists to lay out the field types and
+    their options, not to decide what the server accepts. It checks names,
+    byte limits, the dimension range and the required keys, and refuses the
+    response-only ``integer`` type when a raw ``type`` key reaches a field
+    dict (:meth:`add_custom_field`, ``additional_options``). It does not check
+    which field combinations the server accepts, or the keys and values inside
+    an ``embed`` or ``sparse_embed`` dict: the metadata-only methods, a second
+    dense vector field, or ``embed={"modle": ...}`` are built as written, and
+    the create call raises :class:`~pinecone.errors.exceptions.ApiError` (a
+    ``400`` or ``422``) with the server's message.
 
     Examples:
         >>> from pinecone.schema_builder import SchemaBuilder
@@ -491,13 +500,16 @@ class SchemaBuilder:
                 :class:`~pinecone.models.indexes.schema.FieldEmbedConfig` of
                 ``model``, ``dimension``, ``metric`` (lowercased, as for a
                 dense vector field), ``write_parameters`` and
-                ``read_parameters``. The field takes the index's one dense
-                slot. Fixed at creation.
+                ``read_parameters``. A dict is sent as given, so a misspelled
+                key fails only on create; the typed config rejects it when
+                constructed. The field takes the index's one dense slot.
+                Fixed at creation.
             sparse_embed: ``True`` or ``{}`` to embed the text with the
                 default sparse model, or a dict or
                 :class:`~pinecone.models.indexes.schema.FieldSparseEmbedConfig`
-                of ``model``, ``write_parameters`` and ``read_parameters``. The
-                field takes the index's one sparse slot. Fixed at creation.
+                of ``model``, ``write_parameters`` and ``read_parameters``. A
+                dict is sent as given, as for ``embed``. The field takes the
+                index's one sparse slot. Fixed at creation.
             store_text: Only meaningful as ``False``, on a field with ``embed``
                 or ``sparse_embed``. ``None``, the default, leaves the key off
                 and the server stores the text. ``False`` embeds the text
@@ -903,7 +915,8 @@ class SchemaBuilder:
         untouched. One builder can be reused across several indexes even when
         each schema is edited after the fact.
 
-        Nothing here checks that the schema is complete. The server requires
+        Nothing here checks that the schema is complete or that the server
+        will accept it. The server requires
         at least one searched field (``dense_vector``, ``sparse_vector``, or
         ``string`` with ``full_text_search``, ``embed`` or ``sparse_embed``),
         and a schema without one is built and returned all the same, so that

@@ -961,10 +961,10 @@ index = await pc.indexes.configure(
 #### Create-time limits worth knowing about
 
 Which of these you find out about locally depends on how you build the
-schema. `SchemaBuilder` checks what it can before the request is sent and
-raises `PineconeValueError`; a raw `schema=` dict is forwarded as written, so
-the same mistake comes back as an `ApiError` carrying the server's message
-verbatim.
+schema. `SchemaBuilder` checks a few things, such as names and byte limits,
+before the request is sent and raises `PineconeValueError`; anything else, and
+every mistake in a raw `schema=` dict, is forwarded as written and comes back
+as an `ApiError` carrying the server's message verbatim.
 
 A field `description` is capped at 256 bytes of UTF-8, not 256 characters, so
 emoji and CJK text reach the cap at a fraction of their character count — 64

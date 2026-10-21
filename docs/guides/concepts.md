@@ -48,9 +48,10 @@ Everything else you store is **metadata**. Metadata fields are not declared in t
 schema; Pinecone indexes them for filtering the first time they appear on a record you
 write.
 
-{doc}`SchemaBuilder </reference/schema-builder>` builds the same dict with a fluent,
-validating API, so a bad field name or an out-of-range dimension fails before the
-request goes out:
+{doc}`SchemaBuilder </reference/schema-builder>` builds the same dict with a fluent
+API that lays out each field type's options. It catches a few mistakes, such as a bad
+field name or an out-of-range dimension, before the request goes out; the server
+validates the rest when you create the index:
 
 ```python
 from pinecone import Pinecone, SchemaBuilder
