@@ -39,6 +39,14 @@ reference section.
 
 .. toctree::
    :maxdepth: 1
+   :caption: Documents
+
+   how-to/documents/schema-and-upsert
+   how-to/documents/search
+   how-to/documents/manage
+
+.. toctree::
+   :maxdepth: 1
    :caption: Vectors
 
    how-to/vectors/upsert-and-query

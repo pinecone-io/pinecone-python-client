@@ -1,13 +1,16 @@
 # Legacy integrated indexes (legacy Records API)
 
-A legacy integrated index stores text records and embeds them server-side with a
-hosted model — the same model on write and on read. You upsert text and you search with
-text; no vector ever passes through your code. Legacy integrated indexes are created via
-create-for-model and require the legacy Records API (`upsert_records` and `search`).
+This page is for indexes created with
+{meth}`~pinecone.client.indexes.Indexes.create_for_model`. If you are starting a new
+index, create a document index with an `embed` string field instead: it gives you the same
+server-side embedding through `index.documents`, plus full-text search and sparse fields
+alongside it. See [Declare a schema and upsert documents](documents/schema-and-upsert.md)
+and [Search documents](documents/search.md).
 
-For new work, create a document index instead: document indexes support fields with
-integrated embedding, read and written through `index.documents`. See
-[How Pinecone Works](../guides/concepts.md#integrated-embedding).
+A legacy integrated index stores text records and embeds them server-side with a hosted
+model, the same model on write and on read. You upsert text and you search with text; no
+vector ever passes through your code. These indexes require the legacy Records API
+(`upsert_records` and `search`).
 
 The alternative is to embed the text yourself and upsert vectors. See
 [Generating embeddings](inference/embeddings.md) for that path, and
@@ -32,8 +35,8 @@ index_model = pc.indexes.create_for_model(
 print(index_model.schema.fields["chunk_text"])
 ```
 
-In `field_map`, the **key** is the model's own input field — `"text"` for the text
-models — and the **value** is the field in your records that holds the content to embed.
+In `field_map`, the **key** is the model's own input field (`"text"` for the text
+models), and the **value** is the field in your records that holds the content to embed.
 The call blocks until the index is ready unless you pass `timeout=-1`.
 
 {class}`~pinecone.models.indexes.specs.EmbedConfig` is the typed equivalent of that
@@ -72,11 +75,11 @@ print(index_model.schema.fields["chunk_text"].model)
 ```
 
 `semantic_text` is read-only in a schema. You cannot declare one in a `schema=` you pass
-to {meth}`~pinecone.client.indexes.Indexes.create` — sending it is rejected, and a single
+to {meth}`~pinecone.client.indexes.Indexes.create`: the server rejects it, and a single
 rejected field fails the whole schema. `create_for_model` is what produces the field.
 `create(schema=...)` creates a document index instead: `dense_vector`, `sparse_vector`,
 and `string` fields with full-text search or integrated embedding. See
-[Working with serverless indexes](indexes/serverless.md).
+[Declare a schema and upsert documents](documents/schema-and-upsert.md).
 
 Passing `spec=IntegratedSpec(...)` to `create()` raises
 {exc}`~pinecone.errors.exceptions.PineconeTypeError`; the message prints the equivalent
@@ -111,7 +114,7 @@ print(response.record_count)
 and the SDK rejects the call before sending anything.
 
 Any other keys on the record are stored as metadata and indexed for filtering
-automatically — they need no schema declaration. A record giving both `_id` and `id`
+automatically; they need no schema declaration. A record giving both `_id` and `id`
 keeps `_id`. A missing or non-string `_id` raises
 {exc}`~pinecone.errors.exceptions.PineconeValueError`, naming the offending record's
 position, before any HTTP request.
@@ -137,7 +140,7 @@ for hit in results.result.hits:
 ```
 
 The `"text"` key here is the model's input field, the same key as on the left of
-`field_map` — not the name of your record field.
+`field_map`, not the name of your record field.
 
 `search` also accepts `vector=` or `id=` in place of `inputs=`, for when you already hold
 a vector or want an existing record to serve as the query. Exactly one query source is
@@ -159,10 +162,10 @@ stumble. A search that matched nothing returns an empty `hits` list rather than 
 
 Each {class}`~pinecone.models.vectors.search.Hit` exposes:
 
-- `.id` — the record identifier.
-- `.score` — how well the record matched, higher being better. After reranking the scale
+- `.id`: the record identifier.
+- `.score`: how well the record matched, higher being better. After reranking the scale
   is the reranker's, not the index's, so compare scores only within one response.
-- `.fields` — your record's own fields, keyed by field name, subject to the `fields`
+- `.fields`: your record's own fields, keyed by field name, subject to the `fields`
   argument below.
 
 `.usage` breaks the cost out by stage: `read_units` always, `embed_total_tokens` only when
@@ -176,7 +179,7 @@ one](vectors/upsert-and-query.md#query-or-search-pick-one).
 
 {class}`~pinecone.models.vectors.search.SearchInputs` and
 {class}`~pinecone.models.vectors.search.RerankConfig` are
-{class}`~typing.TypedDict` definitions, so there is nothing to instantiate — annotate a
+{class}`~typing.TypedDict` definitions, so there is nothing to instantiate. Annotate a
 plain dict and your editor and type checker will check the keys for you:
 
 ```python
@@ -210,7 +213,7 @@ for hit in results.result.hits:
 
 `top_k` is how many candidates the search retrieves; `top_n` is how many survive
 reranking, defaulting to `top_k`. Set `top_n` lower to have the reranker narrow a wider
-candidate set — that is the whole reason to retrieve more than you intend to show.
+candidate set; that is the whole reason to retrieve more than you intend to show.
 
 `rank_fields` names record fields, so they must be fields the search returns. Add
 `query` to the rerank config when the text to rerank against should differ from the search
@@ -231,7 +234,7 @@ results = index.search(
 print(len(results.result.hits))
 ```
 
-The filter grammar is the same one {meth}`~pinecone.index.Index.query` uses — see
+The filter grammar is the same one {meth}`~pinecone.index.Index.query` uses. See
 [Filter by metadata](vectors/upsert-and-query.md#filter-by-metadata).
 
 ## Select returned fields
@@ -250,8 +253,8 @@ results = index.search(
 
 ## See also
 
-- [Generating embeddings](inference/embeddings.md) — embed text yourself, for an index
+- [Generating embeddings](inference/embeddings.md): embed text yourself, for an index
   you supply vectors to.
-- [Reranking results](inference/reranking.md) — rerank candidates from any source.
-- [Upserting and querying vectors](vectors/upsert-and-query.md) — the vector-in,
+- [Reranking results](inference/reranking.md): rerank candidates from any source.
+- [Upserting and querying vectors](vectors/upsert-and-query.md): the vector-in,
   vector-out surface.

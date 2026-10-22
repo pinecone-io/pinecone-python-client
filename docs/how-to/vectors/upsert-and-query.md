@@ -246,9 +246,10 @@ response = index.query(
 )
 ```
 
-Both routes produce the same filter, so mixing them is fine. Because `==` is overloaded
-to build a filter rather than answer a question, a `Field` never compares equal to
-anything and cannot be used as a dict key or a set member.
+Both routes produce the same filter, so mixing them is fine. Because `==` and `!=` build
+a filter rather than answer a question, comparing a `Field` tests nothing: the returned
+`Condition` is always truthy, so `Field("genre") in [Field("year")]` is `True`. A `Field`
+is also unhashable, so it cannot be a dict key or a set member.
 
 
 

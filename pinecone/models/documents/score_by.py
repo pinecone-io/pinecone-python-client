@@ -5,7 +5,7 @@ Every ``score_by`` clause is one of these six, told apart by its ``type`` tag:
 ``dense_vector`` for similarity to an embedding, ``sparse_vector`` for similarity to
 a sparse vector, and ``embed`` and ``sparse_embed`` for similarity to query text that
 Pinecone embeds with the model of a ``string`` field declared with that aspect. Pass
-them as typed instances or as plain dicts with a ``type`` key — either way each one
+them as typed instances or as plain dicts with a ``type`` key. Either way each one
 checks its required fields on construction, so a malformed clause is rejected at the
 call site. A dict clause with a key the clause does not define, such as ``boost``, is
 rejected rather than dropped, so an option that has no effect cannot go unnoticed.
@@ -14,10 +14,9 @@ rejected rather than dropped, so an option that has no effect cannot go unnotice
 signals at once. The clauses are OR'd: a document matching any of them is returned, and
 one matching several scores the sum of the scores from each clause it matches. Repeating
 a clause, naming a field twice, or writing one query as both a ``text`` and a
-``query_string`` clause has been observed to score once (API 2026-07), so repeating a
-clause does not up-weight it; a ``^N`` boost in a ``query_string`` clause does up-weight
-a term. A vector clause, and an ``embed`` or ``sparse_embed`` clause, has to
-stand alone.
+``query_string`` clause scores it once, so repeating a clause does not up-weight it; a
+``^N`` boost in a ``query_string`` clause does up-weight a term. A vector clause, and an
+``embed`` or ``sparse_embed`` clause, has to stand alone.
 """
 
 from __future__ import annotations
@@ -82,8 +81,8 @@ class TextQuery(
 ):
     """Score documents by BM25 keyword relevance over named text fields.
 
-    The clause to reach for when the words themselves matter — exact terms, names, codes
-    — rather than meaning. Scoring is per field, so name every field you want searched.
+    The clause to reach for when the words themselves matter (exact terms, names, codes)
+    rather than meaning. Scoring is per field, so name every field you want searched.
     A document matches if the query matches in any one of the named fields, and its score
     is the sum of its BM25 scores in the fields that matched, so naming another field
     widens the results and can raise scores. The text is matched literally, so a ``^N``
@@ -107,7 +106,7 @@ class TextQuery(
         ['title', 'chunk']
 
     .. seealso::
-       :class:`QueryStringQuery` — when you need boolean operators in the query itself.
+       :class:`QueryStringQuery`: when you need boolean operators in the query itself.
     """
 
     query: str
@@ -142,7 +141,7 @@ class QueryStringQuery(
 ):
     """Score documents by a Lucene query string, with ``AND``, ``OR`` and ``NOT``.
 
-    Choose this over :class:`TextQuery` when the query itself needs structure — combining
+    Choose this over :class:`TextQuery` when the query itself needs structure: combining
     terms, excluding one, or scoping a clause to one field. Fields are named *inside* the
     query string as ``field_name:(clause)``; leave the qualifiers off and every
     text-searchable field is searched.
@@ -151,12 +150,11 @@ class QueryStringQuery(
         query: The Lucene expression, e.g. ``'title:(sparse OR hybrid) NOT draft'``.
             Weight a term with a ``^N`` boost after it, e.g. ``title:entropy^5``: the
             term's score is multiplied by ``N``.
-        field: Not accepted here — use a qualifier in ``query`` instead.
-        fields: Not accepted here — use a qualifier in ``query`` instead.
+        field: Not accepted. Name the field with a qualifier in ``query`` instead.
+        fields: Not accepted. Name the fields with qualifiers in ``query`` instead.
 
     Raises:
-        ValueError: If ``field`` or ``fields`` is given. Passing either is rejected rather
-            than ignored, because the field would silently not be applied.
+        ValueError: If ``field`` or ``fields`` is given.
 
     Examples:
         >>> from pinecone.models.documents.score_by import QueryStringQuery
@@ -216,7 +214,7 @@ class DenseVectorQuery(
         'your_vector'
 
     .. seealso::
-       :class:`SparseVectorQuery` — the same idea against a sparse field.
+       :class:`SparseVectorQuery`: the same idea against a sparse field.
     """
 
     values: list[float]
@@ -262,7 +260,7 @@ class SparseVectorQuery(
         sparse_values: The query's sparse vector, as
             :class:`~pinecone.models.vectors.sparse.SparseValues`. Its ``indices`` and
             ``values`` may be lists or arrays with a ``tolist()`` method such as numpy
-            arrays; the clause keeps them as lists.
+            arrays, which the clause converts to lists.
         fields: The same field as a one-element list, e.g. ``["keywords"]``, in place of
             ``field``. It is moved into ``field`` and reads back as ``None``.
 
@@ -283,7 +281,7 @@ class SparseVectorQuery(
         'keywords'
 
     .. seealso::
-       :class:`TextQuery` — when you have the words rather than a sparse encoding of them.
+       :class:`TextQuery`: when you have the words rather than a sparse encoding of them.
     """
 
     sparse_values: SparseValues
@@ -340,7 +338,7 @@ class EmbedQuery(
         'body'
 
     .. seealso::
-       :class:`DenseVectorQuery` — to score a ``dense_vector`` field with a vector you
+       :class:`DenseVectorQuery`: to score a ``dense_vector`` field with a vector you
        embedded yourself.
     """
 
@@ -389,7 +387,7 @@ class SparseEmbedQuery(
         'vector database'
 
     .. seealso::
-       :class:`SparseVectorQuery` — to score a ``sparse_vector`` field with a sparse
+       :class:`SparseVectorQuery`: to score a ``sparse_vector`` field with a sparse
        vector you encoded yourself.
     """
 

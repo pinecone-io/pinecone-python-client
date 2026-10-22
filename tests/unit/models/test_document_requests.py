@@ -157,7 +157,7 @@ def test_fetch_request_rejects_limit_out_of_range(limit: int) -> None:
 
 def test_fetch_request_docstring_does_not_claim_a_fixed_page_size() -> None:
     doc = " ".join((FetchDocumentsRequest.__doc__ or "").split())
-    assert "server default of 100" in doc
+    assert "server default" in doc
     assert "fixed" not in doc
 
 

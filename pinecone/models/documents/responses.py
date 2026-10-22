@@ -1,6 +1,6 @@
 """What the document operations hand back, one envelope per verb.
 
-The two envelopes that carry documents — search and fetch — hold
+The two envelopes that carry documents, search and fetch, hold
 :class:`~pinecone.models.documents.document.Document` objects, so a field the SDK has
 never heard of comes through untouched. Read each document as ``doc.id``, ``doc.score``
 and then your own fields.
@@ -114,7 +114,7 @@ class DeleteDocumentsResponse(Struct, kw_only=True):
     Attributes:
         matched_records: The number of documents that matched ``filter``
             when the delete was accepted. Only returned for a filtered
-            delete — ``None`` for by-id and delete-all paths, and when the
+            delete: ``None`` for by-ID and delete-all paths, and when the
             count could not be read in time. ``0`` means the filter matched
             no documents. The delete is applied asynchronously, so this is
             a point-in-time count rather than a guarantee of the number of
@@ -133,7 +133,7 @@ class UpdateDocumentsResponse(Struct, kw_only=True):
     Attributes:
         matched_records: The number of documents that matched ``filter``
             when the update was accepted. Only returned for a filtered
-            update — ``None`` for per-ID updates and when the count could
+            update: ``None`` for per-ID updates and when the count could
             not be read in time. The patch is applied asynchronously, so
             this is a point-in-time count rather than a guarantee of the
             number of documents ultimately patched.
@@ -152,7 +152,7 @@ class ListedDocumentRecord(Struct, kw_only=True, gc=False):
     """One document ID from a list, and nothing else.
 
     This is what iterating ``idx.documents.list(...)`` yields. A list walks the IDs in a
-    namespace without reading the documents, so none of your fields are here — fetch the
+    namespace without reading the documents, so none of your fields are here. Fetch the
     IDs you want to read. The identifier is ``entry.id``; ``entry._id`` is the same value
     under the JSON key name.
 
@@ -177,7 +177,7 @@ class ListedDocumentRecord(Struct, kw_only=True, gc=False):
 class ListDocumentsResponse(Struct, kw_only=True):
     """One decoded page of a document list, as it comes off the wire.
 
-    ``idx.documents.list`` does not hand this to you — it returns a
+    ``idx.documents.list`` does not hand this to you. It returns a
     :class:`~pinecone.models.pagination.Paginator` that consumes these pages and yields
     the :class:`ListedDocumentRecord` entries, following ``pagination`` for you. Read this
     model when you are driving the paging yourself.
@@ -191,8 +191,8 @@ class ListDocumentsResponse(Struct, kw_only=True):
             when not present.
 
     .. seealso::
-       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-       — which pagination shape applies where, and the
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+       which pagination shape applies where, and the
        paginator that saves you writing the loop.
     """
 
@@ -209,7 +209,7 @@ class SearchDocumentsResponse:
     ``matches`` is already ordered, so ``matches[0]`` is the best hit. Each element is a
     :class:`~pinecone.models.documents.document.Document`: read ``doc.id`` and
     ``doc.score``, then your own fields by name. Which fields are present depends on the
-    search's ``include_fields`` — by default only the ID and the score come back, so ask
+    search's ``include_fields``. By default only the ID and the score come back, so ask
     for the fields you intend to read. A search that matched nothing returns an empty
     ``matches`` rather than raising.
 
@@ -333,7 +333,7 @@ class FetchDocumentsResponse:
     """The documents a fetch retrieved, keyed by ID.
 
     ``documents`` is a dict, so look a document up by the ID you asked for. An ID that
-    does not exist is simply absent — fetching a missing ID is not an error — so test
+    does not exist is simply absent (fetching a missing ID is not an error), so test
     membership rather than indexing blind. Unlike a search, a fetch returns every field by
     default.
 

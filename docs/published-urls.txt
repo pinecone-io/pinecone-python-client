@@ -31,6 +31,9 @@ guides/retries.html
 guides/sync-vs-async.html
 how-to/assistant.html
 how-to/collections.html
+how-to/documents/manage.html
+how-to/documents/schema-and-upsert.html
+how-to/documents/search.html
 how-to/indexes/backups-and-restore.html
 how-to/indexes/pod.html
 how-to/indexes/serverless.html

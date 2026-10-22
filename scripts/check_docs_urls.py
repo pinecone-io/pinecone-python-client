@@ -27,9 +27,10 @@ DEFAULT_SITEMAP_URL = "https://sdk.pinecone.io/python/sitemap.xml"
 SITEMAP_NS = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
 
 # _modules/ is viewcode's listings, named after Python module paths; promising
-# those URLs would mean never renaming an internal module.
+# those URLs would mean never renaming an internal module. The root-level pages
+# are Sphinx's generated index and search; a how-to page may share their names.
 EXCLUDED_PREFIXES = ("_modules/",)
-EXCLUDED_NAMES = frozenset({"genindex.html", "py-modindex.html", "search.html"})
+EXCLUDED_PATHS = frozenset({"genindex.html", "py-modindex.html", "search.html"})
 
 BASELINE_HEADER = """\
 # Documentation URLs that sdk.pinecone.io/python has published.
@@ -47,7 +48,7 @@ BASELINE_HEADER = """\
 def _is_tracked(relative_path: str) -> bool:
     if relative_path.startswith(EXCLUDED_PREFIXES):
         return False
-    return relative_path.rsplit("/", 1)[-1] not in EXCLUDED_NAMES
+    return relative_path not in EXCLUDED_PATHS
 
 
 def built_urls(build_dir: Path) -> set[str]:

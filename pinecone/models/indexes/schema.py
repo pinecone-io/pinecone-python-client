@@ -80,10 +80,10 @@ class DenseVectorField(Struct, tag="dense_vector", tag_field="type", kw_only=Tru
 
     Attributes:
         dimension: Width of the vector, matching the embedding model that
-            produces it, e.g. ``1536``. Must be between 1 and 20000 —
-            :class:`~pinecone.schema_builder.SchemaBuilder` rejects anything
-            outside that range before the request leaves the client.
-        metric: How similarity is scored — ``"cosine"``, ``"dotproduct"``, or
+            produces it, e.g. ``1536``.
+            :class:`~pinecone.schema_builder.SchemaBuilder` rejects a dimension
+            outside the supported range before the request leaves the client.
+        metric: How similarity is scored: ``"cosine"``, ``"dotproduct"``, or
             ``"euclidean"``. Capitals are lowercased when the index is
             created. Fixed for the life of the field; see
             :class:`~pinecone.models.enums.Metric` for how to choose.
@@ -135,8 +135,8 @@ class SemanticTextField(Struct, tag="semantic_text", tag_field="type", kw_only=T
     """The embedded text field of a legacy integrated index, created via create-for-model.
 
     With a semantic text field you upsert and query plain text and never
-    handle a vector yourself — the difference from :class:`DenseVectorField`,
-    where producing the embedding is your job. Legacy integrated indexes
+    handle a vector yourself. That is the difference from
+    :class:`DenseVectorField`, where producing the embedding is your job. Legacy integrated indexes
     require the legacy Records API (``upsert_records`` and ``search``). For
     new work, create a document index with a :class:`StringField` that uses
     integrated embedding (``embed`` or ``sparse_embed``) instead: a document
@@ -147,7 +147,7 @@ class SemanticTextField(Struct, tag="semantic_text", tag_field="type", kw_only=T
     :meth:`~pinecone.client.indexes.Indexes.create_for_model`, which names the
     field after the ``field_map`` text entry. Writing ``"type":
     "semantic_text"`` into a ``schema=`` you pass to :meth:`create
-    <pinecone.client.indexes.Indexes.create>` is not the other way — the
+    <pinecone.client.indexes.Indexes.create>` is not the other way: the
     client sends it and the server rejects it, and because one bad field fails
     the whole schema the index is not created at all. The 9.x
     ``spec=IntegratedSpec(...)`` route is gone too; it raises
@@ -216,17 +216,15 @@ class FullTextSearchConfig(Struct, kw_only=True):
 
     Attributes:
         language: Language whose analysis rules to use, as a two-letter code
-            or its English name — ``"en"`` and ``"english"`` are both
-            accepted. ``None`` takes the server default of English. Setting it
+            or its English name (``"en"`` and ``"english"`` are both
+            accepted). ``None`` takes the server default of English. Setting it
             does not turn on ``stemming`` or ``stop_words``: ``{"language": "en"}``
             on its own matches exact words only, the same as ``{}``.
         stemming: Fold tokens to their root form, so ``running`` matches
             ``run``. ``None`` takes the server default of off.
         stop_words: Drop common words like ``the`` from the index. Requires
-            ``stemming=True``, and is not supported for every language — the
-            rejection names the unsupported language by its English name
-            rather than the code you sent. ``None`` takes the server default
-            of off.
+            ``stemming=True``, and is not supported for every language.
+            ``None`` takes the server default of off.
         ngram: A :class:`NgramConfig` to index character runs instead of
             words, or ``None`` for word tokenization. Mutually exclusive with
             ``stemming`` and ``stop_words``.
@@ -339,7 +337,7 @@ class FieldSparseEmbedConfig(Struct, kw_only=True):
 
 
 class StringField(Struct, tag="string", tag_field="type", kw_only=True):
-    """Text that is searched — by full-text search, by integrated embedding, or both.
+    """Text that is searched by full-text search, by integrated embedding, or both.
 
     A string field you declare on create must carry at least one search
     configuration, because search is the only reason the schema takes a string
@@ -367,9 +365,7 @@ class StringField(Struct, tag="string", tag_field="type", kw_only=True):
     whether you'll need full-text search, keep text storage on, for more
     search flexibility later.
 
-    Each value is at most 100 KB; with ``store_text`` true, the full-text
-    limit of 10,000 tokens per value also applies. The setting is fixed at
-    creation.
+    The setting is fixed at creation.
 
     In responses, a searchable field reports its search configurations and
     ``store_text``, and a filter-only field reports just ``filterable``.
@@ -381,7 +377,7 @@ class StringField(Struct, tag="string", tag_field="type", kw_only=True):
             the server rejects ``filterable=True`` alongside
             ``full_text_search``, ``embed`` or ``sparse_embed`` with a
             ``400``.
-        full_text_search: A :class:`FullTextSearchConfig` — its presence, even
+        full_text_search: A :class:`FullTextSearchConfig`. Its presence, even
             empty, makes the field full-text searchable; ``None`` means it is
             not, unless the text is stored, in which case responses report
             the default configuration.
@@ -558,52 +554,50 @@ class IndexSchema(Struct, kw_only=True):
     key, and that type is what decides how the field can be searched.
     **A ``schema=`` you pass to :meth:`create
     <pinecone.client.indexes.Indexes.create>` declares searchable fields, and
-    only those** — exactly the three types below. Metadata you merely want to
+    only those**: exactly the three types below. Metadata you merely want to
     filter on stays out of it: put it in the documents you upsert and it is
-    indexed for filtering automatically. Pass a filter-only field anyway and
-    the client rejects the call with
-    :exc:`~pinecone.errors.exceptions.PineconeValueError`, saying the schema
-    "looks like a 9.x metadata schema" because none of its fields carry a
-    ``type``.
+    indexed for filtering automatically. A schema in which no field carries a
+    ``type`` is the 9.x metadata shape, and the client rejects it with
+    :exc:`~pinecone.errors.exceptions.PineconeValueError` before sending.
 
     The remaining types are never accepted on create; ``describe`` returns
     them only from an index that already stores them. Declaring one is
     rejected, and because one bad field fails the whole schema, a single
     response-only field turns the entire create call into an error rather than
-    being ignored — which is what makes a describe-then-create round-trip
+    being ignored. That is what makes a describe-then-create round-trip
     fail.
 
     Declarable when you create an index:
 
     ``dense_vector``
         A fixed-width vector of floats, scored by a similarity metric. Carries
-        ``dimension`` and ``metric`` — see :class:`DenseVectorField`.
+        ``dimension`` and ``metric``. See :class:`DenseVectorField`.
     ``sparse_vector``
         Variable-length index/value pairs for keyword-style scoring, with no
-        dimension and no choice of metric — see :class:`SparseVectorField`.
+        dimension and no choice of metric. See :class:`SparseVectorField`.
     ``string``
         Text searched by full-text search (``full_text_search``), by
         dense integrated embedding (``embed``), by sparse integrated embedding
-        (``sparse_embed``), or any mix of the three — see
+        (``sparse_embed``), or any mix of the three. See
         :class:`StringField`.
 
-    Read back but not declarable — sending one on create is rejected:
+    Read back but not declarable (sending one on create is rejected):
 
     ``semantic_text``
         The embedded text field of a legacy integrated index, created via
         :meth:`~pinecone.client.indexes.Indexes.create_for_model`, the only
-        way to get one — see :class:`SemanticTextField`. In a document index,
+        way to get one. See :class:`SemanticTextField`. In a document index,
         a ``string`` field with integrated embedding (``embed`` /
         ``sparse_embed``) takes its place.
     ``float``, ``boolean``, ``string_list``
         Numeric, boolean and tag-style metadata. Upserted metadata is indexed
         for filtering automatically, but ``describe`` on a documents index
         lists only the fields you declared; an index that already stores one
-        of these types may still return it — see :class:`FloatField`,
+        of these types may still return it. See :class:`FloatField`,
         :class:`BooleanField`, :class:`StringListField`.
     ``integer``
         Numeric metadata on indexes predating the normalisation of numbers to
-        float — see :class:`IntegerField`.
+        float. See :class:`IntegerField`.
 
     A field from an index older than typed schemas arrives with no ``type`` at
     all and becomes a :class:`LegacyMetadataField`.
@@ -624,9 +618,9 @@ class IndexSchema(Struct, kw_only=True):
         {'chunk_text': 'SemanticTextField'}
 
     .. seealso::
-       :class:`~pinecone.schema_builder.SchemaBuilder` — assembles the
-       ``schema=`` dict with one validated method per declarable field type,
-       and refuses ``integer`` locally before you spend a round trip. The other
+       :class:`~pinecone.schema_builder.SchemaBuilder`: assembles the
+       ``schema=`` dict with one method per declarable field type, and
+       refuses ``integer`` locally before you spend a round trip. The other
        types in that group (``float``, ``boolean``, ``string_list``) have
        builder methods, but the server rejects them on create.
     """

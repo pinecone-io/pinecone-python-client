@@ -1,6 +1,6 @@
 """The request bodies behind the document operations, one per verb.
 
-You rarely build these yourself — the methods on ``index.documents`` assemble them from
+You rarely build these yourself: the methods on ``index.documents`` assemble them from
 their arguments. They are worth reading when you want to know exactly which combinations
 of arguments are legal, because each one checks its selectors and sizes on construction,
 so an illegal combination is rejected at the call site rather than by the server.
@@ -102,7 +102,7 @@ class UpsertDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
     """The body of an ``upsert`` on ``index.documents``.
 
     Attributes:
-        documents: The documents to write, 1 to 1000 of them. Each may be a
+        documents: The documents to write, at least one. Each may be a
             :class:`~pinecone.models.documents.document.DocumentRecord` or a plain dict
             carrying the reserved ``_id`` key alongside your own fields; either way the
             ``_id`` is validated here, so a bad one is reported before anything is sent.
@@ -110,8 +110,8 @@ class UpsertDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
             you are rewriting does not survive.
 
     Raises:
-        ValueError: If ``documents`` is empty, holds more than 1000 documents, or contains
-            a document whose ``_id`` is missing or invalid.
+        ValueError: If ``documents`` is empty, holds more documents than one request
+            accepts, or contains a document whose ``_id`` is missing or invalid.
     """
 
     documents: list[dict[str, Any] | DocumentRecord]
@@ -134,15 +134,15 @@ class SearchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
     """The body of a ``search`` on ``index.documents``.
 
     Attributes:
-        score_by: How to rank the documents, 1 to 100 clauses. Each may be a typed
+        score_by: How to rank the documents, at least one clause. Each may be a typed
             :data:`~pinecone.models.documents.score_by.DocumentScoringMethod` variant or a
             plain dict with a ``type`` key. Several ``text`` and ``query_string`` clauses
             can be combined to score on more than one signal at once; a
             ``dense_vector``, ``sparse_vector``, ``embed`` or ``sparse_embed`` clause has
             to stand alone, and combining one with anything else is rejected here.
-        top_k: How many documents to return, 1 to 10000.
+        top_k: How many documents to return.
         include_fields: Which of your fields to return on each match. Omitting it, and
-            passing ``[]``, both mean the same thing — only ``_id`` and ``_score`` come
+            passing ``[]``, both mean the same thing: only ``_id`` and ``_score`` come
             back. Pass ``["*"]`` for every field, or name the ones you need. Naming a
             field declared with ``store_text: false`` is rejected by the server with a
             ``400``, since its text is not stored; ``["*"]`` leaves such fields out.
@@ -162,8 +162,9 @@ class SearchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
     Raises:
         PineconeTypeError: If a ``score_by`` item is neither a dict nor a clause type.
         TypeError: If ``top_k`` is not an integer (a bool is not accepted).
-        ValueError: If ``score_by`` is empty or holds over 100 clauses, if a vector clause
-            is combined with another clause, or if ``top_k`` is outside 1 to 10000.
+        ValueError: If ``score_by`` is empty or holds more clauses than one request
+            accepts, if a vector clause is combined with another clause, or if ``top_k``
+            is outside its accepted range.
     """
 
     score_by: list[DocumentScoringMethod | dict[str, Any]]
@@ -209,7 +210,7 @@ class FetchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
     of documents.
 
     Attributes:
-        ids: The document IDs to fetch, 1 to 1000. Mutually exclusive with ``filter``.
+        ids: The document IDs to fetch, at least one. Mutually exclusive with ``filter``.
         filter: A non-empty filter selecting the documents to fetch. Mutually exclusive
             with ``ids``. A data field (a vector field, or a string the schema declares with
             ``full_text_search``, ``embed`` or ``sparse_embed``) rejects comparison operators
@@ -221,20 +222,21 @@ class FetchDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
             takes the comparison, set and logical operators and rejects a text-match
             operator with a ``400``. The two kinds combine under ``$and``.
         include_fields: Which of your fields to return. Omitting it, passing ``[]``, and
-            passing ``["*"]`` all return every field — the opposite of the default on a
+            passing ``["*"]`` all return every field, the opposite of the default on a
             search, which returns none of them. Every field here means every field the
             index stores: a field declared with ``store_text: false`` is left out, and
             naming one is rejected by the server with a ``400``.
         pagination_token: The token from a previous fetch response, to get the next page.
             Valid only with ``filter``.
-        limit: How many documents per page, 1 to 10000, or ``None`` for the server default
-            of 100. Only a ``filter`` fetch pages; an ``ids`` fetch ignores it.
+        limit: How many documents per page, or ``None`` for the server default. Only a
+            ``filter`` fetch pages; an ``ids`` fetch ignores it.
 
     Raises:
         TypeError: If ``limit`` is not an integer (a bool is not accepted).
         ValueError: If both or neither of ``ids`` and ``filter`` are given, if ``filter``
-            is an empty object, if ``ids`` holds over 1000 IDs, if ``pagination_token``
-            is given without ``filter``, or if ``limit`` is outside 1 to 10000.
+            is an empty object, if ``ids`` holds more IDs than one request accepts, if
+            ``pagination_token`` is given without ``filter``, or if ``limit`` is outside
+            its accepted range.
     """
 
     ids: list[str] | None = None
@@ -280,7 +282,7 @@ class DeleteDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
     explicitly and there is no way to write one that means "everything" by omission.
 
     Attributes:
-        ids: The document IDs to delete, 1 to 1000. Mutually exclusive with the others.
+        ids: The document IDs to delete, at least one. Mutually exclusive with the others.
         filter: A non-empty metadata filter selecting the documents to delete. A text-match
             operator here is rejected rather than ignored, since evaluated in a filter it
             would widen the delete. Mutually exclusive with the others.
@@ -289,7 +291,7 @@ class DeleteDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
 
     Raises:
         ValueError: If more than one selector is given, if none is, if ``filter`` is an
-            empty object, or if ``ids`` holds over 1000 IDs.
+            empty object, or if ``ids`` holds more IDs than one request accepts.
     """
 
     ids: list[str] | None = None
@@ -332,7 +334,7 @@ class UpdateDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
     name survive.
 
     Attributes:
-        documents: Per-document patches, 1 to 1000. Each may be an
+        documents: Per-document patches, at least one. Each may be an
             :class:`~pinecone.models.documents.document.UpdateDocumentRecord` or a plain
             dict; in the dict form ``_id`` and ``_remove_fields`` are reserved keys and
             every other key is a field being set. Mutually exclusive with the by-filter
@@ -348,7 +350,8 @@ class UpdateDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
         ValueError: If ``documents`` is combined with any by-filter field, if neither
             selector is given, if ``set_fields`` or ``remove_fields`` is given without a
             ``filter``, if a ``filter`` is given with nothing to change, if ``filter`` is
-            an empty object, or if ``documents`` is empty or holds over 1000 patches.
+            an empty object, or if ``documents`` is empty or holds more patches than one
+            request accepts.
     """
 
     documents: list[dict[str, Any] | UpdateDocumentRecord] | None = None
@@ -404,19 +407,19 @@ class UpdateDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
 class ListDocumentsRequest(Struct, kw_only=True, omit_defaults=True):
     """The body of a ``list`` on ``index.documents``.
 
-    A list walks IDs, not documents, so none of your fields come back — use it to
+    A list walks IDs, not documents, so none of your fields come back. Use it to
     enumerate a namespace, then fetch the IDs you want.
 
     Attributes:
-        prefix: Return only IDs starting with this string, e.g. ``"article-"``. ASCII, at
-            most 512 characters. ``None`` lists every ID.
-        limit: How many IDs per page, 1 to 100, or ``None`` to let the server choose.
+        prefix: Return only IDs starting with this ASCII string, e.g. ``"article-"``.
+            ``None`` lists every ID.
+        limit: How many IDs per page, or ``None`` to let the server choose.
         pagination_token: The token from a previous list response, to get the next page.
 
     Raises:
         TypeError: If ``limit`` is not an integer (a bool is not accepted).
-        ValueError: If ``prefix`` is over 512 characters or contains a non-ASCII character
-            or NUL, or if ``limit`` is outside 1 to 100.
+        ValueError: If ``prefix`` is too long or contains a non-ASCII character or NUL,
+            or if ``limit`` is outside its accepted range.
     """
 
     prefix: str | None = None

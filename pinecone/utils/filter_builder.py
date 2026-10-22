@@ -1,10 +1,10 @@
 """Optional builder for metadata filters.
 
 A ``filter`` argument is a plain dict, and writing that dict out by hand is
-fully supported — ``{"genre": {"$eq": "drama"}}`` is what every method
+fully supported: ``{"genre": {"$eq": "drama"}}`` is what every method
 accepts, and what :meth:`Condition.to_dict` produces. This module is for
 filters your code assembles rather than writes: :class:`Field` exposes a
-method for each operator — comparison, set, existence and text match — so
+method for each operator (comparison, set, existence and text match), so
 the operator names are checked by your editor instead of typed into a
 string, and ``&`` / ``|`` compose conditions built in
 different places.
@@ -72,14 +72,6 @@ class Condition:
         Returns:
             The filter, e.g. ``{"year": {"$gte": 2020}}``.
 
-        Raises:
-            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If the
-                condition is empty — reachable only by constructing
-                :class:`Condition` directly with ``{}``, which no
-                :class:`Field` operator does. It derives from
-                :class:`ValueError`, so an existing ``except ValueError``
-                still catches it.
-
         Examples:
             >>> from pinecone import Field
             >>> Field("year").gte(2020).to_dict()
@@ -102,14 +94,16 @@ class Field:
     ``filter`` value.
 
     The two equality operators are Python's own: ``Field("genre") == "drama"``
-    builds ``$eq`` and ``!=`` builds ``$ne``. Because ``==`` is overloaded to
-    build a filter rather than answer a question, a ``Field`` never compares
-    equal to anything and cannot be used as a dict key or set member.
+    builds ``$eq`` and ``!=`` builds ``$ne``. Because they build a filter
+    rather than answer a question, comparing a ``Field`` tests nothing: the
+    returned :class:`Condition` is always truthy, so
+    ``Field("genre") in [Field("year")]`` is ``True``. A ``Field`` is also
+    unhashable, so it cannot be a dict key or set member.
 
-    The ordering operators — :meth:`gt`, :meth:`gte`, :meth:`lt`, :meth:`lte`
-    — are numeric only. :meth:`is_in` and :meth:`not_in` take a list,
-    :meth:`exists` takes nothing. The text-match operators —
-    :meth:`match_phrase`, :meth:`match_all`, :meth:`match_any` — take a string
+    The ordering operators :meth:`gt`, :meth:`gte`, :meth:`lt` and :meth:`lte`
+    are numeric only. :meth:`is_in` and :meth:`not_in` take a list,
+    :meth:`exists` takes nothing. The text-match operators
+    :meth:`match_phrase`, :meth:`match_all` and :meth:`match_any` take a string
     and apply only to a full-text string field in documents search and fetch;
     documents delete and update reject them.
 
@@ -121,7 +115,7 @@ class Field:
         {'genre': {'$ne': 'documentary'}}
 
     .. seealso::
-       :class:`Condition` — combining these with ``&`` and ``|``.
+       :class:`Condition`, for combining these with ``&`` and ``|``.
     """
 
     __slots__ = ("_name",)
@@ -138,7 +132,7 @@ class Field:
             )
 
     def gt(self, value: int | float) -> Condition:
-        """``$gt`` — the field is greater than *value* (numeric only).
+        """``$gt``: the field is greater than *value* (numeric only).
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *value* is
@@ -156,7 +150,7 @@ class Field:
         return Condition({self._name: {"$gt": value}})
 
     def gte(self, value: int | float) -> Condition:
-        """``$gte`` — the field is greater than or equal to *value* (numeric only).
+        """``$gte``: the field is greater than or equal to *value* (numeric only).
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *value* is
@@ -174,7 +168,7 @@ class Field:
         return Condition({self._name: {"$gte": value}})
 
     def lt(self, value: int | float) -> Condition:
-        """``$lt`` — the field is less than *value* (numeric only).
+        """``$lt``: the field is less than *value* (numeric only).
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *value* is
@@ -192,7 +186,7 @@ class Field:
         return Condition({self._name: {"$lt": value}})
 
     def lte(self, value: int | float) -> Condition:
-        """``$lte`` — the field is less than or equal to *value* (numeric only).
+        """``$lte``: the field is less than or equal to *value* (numeric only).
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *value* is
@@ -212,17 +206,17 @@ class Field:
     # -- equality operators ---------------------------------------------------
 
     def __eq__(self, value: object) -> Condition:  # type: ignore[override]
-        """``$eq`` — equal to."""
+        """``$eq``: equal to."""
         return Condition({self._name: {"$eq": value}})
 
     def __ne__(self, value: object) -> Condition:  # type: ignore[override]
-        """``$ne`` — not equal to."""
+        """``$ne``: not equal to."""
         return Condition({self._name: {"$ne": value}})
 
     # -- set operators --------------------------------------------------------
 
     def is_in(self, values: list[str | int | float | bool]) -> Condition:
-        """``$in`` — the field's value is one of *values*.
+        """``$in``: the field's value is one of *values*.
 
         Examples:
             >>> from pinecone import Field
@@ -232,7 +226,7 @@ class Field:
         return Condition({self._name: {"$in": values}})
 
     def not_in(self, values: list[str | int | float | bool]) -> Condition:
-        """``$nin`` — the field's value is none of *values*.
+        """``$nin``: the field's value is none of *values*.
 
         Examples:
             >>> from pinecone import Field
@@ -244,7 +238,7 @@ class Field:
     # -- exists operator ------------------------------------------------------
 
     def exists(self) -> Condition:
-        """``$exists`` — the field is present on the record, whatever its value.
+        """``$exists``: the field is present on the record, whatever its value.
 
         Examples:
             >>> from pinecone import Field
@@ -264,15 +258,13 @@ class Field:
         return Condition({self._name: {f"${op}": text}})
 
     def match_phrase(self, text: str) -> Condition:
-        """``$match_phrase`` — the field's text contains *text* as a contiguous, ordered phrase.
+        """``$match_phrase``: the field's text contains *text* as a contiguous, ordered phrase.
 
         Applies to a string field with stored, searchable text (one declared
         with ``full_text_search``, or with ``embed`` or ``sparse_embed`` and
         the default ``store_text``). Accepted in the ``filter`` of documents
         ``search`` and ``fetch``. Documents ``delete`` and ``update`` reject it
-        with a ``400``, as does a filter that applies it to a metadata field.
-        *text* is sent as given; the server rejects an empty or
-        punctuation-only string with a ``400``.
+        with a ``400``, as does a filter that applies it to any other field.
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *text* is not a :class:`str`.
@@ -285,15 +277,13 @@ class Field:
         return self._text_match("match_phrase", text)
 
     def match_all(self, text: str) -> Condition:
-        """``$match_all`` — the field's text contains every word of *text*, in any order.
+        """``$match_all``: the field's text contains every word of *text*, in any order.
 
         Applies to a string field with stored, searchable text (one declared
         with ``full_text_search``, or with ``embed`` or ``sparse_embed`` and
         the default ``store_text``). Accepted in the ``filter`` of documents
         ``search`` and ``fetch``. Documents ``delete`` and ``update`` reject it
-        with a ``400``, as does a filter that applies it to a metadata field.
-        *text* is sent as given; the server rejects an empty or
-        punctuation-only string with a ``400``.
+        with a ``400``, as does a filter that applies it to any other field.
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *text* is not a :class:`str`.
@@ -306,14 +296,13 @@ class Field:
         return self._text_match("match_all", text)
 
     def match_any(self, text: str) -> Condition:
-        """``$match_any`` — the field's text contains at least one word of *text*.
+        """``$match_any``: the field's text contains at least one word of *text*.
 
         Applies to a string field with stored, searchable text (one declared
         with ``full_text_search``, or with ``embed`` or ``sparse_embed`` and
         the default ``store_text``). Accepted in the ``filter`` of documents
         ``search`` and ``fetch``. Documents ``delete`` and ``update`` reject it
-        with a ``400``, as does a filter that applies it to a metadata field.
-        *text* is one string of words.
+        with a ``400``, as does a filter that applies it to any other field.
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *text* is not a :class:`str`.

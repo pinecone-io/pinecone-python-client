@@ -8,10 +8,10 @@ unchanged.
 Two conventions run through the whole package, and they are easy to conflate:
 
 * **On the wire and in the dicts you pass in**, the reserved keys are spelled with a
-  leading underscore — ``_id``, ``_score``, ``_remove_fields``. They sit in the same dict
+  leading underscore: ``_id``, ``_score``, ``_remove_fields``. They sit in the same dict
   as your own fields but they are directives, not fields: ``_id`` names the document,
   ``_score`` is how well it matched, ``_remove_fields`` lists fields to delete.
-* **On the Python objects you read**, use the plain properties — ``doc.id``, ``doc.score``.
+* **On the Python objects you read**, use the plain properties ``doc.id`` and ``doc.score``.
   ``doc._id`` and ``doc._score`` exist as aliases so wire-shaped code keeps working, but
   ``doc.id`` is the spelling to write.
 """
@@ -33,7 +33,7 @@ def _validate_document_id(value: Any) -> str:
     """Check a document ``_id`` and return it, or raise naming the rule it broke.
 
     An ID must be a string of 1 to 512 ASCII characters matching
-    ``^[\\x01-\\x7F]+$`` — no NUL byte and no non-ASCII characters.
+    ``^[\\x01-\\x7F]+$``: no NUL byte and no non-ASCII characters.
 
     Raises:
         ValueError: If *value* is not a string, is empty, is too long, or contains a
@@ -80,7 +80,7 @@ class Document:
     for example ``doc.get("_score")`` for a field called ``_score``.
 
     Attributes:
-        id (str): The document's identifier — the value the document was upserted under.
+        id (str): The document's identifier, the value the document was upserted under.
         _id (str): Alias for :attr:`id`, matching the JSON key. Prefer :attr:`id`.
         score (float | None): How well the document matched, or ``None`` when the response
             carried no score. A fetch returns documents without scores, so ``None`` there
@@ -136,7 +136,7 @@ class Document:
         """Read a field without risking :exc:`AttributeError` if it is absent.
 
         Behaves like :meth:`dict.get` over the document. Reserved keys are readable here
-        under their JSON names — ``get("_id")`` and ``get("_score")`` — which is also the
+        under their JSON names, ``get("_id")`` and ``get("_score")``, which is also the
         only way to reach a field of your own that happens to be named ``_score``.
 
         Args:
@@ -158,7 +158,7 @@ class Document:
         """Return the document as a plain dict, back in its JSON shape.
 
         A shallow copy, so mutating it does not touch the document. The reserved keys come
-        back under their JSON names — ``_id`` and ``_score`` — alongside your own fields,
+        back under their JSON names, ``_id`` and ``_score``, alongside your own fields,
         which makes this the form to re-serialize or to feed to a
         :class:`DocumentRecord`.
 
@@ -208,7 +208,7 @@ class DocumentRecord:
     Passing keyword arguments instead of a dict makes the split plain, since ``_id=``
     reads as the argument it is.
 
-    Your field values are the same shapes metadata takes — a string, a number, a boolean,
+    Your field values are the same shapes metadata takes: a string, a number, a boolean,
     or a list of strings. A field the index schema declares as ``dense_vector`` takes a
     list of floats, and one declared ``sparse_vector`` takes sparse values. Field values
     are checked against the index schema server-side, so a type mismatch surfaces on
@@ -223,8 +223,8 @@ class DocumentRecord:
     ``sparse_embed``. A missing required field is likewise reported by the server on
     upsert, as a 400 naming the field.
 
-    Only the ``_id`` is validated on construction — a string of 1 to 512 ASCII characters
-    — so a bad ID is reported at the line that wrote it.
+    Only the ``_id`` is validated on construction, as a non-empty ASCII string within the
+    ID length limit, so a bad ID is reported at the line that wrote it.
 
     Args:
         data (dict[str, Any] | None): The record as a dict, positional-only. Must carry
@@ -232,8 +232,8 @@ class DocumentRecord:
         **fields (Any): Fields given as keyword arguments, including ``_id``.
 
     Raises:
-        ValueError: If ``_id`` is missing, is not a string, is empty, is over 512
-            characters, or contains a non-ASCII character or NUL.
+        ValueError: If ``_id`` is missing, is not a string, is empty, is too long, or
+            contains a non-ASCII character or NUL.
 
     Examples:
         Building from keyword arguments keeps the reserved ``_id`` visually distinct from
@@ -251,7 +251,7 @@ class DocumentRecord:
         DocumentRecord(_id='article-42', fields=1)
 
     .. seealso::
-       :class:`UpdateDocumentRecord` — for changing fields on a document that already
+       :class:`UpdateDocumentRecord`: for changing fields on a document that already
        exists, rather than replacing it wholesale.
     """
 
@@ -310,8 +310,8 @@ class DocumentRecord:
 class UpdateDocumentRecord:
     """A patch to one existing document: the fields to change, and the fields to drop.
 
-    This is a partial update, so fields you do not mention are left exactly as they are —
-    that is the difference from :class:`DocumentRecord`, which replaces the document.
+    This is a partial update, so fields you do not mention are left exactly as they are.
+    That is the difference from :class:`DocumentRecord`, which replaces the document.
 
     Two reserved keys shape the patch, and neither one stores a value: ``_id`` says which
     document to patch, and ``_remove_fields`` lists field names to delete from it. Every
@@ -331,7 +331,7 @@ class UpdateDocumentRecord:
     Raises:
         ValueError: If ``_id`` is missing or invalid, if ``_remove_fields`` is not a list
             of strings, or if a field appears both as a new value and in
-            ``_remove_fields`` — the message names the overlapping fields.
+            ``_remove_fields``. The message names the overlapping fields.
 
     Examples:
         Set two fields and leave the rest of the document alone:
@@ -349,7 +349,7 @@ class UpdateDocumentRecord:
         UpdateDocumentRecord(_id='article-42', set=1, remove=1)
 
     .. seealso::
-       :class:`DocumentRecord` — for writing a whole document, where unmentioned fields do
+       :class:`DocumentRecord`: for writing a whole document, where unmentioned fields do
        not survive.
     """
 
@@ -396,7 +396,7 @@ class UpdateDocumentRecord:
         """Read one entry of the patch, reserved keys included, without raising.
 
         Args:
-            key (str): Name to read — a field being set, or ``"_id"`` or
+            key (str): Name to read: a field being set, or ``"_id"`` or
                 ``"_remove_fields"``.
             default (Any): What to return when it is absent. Defaults to ``None``.
 
