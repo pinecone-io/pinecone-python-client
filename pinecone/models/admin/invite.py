@@ -37,7 +37,7 @@ class InviteModel(StructDictMixin, Struct, kw_only=True):
     ``status`` is typed as :class:`str` rather than :class:`InviteStatus` so a
     status added by the server after this SDK release surfaces as its raw
     string instead of raising. Compare against :class:`InviteStatus` members
-    directly — they are ``str`` values.
+    directly; they are ``str`` values.
 
     Attributes:
         id (str): Unique identifier (UUID) for the invite.
@@ -67,7 +67,7 @@ class InviteModel(StructDictMixin, Struct, kw_only=True):
         True
 
     .. seealso::
-       - :class:`~pinecone.models.admin.user.UserModel` — the member record
+       - :class:`~pinecone.models.admin.user.UserModel`: the member record
          created when the invite is accepted. The two carry separate IDs, so the
          invite's ``id`` is not usable as a user ID.
     """

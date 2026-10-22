@@ -1,4 +1,4 @@
-"""Invites namespace — list, create, describe, delete, and resend organization invites."""
+"""Invites namespace: list, create, describe, delete, and resend organization invites."""
 
 from __future__ import annotations
 
@@ -29,9 +29,9 @@ class Invites:
 
     An invite is an emailed offer for someone to join the organization that the
     :class:`~pinecone.Admin` client's OAuth credentials resolve to. It is a
-    principal in its own right — roles can be bound to it before anyone accepts
-    — and accepting it turns the recipient into a user. Not constructed directly
-    — reach it as ``admin.invites``.
+    principal in its own right (roles can be bound to it before anyone accepts),
+    and accepting it turns the recipient into a user. Not constructed directly;
+    reach it as ``admin.invites``.
 
     An invite's role bindings are not part of its representation: :meth:`create`
     sends them, but no method here returns them. Read or change them through
@@ -51,10 +51,10 @@ class Invites:
         newhire@acme.com pending
 
     .. seealso::
-       - :class:`~pinecone.admin.users.Users` — the same person after they
+       - :class:`~pinecone.admin.users.Users`: the same person after they
          accept. An invite and the user it produces are separate records with
          separate IDs, and only one of the two appears in each list.
-       - :class:`~pinecone.admin.service_accounts.ServiceAccounts` — machine
+       - :class:`~pinecone.admin.service_accounts.ServiceAccounts`: machine
          identities, which are created directly and never invited.
     """
 
@@ -75,7 +75,7 @@ class Invites:
         """List the organization's pending and expired invites, with lazy pagination.
 
         Accepted invites are omitted, so absence from this list does not mean an
-        invite never existed — see the note below. No request is sent until the
+        invite never existed (see the note below). No request is sent until the
         returned paginator is iterated; see
         `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
@@ -95,7 +95,8 @@ class Invites:
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
-                If *limit* is outside 1-100. Raised before any network call.
+                If *limit* is outside the allowed page-size range. Raised before any
+                network call.
 
         Examples:
             >>> from pinecone import Admin
@@ -120,7 +121,7 @@ class Invites:
             access, read both lists.
 
         .. seealso::
-           - :meth:`Users.list() <pinecone.admin.users.Users.list>` — the members this list's
+           - :meth:`Users.list() <pinecone.admin.users.Users.list>`: the members this list's
              invitees become once they accept.
         """
         if limit is not None:
@@ -166,8 +167,8 @@ class Invites:
                 the project UUID. At least one entry is required, and the server
                 requires at least one of them to be an ``organization``-scoped
                 membership role (``OrgOwner``, ``OrgManager``,
-                ``OrgBillingAdmin``, or ``OrgMember``) — a project-only invite is
-                rejected.
+                ``OrgBillingAdmin``, or ``OrgMember``); the server rejects a
+                project-only invite.
 
         Returns:
             The created :class:`~pinecone.models.admin.invite.InviteModel`, whose
@@ -176,6 +177,7 @@ class Invites:
             role-binding queries.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *email* is not a ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
                 If *email* is empty, if *role_bindings* is empty, or if any
                 entry is missing ``resource_type``/``role``, carries an
@@ -185,7 +187,7 @@ class Invites:
             :exc:`~pinecone.errors.exceptions.ConflictError`:
                 If a pending invite already exists for the address, or the
                 address already belongs to a member. In the second case there is
-                nothing to invite — manage the existing user's roles instead.
+                nothing to invite; manage the existing user's roles instead.
 
         Examples:
             >>> from pinecone import Admin
@@ -226,11 +228,11 @@ class Invites:
 
         .. seealso::
            - :meth:`RoleBindings.create()
-             <pinecone.admin.role_bindings.RoleBindings.create>` — how to grant
+             <pinecone.admin.role_bindings.RoleBindings.create>`: how to grant
              a further role after the invite exists, and the only way to read
              back the roles this call sent.
            - :meth:`ServiceAccounts.create()
-             <pinecone.admin.service_accounts.ServiceAccounts.create>` — the machine
+             <pinecone.admin.service_accounts.ServiceAccounts.create>`: the machine
              equivalent, which takes the same binding shape but mints
              credentials instead of emailing anyone.
         """
@@ -252,7 +254,7 @@ class Invites:
     def describe(self, *, invite_id: str) -> InviteModel:
         """Get one invite's details, whatever its status.
 
-        Unlike :meth:`list`, this reaches accepted invites too — it is the only
+        Unlike :meth:`list`, this reaches accepted invites too. It is the only
         operation that can return ``status == InviteStatus.PROCESSED``, which is
         how you tell an accepted invite from one that never existed.
 
@@ -266,6 +268,7 @@ class Invites:
             invite, ``processed_at`` carries when it was accepted.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *invite_id* is not a ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *invite_id* is empty.
             :exc:`~pinecone.errors.exceptions.NotFoundError`:
                 If no such invite exists in the organization. A deleted invite
@@ -282,7 +285,7 @@ class Invites:
             ('newhire@acme.com', 'pending')
 
         .. seealso::
-           - :meth:`Users.describe() <pinecone.admin.users.Users.describe>` — the member record
+           - :meth:`Users.describe() <pinecone.admin.users.Users.describe>`: the member record
              created when this invite was accepted, addressed by its own user ID.
         """
         require_non_empty("invite_id", invite_id)
@@ -295,13 +298,14 @@ class Invites:
     def delete(self, *, invite_id: str) -> None:
         """Withdraw a pending or expired invite, along with its role bindings.
 
-        The invite and its role bindings are gone by the time this returns — a
+        The invite and its role bindings are gone by the time this returns: a
         repeat call, or fetching it by ID afterwards, gets a not-found error.
 
         Args:
             invite_id (str): The UUID of the invite to withdraw.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *invite_id* is not a ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *invite_id* is empty.
             :exc:`~pinecone.errors.exceptions.NotFoundError`:
                 If no such invite exists in the organization.
@@ -316,7 +320,7 @@ class Invites:
             >>> admin.invites.delete(invite_id="9c8e3528-b9c0-4358-84ce-84c28e91b566")
 
         .. seealso::
-           - :meth:`Users.delete() <pinecone.admin.users.Users.delete>` — the only way to revoke
+           - :meth:`Users.delete() <pinecone.admin.users.Users.delete>`: the only way to revoke
              access once an invite has been accepted.
         """
         require_non_empty("invite_id", invite_id)
@@ -328,9 +332,7 @@ class Invites:
         """Resend an invite's email and push its expiration back out.
 
         Works on pending and expired invites alike: the returned invite is
-        ``pending`` again with a fresh ``expires_at``. Invite emails are rate
-        limited per organization, so this is not safe to call in a tight loop —
-        see the note below.
+        ``pending`` again with a fresh ``expires_at``.
 
         Args:
             invite_id (str): The UUID of the invite to resend.
@@ -341,16 +343,13 @@ class Invites:
             new expiry from here rather than computing it.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *invite_id* is not a ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *invite_id* is empty.
             :exc:`~pinecone.errors.exceptions.NotFoundError`:
                 If no such invite exists in the organization.
             :exc:`~pinecone.errors.exceptions.ConflictError`:
-                If the invite has already been accepted. Never retry this one —
-                there is nothing left to resend.
-            :exc:`~pinecone.errors.exceptions.RateLimitError`:
-                If the organization's invite-email budget is exhausted.
-                ``retry_after`` carries the server's cooldown when one is
-                supplied.
+                If the invite has already been accepted. Do not retry; there is
+                nothing left to resend.
 
         Examples:
             >>> from pinecone import Admin
@@ -362,15 +361,6 @@ class Invites:
             'pending'
             >>> invite.expires_at
             '2026-05-21T03:00:00Z'
-
-        .. note::
-            A :exc:`~pinecone.errors.exceptions.RateLimitError` that reaches you
-            has already survived the SDK's own retries, which honor
-            ``Retry-After`` (see
-            `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__)
-            — so an immediate retry
-            of your own will just fail again. Honor ``exc.retry_after`` when the
-            server supplies one, and back off generously otherwise.
         """
         require_non_empty("invite_id", invite_id)
         logger.info("Resending invite %r", invite_id)

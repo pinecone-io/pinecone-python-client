@@ -36,7 +36,7 @@ class UserModel(StructDictMixin, Struct, kw_only=True):
         True
 
     .. seealso::
-       - :class:`~pinecone.models.admin.invite.InviteModel` — the same person
+       - :class:`~pinecone.models.admin.invite.InviteModel`: the same person
          before they accepted, carrying a separate ID and a ``status``.
     """
 

@@ -21,7 +21,7 @@ class ProjectModel(StructDictMixin, Struct, kw_only=True):
         id (str): Unique identifier for the project. This is the ``resource_id``
             a project-scoped role binding takes, and the ``project_id`` the
             API-key operations take.
-        name (str): Name of the project. Not unique — two projects in the same
+        name (str): Name of the project. Not unique: two projects in the same
             organization can share one.
         max_pods (int): Maximum number of pods allowed in the project. Applies
             to pod-based indexes only; serverless indexes are unaffected.
@@ -59,9 +59,9 @@ class ProjectModel(StructDictMixin, Struct, kw_only=True):
 
 
 class ProjectList:
-    """The projects of the organization the credentials resolve to.
+    """The projects in the organization that the credentials can reach.
 
-    A sequence of :class:`ProjectModel` — iterable, indexable, and sized — with
+    A sequence of :class:`ProjectModel` (iterable, indexable, and sized) with
     :meth:`names` and :meth:`to_dict` on top. Not constructed directly; it is
     what :meth:`Projects.list() <pinecone.admin.projects.Projects.list>` returns.
 
@@ -112,11 +112,10 @@ class ProjectList:
             project dicts, each produced by :meth:`ProjectModel.to_dict`.
 
         Examples:
-            >>> from pinecone import Admin
-            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
-            >>> projects = admin.projects.list()
-            >>> projects.to_dict()  # doctest: +SKIP
-            {'data': [{'name': 'production-search', ...}, {'name': 'staging-recommendations', ...}]}
+            .. code-block:: python
+
+                payload = admin.projects.list().to_dict()
+                print(payload["data"][0]["name"])
         """
         return {"data": [p.to_dict() for p in self._projects]}
 
@@ -127,11 +126,10 @@ class ProjectList:
             list[str]: Project names in the same order as the list.
 
         Examples:
-            >>> from pinecone import Admin
-            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
-            >>> projects = admin.projects.list()
-            >>> projects.names()  # doctest: +SKIP
-            ['production-search', 'staging-recommendations']
+            .. code-block:: python
+
+                if "product-search" in admin.projects.list().names():
+                    print("project already exists")
         """
         return [project.name for project in self._projects]
 

@@ -35,10 +35,10 @@ class APIKeyRole(str, Enum):
         [<APIKeyRole.DATA_PLANE_EDITOR: 'DataPlaneEditor'>]
 
     .. seealso::
-       - :class:`~pinecone.models.admin.role_binding.RoleName` — the roles used
+       - :class:`~pinecone.models.admin.role_binding.RoleName`: the roles used
          for users, service accounts, and invites. That set includes
          organization-scoped roles, which an API key cannot hold.
-       - :meth:`ApiKeys.update() <pinecone.admin.api_keys.ApiKeys.update>` — changing a key's
+       - :meth:`ApiKeys.update() <pinecone.admin.api_keys.ApiKeys.update>`: changing a key's
          roles replaces the whole set rather than adding to it.
     """
 
@@ -56,8 +56,8 @@ class APIKeyModel(StructDictMixin, Struct, kw_only=True):
     Attributes:
         id (str): Unique identifier for the API key. This is what every API-key
             operation takes as ``api_key_id``, and it is not the secret.
-        name (str | None): Name of the API key, or ``None`` when the backend
-            has no display label set for this key.
+        name (str | None): Name of the API key, or ``None`` if the key has
+            no name.
         project_id (str): Identifier of the project the key belongs to. A key's
             authority never reaches outside that project.
         roles (list[APIKeyRole]): List of roles assigned to the key
@@ -75,7 +75,7 @@ class APIKeyModel(StructDictMixin, Struct, kw_only=True):
         [<APIKeyRole.DATA_PLANE_EDITOR: 'DataPlaneEditor'>]
 
     .. seealso::
-       - :class:`APIKeyWithSecret` — what
+       - :class:`APIKeyWithSecret`: what
          :meth:`ApiKeys.create() <pinecone.admin.api_keys.ApiKeys.create>` returns instead,
          wrapping this model alongside the secret it shows only once.
     """
@@ -138,16 +138,15 @@ class APIKeyWithSecret(StructDictMixin, Struct, kw_only=True):
     """Response model for an API key together with its secret value.
 
     Returned only by :meth:`ApiKeys.create() <pinecone.admin.api_keys.ApiKeys.create>`, and the
-    secret it carries is obtainable exactly once — no later request returns it,
+    secret it carries is obtainable exactly once: no later request returns it,
     and there is no rotation for API keys, so a lost secret means creating a
     replacement key and deleting the old one.
 
     Attributes:
         key (APIKeyModel): The API key metadata, including the ``id`` every
             other API-key operation takes.
-        value (str): The secret API key string — what
-            :class:`~pinecone.Pinecone` is constructed with. Treat as a
-            credential.
+        value (str): The secret API key string to pass as ``api_key`` to
+            :class:`~pinecone.Pinecone`. Treat as a credential.
 
     Examples:
         >>> from pinecone import Admin
@@ -192,7 +191,7 @@ class APIKeyWithSecret(StructDictMixin, Struct, kw_only=True):
 class APIKeyList:
     """The API keys of one project, as returned by a list call.
 
-    A sequence of :class:`APIKeyModel` — iterable, indexable, and sized — with
+    A sequence of :class:`APIKeyModel` (iterable, indexable, and sized) with
     :meth:`names` and :meth:`to_dict` on top. Not constructed directly; it is
     what :meth:`ApiKeys.list() <pinecone.admin.api_keys.ApiKeys.list>` returns.
 

@@ -25,9 +25,9 @@ class ServiceAccountModel(StructDictMixin, Struct, kw_only=True):
             ``principal_id`` when querying or creating role bindings.
         name (str): Short human-readable label set at creation time.
         client_id (str): OAuth client ID the service account uses to obtain
-            access tokens. Used only for OAuth token exchange — it is not the
-            service account's identifier for role bindings, and passing it where
-            ``id`` is expected reads back as not found.
+            access tokens. Used only for OAuth token exchange; pass ``id``, not
+            this value, wherever an operation or role binding asks for the
+            service account.
         created_at (str): RFC 3339 timestamp for when the account was created.
         updated_at (str): RFC 3339 timestamp of the most recent metadata update.
 
@@ -44,13 +44,13 @@ class ServiceAccountModel(StructDictMixin, Struct, kw_only=True):
         'ci-prod'
 
     .. seealso::
-       - :class:`~pinecone.models.admin.service_account.ServiceAccountWithSecret`
-         — what :meth:`ServiceAccounts.create()
+       - :class:`~pinecone.models.admin.service_account.ServiceAccountWithSecret`:
+         what :meth:`ServiceAccounts.create()
          <pinecone.admin.service_accounts.ServiceAccounts.create>`
          and :meth:`ServiceAccounts.rotate_secret()
          <pinecone.admin.service_accounts.ServiceAccounts.rotate_secret>` return instead,
          wrapping this model alongside the one-time secret.
-       - :class:`~pinecone.models.admin.user.UserModel` — the human equivalent,
+       - :class:`~pinecone.models.admin.user.UserModel`: the human equivalent,
          which has an email address rather than OAuth credentials.
     """
 
@@ -68,7 +68,7 @@ class ServiceAccountWithSecret(StructDictMixin, Struct, kw_only=True):
     <pinecone.admin.service_accounts.ServiceAccounts.create>`
     and :meth:`ServiceAccounts.rotate_secret()
     <pinecone.admin.service_accounts.ServiceAccounts.rotate_secret>`, and
-    the secret it carries is obtainable exactly once — nothing can retrieve it
+    the secret it carries is obtainable exactly once. Nothing can retrieve it
     afterwards, so capture it before the object goes out of scope.
 
     Attributes:

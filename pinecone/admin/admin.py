@@ -52,7 +52,7 @@ def _refresh_deadline(expires_in: int | None) -> float | None:
     Replacement happens ``_TOKEN_REFRESH_MARGIN_SECONDS`` ahead of the stated
     expiry so a request already in flight cannot outlive the credential it was
     sent with. The margin is halved down for tokens shorter than twice the
-    margin, so a short-lived token is not born already stale — which would
+    margin, so a short-lived token is not born already stale, which would
     otherwise re-fetch on every single request.
 
     ``None`` means "no deadline": the token endpoint reported no usable
@@ -113,7 +113,7 @@ class _TokenRefreshingHTTPClient(HTTPClient):
     def _current_token(self, stale: str | None = None) -> str:
         """Return the token to use, minting a replacement when the old one is spent.
 
-        With *stale* set — the 401 path — a replacement is minted only if the
+        With *stale* set (the 401 path), a replacement is minted only if the
         token that failed is still the current one; a thread that lost the race
         gets the winner's token instead of triggering a second exchange.
         """
@@ -174,25 +174,25 @@ class _TokenRefreshingHTTPClient(HTTPClient):
 class Admin:
     """Manage Pinecone organizations, projects, and the credentials that reach them.
 
-    :class:`Admin` authenticates with OAuth2 client credentials — a service account's
-    ``client_id`` and ``client_secret`` — never with an API key, and it reaches only
-    control-plane resources: organizations, projects, API keys, and the role bindings that
-    grant access to them. :class:`~pinecone.Pinecone` is the other half of the SDK: it takes
-    an API key and does index and vector work. Constructing :class:`Admin` exchanges your
-    credentials for a token straight away, so bad credentials fail here rather than on the
-    first call. This client is synchronous only — there is no async form.
+    :class:`Admin` authenticates with OAuth2 client credentials (a service account's
+    ``client_id`` and ``client_secret``), never with an API key. It manages accounts and
+    access, not data: organizations, projects, API keys, members, invites, service
+    accounts, and role bindings. :class:`~pinecone.Pinecone` is the other half of the SDK:
+    it takes an API key and does index and vector work. Constructing :class:`Admin`
+    exchanges your credentials for a token straight away, so bad credentials fail here
+    rather than on the first call. This client is synchronous only; there is no async form.
 
     Projects are created inside the organization the credentials belong to.
 
     Operations are grouped into seven namespaces:
 
-    - :attr:`organizations` — the organizations these credentials can reach
-    - :attr:`projects` — create, configure, and delete projects
-    - :attr:`api_keys` — the project-scoped keys :class:`~pinecone.Pinecone` authenticates with
-    - :attr:`users` — the organization's members
-    - :attr:`invites` — pending and expired invitations to join the organization
-    - :attr:`service_accounts` — the OAuth principals this client itself authenticates as
-    - :attr:`role_bindings` — every grant of a role to a principal, at organization or
+    - :attr:`organizations`: the organizations these credentials can reach
+    - :attr:`projects`: create, configure, and delete projects
+    - :attr:`api_keys`: the project-scoped keys :class:`~pinecone.Pinecone` authenticates with
+    - :attr:`users`: the organization's members
+    - :attr:`invites`: pending and expired invitations to join the organization
+    - :attr:`service_accounts`: the OAuth principals this client itself authenticates as
+    - :attr:`role_bindings`: every grant of a role to a principal, at organization or
       project scope; nothing else confers permissions
 
     Args:
@@ -222,8 +222,8 @@ class Admin:
         :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *client_id* or
             *client_secret* resolves to nothing, from either the argument or the
             environment.
-        :exc:`ApiError`: If the credential exchange is rejected — usually a wrong or
-            revoked ``client_secret``.
+        :exc:`~pinecone.errors.exceptions.ApiError`: If the credential exchange is
+            rejected, usually because the ``client_secret`` is wrong or was rotated.
 
     Examples:
 
@@ -253,7 +253,7 @@ class Admin:
         ... )
 
     .. note::
-        **Where the credentials come from** — a service account's ``client_id`` and
+        **Where the credentials come from.** A service account's ``client_id`` and
         ``client_secret`` come either from
         :meth:`admin.service_accounts.create()
         <pinecone.admin.service_accounts.ServiceAccounts.create>`, once you already hold
@@ -264,18 +264,17 @@ class Admin:
         only way to get another.
 
     .. note::
-        **Token refresh** — :class:`Admin` renews its OAuth token before it expires, so a
+        **Token refresh.** :class:`Admin` renews its OAuth token before it expires, so a
         long-lived instance keeps working with no action on your part. Supply your own
         ``Authorization`` entry in ``additional_headers`` to manage the token yourself
         instead.
 
     .. seealso::
-       :class:`~pinecone.Pinecone` — index and vector operations, authenticated with an API
+       :class:`~pinecone.Pinecone`: index and vector operations, authenticated with an API
        key created here.
 
-       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
-       — what each exception an admin call can raise means,
-       and what to do about it.
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__:
+       what each exception an admin call can raise means, and what to do about it.
     """
 
     def __init__(
@@ -594,8 +593,9 @@ class Admin:
         """Access the ServiceAccounts namespace for service-account operations.
 
         Service accounts are the OAuth principals :class:`Admin` clients authenticate as,
-        including the one behind this client's own ``client_id``/``client_secret`` — rotating
-        or deleting that account breaks this client.
+        including the one behind this client's own ``client_id``/``client_secret``. Deleting
+        that account breaks this client at once; rotating its secret breaks it when the
+        current token expires.
 
         Returns:
             The :class:`ServiceAccounts` namespace. Call
@@ -620,8 +620,8 @@ class Admin:
         """Access the RoleBindings namespace for role-binding operations.
 
         Role bindings are the only thing that confers permissions in Pinecone, so
-        this is where any principal's access — user, service account, API key, or
-        pending invite — is read and changed.
+        this is where any principal's access (user, service account, API key, or
+        pending invite) is read and changed.
 
         Returns:
             The :class:`RoleBindings` namespace. Call

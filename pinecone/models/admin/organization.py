@@ -61,7 +61,7 @@ class OrganizationModel(StructDictMixin, Struct, kw_only=True):
 class OrganizationList:
     """The organizations reachable with the current credentials.
 
-    A sequence of :class:`OrganizationModel` — iterable, indexable, and sized —
+    A sequence of :class:`OrganizationModel` (iterable, indexable, and sized)
     with :meth:`names` and :meth:`to_dict` on top. Not constructed directly; it
     is what :meth:`Organizations.list() <pinecone.admin.organizations.Organizations.list>` returns.
 
@@ -115,11 +115,11 @@ class OrganizationList:
             organization dicts, each produced by :meth:`OrganizationModel.to_dict`.
 
         Examples:
-            >>> from pinecone import Admin
-            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
-            >>> orgs = admin.organizations.list()
-            >>> orgs.to_dict()  # doctest: +SKIP
-            {'data': [{'name': 'acme-corp', ...}, {'name': 'research-team', ...}]}
+            .. code-block:: python
+
+                import json
+
+                print(json.dumps(admin.organizations.list().to_dict(), indent=2))
         """
         return {"data": [o.to_dict() for o in self._organizations]}
 
@@ -130,11 +130,10 @@ class OrganizationList:
             list[str]: Organization names in the same order as the list.
 
         Examples:
-            >>> from pinecone import Admin
-            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
-            >>> orgs = admin.organizations.list()
-            >>> orgs.names()  # doctest: +SKIP
-            ['acme-corp', 'research-team']
+            .. code-block:: python
+
+                if "Acme Corp" in admin.organizations.list().names():
+                    print("Organization found")
         """
         return [org.name for org in self._organizations]
 

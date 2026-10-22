@@ -1,4 +1,4 @@
-"""ServiceAccounts namespace — list, create, describe, update, delete, rotate secret."""
+"""ServiceAccounts namespace: list, create, describe, update, delete, rotate secret."""
 
 from __future__ import annotations
 
@@ -29,14 +29,14 @@ class ServiceAccounts:
 
     A service account is a non-human principal for programmatic API access. It
     is also the kind of principal :class:`~pinecone.Admin` itself authenticates
-    as, so this namespace manages the same species of credential the client is
-    holding. Not constructed directly — reach it as ``admin.service_accounts``.
+    as, so this namespace manages the same kind of credential the client is
+    holding. Not constructed directly; reach it as ``admin.service_accounts``.
 
     Two consequences are worth knowing before calling anything here:
 
     - :meth:`create` and :meth:`rotate_secret` are the only operations that ever
       return a ``client_secret``, and each returns it exactly once. Capture it,
-      or rotate again — nothing can retrieve it afterwards.
+      or rotate again: nothing can retrieve it afterwards.
     - :meth:`rotate_secret` and :meth:`delete` aimed at the account whose
       credentials built this client will break it. See those methods.
 
@@ -59,10 +59,10 @@ class ServiceAccounts:
         ci-prod l3Ow0CmFyc4jOONcwiKUCRqQKN0tiCAn
 
     .. seealso::
-       - :class:`~pinecone.admin.users.Users` — the human members. A person is
+       - :class:`~pinecone.admin.users.Users`: the human members. A person is
          invited and accepts; a service account is created outright and holds
          its own OAuth credentials, so the two are never interchangeable.
-       - :class:`~pinecone.admin.api_keys.ApiKeys` — the other machine
+       - :class:`~pinecone.admin.api_keys.ApiKeys`: the other machine
          credential. An API key authorizes data-plane and control-plane calls
          within one project; a service account authenticates the Admin API
          across the organization.
@@ -100,12 +100,13 @@ class ServiceAccounts:
         Returns:
             :class:`~pinecone.models.pagination.Paginator` yielding
             :class:`~pinecone.models.admin.service_account.ServiceAccountModel`
-            objects. The listed accounts carry no ``client_secret`` — that is
-            returned only by :meth:`create` and :meth:`rotate_secret`.
+            objects. The listed accounts carry no ``client_secret``; only
+            :meth:`create` and :meth:`rotate_secret` return one.
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
-                If *limit* is outside 1-100. Raised before any network call.
+                If *limit* is outside the allowed page-size range. Raised before any
+                network call.
 
         Examples:
             >>> from pinecone import Admin
@@ -122,8 +123,8 @@ class ServiceAccounts:
             1 None
 
         .. seealso::
-           - :meth:`Users.list() <pinecone.admin.users.Users.list>` — the human members, which
-             this list deliberately excludes.
+           - :meth:`Users.list() <pinecone.admin.users.Users.list>`: the human members, which
+             this list excludes.
         """
         if limit is not None:
             require_in_range("limit", limit, _LIMIT_MIN, _LIMIT_MAX)
@@ -160,8 +161,8 @@ class ServiceAccounts:
 
         Args:
             name (str): Human-readable label for the account, e.g. ``"ci-prod"``.
-                Sent verbatim — the SDK checks only that it is non-empty and
-                leaves length and content to the server. The server measures
+                The SDK checks only that it is non-empty and leaves length and
+                content to the server. The server measures
                 length in UTF-8 bytes rather than codepoints, so a name of
                 multi-byte characters can be rejected while looking short to
                 Python's ``len()``.
@@ -172,7 +173,7 @@ class ServiceAccounts:
                 ``resource_type`` (``"organization"`` or ``"project"``) and
                 ``role``; ``project`` scope additionally needs ``resource_id``,
                 the project UUID. ``None`` and ``[]`` both create an account with
-                no roles at all — it can obtain a token but do nothing with it
+                no roles at all: it can obtain a token but do nothing with it
                 until roles are granted. The bindings are **not** echoed in the
                 response.
 
@@ -184,16 +185,21 @@ class ServiceAccounts:
             ``.client_secret``.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *name* is not a ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
                 If *name* is empty, or if any *role_bindings* entry is missing
                 ``resource_type``/``role``, carries an unrecognized key, or names
                 a value this SDK release does not know. The message names the
                 index of the offending entry. Raised before any network call.
             :exc:`~pinecone.errors.exceptions.ForbiddenError`:
-                If the caller lacks permission to create service accounts, or the
-                organization's plan does not include them. The two cases are
-                distinguishable only by the server's message, so read it before
-                concluding which one you hit.
+                If the caller lacks permission to create service accounts or to
+                create one of the requested *role_bindings*, would be granting a
+                permission it does not itself hold, or the organization's plan
+                does not include service accounts or one of the requested roles.
+                The server's message says which.
+            :exc:`~pinecone.errors.exceptions.ApiError`:
+                With status 400 if a *role_bindings* entry names a role that
+                cannot be bound at its scope to a service account.
 
         Examples:
             >>> from pinecone import Admin
@@ -204,7 +210,7 @@ class ServiceAccounts:
             >>> bool(created.client_secret)
             True
 
-            That is the only moment ``created.client_secret`` is readable —
+            That is the only moment ``created.client_secret`` is readable:
             hand it straight to whatever stores your credentials, because
             neither :meth:`describe` nor :meth:`list` will return it and the
             only other way to get a working secret is :meth:`rotate_secret`.
@@ -235,9 +241,9 @@ class ServiceAccounts:
             result logged or serialized wholesale leaks the secret.
 
         .. seealso::
-           - :meth:`rotate_secret` — the only way to obtain a working secret for
+           - :meth:`rotate_secret`: the only way to obtain a working secret for
              an account whose creation result was dropped.
-           - :meth:`Invites.create() <pinecone.admin.invites.Invites.create>` — the human
+           - :meth:`Invites.create() <pinecone.admin.invites.Invites.create>`: the human
              equivalent, which takes the same binding shape but emails an offer
              instead of minting credentials.
         """
@@ -255,13 +261,12 @@ class ServiceAccounts:
     def describe(self, *, service_account_id: str) -> ServiceAccountModel:
         """Get one service account's metadata.
 
-        The ``client_secret`` is never part of this response — it exists in the
+        The ``client_secret`` is never part of this response; it exists in the
         clear only in the :meth:`create` and :meth:`rotate_secret` results.
 
         Args:
             service_account_id (str): The account's UUID, as carried by
-                ``ServiceAccountModel.id``. Not the OAuth ``client_id``, which
-                identifies the account only during token exchange.
+                ``ServiceAccountModel.id``, not the OAuth ``client_id``.
 
         Returns:
             A
@@ -270,11 +275,12 @@ class ServiceAccounts:
             ``updated_at``.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *service_account_id* is not a
+                ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
                 If *service_account_id* is empty.
             :exc:`~pinecone.errors.exceptions.NotFoundError`:
-                If no such service account exists in the organization. Passing
-                the OAuth ``client_id`` instead of the ``id`` lands here too.
+                If no such service account exists in the organization.
 
         Examples:
             >>> from pinecone import Admin
@@ -288,7 +294,7 @@ class ServiceAccounts:
             False
 
         .. seealso::
-           - :meth:`Users.describe() <pinecone.admin.users.Users.describe>` — the human
+           - :meth:`Users.describe() <pinecone.admin.users.Users.describe>`: the human
              equivalent, addressed by user ID.
         """
         require_non_empty("service_account_id", service_account_id)
@@ -308,14 +314,14 @@ class ServiceAccounts:
 
         Only the name is mutable here. Roles are managed through
         :class:`~pinecone.admin.role_bindings.RoleBindings`, and the OAuth
-        ``client_id`` and ``client_secret`` are not editable at all — rotate the
+        ``client_id`` and ``client_secret`` are not editable at all; rotate the
         secret with :meth:`rotate_secret` instead.
 
         Args:
             service_account_id (str): The account's UUID.
-            name (str | None): The new name, e.g. ``"ci-prod-eu"``. Sent
-                verbatim; the server owns the length and content rules, and
-                measures length in UTF-8 bytes rather than codepoints.
+            name (str | None): The new name, e.g. ``"ci-prod-eu"``. The server
+                owns the length and content rules, and measures length in UTF-8
+                bytes rather than codepoints.
 
         Returns:
             The updated
@@ -323,11 +329,13 @@ class ServiceAccounts:
             with a fresh ``updated_at``. No secret is returned.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *service_account_id* is not a
+                ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
                 If *service_account_id* is empty, or if no updatable field was
                 given. The server would accept a fieldless patch as a success
-                that merely bumps ``updated_at``, hiding a caller bug — usually a
-                misspelled keyword — behind an apparent success, so the SDK
+                that merely bumps ``updated_at``, hiding a caller bug (usually a
+                misspelled keyword) behind an apparent success, so the SDK
                 rejects it first. Raised before any network call.
             :exc:`~pinecone.errors.exceptions.NotFoundError`:
                 If no such service account exists in the organization.
@@ -373,6 +381,8 @@ class ServiceAccounts:
             service_account_id (str): The UUID of the service account to delete.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *service_account_id* is not a
+                ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
                 If *service_account_id* is empty.
             :exc:`~pinecone.errors.exceptions.NotFoundError`:
@@ -390,10 +400,10 @@ class ServiceAccounts:
             built this :class:`~pinecone.Admin` client revokes the credentials
             that client authenticates with. Tokens it already minted stop
             working and no new one can be obtained, so the client cannot undo
-            this — recovery needs another account's credentials.
+            this; recovery needs another account's credentials.
 
         .. seealso::
-           - :meth:`rotate_secret` — replaces the secret without destroying the
+           - :meth:`rotate_secret`: replaces the secret without destroying the
              account or its role bindings.
         """
         require_non_empty("service_account_id", service_account_id)
@@ -421,6 +431,8 @@ class ServiceAccounts:
             ``.service_account`` carries the unchanged ``id`` and ``client_id``.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *service_account_id* is not a
+                ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
                 If *service_account_id* is empty.
             :exc:`~pinecone.errors.exceptions.NotFoundError`:
@@ -442,7 +454,7 @@ class ServiceAccounts:
 
             The ``client_id`` above is the pre-rotation one, unchanged: only
             the secret is new, so a caller replaces one value. Read
-            ``rotated.client_secret`` now and store it — this response is the
+            ``rotated.client_secret`` now and store it: this response is the
             only place it exists in the clear.
 
         .. warning::
@@ -454,11 +466,11 @@ class ServiceAccounts:
 
         .. warning::
             Treat ``client_secret`` as a credential. ``repr()`` of the result
-            masks it, but ``to_dict()`` and JSON encoding return it in full — so
+            masks it, but ``to_dict()`` and JSON encoding return it in full, so
             never log or serialize the result wholesale.
 
         .. seealso::
-           - :meth:`create` — the other operation that returns a
+           - :meth:`create`: the other operation that returns a
              ``client_secret``, and the only one that returns a new account.
         """
         require_non_empty("service_account_id", service_account_id)

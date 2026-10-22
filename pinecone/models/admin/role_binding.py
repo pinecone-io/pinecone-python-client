@@ -96,13 +96,14 @@ class RoleBindingModel(StructDictMixin, Struct, kw_only=True):
     :class:`str` rather than as enums so values the server adds after this SDK
     release surface as their raw strings instead of raising. Compare against
     :class:`PrincipalType`, :class:`ResourceType`, and :class:`RoleName`
-    directly — they are ``str`` values.
+    directly; they are ``str`` values.
 
     Attributes:
         id (str): Unique identifier (UUID) for the role binding. This is what
             :meth:`RoleBindings.delete()
-            <pinecone.admin.role_bindings.RoleBindings.delete>` takes — revoking a role is
-            addressed by the binding, never by the principal/scope/role triple.
+            <pinecone.admin.role_bindings.RoleBindings.delete>` takes: revoking a
+            role is addressed by the binding, never by the principal, scope,
+            and role.
         principal_type (str): One of the :class:`PrincipalType` values.
         principal_id (str): The principal's UUID.
         resource_type (str): One of the :class:`ResourceType` values.
@@ -146,8 +147,8 @@ class RoleBindingInput(StructDictMixin, Struct, kw_only=True, omit_defaults=True
     values this SDK release knows about.
 
     ``resource_type`` selects the binding scope. For ``organization`` scope,
-    omit ``resource_id`` — the binding applies to the organization inferred
-    from the request context. For ``project`` scope, ``resource_id`` is
+    omit ``resource_id``; the server uses the organization the credentials
+    belong to. For ``project`` scope, ``resource_id`` is
     required and must be the project UUID.
 
     Attributes:
@@ -184,11 +185,11 @@ class RoleBindingInput(StructDictMixin, Struct, kw_only=True, omit_defaults=True
         'a2f7dddb-1597-4eff-9f71-535fde243f58'
 
     .. seealso::
-       - :class:`RoleBindingModel` — what the server returns. This input type
+       - :class:`RoleBindingModel`: what the server returns. This input type
          names only the scope and the role; the response adds the binding's own
          ``id`` and the principal.
        - :meth:`RoleBindings.create()
-         <pinecone.admin.role_bindings.RoleBindings.create>` — grants a role to an
+         <pinecone.admin.role_bindings.RoleBindings.create>`: grants a role to an
          existing principal, taking the same fields as keyword arguments rather
          than as this struct.
     """

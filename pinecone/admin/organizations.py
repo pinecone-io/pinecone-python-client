@@ -1,4 +1,4 @@
-"""Organizations namespace — list, describe, update, and delete operations."""
+"""Organizations namespace: list, describe, update, and delete operations."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ class Organizations:
     An organization is the top-level account boundary in Pinecone: it holds projects,
     users, and billing, and everything else an :class:`~pinecone.Admin` client touches
     lives inside one. Where a project scopes indexes and API keys, an organization scopes
-    projects, members, and the bill. Not constructed directly — reach it as
+    projects, members, and the bill. Not constructed directly; reach it as
     ``admin.organizations``.
 
     Examples:
@@ -33,7 +33,7 @@ class Organizations:
         ...     print(org.name)
 
     .. seealso::
-       :class:`~pinecone.admin.projects.Projects` — the projects inside an organization.
+       :class:`~pinecone.admin.projects.Projects`: the projects inside an organization.
     """
 
     def __init__(self, *, http: HTTPClient) -> None:
@@ -49,7 +49,7 @@ class Organizations:
 
         Returns:
             An :class:`OrganizationList` of every reachable organization, supporting
-            iteration, ``len()``, and index access. Returned whole — there is no paging.
+            iteration, ``len()``, and index access. Returned whole; there is no paging.
 
         Examples:
             >>> for org in admin.organizations.list():
@@ -72,6 +72,8 @@ class Organizations:
             payment status, support tier, and creation time.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *organization_id* is not a
+                ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *organization_id* is
                 empty or whitespace-only. Checked before the request is sent.
 
@@ -95,13 +97,14 @@ class Organizations:
 
         Args:
             organization_id (str): The organization's identifier, e.g. ``"org-abc123"``.
-            name (str): The new display name, e.g. ``"Acme Corporation"``. Unlike
-                *organization_id*, it is not checked client-side.
+            name (str): The new display name, e.g. ``"Acme Corporation"``.
 
         Returns:
             An :class:`OrganizationModel` carrying the name as it was stored.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *organization_id* is not a
+                ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *organization_id* is
                 empty or whitespace-only. Checked before the request is sent.
 
@@ -123,26 +126,30 @@ class Organizations:
     def delete(self, *, organization_id: str) -> None:
         """Delete an organization permanently.
 
-        There is no undo and no soft-delete window. An organization must meet three
-        conditions before it can be deleted:
+        There is no undo and no soft-delete window. An organization can be deleted
+        only when all three of these hold:
 
-        - It is not on a paid plan (downgrade first).
+        - It is on the free plan (downgrade first).
         - Its payment status is active, with no open invoices.
         - It contains no projects (see
           :meth:`Projects.delete <pinecone.admin.projects.Projects.delete>`).
 
-        All three must hold at once — an organization with no projects can
-        still be blocked by its plan or payment status.
+        Deleting the organization also deletes its service accounts, including the
+        one this :class:`~pinecone.Admin` client authenticates as, so the client
+        stops working afterward.
 
         Args:
             organization_id (str): The organization's identifier, e.g. ``"org-abc123"``.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *organization_id* is not a
+                ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *organization_id* is
                 empty or whitespace-only. Checked before the request is sent.
             :exc:`~pinecone.errors.exceptions.FailedPreconditionError`: If the
                 organization is on a paid plan, its payment status is not active, or it
-                still contains projects. The error message names the blocker.
+                still contains projects. The error message names the first blocker
+                found.
 
         Examples:
             >>> admin.organizations.delete(organization_id="org-abc123")

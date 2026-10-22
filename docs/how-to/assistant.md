@@ -3,20 +3,19 @@
 A Pinecone assistant is a managed question-answering service grounded in documents you
 upload to it. Create the assistant, upload files, then ask questions and get answers with
 citations back to the files that supported each claim. Pinecone does both the retrieval
-and the generation, which is what separates an assistant from an index — an index hands
+and the generation, which is what separates an assistant from an index: an index hands
 you records to feed to a model of your own.
 
-Everything is reached through `pc.assistants`. Methods that talk to one assistant's data
-plane — uploading, chatting, retrieving context, listing files and operations — need that
-assistant's host, so the first such call for a given name does a `describe` behind the
-scenes and caches the host for the life of the client. So the first data-plane call on an
-assistant costs one extra round trip, and a name that does not exist surfaces as
-{exc}`~pinecone.errors.exceptions.NotFoundError` from that lookup rather than from the
-method you actually called.
+Everything is reached through `pc.assistants`. Methods that work on one assistant's files
+and conversations need that assistant's host, so the first such call for a given name
+runs {meth}`~pinecone.client.assistants.Assistants.describe` and caches the host for the
+life of the client. A name that does not exist therefore raises
+{exc}`~pinecone.errors.exceptions.NotFoundError` from that lookup.
 
-`AsyncPinecone` exposes the same names with `await`; see
+`AsyncPinecone` exposes the same methods with `await`; see
 [Sync vs async](../guides/sync-vs-async.md). For which exceptions these methods raise and
-which are worth retrying, see [Error handling](../guides/error-handling.md).
+which are worth retrying, see [Error handling](../guides/error-handling.md). Every
+parameter is documented on {class}`~pinecone.client.assistants.Assistants`.
 
 ## Create an assistant
 
@@ -28,73 +27,38 @@ pc = Pinecone(api_key="your-api-key")
 assistant = pc.assistants.create(
     name="research-assistant",
     instructions="Answer questions based on the uploaded documents.",
+    region="us",
 )
-print(assistant.name)    # "research-assistant"
 print(assistant.status)  # "Ready"
 ```
 
-`create` polls until the assistant reaches `"Ready"` before returning, so the assistant
-is usable the moment the call comes back. `instructions` and `metadata` are optional, and
-`region` is `"us"` or `"eu"` — anything else raises
-{exc}`~pinecone.errors.exceptions.PineconeValueError` before a request is sent. Region
-cannot be changed afterwards; an assistant in the wrong one has to be recreated.
+{meth}`~pinecone.client.assistants.Assistants.create` polls until the assistant is
+`"Ready"`, so you can upload files as soon as it returns. Pass `timeout=-1` to return
+immediately and check on it later with `describe`. If the assistant fails to initialize,
+polling stops with {exc}`~pinecone.errors.exceptions.PineconeError` instead of waiting
+forever. The region cannot be changed later; an assistant in the wrong one has to be
+recreated.
 
-Pass `timeout=-1` to skip the polling and return as soon as the create request is
-accepted. The assistant is not ready yet at that point, so check it later with
-`describe`:
-
-```python
-assistant = pc.assistants.create(name="research-assistant", timeout=-1)
-print(assistant.status)  # not yet "Ready"
-
-assistant = pc.assistants.describe(name="research-assistant")
-```
-
-A positive `timeout` polls with a deadline and raises
-{exc}`~pinecone.errors.exceptions.PineconeTimeoutError` if the assistant is still not
-ready. If it lands in a terminal state instead — `"Failed"`, `"InitializationFailed"`,
-`"Terminating"` or `"Terminated"` — polling stops with
-{exc}`~pinecone.errors.exceptions.PineconeError` rather than waiting for a status that
-will never arrive.
-
-## List and describe assistants
-
-`list` returns a paginator over every assistant in the project:
+## List, describe, and update assistants
 
 ```python
 for asst in pc.assistants.list():
     print(asst.name, asst.status)
-```
 
-`describe` returns one assistant, including the `host` its data-plane calls go to:
-
-```python
 asst = pc.assistants.describe(name="research-assistant")
-print(asst.name, asst.status, asst.region)
-print(asst.instructions)
-print(asst.host)
-```
+print(asst.region, asst.instructions, asst.host)
 
-## Update an assistant
-
-`update` patches `instructions`, `metadata`, or both. At least one is required —
-with neither, the patch body would be empty, so the SDK raises
-{exc}`~pinecone.errors.exceptions.PineconeValueError` instead of sending it.
-
-```python
-assistant = pc.assistants.update(
+pc.assistants.update(
     name="research-assistant",
     instructions="Always cite the source document.",
 )
 ```
 
-`None` means "leave this field alone", so the call above does not touch metadata. A
-`metadata` you do pass replaces the whole dictionary rather than merging into it. To clear
-either field, send its empty value — `instructions=""` or `metadata={}`.
+`update` changes only the fields you pass. A `metadata` you pass replaces the whole
+dictionary rather than merging into it. To clear a field, pass its empty value:
+`instructions=""` or `metadata={}`.
 
-## Upload a file
-
-Pass a local file path to upload a document for the assistant to read:
+## Upload files
 
 ```python
 file = pc.assistants.upload_file(
@@ -102,26 +66,23 @@ file = pc.assistants.upload_file(
     file_path="/data/q3-revenue-review.pdf",
     metadata={"department": "finance", "quarter": "2024-Q3"},
 )
-print(file.id)      # "file-abc123", the id later calls take
-print(file.name)    # "q3-revenue-review.pdf"
-print(file.status)  # "Available"
+print(file.id, file.status)  # "Available"
 ```
 
-`upload_file` waits for server-side processing to finish, so the file it returns is
-already `"Available"` — it is queryable as soon as the call returns. Pass `timeout=-1` to
-return right after the upload is accepted instead, in which case the status is whatever
-processing has reached so far and you follow the rest through the operations API below.
+{meth}`~pinecone.client.assistants.Assistants.upload_file` waits for processing to
+finish, so the file is ready to answer questions when the call returns. The server picks
+how to process a file from its extension; the method reference lists the supported types.
+The `metadata` you attach is what the `filter` argument of `chat`, `context` and
+`list_files` matches against.
 
 To upload bytes you already hold, pass `file_stream` with a `file_name` that carries the
-extension. The server types an uploaded file by its extension alone (`.txt`, `.pdf`,
-`.json`, `.md`, `.docx`) and never inspects the bytes, so a stream without a usable
-filename raises {exc}`~pinecone.errors.exceptions.PineconeValueError` before anything is
-sent:
+extension:
 
 ```python
 import io
 
-pdf_bytes = b"%PDF-1.4 ..."
+with open("/data/q3-revenue-review.pdf", "rb") as f:
+    pdf_bytes = f.read()
 
 file = pc.assistants.upload_file(
     assistant_name="research-assistant",
@@ -130,15 +91,16 @@ file = pc.assistants.upload_file(
 )
 ```
 
-`file_path` and `file_stream` are alternatives; passing both, or neither, raises
-{exc}`~pinecone.errors.exceptions.PineconeValueError`. Passing `file_id` replaces the file
-already stored under that id rather than adding a second one.
+Passing `file_id` replaces the file stored under that id instead of adding a new one.
 
-To see what an assistant currently holds, `list_files` paginates over its files and
-`describe_file` fetches one by id:
+To see what an assistant holds, `list_files` iterates over its files and `describe_file`
+fetches one by id:
 
 ```python
-for file in pc.assistants.list_files(assistant_name="research-assistant"):
+for file in pc.assistants.list_files(
+    assistant_name="research-assistant",
+    filter={"department": "finance"},
+):
     print(file.id, file.name, file.status)
 
 file = pc.assistants.describe_file(
@@ -146,70 +108,41 @@ file = pc.assistants.describe_file(
     file_id="file-abc123",
     include_url=True,
 )
-print(file.signed_url)  # temporary download URL, only when include_url=True
+print(file.signed_url)  # temporary download link
 ```
 
-The listing drops a `"ProcessingFailed"` file once it is old enough; `describe_file`
-still returns it by id.
+A file whose processing failed drops out of `list_files` after a while, but
+`describe_file` still returns it by id.
 
-## Track long-running operations
+## Track file operations
 
-File writes are asynchronous server-side. `upload_file` and `delete_file` poll for you and
-return only once the work is done, so most callers never need this section. But
-`timeout=-1` makes them return as soon as the request is accepted, and these are the
-methods that let you follow what was started.
-
-`describe_operation` reports one operation:
+`upload_file` and `delete_file` poll the server-side operation for you. Called with
+`timeout=-1`, they return as soon as the server accepts the request, and you follow the
+work with the operations methods:
 
 ```python
+for op in pc.assistants.list_operations(
+    assistant_name="research-assistant",
+    operation_type="upload_file",
+    status="Processing",
+):
+    print(op.operation_id, op.file_id, op.percent_complete)
+
 operation = pc.assistants.describe_operation(
     assistant_name="research-assistant",
     operation_id="op-1234-abcd-5678",
 )
-print(operation.status)           # "Processing" | "Completed" | "Failed"
-print(operation.percent_complete) # 0-100, or None if not reported
-print(operation.file_id)          # the file this operation is about
-print(operation.created_at, operation.completed_on)
+if operation.status == "Failed":
+    print(operation.error)
 ```
 
-`completed_on` is `None` while `status` is still `"Processing"`, so the pair brackets how
-long the work took once it is not.
-
-Read `operation.error` only when `status` is `"Failed"`. The server never clears that
-field once it is set, so a retried operation that is back to `"Processing"` — or that
-eventually succeeded — still carries the earlier attempt's message.
-
-`list_operations` returns a lazy paginator over everything in flight and everything that
-finished recently enough to still be in the API's retention window:
-
-```python
-for op in pc.assistants.list_operations(assistant_name="research-assistant"):
-    print(op.operation_id, op.operation_type, op.status)
-```
-
-Filter with `operation_type` (`"upload_file"`, `"upsert_file"`,
-`"update_file_metadata"`, `"delete_file"`) and `status` (`"Processing"`, `"Completed"`,
-`"Failed"` — case-sensitive). An unrecognized value raises
-{exc}`~pinecone.errors.exceptions.PineconeValueError` listing the ones that work, before
-anything is sent:
-
-```python
-stuck = pc.assistants.list_operations(
-    assistant_name="research-assistant",
-    operation_type="upload_file",
-    status="Processing",
-).to_list()
-```
-
-`limit` caps how many operations the paginator yields in total. For page-at-a-time
-control use `list_operations_page`, which takes a `page_size` and returns a
-{class}`~pinecone.models.assistant.list.ListOperationsResponse` whose `next` is the token
-for the following page. See [Pagination](../guides/pagination.md).
+`status` is `"Processing"`, `"Completed"` or `"Failed"`. Check `status` rather than
+`error`: a retried operation can still carry an earlier attempt's error message. The
+server keeps finished operations for a limited time. For page-at-a-time listing, see
+{meth}`~pinecone.client.assistants.Assistants.list_operations_page` and
+[Pagination](../guides/pagination.md).
 
 ## Ask a question
-
-`chat` is the method to reach for. It returns the answer at `response.message.content`
-and the sources as structured objects, which is what you need to render source links:
 
 ```python
 response = pc.assistants.chat(
@@ -217,25 +150,26 @@ response = pc.assistants.chat(
     messages=[{"role": "user", "content": "How did Q3 revenue change?"}],
 )
 print(response.message.content)
-print(response.model)           # the model that answered
-print(response.finish_reason)   # "stop" when the model finished on its own
+print(response.model)          # the model that answered
+print(response.finish_reason)  # "stop" when the model finished on its own
 ```
 
-Messages can be dicts or {class}`~pinecone.models.assistant.message.Message` objects. In
-a dict, `role` defaults to `"user"` when absent. The backend accepts only the exact
-strings `"user"` and `"assistant"`, compared case-sensitively, and rejects blank content
-— neither is checked client-side, so a bad role comes back as an API error.
+Messages can be dicts or {class}`~pinecone.models.assistant.message.Message` objects.
+`role` is `"user"` or `"assistant"`, and defaults to `"user"` when a dict leaves it out.
 
-The assistant answers only from files you uploaded to it. An assistant with nothing in
-`"Available"` status yet raises {exc}`~pinecone.errors.exceptions.ApiError` rather than
-replying from general knowledge, so check `list_files` before reading that as a transport
-failure.
+The assistant answers only from files you uploaded. Until at least one file is
+`"Available"`, `chat` raises {exc}`~pinecone.errors.exceptions.ApiError` instead of
+answering from general knowledge.
+
+`model` picks the large language model that writes the answer; the
+{meth}`~pinecone.client.assistants.Assistants.chat` reference lists the documented
+choices and the default. A name outside that list may be served by a successor model
+rather than rejected, so read `response.model` to see which model answered.
 
 ### Render the citations
 
-Citations are keyed to character positions in the answer, so you can insert footnote
-markers into `response.message.content` as you render it. Each citation carries the
-references behind it, and each reference names the source file:
+Each citation carries the character `position` in the answer it supports, so you can
+insert footnote markers as you render the text, and the references behind it:
 
 ```python
 for citation in response.citations:
@@ -243,38 +177,31 @@ for citation in response.citations:
         print(citation.position, reference.file.name, reference.pages)
 ```
 
-`reference.file` is an {class}`~pinecone.models.assistant.file_model.AssistantFileModel`,
-so `file.name` gives you a label, `file.id` refetches the document, and `file.metadata`
-returns whatever you attached at upload. `reference.pages` is the page numbers for
-paginated sources such as PDFs, and `None` for sources that have no pages.
+`reference.file` is an {class}`~pinecone.models.assistant.file_model.AssistantFileModel`
+with the `name`, `id` and `metadata` of the source file. `reference.pages` lists page
+numbers for paginated sources such as PDFs, and is `None` otherwise. Pass
+`include_highlights=True` to also get `reference.highlight.content`, the passage the
+citation drew on.
 
-`response.citations` is empty when the answer drew on no file. When that surprises you,
-read `response.context_snippet_count`: `0` means retrieval found nothing relevant for the
-query, which explains the missing citations.
-
-Pass `include_highlights=True` to also get `reference.highlight.content` — the passage of
-the source document the citation drew on, so you can show it without fetching the file.
+An empty `response.citations` means the answer drew on no file. If
+`response.context_snippet_count` is `0`, retrieval found nothing relevant to the question.
 
 ### `chat`, `chat_completions`, or `context`?
 
-Three methods take the same conversation and differ in what they give back. Pick by what
-you are rendering.
+All three take the same conversation. Pick by what you need back.
 
 {meth}`~pinecone.client.assistants.Assistants.chat`
-: The current, fullest surface, and the default choice. Structured `citations` keyed to
-  positions in the answer, plus `include_highlights`, `context_options` and
+: The default. Structured `citations`, plus `include_highlights`, `context_options` and
   `json_response`.
 
 {meth}`~pinecone.client.assistants.Assistants.chat_completions`
-: The same conversation in OpenAI's response shape — read
-  `response.choices[0].message.content`. Use it to drop an assistant into code already
-  written against that shape. There is no separate `citations` list: sources arrive woven
-  into the message text, and `include_highlights`, `context_options` and `json_response`
-  are not accepted.
+: The answer in OpenAI's chat completion shape, at `response.choices[0].message.content`,
+  for code already written against that shape. Citations arrive woven into the text, and
+  the three `chat`-only options above are not available.
 
 {meth}`~pinecone.client.assistants.Assistants.context`
-: Retrieval with no generation — the snippets the assistant would have been given, for a
-  prompt you assemble yourself. Takes exactly one of `query` or `messages`.
+: Retrieval without generation: the snippets the assistant would answer from, for a
+  prompt you send to your own model. Takes exactly one of `query` or `messages`.
 
 ```python
 response = pc.assistants.chat_completions(
@@ -292,31 +219,18 @@ for snippet in context.snippets:
     print(snippet.score, snippet.content, snippet.reference.file.name)
 ```
 
-`snippet.content` is a string on the ordinary text snippet. A request with
-`multimodal=True` can instead return a `MultimodalSnippet`, whose `content` is a list of
-blocks rather than a string — branch with `isinstance` before reading it if you enable
-that.
+With `multimodal=True`, `context` can also return a
+{class}`~pinecone.models.assistant.context.MultimodalSnippet`, whose `content` is a list
+of blocks rather than a string, so check the snippet type before reading `content`.
 
-There is also a legacy set of methods on the assistant object itself —
-`assistant.chat(...)`, `assistant.upload_file(...)`, and so on, on a model returned by
-`create`, `describe` or `list`. They have been deprecated since 9.0.0, are sync-only
-(a model from `AsyncPinecone` raises {exc}`TypeError` if you call them), and each just
-forwards to the `pc.assistants` method with `assistant_name=self.name`. Call the
-namespace methods instead. `pc.assistant` is likewise an alias of `pc.assistants`; the
-plural is canonical.
-
-### Choosing a model
-
-`chat` and `chat_completions` take a `model` name and default to `"gpt-4o"`. The name is
-not validated client-side. An unrecognized one comes back as an API error enumerating
-what the endpoint accepts — but a name the endpoint no longer lists may instead be served
-by a successor model rather than rejected. So the response's `model` field, not the
-argument you passed, tells you which model answered.
+The assistant models returned by `create`, `describe` and `list` also carry legacy
+methods such as `assistant.chat(...)`. They are deprecated, work only on the sync client,
+and forward to the `pc.assistants` methods; call those instead.
 
 ## Stream a chat response
 
-Pass `stream=True` for a {class}`~pinecone.models.assistant.streaming.ChatStream`. When
-you only want the text, `text()` yields the fragments as they arrive:
+Pass `stream=True` to get a {class}`~pinecone.models.assistant.streaming.ChatStream`.
+For text only, `text()` yields fragments as they arrive:
 
 ```python
 stream = pc.assistants.chat(
@@ -328,13 +242,11 @@ for fragment in stream.text():
     print(fragment, end="", flush=True)
 ```
 
-`collect()` is the same fragments already joined into one string, for when you do not need
-to render as they arrive. A stream is single-pass: iterating it, `text()` and `collect()`
-all drain the same underlying iterator, so use exactly one.
+`collect()` returns the fragments joined into one string. A stream can be consumed only
+once, so use one of iteration, `text()` or `collect()`.
 
-Citations and token usage are not reachable through `text()` — it discards every chunk
-that is not response text. To get them, iterate the stream itself and branch on the four
-chunk types:
+`text()` drops citations and token usage. To get them, iterate the stream and branch on
+the chunk type:
 
 ```python
 from pinecone import (
@@ -350,14 +262,12 @@ stream = pc.assistants.chat(
     stream=True,
 )
 
-answer: list[str] = []
 sources: list[tuple[int, str]] = []
 for chunk in stream:
     if isinstance(chunk, StreamMessageStart):
         if chunk.context_snippet_count == 0:
             print("nothing relevant was retrieved")
     elif isinstance(chunk, StreamContentChunk):
-        answer.append(chunk.delta.content)
         print(chunk.delta.content, end="", flush=True)
     elif isinstance(chunk, StreamCitationChunk):
         for reference in chunk.citation.references:
@@ -366,48 +276,37 @@ for chunk in stream:
         print(f"\nfinish_reason={chunk.finish_reason}")
 ```
 
-What each chunk is for:
-
 {class}`~pinecone.models.assistant.streaming.StreamMessageStart`
-: Arrives once, first, with no response text. `context_snippet_count` of `0` tells you
-  retrieval found nothing before the answer starts arriving.
+: Arrives first. A `context_snippet_count` of `0` means retrieval found nothing.
 
 {class}`~pinecone.models.assistant.streaming.StreamContentChunk`
-: Arrives many times, and is the **only** chunk carrying response text, at
-  `chunk.delta.content`. Concatenate the fragments in arrival order. A loop that forgets
-  this type renders nothing.
+: The only chunk that carries answer text, at `chunk.delta.content`. Concatenate the
+  fragments in arrival order.
 
 {class}`~pinecone.models.assistant.streaming.StreamCitationChunk`
-: Arrives zero or more times, interleaved with the content chunks, and holds the same
-  `position` and `references` as a non-streaming citation.
+: Interleaved with the content, with the same `position` and `references` as a
+  non-streaming citation.
 
 {class}`~pinecone.models.assistant.streaming.StreamMessageEnd`
-: Arrives once, last, with no response text. Read `finish_reason` here to tell a complete
-  answer from one the model cut short, and `usage` for token counts.
+: Arrives last. `finish_reason` tells a complete answer from one cut short, and `usage`
+  holds the token counts.
 
-Each chunk also exposes its wire tag as `chunk.type` (`"message_start"`,
-`"content_chunk"`, `"citation"`, `"message_end"`), so you can dispatch on the string
-instead of on `isinstance`.
-
-`stream=True` cannot be combined with `json_response=True`; that raises
-{exc}`~pinecone.errors.exceptions.PineconeValueError`. On a streaming request the
-`timeout` argument bounds the gap between chunks rather than the whole response, and a
-client-level timeout is raised to a floor for streaming — raised only, never lowered — so
-that a model thinking for a while is not mistaken for a dead connection. Pass `timeout`
-explicitly to override that, including to a shorter value. A stream that exceeds its
-timeout raises {exc}`~pinecone.errors.exceptions.PineconeTimeoutError` partway through
-iteration, after earlier chunks have already been yielded.
+`stream=True` cannot be combined with `json_response=True`. On a streaming request,
+`timeout` bounds the gap between chunks rather than the whole response, and when you do
+not pass it the SDK uses a longer default so a model that pauses to reason is not taken
+for a dead connection. A stream that times out raises
+{exc}`~pinecone.errors.exceptions.PineconeTimeoutError` partway through iteration, after
+earlier chunks have been yielded.
 
 `chat_completions(..., stream=True)` returns a
-{class}`~pinecone.models.assistant.streaming.ChatCompletionStream` instead, whose text
-arrives at `chunk.choices[0].delta.content` — `None` on the chunks that carry no text,
-such as the opening role chunk and the final one.
+{class}`~pinecone.models.assistant.streaming.ChatCompletionStream`, whose text is at
+`chunk.choices[0].delta.content`. That value is `None` on chunks that carry no text.
 
 ## Evaluate an answer against a ground truth
 
-`evaluate_alignment` scores a generated answer against an answer you know to be correct.
-It does not involve an assistant, so it takes no `assistant_name` — you can score output
-from anywhere.
+{meth}`~pinecone.client.assistants.Assistants.evaluate_alignment` scores an answer
+against one you know is correct. It takes no `assistant_name`, so you can score answers
+from any source.
 
 ```python
 result = pc.assistants.evaluate_alignment(
@@ -416,52 +315,29 @@ result = pc.assistants.evaluate_alignment(
     ground_truth_answer="Madrid.",
 )
 print(result.scores.correctness)   # precision: how much of the answer holds up
-print(result.scores.completeness)  # recall: how much of the ground truth it covered
+print(result.scores.completeness)  # recall: how much of the ground truth it covers
 print(result.scores.alignment)     # harmonic mean of the two
-```
 
-Because `alignment` is a harmonic mean, a low score on either input drags it down, so
-read all three rather than tracking `alignment` alone. The aggregate scores tell you an
-answer is wrong; `result.facts` tells you where. Each entry is one fact with a judgment
-of `"entailed"`, `"contradicted"` or `"neutral"`, and the reasoning behind it:
-
-```python
 for fact in result.facts:
-    print(fact.entailment, fact.fact)
-    print(fact.reasoning)
-
-contradictions = [f.fact for f in result.facts if f.entailment == "contradicted"]
+    print(fact.entailment, fact.fact, fact.reasoning)
 ```
 
-`fact.reasoning` is `""` rather than `None` when the API returned none, so test it for
-truthiness. `result.usage` counts the tokens the evaluation itself spent, not the tokens
-of the answer being evaluated.
+A low correctness or completeness drags `alignment` down, so read all three. Each entry
+in `result.facts` is one fact judged `"entailed"`, `"contradicted"` or `"neutral"`, which
+shows where an answer went wrong. `result.usage` counts the tokens the evaluation spent.
 
-## Delete a file
+## Delete files and assistants
 
 ```python
 pc.assistants.delete_file(
     assistant_name="research-assistant",
     file_id="file-abc123",
 )
-```
 
-Deletion sometimes completes immediately and sometimes runs as a pending operation; when
-it is pending, `delete_file` polls until it finishes. Deleting an id that is already gone
-raises {exc}`~pinecone.errors.exceptions.NotFoundError` rather than returning silently.
-Pass `timeout=-1` to return as soon as the request is accepted — the file may still exist
-when that returns.
-
-## Delete an assistant
-
-```python
 pc.assistants.delete(name="research-assistant")
 ```
 
-Raises {exc}`~pinecone.errors.exceptions.NotFoundError` if the assistant does not exist.
-
-`delete` polls until the assistant is confirmed gone, indefinitely by default. A delete
-that fails server-side is not retried, so if the assistant reports a terminal failure
-status while being deleted, polling stops with
-{exc}`~pinecone.errors.exceptions.PineconeError` instead of waiting forever. Pass
-`timeout=-1` to return as soon as the request is accepted.
+Both calls wait until the deletion finishes; pass `timeout=-1` to return as soon as the
+server accepts the request. Deleting a file id that no longer exists raises
+{exc}`~pinecone.errors.exceptions.NotFoundError`. Deleting an assistant also deletes its
+files.

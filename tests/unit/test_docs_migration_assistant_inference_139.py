@@ -230,10 +230,24 @@ def test_both_lanes_document_the_404(method: str) -> None:
         assert "NotFoundError" in doc.split("Raises:", 1)[1]
 
 
-def test_list_page_carries_the_explicitly_provided_preamble_on_both_lanes() -> None:
-    preamble = "Only the parameters that are explicitly provided are sent"
-    for cls in (Assistants, AsyncAssistants):
-        assert preamble in (inspect.getdoc(cls.list_page) or "")
+@respx.mock
+def test_list_page_without_page_size_sends_no_limit_on_both_lanes() -> None:
+    route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json={"assistants": []}),
+    )
+
+    Pinecone(api_key="key", host=BASE_URL).assistants.list_page()
+
+    async def run() -> None:
+        async with AsyncPinecone(api_key="key", host=BASE_URL) as pc:
+            await pc.assistants.list_page()
+
+    asyncio.run(run())
+
+    assert route.call_count == 2
+    for call in route.calls:
+        assert "limit" not in call.request.url.params
+        assert "page_size" not in call.request.url.params
 
 
 def test_the_guide_is_registered_in_the_toctree() -> None:

@@ -1,4 +1,4 @@
-"""ApiKeys namespace — list, create, describe, update, and delete operations."""
+"""ApiKeys namespace: list, create, describe, update, and delete operations."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ class ApiKeys:
     An API key is a project-scoped credential: it is the thing you pass to
     :class:`~pinecone.Pinecone` to read and write indexes in one project. Where a service
     account authenticates an :class:`~pinecone.Admin` client against the whole
-    organization, an API key reaches exactly one project. Not constructed directly — reach
+    organization, an API key reaches exactly one project. Not constructed directly; reach
     it as ``admin.api_keys``.
 
     :meth:`create` is the only call that returns a key's secret, and it returns it once.
@@ -52,11 +52,11 @@ class ApiKeys:
         ...     print(key.name, key.roles)
 
     .. seealso::
-       :class:`~pinecone.admin.service_accounts.ServiceAccounts` — the organization-scoped
+       :class:`~pinecone.admin.service_accounts.ServiceAccounts`: the organization-scoped
        OAuth credentials an :class:`~pinecone.Admin` client itself uses.
 
-       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
-       — what each exception these calls raise means.
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__:
+       what each exception these calls raise means.
     """
 
     def __init__(self, *, http: HTTPClient) -> None:
@@ -77,9 +77,10 @@ class ApiKeys:
 
         Returns:
             An :class:`APIKeyList` of every key in the project, supporting iteration,
-            ``len()``, and index access. Returned whole — there is no paging.
+            ``len()``, and index access. Returned whole; there is no paging.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *project_id* is not a ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *project_id* is empty
                 or whitespace-only. Checked before the request is sent.
 
@@ -103,21 +104,20 @@ class ApiKeys:
     ) -> APIKeyWithSecret:
         """Create an API key scoped to one project.
 
-        The response is the only place the key's secret ever appears — ``value`` is
+        The response is the only place the key's secret ever appears: ``value`` is
         returned here and nowhere else, and no call recovers it later. Store it before
         doing anything else; if you lose it, delete the key and create another.
 
         Args:
             project_id (str): The project the key will reach, e.g. ``"proj-abc123"``.
-            name (str): Label for the key, e.g. ``"prod-search-key"``; 1-80 characters,
-                checked client-side.
+            name (str): Label for the key, e.g. ``"prod-search-key"``. The SDK
+                rejects an over-long name before sending the request.
             roles (list[APIKeyRole | str] | None): Roles the key holds. Valid values are
                 ``"ProjectEditor"``, ``"ProjectViewer"``, ``"ControlPlaneEditor"``,
                 ``"ControlPlaneViewer"``, ``"DataPlaneEditor"``, and
                 ``"DataPlaneViewer"``, either as strings or as
                 :class:`~pinecone.APIKeyRole` members. Defaults to ``["ProjectEditor"]``.
-                A role the organization is not entitled to grant is refused even though
-                the name is valid; see *Raises*.
+                Some roles are available only on some plans; see *Raises*.
 
         Returns:
             An :class:`APIKeyWithSecret` with ``value`` (the secret, this once only) and
@@ -127,15 +127,17 @@ class ApiKeys:
             :meth:`delete`.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *project_id* or *name* is not a
+                ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *project_id* or
-                *name* is empty, if *name* is longer than 80 characters, or if *roles*
-                contains a value that is not one of the six role names. All checked
-                before the request is sent.
+                *name* is empty, if *name* exceeds the length limit, or if *roles*
+                contains a value that is not a valid role name. All checked before the
+                request is sent.
             :exc:`~pinecone.errors.exceptions.PaymentRequiredError`: If the organization's
                 billing state does not permit creating an API key.
             :exc:`~pinecone.errors.exceptions.ForbiddenError`: Either the project has
-                reached its API-key quota or *roles* names a role the organization cannot
-                grant — the error message distinguishes the two. A full quota surfaces
+                reached its API-key quota or *roles* names a role the organization's plan
+                does not include; the error message says which. A full quota surfaces
                 here rather than as :exc:`~pinecone.errors.exceptions.RateLimitError`, so
                 do not retry it.
 
@@ -178,14 +180,15 @@ class ApiKeys:
         The secret is not part of it; only :meth:`create` ever returns that.
 
         Args:
-            api_key_id (str): The key's identifier — ``key.id`` from :meth:`create` or
-                :meth:`list`, e.g. ``"key-abc123"``. This is not the secret.
+            api_key_id (str): The key's identifier (``key.id`` from :meth:`create` or
+                :meth:`list`), e.g. ``"key-abc123"``. This is not the secret.
 
         Returns:
             An :class:`APIKeyModel` with the key's ``id``, ``name``, ``project_id``, and
             ``roles``.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *api_key_id* is not a ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *api_key_id* is empty
                 or whitespace-only. Checked before the request is sent.
 
@@ -220,22 +223,23 @@ class ApiKeys:
             api_key_id (str): The key's identifier, e.g. ``"key-abc123"``. Left unchanged
                 by this call.
             name (str | None): New label for the key, e.g. ``"prod-search-key-v2"``. Left
-                unchanged if omitted. Unlike :meth:`create`, the length limit is not
-                checked client-side — an over-long name is rejected by the server.
+                unchanged if omitted. Unlike :meth:`create`, the SDK does not check the
+                length; the server rejects an over-long name.
             roles (list[APIKeyRole | str] | None): The key's complete new role set, from
-                the same six values :meth:`create` accepts. Left unchanged if omitted, and
-                subject to the same entitlement restriction.
+                the same values :meth:`create` accepts. Left unchanged if omitted, and
+                subject to the same plan restriction.
 
         Returns:
             An :class:`APIKeyModel` reflecting the stored state after the change.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *api_key_id* is not a ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *api_key_id* is empty
-                or whitespace-only, or if *roles* contains a value that is not one of the
-                six role names. Both checked before the request is sent.
+                or whitespace-only, or if *roles* contains a value that is not a valid
+                role name. Both checked before the request is sent.
             :exc:`~pinecone.errors.exceptions.ForbiddenError`: If *roles* names a role the
-                organization cannot grant. Unlike :meth:`create`, no API-key quota applies
-                here — the key already exists.
+                organization's plan does not include. No API-key quota applies here,
+                because the key already exists.
 
         Examples:
             >>> key = admin.api_keys.update(
@@ -258,12 +262,13 @@ class ApiKeys:
         """Delete an API key permanently.
 
         Anything still authenticating with the key's secret starts failing, and there is
-        no way to restore it — a replacement is a new :meth:`create` with a new secret.
+        no way to restore it. A replacement is a new :meth:`create` with a new secret.
 
         Args:
             api_key_id (str): The key's identifier, e.g. ``"key-abc123"``, not the secret.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *api_key_id* is not a ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *api_key_id* is empty
                 or whitespace-only. Checked before the request is sent.
 

@@ -1,4 +1,4 @@
-"""RoleBindings namespace — list, create, describe, delete."""
+"""RoleBindings namespace: list, create, describe, delete."""
 
 from __future__ import annotations
 
@@ -32,25 +32,25 @@ _VALID_ROLE_NAMES = [r.value for r in RoleName]
 class RoleBindings:
     """The whole of Pinecone's authorization model.
 
-    A role binding grants one ``role`` to one principal — a user, service
-    account, API key, or pending invite — at one scope, either the organization
+    A role binding grants one ``role`` to one principal (a user, service
+    account, API key, or pending invite) at one scope, either the organization
     or a single project. Nothing else confers permissions, so this namespace is
     where a principal's access is read and changed. The other admin namespaces
-    deliberately carry no role bindings in their models; :meth:`list` with
-    ``principal_type`` and ``principal_id`` is how a principal's access is
-    enumerated. Not constructed directly — reach it as ``admin.role_bindings``.
+    carry no role bindings in their models; :meth:`list` with
+    ``principal_type`` and ``principal_id`` is how to read a principal's
+    access. Reach it as ``admin.role_bindings``; do not construct it directly.
 
-    Bindings are immutable: there is no update. Changing a principal's role means
-    :meth:`create` for the new one and :meth:`delete` for the old one, in that
-    order — deleting first can strip the principal's last organization-membership
-    binding, which the server refuses.
+    Bindings are immutable: there is no update. To change a principal's role,
+    :meth:`create` the new binding first and then :meth:`delete` the old one.
+    In the other order the server refuses the delete when it is the user's
+    last organization role and they hold other bindings, and removes the user
+    from the organization when it is their only binding.
 
-    The server owns which role may be bound to which scope and principal type,
-    and which roles an organization's plan includes. Those rules vary by plan, so
-    the SDK does not replicate them: it checks only that a value is one this
-    release knows about and that the filter co-requirements hold, and lets the
-    server's own error messages — which name the role, the scope, and the plan —
-    explain the rest.
+    The server decides which role may be bound to which scope and principal
+    type, and which roles an organization's plan includes. The SDK checks only
+    that a value is one this release knows about and that the filter
+    co-requirements hold; the server's error message names the role, the
+    scope, and, for plan limits, the plan.
 
     See
     `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
@@ -67,9 +67,9 @@ class RoleBindings:
     .. seealso::
        - :class:`~pinecone.admin.users.Users`,
          :class:`~pinecone.admin.service_accounts.ServiceAccounts`, and
-         :class:`~pinecone.admin.invites.Invites` — the principals bindings point
+         :class:`~pinecone.admin.invites.Invites`: the principals bindings point
          at. Each is identified here by its own ``id`` as ``principal_id``, and
-         ``principal_type`` is what disambiguates them.
+         ``principal_type`` says which kind it is.
     """
 
     def __init__(self, *, http: HTTPClient) -> None:
@@ -107,16 +107,15 @@ class RoleBindings:
 
         Args:
             principal_type (str | PrincipalType | None): Restrict to one kind of
-                principal — ``"user"``, ``"service_account"``, ``"api_key"``, or
+                principal: ``"user"``, ``"service_account"``, ``"api_key"``, or
                 ``"invite"``. Required whenever *principal_id* is given, since an
                 ID alone is ambiguous across principal kinds. Omitted when
                 ``None``.
-            principal_id (str | None): Restrict to one principal's bindings — a
-                UUID for every principal type. Requires *principal_type*. Sent
-                verbatim; an unparseable value is rejected by the server.
-                Omitted when ``None``.
-            resource_type (str | ResourceType | None): Restrict to one scope kind
-                — ``"organization"`` or ``"project"``. Required whenever
+            principal_id (str | None): Restrict to one principal's bindings, by
+                the principal's UUID. Requires *principal_type*. Omitted when
+                ``None``.
+            resource_type (str | ResourceType | None): Restrict to one scope
+                kind: ``"organization"`` or ``"project"``. Required whenever
                 *resource_id* is given. Omitted when ``None``.
             resource_id (str | None): Restrict to one organization or project.
                 Requires *resource_type*. Omitted when ``None``.
@@ -152,9 +151,8 @@ class RoleBindings:
             ...     print(binding.principal_type, binding.role, binding.resource_type)
             user OrgMember organization
 
-            Every binding reads as that same triple — one principal, one role,
-            one scope — which is the whole of what authorization consists of
-            here. Filters narrow which triples come back:
+            Each binding is one principal, one role, and one scope. Filters
+            narrow which bindings come back:
 
             >>> everything_one_service_account_can_do = admin.role_bindings.list(
             ...     principal_type="service_account",
@@ -174,7 +172,7 @@ class RoleBindings:
             1 None
 
         .. seealso::
-           - :meth:`delete` — takes the ``id`` off a binding found here; there is
+           - :meth:`delete`: takes the ``id`` of a binding found here; there is
              no way to revoke by principal, scope, and role.
         """
         if principal_id is not None and principal_type is None:
@@ -236,34 +234,35 @@ class RoleBindings:
         """Grant a role to a principal at an organization or project scope.
 
         The binding takes effect immediately and comes back carrying the ``id``
-        :meth:`delete` needs — the only way to revoke it, since bindings cannot
-        be edited in place. The same scope-and-role pair is accepted as an
+        :meth:`delete` needs to revoke it; bindings cannot be edited in place.
+        A user must already belong to the organization: to add someone new,
+        invite them with :meth:`Invites.create()
+        <pinecone.admin.invites.Invites.create>`. The same scope-and-role pair
+        is accepted as an
         initial binding by :meth:`Invites.create()
         <pinecone.admin.invites.Invites.create>` and
-        :meth:`ServiceAccounts.create() <pinecone.admin.service_accounts.ServiceAccounts.create>`,
-        so a grant expressed once works in all three places.
+        :meth:`ServiceAccounts.create() <pinecone.admin.service_accounts.ServiceAccounts.create>`.
 
         Args:
             principal_type (str | PrincipalType): The kind of principal receiving
-                the role — ``"user"``, ``"service_account"``, ``"api_key"``, or
+                the role: ``"user"``, ``"service_account"``, ``"api_key"``, or
                 ``"invite"``. Binding to an ``invite`` grants the role to whoever
-                accepts it; once accepted the server refuses further bindings on
-                the invite, and the roles must be managed on the resulting user
-                instead.
-            principal_id (str): The principal's UUID. Sent verbatim — an unknown
-                or unparseable principal is rejected by the server.
-            resource_type (str | ResourceType): The scope — ``"organization"`` or
+                accepts it; once it is accepted the server refuses further
+                bindings on the invite, so manage the roles on the resulting user
+                instead. An ``api_key`` binding must be project-scoped, to the
+                key's own project.
+            principal_id (str): The principal's UUID.
+            resource_type (str | ResourceType): The scope: ``"organization"`` or
                 ``"project"``.
             role (str | RoleName): The role to grant, spelled as the wire name
                 (``"DataPlaneEditor"``).
                 :class:`~pinecone.models.admin.role_binding.RoleName` members are
-                accepted interchangeably. Which roles are legal depends on the
-                scope and principal type; see the note below.
+                accepted interchangeably. Which roles are allowed depends on the
+                scope, the principal type, and the plan; see the note below.
             resource_id (str | None): The project UUID. Required when
                 *resource_type* is ``"project"``. For ``"organization"`` scope
-                leave it unset — the organization is inferred from the
-                credentials, and naming any organization other than the caller's
-                own is rejected.
+                leave it unset: the server uses the organization the credentials
+                belong to.
 
         Returns:
             The created
@@ -273,6 +272,8 @@ class RoleBindings:
             even though the request omitted it.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *principal_id* is not a
+                ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
                 If *principal_id* is empty; if *principal_type*, *resource_type*,
                 or *role* names a value this SDK release does not know; or if
@@ -280,17 +281,19 @@ class RoleBindings:
                 Raised before any network call.
             :exc:`~pinecone.errors.exceptions.NotFoundError`:
                 If the principal or the resource does not exist in the caller's
-                organization.
+                organization, including a user who is not yet a member.
             :exc:`~pinecone.errors.exceptions.ConflictError`:
-                If an identical binding already exists — the grant is already in
-                force, so this is usually safe to treat as success — or the
+                If an identical binding already exists (the grant is already in
+                force, so this is usually safe to treat as success), or the
                 principal is an invite that has already been accepted, in which
-                case re-target the binding at the resulting user.
+                case bind the role to the resulting user.
             :exc:`~pinecone.errors.exceptions.ForbiddenError`:
-                If the role cannot be bound to that scope or principal type, the
-                organization's plan does not include it, or the caller would be
-                granting a permission it does not itself hold. The SDK cannot
-                tell these apart in advance; see the note below.
+                If the caller may not create bindings at that scope, would be
+                granting a permission it does not itself hold, or the
+                organization's plan does not include the role.
+            :exc:`~pinecone.errors.exceptions.ApiError`:
+                With status 400 if the role cannot be bound at that scope or to
+                that principal type.
 
         Examples:
             >>> from pinecone import Admin
@@ -324,19 +327,17 @@ class RoleBindings:
             ... )
 
         .. note::
-            Whether a grant is *allowed* is entirely the server's call, and it
-            refuses for several distinct reasons that all arrive as
-            :exc:`~pinecone.errors.exceptions.ForbiddenError`: a project-scoped
-            binding must name a project-scoped role, an ``api_key`` principal
-            accepts only the roles a key can hold (see
-            :class:`~pinecone.models.admin.api_key.APIKeyRole`), some roles are
-            gated behind the organization's plan, and the caller cannot grant a
-            permission it does not itself hold. Each rejection names the role,
-            the scope, and — for plan gating — the plan required, so read the
-            message rather than pre-flighting the rules.
+            The server decides whether a grant is allowed. A project-scoped
+            binding must name a project role, an ``api_key`` principal accepts
+            only the roles a key can hold (see
+            :class:`~pinecone.models.admin.api_key.APIKeyRole`), some roles
+            depend on the organization's plan, and the caller cannot grant a
+            permission it does not itself hold. Each rejection names the role
+            and the scope, and a plan rejection names the plan, so read the
+            message rather than checking the rules in advance.
 
         .. seealso::
-           - :meth:`delete` — the second half of a role change, which must run
+           - :meth:`delete`: the second half of a role change, which must run
              after this call rather than before it.
         """
         require_one_of("principal_type", principal_type, _VALID_PRINCIPAL_TYPES)
@@ -365,22 +366,23 @@ class RoleBindings:
 
         Args:
             role_binding_id (str): The binding's own UUID, from :meth:`list` or a
-                :meth:`create` result — not the principal's ID and not the
-                project's.
+                :meth:`create` result (not the principal's ID and not the
+                project's).
 
         Returns:
             A :class:`~pinecone.models.admin.role_binding.RoleBindingModel` with
             the principal, the scope, the role, and when it was granted.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *role_binding_id* is not a
+                ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
                 If *role_binding_id* is empty.
             :exc:`~pinecone.errors.exceptions.NotFoundError`:
                 If no such role binding is visible to the caller. A binding in
-                another organization, and a project binding the caller cannot
-                see, both look the same as one that does not exist — absence and
-                inaccessibility are deliberately indistinguishable, so do not
-                read this as proof the binding is gone.
+                another organization, or a project binding the caller cannot
+                see, returns the same error as one that does not exist, so do
+                not read this as proof the binding is gone.
 
         Examples:
             >>> from pinecone import Admin
@@ -403,27 +405,29 @@ class RoleBindings:
 
         Deletion is addressed by ``role_binding_id`` rather than by the
         principal/scope/role triple, so revoking a role means finding the binding
-        first — usually with :meth:`list` filtered by ``principal_type`` and
+        first, usually with :meth:`list` filtered by ``principal_type`` and
         ``principal_id``, or from the :meth:`create` result. The permissions are
-        revoked immediately, after which the binding reads back as not found,
-        including for a repeat of this call: delete is not idempotent in the
-        "second call also succeeds" sense.
+        revoked immediately. A repeat of this call raises
+        :exc:`~pinecone.errors.exceptions.NotFoundError`.
 
         Args:
             role_binding_id (str): The binding's own UUID.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *role_binding_id* is not a
+                ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
                 If *role_binding_id* is empty.
             :exc:`~pinecone.errors.exceptions.NotFoundError`:
                 If no such role binding is visible to the caller, including a
                 repeat of a successful delete.
             :exc:`~pinecone.errors.exceptions.ConflictError`:
-                If deleting the binding would strip the organization of its last
-                owner, remove a principal's last organization membership while it
-                still holds other roles, or the organization's user management is
-                delegated to an identity provider. Grant the replacement binding
-                first, or make the change in the identity provider.
+                If deleting the binding would leave the organization without an
+                owner, remove a user's last organization role while they hold
+                other bindings, or remove a pending invite's last organization
+                role; or if the organization's users are managed by an identity
+                provider. Grant the replacement binding first, or make the change
+                in the identity provider.
 
         Examples:
             >>> from pinecone import Admin
@@ -433,17 +437,13 @@ class RoleBindings:
             ... )
 
         .. note::
-            Some bindings cannot be deleted at all: the organization's last
-            ``OrgOwner``, and a pending invite's last organization-membership
-            binding — withdraw the invite with
-            :meth:`Invites.delete() <pinecone.admin.invites.Invites.delete>` instead of unpicking
-            its bindings. Organizations whose users are managed by an identity
-            provider refuse user and invite binding changes outright.
+            Deleting a user's only binding removes the user from the
+            organization. To withdraw a pending invite, use
+            :meth:`Invites.delete() <pinecone.admin.invites.Invites.delete>`
+            rather than deleting its bindings.
 
         .. seealso::
-           - :meth:`create` — run it *before* this call when changing a role, or
-             the delete can be refused for leaving the principal with no
-             organization membership.
+           - :meth:`create`: run it *before* this call when changing a role.
         """
         require_non_empty("role_binding_id", role_binding_id)
         logger.info("Deleting role binding %r", role_binding_id)

@@ -1,4 +1,4 @@
-"""Users namespace — list, describe, and delete organization members."""
+"""Users namespace: list, describe, and delete organization members."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ class Users:
 
     A user is a person who has accepted an invitation and now belongs to the
     organization that the :class:`~pinecone.Admin` client's OAuth credentials
-    resolve to. Not constructed directly — reach it as ``admin.users``.
+    resolve to. Not constructed directly; reach it as ``admin.users``.
 
     What a user is allowed to do is not part of this model. Permissions come
     only from role bindings, so :class:`~pinecone.admin.role_bindings.RoleBindings`
@@ -44,9 +44,9 @@ class Users:
         alice@example.com
 
     .. seealso::
-       - :class:`~pinecone.admin.invites.Invites` — the same person before they
+       - :class:`~pinecone.admin.invites.Invites`: the same person before they
          accept. An invitee is not yet a user and is not listed here.
-       - :class:`~pinecone.admin.service_accounts.ServiceAccounts` — the machine
+       - :class:`~pinecone.admin.service_accounts.ServiceAccounts`: the machine
          equivalent, for programmatic access rather than a person.
     """
 
@@ -72,9 +72,9 @@ class Users:
 
         Args:
             email (str | None): Filter on the user's email address, e.g.
-                ``"alice@example.com"``. Forwarded verbatim — the SDK does not
-                validate or normalize it, so the server decides what matches
-                and rejects a malformed address. Omit to list every user.
+                ``"alice@example.com"``. The SDK sends it unchanged; the server
+                decides what matches and rejects a malformed address. Omit to
+                list every user.
             limit (int | None): Number of users the server returns **per page**.
                 It caps each page, not how many users the paginator yields in
                 total; the paginator keeps following cursors until the pages run
@@ -90,7 +90,8 @@ class Users:
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`:
-                If *limit* is outside 1-100. Raised before any network call.
+                If *limit* is outside the allowed page-size range. Raised before any
+                network call.
 
         Examples:
             >>> from pinecone import Admin
@@ -105,10 +106,10 @@ class Users:
             'Alice Nakamura'
 
         .. seealso::
-           - :meth:`Invites.list() <pinecone.admin.invites.Invites.list>` — invitees who have
+           - :meth:`Invites.list() <pinecone.admin.invites.Invites.list>`: invitees who have
              not accepted yet, and so are absent from this list.
-           - :meth:`RoleBindings.list() <pinecone.admin.role_bindings.RoleBindings.list>` — with
-             ``principal_type="user"``, what each user can do.
+           - :meth:`RoleBindings.list() <pinecone.admin.role_bindings.RoleBindings.list>` with
+             ``principal_type="user"``: what each user can do.
         """
         if limit is not None:
             require_in_range("limit", limit, _LIMIT_MIN, _LIMIT_MAX)
@@ -134,18 +135,19 @@ class Users:
         """Get one user's details by their user ID.
 
         Args:
-            user_id (str): The user's UUID, as carried by ``UserModel.id`` — not
-                their email address, and not the ID of the invite they accepted.
+            user_id (str): The user's UUID, as carried by ``UserModel.id``. It is
+                not their email address or the ID of the invite they accepted.
 
         Returns:
             :class:`~pinecone.models.admin.user.UserModel` with ``id``,
             ``email``, and ``name`` (``None`` when the user has not set one).
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *user_id* is not a ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *user_id* is empty.
             :exc:`~pinecone.errors.exceptions.NotFoundError`:
                 If no such user is a member of the organization. A person who
-                was invited but has not accepted reads back as not found here —
+                was invited but has not accepted reads back as not found here;
                 look for them under :meth:`Invites.list() <pinecone.admin.invites.Invites.list>`
                 instead.
 
@@ -157,7 +159,7 @@ class Users:
             'alice@example.com'
 
         .. seealso::
-           - :meth:`Invites.describe() <pinecone.admin.invites.Invites.describe>` — the invite a
+           - :meth:`Invites.describe() <pinecone.admin.invites.Invites.describe>`: the invite a
              user accepted, which keeps its own ID and status after acceptance.
         """
         require_non_empty("user_id", user_id)
@@ -171,7 +173,7 @@ class Users:
         """Remove a user from the organization.
 
         The user's role bindings are revoked immediately; their Pinecone account
-        itself is not deleted. This call is not repeatable — once it succeeds, a
+        itself is not deleted. This call is not repeatable: once it succeeds, a
         second call with the same *user_id* raises
         :exc:`~pinecone.errors.exceptions.NotFoundError`, as does
         :meth:`describe` for that user.
@@ -180,14 +182,13 @@ class Users:
             user_id (str): The UUID of the user to remove.
 
         Raises:
+            :exc:`~pinecone.errors.exceptions.PineconeTypeError`: If *user_id* is not a ``str``.
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *user_id* is empty.
             :exc:`~pinecone.errors.exceptions.NotFoundError`:
                 If no such user is a member of the organization.
             :exc:`~pinecone.errors.exceptions.ConflictError`:
-                If removal would violate an organization invariant, such as
-                dropping the last ``OrgOwner``. Resolve what the server's
-                message names — usually by granting that role to someone else —
-                then retry.
+                If the user is the organization's only ``OrgOwner``. Grant that
+                role to another user first, then retry.
 
         Examples:
             >>> from pinecone import Admin
@@ -195,7 +196,7 @@ class Users:
             >>> admin.users.delete(user_id="e2e92523-85dc-4142-b8c2-e681be8b78df")
 
         .. seealso::
-           - :meth:`Invites.delete() <pinecone.admin.invites.Invites.delete>` — how to withdraw
+           - :meth:`Invites.delete() <pinecone.admin.invites.Invites.delete>`: how to withdraw
              access from someone who never accepted; this method cannot reach them.
         """
         require_non_empty("user_id", user_id)

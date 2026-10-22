@@ -13,7 +13,7 @@ class PaginationResponse(StructDictMixin, Struct, kw_only=True):
     Attributes:
         next (str | None): Opaque cursor for the next page, or ``None`` when the
             server did not supply one. The value is never parsed or constructed
-            by the SDK — pass it back verbatim as the ``pagination_token``
+            by the SDK; pass it back unchanged as the ``pagination_token``
             argument on the following list call.
 
     Examples:

@@ -25,7 +25,7 @@ class TokenResponse(StructDictMixin, Struct, kw_only=True):
         expires_in (int | None): Seconds until the token expires, or ``None``
             when the server omits it. Deleting the service account behind the
             token cuts it short of this; rotating that account's secret does
-            not — the token already issued stays valid until it expires.
+            not: the token already issued stays valid until it expires.
 
     Examples:
         >>> from pinecone.models.admin.token import TokenResponse

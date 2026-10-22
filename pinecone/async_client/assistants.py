@@ -1,4 +1,4 @@
-"""Async Assistants namespace — control-plane operations for Pinecone assistants."""
+"""Async Assistants namespace: manage assistants and their files, and chat with them."""
 
 from __future__ import annotations
 
@@ -161,9 +161,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                     print(assistant.name, assistant.status)
 
     .. seealso::
-       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
-       — the exceptions any of these methods can
-       raise, and which ones are worth retrying.
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__:
+       the exceptions any of these methods can raise, and which ones are
+       worth retrying.
     """
 
     def __init__(self, config: PineconeConfig) -> None:
@@ -288,24 +288,22 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
     ) -> AssistantModel:
         """Create a new Pinecone assistant.
 
-        A Pinecone assistant is a managed conversational AI service that
-        answers questions grounded in documents you upload to it. This method
-        creates the assistant and, by default, waits until it reaches
-        ``"Ready"`` status before returning.
+        By default, blocks until the assistant reaches ``"Ready"`` status, so
+        you can upload files to it as soon as the call returns.
 
         Args:
             name (str): Name for the new assistant, e.g. ``"docs-assistant"``.
-                Must be unique within the project.
+                Must be unique within the project. The server validates the
+                name and rejects an invalid one.
             instructions (str | None): Guidance the assistant applies to every
                 response, e.g. ``"Always cite the source document."``.
-                Rejected if it exceeds the server's size cap for the field.
             metadata (dict[str, Any] | None): Optional metadata to attach to
                 the assistant, e.g. ``{"team": "docs"}``.
             region (str): Region to deploy the assistant in, ``"us"`` or
-                ``"eu"``. Defaults to ``"us"``. Cannot be changed afterwards —
+                ``"eu"``. Defaults to ``"us"``. Cannot be changed afterwards:
                 an assistant in the wrong region has to be recreated.
-            environment (str | None): Advanced override for select internal
-                Pinecone deployments. Most users should leave this unset.
+            environment (str | None): Reserved for internal Pinecone use. Leave
+                it unset; the server rejects it for other projects.
             timeout (float | None): Seconds to wait for the assistant to become
                 ready. Use ``None`` (default) to poll indefinitely, ``-1`` to
                 return immediately without polling, or a non-negative value to
@@ -320,11 +318,15 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         Raises:
             :exc:`PineconeTypeError`: If *name* is not a ``str``.
             :exc:`PineconeValueError`: If *region* is not ``"us"`` or ``"eu"``.
+            :exc:`PineconeError`: If the assistant fails to initialize or is
+                deleted while the call waits for it.
             :exc:`PineconeTimeoutError`: If the assistant does not become ready
                 before the deadline.
-            :exc:`ApiError`: If an assistant of this name already exists in the
-                project, or the project has reached its assistant quota —
-                delete one you no longer need before retrying.
+            :exc:`ConflictError`: If an assistant of this name already exists
+                in the project.
+            :exc:`RateLimitError`: If the project has reached its assistant
+                limit. Retrying does not help; delete an assistant you no
+                longer need first.
 
         Examples:
             .. code-block:: python
@@ -405,8 +407,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 :exc:`PineconeValueError`.
 
         Returns:
-            :class:`AssistantModel` with name, status, created_at, updated_at,
-            metadata, instructions, and host.
+            :class:`AssistantModel` with ``name``, ``status``, ``region``,
+            ``host``, ``instructions``, ``metadata``, ``created_at`` and
+            ``updated_at``.
 
         Raises:
             :exc:`PineconeTypeError`: If *name* is not a ``str``.
@@ -482,11 +485,10 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 all_assistants = await pc.assistants.list().to_list()
 
         .. seealso::
-           - :meth:`list_page` — one page at a time, when you want to hold
+           - :meth:`list_page`: one page at a time, when you want to hold
              the continuation token yourself.
-           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-             — how the paginator and the
-             continuation tokens work.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+             how the paginator and the continuation tokens work.
         """
         logger.info("Listing assistants")
 
@@ -505,14 +507,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
     ) -> ListAssistantsResponse:
         """List one page of assistants with explicit pagination control.
 
-        Only the parameters that are explicitly provided are sent in the
-        request. Omitted parameters are not included as query params.
-
         Args:
             page_size (int | None): Maximum number of assistants per page.
-                Only sent when explicitly provided; omitted, the API chooses
-                the page size. A value outside the range the API accepts comes
-                back as an :exc:`ApiError` naming the bound it broke.
+                Omit it to let the server choose the page size.
             pagination_token (str | None): Token from a previous response
                 to fetch the next page.
             **kwargs (Any): Accepts the legacy alias ``limit`` for
@@ -536,9 +533,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                     )
 
         .. seealso::
-           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-           — the continuation-token loop this method
-           expects you to drive, and the paginator that drives it for you.
+           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+           the continuation-token loop this method expects you to drive, and
+           the paginator that drives it for you.
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
@@ -587,14 +584,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
     ) -> AssistantModel:
         """Update an existing Pinecone assistant.
 
-        Updates the specified assistant's instructions and/or metadata.
-        Metadata is fully replaced (not merged) when provided. At least one
-        of *instructions* and *metadata* must be given.
-
-        ``None`` means "leave this field alone" — it is omitted from the
-        patch body rather than sent as an explicit null, and the server has
-        no way to clear a field from a null. To clear, send the empty value:
-        ``instructions=""`` or ``metadata={}``.
+        Pass at least one of *instructions* and *metadata*. A field left as
+        ``None`` keeps its current value; to clear a field, pass its empty
+        value (``instructions=""`` or ``metadata={}``).
 
         Args:
             name (str): The name of the assistant to update.
@@ -631,7 +623,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             Passing ``metadata`` replaces the whole dictionary instead of
             merging into it. An assistant carrying
             ``{"team": "research", "cost_center": "R-4120"}`` is left with
-            only ``team`` after the call below — and with its instructions
+            only ``team`` after the call below. Its instructions stay
             unchanged, since they were not named:
 
             .. code-block:: python
@@ -693,12 +685,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
     ) -> None:
         """Delete a Pinecone assistant by name.
 
-        By default, waits until the assistant is confirmed gone before
-        returning.
-
-        If the assistant enters a terminal failure state while being
-        deleted, waiting stops with :exc:`PineconeError` instead of polling
-        indefinitely for a state that will never arrive.
+        Deleting an assistant also deletes its files. By default, blocks
+        until the assistant is confirmed gone.
 
         Args:
             name (str): The name of the assistant to delete.
@@ -717,9 +705,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Raises:
             :exc:`PineconeTypeError`: If *name* is not a ``str``.
-            :exc:`PineconeError`: If the assistant enters a terminal failure
-                state (``"Failed"``, ``"InitializationFailed"``) while being
-                deleted.
+            :exc:`PineconeError`: If the assistant is in a failed state and
+                will never finish deleting.
             :exc:`PineconeTimeoutError`: If the assistant still exists after
                 *timeout* seconds.
 
@@ -731,7 +718,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 await pc.assistants.delete(name="research-assistant")
 
             The call above blocks until the assistant is confirmed gone. Pass
-            ``timeout=-1`` to return as soon as the request is accepted — the
+            ``timeout=-1`` to return as soon as the request is accepted; the
             assistant may still be terminating when this returns:
 
             .. code-block:: python
@@ -806,7 +793,10 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 response. Defaults to ``False``.
 
         Returns:
-            :class:`AssistantFileModel` with file metadata and status.
+            :class:`AssistantFileModel` with ``id``, ``name``, ``status``,
+            ``metadata``, ``size``, ``multimodal``, ``created_on``,
+            ``updated_on`` and ``content_hash``, plus ``signed_url`` when
+            *include_url* is ``True``.
 
         Raises:
             :exc:`PineconeTypeError`: If *assistant_name* or *file_id* is not a
@@ -823,7 +813,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 print(file.status)
 
         .. seealso::
-           :meth:`list_files` — every file on the assistant. That listing
+           :meth:`list_files`: every file on the assistant. That listing
            drops a ``"ProcessingFailed"`` file once it is old enough; this
            method still returns it by id.
         """
@@ -852,15 +842,12 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         Args:
             assistant_name: Name of the assistant whose files to list.
-            page_size: Maximum number of files in this page, sent as the
-                ``limit`` query parameter. Only sent when explicitly
-                provided; omitted, the API chooses the page size. A value
-                outside the range the API accepts comes back as an
-                :exc:`ApiError` naming the bound it broke.
+            page_size: Maximum number of files in this page. Omit it to let
+                the server choose the page size.
             pagination_token: Token from a previous response to fetch the
                 next page.
-            filter: Optional metadata filter expression. Serialized to a JSON
-                string before being sent to the API.
+            filter: Metadata filter, e.g. ``{"department": "finance"}``. Only
+                files whose metadata matches are listed.
             **kwargs (Any): Accepts the legacy alias ``limit`` for
                 *page_size*. Passing both, or any other keyword, raises
                 :exc:`PineconeValueError`.
@@ -890,9 +877,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                     )
 
         .. seealso::
-           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-           — the continuation-token loop this method
-           expects you to drive, and the paginator that drives it for you.
+           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+           the continuation-token loop this method expects you to drive, and
+           the paginator that drives it for you.
         """
         from pinecone._internal.kwargs_aliases import (
             reject_unknown_kwargs,
@@ -946,13 +933,13 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         """List files for an assistant with lazy async pagination.
 
         A ``"ProcessingFailed"`` file drops out of this listing once its
-        ``created_on`` passes the listing's age cutoff. It is not gone — it
-        stays retrievable by id through :meth:`describe_file`.
+        ``created_on`` passes the listing's age cutoff. It is not deleted:
+        :meth:`describe_file` still returns it by id.
 
         Args:
             assistant_name: Name of the assistant whose files to list.
-            filter: Optional metadata filter expression. Serialized to a JSON
-                string before being sent to the API.
+            filter: Metadata filter, e.g. ``{"department": "finance"}``. Only
+                files whose metadata matches are listed.
             limit: Maximum number of files to yield across all pages. ``None``
                 (default) yields all files.
             pagination_token: Token to resume pagination from a previous call.
@@ -982,14 +969,11 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 files = await paginator.to_list()
 
         .. seealso::
-           - :meth:`describe_file` — one file by id, with no age filter: a
-             ``"ProcessingFailed"`` file that has dropped out of this listing
-             is still retrievable there.
-           - :meth:`list_files_page` — one page at a time, when you want to
+           - :meth:`describe_file`: one file by id, with no age filter.
+           - :meth:`list_files_page`: one page at a time, when you want to
              hold the continuation token yourself.
-           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-             — how the paginator and the
-             continuation tokens work.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+             how the paginator and the continuation tokens work.
         """
         logger.info("Listing files for assistant %r", assistant_name)
 
@@ -1057,7 +1041,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         """Upload a file to a Pinecone assistant.
 
         Uploads a file from a local path or an in-memory byte stream, then
-        waits until processing finishes before returning.
+        waits until processing finishes before returning. The server decides
+        how to process the file from its extension, which must be ``.txt``,
+        ``.pdf``, ``.json``, ``.md`` or ``.docx``.
 
         Args:
             assistant_name: Name of the target assistant.
@@ -1065,25 +1051,23 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 with *file_stream*.
             file_stream: An open byte stream to upload. Mutually exclusive
                 with *file_path*. Requires *file_name*.
-            file_name: Filename to associate with *file_stream*. Required
-                when *file_stream* is used, and must include a supported
-                extension (``.txt``, ``.pdf``, ``.json``, ``.md``, or
-                ``.docx``), since the extension determines how the file is
-                processed. Ignored when *file_path* is given, since its
-                basename already supplies the extension.
-            metadata: Optional metadata to attach to the file, e.g.
-                ``{"department": "research"}``. Rejected if it exceeds the
-                server's metadata size cap, which is measured on the encoded
-                bytes rather than on the number of keys.
+            file_name: Filename for *file_stream*, including its extension,
+                e.g. ``"q3-revenue-review.pdf"``. Required with
+                *file_stream*. Ignored with *file_path*, whose basename is
+                used instead.
+            metadata: Metadata to attach to the file, e.g.
+                ``{"department": "finance"}``. The *filter* argument of
+                :meth:`list_files`, :meth:`chat` and :meth:`context` matches
+                against it.
             multimodal: Whether to enable multimodal processing for PDFs.
             file_id: Optional identifier for the uploaded file. When given,
                 any existing file with that id is replaced. Otherwise the
                 server assigns one.
             timeout: Seconds to wait for processing to complete. ``None``
-                (default) polls indefinitely. Use ``-1`` to return
-                immediately after upload with one describe call. Raises
-                :exc:`PineconeTimeoutError` if processing is not done
-                before the deadline.
+                (default) polls indefinitely. Use ``-1`` to return as soon as
+                the server accepts the upload, while the file may still be
+                ``"Processing"``. Raises :exc:`PineconeTimeoutError` if
+                processing is not done before the deadline.
 
         Returns:
             :class:`AssistantFileModel` describing the uploaded file, once
@@ -1112,10 +1096,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 )
                 print(file.id, file.status)
 
-            Or upload from an open byte stream instead. ``file_path`` and
-            ``file_stream`` are alternatives — pass exactly one — and a stream
-            needs ``file_name`` to carry the extension a path would have
-            supplied:
+            Or upload from an open byte stream instead. Pass exactly one of
+            ``file_path`` and ``file_stream``; a stream needs ``file_name`` to
+            carry the extension a path would have supplied:
 
             .. code-block:: python
 
@@ -1223,7 +1206,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             file_id: Unique identifier of the file to delete.
             timeout: Seconds to wait for the deletion to finish. Use ``None``
                 (default) to poll indefinitely. Use ``-1`` to return as soon
-                as the request is accepted — the file may still exist when
+                as the request is accepted; the file may still exist when
                 this returns. Use a positive value to poll with a deadline.
                 Raises :exc:`PineconeTimeoutError` if the deletion is not
                 done before the deadline.
@@ -1235,8 +1218,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             :exc:`PineconeTypeError`: If *assistant_name* or *file_id* is not a
                 ``str``.
             :exc:`NotFoundError`: If *file_id* does not name a file on this
-                assistant. Deleting an id that is already gone raises rather
-                than returning silently.
+                assistant, including a file that has already been deleted.
             :exc:`PineconeError`: If the deletion operation reports failure.
             :exc:`PineconeTimeoutError`: If the deletion has not finished
                 after *timeout* seconds.
@@ -1287,8 +1269,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         :meth:`upload_file` and :meth:`delete_file` poll their own operation
         for you by default. Reach for this method when you called one of
-        them with ``timeout=-1`` and want to check on it later — for
-        example, to find the file a fire-and-forget upload created, via
+        them with ``timeout=-1`` and want to check on it later, for
+        example to find the file a fire-and-forget upload created, via
         :attr:`OperationModel.file_id`.
 
         Args:
@@ -1301,17 +1283,15 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             :class:`OperationModel` with ``status``, ``operation_type``,
             ``file_id``, ``percent_complete``, ``created_at``,
             ``completed_on``, ``ingestion_units`` and ``error``. ``status`` is
-            ``"Processing"``, ``"Completed"`` or ``"Failed"``. Read ``error``
-            only when ``status`` is ``"Failed"``: a retried operation keeps the
-            previous attempt's text, so a non-``None`` ``error`` is not by
-            itself evidence of failure.
+            ``"Processing"``, ``"Completed"`` or ``"Failed"``. Check
+            ``status``, not ``error``, to tell whether the operation failed.
 
         Raises:
             :exc:`PineconeTypeError`: If *assistant_name* or *operation_id* is
                 not a ``str``.
             :exc:`NotFoundError`: If the assistant or the operation does not
-                exist. A finished operation stays describable until it ages out
-                of the API's retention window, and 404s from then on.
+                exist. The server keeps finished operations for a limited
+                time, so an old operation id also raises this.
 
         Examples:
             .. code-block:: python
@@ -1323,7 +1303,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 print(operation.status, operation.percent_complete)
 
         .. seealso::
-           :meth:`list_operations` — every operation on the assistant, when
+           :meth:`list_operations`: every operation on the assistant, when
            you did not keep the operation id.
         """
         require_str("operation_id", operation_id)
@@ -1345,9 +1325,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
     ) -> AsyncPaginator[OperationModel]:
         """List an assistant's operations with lazy async pagination.
 
-        Covers operations that are still in progress as well as ones that
-        finished — both successes and failures — until they age out of the
-        API's retention window.
+        Includes operations still in progress and finished ones, successful
+        or failed. The server keeps finished operations for a limited time.
 
         Args:
             assistant_name: Name of the assistant whose operations to list.
@@ -1378,8 +1357,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 async for op in pc.assistants.list_operations(assistant_name="research-assistant"):
                     print(op.operation_id, op.status, op.percent_complete)
 
-            Filter server-side to narrow the listing — here, uploads that have
-            not finished yet:
+            Filter server-side to narrow the listing, here to uploads that
+            have not finished yet:
 
             .. code-block:: python
 
@@ -1390,13 +1369,12 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 ).to_list()
 
         .. seealso::
-           - :meth:`describe_operation` — one operation by id, when you kept
+           - :meth:`describe_operation`: one operation by id, when you kept
              the id a ``timeout=-1`` call handed back.
-           - :meth:`list_operations_page` — one page at a time, when you want
+           - :meth:`list_operations_page`: one page at a time, when you want
              to hold the continuation token yourself.
-           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-             — how the paginator and the
-             continuation tokens work.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+             how the paginator and the continuation tokens work.
         """
         logger.info("Listing operations for assistant %r", assistant_name)
 
@@ -1422,9 +1400,6 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
     ) -> ListOperationsResponse:
         """List one page of an assistant's operations with explicit pagination control.
 
-        Only the parameters that are explicitly provided are sent in the
-        request. Omitted parameters are not included as query params.
-
         Args:
             assistant_name: Name of the assistant whose operations to list.
             operation_type: Restrict the listing to one kind of operation. One
@@ -1433,11 +1408,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             status: Restrict the listing to one status. One of
                 ``"Processing"``, ``"Completed"`` or ``"Failed"``
                 (case-sensitive).
-            page_size: Maximum number of operations in this page, sent as the
-                ``limit`` query parameter. Only sent when explicitly provided;
-                omitted, the API chooses the page size. A value outside the
-                range the API accepts comes back as an :exc:`ApiError` naming
-                the bound it broke.
+            page_size: Maximum number of operations in this page. Omit it to
+                let the server choose the page size.
             pagination_token: Token from a previous response to fetch the next
                 page.
 
@@ -1470,9 +1442,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                     )
 
         .. seealso::
-           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-           — the continuation-token loop this method
-           expects you to drive, and the paginator that drives it for you.
+           `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+           the continuation-token loop this method expects you to drive, and
+           the paginator that drives it for you.
         """
         params: dict[str, str | int] = {}
         if operation_type is not None:
@@ -1514,9 +1486,10 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
     ) -> ContextResponse:
         """Retrieve relevant context snippets from a Pinecone assistant.
 
-        Retrieves context snippets matching a text query or a conversation
-        history, without generating a chat response. Provide exactly one of
-        *query* or *messages*.
+        Returns the snippets from the assistant's files that match a text
+        query or a conversation, without generating an answer, so you can
+        prompt your own model with them. Provide exactly one of *query* or
+        *messages*.
 
         Args:
             assistant_name: Name of the assistant to retrieve context from.
@@ -1525,21 +1498,18 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             messages: Conversation messages to use for context retrieval.
                 Mutually exclusive with *query*. An empty list is treated as
                 not provided. Dicts are converted to :class:`Message` objects.
-                Roles are case-sensitive ``"user"`` or ``"assistant"`` and
-                content must be non-blank — see :class:`Message`.
-            filter: Metadata filter restricting which documents contribute
-                context. Omitted from the request when ``None``.
-            top_k: Maximum number of context snippets to return. Omitted
-                from the request when ``None``, in which case the API
-                applies its own default.
-            snippet_size: Maximum snippet size in tokens. Omitted from the
-                request when ``None``, in which case the API applies its
-                own default.
-            multimodal: Whether to include image-related context snippets.
-                Omitted from the request when ``None``.
+                Each role is ``"user"`` or ``"assistant"``.
+            filter: Filter on file metadata, such as
+                ``{"department": "finance"}``, restricting which files
+                contribute snippets.
+            top_k: Maximum number of snippets to return. Omit it to let the
+                server choose.
+            snippet_size: Maximum size of each snippet, in tokens. Omit it to
+                let the server choose.
+            multimodal: Whether to include snippets drawn from images in files
+                uploaded with ``multimodal=True``.
             include_binary_content: Whether image snippets include base64
                 image data. Only meaningful when *multimodal* is ``True``.
-                Omitted from the request when ``None``.
 
         Returns:
             :class:`ContextResponse` with ``snippets`` (each carrying
@@ -1552,6 +1522,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             :exc:`PineconeValueError`: If both or neither of *query* and
                 *messages* are provided, or if *top_k* or *snippet_size* is
                 negative.
+            :exc:`ApiError`: If the assistant has no file in ``"Available"``
+                status yet, for example while uploads are still processing.
 
         Examples:
             .. code-block:: python
@@ -1564,9 +1536,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                     print(snippet.content)
 
         .. seealso::
-           - :meth:`chat` — a generated answer with structured citations,
+           - :meth:`chat`: a generated answer with structured citations,
              when you want Pinecone to do the generation as well.
-           - :meth:`chat_completions` — a generated answer in OpenAI's
+           - :meth:`chat_completions`: a generated answer in OpenAI's
              response shape.
         """
         query_truthy = query is not None and query != ""
@@ -1635,9 +1607,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             assistant_name (str): Name of the assistant to chat with.
             messages (list[Message | dict[str, str]]): Conversation messages.
                 Dicts are converted to :class:`Message` objects; role defaults
-                to ``"user"`` when not present. Roles are case-sensitive
-                ``"user"`` or ``"assistant"`` and content must be non-blank —
-                see :class:`Message`. Neither is checked client-side.
+                to ``"user"`` when not present. Each role is ``"user"`` or
+                ``"assistant"``.
             model (str): Name of the large language model that generates the
                 answer. Defaults to ``"gpt-4o"``. The models the API
                 documents for this endpoint are ``"gpt-4o"``, ``"gpt-4.1"``,
@@ -1645,20 +1616,21 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 ``"gemini-2.5-pro"``. A name outside that list may be served
                 by a successor model rather than rejected, so the response's
                 ``model`` field, not this argument, says which model
-                answered. Not validated client-side; the API rejects an
-                unrecognized name with an error enumerating what it accepts.
+                answered.
             stream (bool): If ``True``, return an :class:`AsyncChatStream`.
                 Defaults to ``False``.
             temperature (float | None): Controls randomness. Lower values produce
-                more deterministic responses. Omitted from request when ``None``.
-            filter (dict[str, Any] | None): Metadata filter restricting which
-                documents are used as context. Omitted from request when ``None``.
+                more deterministic responses.
+            filter (dict[str, Any] | None): Filter on file metadata, such as
+                ``{"department": "finance"}``, restricting which files the
+                answer draws on.
             json_response (bool): If ``True``, instruct the assistant to return
-                a JSON response. Cannot be used with streaming.
+                a JSON response. Cannot be combined with ``stream=True``.
             include_highlights (bool): If ``True``, include highlight snippets
                 from referenced documents in citations.
-            context_options (ContextOptions | dict[str, Any] | None): Options
-                controlling context retrieval. Omitted from request when ``None``.
+            context_options (ContextOptions | dict[str, Any] | None):
+                Retrieval settings, such as ``top_k`` and ``snippet_size``, as
+                a :class:`ContextOptions` or an equivalent dict.
             timeout (float | None): Per-call HTTP timeout in seconds, overriding
                 the client-level default. On a streaming request this bounds the
                 gap between chunks rather than the whole response (see below).
@@ -1675,8 +1647,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             :exc:`PineconeValueError`: If both ``stream=True`` and
                 ``json_response=True`` are specified.
             :exc:`ApiError`: If the assistant has no file in ``"Available"``
-                status yet — check with :meth:`list_files` before reading this
-                as a transport failure.
+                status yet, for example while uploads are still processing.
 
         Examples:
             .. code-block:: python
@@ -1697,10 +1668,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                             print(citation.position, reference.file.name)
                 asyncio.run(main())
 
-            Set ``stream=True`` for an
-            :class:`AsyncChatStream` instead of a single response — ``text()``
-            yields content fragments as they arrive, skipping the start,
-            citation and end chunks:
+            Set ``stream=True`` for an :class:`AsyncChatStream` instead of a
+            single response. Its ``text()`` method yields content fragments as
+            they arrive, skipping the start, citation and end chunks:
 
             .. code-block:: python
 
@@ -1715,10 +1685,10 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 asyncio.run(stream_main())
 
         .. seealso::
-           - :meth:`chat_completions` — the same conversation in OpenAI's
+           - :meth:`chat_completions`: the same conversation in OpenAI's
              response shape, with citations woven into the message text
              instead of returned as a structured list.
-           - :meth:`context` — the retrieved snippets on their own, with no
+           - :meth:`context`: the retrieved snippets on their own, with no
              generated answer, when you want to prompt your own model.
 
         .. note::
@@ -1847,36 +1817,32 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
     ) -> ChatCompletionResponse | AsyncChatCompletionStream:
         """Chat with an assistant using an OpenAI-compatible interface.
 
-        Returns responses in OpenAI chat completion format. Useful when you
-        need inline citations or OpenAI-compatible responses. Has limited
-        functionality compared to the standard :meth:`chat` interface — does
-        not support ``include_highlights``, ``context_options``, or
-        ``json_response`` parameters.
+        Use it when your code already consumes OpenAI's chat completion
+        shape. Citations arrive inline in the message text rather than as a
+        structured list, and the *include_highlights*, *context_options* and
+        *json_response* options of :meth:`chat` are not available.
 
         Args:
             assistant_name (str): Name of the assistant to chat with.
             messages (list[Message | dict[str, str]]): Conversation messages.
                 Dicts are converted to :class:`Message` objects; role defaults
-                to ``"user"`` when not present. Roles are case-sensitive
-                ``"user"`` or ``"assistant"`` and content must be non-blank —
-                see :class:`Message`. Neither is checked client-side.
+                to ``"user"`` when not present. Each role is ``"user"`` or
+                ``"assistant"``.
             model (str): Name of the large language model that generates the
                 answer. Defaults to ``"gpt-4o"``. The models the API
                 documents for this endpoint are ``"gpt-4o"``, ``"gpt-4.1"``,
                 ``"o4-mini"``, ``"claude-sonnet-4-5"``, and
-                ``"gemini-2.5-pro"`` — the same list :meth:`chat` accepts,
-                minus ``"gpt-5"``, which is documented only on :meth:`chat`.
-                A name outside that list may be served by a successor model
-                rather than rejected, so the response's ``model`` field, not
-                this argument, says which model answered. Not validated
-                client-side; the API rejects an unrecognized name with an
-                error enumerating what it accepts.
+                ``"gemini-2.5-pro"``. A name outside that list may be served
+                by a successor model rather than rejected, so the response's
+                ``model`` field, not this argument, says which model
+                answered.
             stream (bool): If ``True``, return an
                 :class:`AsyncChatCompletionStream`. Defaults to ``False``.
             temperature (float | None): Controls randomness. Lower values produce
-                more deterministic responses. Omitted from request when ``None``.
-            filter (dict[str, Any] | None): Metadata filter restricting which
-                documents are used as context. Omitted from request when ``None``.
+                more deterministic responses.
+            filter (dict[str, Any] | None): Filter on file metadata, such as
+                ``{"department": "finance"}``, restricting which files the
+                answer draws on.
             timeout (float | None): Per-call HTTP timeout in seconds, overriding
                 the client-level default. On a streaming request this bounds the
                 gap between chunks rather than the whole response (see below).
@@ -1891,8 +1857,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         Raises:
             :exc:`PineconeTypeError`: If *assistant_name* is not a ``str``.
             :exc:`ApiError`: If the assistant has no file in ``"Available"``
-                status yet — check with :meth:`list_files` before reading this
-                as a transport failure.
+                status yet, for example while uploads are still processing.
 
         Examples:
             .. code-block:: python
@@ -1910,9 +1875,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                     print(response.choices[0].message.content)
                 asyncio.run(main())
 
-            The response carries no separate ``citations`` list — the shape is
-            OpenAI's, so citations arrive inline in the message text. Set
-            ``stream=True`` for an :class:`AsyncChatCompletionStream`:
+            Set ``stream=True`` for an :class:`AsyncChatCompletionStream`.
+            Its ``text()`` method yields content fragments as they arrive:
 
             .. code-block:: python
 
@@ -1922,15 +1886,14 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                         messages=[{"content": "Explain quantum entanglement briefly."}],
                         stream=True,
                     )
-                    async for chunk in stream:
-                        print(chunk)
+                    async for text in stream.text():
+                        print(text, end="", flush=True)
                 asyncio.run(stream_main())
 
         .. seealso::
-           - :meth:`chat` — the Pinecone-native shape, and the only one of the
-             two that accepts ``include_highlights``, ``context_options`` and
-             ``json_response`` or returns a structured ``citations`` list.
-           - :meth:`context` — the retrieved snippets on their own, with no
+           - :meth:`chat`: the Pinecone-native shape, with a structured
+             ``citations`` list.
+           - :meth:`context`: the retrieved snippets on their own, with no
              generated answer.
 
         .. note::
@@ -2041,8 +2004,8 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
     ) -> AlignmentResult:
         """Evaluate answer alignment against a ground truth answer.
 
-        Measures the correctness and completeness of a generated answer with
-        respect to a ground truth answer. Alignment is the harmonic mean of
+        Scores a generated answer, such as one from :meth:`chat`, against an
+        answer you know is right. Alignment is the harmonic mean of
         correctness (precision) and completeness (recall).
 
         Args:
@@ -2051,8 +2014,9 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             ground_truth_answer: The ground truth answer to compare against.
 
         Returns:
-            :class:`AlignmentResult` with aggregate scores, per-fact entailment
-            results, and token usage statistics.
+            :class:`AlignmentResult` with ``scores`` (``correctness``,
+            ``completeness`` and ``alignment``), ``facts`` (the per-fact
+            entailment verdicts behind the scores) and token ``usage``.
 
         Examples:
             The answer below contradicts the ground truth on purpose, so the
