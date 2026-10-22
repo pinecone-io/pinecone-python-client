@@ -29,7 +29,7 @@ class ImportList:
                 print(operation.id, operation.status, operation.percent_complete)
 
     .. seealso::
-       `How bulk ingest behaves <https://sdk.pinecone.io/python/guides/bulk-ingest.html>`__
+       `Bulk importing vectors <https://sdk.pinecone.io/python/how-to/vectors/bulk-import.html>`__
        — starting and monitoring imports.
     """
 

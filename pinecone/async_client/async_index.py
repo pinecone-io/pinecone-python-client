@@ -232,34 +232,35 @@ class AsyncIndex:
         namespace: str,
         timeout: float | None = None,
     ) -> UpsertRecordsResponse:
-        """Upsert records for legacy integrated indexes (legacy Records API).
+        """Upsert text records into a legacy integrated index (legacy Records API).
 
-        Records are sent as newline-delimited JSON (NDJSON). Embeddings are
-        generated server-side.
-
-        Part of the legacy Records API. For a new index, give a document index a
-        ``string`` field that uses integrated embedding and write through
-        ``documents.upsert`` instead.
+        Serves legacy integrated indexes, created with
+        :meth:`~pinecone.client.indexes.Indexes.create_for_model`: the server embeds
+        each record's text with the index's model. On a document index use
+        :attr:`documents` instead. Upserts apply asynchronously, so a record may not
+        be searchable immediately.
 
         Args:
-            records: Record dicts, each carrying an ``_id`` (or ``id``) plus the
-                fields to store; the index's embedding model decides which field it
-                embeds. A record giving both ``_id`` and ``id`` keeps ``_id`` and
-                the client drops the ``id`` before sending.
-            namespace (str): Target namespace, e.g. ``"articles-en"``. Required and
-                non-empty — unlike :meth:`upsert`, the legacy Records API has no default
-                namespace to fall back on.
-            timeout (float | None): Per-request timeout in seconds. Overrides the
-                client-level default for this call only.
+            records (list[dict[str, Any]]): Records to write, each with an ``_id``
+                (or ``id``) string plus the fields to store, e.g.
+                ``{"_id": "article-101", "text": "Vector databases for search."}``.
+                The index embeds the field its embed configuration maps and stores
+                the rest with the record. A record giving both ``_id`` and ``id``
+                keeps ``_id``.
+            namespace (str): Target namespace, e.g. ``"articles-en"``. Required: the legacy
+                Records API has no implicit default namespace, so pass ``"__default__"`` to
+                write to it.
+            timeout (float | None): Per-request timeout in seconds, e.g. ``10.0``.
+                Overrides the client-level default for this call only.
 
         Returns:
-            :class:`UpsertRecordsResponse` with ``record_count``, the number of
-            records submitted.
+            :class:`~pinecone.models.vectors.responses.UpsertRecordsResponse` whose
+            ``record_count`` is the number of records the client sent.
 
         Raises:
             :exc:`PineconeValueError`: If *namespace* is not a non-empty string,
                 *records* is empty, or a record has no ``_id``/``id`` field or one
-                that is not a string. Raised before any HTTP request is made.
+                that is not a string. Raised before any request is made.
 
         Examples:
             .. code-block:: python
@@ -274,12 +275,8 @@ class AsyncIndex:
                 print(response.record_count)
 
         .. seealso::
-           - :meth:`search` — the read side of a legacy integrated index: text
-             in, embedded server-side.
-           - :meth:`upsert` — for an index where you embed the text yourself and
-             send vectors.
-           - :meth:`start_import` — millions of vectors from cloud storage,
-             server-side and asynchronous.
+           - :meth:`search`: the read side of a legacy integrated index.
+           - :meth:`upsert`: write vectors you embedded yourself.
         """
         if not isinstance(namespace, str):
             raise ValidationError("namespace must be a string")
@@ -338,54 +335,60 @@ class AsyncIndex:
     ) -> UpsertResponse:
         """Upsert a batch of vectors into a namespace.
 
-        If a vector with the same ID already exists in the namespace, it is
-        overwritten.
-
-        Each request is capped on both vector count and encoded payload size;
-        wide vectors or large metadata tend to hit the size cap first. Pass
-        ``batch_size`` to split a long sequence of vectors into requests that
-        stay under both limits.
+        Serves indexes created with ``dimension``/``metric`` and legacy integrated
+        indexes; on a document index use :attr:`documents` instead. A vector whose ID
+        already exists in the namespace is overwritten. Each request is capped on both
+        vector count and encoded size, and wide vectors or large metadata usually hit
+        the size cap first, so pass ``batch_size`` to split a long sequence into
+        requests that stay under both.
 
         Args:
-            vectors: Sequence of vectors to upsert. Each element can be a
-                :class:`Vector`, a tuple of ``(id, values)`` or
-                ``(id, values, metadata)``, or a dict with ``id``, ``values``,
-                and optional ``sparse_values`` / ``metadata`` keys.
-            namespace (str): Target namespace, e.g. ``"articles-en"``. Defaults to
-                the empty string, which addresses the index's default namespace.
-            batch_size (int | None): Split *vectors* into chunks of this size and
-                send one request per chunk, e.g. ``100``. ``None`` (default) sends
-                every vector in one request. Must be a positive integer.
+            vectors: Vectors to upsert. Each element can be a
+                :class:`~pinecone.models.vectors.vector.Vector`, a tuple of
+                ``(id, values)`` or ``(id, values, metadata)``, or a dict with ``id``,
+                ``values``, and optional ``sparse_values`` / ``metadata`` keys.
+            namespace (str): Target namespace, e.g. ``"articles-en"``. Defaults to the
+                index's default namespace.
+            batch_size (int | None): Split *vectors* into chunks of this size and send
+                one request per chunk, e.g. ``100``. ``None`` (default) sends every vector
+                in one request. Must be a positive integer.
             show_progress (bool): When ``True`` (default) and ``tqdm`` is installed,
-                display a progress bar that advances as batches complete. No effect
-                when ``batch_size`` is ``None`` or ``tqdm`` is not installed.
-            max_concurrency (int): Batch requests in flight at once, 1-64. Defaults
-                to ``8``. Only used when ``batch_size`` is set.
-            timeout (float | None): Per-request timeout in seconds. Overrides the
-                client-level default for this call only.
+                display a progress bar that advances as batches complete. No effect when
+                ``batch_size`` is ``None``.
+            max_concurrency (int): Most batch requests this call keeps in flight at once,
+                e.g. ``16``. Defaults to ``8``. Only used when ``batch_size`` is set. A
+                process-wide limit per host also applies and holds concurrency lower when
+                the host pushes back; see
+                `Bulk ingest <https://sdk.pinecone.io/python/guides/bulk-ingest.html>`__.
+            timeout (float | None): Timeout in seconds for one attempt of one request,
+                e.g. ``30.0``. A batch is retried on its own under the client's retry
+                policy, so this does not bound the whole call. ``None`` (default) uses
+                the client-level default.
             total_timeout (float | None): Deadline in seconds for the whole batched
-                operation, as opposed to *timeout*, which bounds one attempt of one
-                batch. On expiry no further batches are submitted; batches already
-                in flight are awaited and never cancelled; unsent batches are
-                reported in ``failed_items``. ``None`` (default) means no deadline.
-                Zero or a negative value raises :exc:`PineconeValueError`.
+                operation, e.g. ``600.0``. Only used when ``batch_size`` is set. On expiry
+                no further batches are submitted, batches already in flight are awaited,
+                and unsent batches are reported in ``failed_items``. ``None`` (default)
+                means no deadline. Zero or a negative value raises
+                :exc:`~pinecone.errors.exceptions.PineconeValueError`.
 
         Returns:
-            :class:`UpsertResponse` with ``upserted_count``. When ``batch_size``
-            triggers multiple requests, ``response_info`` carries the aggregate LSN
-            from all successful batches, or ``None`` if no LSN headers came back,
-            and ``errors`` / ``failed_items`` name whatever did not land.
+            :class:`~pinecone.models.vectors.responses.UpsertResponse` with
+            ``upserted_count``. With ``batch_size`` set, a failed batch does not raise:
+            ``has_errors``, ``errors`` and ``failed_items`` report what did not land, and
+            ``failed_items`` can be passed straight back to :meth:`upsert`.
+            ``response_info`` then carries the aggregate LSN of the successful batches,
+            or ``None`` if no LSN headers came back.
 
         Raises:
-            :exc:`PineconeTypeError`: If a vector element is not one of the forms
-                listed above.
-            :exc:`PineconeValueError`: If a vector element is malformed, *batch_size*
-                is not a positive integer, or *max_concurrency* falls outside 1-64.
-            :exc:`~pinecone.errors.exceptions.PayloadTooLargeError`: If one request
-                exceeds the server's cap on encoded request size — lower
+            :exc:`PineconeTypeError`: If a vector element is not one of the forms listed
+                above.
+            :exc:`PineconeValueError`: If a vector element is malformed, *batch_size* is
+                not a positive integer, or *max_concurrency* is out of range.
+            :exc:`~pinecone.errors.exceptions.PayloadTooLargeError`: If ``batch_size`` is
+                ``None`` and the request exceeds the server's cap on encoded size. Set a
                 ``batch_size`` and retry.
-            :exc:`ApiError`: If one request exceeds the server's cap on vectors per
-                request.
+            :exc:`ApiError`: If ``batch_size`` is ``None`` and the request exceeds the
+                server's cap on vectors per request.
 
         Examples:
             All three vector forms are interchangeable within one call. The values
@@ -406,9 +409,8 @@ class AsyncIndex:
                 )
                 print(response.upserted_count)
 
-            For a sequence too long for one request — ``embeddings`` below being your
-            whole list of vectors — set ``batch_size`` and check the response for
-            batches that did not land:
+            For a sequence too long for one request (``embeddings`` below being your
+            whole list of vectors), set ``batch_size`` and resend what did not land:
 
             .. code-block:: python
 
@@ -418,28 +420,15 @@ class AsyncIndex:
                     batch_size=100,
                 )
                 if response.has_errors:
-                    await idx.upsert(
-                        vectors=response.failed_items, namespace="articles-en"
-                    )
-
-        .. note::
-           With ``batch_size`` set, batches are submitted concurrently, bounded by
-           ``max_concurrency`` and by the host's adaptive concurrency limit,
-           whichever is lower, and **a partial failure does not raise** —
-           ``response.has_errors``, ``response.errors`` and
-           ``response.failed_items`` report it, and ``failed_items`` can be passed
-           straight back to ``upsert``. Each batch is retried on its own under the
-           client's retry policy, so *timeout* bounds one attempt rather than the
-           batch; see
-           `Retries and resilience <https://sdk.pinecone.io/python/guides/retries.html>`__.
+                    await idx.upsert(vectors=response.failed_items, namespace="articles-en")
 
         .. seealso::
-           - :meth:`upsert_records` — text in, embedded server-side, for a legacy
+           - :meth:`upsert_records`: text in, embedded server-side, for a legacy
              integrated index.
-           - :meth:`upsert_from_dataframe` — the same write from a pandas
-             DataFrame, batched for you.
-           - :meth:`start_import` — millions of vectors from cloud storage,
-             server-side and asynchronous.
+           - :meth:`upsert_from_dataframe`: the same write from a pandas DataFrame,
+             batched for you.
+           - :meth:`start_import`: millions of vectors from cloud storage, server-side
+             and asynchronous.
         """
         if batch_size is None:
             return await self._upsert_one_batch(
@@ -541,103 +530,95 @@ class AsyncIndex:
         total_timeout: float | None = None,
         on_error: Literal["raise", "collect"] | None = None,
     ) -> UpsertResponse:
-        """Upsert vectors from a pandas DataFrame.
+        """Upsert vectors from a pandas DataFrame, in batches.
 
-        Convenience method that accepts a DataFrame with columns ``id``,
-        ``values``, and optionally ``sparse_values`` and ``metadata``,
-        batches the rows, and upserts them via :meth:`upsert`.
+        Serves indexes created with ``dimension``/``metric`` and legacy integrated
+        indexes; on a document index use :attr:`documents` instead. Each row becomes
+        one vector, and the rows are sent through :meth:`upsert` with ``batch_size``
+        set, so a batch that fails is reported on the response rather than raised
+        unless you pass ``on_error="raise"``. ``pandas`` is not an SDK dependency;
+        install it yourself.
 
         Args:
-            df: A ``pandas.DataFrame`` with at least ``id`` and ``values``
-                columns. ``sparse_values`` and ``metadata`` columns are
-                included when present and non-None.
-            namespace: Target namespace, e.g. ``"articles-en"``. Defaults to the
-                index's default namespace.
-            batch_size: Number of rows per upsert batch. Defaults to 500.
-            show_progress: If ``True`` (default) and ``tqdm`` is installed, display
-                a progress bar that advances as batches complete. If ``tqdm`` is not
-                installed, silently falls back to no progress bar.
-            timeout: Client-side request timeout in seconds applied to *each
-                batch's* upsert request — not to the DataFrame as a whole.
-                ``None`` (default) uses the client-level default. Raise it to
-                accommodate large or slow batches.
-            max_concurrency: Number of batches in flight at once, range
-                ``[1, 64]``. ``None`` (default) uses ``8`` — flat and
-                identical across every transport. The host's adaptive limit
-                still applies underneath.
-            total_timeout: Deadline in seconds for the **whole ingest**, as
-                opposed to *timeout*, which bounds a single attempt of a
-                single batch. On expiry no further batches are submitted;
-                batches already in flight are awaited and never cancelled;
-                unsent batches are reported in ``failed_items``. ``None``
-                (default) means no deadline.
-                Zero or a negative value raises :exc:`PineconeValueError`.
-            on_error: What to do when some batches fail. ``"collect"`` (the
-                default) returns an :class:`UpsertResponse` carrying
-                ``failed_item_count``, ``errors`` and ``failed_items``. This
-                holds when every batch fails too: nothing raises, so check
-                ``if response.has_errors:`` rather than assuming the call
-                succeeded. ``"raise"`` re-raises the lowest-indexed batch failure once
-                every batch has settled, with the partial result attached to
-                the exception's ``response`` attribute.
+            df: A ``pandas.DataFrame`` with ``id`` and ``values`` columns and, optionally,
+                ``sparse_values`` and ``metadata`` columns. A missing cell (``None`` or
+                ``NaN``) in an optional column leaves that field off the vector.
+            namespace (str | None): Target namespace, e.g. ``"articles-en"``. ``None``
+                (default) targets the index's default namespace.
+            batch_size (int): Rows per upsert request, e.g. ``100``. Defaults to ``500``.
+                Lower it for wide vectors or large metadata.
+            show_progress (bool): When ``True`` (default) and ``tqdm`` is installed,
+                display a progress bar that advances as batches complete.
+            timeout (float | None): Timeout in seconds for one attempt of one batch's
+                request, e.g. ``30.0``. A batch is retried on its own under the client's
+                retry policy, so this does not bound the whole call. ``None`` (default)
+                uses the client-level default.
+            max_concurrency (int | None): Most batch requests this call keeps in flight
+                at once, e.g. ``16``. ``None`` (default) uses ``8``. A process-wide limit
+                per host also applies and holds concurrency lower when the host pushes
+                back; see
+                `Bulk ingest <https://sdk.pinecone.io/python/guides/bulk-ingest.html>`__.
+            total_timeout (float | None): Deadline in seconds for the whole ingest, e.g.
+                ``600.0``. On expiry no further batches are submitted, batches already in
+                flight are awaited, and unsent rows are reported in ``failed_items``.
+                ``None`` (default) means no deadline. Zero or a negative value raises
+                :exc:`~pinecone.errors.exceptions.PineconeValueError`.
+            on_error (str | None): What to do when some batches fail. ``"collect"``
+                (``None`` behaves the same) returns the response with ``errors`` and
+                ``failed_items`` filled in. This holds when every batch fails too:
+                nothing raises, so check ``response.has_errors``. ``"raise"`` raises the
+                lowest-indexed batch failure once every batch has settled, with the
+                partial response on the exception's ``response`` attribute.
 
         Returns:
-            :class:`UpsertResponse` with ``upserted_count`` totalled across every
-            batch that landed.
+            :class:`~pinecone.models.vectors.responses.UpsertResponse` with
+            ``upserted_count`` totalled across the batches that landed, plus
+            ``has_errors``, ``errors`` and ``failed_items`` for the ones that did not.
+            ``failed_items`` can be passed straight back to :meth:`upsert`.
 
         Raises:
-            :exc:`RuntimeError`: If ``pandas`` is not installed. It is not an SDK
-                dependency; install it yourself with ``pip install pandas``.
-            :exc:`PineconeValueError`: If *df* is not a ``pandas.DataFrame``,
-                *batch_size* is not a positive integer, or *max_concurrency* falls
-                outside 1-64.
-            :exc:`PineconeTimeoutError`: If ``on_error="raise"`` and a batch
-                exhausted its retries on timeout. Under the default
-                ``on_error="collect"`` that same failure is reported on the
-                returned response rather than raised.
+            :exc:`RuntimeError`: If ``pandas`` is not installed.
+            :exc:`PineconeValueError`: If *df* is not a ``pandas.DataFrame`` or lacks an
+                ``id`` or ``values`` column, *batch_size* is not a positive integer,
+                *max_concurrency* is out of range, or *on_error* is not ``"collect"`` or
+                ``"raise"``.
+            :exc:`PineconeTimeoutError`: If ``on_error="raise"`` and a batch exhausted
+                its retries on timeout.
 
         Examples:
-            A ``metadata`` column is optional; where it is present its dict lands on
-            the vector as written.
+            A ``metadata`` column is optional; where it is present its dict lands on the
+            vector as written. The values below are truncated to three floats for the
+            page; pass your index's full dimension.
 
             .. code-block:: python
 
                 import pandas as pd
-                from pinecone import AsyncPinecone
 
-                async with AsyncPinecone(api_key="your-api-key") as pc:
-                    idx = await pc.index(name="article-search")
-                    df = pd.DataFrame([
-                        {
-                            "id": "article-101",
-                            "values": [0.012, -0.087, 0.153],
-                            "metadata": {"topic": "science", "year": 2024},
-                        },
-                        {
-                            "id": "article-102",
-                            "values": [0.045, 0.021, -0.064],
-                            "metadata": {"topic": "technology", "year": 2024},
-                        },
-                    ])
-                    response = await idx.upsert_from_dataframe(
-                        df,
-                        namespace="articles-en",
-                        batch_size=100,
-                    )
-                    print(response.upserted_count)
-
-        .. note::
-           ``pandas`` is not an SDK dependency — this is the only method that needs
-           it, so install it in your own environment. Reading the DataFrame is
-           synchronous work on the event loop's thread; only the upserts await.
+                df = pd.DataFrame([
+                    {
+                        "id": "article-101",
+                        "values": [0.012, -0.087, 0.153],
+                        "metadata": {"topic": "science", "year": 2024},
+                    },
+                    {
+                        "id": "article-102",
+                        "values": [0.045, 0.021, -0.064],
+                        "metadata": {"topic": "technology", "year": 2024},
+                    },
+                ])
+                response = await idx.upsert_from_dataframe(
+                    df,
+                    namespace="articles-en",
+                    batch_size=100,
+                )
+                if response.has_errors:
+                    await idx.upsert(vectors=response.failed_items, namespace="articles-en")
 
         .. seealso::
-           - :meth:`upsert` — the same write from a list of vectors, with the same
-             ``batch_size`` and no ``pandas`` dependency.
-           - :meth:`upsert_records` — text in, embedded server-side, for a legacy
-             integrated index.
-           - :meth:`start_import` — millions of vectors from cloud storage,
-             server-side and asynchronous.
+           - :meth:`upsert`: the same batched write from a list of vectors, with no
+             ``pandas`` dependency.
+           - :meth:`start_import`: millions of vectors from cloud storage, server-side
+             and asynchronous.
         """
         try:
             import pandas as pd
@@ -689,15 +670,15 @@ class AsyncIndex:
         max_candidates: int | None = None,
         timeout: float | None = None,
     ) -> QueryResponse:
-        """Query a namespace for the nearest neighbours of a vector you supply.
+        """Query a namespace for the nearest neighbors of a vector you supply.
 
-        You supply the query vector; nothing is embedded for you. At least one query
-        selector is required: a dense *vector*, a *sparse_vector*, both together for
-        a hybrid query, or the *id* of a vector the index already holds. An *id* is a
-        reference to stored data, so it cannot be mixed with either vector form.
+        Serves indexes created with ``dimension``/``metric`` and legacy integrated
+        indexes; on a document index use :attr:`documents` instead. You supply the query vector;
+        nothing is embedded for you. Pass a dense *vector*, a *sparse_vector*, both for
+        a hybrid query, or the *id* of a stored vector to use as the query.
 
         Args:
-            top_k (int): Number of results to return, 1-10000, e.g. ``5``.
+            top_k (int): Number of results to return, e.g. ``5``. The server caps it.
             vector (list[float] | None): Dense query vector, at your index's
                 dimension.
             id (str | None): ID of a stored vector to use as the query, e.g.
@@ -712,32 +693,34 @@ class AsyncIndex:
             include_metadata (bool): Return each match's metadata. Set it when you
                 need the fields you filtered on back in the result.
             sparse_vector (SparseValues | dict[str, Any] | None): Sparse query vector
-                with indices and values. Can be combined with *vector* for a
-                hybrid query on indexes that support both.
-            scan_factor (float | None): Recall/latency trade for dedicated read
-                node (DRN) indexes — a multiplier on how much of the index is
-                scanned. Above 1 scans more and favours recall; below 1 scans
-                less and favours latency. Omit to let the server choose.
-            max_candidates (int | None): Recall/latency trade for dedicated read
-                node (DRN) indexes — caps how many candidates are reranked before
-                ``top_k`` is taken. Must be at least ``top_k``: a smaller value is
-                rejected rather than clamped, since it could not fill the page.
+                with indices and values, e.g.
+                ``{"indices": [17, 42], "values": [0.4, 0.9]}``. Combine it with
+                *vector* for a hybrid query on a dense index with the
+                ``dotproduct`` metric.
+            scan_factor (float | None): Recall/latency trade for dense indexes on
+                dedicated read nodes: a multiplier on how much of the index is
+                scanned. Above 1 scans more and favors recall; below 1 scans less
+                and favors latency. Omit to let the server choose.
+            max_candidates (int | None): Recall/latency trade for dense indexes on
+                dedicated read nodes: caps how many candidates are reranked before
+                *top_k* is taken. Must be at least *top_k*.
             timeout (float | None): Per-request timeout in seconds. Overrides the
                 client-level default for this call only.
 
         Returns:
-            :class:`QueryResponse` with ``matches`` (ordered from most to least
-            similar, each carrying ``id`` and ``score``), ``namespace``, and
-            ``usage``.
+            :class:`~pinecone.models.vectors.responses.QueryResponse` with ``matches``
+            (ordered from most to least similar, each carrying ``id`` and ``score``),
+            ``namespace``, and ``usage``.
 
         Raises:
-            :exc:`PineconeValueError`: If *top_k* falls outside 1-10000, if *id* is
-                combined with *vector* or *sparse_vector*, if none of *vector*,
-                *id*, or *sparse_vector* is given, or if *id* is not a legal vector
-                ID. Raised before any HTTP request is made.
-            :exc:`ApiError`: If *scan_factor* or *max_candidates* is out of range,
-                or the index is not a dense DRN index — both knobs are rejected on
-                on-demand indexes and on sparse indexes.
+            :exc:`PineconeValueError`: If *top_k* is not positive or exceeds the
+                server's maximum, if *id* is combined with *vector* or
+                *sparse_vector*, if none of *vector*, *id*, or *sparse_vector* is
+                given, or if *id* is not a legal vector ID. Raised before any
+                request is sent.
+            :exc:`ApiError`: If *scan_factor* or *max_candidates* is set on an
+                index that does not run on dedicated read nodes, or on a sparse
+                index.
 
         Examples:
             Query vectors are truncated to three floats on this page; pass your
@@ -753,8 +736,8 @@ class AsyncIndex:
                 for match in response.matches:
                     print(match.id, match.score)
 
-            A ``filter`` narrows the search before ranking, and
-            ``include_metadata`` returns the fields it selected on:
+            A ``filter`` narrows the search before ranking, and ``include_metadata``
+            returns the fields it selected on:
 
             .. code-block:: python
 
@@ -769,11 +752,9 @@ class AsyncIndex:
                     print(match.id, match.score, match.metadata["genre"])
 
         .. seealso::
-           - :meth:`search` — the same search on a legacy integrated index:
-             you pass text, the server embeds it.
-           - :attr:`documents` — ``documents.search`` for a schema-based index,
-             which stores JSON records rather than raw vectors.
-           - :meth:`query_namespaces` — the same query fanned out over several
+           - :meth:`search`: the same search on a legacy integrated index, where
+             you pass text and the server embeds it.
+           - :meth:`query_namespaces`: the same query fanned out over several
              namespaces, merged into one ranking.
         """
         require_in_range("top_k", top_k, 1, QUERY_TOP_K_MAX)
@@ -831,53 +812,51 @@ class AsyncIndex:
     ) -> QueryNamespacesResults:
         """Query several namespaces at once and merge them into one ranking.
 
-        One :meth:`query` per namespace, awaited concurrently with at most 10 in
-        flight, then merged so the result is the overall top-k rather than top-k per
-        namespace. Split the call if you want more than 10 namespaces in flight.
-        Because the merge ranks by *metric*, you have to name the index's metric
-        yourself — nothing here reads it off the index.
+        Serves indexes created with ``dimension``/``metric`` and legacy integrated
+        indexes. Runs one :meth:`query` per namespace concurrently, then merges the
+        results so you get the overall top-k rather than top-k per namespace. The merge
+        ranks by *metric*, which the client does not read off the index, so pass the
+        metric the index was created with.
 
         Args:
-            vector: Dense query vector values. Required for dense and hybrid
-                indexes; omit for sparse-only indexes (use *sparse_vector* instead).
-            namespaces: Namespaces to query, e.g.
+            vector (list[float] | None): Dense query vector. Omit it on a sparse
+                index and pass *sparse_vector* instead.
+            namespaces (list[str]): Namespaces to query, e.g.
                 ``["articles-en", "articles-fr"]``. Must be non-empty; duplicates
                 are removed while preserving order.
-            metric: Distance metric the merge ranks by — ``"cosine"``,
-                ``"euclidean"``, or ``"dotproduct"``. Pass the metric the index was
-                created with, or the merged ranking will be wrong.
-            top_k: Maximum number of results to return after merging, e.g. ``10``.
-                Defaults to 10. Each namespace is queried for this many, so the
-                merge chooses from ``top_k × len(namespaces)`` candidates.
-            filter: Metadata filter expression applied to every namespace.
-            include_values: Return each match's vector values.
-            include_metadata: Return each match's metadata.
-            sparse_vector: Sparse query vector with indices and values.
-                Required for sparse-only indexes when *vector* is omitted.
-            scan_factor: Recall/latency trade for dedicated read node (DRN)
-                indexes — a multiplier on how much of the index is scanned.
-                Above 1 scans more and favours recall; below 1 scans less and
-                favours latency. Applied to every namespace queried.
-            max_candidates: Recall/latency trade for dedicated read node (DRN)
-                indexes — caps how many candidates are reranked before ``top_k``
-                is taken, per namespace. Must be at least ``top_k``.
-            timeout: Per-request timeout in seconds, applied to each namespace's
-                query rather than to the fan-out as a whole.
+            metric (str): Metric the index was created with: ``"cosine"``,
+                ``"euclidean"``, or ``"dotproduct"``. A wrong metric is not
+                rejected; the merged ranking just comes out in the wrong order.
+            top_k (int | None): Number of results to return after merging, e.g.
+                ``10``. Defaults to 10. Each namespace is queried for this many.
+            filter (dict[str, Any] | None): Metadata filter expression applied to
+                every namespace, e.g. ``{"year": {"$gte": 2020}}``.
+            include_values (bool): Return each match's vector values.
+            include_metadata (bool): Return each match's metadata.
+            sparse_vector (SparseValues | dict[str, Any] | None): Sparse query vector
+                with indices and values. Required on a sparse index, where *vector*
+                is omitted.
+            scan_factor (float | None): Recall/latency trade for dense indexes on
+                dedicated read nodes, applied to every namespace. See :meth:`query`.
+            max_candidates (int | None): Candidate cap for dense indexes on dedicated
+                read nodes, applied per namespace. Must be at least *top_k*.
+            timeout (float | None): Per-request timeout in seconds, applied to each
+                namespace's query rather than to the call as a whole.
 
         Returns:
-            :class:`QueryNamespacesResults` with the merged ``matches``, ``usage``
-            totalled over every namespace, and ``ns_usage`` keyed by namespace name.
-            A match carries no record of which namespace produced it, so query one
-            namespace at a time when you need that.
+            :class:`~pinecone.models.vectors.query_aggregator.QueryNamespacesResults`
+            with the merged ``matches``, ``usage`` totalled over every namespace, and
+            ``ns_usage`` keyed by namespace name. A match does not record which
+            namespace produced it, so query one namespace at a time when you need
+            that.
 
         Raises:
             :exc:`PineconeValueError`: If *namespaces* is empty, if both *vector*
                 and *sparse_vector* are absent or empty, or if *metric* is not one
                 of ``"cosine"``, ``"euclidean"``, or ``"dotproduct"``. Raised
-                before any HTTP request is made.
-            :exc:`ApiError`: If any one namespace's query fails; the first such
-                failure propagates and the merged result is lost, so retry the
-                whole call.
+                before any request is sent.
+            :exc:`ApiError`: If any one namespace's query fails. The first failure
+                propagates and the merged result is lost, so retry the whole call.
 
         Examples:
             The query vector is truncated to three floats on this page; pass your
@@ -894,21 +873,21 @@ class AsyncIndex:
                 for match in results.matches:
                     print(match.id, match.score)
 
-            On a sparse-only index, pass *sparse_vector* instead and rank by
+            On a sparse index, pass *sparse_vector* instead and rank by
             ``"dotproduct"``:
 
             .. code-block:: python
 
                 results = await idx.query_namespaces(
                     sparse_vector={"indices": [17, 42, 108], "values": [0.4, 0.9, 0.2]},
-                    namespaces=["docs-en", "docs-fr"],
+                    namespaces=["articles-en", "articles-fr"],
                     metric="dotproduct",
                     top_k=10,
                 )
 
         .. seealso::
-           :meth:`query` — one namespace, and the place every argument here is
-           documented in full.
+           :meth:`query`: one namespace, and the only form that takes an *id* as the
+           query.
         """
         if not namespaces:
             raise ValidationError("namespaces must be a non-empty list")
@@ -996,29 +975,30 @@ class AsyncIndex:
     ) -> FetchResponse:
         """Fetch vectors by their IDs, exactly as stored.
 
-        A lookup, not a search: nothing is ranked and no score is returned. An ID
-        that is not in the namespace is silently absent from the result, so compare
-        the keys you got back against the ones you asked for.
+        Serves indexes created with ``dimension``/``metric`` and legacy integrated
+        indexes; on a document index use :attr:`documents` instead. A lookup, not a
+        search: nothing is ranked and no score is returned. An ID that is not in the
+        namespace is silently absent from the result, so compare the keys you got back
+        against the ones you asked for.
 
         Args:
-            ids (list[str]): Vector IDs to fetch, e.g.
-                ``["article-101", "article-102"]``. Must be non-empty, and every ID
-                must be 1-512 ASCII characters without a NUL.
-            namespace (str): Namespace to fetch from, e.g. ``"articles-en"``.
-                Defaults to the index's default namespace.
+            ids (list[str]): Vector IDs to fetch, e.g. ``["article-101", "article-102"]``.
+                Must be non-empty.
+            namespace (str): Namespace to fetch from, e.g. ``"articles-en"``. Defaults
+                to the index's default namespace.
             timeout (float | None): Per-request timeout in seconds. Overrides the
                 client-level default for this call only.
 
         Returns:
-            :class:`FetchResponse` with ``vectors``, a map of ID to
-            :class:`Vector` holding values and metadata as stored, plus
-            ``namespace`` and ``usage``. IDs the namespace does not hold are absent
-            from the map rather than raising.
+            :class:`~pinecone.models.vectors.responses.FetchResponse` with ``vectors``,
+            a map of ID to :class:`~pinecone.models.vectors.vector.Vector` holding values
+            and metadata as stored, plus ``namespace`` and ``usage``. IDs the namespace
+            does not hold are absent from the map rather than raising.
 
         Raises:
-            :exc:`PineconeValueError`: If *ids* is empty or holds an ID that is not
-                1-512 ASCII characters without a NUL. Raised before any HTTP
-                request is made.
+            :exc:`PineconeValueError`: If *ids* is empty or holds an ID that is empty,
+                non-ASCII, contains a NUL, or is longer than the API allows. Raised
+                before any request is sent.
 
         Examples:
             .. code-block:: python
@@ -1030,10 +1010,9 @@ class AsyncIndex:
                 print("not in this namespace:", set(wanted) - set(response.vectors))
 
         .. seealso::
-           - :meth:`fetch_by_metadata` — when you know the metadata you want rather
+           - :meth:`fetch_by_metadata`: when you know the metadata you want rather
              than the IDs.
-           - :meth:`query` — when you want the nearest vectors rather than named
-             ones.
+           - :meth:`query`: when you want the nearest vectors rather than named ones.
         """
         require_valid_vector_ids("ids", ids)
 
@@ -1059,17 +1038,18 @@ class AsyncIndex:
     ) -> FetchByMetadataResponse:
         """Fetch one page of the vectors whose metadata matches a filter.
 
-        A lookup, not a search: matches are not ranked and carry no score. One page
-        is returned per call, so follow ``pagination.next`` to reach the rest — see
-        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
+        Serves indexes created with ``dimension``/``metric`` and legacy integrated
+        indexes; on a document index use :attr:`documents` instead. A lookup, not a
+        search: matches are not ranked and carry no score. One page is returned per
+        call, so follow ``pagination.next`` to reach the rest.
 
         Args:
             filter (dict[str, Any]): Metadata filter expression, e.g.
                 ``{"year": {"$gte": 2020}}``. Must carry at least one condition; an
                 empty filter is rejected rather than treated as "match everything".
-            namespace (str): Namespace to fetch from, e.g. ``"movies-en"``.
-                Defaults to the index's default namespace.
-            limit (int | None): Maximum number of vectors in this page, 1-10000.
+            namespace (str): Namespace to fetch from, e.g. ``"movies-en"``. Defaults to
+                the index's default namespace.
+            limit (int | None): Maximum number of vectors in this page, e.g. ``100``.
                 Omit to let the server choose the page size.
             pagination_token (str | None): ``pagination.next`` from the previous
                 response. ``None`` (default) fetches the first page.
@@ -1077,13 +1057,15 @@ class AsyncIndex:
                 client-level default for this call only.
 
         Returns:
-            :class:`FetchByMetadataResponse` with ``vectors`` as stored, plus
-            ``namespace``, ``usage``, and ``pagination`` whose ``next`` is the token
-            for the following page or ``None`` on the last one.
+            :class:`~pinecone.models.vectors.responses.FetchByMetadataResponse` with
+            ``vectors`` as stored, plus ``namespace``, ``usage``, and ``pagination``,
+            which holds the next page's token in ``next`` and is ``None`` on the last
+            page.
 
         Raises:
-            :exc:`PineconeValueError`: If *filter* is empty or *limit* falls outside
-                1-10000. Raised before any HTTP request is made.
+            :exc:`PineconeValueError`: If *filter* is empty or *limit* is not a
+                positive integer within the API's maximum page size. Raised before any
+                request is sent.
 
         Examples:
             .. code-block:: python
@@ -1096,11 +1078,11 @@ class AsyncIndex:
                     print(vid, vec.metadata)
 
         .. seealso::
-           - :meth:`fetch` — when you already know the IDs.
-           - :meth:`query` — when you want the nearest vectors to a query rather
-             than every vector a filter admits.
-           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-             — walking every page.
+           - :meth:`fetch`: when you already know the IDs.
+           - :meth:`query`: when you want the nearest vectors to a query rather than
+             every vector a filter admits.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+             walking every page.
         """
         if limit is not None:
             require_valid_fetch_by_metadata_limit("limit", limit)
@@ -1132,34 +1114,35 @@ class AsyncIndex:
     ) -> None:
         """Delete vectors from a namespace by ID, by filter, or all of them.
 
-        Exactly one selector: *ids*, *filter*, or ``delete_all=True``. The delete is
-        irreversible and IDs the namespace does not hold are ignored rather than
-        reported, so a successful call is not evidence anything was deleted.
+        Serves indexes created with ``dimension``/``metric`` and legacy integrated
+        indexes; on a document index use :attr:`documents` instead. Pass exactly one
+        selector: *ids*, *filter*, or ``delete_all=True``. The delete is irreversible,
+        and IDs the namespace does not hold are ignored rather than reported, so a
+        successful call is not evidence anything was deleted.
 
         Args:
             ids (list[str] | None): Vector IDs to delete, e.g.
-                ``["article-101", "article-102"]``. Every ID must be 1-512 ASCII
-                characters without a NUL.
-            delete_all (bool): Delete every vector in *namespace*. The namespace
-                itself survives; :meth:`delete_namespace` removes that too.
-            filter (dict[str, Any] | None): Metadata filter expression selecting
-                what to delete, e.g. ``{"status": {"$eq": "retracted"}}``. Must
-                carry at least one condition, and cannot be combined with *ids* —
-                see the note below.
-            namespace (str): Namespace to delete from, e.g. ``"articles-en"``.
-                Defaults to the index's default namespace.
+                ``["article-101", "article-102"]``.
+            delete_all (bool): Delete every vector in *namespace*. The namespace itself
+                survives; :meth:`delete_namespace` removes that too.
+            filter (dict[str, Any] | None): Metadata filter expression selecting what
+                to delete, e.g. ``{"status": {"$eq": "retracted"}}``. Must carry at
+                least one condition. The client refuses *ids* alongside *filter*, because
+                the server would apply the filter alone and delete everything it matches
+                rather than the intersection; to delete the intersection, :meth:`query`
+                with the filter first and delete the IDs you get back.
+            namespace (str): Namespace to delete from, e.g. ``"articles-en"``. Defaults
+                to the index's default namespace.
             timeout (float | None): Per-request timeout in seconds. Overrides the
                 client-level default for this call only.
 
         Returns:
-            None — a successful delete returns no payload.
+            None. A successful delete returns no payload.
 
         Raises:
-            :exc:`PineconeValueError`: If zero or more than one selector is given,
-                if *filter* is empty, or if an ID is not legal. Raised before any
-                HTTP request is made.
-            :exc:`ApiError`: If a by-filter delete carries a text-match operator, or
-                the index is a dedicated index scaled to zero replicas.
+            :exc:`PineconeValueError`: If zero or more than one selector is given, if
+                *filter* is empty, or if an ID is not a legal vector ID. Raised before
+                any request is sent.
 
         Examples:
             By ID:
@@ -1180,28 +1163,15 @@ class AsyncIndex:
                     namespace="articles-en",
                 )
 
-            Emptying a whole namespace is unbounded and cannot be undone:
+            Emptying a whole namespace cannot be undone:
 
             .. code-block:: python
 
                 await idx.delete(delete_all=True, namespace="articles-staging")
 
-        .. note::
-           Three things are true only of a by-filter delete. *ids* alongside
-           *filter* is rejected here rather than sent, because the server lets the
-           filter win and would delete everything it matches rather than the
-           intersection — :meth:`query` with the filter first, then delete the IDs
-           you got back. A text-match operator (``$match_phrase``, ``$match_all``,
-           ``$match_any``) is rejected rather than ignored, because evaluated
-           against metadata it matches everything and would widen the delete to
-           every record the rest of the filter admits; text matching belongs in
-           :meth:`search`. And a by-filter delete reads before it writes, so a
-           dedicated index scaled to zero replicas refuses it — add replicas first.
-           Deleting by ID or with ``delete_all`` is subject to none of this.
-
         .. seealso::
-           :meth:`delete_namespace` — removes the namespace along with everything
-           in it, where ``delete_all=True`` empties it and leaves it in place.
+           :meth:`delete_namespace`: removes the namespace along with everything in it,
+           where ``delete_all=True`` empties it and leaves it in place.
         """
         require_delete_selectors(ids=ids, delete_all=delete_all, filter=filter)
         if ids is not None:
@@ -1234,28 +1204,28 @@ class AsyncIndex:
     ) -> UpdateResponse:
         """Patch one vector by ID, or patch metadata across a filter.
 
-        A partial update: fields you do not mention keep the values they had, so
-        ``set_metadata={"year": 2021}`` leaves every other metadata key in place.
-        Exactly one selector — *id* or *filter* — and a by-filter update is
-        metadata-only, since *values* and *sparse_values* belong to one record. The
-        write applies asynchronously, so a read straight afterwards can still see
-        the old value.
+        Serves indexes created with ``dimension``/``metric`` and legacy integrated
+        indexes; on a document index use :attr:`documents` instead. A partial update:
+        fields you do not mention keep the values they had, so
+        ``set_metadata={"year": 2021}`` leaves every other metadata key in place. Pass
+        exactly one selector, *id* or *filter*; a by-filter update is metadata-only,
+        since *values* and *sparse_values* belong to one record. The write applies
+        asynchronously, so a read straight afterwards can still see the old value.
 
         Args:
             id (str | None): ID of the one vector to patch, e.g. ``"article-101"``.
-                Must be 1-512 ASCII characters without a NUL.
             values (list[float] | None): Replacement dense values, at your index's
                 dimension. Only with *id*.
             sparse_values (SparseValues | dict[str, Any] | None): Replacement sparse
-                vector, with ``indices`` and ``values`` keys. Only with *id*.
+                vector, with ``indices`` and ``values``. Only with *id*.
             set_metadata (dict[str, Any] | None): Metadata keys to set or overwrite,
-                e.g. ``{"year": 2021}``. Keys you omit are left as they are; this
-                never clears a field.
-            namespace (str): Namespace to target, e.g. ``"movies-en"``. Defaults to
-                the index's default namespace.
-            filter (dict[str, Any] | None): Metadata filter expression selecting
-                which vectors to patch, e.g. ``{"genre": {"$eq": "drama"}}``. Must
-                carry at least one condition — see the note below.
+                e.g. ``{"year": 2021}``. Keys you omit are left as they are; this never
+                clears a field.
+            namespace (str): Namespace to target, e.g. ``"movies-en"``. Defaults to the
+                index's default namespace.
+            filter (dict[str, Any] | None): Metadata filter expression selecting which
+                vectors to patch, e.g. ``{"genre": {"$eq": "drama"}}``. Must carry at
+                least one condition.
             dry_run (bool): Report how many records the *filter* would touch without
                 writing anything. Ignored for a by-ID update. Run it first when the
                 filter is broader than you can check by eye.
@@ -1263,17 +1233,16 @@ class AsyncIndex:
                 client-level default for this call only.
 
         Returns:
-            :class:`UpdateResponse` whose ``matched_records`` counts the records
-            patched, or under ``dry_run`` the records that would have been. It is
-            ``None`` when the server does not report a count, which a by-ID update
-            does not.
+            :class:`~pinecone.models.vectors.responses.UpdateResponse` whose
+            ``matched_records`` counts the records the filter matched, which under
+            ``dry_run`` are the records that would have been patched. It is ``None``
+            for a by-ID update, which reports no count.
 
         Raises:
             :exc:`PineconeValueError`: If both or neither of *id* and *filter* are
-                given, if *filter* is combined with *values* or *sparse_values*, or
-                if *filter* is empty. Raised before any HTTP request is made.
-            :exc:`ApiError`: If a by-filter update carries a text-match operator, or
-                the index is a dedicated index scaled to zero replicas.
+                given, if *filter* is combined with *values* or *sparse_values*, if
+                *filter* is empty, or if *id* is not a legal vector ID. Raised before
+                any request is sent.
 
         Examples:
             Replacing one vector's values, truncated here to three floats:
@@ -1304,17 +1273,8 @@ class AsyncIndex:
                     namespace="movies-en",
                 )
 
-        .. note::
-           Two things are true only of a by-filter update. A text-match operator
-           (``$match_phrase``, ``$match_all``, ``$match_any``) is rejected rather
-           than ignored, because evaluated against metadata it matches everything
-           and would widen the patch to every record the rest of the filter admits;
-           text matching belongs in :meth:`search`. And a by-filter update reads
-           before it writes, so a dedicated index scaled to zero replicas refuses it
-           — add replicas first. Updating by ID is subject to neither.
-
         .. seealso::
-           :meth:`upsert` — replaces a whole vector rather than patching it, and
+           :meth:`upsert`: replaces a whole vector rather than patching it, and
            creates it if the ID is new.
         """
         require_update_selectors(id=id, filter=filter, values=values, sparse_values=sparse_values)
@@ -1366,67 +1326,67 @@ class AsyncIndex:
     ) -> SearchRecordsResponse:
         """Search records by text, vector, or ID, optionally reranking (legacy Records API).
 
-        Pass *inputs* and the index's own embedding model turns your text into the
-        query vector server-side — that is what separates this from :meth:`query`,
-        where you supply the vector. A *vector* or an *id* works here too, for the
-        cases where you already have one.
-
-        Part of the legacy Records API. On a document index, including one with
-        an integrated-embedding field, search through ``documents.search`` instead.
+        Give exactly one query source. Text in *inputs* needs a legacy integrated
+        index, created with
+        :meth:`~pinecone.client.indexes.Indexes.create_for_model`, whose model
+        embeds it server-side. A *vector* or *id* query also works on an index
+        created with ``dimension``/``metric``, though :meth:`query` is the usual
+        call there. On a document index use :attr:`documents` instead.
 
         Args:
-            namespace (str): Namespace to search, e.g. ``"articles-en"``. Required
-                and non-empty.
-            top_k (int): Number of results to return, at least 1, e.g. ``10``.
-            inputs (SearchInputs | dict[str, Any] | None): Inputs for
-                server-side embedding (e.g. ``{"text": "query text"}``).
-                Use :class:`SearchInputs` for typed key validation and IDE
-                autocompletion (e.g. ``SearchInputs(text="query text")``).
-            vector (list[float] | dict[str, Any] | None): Query vector. Pass a
-                ``list[float]`` for a dense-only query (wrapped automatically as
-                ``{"values": [...]}``) or a dict for sparse/hybrid queries with
-                keys ``values``, ``sparse_indices``, and/or ``sparse_values``
-                (passed through as-is). See :class:`SearchQueryVector` for the
-                typed helper.
-            id (str | None): ID of an existing record to use as the query.
-            filter (dict[str, Any] | None): Metadata filter expression.
-            fields (list[str] | None): Field names to include in results.
-                When ``None``, the server returns all available fields.
-            rerank (RerankConfig | dict[str, Any] | None): Reranking
-                configuration with ``model`` (required), ``rank_fields``
-                (required), and optional ``top_n``, ``parameters``, ``query``
-                keys. Use :class:`RerankConfig` for IDE autocompletion.
-            match_terms (dict[str, Any] | None): Term-matching constraint for
-                sparse search. Requires keys ``"strategy"`` (currently only
-                ``"all"``) and ``"terms"`` (list of strings).
-                Valid only on a text query — combined with ``vector`` or ``id``
-                it is rejected — and only on a sparse index whose embedding model
-                supports it; the server names the supported model when it
-                refuses. ``None`` disables term matching.
-            timeout (float | None): Per-request timeout in seconds. Overrides
-                the client-level default for this call only.
-            query (SearchQuery | dict[str, Any] | None): The pre-flattening form of
-                this call — ``top_k`` plus one of ``inputs``, ``vector``, or ``id``,
-                nested in one mapping. Pass the fields directly instead.
+            namespace (str): Namespace to search, e.g. ``"articles-en"``. Required: pass
+                ``"__default__"`` to search the default namespace.
+            top_k (int): Number of results to return, at least 1, e.g. ``10``. Required
+                unless *query* is given.
+            inputs (SearchInputs | dict[str, Any] | None): Text for the index's model to
+                embed, e.g. ``{"text": "trail running shoes"}``.
+                :class:`~pinecone.models.vectors.search.SearchInputs` gives typed keys and
+                IDE completion.
+            vector (list[float] | dict[str, Any] | None): Query vector. A
+                ``list[float]`` is a dense query; a dict with ``values``,
+                ``sparse_indices`` and/or ``sparse_values`` is a sparse or hybrid one.
+                :class:`~pinecone.models.vectors.search.SearchQueryVector` is the typed
+                helper.
+            id (str | None): ID of a stored record whose vector is the query, e.g.
+                ``"article-101"``.
+            filter (dict[str, Any] | None): Metadata filter, e.g.
+                ``{"category": {"$eq": "footwear"}}``.
+            fields (list[str] | None): Record fields to return in each hit, e.g.
+                ``["title", "text"]``. ``None`` returns every stored field.
+            rerank (RerankConfig | dict[str, Any] | None): Rerank the hits in the same call.
+                Needs ``model`` and ``rank_fields``; ``top_n``, ``parameters`` and
+                ``query`` are optional.
+                :class:`~pinecone.models.vectors.search.RerankConfig` gives IDE completion.
+            match_terms (dict[str, Any] | None): Require hits to contain query terms, e.g.
+                ``{"strategy": "all", "terms": ["running", "shoes"]}``. Valid only with
+                *inputs*, on a sparse index whose model supports it; the server names
+                the supported model when it refuses.
+            timeout (float | None): Per-request timeout in seconds, e.g. ``10.0``.
+                Overrides the client-level default for this call only.
+            query (SearchQuery | dict[str, Any] | None): The older nested form of this
+                call: ``top_k`` plus one query source in one mapping. Pass the fields
+                directly instead.
 
         Returns:
-            :class:`SearchRecordsResponse` whose ``result.hits`` are ordered from
-            most to least relevant. Read each :class:`Hit` as ``hit.id``,
-            ``hit.score``, and ``hit.fields``; the hits nest one level down, under
-            ``result``. ``usage`` breaks the cost out by stage.
+            :class:`~pinecone.models.vectors.search.SearchRecordsResponse` whose
+            ``result.hits`` run from most to least relevant. Read each
+            :class:`~pinecone.models.vectors.search.Hit` as ``hit.id``, ``hit.score``
+            and ``hit.fields``. ``usage`` reports read units, plus embedding tokens
+            and rerank units when those stages ran.
 
         Raises:
-            :exc:`PineconeValueError`: If ``namespace`` is not a non-empty string,
-                ``top_k`` is below 1, or ``rerank`` is missing ``model`` or
-                ``rank_fields``. Raised before any HTTP request is made.
+            :exc:`PineconeValueError`: If *namespace* is not a non-empty string, *top_k*
+                is missing or below 1, no query source is given, a *vector* dict has an
+                unsupported key, or *rerank* lacks ``model`` or ``rank_fields``. Raised
+                before any request is made.
             :exc:`TypeError`: If ``query`` is combined with any of the flat keyword
                 arguments it replaces (``top_k``, ``inputs``, ``vector``, ``id``,
-                ``filter``, ``match_terms``) — pass one form or the other, not
-                both — or if ``query`` is neither a :class:`SearchQuery` nor a
-                mapping.
+                ``filter``, ``match_terms``), so pass one form or the other, not both;
+                or if ``query`` is neither a :class:`SearchQuery` nor a mapping.
 
         Examples:
-            Text in, embedded server-side:
+            Text in, embedded server-side. The hits nest one level down, under
+            ``result``:
 
             .. code-block:: python
 
@@ -1439,8 +1399,8 @@ class AsyncIndex:
                 for hit in response.result.hits:
                     print(hit.id, hit.score, hit.fields["title"])
 
-            Reranking in the same call retrieves ``top_k`` and returns the
-            ``top_n`` the reranker likes best:
+            Reranking in the same call retrieves ``top_k`` hits and returns the
+            ``top_n`` the reranker scores highest:
 
             .. code-block:: python
 
@@ -1456,12 +1416,9 @@ class AsyncIndex:
                 )
 
         .. seealso::
-           - :meth:`query` — for a vector-based index, where you supply the query
-             vector and nothing is embedded for you.
-           - :attr:`documents` — ``documents.search`` for a schema-based index,
-             which stores JSON records and ranks with ``score_by`` clauses.
-           - ``pc.inference.rerank`` — reranking on its own, for hits that came
-             from somewhere other than this index.
+           - :meth:`query`: search with a vector you embedded yourself.
+           - :meth:`Inference.rerank() <pinecone.client.inference.Inference.rerank>`:
+             rerank results that came from somewhere other than this index.
         """
         if not isinstance(namespace, str):
             raise ValidationError("namespace must be a string")
@@ -1506,7 +1463,7 @@ class AsyncIndex:
         """Alias for :meth:`search` (legacy Records API), kept for callers written against 9.x.
 
         Every argument, return value and error is :meth:`search`'s. Call that one in
-        new code; nothing here differs.
+        new code.
         """
         return await self.search(
             namespace=namespace,
@@ -1531,32 +1488,36 @@ class AsyncIndex:
         namespace: str = "",
         timeout: float | None = None,
     ) -> ListResponse:
-        """Fetch one page of vector IDs, holding the token yourself.
+        """Fetch one page of vector IDs, holding the pagination token yourself.
 
-        IDs only — no values and no metadata. :meth:`list` walks the pages for you;
-        reach for this one when you need to persist the token between calls. See
-        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
+        Serves indexes created with ``dimension``/``metric`` and legacy integrated indexes;
+        on a document index use :attr:`documents` instead. Returns IDs only, without values
+        or metadata. :meth:`list` walks the pages for you; use this one when you need to
+        keep the token between calls.
 
         Args:
             prefix (str | None): Return only IDs starting with this prefix, e.g.
-                ``"article-2024#"``. At most 512 ASCII characters without a NUL; the
-                empty prefix matches everything.
-            limit (int | None): Maximum number of IDs in this page, 1-100.
+                ``"article-2024#"``. Must be ASCII, without a NUL character, and no
+                longer than the API allows. The empty prefix matches everything.
+            limit (int | None): Maximum number of IDs in this page, e.g. ``50``. Must be
+                a positive integer within the API's maximum page size. ``None`` uses the
+                server's default page size.
             pagination_token (str | None): ``pagination.next`` from the previous
                 response. ``None`` (default) fetches the first page.
             namespace (str): Namespace to list from, e.g. ``"articles-en"``.
-                Defaults to the index's default namespace.
+                Defaults to the default namespace.
             timeout (float | None): Per-request timeout in seconds. Overrides
                 the client-level default for this call only.
 
         Returns:
-            :class:`ListResponse` with ``vectors`` — each carrying an ``id`` and
-            nothing else — plus ``namespace``, ``usage``, and ``pagination`` whose
-            ``next`` is the token for the following page or ``None`` on the last one.
+            :class:`~pinecone.models.vectors.responses.ListResponse` whose ``vectors`` are
+            :class:`~pinecone.models.vectors.responses.ListItem` entries carrying only an
+            ``id``, plus ``namespace``, ``usage``, and ``pagination``. ``pagination.next``
+            is the token for the following page; the last page carries no token.
 
         Raises:
-            :exc:`PineconeValueError`: If *prefix* is not legal or *limit* falls
-                outside 1-100. Raised before any HTTP request is made.
+            :exc:`PineconeValueError`: If *prefix* or *limit* is not legal. Raised
+                before any request is sent.
 
         Examples:
             .. code-block:: python
@@ -1571,10 +1532,10 @@ class AsyncIndex:
                 next_token = response.pagination.next if response.pagination else None
 
         .. seealso::
-           - :meth:`list` — the same listing with the token handled for you.
-           - :meth:`fetch` — the vectors behind those IDs.
-           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-             — how the SDK pages generally.
+           - :meth:`list`: the same listing with the token handled for you.
+           - :meth:`fetch`: the vectors behind those IDs.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+             how the SDK pages generally.
         """
         if prefix is not None:
             require_valid_id_prefix("prefix", prefix)
@@ -1605,45 +1566,47 @@ class AsyncIndex:
     ) -> AsyncIterator[ListResponse]:
         """List vector IDs in a namespace, a page at a time.
 
-        IDs only — no values and no metadata. Yields one :class:`ListResponse` per
-        page and follows the pagination tokens itself, so nothing is requested until
-        you iterate, and a bad *prefix* or *limit* is not reported until then either.
+        Serves indexes created with ``dimension``/``metric`` and legacy integrated indexes;
+        on a document index use :attr:`documents` instead. Returns IDs only, without values
+        or metadata. Yields one page per iteration and follows the pagination tokens itself.
+        Nothing is requested until you iterate, so a bad *prefix* or *limit* is not reported
+        until then either.
 
         Args:
             prefix (str | None): Return only IDs starting with this prefix, e.g.
-                ``"article-2024#"``. At most 512 ASCII characters without a NUL; the
-                empty prefix matches everything.
-            limit (int | None): Maximum number of IDs per page, 1-100.
+                ``"article-2024#"``. Must be ASCII, without a NUL character, and no
+                longer than the API allows. The empty prefix matches everything.
+            limit (int | None): Maximum number of IDs per page, e.g. ``50``. Must be a
+                positive integer within the API's maximum page size. ``None`` uses the
+                server's default page size.
             namespace (str): Namespace to list from, e.g. ``"articles-en"``.
-                Defaults to the index's default namespace.
+                Defaults to the default namespace.
             timeout (float | None): Per-request timeout in seconds, applied to
                 each underlying page request. Overrides the client-level
                 default for this call only.
 
         Yields:
-            :class:`ListResponse` per page, each carrying ``vectors`` of IDs. A page
-            with no IDs is skipped rather than yielded.
+            :class:`~pinecone.models.vectors.responses.ListResponse` per page, whose
+            ``vectors`` carry the IDs. A page with no IDs is skipped rather than yielded.
 
         Raises:
-            :exc:`PineconeValueError`: If *prefix* is not legal or *limit* falls
-                outside 1-100. Raised on first iteration, not at the call.
+            :exc:`PineconeValueError`: If *prefix* or *limit* is not legal. Raised on
+                first iteration, not at the call.
 
         Examples:
             .. code-block:: python
 
-                async for page in idx.list(
-                    prefix="article-2024#", namespace="articles-en"
-                ):
+                async for page in idx.list(prefix="article-2024#", namespace="articles-en"):
                     ids = [item.id for item in page.vectors]
                     fetched = await idx.fetch(ids=ids, namespace="articles-en")
                     for vid, vec in fetched.vectors.items():
                         print(vid, vec.metadata)
 
         .. seealso::
-           - :meth:`list_paginated` — one page, with the token in your hands.
-           - :meth:`fetch` — the vectors behind a page of IDs.
-           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-             — how the SDK pages generally.
+           - :meth:`list_paginated`: one page, with the token in your hands.
+           - :meth:`fetch`: the vectors behind a page of IDs.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+             how the SDK pages generally.
         """
         pagination_token: str | None = None
         while True:
@@ -1667,38 +1630,37 @@ class AsyncIndex:
         filter: Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> DescribeIndexStatsResponse:
-        """Report vector counts, dimension, and fullness for this index.
+        """Report vector counts per namespace, dimension, and fullness for this index.
 
-        The counts lag writes, so a vector just upserted may not be counted yet.
+        Works on every kind of index, including document indexes. The counts lag writes, so
+        a record just upserted may not be counted yet.
 
         Args:
-            filter (dict[str, Any] | None): Metadata filter expression. Accepted
-                for API compatibility, but a non-empty filter is rejected for
-                every index type, so the call fails instead of returning
-                filtered counts. Leave it unset: the statistics returned always
-                describe the whole index.
+            filter (dict[str, Any] | None): Accepted for API compatibility only. The
+                server rejects a non-empty filter, so leave it unset; the statistics
+                always describe the whole index.
             timeout (float | None): Per-request timeout in seconds. Overrides
                 the client-level default for this call only.
 
         Returns:
-            :class:`DescribeIndexStatsResponse` with ``total_vector_count``,
-            ``dimension``, ``index_fullness``, and ``namespaces`` mapping each
-            namespace name to a summary carrying its ``vector_count``. The default
-            namespace appears in that mapping under the empty string.
+            :class:`~pinecone.models.vectors.responses.DescribeIndexStatsResponse` with
+            ``total_vector_count``, ``dimension``, ``index_fullness``, and ``namespaces``,
+            which maps each namespace name to a
+            :class:`~pinecone.models.vectors.responses.NamespaceSummary` carrying its
+            ``vector_count``. The default namespace appears under ``"__default__"``.
 
         Raises:
-            :exc:`ApiError`: If *filter* is non-empty. Every index type rejects it.
+            :exc:`ApiError`: If *filter* is non-empty.
 
         Examples:
             .. code-block:: python
 
                 stats = await idx.describe_index_stats()
-                print(stats.total_vector_count, stats.dimension)
+                print(stats.dimension, stats.index_fullness)
                 for name, summary in stats.namespaces.items():
-                    print(name or "(default)", summary.vector_count)
-
+                    print(name, summary.vector_count)
         .. seealso::
-           :meth:`list_namespaces` — namespace record counts alongside each
+           :meth:`list_namespaces`: per-namespace record counts alongside each
            namespace's schema and ``size_bytes``.
         """
         body: dict[str, Any] = {}
@@ -1719,29 +1681,33 @@ class AsyncIndex:
     ) -> NamespaceDescription:
         """Create a named namespace in the index.
 
+        Optional: upserting into a name that does not exist yet creates the namespace.
+        Create one explicitly when it must exist before any data lands in it, or to choose
+        which metadata fields it indexes. Not idempotent: an existing name raises
+        :exc:`~pinecone.errors.exceptions.ConflictError`.
+
         Args:
             name (str): Name for the new namespace, e.g. ``"movies-en"``. Must be
-                ASCII, must not contain the NUL character, and must be 1-512
-                characters long. ``__default__`` is reserved and cannot be created:
-                it names the namespace requests address when they omit a namespace,
-                so it always exists.
+                non-empty ASCII without the NUL character, and no longer than the API's
+                maximum name length. ``__default__`` is reserved and cannot be created.
+                On an index created with ``dimension``/``metric`` it names the namespace
+                requests address when they omit one, which always exists; on a document
+                index, upserting documents into ``__default__`` creates it.
             schema (dict[str, Any] | None): Optional metadata-index configuration,
-                ``{"fields": {<field>: {"filterable": True}}}``. Omitting it does
-                not mean "index everything": the namespace inherits the index's
-                own metadata-index configuration, so an index that restricts which
-                fields are indexed passes that restriction on. Supply *schema* to
-                override the inherited configuration for this namespace, indexing
-                exactly the fields listed. ``filterable`` is required on each field
-                and must be ``True`` — to leave a field unindexed, omit it from
-                ``fields``.
+                ``{"fields": {<field>: {"filterable": True}}}``. Omitting it does not
+                mean "index everything": the namespace inherits the index's own
+                metadata-index configuration. Supply *schema* to index exactly the
+                fields listed in this namespace. Each field must set ``filterable`` to
+                ``True``; to leave a field unindexed, omit it from ``fields``.
 
         Returns:
-            :class:`NamespaceDescription` with the namespace name, record count,
-            schema, indexed fields, and ``size_bytes``.
+            :class:`~pinecone.models.namespaces.models.NamespaceDescription` with the
+            namespace ``name``, ``record_count``, ``schema``, ``indexed_fields`` and
+            ``size_bytes``.
 
         Raises:
             :exc:`PineconeValueError`: If *name* violates the rules above, or *schema*
-                is malformed. Raised before any HTTP request is made.
+                is malformed. Raised before any request is sent.
             :exc:`ConflictError`: a namespace of that name already exists.
 
         Examples:
@@ -1762,9 +1728,9 @@ class AsyncIndex:
                 print(ns.indexed_fields)
 
         .. seealso::
-           - :meth:`describe_namespace` — the same description for a namespace that
+           - :meth:`describe_namespace`: the same description for a namespace that
              already exists.
-           - :meth:`list_namespaces` — the namespaces the index already has.
+           - :meth:`list_namespaces`: the namespaces the index already has.
         """
         require_creatable_namespace_name("name", name)
 
@@ -1785,31 +1751,31 @@ class AsyncIndex:
     ) -> NamespaceDescription:
         """Describe a namespace by name.
 
-        This operation is rate limited per index, independently of the other
-        namespace operations. Prefer :meth:`list_namespaces` when describing more
-        than one namespace: it returns the same information for every namespace
-        in a single request and is not subject to that limit.
+        Rate limited per index. To describe more than one namespace, use
+        :meth:`list_namespaces`, which returns a whole page of descriptions per request.
 
         Args:
-            name (str): Name of the namespace to describe. Must be ASCII, must not
-                contain the NUL character, and must be 1-512 characters long. Pass
-                ``__default__`` to describe the namespace that requests address
-                when they omit a namespace.
+            name (str): Name of the namespace to describe, e.g. ``"movies-en"``. Must
+                be non-empty ASCII without the NUL character, and no longer than the
+                API's maximum name length. On an index created with
+                ``dimension``/``metric``, pass ``__default__`` to describe the namespace
+                requests address when they omit one. On a document index ``__default__``
+                is an ordinary name, so describing it raises
+                :exc:`~pinecone.errors.exceptions.NotFoundError` until documents are
+                upserted into it.
 
         Returns:
-            :class:`NamespaceDescription` with the namespace name, record count,
-            schema, indexed fields, and ``size_bytes``. ``size_bytes`` is
-            approximate: data written before size tracking reads as 0, and
-            recently deleted data may still be counted; compaction converges the
-            value.
+            :class:`~pinecone.models.namespaces.models.NamespaceDescription` with the
+            namespace ``name``, ``record_count``, ``schema``, ``indexed_fields`` and
+            ``size_bytes``. ``size_bytes`` is approximate.
 
         Raises:
             :exc:`PineconeValueError`: If *name* violates the rules above. Raised
-                before any HTTP request is made.
+                before any request is sent.
             :exc:`TypeError`: If unexpected keyword arguments are passed.
             :exc:`NotFoundError`: no namespace of that name exists on the index.
-            :exc:`RateLimitError`: this operation's per-index limit was
-                exceeded. Use :meth:`list_namespaces` to describe many namespaces.
+            :exc:`RateLimitError`: this operation's per-index limit was exceeded.
+                Use :meth:`list_namespaces` to describe many namespaces.
 
         Examples:
             .. code-block:: python
@@ -1817,8 +1783,8 @@ class AsyncIndex:
                 ns = await idx.describe_namespace(name="movies-en")
                 print(ns.name, ns.record_count, ns.size_bytes)
 
-            The namespace that unnamespaced requests address answers to
-            ``__default__``:
+            On an index created with ``dimension``/``metric``, the namespace that
+            unnamespaced requests address answers to ``__default__``:
 
             .. code-block:: python
 
@@ -1826,8 +1792,8 @@ class AsyncIndex:
                 print(ns.record_count)
 
         .. seealso::
-           :meth:`list_namespaces` — every namespace at once, and the operation to
-           reach for when you are describing more than one.
+           :meth:`list_namespaces`: every namespace, a page of descriptions per
+           request.
         """
         legacy_namespace: str | None = kwargs.pop("namespace", None)
         if kwargs:
@@ -1852,23 +1818,23 @@ class AsyncIndex:
     ) -> None:
         """Delete a namespace and everything in it.
 
-        Irreversible: every vector in the namespace goes with it, and the namespace
-        itself stops existing. To empty a namespace but keep it, use
-        :meth:`delete` with ``delete_all=True``.
+        Irreversible: every record in the namespace is deleted, and the namespace itself
+        stops existing. To empty a namespace but keep it, use :meth:`delete` with
+        ``delete_all=True``.
 
         Args:
-            name (str): Name of the namespace to delete, e.g.
-                ``"movies-deprecated"``. Must be ASCII, must not contain the NUL
-                character, and must be 1-512 characters long.
-            timeout (float | None): Per-request timeout in seconds. Overrides
-                the client-level default for this call only.
+            name (str): Name of the namespace to delete, e.g. ``"movies-deprecated"``.
+                Must be non-empty ASCII without the NUL character, and no longer than
+                the API's maximum name length.
+            timeout (float | None): Per-request timeout in seconds. Overrides the
+                client-level default for this call only.
 
         Returns:
-            None — a successful delete returns no payload.
+            None. A successful delete returns no payload.
 
         Raises:
             :exc:`PineconeValueError`: If *name* violates the rules above. Raised
-                before any HTTP request is made.
+                before any request is sent.
             :exc:`TypeError`: If unexpected keyword arguments are passed.
             :exc:`NotFoundError`: no namespace of that name exists on the index.
 
@@ -1878,8 +1844,8 @@ class AsyncIndex:
                 await idx.delete_namespace(name="movies-deprecated")
 
         .. seealso::
-           :meth:`delete` — ``delete_all=True`` empties a namespace and leaves it
-           in place.
+           :meth:`delete`: ``delete_all=True`` empties a namespace and leaves it in
+           place.
         """
         legacy_namespace: str | None = kwargs.pop("namespace", None)
         if kwargs:
@@ -1905,42 +1871,40 @@ class AsyncIndex:
 
         :meth:`list_namespaces` walks the pages for you; reach for this one when you
         need to persist the token between calls or hand it to a caller of your own.
-        See `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
             prefix (str | None): Return only namespaces whose names start with this
-                prefix, e.g. ``"movies-"``. Must be ASCII, must not contain the NUL
-                character, and must be at most 512 characters. The empty prefix
-                matches every namespace.
-            limit (int | None): Maximum number of namespaces in this page, 1-100.
+                prefix, e.g. ``"movies-"``. Same character rules as namespace names; the
+                empty prefix matches every namespace.
+            limit (int | None): Maximum number of namespaces in this page, e.g. ``50``.
+                ``None`` (default) lets the server choose.
             pagination_token (str | None): ``pagination.next`` from the previous
                 response. ``None`` (default) fetches the first page.
 
         Returns:
-            :class:`ListNamespacesResponse` with ``namespaces``, each a
-            :class:`NamespaceDescription` carrying its record count, schema,
-            indexed fields and ``size_bytes``, plus a total count and
-            ``pagination`` whose ``next`` is ``None`` on the last page.
+            :class:`~pinecone.models.namespaces.models.ListNamespacesResponse` with
+            ``namespaces`` (each a
+            :class:`~pinecone.models.namespaces.models.NamespaceDescription`),
+            ``total_count`` across every page, and ``pagination``, whose ``next`` is
+            ``None`` on the last page.
 
         Raises:
-            :exc:`PineconeValueError`: If *prefix* or *limit* violates the rules
-                above. Raised before any HTTP request is made.
+            :exc:`PineconeValueError`: If *prefix* or *limit* is out of range. Raised
+                before any request is sent.
 
         Examples:
             .. code-block:: python
 
-                response = await idx.list_namespaces_paginated(
-                    prefix="movies-", limit=10
-                )
+                response = await idx.list_namespaces_paginated(prefix="movies-", limit=10)
                 for ns in response.namespaces:
                     print(ns.name, ns.record_count, ns.size_bytes)
                 next_token = response.pagination.next if response.pagination else None
 
         .. seealso::
-           - :meth:`list_namespaces` — the same listing with the token handled for
+           - :meth:`list_namespaces`: the same listing with the token handled for
              you.
-           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-             — how the SDK pages generally.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+             how the SDK pages generally.
         """
         params: dict[str, Any] = {}
         if prefix is not None:
@@ -1964,28 +1928,27 @@ class AsyncIndex:
     ) -> AsyncIterator[ListNamespacesResponse]:
         """List every namespace, a page at a time.
 
-        Yields one :class:`ListNamespacesResponse` per page and follows the
-        pagination tokens itself, so nothing is requested until you iterate. A page
-        describes every namespace it holds in one request, which makes this the
-        operation to reach for over repeated :meth:`describe_namespace` calls —
-        those are rate limited per index and this is not.
+        Yields one :class:`~pinecone.models.namespaces.models.ListNamespacesResponse`
+        per page and follows the pagination tokens itself, so nothing is requested until
+        you iterate. Each page describes many namespaces in one request, so prefer this
+        over repeated :meth:`describe_namespace` calls, which are rate limited per index.
 
         Args:
             prefix (str | None): Return only namespaces whose names start with this
-                prefix, e.g. ``"movies-"``. Must be ASCII, must not contain the NUL
-                character, and must be at most 512 characters. The empty prefix
-                matches every namespace.
-            limit (int | None): Maximum number of namespaces per page, 1-100.
+                prefix, e.g. ``"movies-"``. Same character rules as namespace names; the
+                empty prefix matches every namespace.
+            limit (int | None): Maximum number of namespaces per page, e.g. ``50``.
+                ``None`` (default) lets the server choose.
 
         Yields:
-            :class:`ListNamespacesResponse` per page, each carrying ``namespaces``
-            of :class:`NamespaceDescription` with record count, schema, indexed
-            fields and ``size_bytes``. A page with no namespaces is skipped rather
-            than yielded.
+            :class:`~pinecone.models.namespaces.models.ListNamespacesResponse` per page,
+            each carrying ``namespaces`` of
+            :class:`~pinecone.models.namespaces.models.NamespaceDescription`. A page
+            with no namespaces is skipped rather than yielded.
 
         Raises:
-            :exc:`PineconeValueError`: If *prefix* or *limit* violates the rules
-                above. Raised on first iteration, not at the call.
+            :exc:`PineconeValueError`: If *prefix* or *limit* is out of range. Raised
+                on first iteration, not at the call.
 
         Examples:
             .. code-block:: python
@@ -1995,11 +1958,11 @@ class AsyncIndex:
                         print(ns.name, ns.record_count, ns.size_bytes)
 
         .. seealso::
-           - :meth:`list_namespaces_paginated` — one page, with the token in your
+           - :meth:`list_namespaces_paginated`: one page, with the token in your
              hands.
-           - :meth:`describe_namespace` — one namespace, when you know its name.
-           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-             — how the SDK pages generally.
+           - :meth:`describe_namespace`: one namespace, when you know its name.
+           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+             how the SDK pages generally.
         """
         pagination_token: str | None = None
         while True:
@@ -2047,9 +2010,11 @@ class AsyncIndex:
     ) -> StartImportResponse:
         """Start a server-side bulk import of vectors from cloud storage.
 
-        Returns as soon as the import is accepted, not when it finishes: the work
-        happens server-side, and :meth:`describe_import` is how you learn whether it
-        completed. Nothing here polls for you.
+        Returns as soon as the server accepts the import, not when it finishes: poll
+        :meth:`describe_import` for the outcome. Imports work on indexes created with
+        ``dimension``/``metric`` and on document indexes; the server refuses them on an
+        index with integrated embedding (a legacy integrated index, or a document index
+        with an ``embed`` field).
 
         Args:
             uri (str): Directory prefix holding the Parquet files, not a single
@@ -2062,20 +2027,21 @@ class AsyncIndex:
                 ends the whole import at the first such record. Case-insensitive.
                 Defaults to ``"abort"`` when omitted, so an unreadable record
                 fails the import unless you opt into skipping.
-            integration_id (str | None): Optional integration ID for the import.
+            integration_id (str | None): ID of a storage integration in your
+                project that grants Pinecone read access to a private bucket. Its
+                cloud provider must match the scheme of *uri*.
 
         Returns:
-            :class:`StartImportResponse` with ``id``, the handle every other import
-            method takes.
+            :class:`~pinecone.models.imports.model.StartImportResponse` with ``id``, the
+            handle the other import methods take.
 
         Raises:
             :exc:`PineconeValueError`: If *error_mode* is supplied but is neither
                 ``"continue"`` nor ``"abort"``. Raised before any HTTP request is
                 made.
-            :exc:`ApiError`: If *uri* is empty or longer than the server accepts,
-                uses an unsupported scheme, is an ``s3://`` URI on an index not
-                hosted on AWS, or names an S3 directory bucket, which imports do
-                not support.
+            :exc:`ApiError`: If the server rejects *uri* (for example, an
+                ``s3://`` URI on an index not hosted on AWS) or the index uses
+                integrated embedding.
 
         Examples:
             Starting an import and waiting it out is on you; three of the five
@@ -2109,10 +2075,10 @@ class AsyncIndex:
            for that schema and the supported storage formats.
 
         .. seealso::
-           - :meth:`describe_import` — progress, and the terminal status.
-           - :meth:`cancel_import` — stopping one that is still running.
-           - :meth:`upsert` — the right tool below the millions of vectors an
-             import is for.
+           - :meth:`describe_import`: progress and the terminal status.
+           - :meth:`cancel_import`: stops an import that is still running.
+           - :meth:`upsert`: writes vectors directly, for data too small to need an
+             import.
         """
         if error_mode is not None:
             error_mode = error_mode.lower()
@@ -2135,31 +2101,33 @@ class AsyncIndex:
         """Describe a bulk import operation by ID.
 
         Args:
-            id: The ``id`` :meth:`start_import` returned, e.g. ``"import-123"``.
-                An ``int`` is accepted and stringified. 1-1000 characters.
+            id: The ``id`` :meth:`start_import` returned, e.g. ``"1"``. An
+                ``int`` is accepted and converted to a string.
 
         Returns:
-            :class:`ImportModel` with ``status`` — one of ``"Pending"``,
-            ``"InProgress"``, ``"Failed"``, ``"Completed"``, ``"Cancelled"``, the
-            last three terminal — plus ``percent_complete``, ``records_imported``,
-            ``uri``, and ``error`` when it failed.
+            :class:`~pinecone.models.imports.model.ImportModel` with ``status``
+            (``"Pending"``, ``"InProgress"``, ``"Failed"``, ``"Completed"``, or
+            ``"Cancelled"``; the last three are terminal), ``percent_complete``,
+            ``records_imported``, ``uri``, and ``error`` when it failed.
 
         Raises:
             :exc:`PineconeTypeError`: If *id* is neither a ``str`` nor an ``int``.
-            :exc:`PineconeValueError`: If *id* is empty or over 1000 characters.
-                Raised before any HTTP request is made.
+            :exc:`PineconeValueError`: If *id* is empty or too long. Raised
+                before any HTTP request is made.
 
         Examples:
             .. code-block:: python
 
-                import_op = await idx.describe_import("import-123")
+                import_op = await idx.describe_import("1")
                 print(import_op.status, import_op.percent_complete)
                 if import_op.status == "Failed":
                     print(import_op.error)
 
         .. seealso::
-           - :meth:`start_import` — starting one, and the ``id`` these methods take.
-           - :meth:`list_imports` — every import on the index rather than one.
+           - :meth:`start_import`: starts an import and returns the ``id`` these
+             methods take.
+           - :meth:`list_imports`: every import on the index, when you do not have an
+             ``id``.
         """
         str_id = self._validate_import_id(id)
         logger.info("Describing import %s", str_id)
@@ -2170,26 +2138,28 @@ class AsyncIndex:
         """Cancel a bulk import operation by ID.
 
         Args:
-            id: The ``id`` :meth:`start_import` returned, e.g. ``"import-123"``.
-                An ``int`` is accepted and stringified. 1-1000 characters.
+            id: The ``id`` :meth:`start_import` returned, e.g. ``"1"``. An
+                ``int`` is accepted and converted to a string.
 
         Returns:
-            None — a successful cancellation returns no payload. Poll
-            :meth:`describe_import` to see the operation reach ``"Cancelled"``.
+            None. Poll :meth:`describe_import` to see the import reach
+            ``"Cancelled"``.
 
         Raises:
             :exc:`PineconeTypeError`: If *id* is neither a ``str`` nor an ``int``.
-            :exc:`PineconeValueError`: If *id* is empty or over 1000 characters.
-                Raised before any HTTP request is made.
+            :exc:`PineconeValueError`: If *id* is empty or too long. Raised
+                before any HTTP request is made.
 
         Examples:
             .. code-block:: python
 
-                await idx.cancel_import("import-123")
+                await idx.cancel_import("1")
 
         .. seealso::
-           - :meth:`start_import` — starting one, and the ``id`` these methods take.
-           - :meth:`list_imports` — every import on the index rather than one.
+           - :meth:`start_import`: starts an import and returns the ``id`` these
+             methods take.
+           - :meth:`list_imports`: every import on the index, when you do not have an
+             ``id``.
         """
         str_id = self._validate_import_id(id)
         logger.info("Cancelling import %s", str_id)
@@ -2203,9 +2173,9 @@ class AsyncIndex:
     ) -> AsyncIterator[ImportModel]:
         """List every bulk import on this index, following pagination.
 
-        Yields the :class:`ImportModel` objects themselves rather than pages, and
-        fetches the next page as you exhaust the current one, so nothing is
-        requested until you iterate. See
+        Yields :class:`~pinecone.models.imports.model.ImportModel` objects rather
+        than pages, and fetches the next page as you exhaust the current one, so
+        nothing is requested until you iterate. See
         `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
@@ -2215,11 +2185,13 @@ class AsyncIndex:
                 continuing a listing rather than starting one.
 
         Yields:
-            :class:`ImportModel` per import operation, oldest page first.
+            :class:`~pinecone.models.imports.model.ImportModel` for each import
+            operation.
 
         Raises:
             :exc:`ApiError`: If a page request fails part-way through the listing;
                 the imports already yielded are still yours, the rest are not.
+
         Examples:
             .. code-block:: python
 
@@ -2227,11 +2199,9 @@ class AsyncIndex:
                     print(imp.id, imp.status, imp.uri)
 
         .. seealso::
-           - :meth:`list_imports_paginated` — one page, with the token in your
-             hands.
-           - :meth:`describe_import` — one import, when you know its ``id``.
-           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-             — how the SDK pages generally.
+           - :meth:`list_imports_paginated`: one page at a time, with the token in
+             your hands.
+           - :meth:`describe_import`: one import, when you know its ``id``.
         """
         params: dict[str, Any] = {}
         if limit is not None:
@@ -2257,8 +2227,8 @@ class AsyncIndex:
     ) -> ImportList:
         """Fetch one page of bulk imports, holding the token yourself.
 
-        :meth:`list_imports` walks the pages for you; reach for this one when you
-        need to persist the token between calls. See
+        :meth:`list_imports` walks the pages for you; use this one when you need to
+        persist the token between calls. See
         `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
 
         Args:
@@ -2268,9 +2238,11 @@ class AsyncIndex:
                 response. ``None`` (default) fetches the first page.
 
         Returns:
-            :class:`ImportList` you can iterate for this page's
-            :class:`ImportModel` objects, with ``pagination.next`` holding the
-            token for the following page or ``None`` on the last one.
+            :class:`~pinecone.models.imports.list.ImportList` you can iterate for this
+            page's :class:`~pinecone.models.imports.model.ImportModel` objects, with
+            ``pagination.next`` holding the token for the following page or ``None``
+            on the last one.
+
         Examples:
             .. code-block:: python
 
@@ -2280,10 +2252,7 @@ class AsyncIndex:
                 next_token = page.pagination.next if page.pagination else None
 
         .. seealso::
-           - :meth:`list_imports` — the same listing with the token handled for
-             you.
-           - `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-             — how the SDK pages generally.
+           - :meth:`list_imports`: the same listing with the token handled for you.
         """
         params: dict[str, Any] = {}
         if limit is not None:

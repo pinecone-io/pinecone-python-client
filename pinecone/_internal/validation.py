@@ -121,16 +121,18 @@ def require_creatable_namespace_name(param: str, value: str) -> None:
     """Raise ValidationError unless *value* is a namespace name that can be created.
 
     Adds the ``createNamespace``-only rule to
-    :func:`require_valid_namespace_name`: ``__default__`` names the namespace
-    requests address when they omit a namespace, so it always exists and cannot
-    be created explicitly.
+    :func:`require_valid_namespace_name`: ``__default__`` cannot be created
+    explicitly. On an index created with ``dimension``/``metric`` it names the
+    namespace requests address when they omit one, which always exists; on a
+    document index, upserting documents into it creates it.
     """
     require_valid_namespace_name(param, value)
     if value == RESERVED_DEFAULT_NAMESPACE:
         raise ValidationError(
-            f"{param}={value!r} is reserved and cannot be created: it names the "
-            "namespace requests address when they omit a namespace, so it always "
-            "exists. Pass any other name, or omit the namespace to address it."
+            f"{param}={value!r} is reserved and cannot be created. On an index "
+            "created with dimension/metric it already exists as the namespace "
+            "requests address when they omit one; on a document index, upsert "
+            "documents into it to create it. Otherwise pass any other name."
         )
 
 

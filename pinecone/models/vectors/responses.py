@@ -299,7 +299,8 @@ class DescribeIndexStatsResponse(StructDictMixin, Struct, rename="camel", kw_onl
 
     Attributes:
         namespaces (dict[str, NamespaceSummary]): Namespace name to its
-            :class:`NamespaceSummary`. The default namespace appears under ``""``.
+            :class:`NamespaceSummary`. The default namespace appears under
+            ``"__default__"``.
         dimension (int | None): Length of the dense vectors this index stores, or ``None``
             for an index with no dense field.
         index_fullness (float): How full the index is, from ``0.0`` to ``1.0``.
@@ -318,7 +319,7 @@ class DescribeIndexStatsResponse(StructDictMixin, Struct, rename="camel", kw_onl
             stats = idx.describe_index_stats()
             print(stats.total_vector_count, stats.dimension)
             for name, summary in stats.namespaces.items():
-                print(name or "(default)", summary.vector_count)
+                print(name, summary.vector_count)
     """
 
     namespaces: dict[str, NamespaceSummary] = {}

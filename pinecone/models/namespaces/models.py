@@ -15,9 +15,8 @@ class NamespaceFieldConfig(StructDictMixin, Struct, kw_only=True):
     """Whether one metadata field is indexed for filtering.
 
     ``filterable`` defaults to ``False`` only so a response decodes when the server omits
-    the flag. As a *request* value ``False`` is rejected — the only accepted value is
-    ``True``. To leave a field unindexed, omit it from ``fields`` rather than sending
-    ``filterable=False``.
+    the flag. In a request the only accepted value is ``True``: to leave a field
+    unindexed, omit it from ``fields`` rather than sending ``filterable=False``.
 
     Attributes:
         filterable: Whether the field is indexed and can appear in a filter.
@@ -51,19 +50,17 @@ class NamespaceDescription(StructDictMixin, Struct, kw_only=True):
     """One namespace: its name, how much is in it, and which fields it indexes.
 
     Attributes:
-        name: The namespace's name. ``""`` is the default namespace.
+        name: The namespace's name. The default namespace, the one requests address
+            when they omit a namespace, is reported as ``"__default__"``.
         record_count: Records in the namespace. Eventually consistent, so a record you
             just wrote may not be counted yet.
         schema: Which metadata fields are indexed for filtering, or ``None`` when the
             namespace has no schema.
         indexed_fields: The same field names without the per-field configuration, or
             ``None``.
-        size_bytes: The total size of the namespace's data, in bytes. This is an
-            approximation, not an exact byte count: data written before size
-            tracking was enabled reads as 0, and recently deleted data may still
-            be counted until compaction converges the value. Defaults to 0,
-            which also covers responses that omit the field entirely — a 0 therefore
-            does not by itself mean the namespace is empty.
+        size_bytes: The approximate size of the namespace's data, in bytes. Recently
+            deleted data may still be counted. Reads 0 when the server reports no
+            size, so a 0 does not by itself mean the namespace is empty.
     """
 
     name: str = ""
@@ -91,9 +88,8 @@ class ListNamespacesResponse(StructDictMixin, Struct, kw_only=True):
     """One page of namespace descriptions.
 
     Iterable and sized directly, so ``for ns in response`` and ``len(response)`` walk this
-    page. ``total_count`` counts every matching namespace, not just this page, so compare
-    the two to tell whether more pages remain — or just follow ``pagination`` until it is
-    ``None``.
+    page. ``total_count`` counts every matching namespace, not just this page. To fetch
+    the rest, follow ``pagination`` until it is ``None``.
 
     Attributes:
         namespaces: The :class:`NamespaceDescription` entries on this page.
@@ -101,8 +97,8 @@ class ListNamespacesResponse(StructDictMixin, Struct, kw_only=True):
         total_count: Namespaces matching the request, across every page.
 
     .. seealso::
-       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__
-       — the paging loop used across the SDK.
+       `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__:
+       the paging loop used across the SDK.
     """
 
     namespaces: list[NamespaceDescription] = []

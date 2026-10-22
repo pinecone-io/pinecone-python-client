@@ -133,10 +133,15 @@ class BatchResult(Struct, kw_only=True):
             during this operation. Host-level, not call-level: concurrent
             operations against the same host share the gate, so their
             throttles are counted here too.
-        final_limit: The adaptive concurrency limit when this operation
+        final_limit: The host gate's concurrency limit when this operation
             finished, or ``None`` when the operation did not run through the
-            gate. A value far below your ``max_concurrency`` means the
-            backend was pushing back.
+            gate. The gate is shared by every call in the process to the same
+            host; it starts at its ceiling and ``max_concurrency`` does not cap
+            it, so compare it with the ceiling, not with ``max_concurrency``.
+            A value well below the ceiling means the host pushed back, possibly
+            during an earlier call. `Bulk ingest
+            <https://sdk.pinecone.io/python/guides/bulk-ingest.html>`__ gives
+            the ceiling and how to read these fields.
         peak_inflight: The most batches this operation had in flight at once.
         stalled: Whether the host gate's stall detector fired during this
             operation — the adaptive limit was at the floor with consecutive

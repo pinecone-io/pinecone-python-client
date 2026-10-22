@@ -1,4 +1,4 @@
-"""PineconeFuture — a thin wrapper around concurrent.futures.Future.
+"""PineconeFuture: a thin wrapper around concurrent.futures.Future.
 
 Provides SDK-specific timeout defaults and exception translation so that
 callers get :class:`~pinecone.errors.PineconeTimeoutError` instead of the
@@ -26,8 +26,8 @@ class PineconeFuture(Future["_T"]):
     immediately. Issue as many as you want, then collect them: call
     :meth:`result` to block for one, or pass the whole batch to
     :func:`concurrent.futures.as_completed` or
-    :func:`concurrent.futures.wait`, both of which this class supports. Nothing
-    is cancelled if you never collect a future — the request still reaches the
+    :func:`concurrent.futures.wait`, both of which this class supports. A
+    future you never collect is not cancelled: the request still reaches the
     server.
 
     This is threads, not :keyword:`await`. Nothing here is awaitable, and the
@@ -46,14 +46,15 @@ class PineconeFuture(Future["_T"]):
 
         .. code-block:: python
 
-            from pinecone.grpc import GrpcIndex
+            from pinecone import Pinecone
 
-            idx = GrpcIndex(host="article-search-abc123.svc.pinecone.io", api_key="...")
+            pc = Pinecone(api_key="your-api-key")
+            idx = pc.index(name="article-search", grpc=True)
             future = idx.upsert_async(vectors=[("article-101", [0.012, -0.087, 0.153])])
             print(future.result().upserted_count)
 
         Issuing several at once is the reason to prefer these over the blocking
-        methods — the requests overlap instead of queueing:
+        methods, because the requests overlap instead of queueing:
 
         .. code-block:: python
 
@@ -67,7 +68,7 @@ class PineconeFuture(Future["_T"]):
                 print(future.result().upserted_count)
 
     .. seealso::
-       :class:`~pinecone.async_client.async_index.AsyncIndex` — the asyncio
+       :class:`~pinecone.async_client.async_index.AsyncIndex`: the asyncio
        client, for code that awaits rather than joining threads. See
        `Sync vs async clients <https://sdk.pinecone.io/python/guides/sync-vs-async.html>`__.
     """
@@ -119,7 +120,7 @@ class PineconeFuture(Future["_T"]):
 
         Returns:
             Whatever the underlying ``GrpcIndex`` method would have returned
-            had you called it directly — an
+            had you called it directly: an
             :class:`~pinecone.models.vectors.responses.UpsertResponse` from ``upsert_async``, a
             :class:`~pinecone.models.vectors.responses.QueryResponse` from ``query_async``, and so
             on.
@@ -128,6 +129,8 @@ class PineconeFuture(Future["_T"]):
             :exc:`~pinecone.errors.exceptions.PineconeTimeoutError`: If *timeout* elapses
                 first. The call is still in flight and may yet reach the
                 server; call :meth:`result` again to keep waiting.
+            Exception: Whatever the underlying ``GrpcIndex`` method raised, for
+                example :exc:`~pinecone.errors.exceptions.ApiError`.
 
         Examples:
 
@@ -184,7 +187,7 @@ class PineconeFuture(Future["_T"]):
         """Try to cancel the call before a worker thread picks it up.
 
         Returns ``True`` only if the call had not started yet. Once it is
-        running there is no way to recall it — you get ``False`` and the
+        running there is no way to recall it: you get ``False`` and the
         request still reaches the server, so treat a ``False`` here as "the
         write may land" rather than "nothing happened".
 
@@ -214,7 +217,7 @@ class PineconeFuture(Future["_T"]):
         """Run *fn* once the call settles, instead of blocking on it.
 
         *fn* receives this future as its only argument, and runs on the worker
-        thread that finished the call — so keep it short, and do not call
+        thread that finished the call, so keep it short, and do not call
         :meth:`result` on a *different* pending future from inside it. Adding a
         callback to a future that has already settled runs *fn* immediately, on
         the calling thread.

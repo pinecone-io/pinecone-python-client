@@ -25,12 +25,12 @@ class ImportErrorMode(str, Enum):
             from pinecone import ImportErrorMode
 
             operation = idx.start_import(
-                uri="s3://my-bucket/articles/", error_mode=ImportErrorMode.CONTINUE
+                uri="s3://acme-exports/articles/", error_mode=ImportErrorMode.CONTINUE
             )
 
     .. seealso::
-       `How bulk ingest behaves <https://sdk.pinecone.io/python/guides/bulk-ingest.html>`__
-       — the source-data layout an import expects.
+       `Bulk importing vectors <https://sdk.pinecone.io/python/how-to/vectors/bulk-import.html>`__
+       — starting, monitoring, and cancelling imports.
     """
 
     CONTINUE = "continue"

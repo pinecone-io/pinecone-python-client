@@ -5,12 +5,15 @@ Blob Storage) into a Pinecone index. The import runs server-side, so it handles 
 of vectors without keeping a long-lived client connection open — you start it, then poll
 for progress.
 
+Imports work on indexes created with `dimension`/`metric` and on document indexes. The
+server refuses an import into an index with integrated embedding: a legacy integrated
+index, or a document index with an `embed` field.
+
 Reach for it when the data is already in cloud storage and there is far too much of it
 to stream through a client. For vectors you hold in memory or in a DataFrame,
 {meth}`~pinecone.index.Index.upsert` and
 {meth}`~pinecone.index.Index.upsert_from_dataframe` are the right paths; see
-{doc}`/guides/bulk-ingest` for how that choice is made and how the client-side batching
-behaves.
+{doc}`/guides/bulk-ingest` for how their client-side batching behaves.
 
 :::{note}
 Bulk import works on indexes created with top-level `dimension` and `metric` and on
@@ -24,10 +27,10 @@ The source must be a directory of Parquet files formatted to the
 
 The `uri` names that directory prefix, never an individual file, and takes one of three
 forms: `s3://` for Amazon S3, `gs://` for Google Cloud Storage, or an `https://` URL
-naming an Azure Blob Storage container. An `s3://` source additionally requires that the
-index itself be hosted on AWS. The same bucket is rejected for an index on another
-cloud. Anything else fails the call, as does an S3 directory bucket, which imports do
-not support.
+naming an Azure Blob Storage container. An `s3://` source requires that the index itself
+be hosted on AWS. For a private bucket, pass `integration_id`: the ID of a storage
+integration in your project that grants Pinecone read access. Its cloud provider must
+match the `uri` scheme.
 
 
 ## Start an import
@@ -39,9 +42,9 @@ operation ID:
 from pinecone import Pinecone
 
 pc = Pinecone(api_key="your-api-key")
-index = pc.index("product-search")
+index = pc.index("article-search")
 
-response = index.start_import(uri="s3://my-bucket/embeddings/")
+response = index.start_import(uri="s3://acme-exports/articles/")
 import_id = response.id
 print(import_id)  # e.g. "1"
 ```
@@ -55,7 +58,7 @@ dropped. Pass `error_mode="continue"` to skip unreadable records and import the 
 
 ```python
 response = index.start_import(
-    uri="s3://my-bucket/embeddings/",
+    uri="s3://acme-exports/articles/",
     error_mode="continue",
 )
 ```
@@ -63,10 +66,10 @@ response = index.start_import(
 You can also use the {class}`~pinecone.models.imports.error_mode.ImportErrorMode` enum:
 
 ```python
-from pinecone.models.imports.error_mode import ImportErrorMode
+from pinecone import ImportErrorMode
 
 response = index.start_import(
-    uri="s3://my-bucket/embeddings/",
+    uri="s3://acme-exports/articles/",
     error_mode=ImportErrorMode.CONTINUE,
 )
 ```
@@ -166,13 +169,13 @@ landed before the cancellation — `describe_import` reports that count in
 index.cancel_import(import_id)
 ```
 
-`describe_import`, `cancel_import`, and `start_import` all take the ID positionally, and
-an integer ID is converted to a string for you.
+`describe_import` and `cancel_import` both take the ID positionally, and an integer ID is
+converted to a string for you.
 
 
 ## See also
 
-- {doc}`/guides/bulk-ingest`: choosing between the import and upsert paths
+- {doc}`/guides/bulk-ingest`: how client-side batched upserts behave
 - {doc}`/how-to/vectors/upsert-and-query`: upsert vectors directly in batches
 - {class}`~pinecone.index.Index`: full data plane client reference
 - {class}`~pinecone.models.imports.model.ImportModel`: import operation model

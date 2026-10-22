@@ -1,6 +1,6 @@
 # Working with namespaces
 
-Namespaces are logical partitions within a Pinecone index. Vectors in different
+Namespaces are logical partitions within a Pinecone index. Records in different
 namespaces are completely isolated: a query in one namespace never returns results from
 another, and there is no operation that searches every namespace at once.
 
@@ -55,7 +55,7 @@ index.upsert(
 ```
 
 Vectors upserted without a `namespace` go into the default namespace `""`. The namespace
-does not have to exist first — the write creates it.
+does not have to exist first: the write creates it.
 
 
 ## Query within a namespace
@@ -106,14 +106,13 @@ for page in index.list_namespaces():
         print(ns.name, ns.record_count)
 ```
 
-Each {class}`~pinecone.models.namespaces.models.NamespaceDescription` carries `name`, `record_count`, and
-`size_bytes`. When the namespace restricts which metadata fields are indexed, it also
-carries `schema` and `indexed_fields`.
+Each {class}`~pinecone.models.namespaces.models.NamespaceDescription` carries `name`,
+`record_count`, and `size_bytes`. When the namespace restricts which metadata fields are
+indexed, it also carries `schema` and `indexed_fields`. The default namespace is listed as
+`__default__`, not `""`.
 
-`size_bytes` is an approximation, not an exact byte count: data written before size
-tracking was enabled reads as `0`, and recently deleted data may still be counted until
-compaction converges the value. A response that omits the field also reads as `0`, so
-treat a `0` as "no size reported" rather than "the namespace is empty".
+`size_bytes` is approximate, and a `0` can mean the server reported no size rather than
+that the namespace is empty.
 
 Filter by prefix to list a subset of namespaces:
 
@@ -168,17 +167,17 @@ print(ns.record_count)
 print(ns.size_bytes)
 ```
 
-Pass `__default__` to describe the namespace that requests address when they omit one:
+On an index created with `dimension`/`metric`, pass `__default__` to describe the
+namespace that requests address when they omit one:
 
 ```python
 ns = index.describe_namespace(name="__default__")
 ```
 
-This operation is rate limited per index, independently of the other namespace
-operations. To describe more than one namespace, use `list_namespaces()` instead. It
-returns the same information for every namespace in a single request and is not subject
-to that limit. Fanning out `describe_namespace` calls will raise
-{exc}`~pinecone.errors.exceptions.RateLimitError`.
+`describe_namespace` is rate limited per index, so fanning out calls for many namespaces
+raises {exc}`~pinecone.errors.exceptions.RateLimitError`. To describe more than one, use
+{meth}`~pinecone.index.Index.list_namespaces`, which returns a page of descriptions per
+request.
 
 
 ## Create a namespace
@@ -198,19 +197,19 @@ ns = index.create_namespace(
 print(ns.name, ns.record_count)
 ```
 
-Every field listed in `schema["fields"]` must set `filterable: True`; `filterable: False`
-is not supported. To leave a field unindexed, omit it from `fields` entirely.
-
-Omitting `schema` altogether is not the same as indexing every field. A namespace created
-without one inherits the index's own metadata-index configuration, so if the index
-restricts which fields are indexed, the new namespace carries that restriction too.
-Supplying `schema` overrides the inherited configuration for that namespace alone.
+Every field listed in `schema["fields"]` must set `filterable: True`. To leave a field
+unindexed, omit it from `fields`. Omitting `schema` altogether is not the same as indexing
+every field: the namespace inherits the index's own metadata-index configuration.
+Supplying `schema` overrides that configuration for this namespace alone.
 
 ### Name rules
 
-Namespace names must be ASCII, must not contain the NUL character, and must be 1-512
-characters long. `__default__` is reserved, since it names the namespace requests address
-when they omit a namespace, so it always exists and `create_namespace` rejects it. Names that
+Namespace names must be non-empty ASCII without the NUL character, and no longer than the
+API's maximum name length. `create_namespace` rejects `__default__`. On an index created with
+`dimension`/`metric` it names the namespace requests address when they omit one, so it
+always exists. On a document index it is an ordinary name: it exists once documents are
+upserted into it, and describing it before then raises
+{exc}`~pinecone.errors.exceptions.NotFoundError`. Names that
 break these rules raise {exc}`~pinecone.errors.exceptions.PineconeValueError` before any
 request is sent, so the offending value is reported back to you rather than to the server.
 
