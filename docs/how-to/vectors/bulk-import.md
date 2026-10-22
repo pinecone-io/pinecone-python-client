@@ -12,6 +12,13 @@ to stream through a client. For vectors you hold in memory or in a DataFrame,
 {doc}`/guides/bulk-ingest` for how that choice is made and how the client-side batching
 behaves.
 
+:::{note}
+Bulk import works on indexes created with top-level `dimension` and `metric` and on
+indexes created with a `schema`, except a schema index with a field that sets `embed`.
+It is refused on a legacy integrated index created with
+{meth}`~pinecone.client.indexes.Indexes.create_for_model`.
+:::
+
 The source must be a directory of Parquet files formatted to the
 [Pinecone-required schema](https://docs.pinecone.io/guides/data/understanding-imports).
 

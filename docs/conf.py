@@ -293,17 +293,93 @@ napoleon_use_ivar = True
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "pandas": ("https://pandas.pydata.org/docs/", None),
+    "msgspec": ("https://msgspec.dev/", None),
 }
 
 nitpick_ignore = [
-    # Private base classes intentionally hidden from public docs
-    ("py:class", "pinecone.models._mixin.StructDictMixin"),
-    ("py:class", "pinecone.models._mixin.DictLikeStruct"),
-    ("py:class", "pinecone._internal.config.PineconeConfig"),
-    ("py:class", "pinecone._internal.http_client.HTTPClient"),
-    ("py:class", "pinecone._internal.http_client.AsyncHTTPClient"),
-    ("py:class", "pinecone.client._assistant_namespace_proxy._AssistantNamespaceProxy"),
+    # Internal HTTP plumbing and type variables that appear in signatures but
+    # are not part of the public API.
+    ("py:class", "HTTPClient"),
+    ("py:class", "AsyncHTTPClient"),
+    ("py:class", "T"),
+    ("py:class", "pinecone.models.pagination.T"),
+    ("py:obj", "pinecone.models.pagination.T"),
 ]
+
+# Any target with a private (underscore-prefixed) segment, such as
+# pinecone._internal.http_client.HTTPClient or pinecone.grpc.future._T.
+nitpick_ignore_regex = [
+    (r"py:(class|obj)", r"(.*\.)?_[A-Za-z]\w*(\..*)?"),
+]
+
+# Third-party names as they appear in annotations, mapped to the target the
+# intersphinx inventory publishes.
+_EXTERNAL_ALIASES = {
+    "pd.DataFrame": "pandas.DataFrame",
+    "Future": "concurrent.futures.Future",
+    "concurrent.futures._base.Future": "concurrent.futures.Future",
+}
+
+
+def _resolve_short_reference(app, env, node, contnode):
+    """Link ``PineconeValueError`` or ``pinecone.Admin`` to where autodoc documents it.
+
+    A ``pinecone.``-qualified target follows the imported object to its defining
+    module. A bare name links only when exactly one documented object has it;
+    ambiguous names stay unresolved rather than guessed.
+    """
+    if node.get("refdomain") != "py":
+        return None
+    domain = env.get_domain("py")
+    target = node["reftarget"]
+    reftype = node["reftype"]
+    fromdoc = node.get("refdoc", env.docname)
+
+    if target in _EXTERNAL_ALIASES:
+        from sphinx.ext.intersphinx import missing_reference
+
+        node["reftarget"] = _EXTERNAL_ALIASES[target]
+        return missing_reference(app, env, node, contnode)
+
+    if target.startswith("pinecone."):
+        real = _defining_path(target)
+        if real is None or real == target:
+            return None
+        return domain.resolve_xref(env, fromdoc, app.builder, reftype, real, node, contnode)
+
+    matches = [
+        name
+        for name, entry in domain.find_obj(env, None, None, target, reftype, 1)
+        if not entry.aliased
+    ]
+    if len(matches) != 1:
+        return None
+    return domain.resolve_xref(env, fromdoc, app.builder, reftype, matches[0], node, contnode)
+
+
+def _defining_path(target):
+    import importlib
+
+    parts = target.split(".")
+    for split in range(len(parts) - 1, 0, -1):
+        try:
+            obj = importlib.import_module(".".join(parts[:split]))
+        except ImportError:
+            continue
+        try:
+            for attr in parts[split:]:
+                obj = getattr(obj, attr)
+        except AttributeError:
+            return None
+        owner = getattr(obj, "__module__", None)
+        qualname = getattr(obj, "__qualname__", None)
+        return f"{owner}.{qualname}" if owner and qualname else None
+    return None
+
+
+def setup(app):
+    app.connect("missing-reference", _resolve_short_reference)
+
 
 myst_enable_extensions = ["colon_fence", "deflist"]
 myst_heading_anchors = 3

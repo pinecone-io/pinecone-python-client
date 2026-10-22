@@ -64,3 +64,22 @@ preview.
 
 If the deploy fails, download the `docs-html` artifact from the CI run's
 summary page instead (kept 7 days).
+
+## Cross-reference checking
+
+`nitpicky` is off in `conf.py` for now, so an unresolved cross-reference does
+not fail the `-W` build yet. Check them with:
+
+```bash
+uv run --no-sync sphinx-build -E -n -b html . _build/nit -q
+```
+
+`conf.py` resolves most targets for you. `msgspec`, `pandas` and the Python
+stdlib link through intersphinx. A bare name such as `NotFoundError` or a
+`pinecone.X` alias links to the one documented object it names. A name two
+documented objects share stays unresolved: qualify it, for example
+`` :class:`~pinecone.models.enums.EmbedModel` ``. Private and internal targets
+(any `_`-prefixed segment, the HTTP clients, type variables) are ignored. A
+public name never goes in `nitpick_ignore`; give it a reference entry instead.
+Once the remaining docstring warnings are fixed, set `nitpicky = True` so CI
+enforces this.

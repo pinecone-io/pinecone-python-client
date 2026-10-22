@@ -1,10 +1,11 @@
 Pinecone
 ========
 
-:class:`Pinecone` is the synchronous control-plane client — use it to manage indexes,
-collections, backups, and related resources. Sub-clients for each resource type are
-accessed as properties (e.g. ``pc.indexes``, ``pc.collections``) and are
-lazily initialized on first access.
+:class:`Pinecone` is the synchronous control-plane client: it creates and manages
+indexes, collections, backups, and assistants, and runs inference. Each resource
+type is a namespace property (``pc.indexes``, ``pc.collections``, ...) documented
+in its own section below. For reading and writing data, :meth:`~pinecone.Pinecone.index`
+returns an :doc:`Index <sync-index>`.
 
 .. autoclass:: pinecone.Pinecone
    :members:
@@ -90,7 +91,7 @@ Assistants
    :member-order: bysource
 
 
-Retry Configuration
+Retry configuration
 -------------------
 
 ``RetryConfig`` is a constructor argument on :class:`~pinecone.Pinecone` and
@@ -98,6 +99,21 @@ Retry Configuration
 governs and which run on fixed policy.
 
 .. autoclass:: pinecone.RetryConfig
+   :members:
+   :undoc-members: False
+   :show-inheritance:
+   :member-order: bysource
+
+
+Resolved configuration
+----------------------
+
+``pc.config`` returns the :class:`~pinecone.PineconeConfig` a client resolved at
+construction, with environment variables and defaults folded in. Read it to
+confirm which host and settings a client uses; pass settings to the
+:class:`~pinecone.Pinecone` constructor rather than building one yourself.
+
+.. autoclass:: pinecone.PineconeConfig
    :members:
    :undoc-members: False
    :show-inheritance:

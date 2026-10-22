@@ -1,15 +1,11 @@
 Admin
 =====
 
-The ``Admin`` client manages organizations, projects, API keys, users, invites, service
-accounts, and role bindings.  It uses OAuth2
-client credentials (service account) rather than an API key, and is the right tool
-for control-plane operations such as creating projects and rotating keys.  It is
-synchronous only — there is no async form of this client.
-
-The users, invites, service-account, and role-binding namespaces are new in ``2026-07``.
-See the :ref:`admin-oauth` section of :doc:`../migration/v10-migration` for the
-per-operation release notes and an end-to-end RBAC walkthrough.
+The ``Admin`` client manages organizations, projects, API keys, users, invites,
+service accounts, and role bindings. It authenticates with a service account's
+OAuth2 client credentials rather than an API key, and has no async form. See
+:ref:`admin-oauth` in :doc:`../migration/v10-migration` for an end-to-end
+role-binding walkthrough.
 
 .. autoclass:: pinecone.admin.Admin
    :members:
@@ -39,7 +35,7 @@ Projects
    :member-order: bysource
 
 
-API Keys
+API keys
 --------
 
 .. autoclass:: pinecone.admin.api_keys.ApiKeys
@@ -69,12 +65,12 @@ Invites
    :member-order: bysource
 
 
-Service Accounts
+Service accounts
 ----------------
 
 The OAuth principals the ``Admin`` client itself authenticates as.  ``create`` and
 ``rotate_secret`` are the only operations that return a ``client_secret``, and each returns it
-exactly once — capture it or rotate again.
+exactly once: capture it or rotate again.
 
 .. autoclass:: pinecone.admin.service_accounts.ServiceAccounts
    :members:
@@ -83,11 +79,11 @@ exactly once — capture it or rotate again.
    :member-order: bysource
 
 
-Role Bindings
+Role bindings
 -------------
 
-The whole of Pinecone's authorization model: one ``role`` granted to one principal — user,
-service account, API key, or pending invite — at one scope, either the organization or a single
+The whole of Pinecone's authorization model: one ``role`` granted to one principal (user,
+service account, API key, or pending invite) at one scope, either the organization or a single
 project.  Nothing else confers permissions, and bindings are immutable, so a role change is a
 ``create`` followed by a ``delete``.
 

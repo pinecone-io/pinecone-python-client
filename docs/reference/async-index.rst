@@ -1,7 +1,9 @@
 AsyncIndex
 ==========
 
-Obtain an ``AsyncIndex`` via :meth:`pinecone.AsyncPinecone.index`, which resolves
+``AsyncIndex`` is the asynchronous twin of :class:`~pinecone.index.Index`: the
+same data-plane methods, each an ``async def``. Use it inside an ``async with``
+block. Get one by awaiting :meth:`pinecone.AsyncPinecone.index`, which resolves
 the host for you:
 
 .. code-block:: python
@@ -13,8 +15,7 @@ the host for you:
    async with await pc.index("my-index") as idx:
        stats = await idx.describe_index_stats()
 
-Constructing one directly is the other option, and it needs no client — pass the
-index host and an API key yourself:
+Or construct one directly with the index host and an API key, no client needed:
 
 .. code-block:: python
 
@@ -26,14 +27,17 @@ index host and an API key yourself:
    ) as idx:
        stats = await idx.describe_index_stats()
 
-``AsyncIndex`` mirrors :class:`~pinecone.index.Index` but every method is an
-``async def``. It is an async context manager; call
-:meth:`~pinecone.async_client.async_index.AsyncIndex.close` (or use ``async with``)
-to release the underlying HTTP connection pool.
+Leaving the ``async with`` block, or calling
+:meth:`~pinecone.async_client.async_index.AsyncIndex.close`, releases the HTTP
+connection pool.
 
 **Method groups:**
 
-- **Vectors** — :meth:`~pinecone.async_client.async_index.AsyncIndex.upsert`,
+- **Documents**: :attr:`~pinecone.async_client.async_index.AsyncIndex.documents`, an
+  :class:`~pinecone.async_client.documents.AsyncDocuments` namespace for
+  schema-based indexes (``upsert``, ``search``, ``fetch``, ``delete``, ``update``,
+  ``list``, ``batch_upsert``). See `AsyncDocuments`_ below.
+- **Vectors**: :meth:`~pinecone.async_client.async_index.AsyncIndex.upsert`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.upsert_from_dataframe`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.upsert_records`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.query`,
@@ -44,24 +48,20 @@ to release the underlying HTTP connection pool.
   :meth:`~pinecone.async_client.async_index.AsyncIndex.delete`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.list`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.list_paginated`
-- **Stats** — :meth:`~pinecone.async_client.async_index.AsyncIndex.describe_index_stats`
-- **Documents** — :attr:`~pinecone.async_client.async_index.AsyncIndex.documents`, a
-  lazily-instantiated :class:`~pinecone.async_client.documents.AsyncDocuments`
-  namespace for schema-based indexes (``index.documents.upsert``, ``.search``,
-  ``.fetch``, ``.delete``, ``.update``, ``.list``, ``.batch_upsert``).
-- **Legacy Records API** (legacy integrated indexes) — :meth:`~pinecone.async_client.async_index.AsyncIndex.search`,
+- **Stats**: :meth:`~pinecone.async_client.async_index.AsyncIndex.describe_index_stats`
+- **Legacy Records API** (legacy integrated indexes): :meth:`~pinecone.async_client.async_index.AsyncIndex.search`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.search_records`
-- **Namespaces** — :meth:`~pinecone.async_client.async_index.AsyncIndex.create_namespace`,
+- **Namespaces**: :meth:`~pinecone.async_client.async_index.AsyncIndex.create_namespace`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.describe_namespace`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.delete_namespace`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.list_namespaces`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.list_namespaces_paginated`
-- **Bulk Import** — :meth:`~pinecone.async_client.async_index.AsyncIndex.start_import`,
+- **Bulk import**: :meth:`~pinecone.async_client.async_index.AsyncIndex.start_import`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.describe_import`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.cancel_import`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.list_imports`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.list_imports_paginated`
-- **Lifecycle** — :attr:`~pinecone.async_client.async_index.AsyncIndex.host`,
+- **Lifecycle**: :attr:`~pinecone.async_client.async_index.AsyncIndex.host`,
   :meth:`~pinecone.async_client.async_index.AsyncIndex.close`
 
 .. autoclass:: pinecone.async_client.async_index.AsyncIndex

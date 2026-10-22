@@ -1,9 +1,14 @@
 Pinecone Python SDK
 ===================
 
+The Pinecone Python SDK manages indexes with :class:`~pinecone.Pinecone` and
+reads and writes data with the :class:`~pinecone.Index` that ``pc.index("name")``
+returns. New here? Start with the quickstart. Looking up a method? Go to the
+reference section.
+
 .. toctree::
    :maxdepth: 1
-   :caption: Getting Started
+   :caption: Getting started
 
    getting-started/installation
    getting-started/quickstart
@@ -11,7 +16,7 @@ Pinecone Python SDK
 
 .. toctree::
    :maxdepth: 1
-   :caption: Guides
+   :caption: Concepts and guides
 
    guides/concepts
    guides/sync-vs-async
@@ -20,18 +25,7 @@ Pinecone Python SDK
    guides/pagination
    guides/performance
    guides/bulk-ingest
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Migration & FAQ
-
-   migration/v10-1-upgrade
-   migration/v10-migration
-   migration/v10-grpc-partial-failures
-   migration/v9-migration
-   faq
-
-.. rubric:: By Subject
+   guides/grpc
 
 .. toctree::
    :maxdepth: 1
@@ -40,6 +34,8 @@ Pinecone Python SDK
    how-to/indexes/serverless
    how-to/indexes/pod
    how-to/indexes/backups-and-restore
+   how-to/collections
+   how-to/vectors/namespaces
 
 .. toctree::
    :maxdepth: 1
@@ -48,7 +44,6 @@ Pinecone Python SDK
    how-to/vectors/upsert-and-query
    how-to/vectors/upsert-from-dataframe
    how-to/vectors/bulk-import
-   how-to/vectors/namespaces
 
 .. toctree::
    :maxdepth: 1
@@ -65,50 +60,30 @@ Pinecone Python SDK
 
 .. toctree::
    :maxdepth: 1
-   :caption: Collections
-
-   how-to/collections
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Legacy Integrated Indexes
+   :caption: Legacy integrated indexes
 
    how-to/integrated-records
 
-.. rubric:: By Client
+.. toctree::
+   :maxdepth: 1
+   :caption: Migration and FAQ
+
+   migration/v10-1-upgrade
+   migration/v10-migration
+   migration/v10-grpc-partial-failures
+   migration/v9-migration
+   faq
 
 .. toctree::
    :maxdepth: 1
-   :caption: Sync (Pinecone)
+   :caption: Reference
 
    reference/pinecone
    reference/sync-index
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Async (AsyncPinecone)
-
    reference/async-pinecone
    reference/async-index
-
-.. toctree::
-   :maxdepth: 1
-   :caption: gRPC (GrpcIndex)
-
-   guides/grpc
    reference/grpc
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Admin
-
    reference/admin
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Shared Types
-
-   reference/models
    reference/schema-builder
+   reference/models
    reference/exceptions
-

@@ -11,6 +11,14 @@ examples below carry over unchanged apart from the `await`. For the underlying m
 — the admission gate, retry budget, and stall detector — see [How Bulk Ingest
 Behaves](../../guides/bulk-ingest.md).
 
+:::{note}
+This method writes through {meth}`~pinecone.index.Index.upsert`, so it serves indexes
+created with top-level `dimension` and `metric`. The server rejects it on an index
+created with a `schema`; use `index.documents` and see the
+[quickstart](../../getting-started/quickstart.md#choosing-an-interface) for how the two
+interfaces divide.
+:::
+
 :::{important}
 `pandas` is not a dependency of this SDK, and is never installed as an extra. This is
 the only method that needs it, so it is imported when you call the method: if the import

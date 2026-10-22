@@ -1,10 +1,10 @@
 AsyncPinecone
 =============
 
-:class:`AsyncPinecone` is the asynchronous control-plane client — use it inside an
-``async with`` block to manage indexes, collections, backups, and related resources.
-Sub-clients for each resource type are accessed as properties (e.g.
-``pc.indexes``, ``pc.collections``) and are lazily initialised on first access.
+:class:`AsyncPinecone` is the asynchronous twin of :class:`~pinecone.Pinecone`:
+the same namespaces (``pc.indexes``, ``pc.collections``, ...), each method an
+``async def``. Use it inside an ``async with`` block; awaiting
+:meth:`~pinecone.AsyncPinecone.index` returns an :doc:`AsyncIndex <async-index>`.
 
 .. code-block:: python
 

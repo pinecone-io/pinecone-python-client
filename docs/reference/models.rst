@@ -1,15 +1,14 @@
 Models
 ======
 
-All public model types returned by SDK methods.  Every model is an immutable
-:class:`msgspec.Struct` subclass — fields are accessed as plain attributes
-(e.g. ``idx.name``).
+The types SDK methods return and accept, grouped by area. Models are
+:class:`msgspec.Struct` subclasses; read fields as attributes (``idx.name``).
 
 .. contents:: Sections
    :local:
    :depth: 1
 
-Index Models
+Index models
 ------------
 
 .. autoclass:: pinecone.models.indexes.index.IndexModel
@@ -48,12 +47,12 @@ Index Models
    :members:
    :show-inheritance:
 
-Deprecated 9.x Spec Views
+Deprecated 9.x spec views
 -------------------------
 
 What the deprecated :attr:`~pinecone.models.indexes.index.IndexModel.spec` and
 :attr:`~pinecone.models.indexes.index.IndexModel.embed` properties return.
-Nothing decodes into these classes — each is a view over
+Nothing decodes into these classes; each is a view over
 :attr:`~pinecone.models.indexes.index.IndexModel.deployment`,
 :attr:`~pinecone.models.indexes.index.IndexModel.read_capacity` and
 :attr:`~pinecone.models.indexes.index.IndexModel.schema`, kept so 9.x reads
@@ -79,7 +78,7 @@ like ``index.spec.serverless.region`` keep working.
    :members:
    :show-inheritance:
 
-Index Request Models
+Index request models
 --------------------
 
 .. autoclass:: pinecone.models.indexes.requests.CreateIndexRequest
@@ -90,7 +89,7 @@ Index Request Models
    :members:
    :show-inheritance:
 
-Index Schema Models
+Index schema models
 -------------------
 
 ``IndexModel.schema`` describes every field in the index.  These types replace
@@ -155,7 +154,7 @@ attributes, which survive only as deprecated computed properties.
    :members:
    :show-inheritance:
 
-Index Deployment Models
+Index deployment models
 -----------------------
 
 ``IndexModel.deployment`` describes where and how the index runs.  These types
@@ -176,7 +175,7 @@ replace ``IndexSpec``, ``ServerlessSpecInfo``, ``PodSpecInfo`` and
    :members:
    :show-inheritance:
 
-Read Capacity Models
+Read capacity models
 --------------------
 
 ``IndexModel.read_capacity`` replaces the removed
@@ -204,7 +203,7 @@ Read Capacity Models
    :members:
    :show-inheritance:
 
-Vector Models
+Vector models
 -------------
 
 .. autoclass:: pinecone.models.vectors.vector.Vector
@@ -275,7 +274,7 @@ Vector Models
    :members:
    :show-inheritance:
 
-Batch Models
+Batch models
 ------------
 
 ``index.documents.batch_upsert`` returns a :class:`~pinecone.models.batch.BatchResult`,
@@ -289,7 +288,7 @@ which collects per-batch failures instead of raising on the first one.
    :members:
    :show-inheritance:
 
-Search Models
+Search models
 -------------
 
 .. autoclass:: pinecone.models.vectors.search.Hit
@@ -336,10 +335,10 @@ Search Models
    :members:
    :show-inheritance:
 
-Document Models
+Document models
 ---------------
 
-The document interface — ``index.documents`` on either client — works in whole
+The document interface, ``index.documents`` on either client, works in whole
 records rather than raw vectors.  You write :class:`~pinecone.models.documents.document.DocumentRecord`
 and read back :class:`~pinecone.models.documents.document.Document`.
 
@@ -359,7 +358,7 @@ and read back :class:`~pinecone.models.documents.document.Document`.
    :members:
    :show-inheritance:
 
-Document Scoring
+Document scoring
 ~~~~~~~~~~~~~~~~
 
 ``score_by`` picks how a search ranks candidates.  Pass one of these query types.
@@ -390,7 +389,7 @@ Document Scoring
    :members:
    :show-inheritance:
 
-Document Responses
+Document responses
 ~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: pinecone.models.documents.responses.UpsertDocumentsResponse
@@ -437,7 +436,7 @@ Document Responses
    :members:
    :show-inheritance:
 
-Document Requests
+Document requests
 ~~~~~~~~~~~~~~~~~
 
 Document methods are keyword-only; you never build one of these yourself.  They
@@ -468,7 +467,7 @@ a validation error names a field.
    :members:
    :show-inheritance:
 
-Inference Models
+Inference models
 ----------------
 
 .. autoclass:: pinecone.models.inference.embed.DenseEmbedding
@@ -517,12 +516,14 @@ Inference Models
    :members:
    :show-inheritance:
 
-Import Models
+Import models
 -------------
 
 .. autoclass:: pinecone.models.imports.model.ImportModel
    :members:
    :show-inheritance:
+
+   .. automethod:: to_dict
 
 .. autoclass:: pinecone.models.imports.list.ImportList
    :members:
@@ -536,12 +537,14 @@ Import Models
    :members:
    :show-inheritance:
 
-Collection Models
+Collection models
 -----------------
 
 .. autoclass:: pinecone.models.collections.model.CollectionModel
    :members:
    :show-inheritance:
+
+   .. automethod:: to_dict
 
 .. autoclass:: pinecone.models.collections.list.CollectionList
    :members:
@@ -551,8 +554,8 @@ Collection Models
    :members:
    :show-inheritance:
 
-Backup and Restore Models
---------------------------
+Backup and restore models
+-------------------------
 
 .. autoclass:: pinecone.models.backups.model.BackupModel
    :members:
@@ -578,8 +581,8 @@ Backup and Restore Models
    :members:
    :show-inheritance:
 
-Backup Schedule Models
------------------------
+Backup schedule models
+----------------------
 
 .. autoclass:: pinecone.models.backups.schedules.BackupScheduleModel
    :members:
@@ -605,7 +608,7 @@ Backup Schedule Models
    :members:
    :show-inheritance:
 
-Namespace Models
+Namespace models
 ----------------
 
 .. autoclass:: pinecone.models.namespaces.models.NamespaceDescription
@@ -628,7 +631,7 @@ Namespace Models
    :members:
    :show-inheritance:
 
-Pagination Models
+Pagination models
 -----------------
 
 .. autoclass:: pinecone.models.pagination.Page
@@ -690,12 +693,14 @@ Enums
    :members:
    :show-inheritance:
 
-Admin Models
+Admin models
 ------------
 
 .. autoclass:: pinecone.models.admin.api_key.APIKeyModel
    :members:
    :show-inheritance:
+
+   .. automethod:: to_dict
 
 .. autoclass:: pinecone.models.admin.api_key.APIKeyList
    :members:
@@ -713,6 +718,8 @@ Admin Models
    :members:
    :show-inheritance:
 
+   .. automethod:: to_dict
+
 .. autoclass:: pinecone.models.admin.organization.OrganizationList
    :members:
    :show-inheritance:
@@ -720,6 +727,8 @@ Admin Models
 .. autoclass:: pinecone.models.admin.project.ProjectModel
    :members:
    :show-inheritance:
+
+   .. automethod:: to_dict
 
 .. autoclass:: pinecone.models.admin.project.ProjectList
    :members:
@@ -789,7 +798,7 @@ Admin Models
    :members:
    :show-inheritance:
 
-Assistant Models
+Assistant models
 ----------------
 
 .. autoclass:: pinecone.models.assistant.model.AssistantModel
@@ -820,7 +829,7 @@ Assistant Models
    :members:
    :show-inheritance:
 
-Assistant Chat Models
+Assistant chat models
 ~~~~~~~~~~~~~~~~~~~~~
 
 :meth:`pc.assistants.chat() <pinecone.client.assistants.Assistants.chat>` returns a
@@ -864,7 +873,7 @@ returns the OpenAI-shaped :class:`~pinecone.models.assistant.chat.ChatCompletion
    :members:
    :show-inheritance:
 
-Assistant Context Models
+Assistant context models
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: pinecone.models.assistant.context.ContextResponse
@@ -911,7 +920,7 @@ Assistant Context Models
    :members:
    :show-inheritance:
 
-Assistant Evaluation Models
+Assistant evaluation models
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: pinecone.models.assistant.evaluation.AlignmentResult
@@ -926,7 +935,7 @@ Assistant Evaluation Models
    :members:
    :show-inheritance:
 
-Assistant Streaming Models
+Assistant streaming models
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: pinecone.models.assistant.streaming.ChatStream
@@ -981,7 +990,7 @@ Assistant Streaming Models
    :members:
    :show-inheritance:
 
-Filter Builder
+Filter builder
 --------------
 
 :class:`~pinecone.utils.filter_builder.Field` builds metadata filter expressions

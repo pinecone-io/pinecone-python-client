@@ -1,14 +1,17 @@
 Exceptions
 ==========
 
-All exceptions raised by the Pinecone SDK derive from :class:`~pinecone.errors.exceptions.PineconeError`
-so that a single ``except PineconeError`` block can catch every SDK error if desired.
+Every exception the SDK raises derives from
+:class:`~pinecone.errors.exceptions.PineconeError`. Catch a specific subclass to
+handle one cause, :class:`~pinecone.errors.exceptions.ApiError` for any HTTP
+error, or ``PineconeError`` for everything. :doc:`/guides/error-handling` shows
+the patterns.
 
 .. contents:: Sections
    :local:
    :depth: 1
 
-Class Hierarchy
+Class hierarchy
 ---------------
 
 .. code-block:: text
@@ -32,7 +35,7 @@ Class Hierarchy
        ├── RateLimitError (429)
        └── ServiceError (5xx)
 
-Base & Configuration Errors
+Base & configuration errors
 ----------------------------
 
 .. autoexception:: pinecone.errors.exceptions.PineconeError
@@ -59,7 +62,7 @@ Base & Configuration Errors
    :members:
    :show-inheritance:
 
-Network Errors
+Network errors
 --------------
 
 .. autoexception:: pinecone.errors.exceptions.PineconeConnectionError
@@ -70,7 +73,7 @@ Network Errors
    :members:
    :show-inheritance:
 
-API Errors
+API errors
 ----------
 
 .. autoexception:: pinecone.errors.exceptions.ApiError
@@ -113,7 +116,7 @@ API Errors
    :members:
    :show-inheritance:
 
-Deprecated Aliases
+Deprecated aliases
 ------------------
 
 The following names are kept for backwards compatibility and will be removed in a future

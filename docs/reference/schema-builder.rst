@@ -1,4 +1,4 @@
-Schema Builder
+Schema builder
 ==============
 
 .. automodule:: pinecone.schema_builder
