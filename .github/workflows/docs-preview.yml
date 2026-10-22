@@ -1,0 +1,124 @@
+name: Docs preview
+
+# Deploys each PR's built docs to gh-pages under pr-preview/pr-<N>/, posts the
+# URL as a sticky PR comment, and removes the folder when the PR closes.
+#
+# The HTML comes from CI's "Sphinx docs build" job (on-push.yml) rather than a
+# second build. That job can't deploy itself: release-rc.yaml and
+# release-prod.yaml reuse on-push.yml with `contents: read`, and a reused
+# workflow may not request more than its caller grants.
+#
+# Previews live only on gh-pages, which the public-repo sync never pushes, and
+# the Pages site is private, so unreleased docs stay inside the org.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions: {}
+
+jobs:
+  preview:
+    name: Deploy docs preview
+    # Fork and Dependabot PRs get a read-only token, so they can't deploy.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]' &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      actions: read         # find CI's run and download its artifact
+      contents: write       # push to gh-pages
+      pages: read           # look up the Pages URL
+      pull-requests: write  # sticky comment
+    # One run per PR, newest wins. Pushes from different PRs can still race on
+    # gh-pages; the deploy action rebases and retries those.
+    concurrency:
+      group: docs-preview-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      # The deploy action pushes from a worktree of this checkout.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+
+      # CI starts on the same push, so wait for its docs job to finish.
+      - name: Wait for the CI docs build
+        id: ci
+        if: github.event.action != 'closed'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          for _ in $(seq 80); do
+            run_id=$(gh api "repos/$REPO/actions/workflows/on-push.yml/runs?event=pull_request&head_sha=$HEAD_SHA" \
+              --jq '.workflow_runs[0].id // empty')
+            if [ -n "$run_id" ]; then
+              conclusion=$(gh api "repos/$REPO/actions/runs/$run_id/jobs?per_page=100" \
+                --jq '.jobs[] | select(.name == "Sphinx docs build" and .status == "completed") | .conclusion')
+              if [ -n "$conclusion" ]; then
+                echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
+                echo "conclusion=$conclusion" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+            fi
+            sleep 15
+          done
+          echo "::error::CI's Sphinx docs build did not finish for $HEAD_SHA within 20 minutes"
+          exit 1
+
+      # A failed build already fails CI; don't fail here too.
+      - name: Skip the deploy when the docs build failed
+        if: github.event.action != 'closed' && steps.ci.outputs.conclusion != 'success'
+        env:
+          CONCLUSION: ${{ steps.ci.outputs.conclusion }}
+        run: |
+          echo "::notice::CI's docs build finished with '$CONCLUSION'; no preview deployed"
+
+      - name: Download built HTML
+        if: steps.ci.outputs.conclusion == 'success'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: docs-html
+          path: docs-html
+          run-id: ${{ steps.ci.outputs.run-id }}
+          github-token: ${{ github.token }}
+
+      # Private Pages sites are served from a generated *.pages.github.io host
+      # that the preview action can't guess. Before Pages is enabled this is
+      # empty and the action falls back to <owner>.github.io/<repo>.
+      - name: Resolve the Pages URL
+        id: pages
+        if: steps.ci.outputs.conclusion == 'success' || github.event.action == 'closed'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if url=$(gh api "repos/$REPO/pages" --jq .html_url 2>/dev/null); then
+            url=${url#https://}
+            echo "base-url=${url%/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy or remove the preview
+        id: preview
+        if: steps.ci.outputs.conclusion == 'success' || github.event.action == 'closed'
+        uses: rossjrw/pr-preview-action@ffa7509e91a3ec8dfc2e5536c4d5c1acdf7a6de9  # v1.8.1
+        with:
+          source-dir: docs-html
+          umbrella-dir: pr-preview
+          pages-base-url: ${{ steps.pages.outputs.base-url }}
+          # `auto` skips reopened PRs, so pick the action explicitly.
+          action: ${{ github.event.action == 'closed' && 'remove' || 'deploy' }}
+          # The default sends the preview URL to a third-party QR service.
+          qr-code: "false"
+
+      - name: Link the preview in the job summary
+        if: steps.preview.outputs.deployment-action == 'deploy'
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.preview-url }}
+        run: |
+          echo "Docs preview: $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"

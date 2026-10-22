@@ -52,3 +52,15 @@ credentials.
 `autodoc_mock_imports` covers `pinecone._grpc` and `pandas`, so the gRPC client
 and the DataFrame helpers are stubs during a build. Examples that need either
 one for real won't run under doctest.
+
+## PR previews
+
+Each same-repo PR gets a rendered copy of its docs. After CI's "Sphinx docs
+build" job passes, `.github/workflows/docs-preview.yml` deploys the HTML to the
+`gh-pages` branch under `pr-preview/pr-<N>/` and posts the URL as a sticky PR
+comment. Closing the PR removes the folder. The Pages site is private, so only
+people with read access to the repo can open it. Fork and Dependabot PRs get no
+preview.
+
+If the deploy fails, download the `docs-html` artifact from the CI run's
+summary page instead (kept 7 days).

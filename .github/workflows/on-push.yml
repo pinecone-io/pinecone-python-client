@@ -305,6 +305,9 @@ jobs:
   # Same warnings-as-errors invocation as the doc-build job in
   # release-readiness.yml, so a PR that breaks the docs build fails here rather
   # than surfacing days later in the Monday cron.
+  #
+  # docs-preview.yml finds this job by its name and deploys its docs-html
+  # artifact, so renaming either one breaks PR previews.
   # ---------------------------------------------------------------------------
   docs:
     name: Sphinx docs build
@@ -334,6 +337,23 @@ jobs:
       # sphinx-build command line is identical to release-readiness's.
       - name: Build HTML docs
         run: make -C docs html SPHINXOPTS="-W" SPHINXBUILD="uv run --no-sync sphinx-build"
+
+      # Reviewers can download this when the PR preview deploy fails.
+      - name: Upload built HTML
+        id: upload-html
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f  # v7.0.0
+        with:
+          name: docs-html
+          path: docs/_build/html
+          retention-days: 7
+
+      - name: Link built HTML in the job summary
+        if: steps.upload-html.outcome == 'success'
+        env:
+          ARTIFACT_URL: ${{ steps.upload-html.outputs.artifact-url }}
+        run: |
+          echo "Built HTML docs: [docs-html artifact]($ARTIFACT_URL) (kept 7 days)" >> "$GITHUB_STEP_SUMMARY"
 
       # Pages the site has already published must keep resolving: a link
       # someone saved before a restructure should not 404. Deleting a page is
