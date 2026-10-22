@@ -103,6 +103,23 @@ jobs:
             echo "base-url=${url%/}" >> "$GITHUB_OUTPUT"
           fi
 
+      # Pages builds gh-pages with Jekyll unless the branch root has .nojekyll,
+      # and Jekyll drops Sphinx's _static/, so previews render unstyled.
+      - name: Ensure .nojekyll at the gh-pages root
+        if: steps.ci.outputs.conclusion == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if ! gh api "repos/$REPO/contents/.nojekyll?ref=gh-pages" --silent 2>/dev/null; then
+            gh api -X PUT "repos/$REPO/contents/.nojekyll" --silent \
+              -f message="Add .nojekyll so Pages serves _static/" \
+              -f content="" -f branch=gh-pages ||
+              # Another PR's run may have created it first.
+              gh api "repos/$REPO/contents/.nojekyll?ref=gh-pages" --silent
+          fi
+
       - name: Deploy or remove the preview
         id: preview
         if: steps.ci.outputs.conclusion == 'success' || github.event.action == 'closed'
