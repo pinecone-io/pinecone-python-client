@@ -14,7 +14,7 @@ It emits three values for callers to use:
 Without ``--write`` the script just prints these (and writes them to
 ``$GITHUB_OUTPUT`` if set). With ``--write`` it patches pyproject.toml +
 rust/Cargo.toml in-place, and (unless ``--no-cargo-lock``) regenerates
-rust/Cargo.lock so it matches the new version.
+Cargo.lock and uv.lock so they match the new version.
 
 Usage examples:
 
@@ -134,7 +134,7 @@ def patch_line(path: pathlib.Path, pattern: re.Pattern[str], new_value: str) -> 
     path.write_text(new_text)
 
 
-def write_files(pep440: str, cargo: str, *, run_cargo_lock: bool) -> None:
+def write_files(pep440: str, cargo: str, *, refresh_locks: bool) -> None:
     """Patch every file that carries a hardcoded version of the SDK.
 
     Add new files here whenever a new copy of the version string sneaks in.
@@ -143,7 +143,7 @@ def write_files(pep440: str, cargo: str, *, run_cargo_lock: bool) -> None:
     patch_line(CARGO_TOML, _TOML_VERSION_RE, cargo)
     patch_line(PINECONE_INIT, _PY_VERSION_RE, pep440)
     patch_line(DOCS_CONF, _DOCS_RELEASE_RE, pep440)
-    if run_cargo_lock:
+    if refresh_locks:
         # `cargo update --workspace` only refreshes workspace-member entries in
         # Cargo.lock; transitive deps stay pinned. This avoids the multi-hundred-
         # line lockfile churn that `cargo generate-lockfile` produces.
@@ -151,6 +151,9 @@ def write_files(pep440: str, cargo: str, *, run_cargo_lock: bool) -> None:
             ["cargo", "update", "--workspace", "--manifest-path", str(CARGO_TOML)],
             check=True,
         )
+        # uv.lock pins the editable `pinecone` at the project version; a stale
+        # pin makes every non-frozen `uv run` rewrite the lock.
+        subprocess.run(["uv", "lock", "--directory", str(REPO_ROOT)], check=True)
 
 
 def main() -> int:
@@ -188,7 +191,7 @@ def main() -> int:
     ap.add_argument(
         "--no-cargo-lock",
         action="store_true",
-        help="skip cargo generate-lockfile when --write is set",
+        help="skip refreshing Cargo.lock and uv.lock when --write is set",
     )
     args = ap.parse_args()
 
@@ -207,7 +210,7 @@ def main() -> int:
     tag = f"v{pep440}"
 
     if args.write:
-        write_files(pep440, cargo, run_cargo_lock=not args.no_cargo_lock)
+        write_files(pep440, cargo, refresh_locks=not args.no_cargo_lock)
 
     lines = [
         f"current_version={current}",

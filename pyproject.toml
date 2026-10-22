@@ -78,6 +78,10 @@ python-source = "."
 # installs into the site-packages root.
 include = [{ path = "LICENSE", format = "sdist" }]
 
+[tool.uv]
+# uv.lock is format revision 5, which uv 0.12.x silently rewrites as revision 3.
+required-version = ">=0.13.0"
+
 [tool.mypy]
 strict = true
 python_version = "3.10"

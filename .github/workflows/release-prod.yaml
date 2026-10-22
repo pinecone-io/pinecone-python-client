@@ -252,6 +252,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      # bump_version.py --write runs `uv lock`; setup-uv picks the version from
+      # pyproject.toml's [tool.uv] required-version.
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
+
       - name: Apply version bump (write)
         run: |
           set -euo pipefail
@@ -282,6 +287,7 @@ jobs:
             pyproject.toml
             rust/Cargo.toml
             Cargo.lock
+            uv.lock
             pinecone/__init__.py
             docs/conf.py
           if-no-files-found: error
@@ -648,7 +654,7 @@ jobs:
         run: |
           set -euo pipefail
           # Cargo.lock lives at the workspace root, not under rust/.
-          git add pyproject.toml rust/Cargo.toml Cargo.lock pinecone/__init__.py docs/conf.py
+          git add pyproject.toml rust/Cargo.toml Cargo.lock uv.lock pinecone/__init__.py docs/conf.py
           git status
           git commit -m "release: ${VERSION}"
           git tag -a "${TAG}" -m "Release ${VERSION}"
