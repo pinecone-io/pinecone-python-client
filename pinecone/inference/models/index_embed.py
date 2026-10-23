@@ -18,9 +18,8 @@ class IndexEmbed:
     """Which model embeds a legacy integrated index, and which field it embeds.
 
     Accepted as the ``embed`` argument of
-    :meth:`~pinecone.client.indexes.Indexes.create_for_model` and
-    :meth:`~pinecone.Pinecone.create_index_for_model`, alongside a plain dict
-    and :class:`~pinecone.models.indexes.specs.EmbedConfig`, which is the
+    :meth:`~pinecone.client.indexes.Indexes.create_for_model`, alongside a plain
+    dict and :class:`~pinecone.models.indexes.specs.EmbedConfig`, which is the
     shape new code should prefer.
 
     >>> from pinecone import IndexEmbed

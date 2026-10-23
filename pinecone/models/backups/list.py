@@ -17,7 +17,7 @@ class BackupList:
 
     Returned by :meth:`~pinecone.client.backups.Backups.list`; not constructed
     directly. Iteration, ``len()`` and index access all read the page in hand
-    only — :meth:`~pinecone.client.indexes.Indexes.list_backups` is the shape
+    only; :meth:`~pinecone.client.indexes.Indexes.list_backups` is the shape
     that walks every page for you.
     """
 
@@ -110,7 +110,7 @@ class RestoreJobList:
 
     Returned by :meth:`~pinecone.client.restore_jobs.RestoreJobs.list`; not
     constructed directly. Iteration, ``len()`` and index access all read the
-    page in hand only, and the listing itself is best-effort — see that
+    page in hand only, and the listing itself is best-effort; see that
     method's warning before treating it as an inventory.
     """
 
@@ -186,7 +186,7 @@ class BackupScheduleList:
     Returned by
     :meth:`~pinecone.client.backup_schedules.BackupSchedules.list`; not
     constructed directly. Iteration, ``len()``, :meth:`names` and
-    :meth:`enabled_schedules` all read the page in hand only —
+    :meth:`enabled_schedules` all read the page in hand only;
     :meth:`~pinecone.client.backup_schedules.BackupSchedules.iter_schedules`
     walks every page instead.
     """
@@ -266,7 +266,7 @@ class BackupScheduleList:
         """Return only the enabled schedules on this page.
 
         At most one schedule per index can be enabled, so this answers "which
-        schedule is actually running" — as long as the listing fits one page.
+        schedule is running", as long as the listing fits one page.
 
         Examples:
             >>> from pinecone import Pinecone
@@ -291,7 +291,7 @@ class BackupScheduleHistoryList:
     Returned by
     :meth:`~pinecone.client.backup_schedules.BackupSchedules.history`; not
     constructed directly. Iteration, ``len()`` and :meth:`scheduled` all read
-    the page in hand only —
+    the page in hand only;
     :meth:`~pinecone.client.backup_schedules.BackupSchedules.iter_history`
     walks every page instead.
     """
@@ -347,8 +347,8 @@ class BackupScheduleHistoryList:
             >>> runs = pc.backup_schedules.history(
             ...     schedule_id="e88f7273-42aa-47e9-af73-593827136867"
             ... )
-            >>> runs.to_dict()["data"][0]["status"]
-            'Scheduled'
+            >>> runs.to_dict()["data"][0]["name"]
+            'compliance-snapshots-20260403T060000Z'
         """
         result: dict[str, Any] = {"data": [item.to_dict() for item in self._items]}
         if self.pagination is not None:
@@ -356,16 +356,11 @@ class BackupScheduleHistoryList:
         return result
 
     def scheduled(self) -> list[BackupScheduleHistoryItem]:
-        """Return only the rows for runs that have not started yet.
+        """Return the rows on this page whose status is ``"Scheduled"``.
 
-        Examples:
-            >>> from pinecone import Pinecone
-            >>> pc = Pinecone(api_key="your-api-key")
-            >>> runs = pc.backup_schedules.history(
-            ...     schedule_id="e88f7273-42aa-47e9-af73-593827136867"
-            ... )
-            >>> [r.backup_id for r in runs.scheduled()]
-            ['b2c3d4e5-f6a7-8901-bcde-f12345678901']
+        The 2026-07 API reports a planned run as ``"Initializing"``, so this
+        returns an empty list for its responses. To find finished backups,
+        filter on ``status == "Ready"``.
         """
         return [item for item in self._items if item.is_scheduled]
 

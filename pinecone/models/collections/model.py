@@ -21,7 +21,7 @@ class CollectionModel(StructDictMixin, Struct, kw_only=True):
         status: Current status of the collection (e.g. ``"Ready"``,
             ``"Initializing"``, ``"Terminating"``).
         environment: Deployment environment where the collection is hosted.
-        size: Space the snapshot occupies, in bytes — not a vector
+        size: Space the snapshot occupies, in bytes, not a vector
             dimension. ``None`` until the collection is built.
         dimension: Dimensionality of vectors in the collection, or ``None``
             until the collection is built.

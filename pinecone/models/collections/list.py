@@ -14,7 +14,7 @@ class CollectionList:
 
     Iterating yields :class:`~pinecone.models.collections.model.CollectionModel`
     objects. ``len()`` and integer indexing work too, and every collection in the
-    project is present — there is no pagination to follow.
+    project is present; there is no pagination to follow.
 
     Examples:
         >>> collections = pc.collections.list()

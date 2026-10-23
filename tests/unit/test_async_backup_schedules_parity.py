@@ -581,7 +581,7 @@ def test_docstring_contract_section_parity(method_name: str, heading: str) -> No
 
 @pytest.mark.parametrize("method_name", _METHODS)
 def test_directive_parity(method_name: str) -> None:
-    """The 28-char footgun, the re-enable warning, and the retry caveat must match."""
+    """The re-enable warning and the retry caveat must match."""
     sync_directives = _directives(getattr(BackupSchedules, method_name).__doc__)
     async_directives = _directives(getattr(AsyncBackupSchedules, method_name).__doc__)
 
@@ -594,9 +594,10 @@ def test_the_documented_footguns_survive_on_both_lanes() -> None:
     update = _directives(AsyncBackupSchedules.update.__doc__)
     delete = _directives(AsyncBackupSchedules.delete.__doc__)
 
-    assert any("Keep the schedule name short" in d for d in create)
-    assert any("immediately" in d and "enqueues a backup run" in d for d in update)
-    assert any("not safe to retry blindly" in d for d in delete)
+    assert not any("Keep the schedule name short" in d for d in create)
+    assert any("plans its next run from the time of" in d for d in update)
+    assert not any("enqueues a backup run" in d for d in update)
+    assert any("Treat :exc:`NotFoundError` from a delete as" in d for d in delete)
 
 
 @pytest.mark.parametrize(

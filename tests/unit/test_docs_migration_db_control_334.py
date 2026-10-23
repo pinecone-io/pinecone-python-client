@@ -247,6 +247,6 @@ def test_the_configure_docstring_says_the_tag_cap_counts_the_merge() -> None:
     """ "at most 20 tags" reads as a per-request cap; it is not."""
     from pinecone.client.indexes import Indexes
 
-    doc = inspect.getdoc(Indexes.configure) or ""
-    assert "applied to the **merged**" in doc
+    doc = _flat(inspect.getdoc(Indexes.configure) or "")
+    assert "applies its tag limit to the merged total" in doc
     assert "a 400 naming 23" not in doc

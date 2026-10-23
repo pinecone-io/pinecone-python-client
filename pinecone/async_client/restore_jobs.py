@@ -1,4 +1,4 @@
-"""Async RestoreJobs namespace — list and describe restore job operations."""
+"""Async RestoreJobs namespace: list and describe restore jobs."""
 
 from __future__ import annotations
 
@@ -22,8 +22,8 @@ class AsyncRestoreJobs:
     """Progress reports for restores of a backup into a new index.
 
     :meth:`~pinecone.AsyncPinecone.create_index_from_backup` hands back a
-    ``restore_job_id`` and leaves the restore running in the background; this
-    namespace is how you follow it to completion. Reached as
+    ``restore_job_id`` and leaves the restore running in the background; use
+    this namespace to follow it to completion. Reached as
     ``pc.restore_jobs``; not constructed directly.
 
     A restore job is not a backup:
@@ -42,9 +42,8 @@ class AsyncRestoreJobs:
                 print(job.status, job.target_index_name)
 
     .. seealso::
-       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
-       — the exceptions any of these methods
-       can raise, and which ones are worth retrying.
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__,
+       for the exceptions these methods raise and which ones to retry.
     """
 
     def __init__(self, http: AsyncHTTPClient) -> None:
@@ -63,35 +62,27 @@ class AsyncRestoreJobs:
     ) -> RestoreJobList:
         """List one page of the project's restore jobs.
 
-        One call returns one page: :class:`RestoreJobList` carries a
-        ``pagination`` token but never follows it, so iterating the return
-        value sees at most one page. Drive the token yourself to walk the
-        rest — see
-        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
-        The result is a best-effort
-        sample rather than an inventory; the warning below says why that
-        matters.
+        One call returns one page, and iterating the result does not fetch
+        the next one. Follow ``pagination.next`` yourself (see
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__).
+        The listing is not exhaustive; see the warning below.
 
         Args:
-            limit (int | None): Maximum number of results per page. When ``None``,
-                the parameter is omitted and the server applies its own
-                default. Omitted too when *pagination_token* is given: the
-                token already carries the page size it was minted with, and a
-                different one sent alongside it would skip or repeat rows.
-            pagination_token (str | None): Offset token naming the next page,
-                taken from ``RestoreJobList.pagination.next``. A malformed or
-                truncated token is rejected with ``400`` (:exc:`ApiError`)
-                rather than restarting the listing.
+            limit (int | None): Maximum number of results per page, e.g.
+                ``100``. When ``None``, the server applies its default. The
+                SDK drops *limit* when *pagination_token* is given, because
+                the token already carries the page size.
+            pagination_token (str | None): Token for the next page, taken
+                from ``RestoreJobList.pagination.next``.
 
         Returns:
-            A :class:`RestoreJobList` supporting iteration, len(), and index access.
-            Its ``pagination`` attribute is ``None`` on the final page.
+            A :class:`RestoreJobList` holding one page, supporting iteration,
+            ``len()``, and index access. ``pagination`` is ``None`` on the
+            final page.
 
         Examples:
-            Walk every page the server will hand out. Because pages can overlap,
-            the loop collects into a dict keyed by ``restore_job_id`` rather than
-            a list — that is the de-duplication the warning below calls for, and
-            it costs nothing on a listing that happens not to repeat:
+            Walk every page, keying jobs by ``restore_job_id`` because pages
+            can overlap:
 
             .. code-block:: python
 
@@ -121,18 +112,12 @@ class AsyncRestoreJobs:
                     print(len(page))
 
         .. warning::
-           **This listing can silently drop restore jobs, stop paginating
-           early, and repeat rows across pages.** The token stream can end
-           while restore jobs remain, and successive pages can overlap, so
-           pages are neither exhaustive nor disjoint; a restore job whose
-           target index has been deleted is dropped from the listing
-           entirely. Treat the result as a best-effort sample rather than an
-           inventory, never conclude a restore job does not exist from its
-           absence here, and de-duplicate by ``restore_job_id`` while walking
-           pages.
-
-        .. seealso::
-           :meth:`describe` — the authoritative read for a single job, by id.
+           The restore-job listing is not exhaustive. Pages can overlap,
+           pagination can end while jobs remain, and jobs whose target index
+           has been deleted are left out. De-duplicate by ``restore_job_id``,
+           and never conclude a job does not exist because the listing omits
+           it. To track a specific restore, keep its ``restore_job_id`` and
+           call :meth:`describe`.
         """
         params: dict[str, Any] = restore_job_list_params(
             limit=limit, pagination_token=pagination_token
@@ -153,19 +138,17 @@ class AsyncRestoreJobs:
         Returns:
             A :class:`RestoreJobModel` naming the ``backup_id`` restored and
             the ``target_index_name`` it lands in. ``status`` is one of
-            ``"Pending"``, ``"Completed"``, ``"Failed"``, or ``"Cancelled"``:
-            there is **no in-progress state**, so a restore that is actively
-            running reports ``"Pending"`` and polling for a ``"Running"``-style
-            value never succeeds. ``percent_complete`` and ``completed_at``
-            are populated only once ``status`` is ``"Completed"``, so
-            ``percent_complete`` reports completion rather than progress and
-            cannot drive a progress bar.
+            ``"Pending"``, ``"Completed"``, ``"Failed"``, or ``"Cancelled"``;
+            a restore that is running reports ``"Pending"``.
+            ``percent_complete`` and ``completed_at`` are set only once
+            ``status`` is ``"Completed"``, so ``percent_complete`` cannot
+            report progress.
 
         Raises:
             :exc:`PineconeValueError`: If *job_id* is empty.
-            :exc:`NotFoundError`: If the API answers ``404`` — which is **not**
-                the same as "the restore job does not exist"; see the warning
-                below.
+            :exc:`PineconeTypeError`: If *job_id* is not a ``str``.
+            :exc:`NotFoundError`: If the server cannot read the job. This does
+                not prove the job does not exist; see the warning below.
 
         Examples:
             .. code-block:: python
@@ -176,11 +159,8 @@ class AsyncRestoreJobs:
                     job = await pc.restore_jobs.describe(job_id="rj-abc123")
                     print(job.status, job.target_index_name)
 
-            To wait for a restore, poll until ``status`` *leaves* ``"Pending"``
-            rather than waiting for it to reach a running state — there is no
-            running state to reach. Bound the wait with a deadline so a job that
-            never lands stops the loop instead of spinning forever; ten minutes
-            below is illustrative, not a service guarantee:
+            To wait for a restore, poll until ``status`` leaves ``"Pending"``.
+            A deadline keeps a stuck job from looping forever:
 
             .. code-block:: python
 
@@ -197,18 +177,10 @@ class AsyncRestoreJobs:
                     print(job.status, job.completed_at)
 
         .. warning::
-           **A ``404`` from this endpoint cannot be trusted to mean "no such
-           restore job".** Any failure to read the restore-job store, an
-           outage included, is answered with ``404``: what you see is
-           :exc:`NotFoundError`, and what it actually means is "could not read
-           this job", not "this job does not exist". Control flow keyed on it
-           — giving up, deleting local state, reporting the job as gone — can
-           each be wrong about what was really a transient failure, so treat
-           it as possibly transient unless you have independent evidence the
-           id is bad. A restore job whose target index has been deleted also
-           answers ``404``, under a different message, so do not match on
-           message text either; such a job is dropped from :meth:`list`
-           entirely rather than reported.
+           A :exc:`NotFoundError` here does not prove the job does not
+           exist. The server also answers 404 on a transient failure and for
+           a job whose target index has been deleted. Treat a 404 as possibly
+           transient unless you know the ID is wrong.
         """
         require_non_empty("job_id", job_id)
         logger.info("Describing restore job %r", job_id)

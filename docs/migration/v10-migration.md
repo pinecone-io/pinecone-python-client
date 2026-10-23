@@ -1943,10 +1943,10 @@ count, so you can keep several and enable one at a time. The conflict
 surfaces as a 409 whether it comes from `create` while one is already
 enabled, or from `update` re-enabling while another is enabled.
 
-**Re-enabling a disabled schedule runs a backup immediately and shifts the
-cadence.** `update(enabled=True)` on a disabled schedule recomputes
+**Re-enabling a disabled schedule shifts the cadence.**
+`update(enabled=True)` on a disabled schedule recomputes
 `next_scheduled_run` from the moment of the update, not from the schedule's
-original anchor, and enqueues a backup for that new time. A daily schedule
+original anchor. A daily schedule
 anchored at 06:00 UTC, disabled and re-enabled at 15:20, runs daily at 15:20
 from then on; there's no way to re-enable without this side effect. Sending
 `enabled=True` on an already-enabled schedule is a safe no-op.

@@ -1,4 +1,4 @@
-"""Async Collections namespace — create, list, describe, and delete operations."""
+"""Async Collections namespace: create, list, describe, and delete operations."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ class AsyncCollections:
     """Async control-plane operations for Pinecone collections.
 
     A collection is a static, point-in-time copy of a pod-based index's vector data,
-    held outside the index. Reach it as ``pc.collections``; not constructed directly —
+    held outside the index. Reach it as ``pc.collections``; not constructed directly:
     :class:`~pinecone.AsyncPinecone` builds and caches its own instance on first
     access.
 
@@ -30,7 +30,8 @@ class AsyncCollections:
     BYOC indexes. The difference that decides which you want is restore: a backup can
     be restored into a new index with
     :meth:`~pinecone.async_client.pinecone.AsyncPinecone.create_index_from_backup`,
-    and a collection cannot be restored at all.
+    and this SDK cannot restore a collection: only API versions before ``2026-07``
+    create an index from one.
 
     Examples:
 
@@ -43,8 +44,8 @@ class AsyncCollections:
                     print(col.name, col.status)
 
     .. seealso::
-       :class:`~pinecone.async_client.backups.AsyncBackups` — the equivalent for
-       serverless and BYOC indexes, and the only snapshot you can restore.
+       :class:`~pinecone.async_client.backups.AsyncBackups`, the equivalent for
+       serverless and BYOC indexes, and the only snapshot this SDK can restore.
     """
 
     def __init__(self, http: AsyncHTTPClient) -> None:
@@ -61,13 +62,13 @@ class AsyncCollections:
         A collection is a static copy of an index's vector data, held outside
         the index as a snapshot of its contents at the moment it was taken.
         Only a pod-based index can be used as a source, and it must already
-        be ready. The call returns as soon as creation starts — it does not
+        be ready. The call returns as soon as creation starts; it does not
         wait for the collection to become ready.
 
         Args:
-            name (str): Name for the new collection. 1-45 characters,
-                lowercase alphanumeric and hyphens only, and can't start or
-                end with a hyphen (e.g. ``"movie-embeddings-snapshot"``).
+            name (str): Name for the new collection: lowercase
+                alphanumeric characters and hyphens, not starting or ending
+                with a hyphen (e.g. ``"movie-embeddings-snapshot"``).
             source (str): Name of the pod-based index to copy.
 
         Returns:
@@ -77,6 +78,7 @@ class AsyncCollections:
         Raises:
             PineconeValueError: If *name* or *source* is empty, or *name*
                 doesn't meet the naming rules above.
+            PineconeTypeError: If *source* is not a ``str``.
             NotFoundError: If *source* does not name an index in this
                 project.
 
@@ -104,9 +106,10 @@ class AsyncCollections:
                     col = await pc.collections.describe(col.name)
 
         .. note::
-           There is no path from a collection back to an index.
+           This SDK cannot create an index from a collection; only API versions
+           before ``2026-07`` can.
            :meth:`AsyncIndexes.create() <pinecone.async_client.indexes.AsyncIndexes.create>` rejects
-           ``source_collection`` with a :exc:`PineconeTypeError` in both spellings — as
+           ``source_collection`` with a :exc:`PineconeTypeError` in both spellings: as
            a top-level keyword argument, and nested in a
            :class:`~pinecone.models.indexes.specs.PodSpec` passed to the
            deprecated ``spec=`` argument. If you need a snapshot you can
@@ -117,7 +120,7 @@ class AsyncCollections:
            :meth:`~pinecone.async_client.pinecone.AsyncPinecone.create_index_from_backup`.
 
         .. seealso::
-           :meth:`AsyncBackups.create() <pinecone.async_client.backups.AsyncBackups.create>` — the
+           :meth:`AsyncBackups.create() <pinecone.async_client.backups.AsyncBackups.create>`, the
            serverless
            equivalent, whose snapshot can be restored into a new index.
         """
@@ -132,7 +135,7 @@ class AsyncCollections:
     async def list(self) -> CollectionList:
         """List every collection in the project.
 
-        There's no filtering, sorting, or pagination — all collections come
+        There's no filtering, sorting, or pagination; all collections come
         back at once.
 
         Returns:
@@ -149,7 +152,8 @@ class AsyncCollections:
                     print(col.name, col.status)
 
         .. seealso::
-           :meth:`AsyncBackups.list() <pinecone.async_client.backups.AsyncBackups.list>` — lists
+           :meth:`AsyncBackups.list() <pinecone.async_client.backups.AsyncBackups.list>`
+           lists
            snapshots of
            serverless and BYOC indexes, and unlike this one is paginated.
         """
@@ -172,10 +176,11 @@ class AsyncCollections:
 
         Raises:
             PineconeValueError: If *name* is empty.
+            PineconeTypeError: If *name* is not a ``str``.
             NotFoundError: If the collection does not exist.
 
         Examples:
-            ``size`` is how much space the snapshot occupies, in bytes — not
+            ``size`` is how much space the snapshot occupies, in bytes, not
             the dimension of its vectors. It, ``dimension``, and
             ``vector_count`` are ``None`` until the collection finishes
             initializing:
@@ -186,7 +191,7 @@ class AsyncCollections:
                 print(desc.status, desc.dimension, desc.vector_count, desc.size)
 
         .. seealso::
-           :meth:`AsyncBackups.describe() <pinecone.async_client.backups.AsyncBackups.describe>` —
+           :meth:`AsyncBackups.describe() <pinecone.async_client.backups.AsyncBackups.describe>`,
            the serverless
            equivalent, which reports ``record_count`` and ``size_bytes`` instead.
         """
@@ -202,14 +207,15 @@ class AsyncCollections:
 
         Deletion is asynchronous: the call returns as soon as the request is
         accepted, and the collection can still show up in :meth:`list` for a
-        short time afterwards. The source index can't be deleted until the
-        collection is really gone.
+        short time afterwards. While a collection is still being created or
+        deleted, the server refuses to delete its source index.
 
         Args:
             name (str): Name of the collection to delete.
 
         Raises:
             PineconeValueError: If *name* is empty.
+            PineconeTypeError: If *name* is not a ``str``.
             NotFoundError: If the collection does not exist.
 
         Examples:
@@ -219,7 +225,7 @@ class AsyncCollections:
                 await pc.collections.delete("movie-embeddings-snapshot")
 
         .. seealso::
-           :meth:`AsyncBackups.delete() <pinecone.async_client.backups.AsyncBackups.delete>` — the
+           :meth:`AsyncBackups.delete() <pinecone.async_client.backups.AsyncBackups.delete>`, the
            serverless
            equivalent, which takes a ``backup_id`` rather than a name.
         """

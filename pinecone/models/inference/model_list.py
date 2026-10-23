@@ -46,7 +46,7 @@ class ModelInfoList:
         """Return just the model identifiers, in listing order.
 
         Returns:
-            list[str]: The ``model`` field of each :class:`ModelInfo` — the
+            list[str]: The ``model`` field of each :class:`ModelInfo`, the
             names accepted by ``model=`` on
             :meth:`~pinecone.client.inference.Inference.embed` and
             :meth:`~pinecone.client.inference.Inference.rerank`.

@@ -1,4 +1,4 @@
-"""Async Backups namespace — create, list, describe, and delete operations."""
+"""Async Backups namespace: create, list, describe, and delete backups."""
 
 from __future__ import annotations
 
@@ -27,14 +27,11 @@ class AsyncBackups:
     A backup captures an index's records and schema so that a new index can
     be created from it later with
     :meth:`~pinecone.AsyncPinecone.create_index_from_backup`. Backups are
-    identified by a ``backup_id`` of their own and outlive the index they
-    were taken from. Reached as ``pc.backups``; not constructed directly.
+    identified by a ``backup_id`` and outlive the index they were taken
+    from. Reached as ``pc.backups``; not constructed directly.
 
-    Backups are the snapshot mechanism for serverless and BYOC indexes.
-    :class:`~pinecone.async_client.collections.AsyncCollections` is the
-    pod-based equivalent, and the two do not interchange: a pod-based index
-    is snapshotted into a collection, a serverless or BYOC index into a
-    backup.
+    Pod-based indexes cannot be backed up; their snapshot mechanism is
+    :class:`~pinecone.async_client.collections.AsyncCollections`.
 
     Examples:
 
@@ -47,11 +44,10 @@ class AsyncBackups:
                 print([b.backup_id for b in page])
 
     .. seealso::
-       - :meth:`~pinecone.async_client.indexes.AsyncIndexes.list_backups` —
+       - :meth:`~pinecone.async_client.indexes.AsyncIndexes.list_backups`,
          the index-scoped listing, which walks every page for you.
-       - `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
-         — the exceptions any of these methods
-         can raise, and which ones are worth retrying.
+       - `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__,
+         for the exceptions these methods raise and which ones to retry.
     """
 
     def __init__(self, http: AsyncHTTPClient) -> None:
@@ -72,7 +68,7 @@ class AsyncBackups:
         """Create a backup of an existing index.
 
         Only serverless and BYOC indexes can be backed up. The call returns as
-        soon as the snapshot is initiated, not when it is ready.
+        soon as the server accepts the request, not when the backup is ready.
 
         Args:
             index_name (str): Name of the index to back up.
@@ -82,13 +78,12 @@ class AsyncBackups:
             description (str | None): Description for the backup.
 
         Returns:
-            A :class:`BackupModel` describing the new backup. The call
-            returns once the backup is initiated, so ``status`` is
-            ``"Initializing"`` rather than ``"Ready"``; poll
-            :meth:`describe` to follow it.
+            A :class:`BackupModel` describing the new backup, with ``status``
+            ``"Initializing"``. Poll :meth:`describe` to follow it.
 
         Raises:
             :exc:`PineconeValueError`: If *index_name* is empty.
+            :exc:`PineconeTypeError`: If *index_name* is not a ``str``.
             :exc:`ForbiddenError`: If the organization's plan does not
                 include backups.
             :exc:`NotFoundError`: If *index_name* does not resolve to an
@@ -98,8 +93,9 @@ class AsyncBackups:
 
         Examples:
             Poll :meth:`describe` until the status *leaves*
-            ``"Initializing"``: a backup that fails settles on ``"Failed"``,
-            so waiting for ``"Ready"`` specifically would never return.
+            ``"Initializing"``. A backup that fails settles on
+            ``"InitializationFailed"``, so waiting for ``"Ready"`` alone could
+            loop forever.
 
             .. code-block:: python
 
@@ -117,7 +113,7 @@ class AsyncBackups:
                     print(backup.status)
 
             Give the backup a name and description so a later listing
-            identifies it by more than its server-assigned ``backup_id``:
+            identifies it by more than its ``backup_id``:
 
             .. code-block:: python
 
@@ -129,10 +125,10 @@ class AsyncBackups:
                     )
 
         .. seealso::
-           - :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.create`
-             — a recurring cadence instead of this one-off snapshot.
-           - :meth:`~pinecone.AsyncPinecone.create_index_from_backup` —
-             restoring a backup into a new index.
+           - :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.create`,
+             for backups on a recurring cadence.
+           - :meth:`~pinecone.AsyncPinecone.create_index_from_backup`, to
+             restore a backup into a new index.
         """
         require_non_empty("index_name", index_name)
         body: dict[str, Any] = {}
@@ -158,58 +154,41 @@ class AsyncBackups:
     ) -> BackupList:
         """List one page of backups.
 
-        When *index_name* is given, lists backups of that index only.
-        Otherwise lists every backup in the project. One call returns one
-        page: iterating the result walks that page and stops rather than
-        following ``pagination`` on your behalf. Drive the token yourself to
-        walk the rest — see `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
-
-        ``list`` returns a page rather than a
-        :class:`~pinecone.models.pagination.Paginator` because that is how
-        the backup endpoints are shaped throughout: so do
-        :meth:`~pinecone.async_client.restore_jobs.AsyncRestoreJobs.list`,
-        :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.list`
-        and
-        :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.history`.
-        Where a page-walking companion exists it is a separate method —
-        :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.iter_schedules`
-        and
-        :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.iter_history`.
-        Neither this listing nor
-        :meth:`~pinecone.async_client.restore_jobs.AsyncRestoreJobs.list` has
-        one, so walking those is the caller's job;
-        :meth:`~pinecone.async_client.indexes.AsyncIndexes.list_backups` is
-        the page-walking shape for one index at a time.
+        When *index_name* is given, lists backups of that index only;
+        otherwise lists every backup in the project. One call returns one
+        page, and iterating the result does not fetch the next one. Follow
+        ``pagination.next`` yourself (see
+        `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__),
+        or use
+        :meth:`~pinecone.async_client.indexes.AsyncIndexes.list_backups`,
+        which walks every page of one index's backups for you.
 
         Args:
             index_name (str | None): Index name to scope the listing to, or
                 ``None`` for every backup in the project.
-            limit (int | None): Maximum number of results per page. When
-                ``None``, the parameter is omitted and the server applies its
-                own default. Omitted too when *pagination_token* is given: the
-                token already carries the page size it was minted with, and a
-                different one sent alongside it would skip or repeat rows.
-            pagination_token (str | None): Offset token naming the next page,
-                taken from ``BackupList.pagination.next``. Takes precedence
-                over *limit* — see above.
+            limit (int | None): Maximum number of results per page, e.g.
+                ``100``. When ``None``, the server applies its default. The
+                SDK drops *limit* when *pagination_token* is given, because
+                the token already carries the page size.
+            pagination_token (str | None): Token for the next page, taken
+                from ``BackupList.pagination.next``.
             include_deleted (bool | None): When ``True``, include backups of
-                every index that has ever used *index_name*, deleted ones
-                included. When ``None`` (the default) the parameter is
-                omitted entirely and the server's default (``false``)
-                applies. Only valid together with *index_name*.
+                every index that has ever used *index_name*, including
+                deleted ones. Defaults to the server's behavior, which
+                excludes them. Only valid together with *index_name*.
 
         Returns:
-            A :class:`BackupList` supporting iteration, len(), and index access.
-            ``BackupList.pagination`` is ``None`` on the final page. Paging
-            walks a live result set rather than a fixed snapshot, so
-            de-duplicate by ``backup_id`` rather than relying on page order.
+            A :class:`BackupList` holding one page, supporting iteration,
+            ``len()``, and index access. ``pagination`` is ``None`` on the
+            final page. Backups created or deleted during a walk can shift
+            later pages, so de-duplicate by ``backup_id``.
 
         Raises:
             :exc:`PineconeTypeError`: If *index_name* is given and is not a ``str``.
             :exc:`PineconeValueError`: If *include_deleted* is given without
                 *index_name*.
-            :exc:`NotFoundError`: If *index_name* does not resolve to an
-                active index and *include_deleted* is not ``True``.
+            :exc:`NotFoundError`: If *index_name* does not name an active
+                index and *include_deleted* is not ``True``.
 
         Examples:
             Passing *index_name* scopes the listing to one index:
@@ -222,8 +201,7 @@ class AsyncBackups:
                     for backup in await pc.backups.list(index_name="product-search"):
                         print(backup.name, backup.status)
 
-            Walk the project-wide listing by driving the token yourself,
-            consuming each page before asking for the next one:
+            Walk every page of the project-wide listing:
 
             .. code-block:: python
 
@@ -237,10 +215,8 @@ class AsyncBackups:
                         backups.extend(page)
                     print([b.backup_id for b in backups])
 
-            Backups outlive the index they were taken from, but an
-            index-scoped listing resolves *index_name* against the active
-            indexes first. Pass ``include_deleted=True`` to reach the backups
-            of an index you have already torn down:
+            Pass ``include_deleted=True`` to reach the backups of an index
+            you have already deleted:
 
             .. code-block:: python
 
@@ -252,15 +228,10 @@ class AsyncBackups:
                     print([b.backup_id for b in orphaned if b.source_index_deleted_at])
 
         .. note::
-           If every index that ever used *index_name* has since been
-           deleted, listing without *include_deleted* raises
-           :exc:`NotFoundError` rather than returning an empty list. Pass
-           ``include_deleted=True`` to see backups of deleted indexes too.
-
-        .. seealso::
-           :meth:`~pinecone.async_client.indexes.AsyncIndexes.list_backups` —
-           the same index-scoped listing as a paginator that walks every page,
-           instead of one page plus a token.
+           If every index that used *index_name* has been deleted, listing
+           without *include_deleted* raises :exc:`NotFoundError` rather than
+           returning an empty list. Pass ``include_deleted=True`` to see
+           their backups.
 
         .. versionchanged:: 10.0
            Added *include_deleted*. :class:`BackupModel` now carries
@@ -294,12 +265,13 @@ class AsyncBackups:
 
         Returns:
             A :class:`BackupModel` whose ``status`` is ``"Initializing"``,
-            ``"Ready"``, or ``"Failed"``, alongside the ``source_index_name``
-            it was taken from, the captured ``schema``, and the
-            ``record_count`` and ``size_bytes`` of the snapshot.
+            ``"Ready"``, or ``"InitializationFailed"``, alongside the
+            ``source_index_name`` it was taken from, the captured ``schema``,
+            and the ``record_count`` and ``size_bytes`` of the snapshot.
 
         Raises:
             :exc:`PineconeValueError`: If *backup_id* is empty.
+            :exc:`PineconeTypeError`: If *backup_id* is not a ``str``.
             :exc:`NotFoundError`: If the backup does not exist.
 
         Examples:
@@ -312,9 +284,8 @@ class AsyncBackups:
                     print(backup.status, backup.source_index_name)
 
         .. seealso::
-           :meth:`~pinecone.async_client.indexes.AsyncIndexes.describe_backup`
-           — the same call reached from the ``indexes`` namespace, taking the
-           backup id positionally.
+           :meth:`~pinecone.async_client.indexes.AsyncIndexes.describe_backup`,
+           the same call under the ``indexes`` namespace.
         """
         require_non_empty("backup_id", backup_id)
         logger.info("Describing backup %r", backup_id)
@@ -331,12 +302,13 @@ class AsyncBackups:
 
         Returns:
             A :class:`BackupModel` whose ``status`` is ``"Initializing"``,
-            ``"Ready"``, or ``"Failed"``, alongside the ``source_index_name``
-            it was taken from, the captured ``schema``, and the
-            ``record_count`` and ``size_bytes`` of the snapshot.
+            ``"Ready"``, or ``"InitializationFailed"``, alongside the
+            ``source_index_name`` it was taken from, the captured ``schema``,
+            and the ``record_count`` and ``size_bytes`` of the snapshot.
 
         Raises:
             :exc:`PineconeValueError`: If *backup_id* is empty.
+            :exc:`PineconeTypeError`: If *backup_id* is not a ``str``.
             :exc:`NotFoundError`: If the backup does not exist.
 
         Examples:
@@ -358,11 +330,14 @@ class AsyncBackups:
 
         Raises:
             :exc:`PineconeValueError`: If *backup_id* is empty.
+            :exc:`PineconeTypeError`: If *backup_id* is not a ``str``.
             :exc:`NotFoundError`: If the backup does not exist.
+            :exc:`FailedPreconditionError`: If a restore job from this backup
+                is still running. Wait for it to finish, then delete.
 
         Examples:
-            Deleting a backup discards the snapshot only. The index it was
-            taken from is untouched, and other backups of that index remain:
+            Deleting a backup leaves its source index, other backups of that
+            index, and any index restored from it untouched:
 
             .. code-block:: python
 

@@ -46,8 +46,8 @@ class BackupModel(Struct, kw_only=True):
         backup_id: Unique identifier for the backup.
         source_index_name: Name of the index that was backed up.
         source_index_id: Unique identifier of the source index.
-        status: Current status of the backup — ``"Initializing"``,
-            ``"Ready"``, or ``"Failed"``.
+        status: Current status of the backup: ``"Initializing"``,
+            ``"Ready"``, or ``"InitializationFailed"``.
         cloud: Cloud provider where the backup is stored.
         region: Region where the backup is stored.
         source_index_deleted_at: Timestamp at which the source index was
@@ -90,7 +90,7 @@ class BackupModel(Struct, kw_only=True):
         """Dimension of the backup's single dense vector field, if there is one.
 
         Returns ``None`` when the schema is absent, declares no
-        ``dense_vector`` field, or declares more than one — in which case
+        ``dense_vector`` field, or declares more than one. In that case,
         read the dimension off the field you want via
         :attr:`schema`\\ ``.fields['<field-name>'].dimension``.
         """
@@ -275,13 +275,12 @@ class RestoreJobModel(Struct, kw_only=True):
         status: ``"Pending"``, ``"Completed"``, ``"Failed"``, or
             ``"Cancelled"``. There is no in-progress value: a restore that is
             actively running reports ``"Pending"``.
-        created_at: Timestamp when the restore job was created, or ``None`` if the
-            backend has not yet assigned a creation timestamp.
+        created_at: Timestamp when the restore job was created, or ``None``
+            if the server has not assigned one yet.
         completed_at: Timestamp when the restore job completed, or ``None``
             until then.
         percent_complete: ``100`` once ``status`` is ``"Completed"``, and
-            ``None`` at every other point — it reports completion rather than
-            progress, so it cannot drive a progress bar.
+            ``None`` before that, so it cannot report progress.
     """
 
     restore_job_id: str

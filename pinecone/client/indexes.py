@@ -1,4 +1,4 @@
-"""Indexes namespace — schema-based control-plane operations."""
+"""Indexes namespace: schema-based control-plane operations."""
 
 from __future__ import annotations
 
@@ -90,7 +90,7 @@ def _reject_legacy_metadata_schema(schema: dict[str, Any] | IndexSchema) -> None
     """Raise a guided error for a 9.x metadata ``schema=`` value.
 
     On 9.x, ``create(schema=...)`` declared filterable metadata fields shaped
-    ``{"fields": {"<name>": {"filterable": bool}}}`` — no ``"type"`` key. At
+    ``{"fields": {"<name>": {"filterable": bool}}}``, with no ``"type"`` key. At
     2026-07 the same keyword declares searched fields instead, so silently
     reinterpreting one as the other would create a wrong index rather than
     fail loudly.
@@ -134,12 +134,11 @@ class Indexes:
             names = [index.name for index in pc.indexes.list()]
 
     .. seealso::
-       :meth:`Pinecone.index(name) <pinecone.Pinecone.index>` — the data-plane
+       :meth:`Pinecone.index(name) <pinecone.Pinecone.index>`, the data-plane
        client for reads and writes against one index.
 
-       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
-       — the exceptions any method here can
-       raise, and how to handle them.
+       `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__,
+       the exceptions any method here can raise and how to handle them.
 
     .. versionchanged:: 10.0
        Graduated to the schema-based API. :meth:`create` takes
@@ -167,17 +166,12 @@ class Indexes:
     ) -> Paginator[IndexModel]:
         """List every index in the project.
 
-        The server returns them all in one page today, so the returned
-        :class:`~pinecone.models.pagination.Paginator` yields once and stops.
-        It exposes the paginator interface anyway, so a call site written
-        against it keeps working if that changes.
-
         Args:
             limit: Maximum number of indexes to yield. Must be a positive
                 integer; ``None`` (the default) yields every index.
-            pagination_token: Token from an earlier call, to resume where that
-                call stopped; ``None`` starts from the beginning. See
-                `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
+            pagination_token: Accepted so this listing shares the paginator
+                interface of the other listings. The server issues no
+                pagination token for indexes, so leave it ``None``.
 
         Returns:
             :class:`~pinecone.models.pagination.Paginator` over
@@ -225,11 +219,11 @@ class Indexes:
 
         Raises:
             :exc:`PineconeValueError`: If *name* is empty.
+            :exc:`PineconeTypeError`: If *name* is not a ``str``.
             :exc:`NotFoundError`: If the index does not exist.
 
         Examples:
-            The returned host always carries the ``https://`` scheme, even
-            though the API reports it without one:
+            The returned host carries the ``https://`` scheme:
 
             >>> index = pc.indexes.describe("my-index")
             >>> index.host
@@ -258,6 +252,7 @@ class Indexes:
 
         Raises:
             :exc:`PineconeValueError`: If *name* is empty.
+            :exc:`PineconeTypeError`: If *name* is not a ``str``.
 
         Examples:
             >>> pc.indexes.exists("my-index")
@@ -277,8 +272,8 @@ class Indexes:
     def delete(self, name: str, *, timeout: int | None = None) -> None:
         """Delete an index by name.
 
-        Blocks until the index is gone, polling every 5 seconds with no upper
-        time bound unless you pass *timeout*.
+        Blocks until the index is gone, with no upper time bound unless you
+        pass *timeout*.
 
         Args:
             name (str): The name of the index to delete.
@@ -286,14 +281,13 @@ class Indexes:
                 Use ``None`` (default) to poll indefinitely until the index
                 is gone. Use a positive int to poll with a deadline.
                 Use ``-1`` to return immediately without polling.
-                Any other negative value raises :exc:`PineconeValueError`
-                before a request is sent.
 
         Raises:
             :exc:`PineconeValueError`: If *name* is empty or *timeout* is a
                 negative value other than ``-1``.
+            :exc:`PineconeTypeError`: If *name* is not a ``str``.
             :exc:`NotFoundError`: If the index does not exist.
-            :exc:`ForbiddenError`: If deletion protection is enabled — clear
+            :exc:`ForbiddenError`: If deletion protection is enabled; clear
                 it with :meth:`configure` first.
             :exc:`PineconeTimeoutError`: If the index still exists after
                 *timeout* seconds.
@@ -313,8 +307,8 @@ class Indexes:
                 pc.indexes.delete("my-index", timeout=60)
 
             Passing ``timeout=-1`` returns as soon as the delete request is
-            accepted, without polling at all — the index is still being torn
-            down when the call returns.
+            accepted, without polling; the index is still being torn down
+            when the call returns.
         """
         require_non_empty("name", name)
         validate_wait_timeout(timeout)
@@ -359,7 +353,7 @@ class Indexes:
         """Create a new index.
 
         An index's field layout is declared as a ``schema`` of named, typed
-        fields. Every field in the schema must be one that gets searched —
+        fields. Every field in the schema must be a searched field:
         ``dense_vector``, ``sparse_vector``, or ``string`` with
         ``full_text_search``, ``embed`` or ``sparse_embed``. A string field
         with ``embed`` or ``sparse_embed`` supports integrated embedding: Pinecone
@@ -373,7 +367,7 @@ class Indexes:
         Args:
             schema: The index's field schema. Required unless the
                 deprecated ``dimension=`` (with optional ``metric=``/
-                ``vector_type=``) is used instead — the two are mutually
+                ``vector_type=``) is used instead; the two are mutually
                 exclusive. A dict with a ``"fields"`` key mapping field
                 names to typed configurations::
 
@@ -387,24 +381,18 @@ class Indexes:
                         }
                     }
 
-                A ``metric`` written in capitals, on a dense vector field or in
-                a string field's ``embed`` config, is lowercased before the
-                request goes out. The server accepts ``"EUCLIDEAN"`` at create
-                but then fails every write to the index with a ``500``, and a
-                field's metric cannot be changed afterwards.
-
                 Also accepts the dict produced by
                 :class:`~pinecone.schema_builder.SchemaBuilder` or an
                 :class:`~pinecone.models.indexes.schema.IndexSchema`. A
-                hybrid index has to declare its ``sparse_vector`` field here —
+                hybrid index has to declare its ``sparse_vector`` field here;
                 see the note after the examples.
                 ``full_text_search.language`` accepts a fixed set of language
                 codes (or their English names, default ``en``), but
-                ``stop_words=True`` is not supported for every language — the
+                ``stop_words=True`` is not supported for every language: the
                 server's 400 names the unsupported language, by its English
                 name rather than the code you sent.
-            name: Name for the index — 1-45 characters, lowercase
-                alphanumerics and hyphens (e.g. ``"movie-recommendations"``).
+            name: Name for the index, in lowercase alphanumerics and hyphens,
+                e.g. ``"movie-recommendations"``.
                 The server assigns a name when omitted.
             deployment: Deployment configuration, discriminated on
                 ``"deployment_type"``. For a managed index:
@@ -414,15 +402,15 @@ class Indexes:
                 and ``shards``. Defaults to a managed index on AWS
                 ``us-east-1`` when omitted. Mutually exclusive with the
                 deprecated ``spec=``.
-            read_capacity: Read capacity for a managed or BYOC index —
+            read_capacity: Read capacity for a managed or BYOC index, either
                 ``{"mode": "OnDemand"}`` or ``{"mode": "Dedicated",
                 "dedicated": {"node_type": ..., "scaling": ..., "manual":
                 {"replicas": ..., "shards": ...}}}``.
             deletion_protection: ``"enabled"`` to block :meth:`delete` on
                 this index until it's set back to ``"disabled"`` (the
                 default).
-            tags: Key-value tags to attach, e.g. ``{"env": "prod"}``, up to
-                20 pairs. Pass ``None`` (the default) to attach none.
+            tags: Key-value tags to attach, e.g. ``{"env": "prod"}``. Pass
+                ``None`` (the default) to attach none.
             cmek_id: ID of a customer-managed encryption key to encrypt the
                 index with, e.g. ``"key-abc123"``.
             timeout: Seconds to wait for the index to become ready before
@@ -448,7 +436,7 @@ class Indexes:
                 .. deprecated:: 10.0
                    Declare a named field in ``schema=`` instead.
             metric: **Deprecated.** Similarity metric for the legacy dense
-                path — ``"cosine"`` (default), ``"euclidean"``, or
+                path: ``"cosine"`` (default), ``"euclidean"``, or
                 ``"dotproduct"``.
 
                 .. deprecated:: 10.0
@@ -462,8 +450,8 @@ class Indexes:
                    in ``schema=`` instead.
 
         Returns:
-            :class:`IndexModel` describing the created index — ready,
-            unless ``timeout=-1`` was passed.
+            :class:`IndexModel` describing the created index, ready unless
+            ``timeout=-1`` was passed.
 
         Raises:
             :exc:`PineconeValueError`: If neither ``schema=`` nor
@@ -478,8 +466,8 @@ class Indexes:
                 *timeout* elapses.
 
         Examples:
-            A dense index on the default deployment — managed, AWS
-            ``us-east-1``. The call waits for the index to become ready
+            A dense index on the default deployment (managed, AWS
+            ``us-east-1``). The call waits for the index to become ready
             before returning:
 
             >>> index = pc.indexes.create(
@@ -490,10 +478,8 @@ class Indexes:
             >>> index.status.ready
             True
 
-            A hybrid index, in a region of your choosing. The
-            ``sparse_vector`` field has to be declared here: ``configure()``
-            cannot add one later, so an index that needs sparse search and
-            was created without it has to be recreated:
+            A hybrid index in a region of your choosing. Declare the
+            ``sparse_vector`` field now; see the note below:
 
             >>> index = pc.indexes.create(
             ...     name="support-articles",
@@ -520,7 +506,7 @@ class Indexes:
            `Migrating to V10 <https://sdk.pinecone.io/python/migration/v10-migration.html>`__.
 
         .. seealso::
-           :meth:`create_for_model` — creates a legacy integrated index, which
+           :meth:`create_for_model` creates a legacy integrated index, which
            requires the legacy Records API. For integrated embedding in a
            document index, declare ``embed`` / ``sparse_embed`` on a
            ``string`` field here instead.
@@ -652,16 +638,18 @@ class Indexes:
         text entry.
 
         This creates a legacy integrated index, and legacy integrated indexes
-        require the legacy Records API (``index.upsert_records`` and
-        ``index.search``). For new work, create a document index with
-        integrated embedding instead: pass :meth:`create` a ``string`` field
-        with ``embed`` or ``sparse_embed`` and use ``index.documents``, which
-        adds full-text search on the same fields and ``score_by``.
+        require the legacy Records API
+        (:meth:`~pinecone.index.Index.upsert_records` and
+        :meth:`~pinecone.index.Index.search`). For new work, create a
+        document index with integrated embedding instead: pass
+        :meth:`create` a ``string`` field with ``embed`` or ``sparse_embed``
+        and use ``index.documents``, which adds full-text search on the same
+        fields and ``score_by``.
 
         Args:
-            name: Name for the index — 1-45 characters, lowercase
-                alphanumerics and hyphens (e.g. ``"semantic-search"``).
-            cloud: Public cloud provider — ``"aws"``, ``"gcp"``, or ``"azure"``.
+            name: Name for the index, in lowercase alphanumerics and hyphens,
+                e.g. ``"semantic-search"``.
+            cloud: Public cloud provider: ``"aws"``, ``"gcp"``, or ``"azure"``.
             region: Cloud region, e.g. ``"us-east-1"``.
             embed: Embedding configuration. A dict (or
                 :class:`~pinecone.models.indexes.specs.EmbedConfig` /
@@ -673,12 +661,13 @@ class Indexes:
             deletion_protection: ``"enabled"`` to block :meth:`delete` on
                 this index until it's set back to ``"disabled"`` (the
                 default).
-            tags: Key-value tags to attach, e.g. ``{"env": "prod"}``, up to
-                20 pairs. Pass ``None`` (the default) to attach none.
+            tags: Key-value tags to attach, e.g. ``{"env": "prod"}``. Pass
+                ``None`` (the default) to attach none.
             schema: Filterable metadata fields, e.g.
                 ``{"fields": {"genre": {"filterable": True}}}``. A bare field
                 map is wrapped in ``{"fields": ...}`` for you.
-            read_capacity: Read capacity for the index — see :meth:`create`.
+            read_capacity: Read capacity for the index, in the same shape as
+                for :meth:`create`.
             timeout: Seconds to wait for the index to become ready before
                 returning. ``None`` (default) waits indefinitely, ``-1``
                 returns immediately without waiting, and a positive number
@@ -686,7 +675,7 @@ class Indexes:
                 raises :exc:`PineconeValueError` before a request is sent.
 
         Returns:
-            :class:`IndexModel` describing the created index — ready, unless
+            :class:`IndexModel` describing the created index, ready unless
             ``timeout=-1`` was passed.
 
         Raises:
@@ -697,7 +686,7 @@ class Indexes:
         Examples:
             The ``field_map`` text entry names the record field Pinecone
             embeds, and that same name is what the field is called in the
-            returned schema — ``chunk_text`` below:
+            returned schema (``chunk_text`` below):
 
             >>> index = pc.indexes.create_for_model(
             ...     name="semantic-search",
@@ -710,7 +699,7 @@ class Indexes:
             'multilingual-e5-large'
 
         .. seealso::
-           :meth:`create` — creates an index you supply the vectors for
+           :meth:`create` creates an index you supply the vectors for
            yourself, declaring them as ``dense_vector``/``sparse_vector``
            fields in ``schema=``.
         """
@@ -779,7 +768,7 @@ class Indexes:
 
         Args:
             name: Name of the index to configure.
-            deployment: Pod-scaling updates for pod-based indexes —
+            deployment: Pod-scaling updates for pod-based indexes:
                 ``{"replicas": int, "pod_type": str}`` (either or both). Only
                 those two keys are accepted; any other key is rejected by the
                 server. ``"deployment_type"`` raises :exc:`PineconeValueError`
@@ -792,19 +781,16 @@ class Indexes:
                 :meth:`create_for_model`, only ``semantic_text`` field
                 parameters (``read_parameters``/``write_parameters``) can be
                 updated; see the note after the examples.
-            read_capacity: Updated read capacity dict —
+            read_capacity: Updated read capacity dict, either
                 ``{"mode": "OnDemand"}`` or ``{"mode": "Dedicated",
                 "dedicated": {...}}``. Applies to managed and BYOC indexes.
             deletion_protection: ``"enabled"`` to block :meth:`delete` on
                 this index, ``"disabled"`` to allow it again.
-            tags: Tag updates, merged with existing tags on the server. Set a
-                value to ``""`` to delete that key; keys you do not mention are
-                left unchanged. The tag cap is applied to the **merged** total
-                rather than to this request, so adding tags to an index that
-                already carries several can be rejected even though the
-                request on its own is well within the cap. When the merge
-                leaves no tags the index stores no tag map at all rather than
-                an empty one. ``{}`` is rejected client-side.
+            tags: Tag updates, merged into the index's existing tags. Set a
+                value to ``""`` to delete that key; keys you don't mention stay
+                unchanged. The server applies its tag limit to the merged
+                total, so adding tags to an index that already carries several
+                can be rejected. ``{}`` is rejected client-side.
             replicas: **Deprecated.** Legacy pod-scaling replica count,
                 translated into ``deployment={"replicas": ...}``. Mutually
                 exclusive with *deployment*.
@@ -826,9 +812,10 @@ class Indexes:
                 ``deployment_type``, tags/deletion_protection are invalid, or
                 *deployment*/*read_capacity* is combined with the deprecated
                 keyword argument it translates to.
-            :exc:`PineconeTypeError`: If ``embed=`` or ``spec=`` is passed;
-                neither has a translation here, and the message shows the
-                equivalent current call where one exists.
+            :exc:`PineconeTypeError`: If *name* is not a ``str``, or if
+                ``embed=`` or ``spec=`` is passed (neither has a translation
+                here; the message shows the equivalent current call where one
+                exists).
             :exc:`NotFoundError`: If the index does not exist.
             :exc:`ApiError`: Typically status 422 or 400, if *schema* is passed
                 for an index created with ``create(schema=...)`` (even
@@ -848,8 +835,8 @@ class Indexes:
 
             Tag updates merge into the tags the index already carries. Given
             an index tagged ``{"env": "staging", "team": "search"}``, the
-            call below sets ``env``, deletes ``team`` — an empty value
-            removes a key — and leaves every other tag as it was, so
+            call below sets ``env``, deletes ``team`` (an empty value
+            removes a key), and leaves every other tag as it was, so
             ``index.tags`` comes back ``{"env": "prod"}``:
 
             >>> index = pc.indexes.configure("my-index", tags={"env": "prod", "team": ""})
@@ -884,7 +871,7 @@ class Indexes:
         .. deprecated:: 10.0
            ``replicas=``, ``pod_type=``, and ``serverless_read_capacity=`` are
            translated into ``deployment=``/``read_capacity=`` rather than sent
-           as-is, and cannot be combined with the argument they translate to —
+           as-is, and cannot be combined with the argument they translate to;
            passing both raises :exc:`PineconeValueError`. New code should use
            ``deployment=``/``read_capacity=`` directly.
         """
@@ -987,6 +974,7 @@ class Indexes:
 
         Raises:
             :exc:`PineconeValueError`: If *index_name* is empty.
+            :exc:`PineconeTypeError`: If *index_name* is not a ``str``.
             :exc:`NotFoundError`: If the index does not exist.
 
         Examples:
@@ -1032,7 +1020,7 @@ class Indexes:
                 token, which already encodes it.
             pagination_token: Token from an earlier call, to resume where that
                 call stopped. *limit* still caps the total yield, but it is
-                not sent alongside a token — see above. See
+                not sent alongside a token (see above). See
                 `Pagination <https://sdk.pinecone.io/python/guides/pagination.html>`__.
             include_deleted: When ``True``, include backups of every index
                 that has ever used *index_name*, deleted ones included; those
@@ -1044,13 +1032,13 @@ class Indexes:
         Returns:
             :class:`~pinecone.models.pagination.Paginator` over
             :class:`~pinecone.models.backups.model.BackupModel` instances.
-            Iteration stops when the response carries no pagination envelope.
 
         Raises:
             :exc:`PineconeValueError`: If *index_name* is empty or *limit* is
                 zero or negative.
+            :exc:`PineconeTypeError`: If *index_name* is not a ``str``.
             :exc:`NotFoundError`: If *index_name* does not resolve to an
-                active index — which is not the same as the name being
+                active index, which is not the same as the name being
                 unknown; see the note after the examples.
 
         Examples:
@@ -1059,7 +1047,7 @@ class Indexes:
             bk-abc123 Ready
 
             Once every index that used a name has been deleted, that name's
-            backups come back only with ``include_deleted=True`` — without
+            backups come back only with ``include_deleted=True``; without
             it this raises :exc:`NotFoundError`. They are the ones carrying
             a ``source_index_deleted_at``:
 
@@ -1080,8 +1068,8 @@ class Indexes:
            project.
 
         .. seealso::
-           :meth:`Backups.list <pinecone.client.backups.Backups.list>` — the project-wide
-           listing, where the index name is an optional filter. It hands back
+           :meth:`Backups.list <pinecone.client.backups.Backups.list>` is the
+           project-wide listing, where the index name is an optional filter. It hands back
            one page for you to drive the token yourself, rather than a
            paginator that follows the pages for you.
 
@@ -1125,6 +1113,7 @@ class Indexes:
 
         Raises:
             :exc:`PineconeValueError`: If *backup_id* is empty.
+            :exc:`PineconeTypeError`: If *backup_id* is not a ``str``.
             :exc:`NotFoundError`: If the backup does not exist.
 
         Examples:
@@ -1133,8 +1122,8 @@ class Indexes:
             'Ready'
 
         .. seealso::
-           :meth:`Backups.describe <pinecone.client.backups.Backups.describe>` — the same
-           lookup reached through ``pc.backups``, which takes ``backup_id`` as
+           :meth:`Backups.describe <pinecone.client.backups.Backups.describe>` is the
+           same lookup reached through ``pc.backups``, which takes ``backup_id`` as
            a keyword argument rather than positionally.
 
         .. versionadded:: 10.0

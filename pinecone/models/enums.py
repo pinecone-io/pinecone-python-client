@@ -84,7 +84,8 @@ class EmbedModel(str, Enum):
 class RerankModel(str, Enum):
     """Known reranking models.
 
-    Like :class:`EmbedModel`, a convenience enum rather than an exhaustive list.
+    Like :class:`~pinecone.models.enums.EmbedModel`, a convenience enum rather
+    than an exhaustive list.
 
     .. note::
        ``Pinecone_Rerank_V0`` is deprecated and most projects can no longer use

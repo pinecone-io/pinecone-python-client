@@ -1,11 +1,9 @@
 """Backup schedule models (2026-07 API).
 
-A backup schedule attaches an automatic, time-based backup cadence to a
-single index, at one of three cadences (``daily``, ``weekly``,
-``monthly``). **There is no cron support**: the run time is chosen
-server-side and surfaced through
-:attr:`BackupScheduleModel.next_scheduled_run`; there is no way to
-express an arbitrary cron expression or a caller-chosen timezone.
+A backup schedule backs up one index on a fixed cadence (``daily``,
+``weekly`` or ``monthly``). The server picks the run time and reports it
+through :attr:`BackupScheduleModel.next_scheduled_run`; there is no cron
+expression or caller-chosen timezone.
 
 The only schedule type the SDK sends is ``"time-based"``. The request
 models here therefore take **flat** keyword arguments and fill the type in
@@ -15,10 +13,10 @@ themselves (see :meth:`CreateBackupScheduleRequest.to_wire`): callers write
 
 Timestamps on these models are ``datetime`` objects rather than the
 ``str`` used by :class:`~pinecone.models.backups.model.BackupModel`.
-Schedule timestamps exist to be *compared* -- "when does this next run",
-"is this snapshot past its retention window" -- and that is arithmetic, not
-display. :meth:`BackupScheduleModel.to_dict` renders them back to RFC 3339
-strings so dict output stays JSON-serialisable.
+Schedule timestamps exist to be compared ("when does this next run", "is
+this backup past its retention window"), which is arithmetic, not display.
+:meth:`BackupScheduleModel.to_dict` renders them back to RFC 3339 strings so
+dict output stays JSON-serialisable.
 """
 
 from __future__ import annotations
@@ -52,7 +50,7 @@ def _validate_frequency(frequency: str) -> None:
     Raises:
         ValueError: If *frequency* is not one of ``daily``, ``weekly``, or
             ``monthly``. The message lists all three, because the only
-            alternative the API offers is another one of them -- there is
+            alternative the API offers is another one of them; there is
             no cron expression to fall back to.
     """
     if frequency not in BACKUP_SCHEDULE_FREQUENCIES:
@@ -67,8 +65,7 @@ def _validate_retention_days(retention_days: int) -> None:
     """Reject a retention window the API will certainly reject.
 
     Only the lower bound (1) is checked here, because it is the one the SDK
-    knows. The upper bound is a per-project setting, so a too-large value is
-    rejected server-side rather than here.
+    knows. The server enforces the upper bound.
 
     Raises:
         ValueError: If *retention_days* is less than 1.
@@ -99,7 +96,7 @@ class BackupScheduleModel(Struct, kw_only=True):
         name: User-defined name for the schedule. Backups it produces are
             named ``"{name}-{run timestamp}"``.
         index_id: Identifier of the index this schedule backs up. This is
-            the index *id*, not its name -- schedules are created against a
+            the index *id*, not its name. Schedules are created against a
             name but reported against the id, so a deleted-and-recreated
             index does not inherit the old schedule.
         project_id: Project containing the schedule, always the same
@@ -115,11 +112,9 @@ class BackupScheduleModel(Struct, kw_only=True):
             ``retention.expire_after_days``.)
         enabled: Whether the schedule is active. A disabled schedule does
             not run and is not deleted.
-        next_scheduled_run: When the next backup is planned, or ``None``.
-            ``None`` **iff** ``enabled`` is ``False``: disabling clears the
-            pending run, and re-enabling recomputes it from the moment of
-            the update, so a disable/re-enable cycle shifts the cadence
-            rather than resuming the old slot.
+        next_scheduled_run: When the next backup is planned. ``None``
+            while the schedule is disabled. Re-enabling plans the next run
+            from the time of the update, not from the old slot.
         created_at: When the schedule was created.
 
     Note:
@@ -256,39 +251,35 @@ class BackupScheduleHistoryItem(Struct, kw_only=True):
     """One backup produced, or planned, by a schedule.
 
     Returned by :meth:`~pinecone.client.backup_schedules.BackupSchedules.history`
-    and its iterator twin; not constructed directly. History rows describe
-    backup *snapshots*, not the schedule itself, and a row appears as soon as
-    a run is planned, so the list mixes runs that have not happened yet with
-    ones that have.
+    and its iterator twin; not constructed directly. The schedule's next run
+    is listed as soon as it is planned, before it starts, so the history
+    mixes finished backups with one that has not run yet.
 
     Attributes:
-        backup_id: Unique identifier for the backup snapshot.
+        backup_id: Unique identifier for the backup.
         source_index_id: Identifier of the index that was backed up.
         source_index_name: Name of the index that was backed up.
-        status: Lifecycle status of the snapshot -- ``"Scheduled"``
-            (planned, not yet started), ``"Initializing"``, ``"Ready"``, or
-            ``"InitializationFailed"``. Left as a plain ``str`` so a value
-            the SDK has not seen before still decodes.
-        cloud: Cloud provider where the snapshot is stored.
-        region: Cloud region where the snapshot is stored.
-        created_at: When the backup *record* was created -- which for a
-            ``Scheduled`` row is when the run was planned, not when data
-            was captured.
-        scheduled_execution_at: When the run is planned to happen. Present
-            when ``status`` is ``"Scheduled"``; ``None`` once the run has
-            started, and ``None`` on servers that do not report it.
-        name: Name of the snapshot, generated as
+        status: ``"Initializing"`` (planned or in progress), ``"Ready"``, or
+            ``"InitializationFailed"``. The 2026-07 API reports a planned
+            run that has not started as ``"Initializing"``. Left as a plain
+            ``str`` so a value the SDK has not seen before still decodes.
+        cloud: Cloud provider where the backup is stored.
+        region: Cloud region where the backup is stored.
+        created_at: When the backup record was created. For a planned run
+            that is when the run was planned, not when data was captured.
+        scheduled_execution_at: When a planned run will start, if the server
+            reports it. The 2026-07 API does not, so this is ``None``.
+        name: Name of the backup, generated as
             ``"{schedule name}-{run timestamp}"``.
-        description: Description of the snapshot, or ``None``.
+        description: Description of the backup, or ``None``.
         schema: Schema captured from the source index, or ``None`` when the
             server reports none. Metadata-only schemas from older indexes
             decode to
             :class:`~pinecone.models.indexes.schema.LegacyMetadataField`
             entries.
-        record_count: Records in the snapshot. ``0`` for a ``Scheduled``
-            row -- nothing has been captured yet.
-        namespace_count: Namespaces in the snapshot.
-        size_bytes: Approximate stored size of the snapshot, in bytes.
+        record_count: Records in the backup.
+        namespace_count: Namespaces in the backup.
+        size_bytes: Approximate stored size of the backup, in bytes.
         tags: Tags carried over from the source index, or ``None`` (the API
             sends ``null`` rather than ``{}`` when there are none).
 
@@ -317,7 +308,11 @@ class BackupScheduleHistoryItem(Struct, kw_only=True):
 
     @property
     def is_scheduled(self) -> bool:
-        """Whether this row is a planned run that has not started yet."""
+        """Whether the server reports this row's status as ``"Scheduled"``.
+
+        The 2026-07 API reports a planned run as ``"Initializing"``, so this
+        is ``False`` for every row it returns.
+        """
         return self.status == "Scheduled"
 
     def __getattr__(self, name: str) -> Any:
@@ -421,7 +416,7 @@ class CreateBackupScheduleRequest(Struct, kw_only=True):
             ``"monthly"``. Validated on construction.
         retention_days: Days to retain each backup this schedule produces
             (required). Must be at least 1, which is checked here; the
-            maximum is a per-project setting enforced server-side.
+            server enforces the maximum.
             Serialised as ``retention.expire_after_days``.
 
     Raises:
@@ -473,7 +468,7 @@ class UpdateBackupScheduleRequest(Struct, kw_only=True):
     no-op server-side.
 
     The schedule's ``name`` cannot be changed, and neither can the index it
-    is attached to -- the API exposes no field for either.
+    is attached to; the API exposes no field for either.
 
     Attributes:
         frequency: New cadence, one of ``"daily"``, ``"weekly"``,
@@ -484,10 +479,9 @@ class UpdateBackupScheduleRequest(Struct, kw_only=True):
             pending deletions of backups this schedule already produced.
         enabled: ``False`` to disable the schedule (clearing its
             ``next_scheduled_run``), ``True`` to re-enable it, or ``None``
-            to leave it unchanged. Re-enabling **enqueues a new backup**
-            and recomputes the next run from now, so it is not a free
-            toggle; it also raises :exc:`ConflictError` if another schedule
-            on the same index is already enabled.
+            to leave it unchanged. Re-enabling plans the next run from the
+            time of the update and raises :exc:`ConflictError` if another
+            schedule on the same index is already enabled.
 
     Raises:
         ValueError: If *frequency* is set to an unsupported cadence, or

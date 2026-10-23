@@ -1,8 +1,8 @@
 # Generating embeddings
 
 Pinecone hosts embedding models, so you can turn text into vectors without running
-embedding infrastructure of your own. `pc.inference.embed` takes the text and hands the
-vectors back to you — to upsert, to query with, or to keep somewhere else entirely.
+embedding infrastructure of your own. {meth}`~pinecone.client.inference.Inference.embed`
+hands the vectors back to you, to upsert, to query with, or to store somewhere else.
 
 If you would rather never handle a vector, give a document index a field with
 integrated embedding, and Pinecone embeds on both write and read. See
@@ -32,8 +32,8 @@ One embedding comes back per input, in input order. A bare string is wrapped for
 
 ## `input_type`: the mismatch that costs you relevance
 
-Many hosted models are asymmetric — they embed stored text and search queries
-differently, and `input_type` is how you say which side you are on. Embed your corpus as
+Many hosted models are asymmetric: they embed stored text and search queries
+differently, and `input_type` says which side you are on. Embed your corpus as
 `"passage"` and your queries as `"query"`:
 
 ```python
@@ -51,8 +51,8 @@ query = pc.inference.embed(
 ```
 
 Get this backwards and nothing fails: both calls succeed, both return vectors of the
-right width, and your search quality quietly degrades. Nothing in the SDK can catch it
-for you, so decide per call site which side you are embedding.
+right width, and search quality quietly degrades. Decide per call site which side you
+are embedding.
 
 ## Discover what a model accepts
 
@@ -67,49 +67,42 @@ for parameter in info.supported_parameters:
 ```
 
 Each entry carries `allowed_values` when the set is fixed, `min`/`max` when the value is
-numeric, and `default` for what the model uses when you omit the key. `required` tells
-you whether it must be sent at all.
+numeric, `default` for what the model uses when you omit the key, and `required` for
+whether you must send it.
 
-The same {class}`~pinecone.models.inference.models.ModelInfo` answers the other questions
-you would otherwise guess at:
+The same {class}`~pinecone.models.inference.models.ModelInfo` reports the model's limits
+and output shape:
 
 ```python
 print(info.type)                # 'embed' or 'rerank'
 print(info.vector_type)         # 'dense' or 'sparse'
-print(info.default_dimension)   # output width when no dimension is requested
+print(info.default_dimension)   # output dimension when none is requested
 print(info.max_batch_size)      # most inputs one call may carry
 print(info.max_sequence_length) # longest input accepted
 ```
 
-Those fields are `None` on a reranking model, so read `info.type` before relying on them.
+`vector_type` and `default_dimension` are `None` on a reranking model, and
+`default_dimension` is `None` on a sparse model.
 
 ## Response: EmbeddingsList
 
 `embed` returns an {class}`~pinecone.models.inference.embed.EmbeddingsList`. Iterating it
 yields the embeddings, and `len()` and integer indexing reach the same items:
 
-- `.data` — the same list the iteration walks, one entry per input.
-- `.vector_type` — `"dense"` or `"sparse"`, and so which fields the entries carry.
-- `.model` — the model that served the request. Pinecone may substitute a different model
-  from the one you asked for, so read it here rather than assuming it echoes your
-  argument.
-- `.usage.total_tokens` — tokens counted for the call.
+- `.data`: the same list the iteration walks, one entry per input.
+- `.vector_type`: `"dense"` or `"sparse"`, and so which fields the entries carry.
+- `.model`: the model that served the request.
+- `.usage.total_tokens`: tokens counted for the call.
 
 ## Dense and sparse embeddings
 
 The two shapes carry the vector in different fields. A
 {class}`~pinecone.models.inference.embed.DenseEmbedding` has `values`; a
 {class}`~pinecone.models.inference.embed.SparseEmbedding` has `sparse_values` and
-`sparse_indices` paired position by position, and no `values` at all. Branch on
+`sparse_indices` paired position by position, and no `values` field. Branch on
 `vector_type` when the model is not fixed in advance:
 
 ```python
-embeddings = pc.inference.embed(
-    model="multilingual-e5-large",
-    inputs=["machine learning frameworks"],
-    parameters={"input_type": "passage"},
-)
-
 first = embeddings.data[0]
 if embeddings.vector_type == "sparse":
     print(first.sparse_indices, first.sparse_values)
@@ -117,12 +110,13 @@ else:
     print(first.values[:3])
 ```
 
-Reading `.values` on a sparse embedding does not raise — it hands back a dict-view method
+Reading `.values` on a sparse embedding does not raise: it returns a dict-view method
 instead of a vector, and your code carries on with the wrong object. The `vector_type`
 check is what protects you.
 
-One `embed` call returns either all-dense or all-sparse results, never a mix. To build a
-hybrid index, call `embed` once per model and pair the two result sets yourself.
+One `embed` call returns either all-dense or all-sparse results, never a mix. For hybrid
+search, call `embed` once with a dense model and once with a sparse model, and pair the
+two result sets yourself.
 
 ## Using the EmbedModel enum
 
@@ -130,7 +124,7 @@ hybrid index, call `embed` once per model and pair the two result sets yourself.
 place of a bare string:
 
 ```python
-from pinecone import Pinecone, EmbedModel
+from pinecone import EmbedModel, Pinecone
 
 pc = Pinecone(api_key="your-api-key")
 
@@ -139,24 +133,21 @@ embeddings = pc.inference.embed(
     inputs=["search query"],
     parameters={"input_type": "query"},
 )
-print(embeddings.model)
 ```
 
-A model that is not an enum member is still fine as a string — the enum lags new models
-by a release, and `embed` accepts either.
+`embed` accepts a plain string too, so a model that has no enum member yet still works.
 
 ## Batch size
 
-Sending several inputs in one call amortizes the round trip. Each model caps how many
-inputs it accepts per call, and the cap is reported as `max_batch_size` on the model info
-— read it from [the model](#discover-what-a-model-accepts) rather than guessing, and keep
-your chunk size at or below it. Exceeding it is a server-side rejection, not something
-the SDK splits for you:
+Sending several inputs in one call saves round trips, up to the model's
+`max_batch_size` (see [Discover what a model accepts](#discover-what-a-model-accepts)).
+The SDK does not split an oversized batch; the server rejects it. Chunk your inputs
+yourself:
 
 ```python
 texts = [f"document number {n}" for n in range(250)]
+batch_size = info.max_batch_size
 
-batch_size = 50
 all_embeddings = []
 for start in range(0, len(texts), batch_size):
     batch = pc.inference.embed(
@@ -165,38 +156,68 @@ for start in range(0, len(texts), batch_size):
         parameters={"input_type": "passage"},
     )
     all_embeddings.extend(batch.data)
-
-print(len(all_embeddings))
 ```
 
-Overlong individual inputs are a separate concern from batch size: the `truncate`
-parameter decides whether the model trims them or rejects the request. Its accepted
-values are in `supported_parameters`, above.
+Overlong individual inputs are a separate concern: where a model supports the `truncate`
+parameter, it decides whether the model trims them or rejects the request.
 
 ## Storing embeddings in an index
 
-Read the values off each embedding and upsert them like any other vector:
+Declare a `dense_vector` field at the model's output dimension, then upsert each
+embedding's `values` into it:
 
 ```python
+from pinecone import DenseVectorQuery, Pinecone
+
+pc = Pinecone(api_key="your-api-key")
+info = pc.inference.model.get("multilingual-e5-large")
+
+pc.indexes.create(
+    name="product-search",
+    schema={
+        "fields": {
+            "embedding": {
+                "type": "dense_vector",
+                "dimension": info.default_dimension,
+                "metric": "cosine",
+            }
+        }
+    },
+)
 index = pc.index("product-search")
 
+texts = ["Lightweight trail running shoes", "Waterproof hiking boots"]
 embeddings = pc.inference.embed(
     model="multilingual-e5-large",
-    inputs=["The quick brown fox", "A second piece of text"],
+    inputs=texts,
     parameters={"input_type": "passage"},
 )
-
-index.upsert(
-    vectors=[(f"doc-{i}", embedding.values) for i, embedding in enumerate(embeddings)]
+index.documents.upsert(
+    namespace="products-en",
+    documents=[
+        {"_id": f"prod-{i}", "embedding": embedding.values, "description": text}
+        for i, (embedding, text) in enumerate(zip(embeddings, texts))
+    ],
 )
 ```
 
-The index's dense vector field must have been created at the model's output dimension —
-`info.default_dimension` above — or the server rejects the upsert.
+At query time, embed the query text with `input_type="query"` and score by the same
+field:
 
-At query time, embed the query text with `input_type="query"` and pass the result to
-{meth}`~pinecone.index.Index.query`. See
-[Upserting and querying vectors](../vectors/upsert-and-query.md).
+```python
+query = pc.inference.embed(
+    model="multilingual-e5-large",
+    inputs="shoes for muddy trails",
+    parameters={"input_type": "query"},
+)
+results = index.documents.search(
+    namespace="products-en",
+    top_k=5,
+    score_by=[DenseVectorQuery(field="embedding", values=query.data[0].values)],
+)
+for match in results.matches:
+    print(match.id, match.score)
+```
 
 ## List available models
 
@@ -206,8 +227,8 @@ print(models.names())
 ```
 
 `type` narrows the listing to `"embed"` or `"rerank"`; omit it for both. For embedding
-models, `vector_type="dense"` or `"sparse"` narrows it further — pairing `vector_type`
-with `type="rerank"` is rejected client-side rather than ignored.
+models, `vector_type="dense"` or `"sparse"` narrows it further. Pairing `vector_type`
+with `type="rerank"` raises {exc}`~pinecone.errors.exceptions.PineconeValueError`.
 
 ```python
 sparse_models = pc.inference.model.list(type="embed", vector_type="sparse")

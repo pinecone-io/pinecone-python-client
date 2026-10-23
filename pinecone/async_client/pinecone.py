@@ -275,7 +275,7 @@ class AsyncPinecone:
 
     @property
     def collections(self) -> AsyncCollections:
-        """Create and inspect collections: static snapshots of a pod-based index.
+        """Create and inspect collections, the static snapshots of a pod-based index.
 
         A collection is the pod-based snapshot format. The serverless equivalent
         is a backup, under :attr:`backups`.
@@ -382,10 +382,18 @@ class AsyncPinecone:
 
         Examples:
 
+            :meth:`~pinecone.async_client.backups.AsyncBackups.list` returns
+            one page, so follow ``pagination.next`` to read every backup:
+
             .. code-block:: python
 
                 async with AsyncPinecone(api_key="your-api-key") as pc:
-                    for backup in await pc.backups.list(limit=100):
+                    page = await pc.backups.list()
+                    backups = list(page)
+                    while page.pagination and page.pagination.next:
+                        page = await pc.backups.list(pagination_token=page.pagination.next)
+                        backups.extend(page)
+                    for backup in backups:
                         print(backup.backup_id, backup.source_index_name, backup.status)
         """
         if self._backups is None:
@@ -409,10 +417,13 @@ class AsyncPinecone:
 
         Examples:
 
+            :meth:`~pinecone.async_client.backup_schedules.AsyncBackupSchedules.iter_schedules`
+            walks every page of an index's schedules:
+
             .. code-block:: python
 
                 async with AsyncPinecone(api_key="your-api-key") as pc:
-                    for schedule in await pc.backup_schedules.list(
+                    async for schedule in pc.backup_schedules.iter_schedules(
                         index_name="product-search"
                     ):
                         print(schedule.name, schedule.frequency, schedule.enabled)
@@ -439,10 +450,21 @@ class AsyncPinecone:
 
         Examples:
 
+            :meth:`~pinecone.async_client.restore_jobs.AsyncRestoreJobs.list`
+            returns one page, and pages can overlap, so follow
+            ``pagination.next`` and key the jobs by id:
+
             .. code-block:: python
 
                 async with AsyncPinecone(api_key="your-api-key") as pc:
-                    for job in await pc.restore_jobs.list(limit=10):
+                    page = await pc.restore_jobs.list()
+                    jobs = {job.restore_job_id: job for job in page}
+                    while page.pagination and page.pagination.next:
+                        page = await pc.restore_jobs.list(
+                            pagination_token=page.pagination.next
+                        )
+                        jobs.update((job.restore_job_id, job) for job in page)
+                    for job in jobs.values():
                         print(job.restore_job_id, job.target_index_name, job.status)
         """
         if self._restore_jobs is None:
@@ -497,8 +519,9 @@ class AsyncPinecone:
         """Create a new index by restoring from a backup.
 
         Polls until the restored index is ready, unless *timeout* is ``-1``. This
-        is the only supported way to restore a backup: :meth:`create_index`
-        rejects ``source_backup_id=`` with a message pointing here.
+        is the only supported way to restore a backup:
+        :meth:`~pinecone.async_client.indexes.AsyncIndexes.create` rejects
+        ``source_backup_id=`` with a message pointing here.
 
         Args:
             name (str): Name for the new index.
@@ -530,6 +553,7 @@ class AsyncPinecone:
         Raises:
             :exc:`PineconeValueError`: If *name* or *backup_id* is empty, or
                 *read_capacity* is an empty dict.
+            :exc:`PineconeTypeError`: If *name* or *backup_id* is not a ``str``.
             :exc:`PineconeTimeoutError`: If the index is not ready within the timeout.
             :exc:`IndexInitFailedError`: If the index enters ``InitializationFailed`` state.
             :exc:`IndexTerminatedError`: If the index enters ``Terminating`` or ``Disabled`` state.

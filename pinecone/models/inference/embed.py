@@ -50,7 +50,7 @@ class DenseEmbedding(DictLikeStruct, Struct, kw_only=True):
 class SparseEmbedding(StructDictMixin, Struct, kw_only=True):
     """One embedding from a sparse model, stored as index/value pairs.
 
-    There is no ``values`` field here — the vector lives in
+    There is no ``values`` field here: the vector lives in
     ``sparse_indices`` and ``sparse_values``, paired position by position.
     Reading ``.values`` on one of these hands back a dict-view method rather
     than a vector and raises nothing to warn you, so branch on the enclosing
@@ -104,7 +104,7 @@ class EmbeddingsList(Struct, kw_only=True):
 
     Attributes:
         model: The model that served the request.
-        vector_type: ``"dense"`` or ``"sparse"`` — which of
+        vector_type: ``"dense"`` or ``"sparse"``, saying which of
             :class:`DenseEmbedding` or :class:`SparseEmbedding` ``data`` holds,
             and so which fields each item carries.
         data: The embeddings themselves.

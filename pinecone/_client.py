@@ -130,13 +130,14 @@ class Pinecone:
             ``ssl_verify=False``: pass both and verification stays on.
         ssl_verify (bool): Whether to verify the server's certificate. ``True``
             (default) is right everywhere but a throwaway test endpoint.
-        grpc_scheme ("http" | "https" | None): URL scheme that :meth:`index` with
-            ``grpc=True`` dials the data plane over. State it when the data plane is
-            reached over something other than public TLS — a plaintext gateway, an
-            egress proxy, a private endpoint, or a local simulator — rather than
-            leaving the SDK to assume one. ``None`` (default) falls back to the
-            ``PINECONE_GRPC_SCHEME`` env var, and then to ``https``. Has no effect on
-            REST clients, which take the scheme from the host they are given.
+        grpc_scheme (str | None): URL scheme, ``"http"`` or ``"https"``, that
+            :meth:`index` with ``grpc=True`` dials the data plane over. State it
+            when the data plane is reached over something other than public TLS
+            (a plaintext gateway, an egress proxy, a private endpoint, or a local
+            simulator) rather than leaving the SDK to assume one. ``None``
+            (default) falls back to the ``PINECONE_GRPC_SCHEME`` env var, and then
+            to ``https``. Has no effect on REST clients, which take the scheme from
+            the host they are given.
         timeout (float): Deadline in seconds for a single HTTP attempt, not for the
             whole call — each retry gets its own. Must be greater than zero.
             Defaults to ``30.0``.
@@ -306,7 +307,7 @@ class Pinecone:
 
     @property
     def collections(self) -> Collections:
-        """Create and inspect collections: static snapshots of a pod-based index.
+        """Create and inspect collections, the static snapshots of a pod-based index.
 
         A collection is the pod-based snapshot format. The serverless equivalent
         is a backup, under :attr:`backups`.
@@ -341,10 +342,19 @@ class Pinecone:
 
         Examples:
 
-            >>> for backup in pc.backups.list(limit=100):
+            :meth:`~pinecone.client.backups.Backups.list` returns one page, so
+            follow ``pagination.next`` to read every backup:
+
+            >>> page = pc.backups.list()
+            >>> backups = list(page)
+            >>> while page.pagination and page.pagination.next:
+            ...     page = pc.backups.list(pagination_token=page.pagination.next)
+            ...     backups.extend(page)
+            >>> for backup in backups:
             ...     print(backup.backup_id, backup.source_index_name, backup.status)
             bk-abc123 product-search Ready
             bk-def456 product-search Ready
+            bk-ghi789 support-tickets Ready
         """
         if self._backups is None:
             from pinecone.client.backups import Backups as _Backups
@@ -367,7 +377,10 @@ class Pinecone:
 
         Examples:
 
-            >>> for schedule in pc.backup_schedules.list(index_name="product-search"):
+            :meth:`~pinecone.client.backup_schedules.BackupSchedules.iter_schedules`
+            walks every page of an index's schedules:
+
+            >>> for schedule in pc.backup_schedules.iter_schedules(index_name="product-search"):
             ...     print(schedule.name, schedule.frequency, schedule.enabled)
             compliance-snapshots daily True
         """
@@ -389,9 +402,19 @@ class Pinecone:
 
         Examples:
 
-            >>> for job in pc.restore_jobs.list(limit=10):
+            :meth:`~pinecone.client.restore_jobs.RestoreJobs.list` returns one
+            page, and pages can overlap, so follow ``pagination.next`` and key
+            the jobs by id:
+
+            >>> page = pc.restore_jobs.list()
+            >>> jobs = {job.restore_job_id: job for job in page}
+            >>> while page.pagination and page.pagination.next:
+            ...     page = pc.restore_jobs.list(pagination_token=page.pagination.next)
+            ...     jobs.update((job.restore_job_id, job) for job in page)
+            >>> for job in jobs.values():
             ...     print(job.restore_job_id, job.target_index_name, job.status)
             rj-abc123 product-search-restored Completed
+            rj-def456 support-tickets-restored Pending
         """
         if self._restore_jobs is None:
             from pinecone.client.restore_jobs import RestoreJobs as _RestoreJobs
@@ -677,7 +700,7 @@ class Pinecone:
 
         Blocks and polls until the restored index is ready, unless *timeout* is
         ``-1``. This is the only supported way to restore a backup:
-        :meth:`create_index` rejects ``source_backup_id=`` with a message
+        :meth:`~pinecone.client.indexes.Indexes.create` rejects ``source_backup_id=`` with a message
         pointing here.
 
         Args:
@@ -708,6 +731,7 @@ class Pinecone:
         Raises:
             :exc:`PineconeValueError`: If *name* or *backup_id* is empty, or
                 *read_capacity* is an empty dict.
+            :exc:`PineconeTypeError`: If *name* or *backup_id* is not a ``str``.
             :exc:`PineconeTimeoutError`: If the index is not ready within the timeout.
             :exc:`IndexInitFailedError`: If the index enters ``InitializationFailed`` state.
             :exc:`IndexTerminatedError`: If the index enters ``Terminating`` or ``Disabled`` state.

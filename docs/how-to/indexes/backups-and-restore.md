@@ -3,137 +3,91 @@
 Backups are point-in-time snapshots of a managed (serverless) or BYOC index. Use them to
 protect against data loss, create copies of an index, or restore a previous state.
 
-Pod-based indexes cannot be backed up. Their snapshot mechanism is a collection, which is a
-different thing with a different API and no restore path — see
-[collections](../collections.md).
+Pod-based indexes cannot be backed up. Their snapshot mechanism is a collection, which has
+a different API. Restoring a collection needs an API version before `2026-07`, and this SDK
+cannot do it. See [collections](../collections.md#create-an-index-from-a-collection).
 
 ## Create a backup
 
-Pass the name of the index you want to back up:
+Pass the name of the index you want to back up, and optionally a name and description:
 
 ```python
 from pinecone import Pinecone
 
 pc = Pinecone(api_key="your-api-key")
 
-backup = pc.backups.create(index_name="product-search")
-print(backup.backup_id)   # e.g. "bk-abc123"
-print(backup.status)      # e.g. "Initializing"
-```
-
-Add a name and description for easier identification:
-
-```python
 backup = pc.backups.create(
     index_name="product-search",
     name="pre-reindex-snapshot",
-    description="Backup before schema migration on 2025-03-01",
+    description="Backup before schema migration",
 )
+print(backup.backup_id)   # e.g. "bk-abc123"
+print(backup.status)      # "Initializing"
 ```
 
-`status` is ``"Initializing"`` while the snapshot is being built, then
-``"Ready"`` when it is complete or ``"Failed"`` if it is not. Those three are
-the only values, and `create` returns as soon as the request is accepted — there
-is no `timeout=` to wait on, so poll `describe` until the status leaves
-``"Initializing"``.
+{meth}`~pinecone.client.backups.Backups.create` returns as soon as the server accepts
+the request. `status` is `"Initializing"` while the snapshot is built, then `"Ready"` or
+`"InitializationFailed"`. There is no `timeout=` to wait on, so poll
+{meth}`~pinecone.client.backups.Backups.describe` until the status leaves
+`"Initializing"`.
 
-The same operation is available index-first on the indexes namespace, if that
-reads better in an index-centric flow:
-
-```python
-backup = pc.indexes.create_backup("product-search", name="pre-reindex-snapshot")
-```
+`pc.indexes.create_backup("product-search", name="pre-reindex-snapshot")` is the same
+operation under the indexes namespace.
 
 
 ## List backups
 
-`pc.backups.list` returns a {class}`~pinecone.models.backups.list.BackupList`,
-**one page**, not every backup in the project. It carries a `pagination` token but
-does not follow it, so iterating the returned object directly sees at most one
-page. To list all backups, drive the token:
+{meth}`~pinecone.client.backups.Backups.list` returns a
+{class}`~pinecone.models.backups.list.BackupList` holding **one page**, not every backup
+in the project. To list all backups, follow the pagination token:
 
 ```python
 page = pc.backups.list(limit=100)
-backups = list(page)
+backups = {b.backup_id: b for b in page}
 while page.pagination and page.pagination.next:
     page = pc.backups.list(pagination_token=page.pagination.next)
-    backups.extend(page)
+    backups.update({b.backup_id: b for b in page})
 
-for backup in backups:
+for backup in backups.values():
     print(backup.backup_id, backup.name, backup.status)
 ```
 
-When you omit `limit`, the server applies its own default.
+The token names an offset, not a stable cursor. Backups created or deleted while you
+walk the pages shift later offsets, so a walk can skip a backup or return one twice.
+Keying by `backup_id`, as above, removes the duplicates. The token already carries the
+page size, so the SDK drops `limit` from any call that passes a token.
 
-Pagination here is **offset-based, not cursor-based**. The token names a
-position in the result set, not a stable cursor over a snapshot. Three
-consequences follow:
-
-- `limit` is **omitted whenever a token is given**. The token already
-  carries the page size it was minted with, and sending a different `limit`
-  alongside it would skip or repeat rows.
-- Backups created or deleted between requests shift every later offset, so a
-  walk can miss rows and return others twice. De-duplicate by `backup_id`
-  rather than trusting the sequence.
-- A malformed or truncated token is rejected with `400` rather than restarting
-  the listing.
-
-`pagination` is `None` only when a page comes back *shorter* than `limit`, so a
-final page that happens to be exactly `limit` long still carries a token.
-Following it costs one extra request that returns nothing. Terminate on
-`pagination is None`, as the loop above does.
-
-Filtering by index is the same single-page contract, so the same loop applies:
-
-```python
-page = pc.backups.list(index_name="product-search", limit=100)
-for backup in page:
-    print(backup.backup_id, backup.created_at)
-```
-
-`pc.indexes.list_backups` is the index-scoped equivalent, returning a
-{class}`~pinecone.models.pagination.Paginator` that walks the pages for you.
-Prefer it whenever you want every backup for one index and would rather not
-drive tokens by hand:
+For every backup of one index, use
+{meth}`~pinecone.client.indexes.Indexes.list_backups`, which walks the pages for you:
 
 ```python
 for backup in pc.indexes.list_backups("product-search"):
     print(backup.backup_id, backup.status)
 ```
 
+`pc.backups.list(index_name="product-search")` also filters by index, but returns one
+page like the project-wide call.
+
 
 ### Backups of a deleted index
 
-A backup outlives its source index, so an index-scoped listing has to say what
-it means by the index name. **By default it means the active index.** If every
-index that used the name has been deleted, the API answers **404, not an empty
-list.**
-
-Pass `include_deleted=True` to widen the listing to every index that has ever
-used the name:
+A backup outlives its source index. An index-scoped listing looks up the *active* index
+with that name, so if every index that used the name has been deleted, the server
+answers **404, not an empty list**. Pass `include_deleted=True` to cover every index
+that has ever used the name:
 
 ```python
-page = pc.backups.list(
-    index_name="product-search", include_deleted=True, limit=100
-)
+page = pc.backups.list(index_name="product-search", include_deleted=True, limit=100)
 
 for backup in page:
     if backup.source_index_deleted_at:
-        print(backup.backup_id, "orphaned at", backup.source_index_deleted_at)
+        print(backup.backup_id, "source deleted at", backup.source_index_deleted_at)
 ```
 
-This is one page like every other `pc.backups.list` call. Use the token loop
-above if the index has more backups than a page holds.
-
-So a 404 from `pc.backups.list(index_name=...)` is not proof the name was never
-used. Retry with `include_deleted=True` before concluding that. A 404 *with*
-`include_deleted=True` does mean the name has never existed in this project.
-
-`include_deleted` applies only to index-scoped listings. The project-wide
-`pc.backups.list()` already returns backups whose source index is gone, and
-passing `include_deleted` there raises `PineconeValueError` rather than being
-silently ignored. Omitting the argument leaves the parameter off the request
-entirely, so the server's default applies.
+A 404 *with* `include_deleted=True` means the name has never been used in this project.
+The project-wide `pc.backups.list()` already includes backups of deleted indexes, and
+passing `include_deleted` without `index_name` raises
+{exc}`~pinecone.errors.exceptions.PineconeValueError`.
 
 
 ## Describe a backup
@@ -141,57 +95,42 @@ entirely, so the server's default applies.
 ```python
 backup = pc.backups.describe(backup_id="bk-abc123")
 print(backup.source_index_name)
-print(backup.status)            # "Initializing" | "Ready" | "Failed"
-print(backup.dense_dimension)
+print(backup.status)            # "Initializing" | "Ready" | "InitializationFailed"
 print(backup.record_count)
 print(backup.size_bytes)
-print(backup.source_index_deleted_at)
 
 if backup.schema is not None:
     print(backup.schema.fields["your_vector"].metric)
 ```
 
-`schema` is an {class}`~pinecone.models.indexes.schema.IndexSchema`, the same
-typed model returned by `pc.indexes.describe(...).schema`, and is `None` when
-the server returns no schema for the backup — schedule-produced backups of an
-index that declared none, for instance. Guard it rather than reaching straight
-through, as above.
-
-`dense_dimension` is a convenience over that schema: it reports the dimension
-when the backup has exactly one `dense_vector` field, and `None` when the
-schema is absent, has no dense field, or has more than one. For a hybrid or
-multi-vector index, read the field you want off `schema.fields` instead.
-
-`pc.indexes.describe_backup("bk-abc123")` is the same call under the indexes
-namespace.
+`schema` is an {class}`~pinecone.models.indexes.schema.IndexSchema`, the same model
+`pc.indexes.describe(...).schema` returns. It is `None` when the server returns no
+schema for the backup, so check it before reading fields. `dense_dimension` is a
+shortcut that reports the dimension when the schema has exactly one `dense_vector`
+field, and `None` otherwise.
 
 
 ## Restore a backup to a new index
 
-Use `create_index_from_backup` on the top-level client to restore a backup into a new
-index:
+{meth}`~pinecone.Pinecone.create_index_from_backup` restores a backup into a new index.
+It is the only way to restore; {meth}`~pinecone.client.indexes.Indexes.create` does not
+accept a backup ID.
 
 ```python
-from pinecone import Pinecone
-
-pc = Pinecone(api_key="your-api-key")
-
 index = pc.create_index_from_backup(
     name="product-search-restored",
     backup_id="bk-abc123",
+    deletion_protection="enabled",
+    tags={"env": "production", "team": "search"},
 )
-print(index.name)
-print(index.status.state)
+print(index.name, index.status.state)
 ```
 
-`create_index_from_backup` polls until the new index is ready, but unlike
-`pc.indexes.create` it does **not** wait indefinitely: omitting `timeout`
-bounds the wait at 300 seconds and then raises
-{exc}`~pinecone.errors.exceptions.PineconeTimeoutError`. A large backup can
-outlast that, and the timeout does not cancel the restore — the job carries on
-server-side, so catch it and poll the restore job rather than treating it as a
-failure. Pass a larger positive `timeout` to wait longer, or `timeout=-1` to
-return immediately:
+The call polls until the new index is ready, for 300 seconds by default, then raises
+{exc}`~pinecone.errors.exceptions.PineconeTimeoutError`. The timeout does not cancel
+the restore, which continues on the server; monitor it with the restore job below. Pass
+a larger `timeout` to wait longer, or `timeout=-1` to return as soon as the restore
+starts:
 
 ```python
 result = pc.create_index_from_backup(
@@ -202,29 +141,16 @@ result = pc.create_index_from_backup(
 print(result.restore_job_id)
 ```
 
-Enable deletion protection or add tags to the restored index:
-
-```python
-index = pc.create_index_from_backup(
-    name="product-search-restored",
-    backup_id="bk-abc123",
-    deletion_protection="enabled",
-    tags={"env": "production", "team": "search"},
-)
-```
-
 ### What a restore does and does not carry over
 
-`tags` you pass win outright; omit them and the server copies the backup's own
-tags onto the restored index. `deletion_protection` is taken from the request
-only — it is never inherited from the source index, and defaults to `disabled`
-when you leave it out, so an index restored from a protected source comes back
-unprotected.
-
-`read_capacity` is applied to the restored index. Omit it and the restore
-lands on on-demand capacity; pass a dedicated configuration and the index
-comes up on dedicated read nodes, sized as asked. It is one call, not a
-restore followed by a resize:
+- **Tags:** tags you pass replace the backup's tags. Omit them and the restored index
+  gets the backup's tags.
+- **Deletion protection:** never inherited. It defaults to `"disabled"`, so an index
+  restored from a protected source comes back unprotected unless you pass
+  `deletion_protection="enabled"`.
+- **Read capacity:** omit `read_capacity` for on-demand capacity, or pass a dedicated
+  configuration to bring the index up on dedicated read nodes in the same call. The
+  server rejects a dedicated configuration too small to hold the backup.
 
 ```python
 index = pc.create_index_from_backup(
@@ -241,113 +167,61 @@ index = pc.create_index_from_backup(
 )
 ```
 
-The server rejects a dedicated configuration too small to hold the backup, so
-an undersized request fails the restore rather than producing an index that
-cannot serve the data.
-
-Two more server-side gates are worth knowing before you call:
-
-- **The backup must be finished.** A backup that is not complete is refused
-  with `412`. The message reads `Backup {backup_id} is not completed`, naming
-  the store's raw `Completed` status rather than the `Ready` status the SDK
-  surfaces on `BackupModel`, so a `412` here means "`status` is not yet
-  `Ready`", not that you passed the wrong value anywhere.
-- **Pod backups cannot be restored.** A backup whose source index was a pod
-  index is refused with `400` "Backups from pod indexes are not supported".
-
-`create_index_from_backup` is the only supported way to restore a backup.
-`pc.create_index(source_backup_id=...)` raises a `PineconeTypeError` pointing
-here.
+The backup must be finished before you restore it. Restoring a backup whose `status` is
+not yet `"Ready"` fails with {exc}`~pinecone.errors.exceptions.FailedPreconditionError`
+(412), and the message says the backup "is not completed".
 
 
 ## Monitor restore jobs
 
-Each call to `create_index_from_backup` starts a restore job.
-
-`pc.restore_jobs.list` returns a
-{class}`~pinecone.models.backups.list.RestoreJobList` holding **one page**. Like
-`pc.backups.list`, it carries a `pagination` token without following it, so
-`for job in pc.restore_jobs.list():` sees at most one page of jobs. Drive the
-token to walk the rest:
-
-```python
-page = pc.restore_jobs.list(limit=100)
-jobs = list(page)
-while page.pagination and page.pagination.next:
-    page = pc.restore_jobs.list(pagination_token=page.pagination.next)
-    jobs.extend(page)
-
-for job in jobs:
-    print(job.restore_job_id, job.status, job.percent_complete)
-```
-
-Restore-job pagination is offset-based in the same way as backup pagination
-above, so the same rules apply: `pagination` is `None` on the final page,
-`limit` is omitted whenever a token is given, and a malformed token is a `400`.
-
-```{warning}
-Against today's backend **this listing can silently drop restore jobs, stop
-paginating early, and repeat rows across pages.** The token stream can end
-while restore jobs remain, and successive pages can overlap, so pages are
-neither exhaustive nor disjoint. A restore job whose target index has been
-deleted is dropped from the listing entirely, which shortens the page and can
-itself trigger the early stop.
-
-Treat the result as a best-effort sample rather than an exhaustive inventory,
-never conclude a restore job does not exist from its absence here, and
-de-duplicate by `restore_job_id` while walking pages. The SDK offers no
-workaround on purpose. The token stream itself ends early, so no client-side
-code can recover pages the server never points at. Tracked upstream in
-[#250](https://github.com/pinecone-io/python-sdk-internal/issues/250).
-```
-
-Describe a specific job:
+Each call to `create_index_from_backup` starts a restore job. Describe one by ID:
 
 ```python
 job = pc.restore_jobs.describe(job_id="rj-abc123")
-print(job.restore_job_id)
-print(job.backup_id)
 print(job.target_index_name)
 print(job.status)         # "Pending" | "Completed" | "Failed" | "Cancelled"
-print(job.percent_complete)
 print(job.completed_at)
 ```
 
-`describe` returns a {class}`~pinecone.models.backups.model.RestoreJobModel`.
-
-`status` has exactly four values: `Pending`, `Completed`, `Failed`, and
-`Cancelled`. **There is no in-progress state.** A restore that is actively
-running reports `Pending`, so polling for a `Running`-style value never
-terminates. `percent_complete` is `100` once `status` is `Completed` and `None`
-at every other point. It reports completion, not progress, and cannot drive a
-progress bar. `completed_at` is populated on the same condition. Poll `status`
-for a terminal value instead:
+`describe` returns a {class}`~pinecone.models.backups.model.RestoreJobModel`. A restore
+that is running reports `"Pending"`; there is no in-progress state, and
+`percent_complete` is `100` once the job completes and `None` before that. Poll for a
+terminal status:
 
 ```python
 import time
 
-while True:
-    job = pc.restore_jobs.describe(job_id="rj-abc123")
-    if job.status in ("Completed", "Failed", "Cancelled"):
-        break
+job = pc.restore_jobs.describe(job_id="rj-abc123")
+while job.status == "Pending":
     time.sleep(5)
+    job = pc.restore_jobs.describe(job_id="rj-abc123")
 ```
 
 ```{warning}
-**A 404 from `describe` cannot be trusted to mean "no such restore job".**
-Against today's backend, every failure to read the restore-job store, a store
-outage included, is flattened into a 404, so the `NotFoundError` you catch here
-means "could not produce this job", not "this job does not exist". Any retry
-policy or control flow keyed on a 404 from `describe` is therefore unsafe:
-giving up, deleting local state, or reporting the job as gone can each be the
-wrong call on what was really a transient store failure. Treat it as possibly
-transient unless you have independent evidence the id is bad.
+A {exc}`~pinecone.errors.exceptions.NotFoundError` from `restore_jobs.describe` does not
+prove the job does not exist. The server also answers 404 on a transient failure and for
+a job whose target index has been deleted. Treat a 404 as possibly transient unless you
+know the ID is wrong.
+```
 
-The same flattening means a restore job whose target index has been deleted also
-answers 404, carrying a message about index metadata rather than "Restore job
-not found", so do not match on the message text either. Such a job is dropped
-from `list` entirely rather than reported. Tracked upstream in
-[#250](https://github.com/pinecone-io/python-sdk-internal/issues/250).
+{meth}`~pinecone.client.restore_jobs.RestoreJobs.list` returns a
+{class}`~pinecone.models.backups.list.RestoreJobList` holding one page. Follow the token
+to read more:
+
+```python
+page = pc.restore_jobs.list(limit=100)
+jobs = {j.restore_job_id: j for j in page}
+while page.pagination and page.pagination.next:
+    page = pc.restore_jobs.list(pagination_token=page.pagination.next)
+    jobs.update({j.restore_job_id: j for j in page})
+```
+
+```{warning}
+The restore-job listing is not exhaustive. Pages can overlap, pagination can end while
+jobs remain, and jobs whose target index has been deleted are left out. Key the results
+by `restore_job_id` as above, and never conclude a job does not exist because the
+listing omits it. To track a specific restore, keep the `restore_job_id` that
+`create_index_from_backup(..., timeout=-1)` returns and describe it.
 ```
 
 
@@ -357,80 +231,48 @@ from `list` entirely rather than reported. Tracked upstream in
 pc.backups.delete(backup_id="bk-abc123")
 ```
 
-Deleting a backup does not affect the source index or any indexes restored from
-it, and the call returns `None`.
-
-A backup with a restore job still in flight cannot be deleted: the SDK raises
-{exc}`~pinecone.errors.exceptions.FailedPreconditionError`, and its message
-names the pending job ids. Wait for the restore to finish, then delete.
+Deleting a backup does not affect the source index or any index restored from it. A
+backup with a restore job still running cannot be deleted: the server answers with
+{exc}`~pinecone.errors.exceptions.FailedPreconditionError`, naming the pending jobs. Wait
+for the restore to finish, then delete.
 
 
 ## Schedule automatic backups
 
-Everything above takes a backup when *you* ask for one. A **backup schedule**
-attaches a recurring cadence to an index, so backups keep happening without a
-caller. Schedules live on `pc.backup_schedules`.
-
-Scheduled backups are a plan entitlement. Where the API enforces it, the check
-runs before the index is even looked up, so a project without the entitlement
-gets `403` rather than a `404` for a missing index. The SDK appends a
-clarification to that `403` and keeps the backend's own message as the prefix.
+A **backup schedule** takes backups of an index on a recurring cadence. Schedules live on
+`pc.backup_schedules` and require a plan that includes backups; without it the server
+answers {exc}`~pinecone.errors.exceptions.ForbiddenError` (403), even when the index does
+not exist.
 
 ```python
 schedule = pc.backup_schedules.create(
     index_name="product-search",
-    name="daily-compliance-backup",
-    frequency="daily",       # daily | weekly | monthly
+    name="daily-compliance",
+    frequency="daily",       # "daily" | "weekly" | "monthly"
     retention_days=90,
 )
 print(schedule.schedule_id)
-print(schedule.next_scheduled_run)   # a datetime, not a string
+print(schedule.next_scheduled_run)   # a datetime
 ```
 
-There is **no cron support** anywhere in this API. `frequency` accepts exactly
-`daily`, `weekly`, or `monthly`, and the SDK rejects anything else before
-sending a request. The run time is chosen server-side and reported through
-`next_scheduled_run`; there is no way to pick an hour or a timezone.
+The server picks the run time and reports it in `next_scheduled_run`; you cannot choose
+an hour or timezone. `retention_days` is how long each produced backup is kept; the
+schedule model reports it back as `retention_expire_after_days`. Each backup is named
+`"{name}-{run timestamp}"`, such as `"daily-compliance-20260403T060000Z"`.
 
-`retention_days` must be at least 1, which the SDK checks before sending.
-Its upper bound is a per-project setting (`max_backup_retention_days`) the SDK
-does not know, so a too-large value is rejected by the server with a message
-naming the real limit. On the way back the value is spelled
-`retention_expire_after_days` on the schedule model, mirroring the response
-body — the shorter `retention_days` is the request keyword only.
-
-Only **one enabled schedule per index** is allowed. Creating a second one fails
-with `409` and a message telling you to disable or delete the first. Pod-based
-indexes cannot be scheduled at all and are rejected with `400`.
-
-```{important}
-**Keep the schedule name short.** Each run names its backup
-`"{name}-{run timestamp}"`, so a long schedule name pushes the derived backup
-name past the length limit backup names are held to. Nothing checks this at
-create time. The API declares no length limit on a schedule name, and the SDK
-does not invent one, because that would reject names the API accepts. An
-over-long name is therefore accepted here and fails later, on the runs, rather
-than on `create`.
-```
+An index can have only **one enabled schedule**. Creating a second fails with
+{exc}`~pinecone.errors.exceptions.ConflictError` (409). Pod-based indexes cannot have
+schedules.
 
 ### List the schedules on an index
 
-Schedules are always listed per index. There is no project-wide schedule
-listing. Disabled schedules are included.
+Schedules are listed per index, disabled ones included.
+{meth}`~pinecone.client.backup_schedules.BackupSchedules.iter_schedules` walks every
+page; {meth}`~pinecone.client.backup_schedules.BackupSchedules.list` returns one.
 
 ```python
 for schedule in pc.backup_schedules.iter_schedules(index_name="product-search"):
     print(schedule.schedule_id, schedule.frequency, schedule.enabled)
-```
-
-`iter_schedules` walks every page. `list` returns a single page plus a
-`pagination` token if you would rather drive pagination yourself:
-
-```python
-page = pc.backup_schedules.list(index_name="product-search", limit=10)
-print(page.names())
-print([s.schedule_id for s in page.enabled_schedules()])
-print(page.pagination)   # None on the final page
 ```
 
 ### Describe, update, and delete a schedule
@@ -439,12 +281,11 @@ print(page.pagination)   # None on the final page
 schedule = pc.backup_schedules.describe(schedule_id="sched-abc123")
 ```
 
-`update` is a sparse PATCH. Only the arguments you pass are sent, so anything
-you omit is left unchanged rather than reset.
+`update` changes only the arguments you pass:
 
 ```python
 paused = pc.backup_schedules.update(schedule_id="sched-abc123", enabled=False)
-assert paused.next_scheduled_run is None
+print(paused.next_scheduled_run)   # None while disabled
 
 pc.backup_schedules.update(
     schedule_id="sched-abc123", frequency="weekly", retention_days=30
@@ -452,27 +293,20 @@ pc.backup_schedules.update(
 ```
 
 ```{warning}
-Re-enabling a disabled schedule with `enabled=True` **immediately enqueues a
-backup run.** It is not a free toggle. It also recomputes
-`next_scheduled_run` from the moment of the update rather than resuming the old
-slot, so a disable/re-enable cycle shifts the cadence. And because only one
-schedule per index may be enabled, re-enabling fails with `409` when another
-one already is.
+Re-enabling a paused schedule with `enabled=True` plans its next run from the time of
+the update, not from its old slot, so a pause shifts the cadence. Re-enabling raises
+{exc}`~pinecone.errors.exceptions.ConflictError` if another schedule on the index is
+already enabled.
 ```
 
 ```python
 pc.backup_schedules.delete(schedule_id="sched-abc123")
 ```
 
-Deleting a schedule stops future runs. Backups it already produced are **not**
-deleted; they age out on their own retention window.
-
-```{important}
-`delete` is not safe to retry blindly. Success answers `204` with no body, and
-a second attempt on the same `schedule_id` answers `404`, so a retry after a
-dropped response looks identical to deleting something that was never there.
-Treat a `404` following a delete attempt as success.
-```
+Deleting a schedule stops future runs. Backups it already produced are kept until their
+retention period ends. A repeated delete of the same `schedule_id` raises
+{exc}`~pinecone.errors.exceptions.NotFoundError`, so when retrying a delete whose
+response was lost, treat a 404 as success.
 
 ### Inspect what a schedule has produced
 
@@ -481,33 +315,19 @@ for run in pc.backup_schedules.iter_history(schedule_id="sched-abc123"):
     print(run.backup_id, run.status, run.record_count)
 ```
 
-History rows describe backup *snapshots*, not the schedule. A row appears as
-soon as a run is planned, so the listing mixes completed runs with ones that
-have not started; `run.is_scheduled` and `history.scheduled()` pick out the
-latter. As with the schedule listing, `history` returns one page and
-`iter_history` walks all of them. Prefer the iterator here, because a daily
-schedule with a 90-day retention window has far more rows than one page holds.
-
-```{note}
-Against today's backend, schedule history is served by the shared backup
-handler, which never reports the `Scheduled` status and does not send
-`scheduled_execution_at` at all. Those fields are typed and will populate when
-the backend graduates; until then `scheduled_execution_at` reads as `None` and
-`name` / `record_count` / `namespace_count` / `size_bytes` can come back
-`None` on freshly created rows.
-```
+Each history row is a backup the schedule produced or has planned. The next run is
+listed as soon as it is planned, with status `"Initializing"` until it finishes, so filter
+on `run.status == "Ready"` for completed backups. Fields such as `record_count` and
+`size_bytes` can be `None` on rows that are not finished.
+{meth}`~pinecone.client.backup_schedules.BackupSchedules.history` returns one page;
+`iter_history` walks all of them.
 
 
 ## See also
 
 - {class}`~pinecone.models.backups.model.BackupModel`: backup response model
-- {class}`~pinecone.models.backups.list.BackupList`: backup list response
 - {class}`~pinecone.models.backups.model.RestoreJobModel`: restore job model
-- {class}`~pinecone.models.backups.list.RestoreJobList`: restore job list response
 - {class}`~pinecone.models.backups.schedules.BackupScheduleModel`: schedule response model
-- {class}`~pinecone.models.backups.list.BackupScheduleList`: schedule list response
 - {class}`~pinecone.models.backups.schedules.BackupScheduleHistoryItem`: one run produced by a schedule
-- {class}`~pinecone.models.backups.list.BackupScheduleHistoryList`: schedule history response
 - [Serverless indexes](serverless.md): creating and configuring the indexes you back up
-- [Pod-based indexes](pod.md): the legacy deployment, which backups do not cover
 - [Collections](../collections.md): the pod-based snapshot mechanism

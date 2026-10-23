@@ -54,12 +54,14 @@ class ModelInfo(Struct, kw_only=True):
 
     Returned by :meth:`~pinecone.client.inference.Inference.get_model`, and by
     :meth:`~pinecone.client.inference.Inference.list_models` for every model in
-    the listing. The embed-only fields below are ``None`` on a reranking model,
-    so read ``type`` before relying on them. Bracket access with a field name
+    the listing. ``vector_type``, ``default_dimension``,
+    ``supported_dimensions`` and ``supported_metrics`` describe embedding
+    models and are ``None`` on a reranking model, so read ``type`` before
+    relying on them. Bracket access with a field name
     (``info["model"]``) reads the fields too.
 
     Attributes:
-        model: The model identifier — what to pass as ``model=``. Also readable
+        model: The model identifier, what to pass as ``model=``. Also readable
             as ``name``.
         short_description: A brief description of the model. Also readable as
             ``description``.
@@ -68,8 +70,8 @@ class ModelInfo(Struct, kw_only=True):
             :class:`ModelInfoSupportedParameter` entries describing what
             ``parameters=`` will take for this model.
         vector_type: For embedding models, ``"dense"`` or ``"sparse"``.
-        default_dimension: For embedding models, the output dimension used when
-            none is requested.
+        default_dimension: For dense embedding models, the output dimension
+            used when none is requested. ``None`` for sparse models.
         supported_dimensions: For embedding models, every output dimension the
             model can produce.
         modality: The input modality (e.g. ``"text"``).
@@ -104,12 +106,12 @@ class ModelInfo(Struct, kw_only=True):
 
     @property
     def name(self) -> str:
-        """Alias for ``model`` — the model identifier."""
+        """Alias for ``model``, the model identifier."""
         return self.model
 
     @property
     def description(self) -> str:
-        """Alias for ``short_description`` — a brief description of the model."""
+        """Alias for ``short_description``, a brief description of the model."""
         return self.short_description
 
     def __getitem__(self, key: str) -> Any:

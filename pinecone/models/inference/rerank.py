@@ -24,8 +24,7 @@ class RankedDocument(StructDictMixin, Struct, kw_only=True):
     """One document and the score the reranker gave it.
 
     ``index`` is where the document sat in the request, not where it sits in
-    the reordered result — it is what maps a result back onto the list you
-    passed in.
+    the reordered result. It maps a result back onto the list you passed in.
 
     Attributes:
         index: The position this document held in the *documents* argument.
@@ -59,7 +58,7 @@ class RerankResult(Struct, kw_only=True):
 
     Attributes:
         model: The model that served the request, which is not always the one
-            asked for — Pinecone may substitute a different model.
+            asked for; Pinecone may substitute a different model.
         data: The :class:`RankedDocument` results, ordered by descending
             ``score`` rather than by the order the documents were passed in.
         usage: Rerank usage, as ``usage.rerank_units``.

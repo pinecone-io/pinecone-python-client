@@ -1,4 +1,4 @@
-"""Async Inference namespace — embed, rerank, and model operations."""
+"""Async inference namespace: embed, rerank, and model operations."""
 
 from __future__ import annotations
 
@@ -39,12 +39,11 @@ class AsyncModelResource:
     """Discovery for the embedding and reranking models a project can use.
 
     Reached as ``pc.inference.model``. Its two methods are the same operations
-    as :meth:`AsyncInference.list_models` and :meth:`AsyncInference.get_model` —
+    as :meth:`AsyncInference.list_models` and :meth:`AsyncInference.get_model`;
     take whichever reads better at the call site. Not constructed directly.
 
     Examples:
-        An unfiltered listing spans both model types — embedding models and
-        reranking models alike:
+        An unfiltered listing spans both embedding and reranking models:
 
         .. code-block:: python
 
@@ -76,7 +75,7 @@ class AsyncModelResource:
                 only alongside ``type="embed"``.
 
         Returns:
-            :class:`~pinecone.models.inference.model_list.ModelInfoList` — a
+            :class:`~pinecone.models.inference.model_list.ModelInfoList`, a
             sequence of :class:`~pinecone.models.inference.models.ModelInfo`
             supporting iteration, indexing and ``len()``, plus ``names()`` when
             you want the model identifiers alone.
@@ -84,7 +83,7 @@ class AsyncModelResource:
         Raises:
             :exc:`PineconeValueError`: If *type* or *vector_type* is not one of
                 the values above, or if *vector_type* is paired with
-                ``type="rerank"`` — the client rejects that pairing rather than
+                ``type="rerank"``. The client rejects that pairing rather than
                 ignoring it.
 
         Examples:
@@ -125,13 +124,14 @@ class AsyncModelResource:
         Returns:
             :class:`~pinecone.models.inference.models.ModelInfo` with
             ``supported_parameters`` (the keys this model accepts in a
-            *parameters* argument), ``type``, and — for embedding models —
+            *parameters* argument), ``type``, and, for embedding models,
             ``vector_type``, ``default_dimension`` and
             ``supported_dimensions``.
 
         Raises:
             :exc:`PineconeValueError`: If *model* is empty, or if both *model*
                 and *model_name* are given.
+            :exc:`PineconeTypeError`: If *model* is not a ``str``.
             :exc:`TypeError`: If any keyword argument other than those above is
                 passed.
             :exc:`NotFoundError`: If no model of that name exists.
@@ -159,7 +159,7 @@ class AsyncInference:
     """Embedding and reranking against Pinecone's hosted models.
 
     Reached as ``pc.inference``. Call these when you want the vectors or the
-    scores in your own hands — to store somewhere else, to embed a query
+    scores in your own hands: to store somewhere else, to embed a query
     yourself, or to rerank candidates that came from another system. If instead
     you want Pinecone to embed on your behalf, give a document index a
     ``string`` field with integrated embedding (``embed`` / ``sparse_embed``),
@@ -185,8 +185,8 @@ class AsyncInference:
 
     .. seealso::
        `Error handling <https://sdk.pinecone.io/python/guides/error-handling.html>`__
-       — the exceptions every method here can
-       raise, and how to retry them.
+       covers the exceptions every method here can raise, and how to retry
+       them.
     """
 
     EmbedModel = _enums.EmbedModel
@@ -235,8 +235,8 @@ class AsyncInference:
     ) -> EmbeddingsList:
         """Generate embeddings for the provided inputs.
 
-        Many models are asymmetric — they embed a stored passage and a search
-        query differently — so where a model accepts ``input_type``, pass it in
+        Many models are asymmetric: they embed a stored passage and a search
+        query differently. Where a model accepts ``input_type``, pass it in
         *parameters*, or the query and the corpus will not line up.
 
         Args:
@@ -255,7 +255,7 @@ class AsyncInference:
                 discover the keys a given model accepts.
 
         Returns:
-            :class:`~pinecone.models.inference.embed.EmbeddingsList` — one
+            :class:`~pinecone.models.inference.embed.EmbeddingsList` with one
             embedding per input, in input order. Iterating it (or indexing into
             it) yields the embeddings themselves, and ``data`` holds the same
             list. ``vector_type`` says which shape they are and so which fields
@@ -269,7 +269,7 @@ class AsyncInference:
         Raises:
             :exc:`PineconeValueError`: If *model* is empty or *inputs* is empty.
             :exc:`PineconeTypeError`: If *inputs* has an invalid type.
-            :exc:`NotFoundError`: If *model* is not available to this project —
+            :exc:`NotFoundError`: If *model* is not available to this project:
                 either no such model exists, or the project is not authorized to
                 use it. The error does not distinguish the two cases.
 
@@ -293,7 +293,7 @@ class AsyncInference:
                     print(len(embeddings), embeddings.vector_type)
 
             Embed the search query with ``input_type="query"``. The two are
-            not interchangeable — a query embedded as a passage will not land
+            not interchangeable: a query embedded as a passage will not land
             where the model expects it:
 
             .. code-block:: python
@@ -307,28 +307,29 @@ class AsyncInference:
                     print(len(query.data))
 
         .. note::
-           To store these vectors in a Pinecone index, read the values off each
-           embedding and pass them to
-           :meth:`~pinecone.async_client.async_index.AsyncIndex.upsert`::
+           To store these vectors, upsert each embedding's ``values`` into a
+           ``dense_vector`` field of a document index (here ``embedding``)
+           through :attr:`~pinecone.async_client.async_index.AsyncIndex.documents`::
 
-               idx = await pc.index(name="product-search")
-               values = embeddings.data[0].values
-               await idx.upsert(vectors=[("doc-1", values)])
+               index = await pc.index(name="product-search")
+               await index.documents.upsert(
+                   namespace="products-en",
+                   documents=[{"_id": "prod-1", "embedding": embeddings.data[0].values}],
+               )
 
            ``values`` exists only on the dense shape. A sparse embedding model
            returns :class:`~pinecone.models.inference.embed.SparseEmbedding`
            objects, which carry ``sparse_values`` and ``sparse_indices`` and
-           have no ``values`` field — reading ``.values`` on one hands back a
+           have no ``values`` field. Reading ``.values`` on one hands back a
            dict-view method rather than a vector, and raises nothing to warn
            you. Branch on ``embeddings.vector_type`` when the model is not
            fixed in advance.
 
         .. seealso::
-           :attr:`~pinecone.async_client.async_index.AsyncIndex.documents` —
-           on a document index whose ``string`` field uses integrated
-           embedding, Pinecone embeds the text for you and no call here is
-           needed. Legacy integrated indexes do the same through
-           :meth:`~pinecone.async_client.async_index.AsyncIndex.upsert_records`.
+           `Embeddings <https://sdk.pinecone.io/python/how-to/inference/embeddings.html>`__
+           covers storing and searching these vectors. On a document index
+           whose ``string`` field uses integrated embedding, Pinecone embeds
+           the text for you and no call here is needed.
         """
         model_id = resolve_model_id(model)
         require_non_empty("model", model_id)
@@ -406,7 +407,7 @@ class AsyncInference:
             Rank a list of strings against the query. ``result.data`` comes back
             ordered by descending relevance, not by the order the documents were
             passed in, so read ``.index`` to map a result back to its position
-            in *documents* — the top hit below is the second document, so its
+            in *documents*. The top hit below is the second document, so its
             ``.index`` is ``1``, not ``0``:
 
             .. code-block:: python
@@ -444,16 +445,16 @@ class AsyncInference:
                     print(result.data[0].document["id"])
 
         .. note::
-           The model you request may not be the model that serves the request —
+           The model you request may not be the model that serves the request;
            Pinecone may substitute a different one. ``result.model`` reports
            which one did, so read it there rather than assuming it echoes
            *model*.
 
         .. seealso::
-           :meth:`~pinecone.async_client.async_index.AsyncIndex.search_records`
-           — its ``rerank`` argument reranks that search's own hits in one round
-           trip. Reach for the method here when the candidates came from
-           somewhere else.
+           :meth:`~pinecone.async_client.async_index.AsyncIndex.search` on a
+           legacy integrated index takes a ``rerank`` argument that reranks
+           that search's own hits in one round trip. Reach for the method here
+           when the candidates came from somewhere else.
         """
         model_id = resolve_model_id(model)
         require_non_empty("model", model_id)
@@ -495,7 +496,7 @@ class AsyncInference:
                 only alongside ``type="embed"``.
 
         Returns:
-            :class:`~pinecone.models.inference.model_list.ModelInfoList` — a
+            :class:`~pinecone.models.inference.model_list.ModelInfoList`, a
             sequence of :class:`~pinecone.models.inference.models.ModelInfo`
             supporting iteration, indexing and ``len()``, plus ``names()`` when
             you want the model identifiers alone.
@@ -503,7 +504,7 @@ class AsyncInference:
         Raises:
             :exc:`PineconeValueError`: If *type* or *vector_type* is not one of
                 the values above, or if *vector_type* is paired with
-                ``type="rerank"`` — the client rejects that pairing rather than
+                ``type="rerank"``. The client rejects that pairing rather than
                 ignoring it.
 
         Examples:
@@ -564,13 +565,14 @@ class AsyncInference:
         Returns:
             :class:`~pinecone.models.inference.models.ModelInfo` with
             ``supported_parameters`` (the keys *parameters* accepts on
-            :meth:`embed` and :meth:`rerank` for this model), ``type``, and —
-            for embedding models — ``vector_type``, ``default_dimension`` and
+            :meth:`embed` and :meth:`rerank` for this model), ``type``, and,
+            for embedding models, ``vector_type``, ``default_dimension`` and
             ``supported_dimensions``.
 
         Raises:
             :exc:`PineconeValueError`: If *model* is empty, or if both *model*
                 and *model_name* are given.
+            :exc:`PineconeTypeError`: If *model* is not a ``str``.
             :exc:`TypeError`: If any keyword argument other than those above is
                 passed.
             :exc:`NotFoundError`: If no model of that name exists.
