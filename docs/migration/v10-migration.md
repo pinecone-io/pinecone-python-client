@@ -1106,7 +1106,7 @@ Metadata values are validated before the request is sent. A metadata value
 must be a string, number, boolean, or list of strings:
 
 ```python
-idx.upsert([("id-1", [0.1, 0.2], {
+idx.upsert(vectors=[("id-1", [0.1, 0.2], {
     "genre": "documentary",     # string
     "year": 2019,               # number
     "featured": True,           # boolean
@@ -1119,7 +1119,7 @@ too, so a bad value raises locally instead of failing the whole batch
 server-side:
 
 ```python
-idx.upsert([("id-1", [0.1, 0.2], {"price": {"usd": 10}})])
+idx.upsert(vectors=[("id-1", [0.1, 0.2], {"price": {"usd": 10}})])
 # PineconeTypeError: Metadata value must be a string, number, boolean or list of
 # strings, got '{"usd":10.0}' for field 'price'
 ```
@@ -1134,7 +1134,7 @@ values on write rather than refusing them, so this has always silently
 dropped the key rather than storing it:
 
 ```python
-idx.upsert([("id-1", [0.1, 0.2], {"tag": None})])  # no error
+idx.upsert(vectors=[("id-1", [0.1, 0.2], {"tag": None})])  # no error
 ```
 
 This now holds on both transports. The gRPC transport used to encode a
