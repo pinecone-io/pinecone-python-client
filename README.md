@@ -57,15 +57,13 @@ for doc in results.matches:
 Upserts apply asynchronously, so a document may not be visible to the next search
 immediately.
 
-Two other data-plane interfaces exist, and the way the index was created decides
-which one applies: an index created with the deprecated top-level vector
-arguments answers on `index.upsert` / `index.query`, and a legacy integrated
-index, created with `pc.indexes.create_for_model(...)`, requires the legacy
-Records API: `index.upsert_records` / `index.search`. For new indexes that should
-embed text for you, give a document index a field with integrated embedding. See
-the [quickstart](https://sdk.pinecone.io/python/getting-started/quickstart.html)
-and the rest of the [documentation](https://sdk.pinecone.io/python/) for the full
-picture.
+Indexes created another way use other methods: an index created with the
+deprecated top-level `dimension=`/`metric=` uses `index.upsert` / `index.query`, and
+a legacy integrated index (`pc.indexes.create_for_model(...)`) uses
+`index.upsert_records` / `index.search`. For new indexes that embed text for you,
+give a document index a field with integrated embedding. See the
+[quickstart](https://sdk.pinecone.io/python/getting-started/quickstart.html) and the
+[documentation](https://sdk.pinecone.io/python/).
 
 ## Async usage
 
@@ -97,42 +95,22 @@ asyncio.run(main())
 
 ## Configuration
 
-### API key
-
-Pass the API key directly or set the `PINECONE_API_KEY` environment variable:
-
 ```python
 from pinecone import Pinecone
 
-# Explicit API key
-pc = Pinecone(api_key="your-api-key")
-
-# From environment variable (PINECONE_API_KEY)
-pc = Pinecone()
+pc = Pinecone(
+    api_key="your-api-key",  # or omit and set PINECONE_API_KEY
+    timeout=60,  # request timeout in seconds; index handles inherit it
+)
 ```
 
-### Custom host
-
-Connect to a specific control plane host:
+Setting `PINECONE_DEBUG=1` before importing `pinecone` sets the `pinecone` logger
+to `DEBUG`. The SDK installs no log handler, so configure one to see the output:
 
 ```python
-pc = Pinecone(api_key="your-api-key", host="https://api.pinecone.io")
-```
+import logging
 
-### Timeout
-
-Configure request timeouts in seconds:
-
-```python
-pc = Pinecone(api_key="your-api-key", timeout=30)
-```
-
-### Debug logging
-
-Enable debug logging by setting the `PINECONE_DEBUG` environment variable:
-
-```bash
-export PINECONE_DEBUG=1
+logging.basicConfig()
 ```
 
 ## Development
@@ -155,11 +133,11 @@ The unit suite must leave the working tree clean: `git status` is expected to re
 no changes after a bare `uv run pytest tests/unit`. Use `tmp_path` /
 `tmp_path_factory` if a test genuinely needs a file on disk.
 
-Some suites are opt-in because they hit a real backend and cost money. The live
-retry/throttle smoke tests in `tests/integration/test_retry_smoke.py` need
-`PINECONE_API_KEY` plus `PINECONE_RETRY_SMOKE=1`; run them before any release that
-touches retry logic, HTTP transport, the AIMD adaptive-concurrency limiter, or the
-batch-upsert path. Each module documents its own gate and cost.
+Integration suites that hit a real backend are opt-in because they cost money;
+each module documents its own gate. Before any release that touches retry logic, HTTP
+transport, the AIMD adaptive-concurrency limiter, or the batch-upsert path, run
+`tests/integration/test_retry_smoke.py` with `PINECONE_API_KEY` and
+`PINECONE_RETRY_SMOKE=1` set.
 
 ## License
 

@@ -42,7 +42,7 @@ Three field types can be declared at creation time:
 |---|---|
 | `dense_vector` | Similarity search over embeddings. At most one per schema. Takes `dimension` and `metric`. |
 | `sparse_vector` | Term-based scoring, such as BM25. Has no fixed dimension. |
-| `string` with `full_text_search`, `embed`, and/or `sparse_embed` | Full-text search over a text field, and integrated embedding: dense or sparse embeddings Pinecone makes from its text — see [Integrated embedding](#integrated-embedding). |
+| `string` with `full_text_search`, `embed`, and/or `sparse_embed` | Full-text search over a text field, and integrated embedding: dense or sparse embeddings Pinecone makes from its text. See [Integrated embedding](#integrated-embedding). |
 
 Everything else you store is **metadata**. Metadata fields are not declared in the
 schema; Pinecone indexes them for filtering the first time they appear on a record you
@@ -82,7 +82,7 @@ should declare `schema=` directly. See the
 - **Metric** is the similarity function used when ranking results from that field:
   `cosine`, `euclidean`, or `dotproduct`.
 
-Both belong to a *field*, not to the index — an index can carry a dense field and
+Both belong to a *field*, not to the index: an index can carry a dense field and
 a sparse field, and the sparse field has neither. Read them off the schema:
 
 ```python
@@ -97,7 +97,7 @@ for field_name, field in desc.schema.fields.items():
 
 `IndexModel.dimension`, `.metric`, and `.vector_type` survive as deprecated properties
 that resolve only when the schema has exactly one vector field. On a schema with more than
-one — or with none — reading them raises `AttributeError` naming the fields it found. Read
+one, or with none, reading them raises `AttributeError` naming the fields it found. Read
 `desc.schema.fields["your_vector"].dimension` instead.
 
 
@@ -110,11 +110,11 @@ discriminated on `deployment_type`, and it defaults to a managed index on AWS
 | `deployment_type` | Product name | Capacity | Also configured by |
 |---|---|---|---|
 | `"managed"` | Serverless | Scales automatically | `read_capacity` |
-| `"pod"` | Pod-based | Fixed by `pod_type`, `replicas`, and `shards` | — |
+| `"pod"` | Pod-based | Fixed by `pod_type`, `replicas`, and `shards` | |
 | `"byoc"` | BYOC (bring your own compute) | Runs in your own infrastructure | `read_capacity` |
 
 A managed index takes `cloud` and `region`. A pod-based index takes `environment`,
-`pod_type`, `replicas`, and `shards` — all four are required. A BYOC index takes the
+`pod_type`, `replicas`, and `shards`, all four required. A BYOC index takes the
 `environment` identifier of your provisioned environment.
 
 `read_capacity` tunes reads on managed and BYOC indexes. `{"mode": "OnDemand"}` is the
@@ -133,7 +133,7 @@ Namespaces are the usual way to separate data by tenant, language, or environmen
 creating separate indexes.
 
 The vector methods `Index.upsert` and `Index.query` default to the empty string `""`,
-which is the default namespace. The document and record methods take no default — they
+which is the default namespace. The document and record methods take no default: they
 require a non-empty namespace argument.
 
 See [Working with namespaces](../how-to/vectors/namespaces.md).
@@ -146,8 +146,8 @@ created decides which data-plane interface reads and writes its records.**
 
 | Index created with | Records are | Read and write with |
 |---|---|---|
-| `schema=` naming your own fields | **documents** — an `_id` plus your fields | `index.documents` |
-| the deprecated `dimension=`/`metric=` | **vectors** — an ID plus coordinates | `index.upsert`, `index.query` |
+| `schema=` naming your own fields | **documents**: an `_id` plus your fields | `index.documents` |
+| the deprecated `dimension=`/`metric=` | **vectors**: an ID plus coordinates | `index.upsert`, `index.query` |
 | `pc.indexes.create_for_model(...)`, a legacy integrated index | **records** with text Pinecone embeds for you | the legacy Records API: `index.upsert_records`, `index.search` |
 
 The interfaces are not interchangeable: calling the vector methods on a schema-based index
@@ -156,7 +156,7 @@ is rejected by the server.
 ### Documents
 
 A document is a JSON object carrying the reserved `_id` key. Every other key is a field
-of your own — either declared in the schema, or free-form metadata indexed for filtering
+of your own, either declared in the schema or free-form metadata indexed for filtering
 on first write.
 
 ```python
@@ -181,8 +181,8 @@ with pc.index(name="support-articles") as index:
 ```
 
 `score_by` is what makes a document search a *search*: each clause names one scoring
-method — a dense vector, a sparse vector, a BM25 text query, a Lucene query string, or
-query text Pinecone embeds with a field's model — and a search may combine several
+method (a dense vector, a sparse vector, a BM25 text query, a Lucene query string, or
+query text Pinecone embeds with a field's model), and a search may combine several
 `text` and `query_string` clauses. Any other clause has to stand alone. See
 {doc}`the Index reference </reference/sync-index>` for every document operation.
 
@@ -235,12 +235,10 @@ with pc.index(name="support-articles") as index:
 - **`store_text`** decides whether the text is kept. It defaults to true, and stored
   text is always full-text searchable: describe reports `full_text_search` with default
   settings even when you declared only `embed`.
-- **Limits:** each value of the field is at most 100 KB. With `store_text` true, the
-  full-text limit of 10,000 tokens per value also applies.
 - **`store_text=False`** embeds the text and keeps it nowhere. The field then needs
   `embed` or `sparse_embed` and cannot take `full_text_search`, it can be searched only
   with an embed clause, and a fetch or search whose `include_fields` names it fails with
-  a `400` — `["*"]` leaves it out. Turning off text storage can save space when the field
+  a `400`; `["*"]` leaves it out. Turning off text storage can save space when the field
   is only used for similarity search, or keep sensitive text out of Pinecone. If you're
   not sure whether you'll need full-text search, keep text storage on, for more search
   flexibility later. Like the rest of the schema, it cannot be changed after creation.
@@ -256,22 +254,22 @@ A vector carries its coordinates in either or both of two representations:
 | `sparse_values` | `SparseValues` | Non-zero dimensions only, as parallel `indices` and `values` |
 | `metadata` | `dict[str, Any]` | Your own key-value pairs to filter on |
 
-At least one of `values` and `sparse_values` must be populated — a vector with no
+At least one of `values` and `sparse_values` must be populated: a vector with no
 coordinates cannot be scored against anything. Which ones you populate is what makes a
 vector dense, sparse, or hybrid:
 
-- **Dense** — `values` only. The usual output of an embedding model; finds records by
+- **Dense**: `values` only. The usual output of an embedding model; finds records by
   meaning.
-- **Sparse** — `sparse_values` only. How term-based scoring such as BM25 is expressed;
+- **Sparse**: `sparse_values` only. How term-based scoring such as BM25 is expressed;
   finds records by exact term. `values` stays empty.
-- **Hybrid** — both, on the same record, so it is reachable by meaning and by term. The
+- **Hybrid**: both, on the same record, so it is reachable by meaning and by term. The
   index has to declare a dense field and a sparse field for this to be accepted.
 
 ```python
 from pinecone import Pinecone, SparseValues, Vector
 
 dense = Vector(id="article-101", values=[0.12, 0.34, 0.56])
-print(dense.sparse_values)  # None — nothing sparse on this record
+print(dense.sparse_values)  # None: nothing sparse on this record
 
 hybrid = Vector(
     id="article-102",
@@ -299,7 +297,7 @@ See [Upsert and query vectors](../how-to/vectors/upsert-and-query.md).
 A legacy integrated index, created with `pc.indexes.create_for_model()`, embeds text for
 you and requires the legacy Records API. The `field_map`
 names the record field to embed, and the same model embeds your queries at read time. In
-the returned index that field shows up in the schema as a `semantic_text` field —
+the returned index that field shows up in the schema as a `semantic_text` field.
 `create_for_model` is the only way to get one, since `semantic_text` cannot be declared in
 a `schema=` you pass to `create()`. For new work, create a document index with a
 `string` field that uses integrated embedding (`embed` or `sparse_embed`) instead (see
@@ -331,7 +329,7 @@ embeds the query string server-side. See
 [Legacy integrated indexes](../how-to/integrated-records.md).
 
 For embedding and reranking as standalone operations, against text that is not going into
-an index, use `pc.inference` — see [Embeddings](../how-to/inference/embeddings.md) and
+an index, use `pc.inference`. See [Embeddings](../how-to/inference/embeddings.md) and
 [Reranking](../how-to/inference/reranking.md).
 
 
@@ -366,7 +364,7 @@ with pc.index(host=desc.host) as index:
 ```
 
 `Index` holds its own HTTP connection pool, separate from the one the `Pinecone` client
-uses. Closing the client does not close index clients, so close each one — the `with`
+uses. Closing the client does not close index clients, so close each one; the `with`
 block above does it for you.
 
 
@@ -401,9 +399,10 @@ if pc.indexes.exists("movie-recommendations"):
 returns as soon as the delete is accepted; a positive `timeout` raises
 `PineconeTimeoutError` if the index outlives it.
 
-`AsyncPinecone` carries the same sub-clients with the same names. Note that the
-list-shaped methods on them are not coroutines — see
-[Sync vs Async Clients](sync-vs-async.md).
+`AsyncPinecone` carries the same sub-clients with the same names. The methods that walk
+every page for you, such as `indexes.list()`, return an async iterator you use with
+`async for` instead of a coroutine; single-page methods such as `backups.list()` are
+awaited. See [Sync vs Async Clients](sync-vs-async.md).
 
 
 ## Collections and backups
@@ -426,18 +425,22 @@ pc = Pinecone()
 for collection in pc.collections.list():
     print(collection.name, collection.status)
 
-for backup in pc.backups.list(limit=10):
+page = pc.backups.list()
+for backup in page:
     print(backup.backup_id, backup.source_index_name, backup.status)
 ```
 
+`pc.backups.list()` returns one page of backups. To read the rest, pass
+`page.pagination.next` back as `pagination_token` (see [Pagination](pagination.md)), or
+use `pc.indexes.list_backups(name)`, which walks every page of one index's backups.
 See [Collections](../how-to/collections.md) and
 [Backups and restore](../how-to/indexes/backups-and-restore.md).
 
 
 ## Where to go next
 
-- [Quickstart](../getting-started/quickstart.md) — create an index and search it end to end.
-- [Sync vs Async Clients](sync-vs-async.md) — which client pair to reach for.
-- [Error handling](error-handling.md) — the exception hierarchy every method shares.
-- [Pagination](pagination.md) — how the list-shaped methods page.
-- [v10 migration guide](../migration/v10-migration.md) — the field-by-field mapping from 9.x.
+- [Quickstart](../getting-started/quickstart.md): create an index and search it end to end.
+- [Sync vs Async Clients](sync-vs-async.md): which client pair to reach for.
+- [Error handling](error-handling.md): the exception hierarchy every method shares.
+- [Pagination](pagination.md): how the list-shaped methods page.
+- [v10 migration guide](../migration/v10-migration.md): the field-by-field mapping from 9.x.

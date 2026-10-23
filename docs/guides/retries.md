@@ -20,7 +20,7 @@ Out of the box, no configuration needed:
 | What | Default behavior |
 |------|------------------|
 | Max retries (after initial attempt) | 3 for REST (4 total attempts), 5 for gRPC (6 total attempts) |
-| HTTP methods retried | All of them — GET, HEAD, POST, PUT, PATCH, DELETE alike |
+| HTTP methods retried | All of them: GET, HEAD, POST, PUT, PATCH, DELETE |
 | Retryable HTTP status codes | 408, 429, 500, 502, 503, 504 |
 | Retried transport failures | Any `httpx.TransportError`: connect, read, write, and pool timeouts, and connection resets |
 | Retryable gRPC status codes | UNAVAILABLE, RESOURCE\_EXHAUSTED, ABORTED. DEADLINE\_EXCEEDED is **not** retried |
@@ -34,18 +34,14 @@ requests reach the network, and `max_retries=0` means exactly one.
 
 ### Writes are retried too
 
-Most HTTP clients retry only the methods the spec calls idempotent, and refuse to
-retry a POST. This one retries every method, because Pinecone's data-plane writes
-are idempotent at the server: upsert overwrites by record ID, and delete-by-ID and
-update-by-ID both converge on the same state however many times they land. A retried
-upsert that turns out to have succeeded the first time writes the same bytes again.
+The SDK retries every method, including POST, because Pinecone's data-plane writes are
+idempotent at the server: upsert overwrites by ID, and delete-by-ID and update-by-ID converge
+on the same state however many times they land.
 
-The consequence to hold on to is that a retryable failure never tells you the write
-did *not* land — a response can be lost after the server applied it. That is
-harmless for a data-plane write and it is not harmless everywhere: control-plane
-deletes are not idempotent, so see
-[Retry it, or give up](error-handling.md#retry-it-or-give-up) before you wrap one in
-a retry loop of your own.
+A retryable failure never tells you the write did *not* land: a response can be lost after
+the server applied it. That is harmless for a data-plane write, but control-plane deletes are
+not idempotent, so see [Retry it, or give up](error-handling.md#retry-it-or-give-up) before
+you wrap one in a retry loop of your own.
 
 ---
 
@@ -72,11 +68,8 @@ idx = pc.index(name="product-search")
 idx.upsert(vectors=[("doc-1", [0.1, 0.2])])  # still 4 attempts, the built-in default
 ```
 
-`Index(retry_config=...)` and `AsyncIndex(retry_config=...)` raise `TypeError`. Threading the
-parameter through to the data plane is tracked as
-[#159](https://github.com/pinecone-io/python-sdk-internal/issues/159); until it lands, the knobs
-that do change data-plane behavior are in
-[Tuning Data-Plane REST](#tuning-data-plane-rest).
+`Index(retry_config=...)` and `AsyncIndex(retry_config=...)` raise `TypeError`. The knobs that
+do change data-plane behavior are in [Tuning Data-Plane REST](#tuning-data-plane-rest).
 
 The adaptive concurrency gate is not affected by any of this. It is fed from the transport itself,
 so bulk operations self-tune against throttling on every path, configured or not.
@@ -158,19 +151,16 @@ except RateLimitError as exc:
     time.sleep(exc.retry_after or 30.0)
 ```
 
-`RateLimitError.retry_after` carries the server's own `Retry-After` in seconds, or `None`
-when the header was absent or was an HTTP-date — the SDK does not parse that form.
+`RateLimitError.retry_after` carries the server's `Retry-After` in seconds, or `None` when
+the header was absent or was an HTTP-date, which the SDK does not parse.
 
 Data-plane `RateLimitError` still arrives only after the built-in four attempts are spent.
 
 ### Migration note: `backoff_factor` semantic change (v8 → v9)
 
-The default is `0.25` in both v8 and v9; what changed is what the number means. In v8 it
-was an exponential multiplier fed to urllib3's `Retry`. In v9 it is the floor of a
-decorrelated-jitter window, so no substitute value reproduces v8's curve exactly. If your
-code depended on that timing, measure against the formula in
-[Jitter strategy](#jitter-strategy) rather than assuming a 1:1 mapping. Otherwise leave it
-unset.
+In v8, `backoff_factor` was an exponential multiplier. Since v9 it is the floor of a
+decorrelated-jitter window (see [Jitter strategy](#jitter-strategy)), so no value reproduces
+v8's timing exactly. Leave it unset unless your code depends on retry timing.
 
 ---
 
@@ -183,15 +173,15 @@ data-plane call runs and how hard it pushes:
 |-----------|-------|--------|
 | `timeout` | `Pinecone(timeout=...)`, `Index(timeout=...)`, or per call | Deadline for one HTTP attempt. Each retry gets its own. |
 | `total_timeout` | Bulk calls with `batch_size` set | Wall-clock deadline for the whole operation. Batches left unsent come back in `errors`. |
-| `max_concurrency` | Bulk calls, 1 to 64, default 8 | Ceiling on in-flight batches for that call. |
+| `max_concurrency` | Bulk calls, default 8 | Ceiling on in-flight batches for that call. |
 
 `total_timeout` is the closest thing to "stop retrying and hand control back to me" on the data
 plane, because it bounds the operation rather than any single attempt:
 
 ```python
-response = idx.upsert(
-    vectors=batch,
-    batch_size=100,
+response = index.documents.batch_upsert(
+    namespace="products-en",
+    documents=documents,
     max_concurrency=4,
     total_timeout=30.0,
 )
@@ -200,16 +190,17 @@ if response.has_errors:
     retry_later(response.failed_items)
 ```
 
-The deadline does not raise. Batches it cut off arrive as `BatchError` entries in
+`index.upsert(vectors=..., batch_size=...)` takes the same knobs on indexes created with
+top-level `dimension=`/`metric=`. The deadline does not raise. Batches it cut off arrive as `BatchError` entries in
 `response.errors`, each with `disposition="unsent"` and a `PineconeTimeoutError` as its
 `error`; `response.failed_items` flattens their contents back into one list. Two other
 dispositions can appear alongside them: `"abandoned"` for batches dropped by
 [stall detection](#stall-detection), and `"rejected"` for a batch whose attempt actually
 completed with an error.
 
-Filter on `err.retryable` before re-sending anything. It is `False` for the deterministic
-failures — validation errors and 4xx rejections — that would fail identically on every
-attempt, which is what keeps a poison batch from spinning forever:
+Filter on `err.retryable` before re-sending anything. It is `False` for deterministic
+failures, such as validation errors and 4xx rejections, that would fail identically on every
+attempt:
 
 ```python
 again = [
@@ -220,7 +211,7 @@ again = [
 ]
 ```
 
-A non-batched call (no `batch_size`) has no `total_timeout`. Bound it with `timeout` and accept
+A single-request call such as `documents.upsert()` has no `total_timeout`. Bound it with `timeout` and accept
 that the worst case is four attempts plus backoff.
 
 ---
@@ -240,11 +231,9 @@ delay = uniform(backoff_factor, max(backoff_factor, upper))
 ```
 
 Starting from `prev_delay = backoff_factor`, each retry delay is drawn uniformly from
-`[backoff_factor, prev_delay × 3]`. `max_wait` clamps the window's upper bound before the draw
-rather than clamping the drawn value, so a capped window still spreads its clients across the whole
-range instead of piling them all on the cap. Because the next window's upper bound grows with the
-previous delay, the sequence performs a random walk that diverges naturally without a hard
-exponential schedule.
+`[backoff_factor, prev_delay × 3]`. `max_wait` caps the window before the draw, so clients at
+the cap still spread across the whole window. Because each window grows with the previous
+delay, the delays follow a random walk rather than a fixed exponential schedule.
 
 **Concrete example with defaults** (`backoff_factor=0.25`, `max_wait=60.0`):
 
@@ -269,45 +258,38 @@ the subsequent backoff draws too.
 
 ## Retry Budget
 
-Retrying harder is the wrong response to a host that is failing every request, so each host has a
-token bucket that spends down as failures accumulate.
+Retrying harder is the wrong response to a host that fails every request, so each host has a
+retry budget. Retryable failures spend it and successful responses slowly refill it. While it
+is depleted, the SDK stops retrying that host. First attempts never consult the budget, so a
+struggling host still gets your traffic without the retry multiplier on top. Against a host
+that returns 429 to everything, calls quickly drop from four attempts to one.
 
-Every retryable failure costs one token out of 100; every 2xx earns 0.1 back. Retries are suppressed
-while the bucket sits at or below half. First attempts never consult the budget, so a struggling host
-still gets your traffic. It just stops getting the retry multiplier on top.
+The budget is keyed by hostname and shared process-wide, so two `Pinecone` clients pointed at
+one host share it. It resets in a forked child.
 
-Against a host returning 429 to everything, calls start at the full four attempts and collapse to
-one within about a dozen calls. Steady-state retry overhead stays near 10% of successful traffic.
-
-The bucket is keyed by bare hostname and shared process-wide, so two `Pinecone` clients pointed at one
-host draw on one ledger. It resets in a forked child.
-
-gRPC runs the same policy with the same numbers, on a bucket held per channel rather than in a
-process-wide registry. Two `GrpcIndex` objects against one host therefore keep separate ledgers,
+gRPC runs the same policy, with the budget held per channel rather than process-wide. Two `GrpcIndex` objects against one host therefore keep separate ledgers,
 where two `Index` objects share one.
 
 ---
 
 ## Adaptive Concurrency for Bulk Operations
 
-When you run bulk upserts or other parallel operations, the SDK observes throttling
-signals and automatically reduces the number of concurrent in-flight requests. When
-throttling subsides, concurrency recovers.
+During bulk calls, the SDK reduces the number of in-flight requests when a host throttles,
+and recovers as throttling subsides.
 
 ### How it works
 
-Every bulk call passes through a per-host admission gate. The gate's limit starts at 64 and moves by
-AIMD (Additive Increase, Multiplicative Decrease), the same control loop TCP congestion control uses:
+Every bulk call passes through a per-host admission gate. The gate's limit starts at 64 and
+moves by AIMD (additive increase, multiplicative decrease):
 
-- **Decrease.** A retryable response halves the limit, measured from the number of requests actually
-  in flight rather than from the limit itself. One decrease per in-flight epoch, so a single batch
-  burning six retries cannot halve the limit six times while its siblings succeed.
-- **Increase.** After a limit-sized streak of successful batches the limit goes up by one, but only
-  if the gate was actually limit-bound during that streak. Idle headroom does not accumulate.
+- **Decrease.** A retryable response halves the limit, measured from the number of requests
+  in flight.
+- **Increase.** A run of successful batches raises the limit by one, but only while the gate
+  was the thing holding requests back. Idle headroom does not accumulate.
 - **Pushback.** A `Retry-After` on the throttling response blocks admission until it elapses.
 
-**You don't configure this directly.** The `max_concurrency` you pass to `upsert()` is a per-call
-semaphore layered on top: your call never has more than its own bound outstanding, and global
+**You don't configure this directly.** The `max_concurrency` you pass to a bulk call is a
+per-call bound layered on top: your call never has more than its own bound outstanding, and global
 admission works out to `min(max_concurrency, gate limit)`.
 
 ### Example
@@ -316,44 +298,39 @@ admission works out to `min(max_concurrency, gate limit)`.
 from pinecone import Pinecone
 
 pc = Pinecone()
-index = pc.index(host="product-search-abc123.svc.pinecone.io")
+index = pc.index("product-search")
 
 # max_concurrency=8 bounds this call. If the index throttles mid-run, the gate
 # halves the host-wide limit from what is in flight (8, then 4, then 2) and
 # recovers as throttling subsides.
-response = index.upsert(
-    vectors=large_list,
-    batch_size=200,
+response = index.documents.batch_upsert(
+    namespace="products-en",
+    documents=documents,
     max_concurrency=8,
 )
-print(response.upserted_count)
+print(response.successful_item_count)
 ```
 
 ### Stall detection
 
-At the floor, four consecutive all-failed batches mean the backend is not coming back on this
-attempt. The gate flips to stalled and refuses admission for 30 seconds. Waiting callers are woken
-so they can abandon their remainder instead of queueing against a dead host, and the abandoned
-batches arrive in `errors` with `disposition="abandoned"` and a message saying they were never sent.
-`response.failed_items` is what to re-submit once the host recovers.
-
-The stall is a cool-down, not a terminal state. When it elapses the gate probes again from the floor.
+If batches keep failing outright with the limit already at its floor, the gate marks the host
+stalled and refuses admission for a cool-down period. Waiting calls abandon their remaining
+batches instead of queueing against a dead host. Those batches arrive in `errors` with
+`disposition="abandoned"` and a message saying they were never sent, and
+`response.failed_items` is what to re-submit once the host recovers. When the cool-down ends,
+the gate probes again from the floor.
 
 ### Gate scope
 
-One gate per host, process-global. Two `Pinecone` clients in one process targeting the same index
-share it, and so do concurrent bulk calls from different threads or event loops. The limit describes
-a backend cell rather than a client object, so per-client gates would let each instance run the full
-limit and would throw away everything learned whenever a client was recreated. Sharing can only
-under-load a host, never over-load one.
+One gate per host, process-global. Two `Pinecone` clients in one process targeting the same
+index share it, and so do concurrent bulk calls from different threads or event loops. A forked
+child starts with fresh gates.
 
-The registry holds up to 1024 gates. At the cap it evicts a quiescent gate, never one with live
-in-flight counts. A forked child starts with an empty registry.
-
-The gate's own counters — how many throttle signals it heard, where the limit ended up, whether
-it stalled — are not on any response object a public method hands back. `index.upsert()` returns
-an `UpsertResponse`, which carries the per-batch outcome and nothing about the gate. To see what
-the gate did, read the DEBUG records in [Observability](#observability).
+`documents.batch_upsert()` reports what the gate did during the call (throttle signals, the
+final limit, whether it stalled) on its `BatchResult`; see
+[Reading the gate counters on the result](bulk-ingest.md#reading-the-gate-counters-on-the-result).
+`index.upsert()` returns an `UpsertResponse`, which carries the per-batch outcome but nothing
+about the gate.
 
 ---
 
@@ -366,7 +343,7 @@ REST and gRPC share the same retry shape. The differences are in the defaults, i
 |--------|--------------------|------------------------------------------|---------------------|
 | Default `max_retries` | 3 (4 total attempts) | 3 (4 total attempts) | 5 (6 total attempts) |
 | Default `backoff_factor` | 0.25 | 0.25 | 0.1 |
-| Configured via | `retry_config` passed to `Pinecone()` | Not configurable ([#159](https://github.com/pinecone-io/python-sdk-internal/issues/159)) | `retry_config` on `Pinecone()` when set explicitly, or passed directly to `GrpcIndex()` |
+| Configured via | `retry_config` passed to `Pinecone()` | Not configurable | `retry_config` on `Pinecone()` when set explicitly, or passed directly to `GrpcIndex()` |
 | Retryable codes | `{408, 429, 500, 502, 503, 504}` | Same, fixed | UNAVAILABLE, RESOURCE\_EXHAUSTED, ABORTED (fixed); `retryable_status_codes` is ignored |
 | Jitter algorithm | Decorrelated jitter (Python) | Decorrelated jitter (Python) | Decorrelated jitter (Rust) |
 | Server hint honored | `Retry-After` | `Retry-After` | `grpc-retry-pushback-ms`, then `retry-after` |
@@ -381,14 +358,13 @@ the control-plane client, construct `GrpcIndex` directly and pass `retry_config`
 Three gRPC behaviors have no REST counterpart:
 
 - **DEADLINE_EXCEEDED is not retried.** A gRPC call that runs out of time raises rather than
-  going round again, and `max_retries` is not the knob for it — raise `timeout` instead. The
+  going round again, and `max_retries` is not the knob for it: raise `timeout` instead. The
   three codes that *are* retried compound with `timeout`, so under the default
   `max_retries=5` a batch that keeps failing on them can run to six attempts plus backoff.
 - **The first retry draws from a wider window.** gRPC seeds the jitter window at ten times
   `backoff_factor` rather than at `backoff_factor`, so the first draw with the defaults spans
-  roughly 0.1 to 3 seconds instead of 0.1 to 0.3. A backend restart returns UNAVAILABLE to
-  every client at once and carries no hint, so the narrow window is exactly where a
-  thundering herd would form.
+  roughly 0.1 to 3 seconds instead of 0.1 to 0.3. This spreads clients out after a backend
+  restart, which returns UNAVAILABLE to every client at once.
 - **A negative pushback means stop.** `grpc-retry-pushback-ms: -1` is the server refusing the
   retry, and the transport fails fast instead of backing off.
 
@@ -424,13 +400,13 @@ Let your orchestrator handle retries at the job level, and keep each invocation'
 from pinecone import Pinecone
 
 pc = Pinecone()
-index = pc.index(host="product-search-abc123.svc.pinecone.io")
+index = pc.index("product-search")
 
 # Bound the operation, not the individual attempt. Let the SQS visibility
 # timeout / Cloud Tasks retry / Step Functions catch handle the outer loop.
-response = index.upsert(
-    vectors=batch,
-    batch_size=100,
+response = index.documents.batch_upsert(
+    namespace="products-en",
+    documents=documents,
     max_concurrency=4,
     total_timeout=20.0,
 )
@@ -445,11 +421,9 @@ would expect.
 
 ### Why jitter still helps across processes
 
-Even without coordination, the SDK's decorrelated jitter provides statistical relief. If N
-independent Lambda invocations are all throttled at once, they don't all retry at the same
-instant; each draws its own delay, spreading the retries across a window. The larger N is,
-the more this matters. A `Retry-After` hint gets the same treatment, smeared across up to 1.5×
-the requested wait rather than snapping the whole fleet to one instant.
+Even without coordination, decorrelated jitter spreads the retries of independently
+throttled processes across a window instead of one instant, and a `Retry-After` hint is
+smeared across up to 1.5× the requested wait.
 
 ### Summary: when to trust the SDK vs. the orchestrator
 
@@ -465,9 +439,7 @@ the requested wait rather than snapping the whole fleet to one instant.
 
 ## Observability
 
-The SDK emits namespaced log records with consistent `key=value` fields in each message,
-so you can diagnose retry storms and throttling pressure without adding instrumentation
-yourself.
+The SDK logs retries and throttling with `key=value` fields in each message.
 
 ### Log namespaces
 
@@ -487,18 +459,18 @@ Rate limited by host=<host>. Adaptive concurrency will reduce in-flight requests
 See https://docs.pinecone.io/python/retries for details.
 ```
 
-It fires once per host per `Pinecone` / `AsyncPinecone` object, so it surfaces in your
-logs without flooding them on repeated throttling. Data-plane REST hosts do not produce it, because
-the callback behind it rides on the `retry_config` that `Index` and `AsyncIndex` never receive
-([#159](https://github.com/pinecone-io/python-sdk-internal/issues/159)). The DEBUG records below
-are how you see data-plane throttling.
+It fires once per host per `Pinecone` / `AsyncPinecone` object. Data-plane REST hosts do not
+produce it, because the callback behind it rides on the `retry_config` that `Index` and
+`AsyncIndex` never receive. The DEBUG records below are how you see data-plane throttling.
 
 ### DEBUG messages
 
-Enable DEBUG-level logging on `pinecone._internal.http_client` to see granular retry events:
+Enable DEBUG-level logging on `pinecone._internal.http_client` to see granular retry events.
+The SDK installs no log handler, so configure one too:
 
 ```python
 import logging
+logging.basicConfig()
 logging.getLogger("pinecone._internal.http_client").setLevel(logging.DEBUG)
 ```
 
@@ -521,14 +493,14 @@ Connection error on attempt 1/4, retrying: All connection attempts failed
 Neither record is emitted for the final attempt, since nothing is retried after it. A request that
 uses all four attempts logs three records and then raises.
 
-**Limit reduction record**, on `pinecone._internal.adaptive`:
+**Limit reduction record**, on `pinecone._internal.adaptive` (control-plane REST and gRPC
+only, per the table above):
 
 ```
 AIMD limiter decreased: before=8 after=4 ceiling=8
 ```
 
-A bulk call whose logs end on a small `after` was being pushed back on, and `max_concurrency`
-was not the thing bounding it.
+For a data-plane REST bulk call, read the gate counters on the `BatchResult` instead.
 
 ---
 

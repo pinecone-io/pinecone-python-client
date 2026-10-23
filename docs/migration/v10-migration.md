@@ -1572,9 +1572,8 @@ right needs to change; rows 6 and 7 correct documentation, not behavior.
 Batched writes pace themselves differently on `10.x`. This covers
 `upsert(batch_size=...)` and `upsert_from_dataframe` on `Index`, `AsyncIndex`
 and `GrpcIndex`, and `documents.batch_upsert` on both document surfaces. The
-argument you pass to set concurrency is the same one; its default is not, and
-there is now a per-host admission gate between your call and the wire that
-can pace a batch job down or refuse the rest of it.
+default concurrency is higher, and a per-host admission gate between your
+call and the wire can slow a batch job down or refuse the rest of it.
 
 None of this applies to an unbatched write. An `upsert` without `batch_size`
 is a single request: `max_concurrency` and `total_timeout` are both ignored
@@ -1583,15 +1582,12 @@ on that path, and `max_concurrency` isn't even range-checked.
 (bulk-max-concurrency)=
 ### `max_concurrency` defaults to 8
 
-`upsert` took `max_concurrency=4` on `Index`, `AsyncIndex` and `GrpcIndex`
-alike. It now takes `8` on all three, from a single constant. The accepted
-range is unchanged at `1`-`64`, and a value outside it still raises
-`PineconeValueError` before anything is sent. What the argument buys is also
-unchanged: it caps how many of your batches are in flight at once — a thread
-pool that wide on the two sync lanes, that many concurrent coroutines on the
-asyncio lane.
+`upsert` defaulted to `max_concurrency=4` on `Index`, `AsyncIndex` and
+`GrpcIndex`. It now defaults to `8` on all three. The accepted range is still
+`1`-`64`, and a value outside it raises `PineconeValueError` before anything
+is sent. The argument caps how many of your batches are in flight at once.
 
-If you sized a workload around four in-flight batches, say so:
+If you sized a workload around four in-flight batches, pass that explicitly:
 
 ```python
 vectors = [(f"vec-{i}", [0.1, 0.2, 0.3]) for i in range(400)]
@@ -1603,90 +1599,73 @@ idx.upsert(vectors=vectors, namespace="movies-en", batch_size=100)
 idx.upsert(vectors=vectors, namespace="movies-en", batch_size=100, max_concurrency=4)
 ```
 
-Each in-flight batch still carries its own retry budget on top of that
-(`max_retries=3` by default, so up to four attempts), so doubling the default
-doubles the number of concurrent conversations a single ingest opens with one
-host, not the attempts within any one of them.
-
-`upsert_from_dataframe` arrives at the same `8` by a different route, because
-`9.x` gave it no concurrency argument at all — just `df`, `namespace`,
-`batch_size` and `show_progress`. On `10.x` all three lanes — `Index`,
-`AsyncIndex` and `GrpcIndex` — take a keyword-only `max_concurrency` that
-defaults to `None` and resolves to `8`. pandas is not an SDK dependency; it's
-imported when you call this method, and its absence is the one thing that
-raises here.
-`documents.batch_upsert` resolves `None` the same way, and was `4` under
-`pc.preview`; see [Smaller signature deltas](#preview-graduation) for the
-rest of that signature's changes.
+`upsert_from_dataframe` had no concurrency argument on `9.x`, and on
+`AsyncIndex` it raised `NotImplementedError`. On `10.x` it works on all three
+lanes and takes a keyword-only `max_concurrency` that defaults to `None` and
+resolves to `8`. `documents.batch_upsert` resolves `None` the same way (it
+resolved to `4` under `pc.preview`); see
+[Smaller signature deltas](#preview-graduation) for the rest of that
+signature's changes.
 
 (bulk-backpressure)=
 ### The admission gate can refuse batches
 
-Under `9.x` every `Pinecone` client owned its own adaptive limiter, keyed by
-host, ceilinged at whatever `max_concurrency` you passed. It halved on a
-throttled response and healed back up on success streaks, and that was the
-whole of it: it could only make an ingest slower.
+On `9.x` each `Pinecone` client had its own per-host limiter, capped at your
+`max_concurrency`, that halved on a throttled response and recovered on
+success. It could only make an ingest slower. `10.x` replaces it with a
+per-host admission gate that every batch passes through. Three differences
+matter when you upgrade:
 
-`10.x` replaces it with a per-host admission gate that every batch has to be
-admitted through. Three differences matter when you upgrade:
-
-- **The gate is process-global, not per-client.** Two `Pinecone` instances,
-  or a `Pinecone` and an `AsyncPinecone`, hitting one host in one process
-  share one gate and one in-flight count. The key is the bare lowercase
-  hostname, so scheme and port variants land on the same gate. Concurrent
-  ingests against one host therefore share a budget rather than each getting
-  their own. (A forked child starts with fresh gates rather than inheriting
-  the parent's counts.)
-- **Your `max_concurrency` is a ceiling, not a floor.** Effective
-  concurrency is the lower of your bound and the gate's current limit. The
-  gate starts each host at its own ceiling of `64`, so on a healthy host your
-  bound is the one that binds; once a throttled response halves the gate, the
-  gate's limit is. It halves at most once per in-flight generation, so one
-  batch burning its retries can't halve the limit six times over, and it adds
-  one back after a limit-sized run of successes — counted only while callers
-  were actually pressing against the limit, so unused headroom doesn't
-  accumulate while the host is idle. A `Retry-After` (or
-  `grpc-retry-pushback-ms`) hint blocks admission outright until it elapses.
+- **The gate is process-global, not per-client.** Every client in one
+  process, sync or async, that writes to one host shares one gate and one
+  in-flight count. The key is the bare lowercase hostname, so scheme and port
+  variants land on the same gate. Concurrent ingests against one host share
+  a budget rather than each getting their own.
+- **Your `max_concurrency` is a ceiling.** Effective concurrency is the lower
+  of your bound and the gate's current limit. The gate starts each host at
+  its own ceiling of `64`, so on a healthy host your bound is the one that
+  binds; once a throttled response halves the gate, the gate's limit is. It
+  halves at most once per in-flight generation and climbs back on sustained
+  success. A `Retry-After` (or `grpc-retry-pushback-ms`) hint holds admission
+  until it elapses.
 - **The gate can stop an ingest instead of slowing it.** When its limit is
   at the floor of one and four consecutive batches settle with no success at
-  all, it reads the host as unavailable and refuses admission for a 30-second
-  cool-down. The batches that were still queued are abandoned without being
-  sent, and come back as errors carrying `disposition="abandoned"` and a
-  message that says so, rather than as a timeout. `9.x` had nothing that did
-  this; a dead host produced batch after batch of exhausted retries.
+  all, it treats the host as unavailable and refuses admission for a
+  30-second cool-down. Batches still queued are not sent; they come back as
+  errors carrying `disposition="abandoned"` and a message that says so,
+  rather than as a timeout. On `9.x` a dead host produced batch after batch
+  of exhausted retries.
 
 The gate's state is reported back on `documents.batch_upsert`'s
-`BatchResult`: `throttle_event_count`, `final_limit` (a value far below your
-`max_concurrency` means the host was pushing back), `peak_inflight`, and
-`stalled`. Because the gate is shared per host, those counters are
+`BatchResult`: `throttle_event_count`, `final_limit` (the host gate's
+concurrency limit, which starts at the gate's ceiling regardless of
+`max_concurrency`; a value below that ceiling means the gate backed off),
+`peak_inflight`, and `stalled`. Because the gate is shared per host, those counters are
 host-level, not call-level. `UpsertResponse` on the vector paths carries none
-of them — there, `errors` and `failed_items` are the whole signal.
+of them; there, `errors` and `failed_items` are the whole signal.
 
 (bulk-total-timeout)=
 ### `total_timeout` bounds admission, not requests
 
 `10.x` adds a `total_timeout` keyword to every batched ingest entry point:
 `upsert` and `upsert_from_dataframe` on all three lanes, and
-`documents.batch_upsert` on both the sync and asyncio document surfaces.
-`9.x` had no equivalent — `timeout` was the only deadline available, and it
-bounds one attempt of one batch, so a large ingest had no whole-job bound at
-all. It defaults to `None` on every one of those methods, so nothing changes
-until you pass it.
+`documents.batch_upsert` on both the sync and asyncio document surfaces. On
+`9.x`, `timeout` bounded one attempt of one batch and nothing bounded the
+whole job. It defaults to `None` on every one of those methods, so nothing
+changes until you pass it.
 
-What it bounds is admission. When the deadline expires, no further batch is
-submitted; batches already in flight are awaited and never cancelled, because
-cancelling client-side wouldn't un-send what the server may already be
-applying, and the caller would be told less landed than did. So a call can
-outlive its own `total_timeout` — by up to one batch's `timeout` budget,
-retries included. Waiting on the admission gate counts against the budget
-too, which means a throttled host can consume it without a request going out.
+When the deadline expires, no further batch is submitted. Batches already in
+flight are awaited and never cancelled, because the server may already be
+applying them. A call can therefore outlive its `total_timeout` by up to one
+batch's `timeout` budget, retries included. Time spent waiting on the
+admission gate counts against the budget, so a throttled host can use it up
+before a request goes out.
 
-The batches that were never submitted are reported, not silently dropped.
-Each becomes an error carrying `disposition="unsent"` and a
-`PineconeTimeoutError` that names the budget and the batch — `total_timeout
-of 5.0s expired before this batch was submitted; 100 items in batch 3 were
-not sent` — and its items are in `failed_items`, ready to be passed straight
-back in:
+Batches that were never submitted are reported, not dropped. Each becomes an
+error carrying `disposition="unsent"` and a `PineconeTimeoutError` that names
+the budget and the batch (`total_timeout of 5.0s expired before this batch
+was submitted; 100 items in batch 3 were not sent`), and its items are in
+`failed_items`, ready to pass straight back in:
 
 ```python
 vectors = [(f"vec-{i}", [0.1, 0.2, 0.3]) for i in range(400)]
@@ -1706,22 +1685,19 @@ if unsent:
     )
 ```
 
-A partial ingest still doesn't raise on `upsert` — the deadline is reported
-like any other per-batch failure. `upsert_from_dataframe` is where you get a
-choice: `on_error="collect"` (the default) hands back the same response, and
-`on_error="raise"` re-raises the lowest-indexed failure once every batch has
-settled, which on `Index` and `AsyncIndex` means the `PineconeTimeoutError`
-for the first unsent batch. `GrpcIndex.upsert_from_dataframe` is the one
-variation: for an expired deadline it raises a `PineconeTimeoutError`
-summarizing how many vectors landed rather than re-raising one batch's error,
-and under `on_error="collect"` it logs that same summary as a warning. Either
-way the partial response is on the exception's `response` attribute, so
-nothing about the retry is lost.
+`upsert` does not raise on a partial ingest; an expired deadline is reported
+like any other per-batch failure. `upsert_from_dataframe` takes `on_error`:
+`"collect"` (the default) returns the same response, and `"raise"` re-raises
+the lowest-indexed failure once every batch has settled, with the partial
+response on the exception's `response` attribute.
+`GrpcIndex.upsert_from_dataframe` is the one variation: for an expired
+deadline it raises a `PineconeTimeoutError` summarizing how many vectors
+landed rather than one batch's error, and under `on_error="collect"` it logs
+that summary as a warning.
 
-`documents.batch_upsert` adds one thing the vector paths don't have:
-`result.timed_out`. It's `True` only when work was actually left unsent. A
-deadline that elapses while the last batches are in flight, all of which then
-land, doesn't set it — there'd be nothing to retry.
+`documents.batch_upsert` also reports `result.timed_out`, which is `True`
+only when work was actually left unsent. A deadline that expires while the
+last batches are in flight, all of which then land, does not set it.
 
 (backup-models)=
 ## Backups and backup schedules
@@ -2012,7 +1988,7 @@ Accessing either attribute raises an `AttributeError` naming
 `describe_operation` as the replacement:
 
 ```python
-file = pc.assistants.describe_file(assistant_name="my-assistant", file_id="f-1")
+file = pc.assistants.describe_file(assistant_name="research-assistant", file_id="file-abc123")
 file.error_message
 # AttributeError: AssistantFileModel.error_message was removed in the 2026-07
 # Pinecone API: processing failure detail is reported by the operations API
@@ -2020,19 +1996,12 @@ file.error_message
 ```
 
 Dict-style access follows suit: `file["percent_done"]` raises `KeyError`, and
-neither name appears in `file.keys()` or `file.to_dict()`. Responses that
-still carry the old keys, from a `2025-10` server or a recorded fixture,
-continue to decode; the extra keys are ignored.
-
-`upload_file()` and `delete_file()` used to quote `error_message` in the
-error they raised on a failed poll. With the field gone, those messages now
-name the file state and point to `describe_operation()` for the reason. Code
-matching on the old message text needs updating.
+neither name appears in `file.keys()` or `file.to_dict()`.
 
 ### File IDs are no longer UUIDs
 
-`2026-07` documents `id` as a plain string, because a file ID may be one the
-caller supplied. Code that parses a file ID as a UUID breaks:
+A file ID may now be one the caller chose (pass `file_id=` to `upload_file`),
+so code that parses a file ID as a UUID breaks:
 
 ```python
 import uuid
@@ -2040,51 +2009,42 @@ import uuid
 uuid.UUID(file.id)  # no longer safe
 ```
 
-`size` (bytes, `int64`) is part of the documented shape now, populated on
-upload, describe, and list responses.
+`AssistantFileModel` also gains `size`, the file size in bytes.
 
 ### `AssistantModel.region`
 
 `AssistantModel` gains `region`, `"us"` or `"eu"`, the region the assistant
-is deployed in. `create` takes `region` too, defaulting to `"us"`. It's fixed
-at creation time, there's no move-an-assistant operation, so an `eu`-resident
-assistant has to be created that way:
+is deployed in. `create` takes `region` too, defaulting to `"us"`. The region
+is fixed at creation, so an EU-resident assistant has to be created that way:
 
 ```python
 assistant = pc.assistants.create(name="eu-assistant", region="eu")
 assistant.region  # 'eu'
 ```
 
-Not every deployment can serve `eu`; where it can't, the request is refused
-with a message saying so.
-
 ### Model names and finish reasons
 
-The `2026-07` data API changes which model names it documents on `chat()`
-and which `finish_reason` values it returns. The SDK doesn't validate
-`model` client-side, the backend is authoritative, so these surface as
-backend rejections and as different strings, not SDK type errors.
+The SDK doesn't validate `chat(model=...)` or `finish_reason`; both are plain
+strings, so these changes show up as different server behavior, not SDK
+errors.
 
 `claude-3-5-sonnet` and `claude-3-7-sonnet` are no longer documented. Migrate
 to `claude-sonnet-4-5`:
 
 ```python
 response = pc.assistants.chat(
-    assistant_name="my-assistant",
+    assistant_name="research-assistant",
     messages=[{"content": "What is Pinecone?"}],
     model="claude-sonnet-4-5",  # was "claude-3-5-sonnet"
 )
 ```
 
-The two old names are still accepted as deprecated aliases and silently
-remapped to `claude-sonnet-4-5`, so existing code keeps working, but the
-responses come from a different model than the name suggests. `gpt-4o`
-remains the SDK default. An unrecognized model name is rejected with a 400
-whose message lists the values the backend accepts.
+The server still accepts the two old names as deprecated aliases and answers
+with `claude-sonnet-4-5`, so existing code keeps working but gets a different
+model than the name suggests. `gpt-4o` remains the SDK default.
 
-Wherever the API reports why generation stopped, the value `function_call`
-has been replaced by `tool_calls`. The SDK types these as plain strings, so
-nothing in the SDK breaks, but code matching on the string does:
+The `finish_reason` value `function_call` is replaced by `tool_calls`. Code
+matching on the string needs updating:
 
 ```python
 if response.finish_reason == "function_call":  # never true on 2026-07
@@ -2102,179 +2062,148 @@ of document a snippet came from.
 (assistant-files)=
 ### File uploads and deletes are operations
 
-On `2026-07` the assistant file endpoints stopped answering with the file
-and started answering with an operation. `upload_file` and `delete_file`
-keep their signatures and return types, the SDK performs the new handshake
-internally, but the wire contract and what `delete_file` guarantees when it
-returns both changed. This applies to `AsyncPinecone().assistants` identically.
+On `2026-07` the server runs file uploads and deletes as long-running
+operations. `upload_file` and `delete_file` keep their signatures and return
+types and poll the operation for you, on `AsyncPinecone().assistants` as well.
 
-`upload_file` reads the operation, polls it until it reports `Completed`,
-and then calls `describe_file`, so this keeps working unchanged:
+`upload_file` polls until the operation completes and then returns
+`describe_file`, so this keeps working unchanged:
 
 ```python
 file = pc.assistants.upload_file(
-    assistant_name="my-assistant",
+    assistant_name="research-assistant",
     file_path="/data/report.pdf",
 )
 file.status  # "Available"
 ```
 
-Progress now comes from the operation rather than the file's `status`.
-`timeout=-1` still skips polling and returns one `describe_file`
-immediately, but on `2026-07` that means the file may still exist mid-upload
-when the call returns, since it means "request accepted" rather than "file
-processed."
+`timeout=-1` still skips polling and returns one `describe_file` at once, so
+the file may still be processing when the call returns.
 
-Metadata moved from a query parameter into the multipart body. The backend
-rejects the old form outright rather than ignoring it. Through the SDK
-nothing changes, keep passing a dict:
-
-```python
-pc.assistants.upload_file(
-    assistant_name="my-assistant",
-    file_path="/data/report.pdf",
-    metadata={"tags": ["report", "Q4"], "published": "2025-10-01"},
-    multimodal=True,
-)
-```
-
-Upload failures now quote the server. With `error_message` gone from
-`AssistantFileModel`, the SDK raises `PineconeError` naming the file, the
-operation, and the server's message verbatim:
+Failures quote the server's reason in a new format. Code matching on the old
+`File processing failed for '<id>'` or `File deletion failed for '<id>'` text
+needs updating:
 
 ```python
 from pinecone import PineconeError
 
 try:
-    pc.assistants.upload_file(assistant_name="my-assistant", file_path="/data/logo.gif")
+    pc.assistants.upload_file(assistant_name="research-assistant", file_path="/data/logo.gif")
 except PineconeError as exc:
     print(exc)
     # Upload of file 'ae79e447-…' failed (operation_id='op-1234-abcd-5678'):
     # Uploaded file can only currently be either a pdf or txt file
 ```
 
-Previously a failure surfaced as `File processing failed for '<id>'` with no
-reason attached. Code matching on that old text needs updating.
-
-`delete_file` is genuinely asynchronous now. It answers either a `202` with
-an operation (deletion pending, polled every 5s), or a `204` with no body
-(the file was removed at once). Both are success; the old implementation
-polled `describe_file` until it 404'd, so a failed deletion now raises with
-the server's reason instead of just timing out:
+`delete_file` returns once the deletion is done, whether the server removed
+the file at once or ran a pending operation:
 
 ```python
-pc.assistants.delete_file(assistant_name="my-assistant", file_id="file-abc123")
-# returns once the deletion operation has completed
+pc.assistants.delete_file(assistant_name="research-assistant", file_id="file-abc123")
 ```
 
-`timeout=-1` returns as soon as the request is accepted, which on `2026-07`
-means the file may still exist when the call returns. Use the default
-(poll indefinitely) or a positive deadline if you need the deletion done.
-
-`AssistantFileModel.id` also dropped its UUID format constraint, since the
-upsert endpoint lets you choose the identifier. Don't parse a file id as a
-UUID.
+With `timeout=-1` it returns as soon as the server accepts the request, so the
+file may still exist. Use the default (poll indefinitely) or a positive
+deadline if the code after it needs the file gone.
 
 ### The operations API
 
-`list_operations` and `describe_operation` are new methods on both clients.
-They report on the long-running work the file endpoints now start:
-`upload_file`, a metadata update, and `delete_file` each create an operation
-server-side. You don't need them for the default flow, `upload_file` and
-`delete_file` poll for you and return only once the work is done. They're
-for the cases where you deliberately didn't wait.
+`list_operations` and `describe_operation` are new on both clients. They
+report on the operations that uploads, metadata updates, and deletes start.
+The default flow doesn't need them, because `upload_file` and `delete_file`
+wait for their own operation. Use them after a call with `timeout=-1`.
 
-If you passed `timeout=-1` to `upload_file`, follow the work by finding the
-operation for the file it belongs to:
+To follow an upload you didn't wait for, find the operation for its file:
 
 ```python
 operations = pc.assistants.list_operations(
-    assistant_name="my-assistant",
+    assistant_name="research-assistant",
     operation_type="upload_file",
     status="Processing",
 )
 mine = [op for op in operations if op.file_id == file.id]
 ```
 
-`describe_operation` is the progress check, and where the failure reason
-lives now:
+`describe_operation` reports progress and, on failure, the reason:
 
 ```python
 operation = pc.assistants.describe_operation(
-    assistant_name="my-assistant",
+    assistant_name="research-assistant",
     operation_id="op-1234-abcd-5678",
 )
 if operation.status == "Failed":
     print(operation.error)
 ```
 
-Read `error` only when `status` is `"Failed"`; a retried operation keeps
-the previous attempt's text, so a non-`None` `error` isn't by itself
-evidence of failure. The async form is the same call with `await`:
+Read `error` only when `status` is `"Failed"`: a retried operation keeps the
+previous attempt's text, so a non-`None` `error` alone doesn't mean failure.
+The async form is the same call with `await`:
 
 ```python
 operation = await pc.assistants.describe_operation(
-    assistant_name="my-assistant",
+    assistant_name="research-assistant",
     operation_id="op-1234-abcd-5678",
 )
 ```
 
-`list_operations` is a lazy paginator over both in-flight and finished
-operations, so it doubles as an audit log, a failed upload is discoverable
-after the fact now:
+`list_operations` covers finished operations too, so a failed upload can be
+found after the fact:
 
 ```python
 failures = pc.assistants.list_operations(
-    assistant_name="my-assistant",
+    assistant_name="research-assistant",
     status="Failed",
 ).to_list()
 ```
 
 ### Rate limits
 
-The assistant error-code enum gained `TOO_MANY_REQUESTS`. The SDK maps a 429
-to `RateLimitError`, which carries `retry_after` when the server sends a
-`Retry-After` header, and 429 is in the SDK's default retry set, so the
-common case is handled before you see it. Catch it when you want to back off
-on your own schedule:
+A 429 from the assistant API raises `RateLimitError`, which carries
+`retry_after` when the server sends a `Retry-After` header. The SDK retries
+429 by default, so catch it only when you want to back off on your own
+schedule:
 
 ```python
 from pinecone import RateLimitError
 
 try:
-    pc.assistants.list()
+    assistants = pc.assistants.list().to_list()
 except RateLimitError as exc:
     print(exc.retry_after, exc.error_code)
 ```
 
 ### Checklist
 
-Nothing in this section is caught by a type checker, so grep for it:
+A type checker catches none of these, so grep for them:
 
 - `claude-3-5-sonnet`, `claude-3-7-sonnet` in `model=` arguments
 - `"function_call"` compared against a `finish_reason`
 - `.error_message` and `.percent_done` on a file object
 - `uuid.UUID(...)` applied to a file id
+- `File processing failed` or `File deletion failed` in error-message matching
 - `timeout=-1` on `upload_file` or `delete_file`, and whether the code after
   it assumes the work finished
 
 (inference-model-enums)=
 ## Inference
 
-`embed`, `rerank`, `list_models`, and `get_model` keep their signatures,
-arguments, and return types. The API version header moved to `2026-07`, and
-two long-standing serialization bugs were fixed. Both changed what the SDK
-puts on the wire without changing what you write.
+`embed`, `rerank`, `list_models`, and `get_model` keep their signatures and
+return types. Two serialization bugs are fixed, which changes what the SDK
+sends without changing what you write.
 
-`rerank()`'s documented exceptions also gained `NotFoundError`, which is
-what an unknown model name has always raised. Code that only caught
-`ForbiddenError` around `rerank` was catching the wrong one:
+An unknown model name passed to `rerank()` raises `NotFoundError`, not
+`ForbiddenError`. `ForbiddenError` means the model exists but this project
+may not use it:
 
 ```python
 from pinecone import ForbiddenError, NotFoundError
 
 try:
-    pc.inference.rerank(model="bge-reranker-v2-m3-typo", query="q", documents=["d"])
+    pc.inference.rerank(
+        model="bge-reranker-v2-m3-typo",
+        query="best budget laptop",
+        documents=["Affordable laptops under $500"],
+    )
 except NotFoundError:
     pass  # no such model, usually a typo
 except ForbiddenError:
@@ -2284,24 +2213,18 @@ except ForbiddenError:
 ### Enum members now serialize correctly
 
 `EmbedModel`, `RerankModel`, and `VectorType` are `(str, Enum)` mixins.
-Passing a member used to send the wrong value on the wire, because the old
-code paths serialized with `str(member)`, which returns the member's
-repr-style name (`EmbedModel.Multilingual_E5_Large`) rather than its value
-(`multilingual-e5-large`). Passing the plain string always worked, and
-that's unaffected here.
+Passing a member used to send `str(member)`, the member's qualified name
+(`EmbedModel.Multilingual_E5_Large`), instead of its value
+(`multilingual-e5-large`). The server rejected those requests, so the bug
+failed loudly rather than serving the wrong model.
 
-If every call you make passes `model=` or `vector_type=` as a string
-literal, nothing changes for you. If any call passes an enum member, that
-call was failing before and works now: it failed loudly, not silently, since
-no such model or vector type exists, so the server rejected the request
-rather than serving it wrong. Passing `.value` was the documented workaround
-while these bugs were open, and it's still correct; `.value` is exactly what
-the SDK now extracts for you, so there's nothing to clean up if you already
-adopted it.
+If you pass `model=` and `vector_type=` as strings, nothing changes. If you
+pass enum members, those calls failed before and work now. If you adopted
+the `.value` workaround, keep it: `.value` is what the SDK now sends for a
+member.
 
-The SDK doesn't repair a mangled name. Passing the literal string
-`"EmbedModel.Multilingual_E5_Large"` sends it verbatim and still raises
-`NotFoundError`, because that's a model id the server doesn't have.
+The SDK does not repair a mangled name: the literal string
+`"EmbedModel.Multilingual_E5_Large"` still raises `NotFoundError`.
 
 #### Request bodies: `embed()` and `rerank()`
 
@@ -2318,9 +2241,13 @@ EmbedModel.Multilingual_E5_Large.value  # 'multilingual-e5-large'
 | `EmbedModel.Multilingual_E5_Large` | `EmbedModel.Multilingual_E5_Large` | `multilingual-e5-large` |
 | `RerankModel.Bge_Reranker_V2_M3` | `RerankModel.Bge_Reranker_V2_M3` | `bge-reranker-v2-m3` |
 
+The error the old behavior produced, to search your logs for:
+
 ```text
 Model 'EmbedModel.Multilingual_E5_Large' not found
 ```
+
+The `.value` spelling sends exactly what the member does:
 
 ```python
 from pinecone import EmbedModel
@@ -2328,8 +2255,8 @@ from pinecone import EmbedModel
 pc.inference.embed(model=EmbedModel.Multilingual_E5_Large.value, inputs=["hello"])
 ```
 
-A model id the installed SDK has no member for, one released after it, is
-still accepted as a plain string and sent through unchanged:
+A model released after your SDK version has no enum member. Pass its id as a
+string; the SDK sends it unchanged:
 
 ```python
 pc.inference.embed(model="some-newer-embedding-model", inputs=["hello"])
@@ -2343,9 +2270,9 @@ pc.inference.embed(model="EmbedModel.Multilingual_E5_Large", inputs=["hello"])
 (query-param-enums)=
 #### Query strings: `list_models()`
 
-`inference.list_models()` accepts `vector_type` as a plain string or as a
-`VectorType` member; the fix applies there and to the
-`pc.inference.model.list()` facade, on both the sync and the async client.
+`inference.list_models()` and the `pc.inference.model.list()` facade accept
+`vector_type` as a string or a `VectorType` member, and the fix applies on
+both the sync and the async client.
 
 ```python
 from pinecone import VectorType
@@ -2370,10 +2297,8 @@ from pinecone import VectorType
 pc.inference.list_models(type="embed", vector_type=VectorType.DENSE.value)
 ```
 
-The fix lives at the encoder that every request passes through, so no query
-parameter on any surface, including one added later, can carry a mangled
-member. Passing the literal string `"VectorType.DENSE"` is rejected before a
-request is made, it isn't one of the values the parameter accepts:
+The literal string `"VectorType.DENSE"` is rejected before any request is
+sent:
 
 ```python
 pc.inference.list_models(vector_type="VectorType.DENSE")
@@ -2383,18 +2308,12 @@ pc.inference.list_models(vector_type="VectorType.DENSE")
 (admin-oauth)=
 ## Admin and OAuth
 
-Both surfaces are additive at `2026-07`: no field on any pre-existing
-request or response changed, was renamed, or was removed. Existing `Admin`
-code compiles and behaves as it did before. What's new is four namespaces,
-users, invites, service accounts, and role bindings, which together make
-organization membership and RBAC manageable from the SDK for the first time.
-
-`Admin` is synchronous only. There's no async form, admin calls are
-infrequent control-plane operations.
-
-`ADMIN_API_VERSION` is now `2026-07`, sent on every admin request and on the
-OAuth token exchange. Nothing else about authentication changed, the OAuth
-surface is a pure version bump.
+Existing `Admin` calls keep their signatures and response fields. One
+behavior changed: `Admin` now honors `PINECONE_CONTROLLER_HOST` (see
+[below](#pointing-admin-at-a-non-production-host)). New are four namespaces,
+users, invites, service accounts, and role bindings, which make organization
+membership and access control manageable from the SDK. `Admin` remains
+synchronous only.
 
 ### New: users, invites, service accounts, role bindings
 
@@ -2405,22 +2324,20 @@ surface is a pure version bump.
 | Service accounts | `admin.service_accounts.list()`, `.create()`, `.describe()`, `.update()`, `.delete()`, `.rotate_secret()` |
 | Role bindings | `admin.role_bindings.list()`, `.create()`, `.describe()`, `.delete()` |
 
-New models, all additive: `UserModel`, `UserList`; `InviteModel`,
-`InviteList`, `InviteStatus`; `ServiceAccountModel`, `ServiceAccountList`,
-`ServiceAccountWithSecret`; `RoleBindingModel`, `RoleBindingList`,
-`RoleBindingInput`, `PrincipalType`, `ResourceType`, `RoleName`. Everywhere a
-role binding is accepted, a plain dict works too. The four listing
-operations above return a lazy `Paginator`, unlike the older
-`projects`/`organizations`/`api_keys` listings, which return eager `*List`
-objects.
+Their models live in `pinecone.models.admin`: `UserModel`, `InviteModel`,
+`InviteStatus`, `ServiceAccountModel`, `ServiceAccountWithSecret`,
+`RoleBindingModel`, `RoleBindingInput`, `PrincipalType`, `ResourceType`, and
+`RoleName`. Wherever a role binding is accepted, a plain dict works too. The
+four new `list()` methods return a lazy `Paginator`; the `projects`,
+`organizations`, and `api_keys` listings still return eager `*List` objects.
 
-The three new resources compose, this is the workflow they exist for:
+The new resources compose into one workflow:
 
 ```python
 from pinecone import Admin
 from pinecone.models.admin import PrincipalType, ResourceType, RoleName
 
-admin = Admin(client_id="...", client_secret="...")
+admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
 project = admin.projects.create(name="search-prod")
 
 # 1. A service account for CI, with no permissions yet.
@@ -2448,8 +2365,8 @@ invite = admin.invites.create(
     ],
 )
 
-# 4. Read any principal's access back through role_bindings, not through the
-#    principal's own model, no other namespace carries bindings.
+# 4. Read any principal's access back through role_bindings; no principal
+#    model carries its bindings.
 for binding in admin.role_bindings.list(
     principal_type="service_account",
     principal_id=created.service_account.id,
@@ -2457,23 +2374,20 @@ for binding in admin.role_bindings.list(
     print(binding.role, binding.resource_type, binding.resource_id)
 ```
 
-Two things worth knowing about that shape. Role bindings aren't part of any
-principal's own representation: `UserModel`, `ServiceAccountModel`, and
-`InviteModel` don't carry them, so `admin.role_bindings.list()` filtered by
-principal is the only way to read them. And bindings are immutable, there's
-no update. Changing a role is `create` for the new one then `delete` for the
-old one, in that order, deleting first can strip a principal's last
-organization-membership binding, which the server refuses with a 409.
+`UserModel`, `ServiceAccountModel`, and `InviteModel` do not carry role
+bindings, so `admin.role_bindings.list()` filtered by principal is the only
+way to read them. Bindings cannot be updated. To change a role, `create` the
+new binding, then `delete` the old one, in that order: deleting a principal's
+last organization-membership binding first is refused with a 409.
 
 ### Invites: `list` never shows accepted invites
 
-`InviteStatus` has three values: `pending`, `expired`, and `processed`.
-`admin.invites.list()` returns only the first two. An accepted invite
-disappears from the listing without being deleted, and
+`admin.invites.list()` returns pending and expired invites only. An accepted
+invite drops out of the listing without being deleted;
 `admin.invites.describe(invite_id=...)` still returns it with
-`status == InviteStatus.PROCESSED`. Don't treat absence from `list()` as
-proof an invite never existed, or as license to send a duplicate, a second
-`create` for an address that already belongs to a member is a 409.
+`status == InviteStatus.PROCESSED`. Absence from `list()` does not mean the
+invite never existed, and a second `create` for an address that already
+belongs to a member is a 409.
 
 ```python
 ids = {i.id for i in admin.invites.list()}
@@ -2482,56 +2396,55 @@ admin.invites.describe(invite_id="9c8e3528-...").status  # 'processed'
 ```
 
 Once an invite is accepted, manage the invitee through `admin.users` and
-`admin.role_bindings`, not `admin.invites`. `delete` and `resend` on a
-processed invite are both a 409.
+`admin.role_bindings`. `delete` and `resend` on a processed invite are both
+a 409.
 
 ### Pointing `Admin` at a non-production host
 
-Previously `Admin` ignored `PINECONE_CONTROLLER_HOST` and always talked to
-production. It now applies the same host resolution as `Pinecone`: the
-`host` keyword first, then `PINECONE_CONTROLLER_HOST`, then the default.
-This is a behavior change for anyone who had that variable set in an
-environment where `Admin` also runs, even though no API surface changed,
-admin traffic that used to go to production will now follow the variable.
-
-```python
-admin = Admin(client_id="...", client_secret="...", host="http://localhost:5080")
-```
-
-`oauth_url` is a second new keyword, pointing the token exchange somewhere
-other than production. It takes the full URL including the path, and has no
-environment-variable fallback:
+`Admin` used to ignore `PINECONE_CONTROLLER_HOST` and always call production.
+It now resolves its host the way `Pinecone` does: the `host` keyword, then
+`PINECONE_CONTROLLER_HOST`, then the production default. If that variable is
+set where `Admin` runs, admin traffic now follows it.
 
 ```python
 admin = Admin(
-    client_id="...", client_secret="...",
+    client_id="your-client-id",
+    client_secret="your-client-secret",
+    host="http://localhost:5080",
+)
+```
+
+The new `oauth_url` keyword points the token exchange elsewhere. It takes
+the full URL including the path and has no environment-variable fallback:
+
+```python
+admin = Admin(
+    client_id="your-client-id",
+    client_secret="your-client-secret",
     host="http://localhost:5080",
     oauth_url="http://localhost:5080/oauth/token",
 )
 ```
 
-Both are keyword-only, and intended for local simulators and private
+Both are keyword-only and meant for local simulators and private
 deployments. Leave both unset against production.
 
 ### Token refresh
 
-`Admin` now keeps its own bearer token current: it re-mints ahead of the
-stated expiry, and retries a request once against a fresh token if one
-still comes back 401. A long-lived `Admin` no longer starts returning bare
-401s after its first token lapses, and threads sharing one `Admin` cost a
-single token exchange between them. Passing your own `Authorization` entry
-in `additional_headers` opts out of refresh entirely, the token is then
-yours to manage.
+`Admin` now renews its OAuth token before it expires, and retries a request
+once with a fresh token if it still gets a 401. A long-lived `Admin` no
+longer starts failing with 401s after its first token lapses, and threads
+sharing one `Admin` share one token exchange. An `Authorization` entry in
+`additional_headers` turns refresh off; the token is then yours to manage.
 
 ### Project deletion now clears assistants too
 
-`admin.projects.delete()` requires an empty project, and indexes,
-collections, assistants, and backups each block it with a 412 naming what's
-left. API keys aren't a blocker, they're deleted with the project.
-`admin.projects.delete_with_cleanup()` clears all four, assistants included.
-Earlier releases left assistants behind, so a project holding one still
-failed the final delete after a nominally successful cleanup; that gap is
-closed.
+`admin.projects.delete()` requires an empty project: indexes, collections,
+assistants, and backups each block it with a 412 naming what is left. API
+keys do not block it; they are deleted with the project.
+`admin.projects.delete_with_cleanup()` now deletes assistants along with the
+other three. Earlier releases left assistants behind, so cleanup of a project
+holding one ended with a failed delete.
 
 (ssl-config)=
 ## TLS/SSL configuration

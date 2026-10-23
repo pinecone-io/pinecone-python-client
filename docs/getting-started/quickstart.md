@@ -44,8 +44,8 @@ while not pc.indexes.describe("quickstart").status.ready:
 
 Declaring a schema makes this a **document index**: you read and write it through
 `index.documents`, and each record is a JSON document whose fields you named yourself.
-The vector methods on {class}`~pinecone.index.Index` —
-{meth}`~pinecone.index.Index.upsert` and {meth}`~pinecone.index.Index.query` — belong
+The vector methods on {class}`~pinecone.index.Index`,
+{meth}`~pinecone.index.Index.upsert` and {meth}`~pinecone.index.Index.query`, belong
 to the older vector indexes created with top-level `dimension` and `metric`, and the
 server rejects them on a document index.
 See [Choosing an interface](#choosing-an-interface) below.
@@ -56,13 +56,13 @@ See [Choosing an interface](#choosing-an-interface) below.
 index = pc.index("quickstart")
 ```
 
-The client the control plane hands back is scoped to one index and talks to the data
-plane, which is a different host.
+`pc.index` returns a client scoped to one index. It sends data-plane requests to that
+index's own host, not to the control-plane host.
 
 ## 4. Upsert documents
 
 Each document needs an `_id`. Every other key is either a field you declared in the
-schema — here, `your_vector` — or arbitrary metadata:
+schema (here, `your_vector`) or arbitrary metadata:
 
 ```python
 index.documents.upsert(

@@ -1,10 +1,10 @@
 # Authentication
 
 The SDK has two clients and they authenticate differently.
-{class}`~pinecone.Pinecone` — indexes, vectors, documents, inference — uses a
-project-scoped **API key**. {class}`~pinecone.admin.Admin` — organizations, projects,
-API keys, users, role bindings — uses **OAuth2 client credentials** belonging to a
-service account. An API key will not authenticate the Admin client, and client credentials
+{class}`~pinecone.Pinecone` (indexes, vectors, documents, inference) uses a
+project-scoped **API key**. {class}`~pinecone.admin.Admin` (organizations, projects,
+API keys, users, role bindings) uses **OAuth2 client credentials** belonging to a
+service account. An API key will not authenticate `Admin`, and client credentials
 will not authenticate `Pinecone`.
 
 ## Getting an API key
@@ -61,7 +61,7 @@ see [Error handling](../guides/error-handling.md).
 
 {class}`~pinecone.admin.Admin` takes a service account's `client_id` and
 `client_secret`, falling back to `PINECONE_CLIENT_ID` and `PINECONE_CLIENT_SECRET`.
-It is synchronous only — there is no async form.
+It is synchronous only; there is no async form.
 
 ```bash
 export PINECONE_CLIENT_ID=your-client-id

@@ -11,20 +11,10 @@ argument fails the call before anything is sent, with the argument named:
 TypeError: Index() got unexpected keyword arguments: ['retry_config']
 ```
 
-Which exception you get varies by call, because the rejection happens in more than one
-place. Python raises its own `TypeError` for any method that declares its parameters
-exactly. Methods that take open keyword arguments reject unknown ones in SDK code
-instead: the `Pinecone` and `AsyncPinecone` constructors and the index create and
-configure calls raise `PineconeTypeError`; `Index()`, `Pinecone.Index()`,
-`PineconeGRPC.Index()`, `describe_namespace()`, `delete_namespace()`,
-`inference.get_model()`, and `inference.model.get()` raise a plain `TypeError`; and the
-assistants methods, which accept 9.x parameter aliases, raise `PineconeValueError`.
-`AsyncPinecone(proxy_headers=...)` raises `NotImplementedError` — the sync `Pinecone`
-accepts that argument and the async client does not.
-
-No one handler covers all of that, and none of it is worth building a handler around.
-These are programming mistakes that fail on the first call, so they belong in your
-tests rather than in an `except` block.
+Depending on the method, that error is a built-in `TypeError`, a `PineconeTypeError`,
+or, for the assistants methods that accept 9.x parameter aliases, a
+`PineconeValueError`. These are programming mistakes that fail on the first call, so
+catch them in your tests, not in an `except` block.
 
 Every class below is importable from the package root or from `pinecone.errors`;
 the two paths reach the same class.
@@ -69,24 +59,23 @@ existing handlers catch:
 The inheritance runs one way only. `except PineconeError` does not catch a plain
 `ValueError` or `TimeoutError` raised by something else in your stack.
 
-A status the SDK does not have a subclass for — a `400` from a request the server
-rejected, for instance — raises `ApiError` itself. Catch `ApiError` if you want
+A status the SDK has no subclass for, such as the `400` the server returns for a
+request it rejects as malformed, raises `ApiError` itself. Catch `ApiError` if you want
 every server-side failure; catch a subclass to single one out.
 
 Full API reference, including each class's attributes: {doc}`/reference/exceptions`.
 
 ## Who Raises What
 
-The SDK validates arguments before it opens a socket. Anything it can decide
-locally, it decides locally, so a bad namespace name or an empty ID list costs no
-round trip:
+The SDK runs a few cheap argument checks before sending a request. The server
+validates everything else and reports a rejection as an `ApiError`:
 
 | Raised by | Class | Cause |
 |-----------|-------|-------|
-| The SDK, before the request | `PineconeValueError` | An argument's value is not one the API accepts: an empty name, a namespace outside the allowed charset, a count outside the allowed range, or two mutually exclusive selectors passed together |
-| The SDK, before the request | `PineconeTypeError` | An argument's type is wrong: a non-string vector ID, non-dict metadata, or a request body that cannot be JSON-encoded |
-| The transport | `PineconeConnectionError` | DNS failure, connection refused, TLS failure, a reset mid-stream — the request never got an answer |
-| The transport | `PineconeTimeoutError` | A connect, read, write, or pool deadline elapsed |
+| The SDK, before the request | `PineconeValueError` | An argument's value is unusable, such as an empty name or two mutually exclusive arguments passed together |
+| The SDK, before the request | `PineconeTypeError` | An argument has the wrong type, such as non-dict metadata or a request body that cannot be JSON-encoded |
+| The transport | `PineconeConnectionError` | DNS failure, connection refused, TLS failure, or a reset mid-stream: the request never got an answer |
+| The transport or a readiness wait | `PineconeTimeoutError` | A request deadline elapsed, or a call that waits for an index or assistant to become ready or be deleted ran past its `timeout` |
 | The server | `ApiError` and its subclasses | The request reached Pinecone and came back with an error status |
 | The SDK, after the response | `ResponseParsingError` | The response arrived but did not decode into the expected shape |
 
@@ -141,7 +130,8 @@ except PineconeTimeoutError:
     print("Request timed out")
 ```
 
-Order matters: `except ApiError` before any of these would swallow all of them.
+Order matters: an `except ApiError` placed before the status-specific clauses catches
+those statuses first, so the specific clauses never run.
 
 ## ApiError Attributes
 
@@ -170,8 +160,8 @@ except ApiError as exc:
     print(exc.request_id)
 ```
 
-Reading `exc.body["error"]["message"]` yourself is redundant — that is where
-`exc.message` comes from. Reach for `body` only for fields the SDK does not lift
+You do not need to read `exc.body["error"]["message"]` yourself; `exc.message` already
+holds it. Reach for `body` only for fields the SDK does not lift
 out.
 
 `RateLimitError` adds one attribute of its own: `retry_after`, the response's
@@ -185,28 +175,26 @@ the call site:
 
 | Class | Retry by hand? |
 |-------|----------------|
-| `PineconeConnectionError`, `PineconeTimeoutError` | Yes, once the SDK's own retries are spent — but note the write may have landed |
+| `PineconeConnectionError`, `PineconeTimeoutError` | Yes, but the write may already have landed |
 | `RateLimitError` | Yes, after `retry_after` if it is set |
 | `ServiceError` | Yes |
-| `FailedPreconditionError` | Yes, once you satisfy the precondition — `message` names what is in the way |
+| `FailedPreconditionError` | Yes, once you satisfy the precondition; `message` names what is in the way |
 | `PayloadTooLargeError` | Only after shrinking the request; a bare retry answers 413 again |
 | `ConflictError` | Only after resolving the conflict; a bare retry answers 409 again |
-| `NotFoundError` | No, with one exception — see [When 404 does not mean "not found"](#when-404-does-not-mean-not-found) |
+| `NotFoundError` | No, with one exception: see [When 404 does not mean "not found"](#when-404-does-not-mean-not-found) |
 | `UnauthorizedError`, `ForbiddenError` | No. Fix the key or its permissions |
 | `PaymentRequiredError` | No. An organization owner has to resolve the billing state |
 | `PineconeValueError`, `PineconeTypeError` | No. The request was never sent; fix the argument |
 | `ResponseParsingError` | No |
 
-The SDK already retries the transient half of that table for you, several times,
-before you ever see the exception. Reaching one of them means the built-in retries
-were exhausted, so an immediate re-call is unlikely to help — see
-{doc}`/guides/retries` for what it already tried and how long it waited.
+The SDK retries connection errors, timeouts, `429` and most `5xx` responses several times
+before raising, so reaching one of them means those retries were spent and an
+immediate re-call is unlikely to help. {doc}`/guides/retries` covers what the SDK
+tried and how long it waited.
 
-Retrying a **delete** deserves its own note. Control-plane deletes are not
-idempotent in the "second call also succeeds" sense: `pc.indexes.delete()` and
-`admin.role_bindings.delete()` both answer 404 once the resource is gone. So if you
-wrap a delete in your own retry loop, treat `NotFoundError` as success rather than
-as failure.
+If you wrap a control-plane delete such as `pc.indexes.delete()` in your own retry
+loop, treat `NotFoundError` as success: a retried delete answers 404 once the first
+attempt has removed the resource.
 
 ## ConflictError when creating an index
 
@@ -229,8 +217,8 @@ if not pc.indexes.exists("my-index"):
 
 `exists()` returns `True` if an index with that name is present, `False` otherwise.
 
-If you genuinely cannot check first — concurrent callers race between the check and
-the create — catch `ConflictError` and treat it as a no-op:
+When several callers can race between the check and the create, catch `ConflictError`
+and treat it as a no-op:
 
 ```python
 from pinecone import Pinecone
@@ -250,16 +238,11 @@ except ConflictError:
 
 ## When 404 does not mean "not found"
 
-`pc.restore_jobs.describe()` is the exception to the rule that a 404 identifies a
-missing resource. Every failure to read the restore-job store answers 404,
-including a transient one, so `NotFoundError` from that call means "could not
-produce this job" rather than "this job does not exist".
-
-Control flow keyed on it is therefore unsafe: giving up, deleting local state, or
-reporting the restore as gone can each be the wrong call on what was really a
-temporary store failure. Do not match on the message text either — a job whose
-target index was deleted also answers 404, with a different message than a
-genuinely missing job produces.
+`pc.restore_jobs.describe()` can answer 404 for a transient server-side failure, not
+only for a job that does not exist, so `NotFoundError` from that call means "could not
+produce this job". Retry before you give up on the job, delete local state, or report
+the restore as gone. Do not match on the message text either: a job whose target index
+was deleted also answers 404, with a different message.
 
 ```python
 from pinecone.errors import NotFoundError
@@ -274,8 +257,8 @@ except NotFoundError:
 ## Retries
 
 The SDK retries transient failures automatically, on every HTTP method, before
-raising anything. Bulk operations additionally self-tune their concurrency down
-when a host pushes back.
+raising anything. Bulk operations also lower their concurrency when a host pushes
+back.
 
 What is retried, how long the backoff waits, what is configurable, and what to do
 in a multi-process fan-out: {doc}`/guides/retries`.
@@ -291,9 +274,8 @@ pc = Pinecone(timeout=10.0)
 
 Many methods also accept a per-request `timeout` that overrides the client default
 for that call, and the bulk methods accept a `total_timeout` that bounds the whole
-operation instead of one attempt. The distinction matters: `timeout` is the deadline
-for a single HTTP attempt and each retry gets a fresh one, so a call can outlive its
-`timeout` several times over. {doc}`/guides/retries` covers `total_timeout`.
+operation. `timeout` is the deadline for a single HTTP attempt and each retry gets a
+fresh one, so a call can outlive its `timeout` several times over. {doc}`/guides/retries` covers `total_timeout`.
 
 A `timeout` that elapses raises `PineconeTimeoutError`, which also inherits from
 Python's built-in `TimeoutError`:
@@ -305,7 +287,6 @@ except TimeoutError:
 ```
 
 `PineconeTimeoutError` carries a `response` attribute, which is `None` for an
-ordinary request timeout. On the bulk paths that raise instead of returning —
-`upsert_from_dataframe(on_error="raise")`, and the gRPC `upsert` — it holds the
-partial result, so `response.failed_items` tells you what to re-send rather than
-leaving you to resubmit everything.
+ordinary request timeout. On the bulk paths that raise instead of returning,
+`upsert_from_dataframe(on_error="raise")` and the gRPC `upsert`, it holds the partial
+result, and `response.failed_items` tells you what to re-send.

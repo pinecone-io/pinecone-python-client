@@ -135,7 +135,7 @@ def test_final_limit_is_described_as_the_host_gate_limit() -> None:
 def _guide_named_attributes(text: str) -> set[str]:
     named = set(re.findall(r"\b(?:result|response)\.(\w+)", text))
     contract = _section("Partial failures: the reporting contract", text)
-    for line in re.findall(r"^- (.+?) —", contract, re.MULTILINE):
+    for line in re.findall(r"^- (.+?): ", contract, re.MULTILINE):
         named |= set(re.findall(r"`(\w+)`", line))
     named |= set(_gate_table(text)) - {"Field"}
     for cell in _intro_table(text)["Accepted-item count"]:

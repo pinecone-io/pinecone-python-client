@@ -16,11 +16,11 @@ Every paged listing in the SDK is one of these.
 | **Unpaged** | A plain list-like model with no token | Iterate once. There is nothing to follow. |
 
 Several listings offer both of the first two, under names that differ by
-namespace — `iter_*` here, `*_page` there, `*_paginated` on the index:
+namespace (`iter_*`, `*_page`, or `*_paginated` on the index):
 
 | Listing | Auto-paginating | Single page |
 |---|---|---|
-| Indexes | `pc.indexes.list()` | — (one page always) |
+| Indexes | `pc.indexes.list()` | — |
 | Backups of one index | `pc.indexes.list_backups(name)` | — |
 | Backups, project-wide | — | `pc.backups.list()` |
 | Restore jobs | — | `pc.restore_jobs.list()` |
@@ -35,8 +35,8 @@ namespace — `iter_*` here, `*_page` there, `*_paginated` on the index:
 | Bulk imports | `idx.list_imports()` | `idx.list_imports_paginated()` |
 | Admin users, invites, service accounts, role bindings | `admin.<ns>.list()` | — |
 
-Unpaged listings — `pc.collections.list()`, `pc.inference.list_models()`,
-`admin.api_keys.list()`, `admin.organizations.list()`, `admin.projects.list()` —
+Unpaged listings (`pc.collections.list()`, `pc.inference.list_models()`,
+`admin.api_keys.list()`, `admin.organizations.list()`, `admin.projects.list()`)
 return every row in one response and carry no `pagination` attribute to check.
 
 Reach for the single-page form when you need the token itself: to checkpoint a
@@ -45,7 +45,7 @@ resume after a crash. Otherwise iterate the paginator.
 
 One paged surface is not a listing at all: `idx.documents.fetch(filter=...)` is
 a read whose filter can match unboundedly many documents, so it pages too. It
-takes a token and an optional `limit` page size (1-10000, default 100) — see
+takes a token and an optional `limit` page size; see
 [When the first call takes no token](#when-the-first-call-takes-no-token).
 
 ## Paginator and AsyncPaginator
@@ -98,7 +98,7 @@ asyncio.run(main())
 ### Iterating pages
 
 Use `.pages()` when you want the token each page carries, or when a page is the
-natural unit of work — one batch write per page, one checkpoint per page. The
+natural unit of work, such as one batch write or one checkpoint per page. The
 generator stops on its own when a page arrives without a token; you do not need
 to break on `has_more`.
 
@@ -140,7 +140,7 @@ Each {class}`Page <pinecone.models.pagination.Page>` carries:
 ### Collecting everything
 
 `to_list()` walks every page and returns one list. Only reach for it when you
-know the listing is small — it holds the whole result in memory and cannot start
+know the listing is small: it holds the whole result in memory and cannot start
 work before the last page arrives.
 
 ::::{tabs}
@@ -213,8 +213,7 @@ async with AsyncPinecone() as pc:
 ::::
 
 Tokens are opaque. They are not IDs, offsets, or timestamps; do not parse one,
-build one, or edit one. A token also encodes the page size it was minted with,
-which is why methods that accept both send only the token when you supply one.
+build one, or edit one.
 
 Paging walks a live result set rather than a fixed snapshot, so rows created or
 deleted between requests can shift later pages. De-duplicate on the row's own
@@ -229,15 +228,14 @@ also caps the total number of items iteration will yield:
   `pc.backup_schedules.iter_schedules`, `pc.backup_schedules.iter_history`,
   `pc.assistants.list`, `pc.assistants.list_files`,
   `pc.assistants.list_operations`.
-- **Page size only** — the paginator still walks every page:
+- **Page size only** (the paginator still walks every page):
   `idx.documents.list`, `admin.users.list`, `admin.invites.list`,
   `admin.service_accounts.list`, `admin.role_bindings.list`, and the
   `Index` listings (`idx.list`, `idx.list_namespaces`, `idx.list_imports`).
 
 Check the method's own `limit` documentation before relying on it to stop
 iteration. To stop early on any listing, `break` out of the loop or wrap it in
-{func}`itertools.islice` — that works everywhere and never depends on which
-group the method falls into.
+{func}`itertools.islice`, which works on every listing.
 
 ```python
 # Stops after 50 items on any listing, regardless of limit semantics.
@@ -252,17 +250,17 @@ for backup in itertools.islice(pc.indexes.list_backups("product-search"), 50):
 ```
 
 When a `limit` truncates a page, that page reports `pagination_token=None` even
-though the server had more. Resume from `Paginator.pagination_token` instead,
-which still holds the server's token.
+though the server had more. `Paginator.pagination_token` still holds the
+server's token for the following page, so resuming from it skips the rows the
+limit cut from the truncated page.
 
 ## Driving the token yourself
 
 Single-page methods return the page plus a `pagination` envelope. `pagination is
 None`, or `pagination.next is None`, both mean the page you are holding is the
-last one — that is the loop's exit condition, not an error.
+last one. That is the loop's exit condition, not an error.
 
-The loop shape below consumes each page before asking for the next one, so it is
-correct on both the first and the last iteration:
+The loop below consumes each page before asking for the next one:
 
 ```python
 from pinecone import Pinecone
@@ -279,9 +277,9 @@ while page.pagination is not None and page.pagination.next is not None:
 print(len(backups))
 ```
 
-Do not send `limit` alongside `pagination_token`: the token already carries the
-page size it was minted with, and a different one beside it can skip or repeat
-rows. The example above passes `limit` on the first request only.
+Pass `limit` on the first request only. The token already carries the page
+size it was minted with, so these backup listings omit `limit` whenever you pass
+`pagination_token`.
 
 The async form is the same loop with `await` on each request:
 
@@ -326,18 +324,18 @@ while True:
     pagination_token = response.pagination.next
 ```
 
-Fetching by `ids=` instead of `filter=` is not paged at all — you asked for a
-bounded set, and you get it in one response. Only the filtered form pages, and
-`pagination_token` is rejected without a `filter`.
+Fetching by `ids=` instead of `filter=` is not paged: you get every requested
+ID in one response. Only the filtered form pages, and `pagination_token` is
+rejected without a `filter`.
 
 ## Listings on the index
 
-The data-plane listings on `Index` predate `Paginator` and keep their own shape.
-The auto-following form is a plain generator, not a paginator, so `.pages()`,
+The data-plane listings on `Index` keep their own shape. The auto-following
+form is a plain generator, not a paginator, so `.pages()`,
 `.to_list()`, and `.pagination_token` are not available on it.
 
 `idx.list()` and `idx.list_namespaces()` yield **one response object per page**,
-not one row at a time — the loop body has to iterate the page as well:
+not one row at a time, so the loop body iterates the page as well:
 
 ```python
 from pinecone import Pinecone
@@ -386,15 +384,12 @@ while page.pagination is not None and page.pagination.next is not None:
 print(len(ids))
 ```
 
-`prefix` and `limit` on these methods are validated by the SDK before any
-request goes out, so an out-of-range `limit` or a non-ASCII `prefix` raises
-{exc}`~pinecone.errors.exceptions.PineconeValueError` rather than reaching the
-server. `idx.list_namespaces()` is also the operation to reach for over repeated
+To inspect many namespaces, prefer `idx.list_namespaces()` over repeated
 `describe_namespace()` calls: it describes every namespace in one request per
-page, and `describe_namespace` is rate limited per index.
+page.
 
 ## See also
 
-- {doc}`/guides/error-handling` — what a failed page request raises.
-- {doc}`/guides/sync-vs-async` — choosing between `Pinecone` and `AsyncPinecone`.
-- {doc}`/guides/retries` — a page request retries like any other request.
+- {doc}`/guides/error-handling`: what a failed page request raises.
+- {doc}`/guides/sync-vs-async`: choosing between `Pinecone` and `AsyncPinecone`.
+- {doc}`/guides/retries`: a page request retries like any other request.

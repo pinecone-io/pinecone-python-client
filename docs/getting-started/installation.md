@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.10 or newer. Python 3.10 through 3.15 are tested and published for.
+- Python 3.10 or newer.
 - A [Pinecone account](https://app.pinecone.io) and an API key. See
   [Authentication](authentication.md) for where the SDK looks for it.
 
@@ -24,12 +24,11 @@ There are no user-facing extras. `pip install pinecone` gives you the whole SDK:
 
 - The synchronous {class}`~pinecone.Pinecone` client and the `asyncio`
   {class}`~pinecone.async_client.pinecone.AsyncPinecone` client. Both are built on
-  `httpx`, so neither needs a separate install — see
+  `httpx`, so neither needs a separate install. See
   [Sync vs. async](../guides/sync-vs-async.md).
-- The gRPC data-plane client, reached with `pc.index(name=..., grpc=True)`. It is a
-  compiled extension module shipped inside the wheel rather than a Python
-  dependency, so there is nothing extra to install — see
-  [Using gRPC](../guides/grpc.md).
+- The gRPC data-plane client, reached with `pc.index(name="product-catalog", grpc=True)`.
+  It is a compiled extension module shipped inside the wheel, so there is nothing
+  extra to install. See [Using gRPC](../guides/grpc.md).
 - The {class}`~pinecone.admin.Admin` client for organization and project
   administration.
 
@@ -42,18 +41,17 @@ builds the gRPC extension from Rust and needs a Rust toolchain.
 ## pandas is not installed for you
 
 One method, {meth}`~pinecone.index.Index.upsert_from_dataframe`, takes a
-`pandas.DataFrame`. pandas is deliberately not a dependency of this SDK and not
-offered as an extra, because that one method is the only thing that wants it.
-Install it yourself if you use it:
+`pandas.DataFrame`. pandas is not a dependency of the SDK and not offered as an
+extra, because that one method is the only thing that needs it. Install it yourself
+if you use it:
 
 ```bash
 pip install pandas
 ```
 
-Calling the method without pandas installed raises `RuntimeError` telling you the
-same thing. Every other bulk-upsert path — including
-{meth}`~pinecone.index.Index.upsert` in a loop and
-{meth}`~pinecone.index.Index.start_import` — works without it. See
+Calling the method without pandas installed raises `RuntimeError`. Every other
+bulk-upsert path, including {meth}`~pinecone.index.Index.upsert` in a loop and
+{meth}`~pinecone.index.Index.start_import`, works without it. See
 [Upsert from a DataFrame](../how-to/vectors/upsert-from-dataframe.md).
 
 ## Verify the installation

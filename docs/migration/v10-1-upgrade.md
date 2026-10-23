@@ -1,10 +1,10 @@
 # Upgrading from 10.0 to 10.1
 
-10.1 removes nothing and deprecates nothing. Most of what changed is when a
-mistake gets reported: calls that 10.0.0 sent to the server as given, or
-quietly reshaped, now raise before a request goes out. One change can stop
-working code without raising: a loop that polls `documents.fetch` to wait for
-a write never exits. If you wait for writes to become visible, start with
+10.1 removes nothing and deprecates nothing. Most changes move an error
+earlier: calls that 10.0.0 sent to the server as given, or quietly reshaped,
+now raise before a request goes out. One change breaks working code without
+raising: a loop that polls `documents.fetch` to wait for a write never exits.
+If you wait for writes to become visible, start with
 [Waiting for a write to become visible](#v10-1-read-your-writes).
 
 Coming from `9.x`? Read [Migrating to V10](v10-migration.md) first, then this
@@ -33,14 +33,10 @@ index = pc.index("movies")
 (v10-1-read-your-writes)=
 ## Waiting for a write to become visible
 
-10.1.0 reads the log-position headers the Documents API sends. A documents
-upsert, update or delete response now carries
-`response_info.lsn_committed`, and a documents search response carries
-`response_info.lsn_reconciled`. In 10.0.0 both were always `None` on the
-Documents API.
-
-That breaks the read-your-writes loop the 10.0.0 `ResponseInfo` reference
-showed:
+On the Documents API, an upsert, update or delete response now carries
+`response_info.lsn_committed`, and a search response carries
+`response_info.lsn_reconciled`. In 10.0.0 both were always `None`. That
+breaks the read-your-writes loop the 10.0.0 `ResponseInfo` reference showed:
 
 ```python
 # 10.0.0 recipe: never exits on 10.1.0
@@ -58,10 +54,10 @@ while True:
     time.sleep(0.5)
 ```
 
-On 10.0.0, `target` was `None`, so the loop exited at once without waiting
-for anything. On 10.1.0, `target` is a number, but a fetch response never
-reports a reconciled position, so `is_reconciled(target)` stays `False` and
-the loop runs forever. Nothing raises or warns.
+On 10.0.0, `target` was `None`, so the loop exited at once without waiting.
+On 10.1.0, `target` is a number, but a fetch response never reports a
+reconciled position, so `is_reconciled(target)` stays `False` and the loop
+runs forever without raising or warning.
 
 Poll `documents.search` instead, and give the loop a deadline:
 
@@ -144,8 +140,8 @@ A `timeout` or `total_timeout` of zero, a negative number, or NaN now raises
 `timeout` on `Pinecone` and `AsyncPinecone`, the per-call `timeout` on every
 Documents API method, and `total_timeout` on `documents.batch_upsert`,
 `upsert(batch_size=...)` and `upsert_from_dataframe`. 10.0.0 passed these
-values through: `timeout=0` reached the HTTP layer, and `total_timeout=0`
-returned a result with every item failed and `timed_out` set.
+values through; `total_timeout=0`, for example, returned a result with every
+item failed.
 
 ```python
 index.documents.upsert(
@@ -159,8 +155,7 @@ index.documents.upsert(
 The wait `timeout` on `pc.indexes.create()`, `create_for_model()` and
 `delete()` changed too. A negative value other than `-1` now raises
 `PineconeValueError` before the request. 10.0.0 sent the request, so the
-index was created or deleted anyway, and then raised `PineconeTimeoutError`
-at the first check that did not find the operation finished:
+index was created or deleted anyway, and then raised `PineconeTimeoutError`:
 
 ```python
 pc.indexes.create(
@@ -195,33 +190,22 @@ pc.indexes.describe(None)
 # PineconeTypeError: name must be a string, got NoneType
 ```
 
-What each case did in 10.0.0:
+In 10.0.0, `backups.list` and the assistant methods converted the value with
+`str()` and requested a resource that cannot exist; elsewhere a non-string
+escaped as a bare `AttributeError` or `TypeError`. The same check covers
+string arguments that never reach the URL, such as
+`collections.create(source=)`, `inference.rerank(query=)` and the `Admin`
+client's `create` methods, which also raised `AttributeError` in 10.0.0.
 
-- `backups.list` and the assistant methods converted the value with `str()`
-  and sent it, asking for `GET /indexes/1234/backups`, a resource that cannot
-  exist.
-- Elsewhere a non-string escaped as a bare `AttributeError`
-  (`'int' object has no attribute 'strip'`) or a `TypeError` from the URL
-  encoder.
-- `None` raised `PineconeValueError: name must be a non-empty string`. An
-  `except PineconeValueError` (or `except ValueError`) written for that no
-  longer catches it; catch `PineconeTypeError` as well. An empty string still
-  raises `PineconeValueError`.
+`None` for a required name raised `PineconeValueError` in 10.0.0. An
+`except PineconeValueError` (or `except ValueError`) written for that no
+longer catches it; catch `PineconeTypeError` as well. An empty string still
+raises `PineconeValueError`.
 
-The same check covers twelve arguments that never reach the URL, which move
-from `AttributeError` in 10.0.0 to `PineconeTypeError`:
-`create_index_from_backup(name=)`, `indexes.create_for_model(cloud=, region=)`,
-`collections.create(source=)`, `backup_schedules.create(name=)`,
-`inference.rerank(query=)`, and, on the `Admin` client,
-`api_keys.create(name=)`, `invites.create(email=)`, `projects.create(name=)`,
-`projects.describe_by_name(name=)`, `role_bindings.create(principal_id=)` and
-`service_accounts.create(name=)`.
-
-Convert at the call site, with `str(uuid_value)` or `str(numeric_id)`. Two
-cases keep their documented behavior: an optional path parameter still
-accepts `None`, so `pc.backups.list(index_name=None)` lists backups across
-every index, and `describe_import()` and `cancel_import()` still accept an
-`int` ID and convert it.
+Convert at the call site, with `str(uuid_value)` or `str(numeric_id)`. An
+optional path parameter still accepts `None`, so
+`pc.backups.list(index_name=None)` lists backups across every index, and
+`describe_import()` and `cancel_import()` still accept an `int` ID.
 
 (v10-1-clients)=
 ## Creating a client
@@ -254,9 +238,9 @@ pc.index(host="http://movies-abc123.svc.aped-4627-b74a.pinecone.io")
 ```
 
 `additional_headers` now replaces an SDK header whatever its capitalization.
-In 10.0.0 only the exact spelling, such as `"X-Pinecone-Api-Version"`,
-replaced it; any other spelling was sent alongside the SDK's own header, so
-the server received two values. This client now sends one
+In 10.0.0 any spelling other than the exact one, such as
+`"X-Pinecone-Api-Version"`, was sent alongside the SDK's own header, so the
+server received two values. This client now sends one
 `X-Pinecone-Api-Version`, `2025-10`:
 
 ```python
@@ -275,18 +259,19 @@ raise `PineconeTypeError` instead of a plain `TypeError`. It is a subclass of
 When the server rejects a `documents.batch_upsert` batch as too large
 (HTTP 413), 10.1.0 halves the batch and resends each half, down to single
 documents. 10.0.0 recorded the whole batch as failed. Code that retried
-`result.failed_items` with a smaller `batch_size` can drop that step; what
-remains in `failed_items` after a 413 is a single document over the server's
-size cap, which no resend fixes. One batch can now land in part, so several
-`result.errors` rows can share a `batch_index`.
+`result.failed_items` with a smaller `batch_size` can drop that step: a 413
+left in `failed_items` is a single document too large to send. One batch can
+now land in part, so several `result.errors` rows can share a
+`batch_index`.
 
 A 413 from any call now raises `PayloadTooLargeError` rather than a plain
 `ApiError`. It is a subclass of `ApiError`, so `except ApiError` still
 catches it.
 
-On an index with an `embed` or `sparse_embed` field, the server takes at most
-96 documents per upsert or update request. The default `batch_size` of 50
-fits; keep any value you pass at 96 or below:
+The 10.0.0 `batch_upsert` example passed `batch_size=100`. On an index with
+an `embed` or `sparse_embed` field, the server takes at most 96 documents per
+upsert or update request, so keep `batch_size` at 96 or below there, or leave
+the default of 50:
 
 ```python
 index.documents.batch_upsert(
