@@ -5,6 +5,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
+from typing_extensions import assert_type
 
 import pinecone.grpc
 from pinecone.grpc import GRPCIndex, GrpcIndex
@@ -74,7 +75,7 @@ class TestGrpcDescribeNamespace:
         }
         idx = _make_grpc_index(mock_channel)
 
-        result = idx.describe_namespace(namespace="movies")  # type: ignore[call-arg]
+        result = idx.describe_namespace(namespace="movies")
 
         mock_channel.describe_namespace.assert_called_once_with("movies", timeout_s=None)
         assert result.name == "movies"
@@ -87,7 +88,7 @@ class TestGrpcDescribeNamespace:
         idx = _make_grpc_index(mock_channel)
 
         with pytest.raises(ValidationError, match=r"name=.*namespace="):
-            idx.describe_namespace(name="movies", namespace="movies")  # type: ignore[call-arg]
+            idx.describe_namespace(name="movies", namespace="movies")
 
     def test_grpc_describe_namespace_empty_name_raises(self) -> None:
         from pinecone.errors.exceptions import ValidationError
@@ -181,7 +182,7 @@ class TestGrpcCreateNamespace:
         idx = _make_grpc_index(mock_channel)
 
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.create_namespace("my-ns")  # type: ignore[misc]
+            idx.create_namespace("my-ns")  # type: ignore[call-arg]
 
     def test_grpc_create_namespace_empty_name_raises(self) -> None:
         from pinecone.errors.exceptions import ValidationError
@@ -228,7 +229,7 @@ class TestGrpcDeleteNamespace:
         mock_channel.delete_namespace.return_value = None
         idx = _make_grpc_index(mock_channel)
 
-        result = idx.delete_namespace(name="movies")
+        result = assert_type(idx.delete_namespace(name="movies"), None)
 
         mock_channel.delete_namespace.assert_called_once_with("movies", timeout_s=None)
         assert result is None
@@ -238,7 +239,7 @@ class TestGrpcDeleteNamespace:
         mock_channel.delete_namespace.return_value = None
         idx = _make_grpc_index(mock_channel)
 
-        result = idx.delete_namespace(namespace="movies")  # type: ignore[call-arg]
+        result = assert_type(idx.delete_namespace(namespace="movies"), None)
 
         mock_channel.delete_namespace.assert_called_once_with("movies", timeout_s=None)
         assert result is None
@@ -250,7 +251,7 @@ class TestGrpcDeleteNamespace:
         idx = _make_grpc_index(mock_channel)
 
         with pytest.raises(ValidationError, match=r"name=.*namespace="):
-            idx.delete_namespace(name="movies", namespace="movies")  # type: ignore[call-arg]
+            idx.delete_namespace(name="movies", namespace="movies")
 
     def test_grpc_delete_namespace_positional_name_raises(self) -> None:
         from pinecone.errors.exceptions import PineconeValueError
@@ -259,7 +260,7 @@ class TestGrpcDeleteNamespace:
         idx = _make_grpc_index(mock_channel)
 
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.delete_namespace("my-ns")  # type: ignore[misc]
+            idx.delete_namespace("my-ns")  # type: ignore[call-arg]
 
     def test_grpc_delete_namespace_empty_name_raises(self) -> None:
         from pinecone.errors.exceptions import ValidationError
@@ -276,7 +277,7 @@ class TestGrpcDeleteNamespace:
         mock_channel.delete_namespace.return_value = None
         idx = _make_grpc_index(mock_channel)
 
-        assert idx.delete_namespace(name="   ") is None
+        assert assert_type(idx.delete_namespace(name="   "), None) is None
         mock_channel.delete_namespace.assert_called_once_with("   ", timeout_s=None)
 
     def test_grpc_delete_namespace_passes_timeout(self) -> None:
@@ -390,23 +391,22 @@ class TestGrpcListNamespaces:
             pagination=None,
             total_count=1,
         )
-        idx.list_namespaces_paginated = MagicMock(return_value=page)
+        with patch.object(idx, "list_namespaces_paginated", return_value=page) as paginated:
+            pages = list(idx.list_namespaces())
 
-        pages = list(idx.list_namespaces())
-
-        assert pages == [page]
-        idx.list_namespaces_paginated.assert_called_once_with(
-            prefix=None,
-            limit=None,
-            pagination_token=None,
-            timeout=None,
-        )
+            assert pages == [page]
+            paginated.assert_called_once_with(
+                prefix=None,
+                limit=None,
+                pagination_token=None,
+                timeout=None,
+            )
 
     def test_grpc_list_namespaces_yields_pages_multi(self) -> None:
         mock_channel = MagicMock()
         idx = _make_grpc_index(mock_channel)
 
-        from pinecone.models.namespaces.models import Pagination
+        from pinecone.models.vectors.responses import Pagination
 
         page1 = ListNamespacesResponse(
             namespaces=[NamespaceDescription(name="a", record_count=1)],
@@ -418,20 +418,21 @@ class TestGrpcListNamespaces:
             pagination=None,
             total_count=2,
         )
-        idx.list_namespaces_paginated = MagicMock(side_effect=[page1, page2])
+        with patch.object(
+            idx, "list_namespaces_paginated", side_effect=[page1, page2]
+        ) as paginated:
+            pages = list(idx.list_namespaces())
 
-        pages = list(idx.list_namespaces())
-
-        assert pages == [page1, page2]
-        assert idx.list_namespaces_paginated.call_count == 2
-        second_call_kwargs = idx.list_namespaces_paginated.call_args_list[1].kwargs
-        assert second_call_kwargs["pagination_token"] == "tok1"
+            assert pages == [page1, page2]
+            assert paginated.call_count == 2
+            second_call_kwargs = paginated.call_args_list[1].kwargs
+            assert second_call_kwargs["pagination_token"] == "tok1"
 
     def test_grpc_list_namespaces_skips_empty_pages(self) -> None:
         mock_channel = MagicMock()
         idx = _make_grpc_index(mock_channel)
 
-        from pinecone.models.namespaces.models import Pagination
+        from pinecone.models.vectors.responses import Pagination
 
         empty_page = ListNamespacesResponse(
             namespaces=[],
@@ -443,11 +444,10 @@ class TestGrpcListNamespaces:
             pagination=None,
             total_count=1,
         )
-        idx.list_namespaces_paginated = MagicMock(side_effect=[empty_page, final_page])
+        with patch.object(idx, "list_namespaces_paginated", side_effect=[empty_page, final_page]):
+            pages = list(idx.list_namespaces())
 
-        pages = list(idx.list_namespaces())
-
-        assert pages == [final_page]
+            assert pages == [final_page]
 
     def test_grpc_list_namespaces_limit_forwarded(self) -> None:
         mock_channel = MagicMock()
@@ -458,13 +458,12 @@ class TestGrpcListNamespaces:
             pagination=None,
             total_count=1,
         )
-        idx.list_namespaces_paginated = MagicMock(return_value=page)
+        with patch.object(idx, "list_namespaces_paginated", return_value=page) as paginated:
+            list(idx.list_namespaces(limit=5))
 
-        list(idx.list_namespaces(limit=5))
-
-        idx.list_namespaces_paginated.assert_called_once_with(
-            prefix=None,
-            limit=5,
-            pagination_token=None,
-            timeout=None,
-        )
+            paginated.assert_called_once_with(
+                prefix=None,
+                limit=5,
+                pagination_token=None,
+                timeout=None,
+            )

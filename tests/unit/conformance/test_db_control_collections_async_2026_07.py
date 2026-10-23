@@ -32,6 +32,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.adapters.collections_adapter import _CollectionListEnvelope
 from pinecone._internal.constants import DEFAULT_BASE_URL
@@ -120,7 +121,7 @@ async def test_async_delete_collection(
     route = respx_mock.delete(f"{BASE_URL}/collections/{COLLECTION_NAME}").mock(
         return_value=httpx.Response(202)
     )
-    returned = await async_pc.collections.delete(COLLECTION_NAME)
+    returned = assert_type(await async_pc.collections.delete(COLLECTION_NAME), None)
     request = route.calls.last.request
     claim.assert_request(request)
     claim.assert_api_version(request)

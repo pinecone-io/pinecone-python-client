@@ -43,6 +43,7 @@ import pytest
 import respx
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
+from typing_extensions import assert_type
 
 from pinecone._internal.config import PineconeConfig
 from pinecone.client.assistants import Assistants
@@ -271,7 +272,10 @@ def test_delete_file(claim: Any, assistants: Assistants, respx_mock: respx.MockR
         )
     )
 
-    assert assistants.delete_file(assistant_name=ASSISTANT_NAME, file_id=FILE_ID) is None
+    assert (
+        assert_type(assistants.delete_file(assistant_name=ASSISTANT_NAME, file_id=FILE_ID), None)
+        is None
+    )
 
     request = route.calls.last.request
     claim.assert_request(request)
@@ -337,7 +341,10 @@ def test_delete_file_204_is_success_with_no_body(
         return_value=httpx.Response(200, json=COMPLETED_UPLOAD)
     )
 
-    assert assistants.delete_file(assistant_name=ASSISTANT_NAME, file_id=FILE_ID) is None
+    assert (
+        assert_type(assistants.delete_file(assistant_name=ASSISTANT_NAME, file_id=FILE_ID), None)
+        is None
+    )
 
     assert route.call_count == 1
     assert operations.call_count == 0

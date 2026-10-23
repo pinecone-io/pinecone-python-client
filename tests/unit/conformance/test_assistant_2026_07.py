@@ -19,6 +19,7 @@ import httpx
 import orjson
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.adapters.assistants_adapter import _AlignmentResponse
 from pinecone._internal.config import PineconeConfig
@@ -173,7 +174,7 @@ def test_delete_assistant(claim: Any, assistants: Assistants, respx_mock: respx.
         return_value=httpx.Response(200)
     )
 
-    returned = assistants.delete(name=ASSISTANT_NAME, timeout=-1)
+    returned = assert_type(assistants.delete(name=ASSISTANT_NAME, timeout=-1), None)
 
     request = route.calls.last.request
     claim.assert_request(request)

@@ -21,6 +21,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.constants import DEFAULT_BASE_URL
 from pinecone.admin.admin import _OAUTH_URL, Admin
@@ -122,7 +123,7 @@ def test_delete_invite(claim: Any, admin: Admin, respx_mock: respx.MockRouter) -
         return_value=httpx.Response(202)
     )
 
-    returned = admin.invites.delete(invite_id=INVITE_ID)
+    returned = assert_type(admin.invites.delete(invite_id=INVITE_ID), None)
 
     request = route.calls.last.request
     claim.assert_request(request)

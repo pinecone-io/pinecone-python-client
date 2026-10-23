@@ -273,7 +273,7 @@ async def test_async_rerank_mixed_types_raises(inference: AsyncInference) -> Non
         await inference.rerank(
             model="bge-reranker-v2-m3",
             query="test query",
-            documents=["a string", 123],  # type: ignore[list-item]
+            documents=["a string", 123],  # type: ignore[arg-type]  # mixed on purpose
         )
 
 
@@ -283,7 +283,7 @@ async def test_async_rerank_non_list_documents_raises(inference: AsyncInference)
         await inference.rerank(
             model="bge-reranker-v2-m3",
             query="test query",
-            documents="not a list",  # type: ignore[arg-type]
+            documents="not a list",
         )
 
 
@@ -297,7 +297,7 @@ async def test_async_rerank_tuple_documents_accepted(inference: AsyncInference) 
     result = await inference.rerank(
         model="bge-reranker-v2-m3",
         query="test query",
-        documents=("a", "b"),  # type: ignore[arg-type]
+        documents=("a", "b"),
     )
     assert isinstance(result, RerankResult)
 

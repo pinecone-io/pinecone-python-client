@@ -179,4 +179,4 @@ class TestFetchValidation:
         """All params must be keyword-only."""
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.fetch(["vec1"])  # type: ignore[misc]
+            idx.fetch(["vec1"])  # type: ignore[call-arg]

@@ -9,7 +9,7 @@ import httpx
 import pytest
 import respx
 
-from pinecone import PineconeTypeError
+from pinecone import PineconeTypeError, SparseValues
 from pinecone._internal import documents_helpers as h
 from pinecone.async_client.async_index import AsyncIndex
 from pinecone.index import Index
@@ -105,12 +105,16 @@ def test_sequences_still_accepted() -> None:
 
 @pytest.mark.parametrize(
     "build",
+    # Each clause gets a bare str for fields on purpose: the misuse under test.
     [
-        lambda: TextQuery(query="x", fields="title"),
-        lambda: DenseVectorQuery(values=[0.1], fields="e"),
-        lambda: SparseVectorQuery(sparse_values={"indices": [1], "values": [0.1]}, fields="e"),
-        lambda: EmbedQuery(query="x", fields="e"),
-        lambda: SparseEmbedQuery(query="x", fields="e"),
+        lambda: TextQuery(query="x", fields="title"),  # type: ignore[arg-type]
+        lambda: DenseVectorQuery(values=[0.1], fields="e"),  # type: ignore[arg-type]
+        lambda: SparseVectorQuery(
+            sparse_values=SparseValues(indices=[1], values=[0.1]),
+            fields="e",  # type: ignore[arg-type]
+        ),
+        lambda: EmbedQuery(query="x", fields="e"),  # type: ignore[arg-type]
+        lambda: SparseEmbedQuery(query="x", fields="e"),  # type: ignore[arg-type]
     ],
     ids=["text", "dense", "sparse", "embed", "sparse_embed"],
 )

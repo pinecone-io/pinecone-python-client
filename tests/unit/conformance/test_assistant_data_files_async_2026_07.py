@@ -26,6 +26,7 @@ import httpx
 import orjson
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.config import PineconeConfig
 from pinecone.async_client.assistants import AsyncAssistants
@@ -173,7 +174,10 @@ async def test_async_delete_file(
     )
 
     assert (
-        await async_assistants.delete_file(assistant_name=ASSISTANT_NAME, file_id=FILE_ID) is None
+        assert_type(
+            await async_assistants.delete_file(assistant_name=ASSISTANT_NAME, file_id=FILE_ID), None
+        )
+        is None
     )
 
     request = route.calls.last.request
@@ -245,7 +249,10 @@ async def test_async_delete_file_204_is_success_with_no_body(
     )
 
     assert (
-        await async_assistants.delete_file(assistant_name=ASSISTANT_NAME, file_id=FILE_ID) is None
+        assert_type(
+            await async_assistants.delete_file(assistant_name=ASSISTANT_NAME, file_id=FILE_ID), None
+        )
+        is None
     )
 
     assert route.call_count == 1

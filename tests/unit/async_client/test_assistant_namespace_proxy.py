@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -31,12 +32,12 @@ def mock_async_assistants_ns() -> MagicMock:
 
 
 @pytest.fixture
-def mock_async_pinecone(mock_async_assistants_ns: MagicMock) -> MagicMock:
+def mock_async_pinecone(mock_async_assistants_ns: MagicMock) -> Any:
     """Return an AsyncPinecone-like object whose _assistants is fully mocked."""
     from pinecone.async_client.pinecone import AsyncPinecone
 
     pc = AsyncPinecone.__new__(AsyncPinecone)
-    pc._assistants = mock_async_assistants_ns  # type: ignore[attr-defined]
+    pc._assistants = mock_async_assistants_ns
     return pc
 
 

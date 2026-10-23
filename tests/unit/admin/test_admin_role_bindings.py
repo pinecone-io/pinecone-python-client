@@ -39,6 +39,7 @@ import pytest
 import respx
 from hypothesis import given, settings
 from hypothesis import strategies as st
+from typing_extensions import assert_type
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION
@@ -68,7 +69,7 @@ ORG_ID = "-ExampleOrgId0000000"
 
 _FILTER_PARAMS = ("principal_type", "principal_id", "resource_type", "resource_id", "role")
 
-_FILTER_ENUM_MEMBERS = [
+_FILTER_ENUM_MEMBERS: list[tuple[str, PrincipalType | ResourceType | RoleName]] = [
     *(("principal_type", m) for m in PrincipalType),
     *(("resource_type", m) for m in ResourceType),
     *(("role", m) for m in RoleName),
@@ -228,7 +229,7 @@ def test_list_accepts_enum_members_for_filters(role_bindings: RoleBindings) -> N
 @pytest.mark.parametrize(("param", "member"), _FILTER_ENUM_MEMBERS, ids=_enum_member_id)
 @respx.mock
 def test_list_query_string_is_identical_for_member_and_string(
-    role_bindings: RoleBindings, param: str, member: Enum
+    role_bindings: RoleBindings, param: str, member: PrincipalType | ResourceType | RoleName
 ) -> None:
     """A member and its own ``.value`` produce the same query string, for every member.
 
@@ -240,8 +241,11 @@ def test_list_query_string_is_identical_for_member_and_string(
         return_value=httpx.Response(200, json=_page([]))
     )
 
-    role_bindings.list(**{param: member}).to_list()
-    role_bindings.list(**{param: member.value}).to_list()
+    # One parametrized keyword at a time, so the kwargs dict is typed loosely.
+    by_member: dict[str, Any] = {param: member}
+    by_value: dict[str, Any] = {param: member.value}
+    role_bindings.list(**by_member).to_list()
+    role_bindings.list(**by_value).to_list()
 
     assert str(route.calls[0].request.url) == str(route.calls[1].request.url)
     assert route.calls[0].request.url.params[param] == member.value
@@ -977,7 +981,7 @@ def test_delete_role_binding(role_bindings: RoleBindings) -> None:
         return_value=httpx.Response(202)
     )
 
-    assert role_bindings.delete(role_binding_id=BINDING_ID) is None
+    assert assert_type(role_bindings.delete(role_binding_id=BINDING_ID), None) is None
     assert route.calls.last.request.url.path == f"/admin/role-bindings/{BINDING_ID}"
 
 
@@ -1010,7 +1014,7 @@ def test_delete_repeat_is_404_not_a_second_success(role_bindings: RoleBindings) 
         ]
     )
 
-    assert role_bindings.delete(role_binding_id=BINDING_ID) is None
+    assert assert_type(role_bindings.delete(role_binding_id=BINDING_ID), None) is None
     with pytest.raises(NotFoundError):
         role_bindings.delete(role_binding_id=BINDING_ID)
 

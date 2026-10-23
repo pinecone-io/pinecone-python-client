@@ -31,6 +31,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone import Pinecone
 from pinecone._internal.adapters.collections_adapter import _CollectionListEnvelope
@@ -117,7 +118,7 @@ def test_delete_collection(claim: Any, pc: Pinecone, respx_mock: respx.MockRoute
     route = respx_mock.delete(f"{BASE_URL}/collections/{COLLECTION_NAME}").mock(
         return_value=httpx.Response(202)
     )
-    returned = pc.collections.delete(COLLECTION_NAME)
+    returned = assert_type(pc.collections.delete(COLLECTION_NAME), None)
     request = route.calls.last.request
     claim.assert_request(request)
     claim.assert_api_version(request)

@@ -399,7 +399,11 @@ class TestLegacyVectorSchema:
     def test_metric_is_validated_before_dimension(self) -> None:
         """9.x checked metric first; a call wrong in both ways must not change error."""
         with pytest.raises(PineconeValueError, match="metric must be one of"):
-            legacy_vector_schema(dimension="1536", metric="manhattan", vector_type="dense")
+            legacy_vector_schema(
+                dimension="1536",  # type: ignore[arg-type]  # untyped 9.x callers can pass a str
+                metric="manhattan",
+                vector_type="dense",
+            )
 
 
 class TestLegacyPodScaling:

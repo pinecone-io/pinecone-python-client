@@ -166,7 +166,7 @@ class TestGrpcDataframeUpsert:
         """Non-DataFrame input should raise PineconeValueError."""
         pytest.importorskip("pandas")
         with pytest.raises(PineconeValueError, match="df must be a pandas DataFrame"):
-            grpc_index.upsert_from_dataframe([1, 2, 3])  # type: ignore[arg-type]
+            grpc_index.upsert_from_dataframe([1, 2, 3])
 
     def test_batch_size_zero_raises(self, grpc_index: GrpcIndex) -> None:
         """batch_size=0 should raise PineconeValueError."""
@@ -404,7 +404,9 @@ class TestGrpcDataframeConcurrency:
         inflight = 0
         peak = 0
 
-        def _tracking_upsert(vectors: list[dict[str, object]], namespace: str | None, **_: object):
+        def _tracking_upsert(
+            vectors: list[dict[str, object]], namespace: str | None, **_: object
+        ) -> dict[str, int]:
             nonlocal inflight, peak
             with lock:
                 inflight += 1

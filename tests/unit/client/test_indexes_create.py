@@ -475,31 +475,29 @@ def test_create_legacy_pod_spec_metadata_config_is_guided_away(indexes: Indexes)
 
 def test_create_legacy_pods_kwarg_notes_no_equivalent(indexes: Indexes) -> None:
     with pytest.raises(PineconeTypeError, match="pods=: capacity is replicas x shards"):
-        indexes.create(  # type: ignore[call-arg]
-            name="pods", dimension=3, spec=PodSpec(environment="us-east1-gcp"), pods=4
-        )
+        indexes.create(name="pods", dimension=3, spec=PodSpec(environment="us-east1-gcp"), pods=4)
 
 
 def test_create_legacy_metadata_config_kwarg_notes_no_equivalent(indexes: Indexes) -> None:
     with pytest.raises(PineconeTypeError, match="metadata_config=: metadata fields"):
-        indexes.create(schema=DENSE_SCHEMA, metadata_config={"indexed": ["genre"]})  # type: ignore[call-arg]
+        indexes.create(schema=DENSE_SCHEMA, metadata_config={"indexed": ["genre"]})
 
 
 def test_create_unknown_kwarg_lists_accepted_arguments(indexes: Indexes) -> None:
     with pytest.raises(PineconeTypeError, match="unexpected keyword argument"):
-        indexes.create(schema=DENSE_SCHEMA, shcema_typo=True)  # type: ignore[call-arg]
+        indexes.create(schema=DENSE_SCHEMA, shcema_typo=True)
 
 
 def test_create_unknown_kwarg_not_absorbed_by_legacy_sugar(indexes: Indexes) -> None:
     with pytest.raises(PineconeTypeError, match=r"\['dimenson'\]"):
-        indexes.create(name="x", dimenson=3)  # type: ignore[call-arg]
+        indexes.create(name="x", dimenson=3)
 
 
 def test_create_quarantined_kwargs_rejected_before_any_request(indexes: Indexes) -> None:
     with respx.mock:
         route = respx.post(f"{BASE_URL}/indexes")
         with pytest.raises(PineconeTypeError):
-            indexes.create(name="x", dimension=3, pods=4)  # type: ignore[call-arg]
+            indexes.create(name="x", dimension=3, pods=4)
         assert route.call_count == 0
 
 

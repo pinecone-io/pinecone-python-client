@@ -8,7 +8,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from pinecone.models.documents import Document
+from pinecone.models.documents.document import Document
 
 
 def test_typed_id() -> None:
@@ -38,13 +38,13 @@ def test_typed_score_coercion() -> None:
 
 def test_dynamic_attribute_access() -> None:
     doc = Document({"_id": "doc-1", "title": "Ancient Rome"})
-    assert doc.title == "Ancient Rome"  # type: ignore[attr-defined]
+    assert doc.title == "Ancient Rome"
 
 
 def test_dynamic_attribute_missing_raises() -> None:
     doc = Document({"_id": "doc-1"})
     with pytest.raises(AttributeError):
-        _ = doc.nonexistent  # type: ignore[attr-defined]
+        _ = doc.nonexistent
 
 
 def test_get_existing_key() -> None:

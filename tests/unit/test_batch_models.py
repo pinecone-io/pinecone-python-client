@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 from pinecone.models.batch import BatchError, BatchResult
 
 
 def make_batch_error(
     batch_index: int = 0,
-    items: list[dict] | None = None,
+    items: list[dict[str, Any]] | None = None,
     error: Exception | None = None,
     error_message: str = "Connection timeout",
 ) -> BatchError:

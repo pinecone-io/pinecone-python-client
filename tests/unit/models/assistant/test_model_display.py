@@ -52,7 +52,7 @@ class TestRepr:
 
     def test_safe_on_malformed(self) -> None:
         m = make_minimal()
-        m.name = None
+        m.name = None  # type: ignore[assignment]  # malformed on purpose
         r = repr(m)
         assert isinstance(r, str)
 
@@ -80,7 +80,7 @@ class TestReprHtml:
 
     def test_safe_on_malformed(self) -> None:
         m = make_minimal()
-        m.name = object()
+        m.name = object()  # type: ignore[assignment]  # malformed on purpose
         h = m._repr_html_()
         assert isinstance(h, str)
 

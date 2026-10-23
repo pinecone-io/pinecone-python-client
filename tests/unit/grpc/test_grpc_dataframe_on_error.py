@@ -203,7 +203,8 @@ class TestRestDoesNotWarn:
                 _frame(6), batch_size=2, show_progress=False, on_error="raise"
             )
 
-        assert excinfo.value.response.upserted_count == 4
+        # The SDK attaches the partial response to the re-raised error at runtime.
+        assert excinfo.value.response.upserted_count == 4  # type: ignore[attr-defined]
 
 
 class TestSignatureParity:

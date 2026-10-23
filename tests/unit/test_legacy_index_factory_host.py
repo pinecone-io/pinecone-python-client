@@ -19,6 +19,7 @@ from typing import Any
 import pytest
 
 from pinecone._internal.constants import DEFAULT_BASE_URL
+from tests.integration.legacy_index import LegacyIndex
 from tests.live_suite import ENV_FILE_OVERRIDE
 
 _OVERRIDE_BEFORE = os.environ.get(ENV_FILE_OVERRIDE)
@@ -49,7 +50,7 @@ def _drive_factory(
         base_url: str,
     ) -> Any:
         created_base_urls.append(base_url)
-        return integration_conftest.LegacyIndex(
+        return LegacyIndex(
             name="idx-legacy-fake",
             host="h",
             dimension=dimension,
@@ -63,7 +64,8 @@ def _drive_factory(
     monkeypatch.setattr(integration_conftest, "create_legacy_index", fake_create)
     monkeypatch.setattr(integration_conftest, "delete_legacy_index", fake_delete)
 
-    gen = integration_conftest.legacy_index_factory.__wrapped__(api_key)
+    # functools.update_wrapper sets __wrapped__ at runtime; pytest does not declare it.
+    gen = integration_conftest.legacy_index_factory.__wrapped__(api_key)  # type: ignore[attr-defined]
     factory = next(gen)
     factory(dimension=3)
     with pytest.raises(StopIteration):

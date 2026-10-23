@@ -180,7 +180,7 @@ def test_illegal_header_value_is_scrubbed_from_the_whole_cause_chain(
 def test_grpc_index_accepts_and_sends_edge_spaces_and_tabs(
     key: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import pinecone._grpc as rust_grpc
+    import pinecone._grpc as rust_grpc  # type: ignore[import-not-found]
 
     import pinecone.grpc as grpc_module
 

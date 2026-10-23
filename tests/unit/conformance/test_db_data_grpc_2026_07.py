@@ -38,6 +38,7 @@ from typing import Any
 
 import pytest
 from google.protobuf import struct_pb2
+from typing_extensions import assert_type
 
 from pinecone.grpc import GrpcIndex
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
@@ -282,7 +283,7 @@ def test_fetch_by_metadata(claim: Any, server: VectorServiceHarness, index: Grpc
 def test_delete(claim: Any, server: VectorServiceHarness, index: GrpcIndex) -> None:
     server.respond("Delete", server.pb2.DeleteResponse())
 
-    returned = index.delete(ids=["vec-1", "vec-2"], namespace=NAMESPACE)
+    returned = assert_type(index.delete(ids=["vec-1", "vec-2"], namespace=NAMESPACE), None)
 
     call = server.single_call()
     assert list(call.request.ids) == ["vec-1", "vec-2"]
@@ -474,7 +475,7 @@ def test_describe_namespace(claim: Any, server: VectorServiceHarness, index: Grp
 def test_delete_namespace(claim: Any, server: VectorServiceHarness, index: GrpcIndex) -> None:
     server.respond("DeleteNamespace", server.pb2.DeleteResponse())
 
-    returned = index.delete_namespace(name=NAMESPACE)
+    returned = assert_type(index.delete_namespace(name=NAMESPACE), None)
 
     call = server.single_call()
     assert call.request.namespace == NAMESPACE

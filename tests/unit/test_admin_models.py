@@ -358,7 +358,8 @@ class TestAPIKeyModel:
         key = msgspec.json.decode(data, type=APIKeyModel)
         assert isinstance(key.roles[0], APIKeyRole)
         assert key.roles[0] == APIKeyRole.PROJECT_EDITOR
-        assert key.roles[0] == "ProjectEditor"
+        role: str = key.roles[0]
+        assert role == "ProjectEditor"
 
     def test_api_key_roles_enum_equality_preserved(self) -> None:
         import msgspec
@@ -366,4 +367,5 @@ class TestAPIKeyModel:
         data = b'{"id":"key-1","name":"k","project_id":"p","roles":["ProjectEditor"]}'
         key = msgspec.json.decode(data, type=APIKeyModel)
         assert key.roles[0] == APIKeyRole.PROJECT_EDITOR
-        assert key.roles[0] == "ProjectEditor"
+        role: str = key.roles[0]
+        assert role == "ProjectEditor"

@@ -108,7 +108,7 @@ def _find(predicate: Any) -> dict[str, Any]:
     for source in BLOCKS:
         if "await " in source:
             continue
-        body = _body(source)
+        body: dict[str, Any] = _body(source)
         if predicate(body):
             return body
     raise AssertionError("no block in the #334 section matches")

@@ -239,7 +239,7 @@ class TestUpsertKeywordOnly:
     def test_positional_args_rejected(self) -> None:
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.upsert([("v1", [0.1])])  # type: ignore[misc]
+            idx.upsert([("v1", [0.1])])  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------

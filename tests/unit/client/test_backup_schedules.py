@@ -24,6 +24,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.backups_helpers import SCHEDULED_BACKUPS_PLAN_HINT
 from pinecone._internal.config import PineconeConfig
@@ -568,7 +569,7 @@ class TestDelete:
             return_value=httpx.Response(204)
         )
 
-        assert schedules.delete(schedule_id=SCHEDULE_ID) is None
+        assert assert_type(schedules.delete(schedule_id=SCHEDULE_ID), None) is None
 
     @respx.mock
     def test_ignores_a_body_the_spec_does_not_declare(self, schedules: BackupSchedules) -> None:
@@ -577,7 +578,7 @@ class TestDelete:
             return_value=httpx.Response(204, content=b"not json")
         )
 
-        assert schedules.delete(schedule_id=SCHEDULE_ID) is None
+        assert assert_type(schedules.delete(schedule_id=SCHEDULE_ID), None) is None
 
     @respx.mock
     def test_second_delete_404s(self, schedules: BackupSchedules) -> None:
@@ -1136,9 +1137,9 @@ class TestSurface:
 
     def test_every_method_is_keyword_only(self, schedules: BackupSchedules) -> None:
         with pytest.raises(TypeError):
-            schedules.describe(SCHEDULE_ID)  # type: ignore[misc]
+            schedules.describe(SCHEDULE_ID)  # type: ignore[call-arg]
         with pytest.raises(TypeError):
-            schedules.list("my-index")  # type: ignore[misc]
+            schedules.list("my-index")  # type: ignore[call-arg]
 
     def test_the_namespace_is_reachable_and_cached_on_the_client(self) -> None:
         from pinecone import Pinecone

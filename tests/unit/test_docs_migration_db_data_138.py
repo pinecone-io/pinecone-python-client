@@ -93,7 +93,8 @@ def _shape(source: str, label: str) -> dict[str, Any]:
     """The dict literal a ``# before:`` or ``# now:`` comment line carries."""
     match = re.search(rf"^#\s*{label}:\s*(\{{.*\}})\s*$", source, re.MULTILINE)
     assert match, f"no '# {label}:' shape in block:\n{source}"
-    return ast.literal_eval(match.group(1))
+    shape: dict[str, Any] = ast.literal_eval(match.group(1))
+    return shape
 
 
 def _index() -> Index:
@@ -103,7 +104,7 @@ def _index() -> Index:
 def _normalized() -> str:
     """Whitespace, smart quotes and dashes flattened, so a reflow cannot hide a phrase."""
     quotes = dict.fromkeys("\u2018\u2019", "'") | dict.fromkeys("\u201c\u201d", '"')
-    dashes = dict.fromkeys("\u2013\u2014\u2212", "-")
+    dashes: dict[str, str | int | None] = dict.fromkeys("\u2013\u2014\u2212", "-")
     return re.sub(r"\s+", " ", TEXT.translate(str.maketrans(quotes | dashes)))
 
 

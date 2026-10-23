@@ -59,21 +59,27 @@ class TestClassShape:
         ("cls", "status"),
         [(PaymentRequiredError, 402), (FailedPreconditionError, 412)],
     )
-    def test_inherits_api_error_and_pinecone_error(self, cls: type[ApiError], status: int) -> None:
+    def test_inherits_api_error_and_pinecone_error(
+        self, cls: type[PaymentRequiredError] | type[FailedPreconditionError], status: int
+    ) -> None:
         err = cls()
         assert isinstance(err, ApiError)
         assert isinstance(err, PineconeError)
         assert err.status_code == status
 
     @pytest.mark.parametrize("cls", [PaymentRequiredError, FailedPreconditionError])
-    def test_repr_shows_own_class_name(self, cls: type[ApiError]) -> None:
+    def test_repr_shows_own_class_name(
+        self, cls: type[PaymentRequiredError] | type[FailedPreconditionError]
+    ) -> None:
         assert repr(cls()).startswith(f"{cls.__name__}(")
 
     @pytest.mark.parametrize(
         ("cls", "status"),
         [(PaymentRequiredError, 402), (FailedPreconditionError, 412)],
     )
-    def test_propagates_structured_context(self, cls: type[ApiError], status: int) -> None:
+    def test_propagates_structured_context(
+        self, cls: type[PaymentRequiredError] | type[FailedPreconditionError], status: int
+    ) -> None:
         headers = {"x-request-id": "req-1"}
         err = cls(
             message="server said so",

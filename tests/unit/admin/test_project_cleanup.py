@@ -53,7 +53,7 @@ def _backup_page(*backup_ids: str, next_token: str | None = None) -> BackupList:
     here would let a loop that reads only the first page pass.
     """
     return BackupList(
-        [_make_backup(b) for b in backup_ids],  # type: ignore[misc]
+        [_make_backup(b) for b in backup_ids],
         pagination=Pagination(next=next_token) if next_token is not None else None,
     )
 
@@ -174,7 +174,7 @@ def test_cleanup_stops_paging_when_next_token_is_null(
 
     _empty_project(mock_pc)
     mock_pc.backups.list.return_value = BackupList(
-        [_make_backup("bk-001")],  # type: ignore[misc]
+        [_make_backup("bk-001")],
         pagination=Pagination(next=None),
     )
 

@@ -172,7 +172,7 @@ class TestUpsertRecords:
     def test_upsert_records_keyword_only(self) -> None:
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.upsert_records([{"_id": "r1"}], "test-ns")  # type: ignore[misc]
+            idx.upsert_records([{"_id": "r1"}], "test-ns")  # type: ignore[call-arg]
 
     @respx.mock
     def test_upsert_records_preserves_metadata_fields(self) -> None:

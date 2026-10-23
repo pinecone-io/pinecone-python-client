@@ -39,7 +39,8 @@ def _baseline(tmp_path: Path, pages: list[str]) -> Path:
 
 
 def _run(build_dir: Path, baseline: Path, *extra: str) -> int:
-    return urls.main(["--build-dir", str(build_dir), "--baseline", str(baseline), *extra])
+    code: int = urls.main(["--build-dir", str(build_dir), "--baseline", str(baseline), *extra])
+    return code
 
 
 class TestBuiltUrls:
@@ -138,7 +139,7 @@ class TestPublishedUrls:
     </urlset>"""
 
     @staticmethod
-    def _patch_fetch(monkeypatch, body: str):
+    def _patch_fetch(monkeypatch: pytest.MonkeyPatch, body: str) -> None:
         def _get(url, **kwargs):
             return httpx.Response(200, text=body, request=httpx.Request("GET", url))
 

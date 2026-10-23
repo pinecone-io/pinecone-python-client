@@ -5,6 +5,7 @@ from __future__ import annotations
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone import Index
 from pinecone.errors.exceptions import PineconeValueError, ValidationError
@@ -170,17 +171,17 @@ class TestDescribeNamespace:
     def test_describe_namespace_rejects_both_kwargs(self) -> None:
         idx = _make_index()
         with pytest.raises(ValidationError, match="either name= or namespace="):
-            idx.describe_namespace(name="a", namespace="b")  # type: ignore[call-arg]
+            idx.describe_namespace(name="a", namespace="b")
 
     def test_describe_namespace_rejects_neither_kwarg(self) -> None:
         idx = _make_index()
         with pytest.raises(ValidationError, match="non-empty string"):
-            idx.describe_namespace()  # type: ignore[call-arg]
+            idx.describe_namespace()
 
     def test_describe_namespace_rejects_unknown_kwargs(self) -> None:
         idx = _make_index()
         with pytest.raises(TypeError, match="unexpected keyword arguments"):
-            idx.describe_namespace(name="x", bogus="y")  # type: ignore[call-arg]
+            idx.describe_namespace(name="x", bogus="y")
 
 
 # ---------------------------------------------------------------------------
@@ -197,7 +198,7 @@ class TestDeleteNamespace:
             return_value=httpx.Response(200, json={}),
         )
         idx = _make_index()
-        result = idx.delete_namespace(name="ns1")
+        result = assert_type(idx.delete_namespace(name="ns1"), None)
 
         assert result is None
         assert route.called
@@ -213,7 +214,7 @@ class TestDeleteNamespace:
             return_value=httpx.Response(200, json={}),
         )
         idx = _make_index()
-        result = idx.delete_namespace(namespace="movies")  # type: ignore[call-arg]
+        result = assert_type(idx.delete_namespace(namespace="movies"), None)
 
         assert result is None
         assert route.called
@@ -221,17 +222,17 @@ class TestDeleteNamespace:
     def test_delete_namespace_rejects_both_kwargs(self) -> None:
         idx = _make_index()
         with pytest.raises(ValidationError, match="either name= or namespace="):
-            idx.delete_namespace(name="a", namespace="b")  # type: ignore[call-arg]
+            idx.delete_namespace(name="a", namespace="b")
 
     def test_delete_namespace_rejects_neither_kwarg(self) -> None:
         idx = _make_index()
         with pytest.raises(ValidationError, match="non-empty string"):
-            idx.delete_namespace()  # type: ignore[call-arg]
+            idx.delete_namespace()
 
     def test_delete_namespace_rejects_unknown_kwargs(self) -> None:
         idx = _make_index()
         with pytest.raises(TypeError, match="unexpected keyword arguments"):
-            idx.delete_namespace(name="x", bogus="y")  # type: ignore[call-arg]
+            idx.delete_namespace(name="x", bogus="y")
 
     @respx.mock
     def test_delete_namespace_legacy_kwarg_with_timeout(self) -> None:
@@ -239,7 +240,7 @@ class TestDeleteNamespace:
             return_value=httpx.Response(200, json={}),
         )
         idx = _make_index()
-        idx.delete_namespace(namespace="x", timeout=5.0)  # type: ignore[call-arg]
+        idx.delete_namespace(namespace="x", timeout=5.0)
 
         assert route.called
 
@@ -255,14 +256,14 @@ class TestKeywordOnly:
     def test_create_namespace_keyword_only(self) -> None:
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.create_namespace("ns1")  # type: ignore[misc]
+            idx.create_namespace("ns1")  # type: ignore[call-arg]
 
     def test_describe_namespace_keyword_only(self) -> None:
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.describe_namespace("ns1")  # type: ignore[misc]
+            idx.describe_namespace("ns1")  # type: ignore[call-arg]
 
     def test_delete_namespace_keyword_only(self) -> None:
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.delete_namespace("ns1")  # type: ignore[misc]
+            idx.delete_namespace("ns1")  # type: ignore[call-arg]

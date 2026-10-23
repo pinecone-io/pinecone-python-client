@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 import warnings
 from multiprocessing.pool import ApplyResult
+from typing import Any
 
 import httpx
 import pytest
@@ -218,22 +219,22 @@ class TestFactoryValidation:
 
 class TestPoolThreadsBackcompat:
     def test_pool_threads_kwarg_accepted_silently(self) -> None:
-        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
+        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)
         assert idx is not None
 
     def test_pool_threads_installs_legacy_async_pool(self) -> None:
-        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
+        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)
         assert hasattr(idx, "_legacy_async_pool")
 
     def test_pool_threads_kwarg_does_not_warn(self) -> None:
         with warnings.catch_warnings(record=True) as record:
             warnings.simplefilter("always")
-            Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
+            Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)
         assert len(record) == 0
 
     def test_unknown_kwarg_still_rejected(self) -> None:
         with pytest.raises(TypeError, match="unexpected keyword arguments"):
-            Index(host=INDEX_HOST, api_key="test-key", bogus=True)  # type: ignore[call-arg]
+            Index(host=INDEX_HOST, api_key="test-key", bogus=True)
 
 
 # ---------------------------------------------------------------------------
@@ -261,7 +262,7 @@ class TestAsyncReqOptIn:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         monkeypatch.delitem(sys.modules, "multiprocessing.pool", raising=False)
-        Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
+        Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)
         assert "pinecone._legacy.async_req" in sys.modules
         # multiprocessing.pool is NOT yet imported — pool is lazy, constructed on first submit
         assert "multiprocessing.pool" not in sys.modules
@@ -282,14 +283,14 @@ class TestAsyncReqOptIn:
     @respx.mock
     def test_async_req_true_with_pool_threads_returns_apply_result(self) -> None:
         respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json={"upsertedCount": 1}))
-        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=2)  # type: ignore[call-arg]
+        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=2)
         result = idx.upsert(vectors=[("a", [0.1, 0.2])], async_req=True)  # type: ignore[call-arg]
         assert isinstance(result, ApplyResult)
         upsert_response = result.get(timeout=5)
         assert upsert_response.upserted_count == 1
 
     def test_async_req_true_with_batch_size_raises_legacy_text(self) -> None:
-        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=2)  # type: ignore[call-arg]
+        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=2)
         with pytest.raises(PineconeValueError) as excinfo:
             idx.upsert(vectors=[("a", [0.1])], batch_size=10, async_req=True)  # type: ignore[call-arg]
         assert str(excinfo.value) == "async_req is not supported when batch_size is provided."
@@ -297,9 +298,10 @@ class TestAsyncReqOptIn:
     @respx.mock
     def test_close_shuts_down_legacy_pool_idempotently(self) -> None:
         respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json={"upsertedCount": 1}))
-        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=2)  # type: ignore[call-arg]
+        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=2)
         # Trigger pool construction by submitting a real call
-        result = idx.upsert(vectors=[("a", [0.1, 0.2])], async_req=True)  # type: ignore[call-arg]
+        # async_req=True returns an ApplyResult at runtime, not the declared UpsertResponse
+        result: Any = idx.upsert(vectors=[("a", [0.1, 0.2])], async_req=True)  # type: ignore[call-arg]
         result.get(timeout=5)
         # Close — should not raise
         idx.close()
@@ -313,5 +315,5 @@ class TestAsyncReqOptIn:
     def test_pool_threads_emits_no_deprecation_warning(self) -> None:
         with warnings.catch_warnings(record=True) as record:
             warnings.simplefilter("always")
-            Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
+            Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)
         assert [w for w in record if issubclass(w.category, DeprecationWarning)] == []

@@ -20,6 +20,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.constants import DEFAULT_BASE_URL
 from pinecone.admin.admin import _OAUTH_URL, Admin
@@ -150,7 +151,9 @@ def test_delete_service_account(claim: Any, admin: Admin, respx_mock: respx.Mock
         return_value=httpx.Response(202)
     )
 
-    returned = admin.service_accounts.delete(service_account_id=SERVICE_ACCOUNT_ID)
+    returned = assert_type(
+        admin.service_accounts.delete(service_account_id=SERVICE_ACCOUNT_ID), None
+    )
 
     request = route.calls.last.request
     claim.assert_request(request)

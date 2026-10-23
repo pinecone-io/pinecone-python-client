@@ -81,6 +81,7 @@ import pytest
 import respx
 from hypothesis import given
 from hypothesis import strategies as st
+from typing_extensions import assert_type
 
 from pinecone import Index
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
@@ -570,16 +571,24 @@ def test_shared_query_validator_matches_the_truth_table(
         "sparse_vector": SPARSE if has_sparse else None,
     }
     if accepted:
-        assert require_query_selectors(**kwargs) is None
+        assert assert_type(require_query_selectors(**kwargs), None) is None
     else:
         with pytest.raises(ValidationError):
             require_query_selectors(**kwargs)
 
 
 def test_shared_delete_validator_keeps_exactly_one_semantics() -> None:
-    assert require_delete_selectors(ids=["v1"], delete_all=False, filter=None) is None
-    assert require_delete_selectors(ids=None, delete_all=True, filter=None) is None
-    assert require_delete_selectors(ids=None, delete_all=False, filter=FILTER) is None
+    assert (
+        assert_type(require_delete_selectors(ids=["v1"], delete_all=False, filter=None), None)
+        is None
+    )
+    assert (
+        assert_type(require_delete_selectors(ids=None, delete_all=True, filter=None), None) is None
+    )
+    assert (
+        assert_type(require_delete_selectors(ids=None, delete_all=False, filter=FILTER), None)
+        is None
+    )
 
     with pytest.raises(ValidationError, match="silently ignores ids"):
         require_delete_selectors(ids=["v1"], delete_all=False, filter=FILTER)
@@ -589,9 +598,18 @@ def test_shared_delete_validator_keeps_exactly_one_semantics() -> None:
 
 def test_shared_update_validator_keeps_by_filter_metadata_only() -> None:
     assert (
-        require_update_selectors(id="v1", filter=None, values=VECTOR, sparse_values=SPARSE) is None
+        assert_type(
+            require_update_selectors(id="v1", filter=None, values=VECTOR, sparse_values=SPARSE),
+            None,
+        )
+        is None
     )
-    assert require_update_selectors(id=None, filter=FILTER, values=None, sparse_values=None) is None
+    assert (
+        assert_type(
+            require_update_selectors(id=None, filter=FILTER, values=None, sparse_values=None), None
+        )
+        is None
+    )
 
     with pytest.raises(ValidationError, match="metadata-only"):
         require_update_selectors(id=None, filter=FILTER, values=VECTOR, sparse_values=None)

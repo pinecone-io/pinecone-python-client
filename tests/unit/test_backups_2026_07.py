@@ -18,6 +18,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
@@ -284,7 +285,7 @@ class TestMethodAndPath:
             return_value=httpx.Response(202)
         )
 
-        assert backups.delete(backup_id="bkp_123abc") is None
+        assert assert_type(backups.delete(backup_id="bkp_123abc"), None) is None
 
         request = route.calls.last.request
         assert (request.method, request.url.path) == ("DELETE", "/backups/bkp_123abc")

@@ -239,7 +239,7 @@ def test_rerank_non_list_documents_raises(inference: Inference) -> None:
         inference.rerank(
             model="bge-reranker-v2-m3",
             query="test query",
-            documents="not a list",  # type: ignore[arg-type]
+            documents="not a list",
         )
 
 
@@ -285,7 +285,7 @@ def test_rerank_tuple_documents_accepted(inference: Inference) -> None:
     result = inference.rerank(
         model="bge-reranker-v2-m3",
         query="test query",
-        documents=("a", "b"),  # type: ignore[arg-type]
+        documents=("a", "b"),
     )
     assert isinstance(result, RerankResult)
 
@@ -295,7 +295,7 @@ def test_rerank_mixed_types_raises(inference: Inference) -> None:
         inference.rerank(
             model="bge-reranker-v2-m3",
             query="test query",
-            documents=["a string", 123],  # type: ignore[list-item]
+            documents=["a string", 123],  # type: ignore[arg-type]  # mixed on purpose
         )
 
 

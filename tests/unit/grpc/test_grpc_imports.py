@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone.errors.exceptions import ValidationError
 from pinecone.grpc import GrpcIndex
@@ -173,7 +174,7 @@ class TestCancelImport:
             return_value=httpx.Response(202),
         )
         idx = _make_grpc_index(mock_channel)
-        result = idx.cancel_import("101")
+        result = assert_type(idx.cancel_import("101"), None)
 
         assert result is None
         assert str(route.calls.last.request.url).endswith("/bulk/imports/101")

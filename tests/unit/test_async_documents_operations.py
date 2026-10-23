@@ -716,7 +716,7 @@ class TestServerErrorSurfacing:
 class TestKeywordOnly:
     async def test_positional_call_raises_actionable_error(self, index: AsyncIndex) -> None:
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            await index.documents.upsert(NS, [{"_id": "a"}])  # type: ignore[misc]
+            await index.documents.upsert(NS, [{"_id": "a"}])  # type: ignore[call-arg]
 
 
 class TestHandleLifecycle:

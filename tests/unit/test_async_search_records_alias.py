@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -51,7 +52,7 @@ async def test_search_records_passes_all_params() -> None:
     idx = object.__new__(AsyncIndex)
     mock_response = AsyncMock(spec=SearchRecordsResponse)
 
-    kwargs = {
+    kwargs: dict[str, Any] = {
         "namespace": "ns",
         "top_k": 10,
         "inputs": {"text": "hello"},

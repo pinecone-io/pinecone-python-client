@@ -235,13 +235,14 @@ async def test_async_describe_index_delegate_forwards() -> None:
 
 async def test_async_list_indexes_delegate_forwards_and_wraps_in_index_list() -> None:
     pc, mock_indexes = _make_async_pc_with_mock_indexes()
-    mock_indexes.list.return_value.to_list = AsyncMock(return_value=["index-a", "index-b"])
+    listed: list[object] = ["index-a", "index-b"]
+    mock_indexes.list.return_value.to_list = AsyncMock(return_value=listed)
 
     result = await pc.list_indexes()
 
     mock_indexes.list.assert_called_once()
     assert isinstance(result, IndexList)
-    assert list(result) == ["index-a", "index-b"]
+    assert list(result) == listed
 
 
 # ---------------------------------------------------------------------------

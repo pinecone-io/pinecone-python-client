@@ -173,8 +173,8 @@ class TestAsyncUpsertShowProgress:
     async def test_upsert_show_progress_false_does_not_import_tqdm(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setitem(sys.modules, "tqdm", None)  # type: ignore[arg-type]
-        monkeypatch.setitem(sys.modules, "tqdm.auto", None)  # type: ignore[arg-type]
+        monkeypatch.setitem(sys.modules, "tqdm", None)
+        monkeypatch.setitem(sys.modules, "tqdm.auto", None)
         respx.post(UPSERT_URL).mock(
             return_value=httpx.Response(200, json=_make_upsert_response(upserted_count=5))
         )
@@ -187,8 +187,8 @@ class TestAsyncUpsertShowProgress:
     async def test_upsert_show_progress_true_works_without_tqdm(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setitem(sys.modules, "tqdm", None)  # type: ignore[arg-type]
-        monkeypatch.setitem(sys.modules, "tqdm.auto", None)  # type: ignore[arg-type]
+        monkeypatch.setitem(sys.modules, "tqdm", None)
+        monkeypatch.setitem(sys.modules, "tqdm.auto", None)
         respx.post(UPSERT_URL).mock(
             return_value=httpx.Response(200, json=_make_upsert_response(upserted_count=5))
         )

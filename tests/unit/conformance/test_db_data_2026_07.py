@@ -27,6 +27,7 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.adapters.imports_adapter import _ImportListEnvelope
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
@@ -297,7 +298,9 @@ def test_delete(claim: Any, index: Index, respx_mock: respx.MockRouter) -> None:
     route = respx_mock.post(f"{BASE_URL}/vectors/delete").mock(
         return_value=httpx.Response(200, json={})
     )
-    _conforms_bodyless(claim, route, index.delete(ids=["vec-1"], namespace=NAMESPACE))
+    _conforms_bodyless(
+        claim, route, assert_type(index.delete(ids=["vec-1"], namespace=NAMESPACE), None)
+    )
 
 
 @api_op("db_data:deleteVectors")
@@ -308,7 +311,7 @@ async def test_async_delete(
     route = respx_mock.post(f"{BASE_URL}/vectors/delete").mock(
         return_value=httpx.Response(200, json={})
     )
-    returned = await async_index.delete(ids=["vec-1"], namespace=NAMESPACE)
+    returned = assert_type(await async_index.delete(ids=["vec-1"], namespace=NAMESPACE), None)
     _conforms_bodyless(claim, route, returned)
 
 
@@ -451,7 +454,7 @@ def test_delete_namespace(claim: Any, index: Index, respx_mock: respx.MockRouter
     route = respx_mock.delete(f"{BASE_URL}/namespaces/{NAMESPACE}").mock(
         return_value=httpx.Response(200, json={})
     )
-    _conforms_bodyless(claim, route, index.delete_namespace(name=NAMESPACE))
+    _conforms_bodyless(claim, route, assert_type(index.delete_namespace(name=NAMESPACE), None))
 
 
 @api_op("db_data:deleteNamespace")
@@ -462,7 +465,7 @@ async def test_async_delete_namespace(
     route = respx_mock.delete(f"{BASE_URL}/namespaces/{NAMESPACE}").mock(
         return_value=httpx.Response(200, json={})
     )
-    returned = await async_index.delete_namespace(name=NAMESPACE)
+    returned = assert_type(await async_index.delete_namespace(name=NAMESPACE), None)
     _conforms_bodyless(claim, route, returned)
 
 
@@ -542,7 +545,7 @@ def test_cancel_import(claim: Any, index: Index, respx_mock: respx.MockRouter) -
     route = respx_mock.delete(f"{BASE_URL}/bulk/imports/{IMPORT_ID}").mock(
         return_value=httpx.Response(200, json={})
     )
-    _conforms_bodyless(claim, route, index.cancel_import(IMPORT_ID))
+    _conforms_bodyless(claim, route, assert_type(index.cancel_import(IMPORT_ID), None))
 
 
 @api_op("db_data:cancelBulkImport")
@@ -553,7 +556,7 @@ async def test_async_cancel_import(
     route = respx_mock.delete(f"{BASE_URL}/bulk/imports/{IMPORT_ID}").mock(
         return_value=httpx.Response(200, json={})
     )
-    returned = await async_index.cancel_import(IMPORT_ID)
+    returned = assert_type(await async_index.cancel_import(IMPORT_ID), None)
     _conforms_bodyless(claim, route, returned)
 
 

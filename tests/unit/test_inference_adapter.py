@@ -190,19 +190,23 @@ class TestNormalizeEmbedInputs:
 
     def test_normalize_embed_inputs_list_of_invalid_type_raises(self) -> None:
         with pytest.raises(PineconeTypeError, match="each input must be a string or mapping"):
-            normalize_embed_inputs([42, 43])  # type: ignore[list-item]
+            # Deliberately outside the signature: the runtime type check is under test.
+            normalize_embed_inputs([42, 43])  # type: ignore[arg-type]
 
     def test_normalize_embed_inputs_mixed_str_int_raises(self) -> None:
         with pytest.raises(PineconeTypeError, match="each input must be a string or mapping"):
-            normalize_embed_inputs(["hello", 42])  # type: ignore[list-item]
+            # Deliberately outside the signature: the runtime type check is under test.
+            normalize_embed_inputs(["hello", 42])  # type: ignore[arg-type]
 
     def test_normalize_embed_inputs_mixed_str_none_raises(self) -> None:
         with pytest.raises(PineconeTypeError, match="each input must be a string or mapping"):
-            normalize_embed_inputs(["hello", None])  # type: ignore[list-item]
+            # Deliberately outside the signature: the runtime type check is under test.
+            normalize_embed_inputs(["hello", None])  # type: ignore[arg-type]
 
     def test_normalize_embed_inputs_mixed_dict_str_raises(self) -> None:
         with pytest.raises(PineconeTypeError, match="each input must be a string or mapping"):
-            normalize_embed_inputs([{"text": "a"}, "b"])  # type: ignore[list-item]
+            # Deliberately outside the signature: the runtime type check is under test.
+            normalize_embed_inputs([{"text": "a"}, "b"])  # type: ignore[arg-type]
 
     def test_normalize_embed_inputs_empty_raises_is_also_valueerror(self) -> None:
         """ValidationError inherits from ValueError for backwards compatibility."""
@@ -231,15 +235,17 @@ class TestNormalizeRerankDocuments:
 
     def test_normalize_rerank_mixed_str_dict_raises(self) -> None:
         with pytest.raises(PineconeTypeError, match="each document must be a string or mapping"):
-            normalize_rerank_documents(["hello", {"text": "world"}])  # type: ignore[list-item]
+            # Deliberately outside the signature: the runtime type check is under test.
+            normalize_rerank_documents(["hello", {"text": "world"}])  # type: ignore[arg-type]
 
     def test_normalize_rerank_mixed_dict_str_raises(self) -> None:
         with pytest.raises(PineconeTypeError, match="each document must be a string or mapping"):
-            normalize_rerank_documents([{"text": "a"}, "b"])  # type: ignore[list-item]
+            # Deliberately outside the signature: the runtime type check is under test.
+            normalize_rerank_documents([{"text": "a"}, "b"])  # type: ignore[arg-type]
 
     def test_normalize_rerank_not_list_raises(self) -> None:
         with pytest.raises(PineconeTypeError, match="documents must be a Sequence"):
-            normalize_rerank_documents("not a list")  # type: ignore[arg-type]
+            normalize_rerank_documents("not a list")
 
     def test_normalize_rerank_documents_empty_raises_is_also_valueerror(self) -> None:
         """ValidationError inherits from ValueError for backwards compatibility."""
@@ -249,7 +255,7 @@ class TestNormalizeRerankDocuments:
     def test_normalize_rerank_not_list_is_also_typeerror(self) -> None:
         """PineconeTypeError inherits from TypeError for backwards compatibility."""
         with pytest.raises(TypeError, match="documents must be a Sequence"):
-            normalize_rerank_documents("not a list")  # type: ignore[arg-type]
+            normalize_rerank_documents("not a list")
 
 
 class TestNormalizeEmbedInputsAcceptsSequences:
@@ -283,7 +289,8 @@ class TestNormalizeEmbedInputsAcceptsSequences:
 
     def test_mixed_types_rejected(self) -> None:
         with pytest.raises(PineconeTypeError):
-            normalize_embed_inputs(["a", {"text": "b"}])
+            # Deliberately outside the signature: the runtime type check is under test.
+            normalize_embed_inputs(["a", {"text": "b"}])  # type: ignore[arg-type]
 
 
 class TestNormalizeRerankDocumentsAcceptsSequences:
@@ -298,4 +305,4 @@ class TestNormalizeRerankDocumentsAcceptsSequences:
 
     def test_string_argument_rejected(self) -> None:
         with pytest.raises(PineconeTypeError):
-            normalize_rerank_documents("hello")  # type: ignore[arg-type]
+            normalize_rerank_documents("hello")

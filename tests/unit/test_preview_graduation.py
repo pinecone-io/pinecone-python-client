@@ -190,7 +190,7 @@ class TestPreviewNamespaceIsGone:
 
         leaked = [
             name
-            for name in {*pinecone.__all__, *pinecone._LAZY_IMPORTS}
+            for name in {*pinecone.__all__, *vars(pinecone)["_LAZY_IMPORTS"]}
             if name.startswith(("Preview", "AsyncPreview"))
         ]
         assert leaked == []

@@ -8,6 +8,7 @@ import httpx
 import orjson
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone import AsyncIndex
 from pinecone.errors.exceptions import PineconeValueError, ValidationError
@@ -247,7 +248,7 @@ class TestAsyncQuery:
     async def test_query_keyword_only(self) -> None:
         idx = _make_async_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            await idx.query(10, [0.1])  # type: ignore[misc]
+            await idx.query(10, [0.1])  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------
@@ -318,7 +319,7 @@ class TestAsyncDelete:
             return_value=httpx.Response(200, json={}),
         )
         idx = _make_async_index()
-        result = await idx.delete(ids=["vec1", "vec2"])
+        result = assert_type(await idx.delete(ids=["vec1", "vec2"]), None)
 
         assert result is None
         body = orjson.loads(route.calls.last.request.content)
@@ -365,7 +366,7 @@ class TestAsyncDelete:
     async def test_delete_keyword_only(self) -> None:
         idx = _make_async_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            await idx.delete(["vec1"])  # type: ignore[misc]
+            await idx.delete(["vec1"])  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------
@@ -463,7 +464,7 @@ class TestAsyncUpdate:
     async def test_update_keyword_only(self) -> None:
         idx = _make_async_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            await idx.update("vec1")  # type: ignore[misc]
+            await idx.update("vec1")  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------
@@ -539,7 +540,7 @@ class TestAsyncListPaginated:
     async def test_list_paginated_keyword_only(self) -> None:
         idx = _make_async_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            await idx.list_paginated("prefix")  # type: ignore[misc]
+            await idx.list_paginated("prefix")  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------
@@ -726,4 +727,4 @@ class TestAsyncDescribeIndexStats:
     async def test_stats_keyword_only(self) -> None:
         idx = _make_async_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            await idx.describe_index_stats({"genre": {"$eq": "drama"}})  # type: ignore[misc]
+            await idx.describe_index_stats({"genre": {"$eq": "drama"}})  # type: ignore[call-arg]

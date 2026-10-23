@@ -14,7 +14,9 @@ from pinecone._internal.http_client import _build_socket_options
 # branch of ``_build_socket_options`` from a macOS host — the constant simply is not
 # there. Tests that need it are skipped where it is missing; CI runs on Linux, so
 # they always execute there with their assertions intact.
-_HAS_TCP_KEEPIDLE = hasattr(socket, "TCP_KEEPIDLE")
+# typeshed only declares it for Linux, so it is read through getattr.
+_TCP_KEEPIDLE: int | None = getattr(socket, "TCP_KEEPIDLE", None)
+_HAS_TCP_KEEPIDLE = _TCP_KEEPIDLE is not None
 
 
 class TestBuildSocketOptions:
@@ -33,7 +35,7 @@ class TestBuildSocketOptions:
         with patch("pinecone._internal.http_client.sys") as mock_sys:
             mock_sys.platform = "linux"
             opts = _build_socket_options()
-        assert (socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 300) in opts
+        assert (socket.IPPROTO_TCP, _TCP_KEEPIDLE, 300) in opts
         assert (socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 60) in opts
         assert (socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 4) in opts
 

@@ -12,6 +12,7 @@ sparse, pod, byoc, dict-spec, and read-capacity placement).
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from typing import Any
 
 import httpx
@@ -95,7 +96,7 @@ def http_client() -> HTTPClient:
 
 
 @pytest.fixture
-async def async_http_client() -> AsyncHTTPClient:
+async def async_http_client() -> AsyncIterator[AsyncHTTPClient]:
     config = PineconeConfig(api_key="test-key", host=BASE_URL)
     client = AsyncHTTPClient(config, CONTROL_PLANE_API_VERSION)
     yield client

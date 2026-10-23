@@ -40,11 +40,11 @@ def mock_async_assistants() -> AsyncAssistants:
     mock_response = MagicMock()
     mock_response.content = b"{}"
     mock_http.get.return_value = mock_response
-    obj._http = mock_http  # type: ignore[attr-defined]
+    obj._http = mock_http
 
     mock_adapter = MagicMock()
     mock_adapter.to_assistant.return_value = _CANNED_ASSISTANT
-    obj._adapter = mock_adapter  # type: ignore[attr-defined]
+    obj._adapter = mock_adapter
 
     return obj
 
@@ -59,11 +59,11 @@ def mock_sync_assistants() -> Assistants:
     mock_response = MagicMock()
     mock_response.content = b"{}"
     mock_http.get.return_value = mock_response
-    obj._http = mock_http  # type: ignore[attr-defined]
+    obj._http = mock_http
 
     mock_adapter = MagicMock()
     mock_adapter.to_assistant.return_value = _CANNED_ASSISTANT
-    obj._adapter = mock_adapter  # type: ignore[attr-defined]
+    obj._adapter = mock_adapter
 
     # Stub upload_file so the test doesn't attempt real filesystem I/O.
     obj.upload_file = MagicMock()  # type: ignore[method-assign]

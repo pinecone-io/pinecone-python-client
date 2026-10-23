@@ -7,6 +7,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION
@@ -287,7 +288,7 @@ def test_delete_api_key(api_keys: ApiKeys) -> None:
         return_value=httpx.Response(202),
     )
 
-    result = api_keys.delete(api_key_id="k1")
+    result = assert_type(api_keys.delete(api_key_id="k1"), None)
 
     assert result is None
 
@@ -339,19 +340,19 @@ def test_delete_requires_api_key_id(api_keys: ApiKeys) -> None:
 
 def test_keyword_only_args(api_keys: ApiKeys) -> None:
     with pytest.raises(TypeError):
-        api_keys.list("p1")  # type: ignore[misc]
+        api_keys.list("p1")  # type: ignore[call-arg]
 
     with pytest.raises(TypeError):
-        api_keys.create("p1", "mykey")  # type: ignore[misc]
+        api_keys.create("p1", "mykey")  # type: ignore[call-arg]
 
     with pytest.raises(TypeError):
-        api_keys.describe("k1")  # type: ignore[misc]
+        api_keys.describe("k1")  # type: ignore[call-arg]
 
     with pytest.raises(TypeError):
-        api_keys.update("k1")  # type: ignore[misc]
+        api_keys.update("k1")  # type: ignore[call-arg]
 
     with pytest.raises(TypeError):
-        api_keys.delete("k1")  # type: ignore[misc]
+        api_keys.delete("k1")  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------
@@ -369,12 +370,18 @@ def test_repr(api_keys: ApiKeys) -> None:
 
 
 def test_api_key_role_values() -> None:
-    assert APIKeyRole.PROJECT_EDITOR == "ProjectEditor"
-    assert APIKeyRole.PROJECT_VIEWER == "ProjectViewer"
-    assert APIKeyRole.CONTROL_PLANE_EDITOR == "ControlPlaneEditor"
-    assert APIKeyRole.CONTROL_PLANE_VIEWER == "ControlPlaneViewer"
-    assert APIKeyRole.DATA_PLANE_EDITOR == "DataPlaneEditor"
-    assert APIKeyRole.DATA_PLANE_VIEWER == "DataPlaneViewer"
+    # Typed as str so mypy checks the same runtime str-enum equality without
+    # flagging the member/literal comparison as non-overlapping.
+    pairs: list[tuple[str, str]] = [
+        (APIKeyRole.PROJECT_EDITOR, "ProjectEditor"),
+        (APIKeyRole.PROJECT_VIEWER, "ProjectViewer"),
+        (APIKeyRole.CONTROL_PLANE_EDITOR, "ControlPlaneEditor"),
+        (APIKeyRole.CONTROL_PLANE_VIEWER, "ControlPlaneViewer"),
+        (APIKeyRole.DATA_PLANE_EDITOR, "DataPlaneEditor"),
+        (APIKeyRole.DATA_PLANE_VIEWER, "DataPlaneViewer"),
+    ]
+    for member, value in pairs:
+        assert member == value
     assert len(APIKeyRole) == 6
 
 
@@ -479,7 +486,8 @@ def test_decoded_roles_enum_comparison(api_keys: ApiKeys) -> None:
     result = api_keys.describe(api_key_id="k1")
 
     assert result.roles[0] == APIKeyRole.PROJECT_EDITOR
-    assert result.roles[0] == "ProjectEditor"
+    role: str = result.roles[0]
+    assert role == "ProjectEditor"
 
 
 @respx.mock

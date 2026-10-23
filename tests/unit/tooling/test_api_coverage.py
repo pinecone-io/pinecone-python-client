@@ -10,6 +10,7 @@ import sys
 import textwrap
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import httpx
 import jsonschema
@@ -398,7 +399,7 @@ def test_bundler_inlines_refs_merges_allof_translates_nullable_and_seals() -> No
 
 
 def test_bundler_relaxes_oneof_to_deduplicated_anyof() -> None:
-    doc: dict = {"components": {"schemas": {}}}
+    doc: dict[str, Any] = {"components": {"schemas": {}}}
     schema = {
         "type": "object",
         "properties": {
@@ -430,7 +431,7 @@ def test_bundler_relaxes_oneof_to_deduplicated_anyof() -> None:
 
 
 def test_bundler_widens_both_type_and_enum_for_nullable() -> None:
-    doc: dict = {"components": {"schemas": {}}}
+    doc: dict[str, Any] = {"components": {"schemas": {}}}
     schema = {
         "type": "object",
         "properties": {
@@ -609,7 +610,7 @@ def test_derive_manifest_rejects_divergences_for_unknown_operations(
     ],
 )
 def test_load_divergences_rejects_malformed_entries(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, entry: dict, message: str
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, entry: dict[str, Any], message: str
 ) -> None:
     divergences_path = tmp_path / "divergences_2026-07.json"
     divergences_path.write_text(json.dumps({"divergences": {"widgets:update_widget": entry}}))
@@ -682,7 +683,7 @@ def test_derive_manifest_rejects_base_path_overrides_for_unknown_surfaces(
     ],
 )
 def test_load_base_path_overrides_rejects_malformed_entries(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, entry: dict, message: str
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, entry: dict[str, Any], message: str
 ) -> None:
     divergences_path = tmp_path / "divergences_2026-07.json"
     divergences_path.write_text(json.dumps({"base_path_overrides": {"widgets": entry}}))
@@ -1257,7 +1258,9 @@ def test_fetch_milestones_refuses_a_listing_that_never_terminates(
 def test_fetch_open_release_issues_refuses_a_possibly_truncated_listing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    at_limit = [{"number": n, "labels": [], "milestone": None} for n in range(cov._ISSUE_LIMIT)]
+    at_limit: list[dict[str, Any]] = [
+        {"number": n, "labels": [], "milestone": None} for n in range(cov._ISSUE_LIMIT)
+    ]
     monkeypatch.setattr(cov, "_gh", lambda args: json.dumps(at_limit))
     with pytest.raises(cov.SpecError, match="fetch limit"):
         cov.fetch_open_release_issues()
@@ -1297,7 +1300,8 @@ def test_api_op_registers_and_marks() -> None:
         pass
 
     assert "probe" in CLAIMS["db_control:list_indexes"][-1]
-    marks = [m for m in probe.pytestmark if m.name == "api_op"]
+    # pytest.mark stores marks in the function's __dict__, which mypy cannot see.
+    marks = [m for m in vars(probe)["pytestmark"] if m.name == "api_op"]
     assert [m.args[0] for m in marks] == ["db_control:list_indexes"]
 
 
@@ -1397,7 +1401,9 @@ def test_recorder_multi_op_requires_disambiguation() -> None:
         recorder.assert_request(_request("GET", "/indexes"), op="db_control:delete_index")
 
 
-def _run(cmd: list[str], env_extra: dict[str, str] | None = None) -> subprocess.CompletedProcess:
+def _run(
+    cmd: list[str], env_extra: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
     env = {**os.environ, "PYTHONPATH": str(REPO_ROOT), **(env_extra or {})}
     return subprocess.run(cmd, cwd=REPO_ROOT, env=env, capture_output=True, text=True)  # noqa: S603
 

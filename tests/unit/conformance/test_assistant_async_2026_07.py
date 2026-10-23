@@ -19,6 +19,7 @@ import httpx
 import orjson
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.adapters.assistants_adapter import _AlignmentResponse
 from pinecone._internal.config import PineconeConfig
@@ -151,7 +152,7 @@ async def test_async_delete_assistant(
         return_value=httpx.Response(200)
     )
 
-    returned = await async_assistants.delete(name=ASSISTANT_NAME, timeout=-1)
+    returned = assert_type(await async_assistants.delete(name=ASSISTANT_NAME, timeout=-1), None)
 
     request = route.calls.last.request
     claim.assert_request(request)

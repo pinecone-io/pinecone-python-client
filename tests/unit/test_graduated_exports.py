@@ -52,7 +52,7 @@ def test_top_level_export_is_defining_class(name: str, module_path: str) -> None
     import pinecone
 
     assert name in pinecone.__all__
-    assert pinecone._LAZY_IMPORTS[name] == (module_path, name)
+    assert vars(pinecone)["_LAZY_IMPORTS"][name] == (module_path, name)
     assert getattr(pinecone, name) is getattr(import_module(module_path), name)
 
 
@@ -92,7 +92,7 @@ def test_models_admin_top_level_parity() -> None:
     )
 
     for name in pinecone.models.admin.__all__:
-        module_path, source_attr = pinecone._LAZY_IMPORTS[name]
+        module_path, source_attr = vars(pinecone)["_LAZY_IMPORTS"][name]
         assert getattr(pinecone, name) is getattr(import_module(module_path), source_attr)
 
 
@@ -121,7 +121,7 @@ def test_errors_top_level_parity() -> None:
     )
 
     for name in expected:
-        module_path, source_attr = pinecone._LAZY_IMPORTS[name]
+        module_path, source_attr = vars(pinecone)["_LAZY_IMPORTS"][name]
         assert getattr(pinecone, name) is getattr(import_module(module_path), source_attr)
 
 
@@ -144,7 +144,7 @@ def test_top_level_all_and_lazy_imports_sorted() -> None:
     import pinecone
 
     assert pinecone.__all__ == sorted(pinecone.__all__)
-    lazy_names = list(pinecone._LAZY_IMPORTS)
+    lazy_names = list(vars(pinecone)["_LAZY_IMPORTS"])
     assert lazy_names == sorted(lazy_names)
 
 
@@ -186,7 +186,7 @@ def test_namespace_export_reachable_from_every_level(name: str, module_path: str
     assert getattr(pinecone.models, name) is defining
 
     assert name in pinecone.__all__
-    assert pinecone._LAZY_IMPORTS[name] == (module_path, name)
+    assert vars(pinecone)["_LAZY_IMPORTS"][name] == (module_path, name)
     assert getattr(pinecone, name) is defining
 
 

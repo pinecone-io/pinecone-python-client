@@ -343,7 +343,9 @@ class TestAdminProxyAndSsl:
             admin = Admin(client_id="test-id", client_secret="test-secret", **kwargs)
         admin.close()
         assert created, "the OAuth token exchange built no transport"
-        return created[0]._pool._ssl_context  # type: ignore[attr-defined, no-any-return]
+        ssl_context = created[0]._pool._ssl_context
+        assert ssl_context is not None
+        return ssl_context
 
     @respx.mock
     def test_admin_ssl_verify_false_reaches_the_oauth_transport(self) -> None:
@@ -384,12 +386,12 @@ class TestAdminProxyAndSsl:
     @respx.mock
     def test_admin_oauth_proxy_reaches_the_transport(self) -> None:
         transport = self._oauth_transport(proxy_url="http://proxy.example.com:8080")
-        assert "Proxy" in type(transport._pool).__name__  # type: ignore[attr-defined]
+        assert "Proxy" in type(transport._pool).__name__
 
     @respx.mock
     def test_admin_oauth_transport_has_no_proxy_by_default(self) -> None:
         transport = self._oauth_transport()
-        assert "Proxy" not in type(transport._pool).__name__  # type: ignore[attr-defined]
+        assert "Proxy" not in type(transport._pool).__name__
 
     @respx.mock
     def test_admin_oauth_client_receives_no_proxy_or_verify_kwarg(self) -> None:
@@ -698,4 +700,4 @@ class TestAdminUrlOverrides:
         respx.post(_OAUTH_URL).mock(return_value=Response(200, json=_token_response()))
 
         with pytest.raises(TypeError):
-            Admin("test-id", "test-secret", "http://localhost:5080")  # type: ignore[misc]
+            Admin("test-id", "test-secret", "http://localhost:5080")  # type: ignore[call-arg, arg-type]  # positional on purpose

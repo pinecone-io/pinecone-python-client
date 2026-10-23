@@ -35,14 +35,17 @@ from pinecone.utils.filter_builder import Field
 
 NUMERIC_OPS = ("gt", "gte", "lt", "lte")
 
-NAMESPACE_METHODS = [
+NAMESPACE_METHODS: list[tuple[type[Index] | type[AsyncIndex], str]] = [
     (Index, "describe_namespace"),
     (Index, "delete_namespace"),
     (AsyncIndex, "describe_namespace"),
     (AsyncIndex, "delete_namespace"),
 ]
 
-SEARCH_METHODS = [(Index, "search"), (AsyncIndex, "search")]
+SEARCH_METHODS: list[tuple[type[Index] | type[AsyncIndex], str]] = [
+    (Index, "search"),
+    (AsyncIndex, "search"),
+]
 
 TYPE_ERROR_ON_KWARGS = ":exc:`TypeError`: If unexpected keyword arguments are passed."
 

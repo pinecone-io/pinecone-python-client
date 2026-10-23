@@ -14,6 +14,7 @@ import httpx
 import msgspec
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone import Pinecone
 from pinecone._internal.config import PineconeConfig
@@ -37,7 +38,7 @@ from pinecone.errors.exceptions import (
 from pinecone.models.assistant.file_model import AssistantFileModel
 from pinecone.models.assistant.list import ListAssistantsResponse, ListOperationsResponse
 from pinecone.models.assistant.model import AssistantModel
-from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
+from pinecone.models.assistant.streaming import ChatCompletionStream, ChatCompletionStreamChunk
 from pinecone.models.pagination import Page, Paginator
 from tests.factories import (
     make_alignment_response,
@@ -216,7 +217,7 @@ def test_create_assistant_with_all_params(assistants: Assistants) -> None:
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_create_assistant_polls_until_ready(mock_sleep: object, assistants: Assistants) -> None:
+def test_create_assistant_polls_until_ready(mock_sleep: MagicMock, assistants: Assistants) -> None:
     """Polling loop calls GET until status is 'Ready'."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -239,7 +240,7 @@ def test_create_assistant_polls_until_ready(mock_sleep: object, assistants: Assi
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_create_assistant_polls_with_correct_interval(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """Polling sleeps with the correct interval between polls."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -256,7 +257,7 @@ def test_create_assistant_polls_with_correct_interval(
     # The key assertion is the interval value
     from unittest.mock import call
 
-    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+    for c in mock_sleep.call_args_list:
         assert c == call(_CREATE_POLL_INTERVAL_SECONDS)
 
 
@@ -269,11 +270,11 @@ def test_create_assistant_polls_with_correct_interval(
 @patch("pinecone.client.assistants.time.monotonic")
 @patch("pinecone.client.assistants.time.sleep")
 def test_create_assistant_timeout_raises(
-    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+    mock_sleep: MagicMock, mock_monotonic: MagicMock, assistants: Assistants
 ) -> None:
     """Exceeding timeout raises PineconeTimeoutError with helpful message."""
     # Simulate time progression: start=0, after first poll=6 (exceeds timeout=5)
-    mock_monotonic.side_effect = [0.0, 6.0]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 6.0]
 
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -292,11 +293,11 @@ def test_create_assistant_timeout_raises(
 @patch("pinecone.client.assistants.time.monotonic")
 @patch("pinecone.client.assistants.time.sleep")
 def test_create_assistant_timeout_zero_polls_once(
-    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+    mock_sleep: MagicMock, mock_monotonic: MagicMock, assistants: Assistants
 ) -> None:
     """timeout=0 polls once, then raises if not ready."""
     # start=0, first elapsed check=0.0 (not >= 0, so one iteration), second=0.1 (>= 0)
-    mock_monotonic.side_effect = [0.0, 0.0, 0.1]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 0.0, 0.1]
 
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -325,10 +326,10 @@ def test_create_assistant_timeout_zero_polls_once(
 @patch("pinecone.client.assistants.time.monotonic")
 @patch("pinecone.client.assistants.time.sleep")
 def test_create_assistant_status_case_sensitive(
-    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+    mock_sleep: MagicMock, mock_monotonic: MagicMock, assistants: Assistants
 ) -> None:
     """Status check uses exact 'Ready' — 'ready' or 'READY' does not match."""
-    mock_monotonic.side_effect = [0.0, 6.0]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 6.0]
 
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -349,7 +350,7 @@ def test_create_assistant_status_case_sensitive(
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_create_assistant_polls_indefinitely_when_no_timeout(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """When timeout is None, polling continues until Ready with no deadline."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -371,7 +372,7 @@ def test_create_assistant_polls_indefinitely_when_no_timeout(
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_create_timeout_none(mock_sleep: object, assistants: Assistants) -> None:
+def test_create_timeout_none(mock_sleep: MagicMock, assistants: Assistants) -> None:
     """timeout=None waits indefinitely until Ready."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -405,7 +406,7 @@ def test_create_timeout_negative_one(assistants: Assistants) -> None:
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_create_assistant_failed_status(mock_sleep: object, assistants: Assistants) -> None:
+def test_create_assistant_failed_status(mock_sleep: MagicMock, assistants: Assistants) -> None:
     """'Failed' status raises PineconeError immediately, not a timeout."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -424,7 +425,7 @@ def test_create_assistant_failed_status(mock_sleep: object, assistants: Assistan
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_create_assistant_initialization_failed_status(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """'InitializationFailed' status raises PineconeError immediately, not a timeout."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -445,7 +446,7 @@ def test_create_assistant_initialization_failed_status(
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_create_assistant_poll_terminal_terminated(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """'Terminated' status raises PineconeError immediately instead of looping."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -465,7 +466,7 @@ def test_create_assistant_poll_terminal_terminated(
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_create_assistant_poll_terminal_terminating(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """'Terminating' status raises PineconeError immediately instead of looping."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -1075,7 +1076,7 @@ def test_update_assistant_empty_metadata_clears_rather_than_omits(
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_delete_assistant(mock_sleep: object, assistants: Assistants) -> None:
+def test_delete_assistant(mock_sleep: MagicMock, assistants: Assistants) -> None:
     """delete() sends DELETE then polls describe until 404 confirms deletion."""
     delete_route = respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
@@ -1084,7 +1085,7 @@ def test_delete_assistant(mock_sleep: object, assistants: Assistants) -> None:
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
-    result = assistants.delete(name="my-assistant")
+    result = assert_type(assistants.delete(name="my-assistant"), None)
 
     assert result is None
     assert delete_route.call_count == 1
@@ -1096,7 +1097,7 @@ def test_delete_assistant(mock_sleep: object, assistants: Assistants) -> None:
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_delete_assistant_polls_until_gone(mock_sleep: object, assistants: Assistants) -> None:
+def test_delete_assistant_polls_until_gone(mock_sleep: MagicMock, assistants: Assistants) -> None:
     """delete() polls describe every 5s; returns when 404 is received."""
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
@@ -1113,7 +1114,7 @@ def test_delete_assistant_polls_until_gone(mock_sleep: object, assistants: Assis
         ],
     )
 
-    result = assistants.delete(name="my-assistant")
+    result = assert_type(assistants.delete(name="my-assistant"), None)
 
     assert result is None
     assert describe_route.call_count == 3
@@ -1122,7 +1123,7 @@ def test_delete_assistant_polls_until_gone(mock_sleep: object, assistants: Assis
 
     from pinecone.client.assistants import _DELETE_POLL_INTERVAL_SECONDS
 
-    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+    for c in mock_sleep.call_args_list:
         assert c == call(_DELETE_POLL_INTERVAL_SECONDS)
 
 
@@ -1133,7 +1134,7 @@ def test_delete_assistant_timeout_minus_one_skips_polling(assistants: Assistants
         return_value=httpx.Response(204),
     )
 
-    result = assistants.delete(name="my-assistant", timeout=-1)
+    result = assert_type(assistants.delete(name="my-assistant", timeout=-1), None)
 
     assert result is None
     assert delete_route.call_count == 1
@@ -1143,10 +1144,10 @@ def test_delete_assistant_timeout_minus_one_skips_polling(assistants: Assistants
 @patch("pinecone.client.assistants.time.monotonic")
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_assistant_timeout_raises(
-    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+    mock_sleep: MagicMock, mock_monotonic: MagicMock, assistants: Assistants
 ) -> None:
     """Exceeding timeout raises PineconeTimeoutError."""
-    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 11.0]
 
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
@@ -1165,10 +1166,10 @@ def test_delete_assistant_timeout_raises(
 @patch("pinecone.client.assistants.time.monotonic")
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_timeout_exceeded(
-    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+    mock_sleep: MagicMock, mock_monotonic: MagicMock, assistants: Assistants
 ) -> None:
     """Exceeding timeout during delete raises PineconeTimeoutError."""
-    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 11.0]
 
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
@@ -1186,7 +1187,7 @@ def test_delete_timeout_exceeded(
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_assistant_polls_indefinitely_when_no_timeout(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """When timeout is None, polling continues until 404 with no deadline."""
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
@@ -1207,7 +1208,7 @@ def test_delete_assistant_polls_indefinitely_when_no_timeout(
         ],
     )
 
-    result = assistants.delete(name="my-assistant")
+    result = assert_type(assistants.delete(name="my-assistant"), None)
 
     assert result is None
 
@@ -1227,7 +1228,7 @@ def test_delete_assistant_not_found(assistants: Assistants) -> None:
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_assistant_terminal_failure_stops_polling(
-    mock_sleep: object, status: str, assistants: Assistants
+    mock_sleep: MagicMock, status: str, assistants: Assistants
 ) -> None:
     """A delete that fails server-side is never retried, so waiting for a 404 hangs."""
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
@@ -1249,7 +1250,7 @@ def test_delete_assistant_terminal_failure_stops_polling(
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_assistant_treats_terminated_as_gone(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """'Terminated' is the delete having finished, so stop waiting for the 404."""
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
@@ -1261,14 +1262,14 @@ def test_delete_assistant_treats_terminated_as_gone(
         ),
     )
 
-    assert assistants.delete(name="my-assistant") is None
+    assert assert_type(assistants.delete(name="my-assistant"), None) is None
     assert describe_route.call_count == 1
 
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_assistant_keeps_polling_through_terminating(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """'Terminating' is a delete in flight — the guard must not trip on it."""
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
@@ -1283,14 +1284,14 @@ def test_delete_assistant_keeps_polling_through_terminating(
         ],
     )
 
-    assert assistants.delete(name="my-assistant") is None
+    assert assert_type(assistants.delete(name="my-assistant"), None) is None
     assert describe_route.call_count == 2
 
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_assistant_propagates_non_404_errors_during_poll(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """Non-404 errors during polling propagate instead of being swallowed."""
     from pinecone.errors.exceptions import ServiceError
@@ -1444,7 +1445,7 @@ def test_upload_file_stream_file_name_without_extension_is_refused(
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_upload_file_stream_file_name_is_the_multipart_filename(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """The accepted file_name — not a placeholder — is what the server sees."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -1470,7 +1471,7 @@ def test_upload_file_stream_file_name_is_the_multipart_filename(
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_upload_file_path_needs_no_file_name(mock_sleep: object, assistants: Assistants) -> None:
+def test_upload_file_path_needs_no_file_name(mock_sleep: MagicMock, assistants: Assistants) -> None:
     """file_path carries its own extension, so the guard leaves it alone."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
@@ -1498,7 +1499,9 @@ def test_upload_file_path_needs_no_file_name(mock_sleep: object, assistants: Ass
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_upload_file_multimodal_serialization(mock_sleep: object, assistants: Assistants) -> None:
+def test_upload_file_multimodal_serialization(
+    mock_sleep: MagicMock, assistants: Assistants
+) -> None:
     """multimodal bool is converted to lowercase string in query params."""
     # Mock describe call for data-plane host resolution
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -1530,7 +1533,7 @@ def test_upload_file_multimodal_serialization(mock_sleep: object, assistants: As
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_upload_file_multimodal_false_serialization(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """multimodal=False is sent as 'false' string."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -1565,7 +1568,7 @@ def test_upload_file_multimodal_false_serialization(
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_upload_file_from_stream(mock_sleep: object, assistants: Assistants) -> None:
+def test_upload_file_from_stream(mock_sleep: MagicMock, assistants: Assistants) -> None:
     """upload_file resolves the file id from the 202 operation and polls it."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
@@ -1615,7 +1618,9 @@ def test_upload_file_from_stream(mock_sleep: object, assistants: Assistants) -> 
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_upload_file_with_metadata_and_file_id(mock_sleep: object, assistants: Assistants) -> None:
+def test_upload_file_with_metadata_and_file_id(
+    mock_sleep: MagicMock, assistants: Assistants
+) -> None:
     """upload_file(file_id=...) upserts with PUT and polls the operation.
 
     The 202 and poll bodies here are the *minimal* ``2026-04`` operation shape,
@@ -1671,7 +1676,7 @@ def test_upload_file_with_metadata_and_file_id(mock_sleep: object, assistants: A
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_upload_file_polls_with_correct_interval(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """upload_file polls every 5 seconds while processing."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -1700,7 +1705,7 @@ def test_upload_file_polls_with_correct_interval(
 
     from unittest.mock import call
 
-    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+    for c in mock_sleep.call_args_list:
         assert c == call(_UPLOAD_POLL_INTERVAL_SECONDS)
 
 
@@ -1711,7 +1716,7 @@ def test_upload_file_polls_with_correct_interval(
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_upload_file_processing_failed(mock_sleep: object, assistants: Assistants) -> None:
+def test_upload_file_processing_failed(mock_sleep: MagicMock, assistants: Assistants) -> None:
     """A failed upload operation raises with the server's error_message verbatim.
 
     ``2026-07`` dropped ``AssistantFileModel.error_message``; the failure
@@ -1756,7 +1761,7 @@ def test_upload_file_processing_failed(mock_sleep: object, assistants: Assistant
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_upload_file_upsert_error_message(mock_sleep: object, assistants: Assistants) -> None:
+def test_upload_file_upsert_error_message(mock_sleep: MagicMock, assistants: Assistants) -> None:
     """Upsert polling surfaces backend error_message, not the fallback 'Unknown operation error'."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
@@ -1792,10 +1797,10 @@ def test_upload_file_upsert_error_message(mock_sleep: object, assistants: Assist
 @patch("pinecone.client.assistants.time.monotonic")
 @patch("pinecone.client.assistants.time.sleep")
 def test_upload_file_timeout_raises(
-    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+    mock_sleep: MagicMock, mock_monotonic: MagicMock, assistants: Assistants
 ) -> None:
     """Timeout raises PineconeTimeoutError with operation ID in message."""
-    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 11.0]
 
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
@@ -1861,7 +1866,9 @@ def test_upload_timeout_negative_one(assistants: Assistants) -> None:
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_upload_file_caches_data_plane_client(mock_sleep: object, assistants: Assistants) -> None:
+def test_upload_file_caches_data_plane_client(
+    mock_sleep: MagicMock, assistants: Assistants
+) -> None:
     """Second upload to same assistant reuses cached data-plane client."""
     describe_route = respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
@@ -2356,7 +2363,7 @@ def test_list_files_propagates_filter_through_pages(assistants: Assistants) -> N
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_file_204_returns_without_polling(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """A 204 means the file was already gone: nothing to poll, no error."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -2369,17 +2376,19 @@ def test_delete_file_204_returns_without_polling(
         return_value=httpx.Response(200, json=make_file_operation_response())
     )
 
-    result = assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123")
+    result = assert_type(
+        assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123"), None
+    )
 
     assert result is None
     assert delete_route.call_count == 1
     assert operation_route.call_count == 0
-    assert mock_sleep.call_count == 0  # type: ignore[union-attr]
+    assert mock_sleep.call_count == 0
 
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_delete_file_202_polls_the_operation(mock_sleep: object, assistants: Assistants) -> None:
+def test_delete_file_202_polls_the_operation(mock_sleep: MagicMock, assistants: Assistants) -> None:
     """A 202 means deletion is pending: poll the returned operation every 5s."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
@@ -2403,7 +2412,9 @@ def test_delete_file_202_polls_the_operation(mock_sleep: object, assistants: Ass
         ]
     )
 
-    result = assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123")
+    result = assert_type(
+        assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123"), None
+    )
 
     assert result is None
     assert delete_route.call_count == 1
@@ -2411,7 +2422,7 @@ def test_delete_file_202_polls_the_operation(mock_sleep: object, assistants: Ass
 
     from unittest.mock import call
 
-    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+    for c in mock_sleep.call_args_list:
         assert c == call(_DELETE_POLL_INTERVAL_SECONDS)
 
 
@@ -2430,8 +2441,9 @@ def test_delete_file_timeout_minus_one_skips_polling(assistants: Assistants) -> 
         return_value=httpx.Response(200, json=make_file_operation_response())
     )
 
-    result = assistants.delete_file(
-        assistant_name="test-assistant", file_id="file-abc123", timeout=-1
+    result = assert_type(
+        assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123", timeout=-1),
+        None,
     )
 
     assert result is None
@@ -2443,10 +2455,10 @@ def test_delete_file_timeout_minus_one_skips_polling(assistants: Assistants) -> 
 @patch("pinecone.client.assistants.time.monotonic")
 @patch("pinecone.client.assistants.time.sleep")
 def test_delete_file_timeout_raises(
-    mock_sleep: object, mock_monotonic: object, assistants: Assistants
+    mock_sleep: MagicMock, mock_monotonic: MagicMock, assistants: Assistants
 ) -> None:
     """Exceeding timeout raises PineconeTimeoutError naming the operation."""
-    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 11.0]
 
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
@@ -2470,7 +2482,7 @@ def test_delete_file_timeout_raises(
 
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
-def test_delete_file_server_error_raises(mock_sleep: object, assistants: Assistants) -> None:
+def test_delete_file_server_error_raises(mock_sleep: MagicMock, assistants: Assistants) -> None:
     """A failed deletion operation surfaces the server's error_message verbatim."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
@@ -2903,6 +2915,7 @@ def test_chat_streaming_chunk_dispatch(assistants: Assistants) -> None:
     assert chunks[1].delta.content == "Hello"
     assert isinstance(chunks[2], StreamCitationChunk)
     assert isinstance(chunks[3], StreamMessageEnd)
+    assert chunks[3].usage is not None
     assert chunks[3].usage.total_tokens == 15
 
 
@@ -2963,7 +2976,7 @@ def test_chat_streaming_unencodable_filter_raises_typed_error(assistants: Assist
         filter={"views": {"$gt": 2**64}},
     )
     with pytest.raises(PineconeTypeError) as excinfo:
-        list(stream)  # type: ignore[call-overload]
+        list(stream)
     assert excinfo.value.path == "filter.views.$gt"
     assert isinstance(excinfo.value, TypeError)
     assert not chat_route.called
@@ -2987,7 +3000,7 @@ def test_chat_completions_streaming_unencodable_filter_raises_typed_error(
         filter={"views": {"$gt": 2**64}},
     )
     with pytest.raises(PineconeTypeError) as excinfo:
-        list(stream)  # type: ignore[call-overload]
+        list(stream)
     assert excinfo.value.path == "filter.views.$gt"
     assert not completions_route.called
 
@@ -3021,13 +3034,13 @@ def test_chat_completions_streaming_sse_parsing(assistants: Assistants) -> None:
 
     from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
 
-    chunks = list(
-        assistants.chat_completions(
-            assistant_name="test-assistant",
-            messages=[{"content": "Hello"}],
-            stream=True,
-        )
+    stream = assistants.chat_completions(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        stream=True,
     )
+    assert isinstance(stream, ChatCompletionStream)
+    chunks = list(stream)
 
     assert len(chunks) == 3
     assert all(isinstance(c, ChatCompletionStreamChunk) for c in chunks)
@@ -3166,13 +3179,13 @@ def test_chat_completions_streaming_skips_sse_comments(assistants: Assistants) -
 
     from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
 
-    chunks = list(
-        assistants.chat_completions(
-            assistant_name="test-assistant",
-            messages=[{"content": "Hello"}],
-            stream=True,
-        )
+    stream = assistants.chat_completions(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        stream=True,
     )
+    assert isinstance(stream, ChatCompletionStream)
+    chunks = list(stream)
 
     assert len(chunks) == 2
     assert all(isinstance(c, ChatCompletionStreamChunk) for c in chunks)
@@ -3401,13 +3414,13 @@ def test_chat_completions_streaming_skips_a_frame_that_fails_validation(
         return_value=httpx.Response(200, content=sse_body),
     )
 
-    chunks = list(
-        assistants.chat_completions(
-            assistant_name="test-assistant",
-            messages=[{"content": "Hello"}],
-            stream=True,
-        )
+    stream = assistants.chat_completions(
+        assistant_name="test-assistant",
+        messages=[{"content": "Hello"}],
+        stream=True,
     )
+    assert isinstance(stream, ChatCompletionStream)
+    chunks = list(stream)
 
     assert [c.id for c in chunks] == ["cmpl1", "cmpl2"]
     assert all(isinstance(c, ChatCompletionStreamChunk) for c in chunks)
@@ -3753,7 +3766,7 @@ def test_assistant_model_region_us() -> None:
 
 
 def _make_assistant_model(**overrides: object) -> AssistantModel:
-    data = {
+    data: dict[str, object] = {
         "name": "test-assistant",
         "status": "Ready",
         "created_at": "2025-01-15T12:00:00Z",
@@ -3767,7 +3780,7 @@ def _make_assistant_model(**overrides: object) -> AssistantModel:
 
 
 def _make_file_model(**overrides: object) -> AssistantFileModel:
-    data = {
+    data: dict[str, object] = {
         "name": "test-file.pdf",
         "id": "file-abc123",
         "metadata": None,
@@ -4133,7 +4146,7 @@ def test_chat_streaming_uses_config_timeout() -> None:
         content: bytes | None = None,
         headers: dict[str, str] | None = None,
         timeout: float | None = None,
-    ):
+    ) -> Iterator[MagicMock]:
         captured_timeout.append(timeout)
         mock_resp = MagicMock()
         mock_resp.is_success = True
@@ -4386,7 +4399,7 @@ def test_describe_operation_reuses_the_cached_data_plane_client(assistants: Assi
 @respx.mock
 @patch("pinecone.client.assistants.time.sleep")
 def test_the_polling_loop_goes_through_describe_operation(
-    mock_sleep: object, assistants: Assistants
+    mock_sleep: MagicMock, assistants: Assistants
 ) -> None:
     """#125's internal poll is the public method now, so patching it is observable."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(

@@ -60,8 +60,9 @@ def _retry_config() -> RetryConfig:
 def sync_parity_metrics() -> StormMetrics:
     config = canonical_config()
     scenario = StormScenario(config)
-    transport = _RetryTransport(  # type: ignore[arg-type]
-        transport=scenario.sync_transport,
+    transport = _RetryTransport(
+        # _RetryTransport only uses the BaseTransport API but annotates HTTPTransport.
+        transport=scenario.sync_transport,  # type: ignore[arg-type]
         retry_config=_retry_config(),
         budget_registry=_BudgetRegistry(max_tokens=1e9),
     )
@@ -84,8 +85,10 @@ def sync_parity_metrics() -> StormMetrics:
 async def async_parity_metrics() -> StormMetrics:
     config = canonical_config()
     scenario = StormScenario(config)
-    transport = _AsyncRetryTransport(  # type: ignore[arg-type]
-        transport=scenario.async_transport,
+    transport = _AsyncRetryTransport(
+        # _AsyncRetryTransport only uses the AsyncBaseTransport API but annotates
+        # AsyncHTTPTransport.
+        transport=scenario.async_transport,  # type: ignore[arg-type]
         retry_config=_retry_config(),
         budget_registry=_BudgetRegistry(max_tokens=1e9),
     )

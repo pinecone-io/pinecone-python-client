@@ -35,7 +35,7 @@ def mock_assistants() -> Assistants:
     obj = Assistants(config=config)
 
     # Stub the HTTP clients so no real requests go out.
-    obj._http = MagicMock()  # type: ignore[attr-defined]
+    obj._http = MagicMock()
 
     # Stub the adapter so it returns canned responses.
     mock_adapter = MagicMock()
@@ -43,7 +43,7 @@ def mock_assistants() -> Assistants:
     mock_adapter.to_assistant_list.return_value = ListAssistantsResponse(
         assistants=[_CANNED_ASSISTANT]
     )
-    obj._adapter = mock_adapter  # type: ignore[attr-defined]
+    obj._adapter = mock_adapter
 
     # Stub _poll_until_ready so tests don't loop.
     obj._poll_until_ready = MagicMock(return_value=_CANNED_ASSISTANT)  # type: ignore[method-assign]

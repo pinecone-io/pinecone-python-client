@@ -32,7 +32,9 @@ CLIENTS = [pytest.param(Indexes, id="sync"), pytest.param(AsyncIndexes, id="asyn
 
 
 @pytest.mark.parametrize("cls", CLIENTS)
-def test_schema_arg_says_create_schema_index_is_fixed(cls: type) -> None:
+def test_schema_arg_says_create_schema_index_is_fixed(
+    cls: type[Indexes] | type[AsyncIndexes],
+) -> None:
     arg = _section(inspect.getdoc(cls.configure) or "", "schema: ", "read_capacity: ")
     assert "create(schema=...)" in arg
     assert "nothing in" in arg and "can be changed" in arg
@@ -40,7 +42,9 @@ def test_schema_arg_says_create_schema_index_is_fixed(cls: type) -> None:
 
 
 @pytest.mark.parametrize("cls", CLIENTS)
-def test_schema_note_names_create_for_model_as_only_updatable_case(cls: type) -> None:
+def test_schema_note_names_create_for_model_as_only_updatable_case(
+    cls: type[Indexes] | type[AsyncIndexes],
+) -> None:
     note = _section(inspect.getdoc(cls.configure) or "", ".. note::", ".. versionchanged::")
     assert "create_for_model" in note
     assert "create(schema=...)" in note
@@ -48,7 +52,9 @@ def test_schema_note_names_create_for_model_as_only_updatable_case(cls: type) ->
 
 
 @pytest.mark.parametrize("cls", CLIENTS)
-def test_raises_lists_api_error_for_schema_and_deployment(cls: type) -> None:
+def test_raises_lists_api_error_for_schema_and_deployment(
+    cls: type[Indexes] | type[AsyncIndexes],
+) -> None:
     raises = _section(inspect.getdoc(cls.configure) or "", "Raises:", "Examples:")
     assert "ApiError" in raises
     assert "422" in raises and "400" in raises
@@ -57,7 +63,9 @@ def test_raises_lists_api_error_for_schema_and_deployment(cls: type) -> None:
 
 
 @pytest.mark.parametrize("cls", CLIENTS)
-def test_deployment_arg_says_only_replicas_and_pod_type(cls: type) -> None:
+def test_deployment_arg_says_only_replicas_and_pod_type(
+    cls: type[Indexes] | type[AsyncIndexes],
+) -> None:
     arg = _section(inspect.getdoc(cls.configure) or "", "deployment: ", "schema: ")
     assert "Only those two keys are accepted" in arg
     assert "rejected by the server" in arg

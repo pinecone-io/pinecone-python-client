@@ -86,7 +86,7 @@ def test_pc_assistant_singular_is_namespace(mock_assistants: Any) -> None:
     from pinecone._client import Pinecone
 
     pc = Pinecone.__new__(Pinecone)
-    pc._assistants = mock_assistants  # type: ignore[attr-defined]
+    pc._assistants = mock_assistants
     result = pc.assistant.create_assistant(assistant_name="foo")
     assert result.name == "legacy-name"
 
@@ -96,7 +96,7 @@ def test_pc_assistant_singular_is_callable(mock_assistants: Any) -> None:
     from pinecone._client import Pinecone
 
     pc = Pinecone.__new__(Pinecone)
-    pc._assistants = mock_assistants  # type: ignore[attr-defined]
+    pc._assistants = mock_assistants
     result = pc.assistant("foo")
     assert isinstance(result, AssistantModel)
 
@@ -106,7 +106,7 @@ def test_pc_assistant_proxy_forwards_all_attrs(mock_assistants: Any) -> None:
     from pinecone._client import Pinecone
 
     pc = Pinecone.__new__(Pinecone)
-    pc._assistants = mock_assistants  # type: ignore[attr-defined]
+    pc._assistants = mock_assistants
     assert pc.assistant.list_assistants() is not None
 
 
@@ -115,7 +115,7 @@ def test_pc_assistants_plural_still_works(mock_assistants: Any) -> None:
     from pinecone._client import Pinecone
 
     pc = Pinecone.__new__(Pinecone)
-    pc._assistants = mock_assistants  # type: ignore[attr-defined]
+    pc._assistants = mock_assistants
     assert pc.assistants is mock_assistants
 
 
@@ -179,7 +179,7 @@ async def test_async_pc_assistant_singular_is_callable() -> None:
     mock_async.describe = AsyncMock(return_value=_CANNED_ASSISTANT)
 
     pc = AsyncPinecone.__new__(AsyncPinecone)
-    pc._assistants = mock_async  # type: ignore[attr-defined]
+    pc._assistants = mock_async
     result = await pc.assistant("foo")
     assert isinstance(result, AssistantModel)
     mock_async.describe.assert_called_once_with(name="foo")
@@ -191,6 +191,6 @@ def test_async_pc_assistant_is_property() -> None:
 
     mock_async = MagicMock()
     pc = AsyncPinecone.__new__(AsyncPinecone)
-    pc._assistants = mock_async  # type: ignore[attr-defined]
+    pc._assistants = mock_async
     proxy = pc.assistant
     assert isinstance(proxy, _AsyncAssistantNamespaceProxy)

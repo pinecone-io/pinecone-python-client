@@ -45,7 +45,7 @@ import re
 import uuid
 from collections import Counter
 from collections.abc import AsyncIterator, Callable, Iterator
-from typing import Any
+from typing import Any, TypeVar
 from urllib.parse import quote, unquote
 
 import httpx
@@ -501,25 +501,30 @@ PATH_VALUES = st.one_of(
     st.text(alphabet=st.characters(min_codepoint=1, max_codepoint=0x2FFF), min_size=1, max_size=16),
 )
 
+_F = TypeVar("_F", bound=Callable[..., Any])
+
 _NASTY = (
-    example(value=".."),
-    example(value="."),
-    example(value="/"),
-    example(value="a/b"),
-    example(value="%2F"),
-    example(value="%"),
-    example(value="?"),
-    example(value="#"),
-    example(value=""),
-    example(value="   "),
-    example(value="ünïcødé"),
-    example(value="🔥"),
+    "..",
+    ".",
+    "/",
+    "a/b",
+    "%2F",
+    "%",
+    "?",
+    "#",
+    "",
+    "   ",
+    "ünïcødé",
+    "🔥",
 )
 
 
-def _apply(decorators: tuple[Any, ...], fn: Any) -> Any:
-    for decorator in reversed(decorators):
-        fn = decorator(fn)
+def _with_nasty_examples(fn: _F) -> _F:
+    """Attach the ``_NASTY`` explicit examples; apply it beneath ``@given``."""
+    # Each example object owns a list that it hands to the first test it
+    # decorates, so reusing one across tests would pile up duplicates.
+    for value in reversed(_NASTY):
+        fn = example(value=value)(fn)
     return fn
 
 
@@ -606,12 +611,9 @@ def _check(template: str, value: str, paths: list[Any]) -> None:
 
 
 @pytest.mark.parametrize(("invoke", "template"), _params(PROPERTY_OPS))
-@_apply(
-    _NASTY,
-    lambda fn: settings(
-        max_examples=200, suppress_health_check=[HealthCheck.function_scoped_fixture]
-    )(given(value=PATH_VALUES)(fn)),
-)
+@settings(max_examples=200, suppress_health_check=[HealthCheck.function_scoped_fixture])
+@given(value=PATH_VALUES)
+@_with_nasty_examples
 def test_any_value_addresses_the_named_endpoint(
     shared_client: Pinecone, invoke: Op, template: str, value: str
 ) -> None:
@@ -619,12 +621,9 @@ def test_any_value_addresses_the_named_endpoint(
 
 
 @pytest.mark.parametrize(("invoke", "template"), _params(PROPERTY_OPS))
-@_apply(
-    _NASTY,
-    lambda fn: settings(
-        max_examples=200, suppress_health_check=[HealthCheck.function_scoped_fixture]
-    )(given(value=PATH_VALUES)(fn)),
-)
+@settings(max_examples=200, suppress_health_check=[HealthCheck.function_scoped_fixture])
+@given(value=PATH_VALUES)
+@_with_nasty_examples
 def test_any_value_addresses_the_named_endpoint_async(
     shared_async_client: tuple[asyncio.AbstractEventLoop, PineconeAsyncio],
     invoke: Op,
@@ -651,7 +650,8 @@ def url_builder() -> Iterator[httpx.Client]:
 
 
 @settings(max_examples=1000)
-@_apply(_NASTY, given(value=PATH_VALUES))
+@given(value=PATH_VALUES)
+@_with_nasty_examples
 def test_the_encoding_itself_survives_any_value(url_builder: httpx.Client, value: str) -> None:
     """The contract every site relies on, asserted without going through a site.
 
@@ -674,7 +674,8 @@ def test_the_encoding_itself_survives_any_value(url_builder: httpx.Client, value
 
 
 @settings(max_examples=500)
-@_apply(_NASTY, given(value=PATH_VALUES))
+@given(value=PATH_VALUES)
+@_with_nasty_examples
 def test_the_encoding_is_stable_under_reapplication(value: str) -> None:
     """``_prepare_path`` is idempotent over already-encoded segments.
 
@@ -1046,7 +1047,7 @@ async def test_an_async_assistant_name_is_refused_rather_than_coerced(
     assert not respx_mock.calls, "the request must not reach the wire"
 
 
-_READY_ASSISTANT = {
+_READY_ASSISTANT: dict[str, Any] = {
     "name": "n",
     "status": "Ready",
     "created_at": "2025-01-15T12:00:00Z",
@@ -1119,12 +1120,9 @@ def _check_unguarded(template: str, value: str, paths: list[Any]) -> None:
 
 
 @pytest.mark.parametrize(("invoke", "template"), _params(ASSISTANT_PROPERTY_OPS))
-@_apply(
-    _NASTY,
-    lambda fn: settings(
-        max_examples=200, suppress_health_check=[HealthCheck.function_scoped_fixture]
-    )(given(value=PATH_VALUES)(fn)),
-)
+@settings(max_examples=200, suppress_health_check=[HealthCheck.function_scoped_fixture])
+@given(value=PATH_VALUES)
+@_with_nasty_examples
 def test_any_value_addresses_the_named_assistant_endpoint(
     shared_client: Pinecone, invoke: Op, template: str, value: str
 ) -> None:
@@ -1132,12 +1130,9 @@ def test_any_value_addresses_the_named_assistant_endpoint(
 
 
 @pytest.mark.parametrize(("invoke", "template"), _params(ASSISTANT_PROPERTY_OPS))
-@_apply(
-    _NASTY,
-    lambda fn: settings(
-        max_examples=200, suppress_health_check=[HealthCheck.function_scoped_fixture]
-    )(given(value=PATH_VALUES)(fn)),
-)
+@settings(max_examples=200, suppress_health_check=[HealthCheck.function_scoped_fixture])
+@given(value=PATH_VALUES)
+@_with_nasty_examples
 def test_any_value_addresses_the_named_assistant_endpoint_async(
     shared_async_client: tuple[asyncio.AbstractEventLoop, PineconeAsyncio],
     invoke: Op,
@@ -1157,12 +1152,9 @@ def shared_admin() -> Iterator[Admin]:
 
 
 @pytest.mark.parametrize(("invoke", "template"), _params(ADMIN_PROPERTY_OPS))
-@_apply(
-    _NASTY,
-    lambda fn: settings(
-        max_examples=200, suppress_health_check=[HealthCheck.function_scoped_fixture]
-    )(given(value=PATH_VALUES)(fn)),
-)
+@settings(max_examples=200, suppress_health_check=[HealthCheck.function_scoped_fixture])
+@given(value=PATH_VALUES)
+@_with_nasty_examples
 def test_any_value_addresses_the_named_admin_endpoint(
     shared_admin: Admin, invoke: Op, template: str, value: str
 ) -> None:
@@ -1275,10 +1267,11 @@ async def test_both_lanes_word_the_refusal_identically(
     """A caller who reads one lane's error learns nothing lane-specific."""
     respx_mock.route().mock(return_value=httpx.Response(200, json={}))
 
+    # Op takes a str; the int is the misuse under test.
     with pytest.raises(PineconeTypeError) as sync_error:
-        invoke(client, 1234)
+        invoke(client, 1234)  # type: ignore[arg-type]
     with pytest.raises(PineconeTypeError) as async_error:
-        await invoke(async_client, 1234)
+        await invoke(async_client, 1234)  # type: ignore[arg-type]
 
     assert str(sync_error.value) == str(async_error.value)
 
@@ -1328,7 +1321,8 @@ rather than passing the shape check in the sweep above.
 def test_the_refusal_names_the_parameter_that_carried_the_value(
     client: Pinecone, invoke: Op, parameter: str
 ) -> None:
+    # Op takes a str; the int is the misuse under test.
     with pytest.raises(PineconeTypeError) as error:
-        invoke(client, 1234)
+        invoke(client, 1234)  # type: ignore[arg-type]
 
     assert str(error.value) == f"{parameter} must be a string, got int"

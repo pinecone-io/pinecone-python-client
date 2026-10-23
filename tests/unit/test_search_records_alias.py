@@ -17,8 +17,8 @@ from pinecone.models.vectors.search import (
 def _make_index() -> Index:
     """Create an Index instance with mocked internals."""
     idx = object.__new__(Index)
-    idx._http = MagicMock()  # type: ignore[attr-defined]
-    idx._adapter = MagicMock()  # type: ignore[attr-defined]
+    idx._http = MagicMock()
+    idx._adapter = MagicMock()
     return idx
 
 

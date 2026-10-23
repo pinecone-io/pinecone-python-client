@@ -109,7 +109,9 @@ def test_pool_only_constructed_on_first_async_req_call(
     idx.list_paginated()
     assert "multiprocessing.pool" not in sys.modules
     # First async call triggers the import.
-    result = idx.upsert(vectors=[("b", [0.2])], async_req=True)
+    # An ApplyResult from a freshly imported multiprocessing.pool, so the module-level
+    # ApplyResult is a stale class here and cannot narrow it.
+    result: Any = idx.upsert(vectors=[("b", [0.2])], async_req=True)
     result.get(timeout=5)
     assert "multiprocessing.pool" in sys.modules
 

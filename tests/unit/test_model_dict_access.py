@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from pinecone.models.admin.api_key import APIKeyModel, APIKeyWithSecret
+from pinecone.models.admin.api_key import APIKeyModel, APIKeyRole, APIKeyWithSecret
 from pinecone.models.admin.organization import OrganizationModel
 from pinecone.models.admin.project import ProjectModel
 from pinecone.models.backups.model import (
@@ -344,12 +344,12 @@ class TestAdminModelsDictAccess:
         assert "nonexistent" not in model
 
     def test_api_key_model(self) -> None:
-        model = APIKeyModel(id="k1", name="key", project_id="p1", roles=["admin"])
+        model = APIKeyModel(id="k1", name="key", project_id="p1", roles=[APIKeyRole.PROJECT_EDITOR])
         assert "name" in model
         assert "nonexistent" not in model
 
     def test_api_key_with_secret(self) -> None:
-        key = APIKeyModel(id="k1", name="key", project_id="p1", roles=["admin"])
+        key = APIKeyModel(id="k1", name="key", project_id="p1", roles=[APIKeyRole.PROJECT_EDITOR])
         model = APIKeyWithSecret(key=key, value="secret")
         assert "value" in model
         assert "nonexistent" not in model

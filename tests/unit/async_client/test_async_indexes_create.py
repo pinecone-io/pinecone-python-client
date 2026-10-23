@@ -499,7 +499,7 @@ async def test_create_legacy_pod_spec_metadata_config_is_guided_away(
 
 async def test_create_legacy_pods_kwarg_notes_no_equivalent(indexes: AsyncIndexes) -> None:
     with pytest.raises(PineconeTypeError, match="pods=: capacity is replicas x shards"):
-        await indexes.create(  # type: ignore[call-arg]
+        await indexes.create(
             name="pods", dimension=3, spec=PodSpec(environment="us-east1-gcp"), pods=4
         )
 
@@ -508,19 +508,17 @@ async def test_create_legacy_metadata_config_kwarg_notes_no_equivalent(
     indexes: AsyncIndexes,
 ) -> None:
     with pytest.raises(PineconeTypeError, match="metadata_config=: metadata fields"):
-        await indexes.create(  # type: ignore[call-arg]
-            schema=DENSE_SCHEMA, metadata_config={"indexed": ["genre"]}
-        )
+        await indexes.create(schema=DENSE_SCHEMA, metadata_config={"indexed": ["genre"]})
 
 
 async def test_create_unknown_kwarg_lists_accepted_arguments(indexes: AsyncIndexes) -> None:
     with pytest.raises(PineconeTypeError, match="unexpected keyword argument"):
-        await indexes.create(schema=DENSE_SCHEMA, shcema_typo=True)  # type: ignore[call-arg]
+        await indexes.create(schema=DENSE_SCHEMA, shcema_typo=True)
 
 
 async def test_create_unknown_kwarg_not_absorbed_by_legacy_sugar(indexes: AsyncIndexes) -> None:
     with pytest.raises(PineconeTypeError, match=r"\['dimenson'\]"):
-        await indexes.create(name="x", dimenson=3)  # type: ignore[call-arg]
+        await indexes.create(name="x", dimenson=3)
 
 
 async def test_create_quarantined_kwargs_rejected_before_any_request(
@@ -529,7 +527,7 @@ async def test_create_quarantined_kwargs_rejected_before_any_request(
     with respx.mock:
         route = respx.post(f"{BASE_URL}/indexes")
         with pytest.raises(PineconeTypeError):
-            await indexes.create(name="x", dimension=3, pods=4)  # type: ignore[call-arg]
+            await indexes.create(name="x", dimension=3, pods=4)
         assert route.call_count == 0
 
 

@@ -7,6 +7,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION
@@ -169,7 +170,7 @@ def test_delete_organization(organizations: Organizations) -> None:
         return_value=httpx.Response(202),
     )
 
-    result = organizations.delete(organization_id="org-abc123")
+    result = assert_type(organizations.delete(organization_id="org-abc123"), None)
 
     assert result is None
 
@@ -186,13 +187,13 @@ def test_delete_requires_organization_id(organizations: Organizations) -> None:
 
 def test_all_methods_keyword_only(organizations: Organizations) -> None:
     with pytest.raises(TypeError):
-        organizations.describe("org-abc123")  # type: ignore[misc]
+        organizations.describe("org-abc123")  # type: ignore[call-arg]
 
     with pytest.raises(TypeError):
-        organizations.update("org-abc123", "New Name")  # type: ignore[misc]
+        organizations.update("org-abc123", "New Name")  # type: ignore[call-arg]
 
     with pytest.raises(TypeError):
-        organizations.delete("org-abc123")  # type: ignore[misc]
+        organizations.delete("org-abc123")  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------

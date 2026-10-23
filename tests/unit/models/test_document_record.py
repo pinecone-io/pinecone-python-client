@@ -14,7 +14,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from pinecone.models.documents import DocumentRecord, UpdateDocumentRecord
+from pinecone.models.documents.document import DocumentRecord, UpdateDocumentRecord
 
 
 def test_record_from_dict() -> None:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import msgspec
 import pytest
 
@@ -99,8 +101,9 @@ def test_removed_field_attribute_access_names_replacement(field: str) -> None:
 @pytest.mark.parametrize("field", REMOVED_FIELDS)
 def test_removed_field_constructor_rejected(field: str) -> None:
     """Constructing with a removed keyword is a TypeError, not a silently kept attribute."""
+    removed: dict[str, Any] = {field: 1.0}
     with pytest.raises(TypeError):
-        AssistantFileModel(name="f.txt", id="id-1", **{field: 1.0})
+        AssistantFileModel(name="f.txt", id="id-1", **removed)
 
 
 @pytest.mark.parametrize("field", REMOVED_FIELDS)
@@ -125,7 +128,7 @@ def test_unknown_attribute_still_raises_plain_attribute_error() -> None:
     """__getattr__ only special-cases the removed fields."""
     model = AssistantFileModel(name="f.txt", id="id-1")
     with pytest.raises(AttributeError, match="has no attribute 'nope'"):
-        model.nope  # type: ignore[attr-defined]
+        model.nope
 
 
 def test_legacy_payload_with_removed_keys_still_decodes() -> None:

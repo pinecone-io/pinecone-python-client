@@ -25,22 +25,26 @@ class TestValidationErrorDeprecation:
 
     def test_validation_error_deprec_warns(self) -> None:
         with pytest.warns(DeprecationWarning, match=_DEPRECATION_MATCH):
-            from pinecone import ValidationError  # noqa: F401
+            # Deprecated alias served by module __getattr__; absent from the stub.
+            from pinecone import ValidationError  # type: ignore[attr-defined]  # noqa: F401
 
     def test_validation_error_deprec_is_same_class(self) -> None:
         _reset_validation_error_cache()
         with pytest.warns(DeprecationWarning, match=_DEPRECATION_MATCH):
-            from pinecone import ValidationError
+            # Deprecated alias served by module __getattr__; absent from the stub.
+            from pinecone import ValidationError  # type: ignore[attr-defined]
         assert ValidationError is _CanonValidationError
 
     def test_validation_error_deprec_is_pinecone_value_error_subclass(self) -> None:
         _reset_validation_error_cache()
         with pytest.warns(DeprecationWarning, match=_DEPRECATION_MATCH):
-            from pinecone import ValidationError
+            # Deprecated alias served by module __getattr__; absent from the stub.
+            from pinecone import ValidationError  # type: ignore[attr-defined]
         assert issubclass(ValidationError, PineconeValueError)
 
     def test_validation_error_deprec_caches_on_module(self) -> None:
         _reset_validation_error_cache()
         with pytest.warns(DeprecationWarning, match=_DEPRECATION_MATCH):
-            _ = pinecone.ValidationError
+            # Deprecated alias served by module __getattr__; absent from the stub.
+            _ = pinecone.ValidationError  # type: ignore[attr-defined]
         assert "ValidationError" in pinecone.__dict__

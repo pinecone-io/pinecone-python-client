@@ -114,7 +114,7 @@ class TestAsyncDescribeIndexStats:
     async def test_async_describe_index_stats_keyword_only(self) -> None:
         idx = _make_async_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            await idx.describe_index_stats({"genre": {"$eq": "sci-fi"}})  # type: ignore[misc]
+            await idx.describe_index_stats({"genre": {"$eq": "sci-fi"}})  # type: ignore[call-arg]
 
     @respx.mock
     @pytest.mark.anyio

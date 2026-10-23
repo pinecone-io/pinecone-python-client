@@ -19,6 +19,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.constants import DEFAULT_BASE_URL
 from pinecone.admin.admin import _OAUTH_URL, Admin
@@ -136,7 +137,7 @@ def test_delete_role_binding(claim: Any, admin: Admin, respx_mock: respx.MockRou
         return_value=httpx.Response(202)
     )
 
-    returned = admin.role_bindings.delete(role_binding_id=ROLE_BINDING_ID)
+    returned = assert_type(admin.role_bindings.delete(role_binding_id=ROLE_BINDING_ID), None)
 
     request = route.calls.last.request
     claim.assert_request(request)

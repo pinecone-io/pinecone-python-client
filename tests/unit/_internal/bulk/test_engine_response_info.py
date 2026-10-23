@@ -255,14 +255,14 @@ class TestEngineParamValidation:
         ],
     )
     def test_sync_rejects_out_of_range(self, kwargs: dict[str, int], message: str) -> None:
-        call = {"batch_size": 10, "max_concurrency": 1, **kwargs}
         with pytest.raises(PineconeValueError, match=message):
             bulk_execute_sync(
                 items=_items(10),
                 operation=lambda batch: {"upserted_count": len(batch)},
                 show_progress=False,
                 host=HOST,
-                **call,
+                batch_size=kwargs.get("batch_size", 10),
+                max_concurrency=kwargs.get("max_concurrency", 1),
             )
 
     @pytest.mark.parametrize(
@@ -274,7 +274,6 @@ class TestEngineParamValidation:
         ],
     )
     def test_async_rejects_out_of_range(self, kwargs: dict[str, int], message: str) -> None:
-        call = {"batch_size": 10, "max_concurrency": 1, **kwargs}
 
         async def op(batch: list[dict[str, Any]]) -> dict[str, int]:
             return {"upserted_count": len(batch)}
@@ -285,7 +284,8 @@ class TestEngineParamValidation:
                 operation=op,
                 show_progress=False,
                 host=HOST,
-                **call,
+                batch_size=kwargs.get("batch_size", 10),
+                max_concurrency=kwargs.get("max_concurrency", 1),
             )
 
         with pytest.raises(PineconeValueError, match=message):

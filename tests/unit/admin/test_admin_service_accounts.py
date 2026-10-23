@@ -26,6 +26,7 @@ import pytest
 import respx
 from hypothesis import given, settings
 from hypothesis import strategies as st
+from typing_extensions import assert_type
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION
@@ -641,7 +642,7 @@ def test_delete_service_account(service_accounts: ServiceAccounts) -> None:
         return_value=httpx.Response(202)
     )
 
-    assert service_accounts.delete(service_account_id=ACCOUNT_ID) is None
+    assert assert_type(service_accounts.delete(service_account_id=ACCOUNT_ID), None) is None
     assert route.calls.last.request.url.path == f"/admin/service-accounts/{ACCOUNT_ID}"
 
 

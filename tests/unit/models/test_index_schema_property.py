@@ -189,7 +189,7 @@ def test_multibyte_names_within_the_byte_bound_accepted(name: str) -> None:
     request = CreateIndexRequest(
         schema={"fields": {name: {"type": "dense_vector", "dimension": 3}}}
     )
-    assert name in request.schema["fields"]  # type: ignore[union-attr, index, operator]
+    assert name in request.schema["fields"]  # type: ignore[index]
 
 
 @given(name=_reserved_shaped_field_names)
@@ -197,4 +197,4 @@ def test_reserved_shaped_field_names_left_to_the_server(name: str) -> None:
     request = CreateIndexRequest(
         schema={"fields": {name: {"type": "dense_vector", "dimension": 3}}}
     )
-    assert name in request.schema["fields"]  # type: ignore[union-attr, index, operator]
+    assert name in request.schema["fields"]  # type: ignore[index]

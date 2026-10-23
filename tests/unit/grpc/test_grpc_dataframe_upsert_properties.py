@@ -21,6 +21,9 @@ from __future__ import annotations
 
 import math
 from collections import Counter
+from collections.abc import Callable
+from types import ModuleType
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -29,6 +32,10 @@ from hypothesis import strategies as st
 
 from pinecone.errors.exceptions import PineconeTimeoutError
 from pinecone.grpc import GrpcIndex
+from pinecone.models.vectors.responses import UpsertResponse
+
+_Payload = tuple[list[list[float]], list[dict[str, Any] | None], int]
+_Case = tuple[int, int, frozenset[int], int]
 
 _MOCK_GRPC_MODULE_PATH = "pinecone._grpc"
 
@@ -48,7 +55,7 @@ def _count_by_batch_channel() -> MagicMock:
     return ch
 
 
-def _make_df(pd, n_rows: int):
+def _make_df(pd: ModuleType, n_rows: int) -> Any:
     return pd.DataFrame(
         {"id": [f"v{i}" for i in range(n_rows)], "values": [[float(i)] for i in range(n_rows)]}
     )
@@ -66,19 +73,23 @@ def _upsert_call_count(ch: MagicMock) -> int:
     return len(ch.upsert.call_args_list)
 
 
-def _channel_vectors(ch: MagicMock):
+def _channel_vectors(ch: MagicMock) -> list[dict[str, Any]]:
     """Every vector dict handed to channel.upsert, flattened across batches."""
     return [v for c in ch.upsert.call_args_list for v in c.args[0]]
 
 
-def _batches_of(n_rows: int, batch_size: int, failing: frozenset[int]):
+def _batches_of(
+    n_rows: int, batch_size: int, failing: frozenset[int]
+) -> list[list[dict[str, str]]]:
     """The batches at the given indices, as lists of record dicts."""
     rows = [{"id": f"v{i}"} for i in range(n_rows)]
     batches = [rows[i : i + batch_size] for i in range(0, n_rows, batch_size)]
     return [batch for idx, batch in enumerate(batches) if idx in failing]
 
 
-def _side_effect_factory(batch_size: int, failing: frozenset[int], exc_factory):
+def _side_effect_factory(
+    batch_size: int, failing: frozenset[int], exc_factory: Callable[[int], Exception]
+) -> Callable[..., dict[str, int]]:
     """Per-batch side effect keyed on the batch's own contents.
 
     A list-style side_effect is racy here: batches run concurrently, so
@@ -86,7 +97,7 @@ def _side_effect_factory(batch_size: int, failing: frozenset[int], exc_factory):
     deterministically regardless of execution order.
     """
 
-    def _upsert(chunk, *args, **kwargs):
+    def _upsert(chunk: list[dict[str, Any]], *args: Any, **kwargs: Any) -> dict[str, int]:
         batch_idx = int(chunk[0]["id"][1:]) // batch_size
         if batch_idx in failing:
             raise exc_factory(batch_idx)
@@ -107,7 +118,7 @@ _metadata = st.dictionaries(
 
 
 @st.composite
-def _payloads(draw):
+def _payloads(draw: st.DrawFn) -> _Payload:
     values = draw(st.lists(_values, min_size=1, max_size=25))
     n = len(values)
     metas = draw(st.lists(st.none() | _metadata, min_size=n, max_size=n))
@@ -115,7 +126,9 @@ def _payloads(draw):
     return values, metas, batch_size
 
 
-def _payload_df(pd, values, metas):
+def _payload_df(
+    pd: ModuleType, values: list[list[float]], metas: list[dict[str, Any] | None]
+) -> Any:
     return pd.DataFrame(
         {
             "id": [f"v{i}" for i in range(len(values))],
@@ -126,7 +139,7 @@ def _payload_df(pd, values, metas):
 
 
 @st.composite
-def _cases(draw):
+def _cases(draw: st.DrawFn) -> _Case:
     n_rows = draw(st.integers(min_value=1, max_value=40))
     batch_size = draw(st.integers(min_value=1, max_value=15))
     n_batches = math.ceil(n_rows / batch_size)
@@ -172,7 +185,7 @@ class TestUpsertFromDataframePartitionProperties:
     @pytest.mark.timeout(30)
     @settings(max_examples=150, deadline=None)
     @given(payload=_payloads())
-    def test_every_row_reaches_channel_with_payload_intact(self, payload) -> None:
+    def test_every_row_reaches_channel_with_payload_intact(self, payload: _Payload) -> None:
         pd = pytest.importorskip("pandas")
         values, metas, batch_size = payload
         ch = _count_by_batch_channel()
@@ -189,7 +202,7 @@ class TestUpsertFromDataframePartitionProperties:
     @settings(max_examples=100, deadline=None)
     @given(payload=_payloads(), other_batch_size=st.integers(min_value=1, max_value=10))
     def test_upserted_set_is_invariant_under_batch_size(
-        self, payload, other_batch_size: int
+        self, payload: _Payload, other_batch_size: int
     ) -> None:
         """Metamorphic: regrouping the same rows into different batch sizes
         does not change the (id, values) multiset that reaches the channel."""
@@ -197,7 +210,7 @@ class TestUpsertFromDataframePartitionProperties:
         values, metas, batch_size = payload
         df = _payload_df(pd, values, metas)
 
-        def upserted(bs: int) -> Counter:
+        def upserted(bs: int) -> Counter[tuple[str, tuple[float, ...]]]:
             ch = _count_by_batch_channel()
             with _make_grpc_index(ch) as idx:
                 idx.upsert_from_dataframe(df, batch_size=bs, show_progress=False)
@@ -214,7 +227,9 @@ class TestUpsertFromDataframePartitionProperties:
         n_rows=st.integers(min_value=1, max_value=20),
         batch_size=st.integers(min_value=1, max_value=10),
     )
-    def test_timeout_threaded_to_every_batch(self, timeout, n_rows: int, batch_size: int) -> None:
+    def test_timeout_threaded_to_every_batch(
+        self, timeout: float | None, n_rows: int, batch_size: int
+    ) -> None:
         pd = pytest.importorskip("pandas")
         ch = _count_by_batch_channel()
         with _make_grpc_index(ch) as idx:
@@ -237,7 +252,7 @@ class TestUpsertFromDataframePartialFailureProperties:
 
     @settings(max_examples=50, deadline=None)
     @given(case=_cases())
-    def test_successes_are_reported_even_when_other_batches_fail(self, case) -> None:
+    def test_successes_are_reported_even_when_other_batches_fail(self, case: _Case) -> None:
         pd = pytest.importorskip("pandas")
         n_rows, batch_size, failing, _ = case
         ch = MagicMock()
@@ -257,7 +272,7 @@ class TestUpsertFromDataframePartialFailureProperties:
 
     @settings(max_examples=50, deadline=None)
     @given(case=_cases())
-    def test_failed_rows_are_returned_for_retry(self, case) -> None:
+    def test_failed_rows_are_returned_for_retry(self, case: _Case) -> None:
         pd = pytest.importorskip("pandas")
         n_rows, batch_size, failing, _ = case
         ch = MagicMock()
@@ -276,7 +291,7 @@ class TestUpsertFromDataframePartialFailureProperties:
 
     @settings(max_examples=50, deadline=None)
     @given(case=_cases())
-    def test_on_error_raise_propagates_the_original_exception_unwrapped(self, case) -> None:
+    def test_on_error_raise_propagates_the_original_exception_unwrapped(self, case: _Case) -> None:
         pd = pytest.importorskip("pandas")
         n_rows, batch_size, failing, _ = case
         if not failing:
@@ -296,7 +311,7 @@ class TestUpsertFromDataframePartialFailureProperties:
 
     @settings(max_examples=40, deadline=None)
     @given(case=_cases())
-    def test_every_batch_runs_regardless_of_failures(self, case) -> None:
+    def test_every_batch_runs_regardless_of_failures(self, case: _Case) -> None:
         pd = pytest.importorskip("pandas")
         n_rows, batch_size, failing, n_batches = case
         if not failing:
@@ -340,6 +355,8 @@ class TestUpsertFromDataframePartialFailureProperties:
                     _make_df(pd, 6), batch_size=2, show_progress=False, on_error="raise"
                 )
 
-        response = excinfo.value.response
+        # The SDK attaches the partial result to the exception at runtime.
+        response = vars(excinfo.value)["response"]
+        assert isinstance(response, UpsertResponse)
         assert response.upserted_count == 4
         assert {item["id"] for item in response.failed_items} == {"v2", "v3"}

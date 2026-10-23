@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from pinecone.models.assistant.chat import ChatUsage
 from pinecone.models.assistant.context import (
+    ContextContentBlock,
     ContextImageBlock,
     ContextImageData,
     ContextResponse,
+    ContextSnippet,
     ContextTextBlock,
     FileReference,
     MultimodalSnippet,
@@ -255,7 +257,7 @@ class TestMultimodalSnippet:
         assert "0.7" in r
 
     def test_repr_many_blocks_bounded(self) -> None:
-        blocks = [ContextTextBlock(text="hi") for _ in range(200)]
+        blocks: list[ContextContentBlock] = [ContextTextBlock(text="hi") for _ in range(200)]
         m = MultimodalSnippet(content=blocks, score=0.5, reference=_ref())
         assert len(repr(m)) < 500
 
@@ -300,16 +302,18 @@ def _usage() -> ChatUsage:
 
 class TestContextResponse:
     def test_repr_populated(self) -> None:
-        snippets = [TextSnippet(content="hi", score=0.9, reference=_ref())]
+        snippets: list[ContextSnippet] = [TextSnippet(content="hi", score=0.9, reference=_ref())]
         r = repr(ContextResponse(snippets=snippets, usage=_usage(), id="c-1"))
         assert "c-1" in r
 
     def test_repr_large_snippets(self) -> None:
-        s = [TextSnippet(content="x" * 1000, score=0.5, reference=_ref()) for _ in range(100)]
+        s: list[ContextSnippet] = [
+            TextSnippet(content="x" * 1000, score=0.5, reference=_ref()) for _ in range(100)
+        ]
         assert len(repr(ContextResponse(snippets=s, usage=_usage()))) < 500
 
     def test_repr_html(self) -> None:
-        snippets = [TextSnippet(content="hi", score=0.9, reference=_ref())]
+        snippets: list[ContextSnippet] = [TextSnippet(content="hi", score=0.9, reference=_ref())]
         h = ContextResponse(snippets=snippets, usage=_usage())._repr_html_()
         assert "doc.pdf" in h
 
@@ -320,7 +324,7 @@ class TestContextResponse:
     def test_repr_pretty_normal(self) -> None:
         from IPython.lib.pretty import pretty
 
-        snippets = [TextSnippet(content="hi", score=0.9, reference=_ref())]
+        snippets: list[ContextSnippet] = [TextSnippet(content="hi", score=0.9, reference=_ref())]
         r = pretty(ContextResponse(snippets=snippets, usage=_usage(), id="c-1"))
         assert "c-1" in r
         assert "1" in r

@@ -25,12 +25,12 @@ from tests.factories import (
 UINT64_MAX = 2**64 - 1
 
 _size_bytes = st.integers(min_value=0, max_value=UINT64_MAX)
-_schemas = st.one_of(
+_schemas: st.SearchStrategy[dict[str, Any] | None] = st.one_of(
     st.none(),
     st.just({"fields": {}}),
     st.just({"fields": {"genre": {"filterable": True}}}),
 )
-_indexed_fields = st.one_of(
+_indexed_fields: st.SearchStrategy[dict[str, Any] | None] = st.one_of(
     st.none(),
     st.just({"fields": []}),
     st.just({"fields": ["genre", "year"]}),

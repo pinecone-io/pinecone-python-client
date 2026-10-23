@@ -74,11 +74,12 @@ def test_async_engine_classifies_retryable() -> None:
 
     from pinecone._internal.bulk.async_engine import bulk_execute_async
     from pinecone.errors.exceptions import PineconeValueError
+    from pinecone.models.batch import BatchResult
 
     async def poison_op(batch: list[dict[str, object]]) -> object:
         raise PineconeValueError("dimension mismatch")
 
-    async def run() -> object:
+    async def run() -> BatchResult:
         return await bulk_execute_async(
             items=[{"id": "1"}, {"id": "2"}],
             operation=poison_op,

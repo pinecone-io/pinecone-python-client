@@ -29,6 +29,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
+from typing_extensions import assert_type
 
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
@@ -110,7 +111,7 @@ class TestValidationParity:
         assert grpc_index.describe_namespace(name="__default__").name == "__default__"
 
         mock_channel.delete_namespace.return_value = None
-        assert grpc_index.delete_namespace(name="__default__") is None
+        assert assert_type(grpc_index.delete_namespace(name="__default__"), None) is None
 
         with pytest.raises(ValidationError, match="reserved and cannot be created"):
             grpc_index.create_namespace(name="__default__")

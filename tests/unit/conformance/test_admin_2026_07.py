@@ -20,6 +20,7 @@ import httpx
 import orjson
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.adapters.admin_adapter import (
     _APIKeyListEnvelope,
@@ -154,7 +155,7 @@ def test_delete_project(claim: Any, admin: Admin, respx_mock: respx.MockRouter) 
         return_value=httpx.Response(202)
     )
 
-    returned = admin.projects.delete(project_id=PROJECT_ID)
+    returned = assert_type(admin.projects.delete(project_id=PROJECT_ID), None)
 
     request = route.calls.last.request
     claim.assert_request(request)
@@ -215,7 +216,7 @@ def test_delete_organization(claim: Any, admin: Admin, respx_mock: respx.MockRou
         return_value=httpx.Response(202)
     )
 
-    returned = admin.organizations.delete(organization_id=ORGANIZATION_ID)
+    returned = assert_type(admin.organizations.delete(organization_id=ORGANIZATION_ID), None)
 
     request = route.calls.last.request
     claim.assert_request(request)
@@ -304,7 +305,7 @@ def test_delete_api_key(claim: Any, admin: Admin, respx_mock: respx.MockRouter) 
         return_value=httpx.Response(202)
     )
 
-    returned = admin.api_keys.delete(api_key_id=API_KEY_ID)
+    returned = assert_type(admin.api_keys.delete(api_key_id=API_KEY_ID), None)
 
     request = route.calls.last.request
     claim.assert_request(request)

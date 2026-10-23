@@ -17,6 +17,7 @@ from pinecone.models.indexes.index import (
     IndexModel,
     IndexSpec,
     IndexStatus,
+    IndexTags,
     ModelIndexEmbed,
     PodSpecInfo,
     ServerlessSpecInfo,
@@ -86,7 +87,8 @@ class TestIndexModel:
         data = make_index_response(tags={"env": "prod"})
         model = msgspec.convert(data, IndexModel)
         assert model.tags == {"env": "prod"}
-        assert model.tags.to_dict() == {"env": "prod"}  # type: ignore[union-attr]
+        assert isinstance(model.tags, IndexTags)
+        assert model.tags.to_dict() == {"env": "prod"}
 
     def test_pod_deployment(self) -> None:
         data = make_index_response(
@@ -1091,7 +1093,9 @@ class TestReExports:
     """Verify models are importable from the top-level models package."""
 
     def test_import_from_models(self) -> None:
-        from pinecone.models import (
+        # pinecone.models builds __all__ from _LAZY_IMPORTS, which mypy cannot
+        # evaluate, so these re-exports look private under --strict.
+        from pinecone.models import (  # type: ignore[attr-defined]
             ByocDeployment,
             ByocSpec,
             IndexDeployment,

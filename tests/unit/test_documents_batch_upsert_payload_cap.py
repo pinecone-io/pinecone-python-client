@@ -216,12 +216,16 @@ class TestAsyncPayloadCap:
 
 @pytest.mark.parametrize("cls", [Documents, AsyncDocuments])
 class TestDocstrings:
-    def test_upsert_says_requests_are_capped_by_size(self, cls: type) -> None:
+    def test_upsert_says_requests_are_capped_by_size(
+        self, cls: type[Documents | AsyncDocuments]
+    ) -> None:
         doc = inspect.getdoc(cls.upsert) or ""
         assert "encoded size" in doc
         assert "2 MiB" not in doc and "2097152" not in doc
 
-    def test_batch_upsert_says_it_handles_the_size_cap(self, cls: type) -> None:
+    def test_batch_upsert_says_it_handles_the_size_cap(
+        self, cls: type[Documents | AsyncDocuments]
+    ) -> None:
         doc = inspect.getdoc(cls.batch_upsert) or ""
         assert "encoded size" in doc
         assert "halv" in doc

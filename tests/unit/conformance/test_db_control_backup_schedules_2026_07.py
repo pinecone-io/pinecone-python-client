@@ -28,6 +28,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone import Pinecone
 from pinecone._internal.adapters.backup_schedules_adapter import (
@@ -178,7 +179,7 @@ def test_delete_backup_schedule(claim: Any, pc: Pinecone, respx_mock: respx.Mock
     route = respx_mock.delete(f"{BASE_URL}/backup-schedules/{SCHEDULE_ID}").mock(
         return_value=httpx.Response(204)
     )
-    returned = pc.backup_schedules.delete(schedule_id=SCHEDULE_ID)
+    returned = assert_type(pc.backup_schedules.delete(schedule_id=SCHEDULE_ID), None)
     request = route.calls.last.request
     claim.assert_request(request)
     claim.assert_api_version(request)
@@ -192,7 +193,7 @@ async def test_async_delete_backup_schedule(
     route = respx_mock.delete(f"{BASE_URL}/backup-schedules/{SCHEDULE_ID}").mock(
         return_value=httpx.Response(204)
     )
-    returned = await async_pc.backup_schedules.delete(schedule_id=SCHEDULE_ID)
+    returned = assert_type(await async_pc.backup_schedules.delete(schedule_id=SCHEDULE_ID), None)
     request = route.calls.last.request
     claim.assert_request(request)
     claim.assert_api_version(request)

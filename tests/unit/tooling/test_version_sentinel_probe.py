@@ -12,6 +12,7 @@ import importlib.util
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import httpx
 import pytest
@@ -371,7 +372,7 @@ class TestPositiveControl:
 
 
 class TestReporting:
-    def _results(self) -> list[object]:
+    def _results(self) -> list[Any]:
         return [
             probe.Result(
                 operation=probe.Operation("inference", "GET", "/models", "listModels"),
@@ -434,7 +435,7 @@ class TestReadOnlyByConstruction:
         specs_dir = probe.DEFAULT_SPECS_DIR
         if not specs_dir.is_dir():
             pytest.skip(f"specs checkout not present at {specs_dir}")
-        declared = set()
+        declared: set[str] = set()
         for spec_file in specs_dir.glob(f"*_{probe.API_VERSION}.oas.yaml"):
             _, _, operations = probe.parse_spec(spec_file)
             declared.update(op.body_key for op in operations)

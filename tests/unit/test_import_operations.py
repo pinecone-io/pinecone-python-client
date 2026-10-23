@@ -8,6 +8,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone import Index
 from pinecone.errors.exceptions import ValidationError
@@ -217,7 +218,7 @@ class TestCancelImport:
             return_value=httpx.Response(202),
         )
         idx = _make_index()
-        result = idx.cancel_import("101")
+        result = assert_type(idx.cancel_import("101"), None)
 
         assert result is None
 
@@ -228,7 +229,7 @@ class TestCancelImport:
             return_value=httpx.Response(202),
         )
         idx = _make_index()
-        result = idx.cancel_import(42)
+        result = assert_type(idx.cancel_import(42), None)
 
         assert result is None
         request = route.calls.last.request

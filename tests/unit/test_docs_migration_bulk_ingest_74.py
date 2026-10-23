@@ -72,7 +72,7 @@ def _blocks() -> list[str]:
 def _flat(text: str) -> str:
     """Whitespace, smart quotes and dashes flattened, so a reflow cannot hide a phrase."""
     quotes = dict.fromkeys("\u2018\u2019", "'") | dict.fromkeys("\u201c\u201d", '"')
-    dashes = dict.fromkeys("\u2013\u2014\u2212", "-")
+    dashes: dict[str, str | int | None] = dict.fromkeys("\u2013\u2014\u2212", "-")
     return re.sub(r"\s+", " ", text.translate(str.maketrans(quotes | dashes)))
 
 

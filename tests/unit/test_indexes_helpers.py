@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -118,16 +119,18 @@ def test_build_integrated_body_read_capacity_absent_when_none() -> None:
     assert "read_capacity" not in body
 
 
-def _make_byoc_body(**kwargs: object) -> dict[object, object]:
-    return build_byoc_body(  # type: ignore[return-value]
+def _make_byoc_body(
+    *, spec: ByocSpec | None = None, schema: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    return build_byoc_body(
         name="test-byoc",
-        spec=kwargs.pop("spec", ByocSpec(environment="byoc-aws-abc123")),  # type: ignore[arg-type]
+        spec=spec if spec is not None else ByocSpec(environment="byoc-aws-abc123"),
         dimension=128,
         metric="cosine",
         vector_type="dense",
         deletion_protection="disabled",
         tags=None,
-        **kwargs,  # type: ignore[arg-type]
+        schema=schema,
     )
 
 

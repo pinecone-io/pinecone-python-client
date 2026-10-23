@@ -23,15 +23,15 @@ def test_pinecone_construction_does_not_import_multiprocessing(
 
 def test_pinecone_pool_threads_propagates_to_attribute() -> None:
     pc = Pinecone(api_key="k")
-    assert pc._legacy_pool_threads is None  # type: ignore[attr-defined]
+    assert pc._legacy_pool_threads is None
 
     pc2 = Pinecone(api_key="k", pool_threads=8)
-    assert pc2._legacy_pool_threads == 8  # type: ignore[attr-defined]
+    assert pc2._legacy_pool_threads == 8
 
 
 def test_pinecone_index_factory_passes_pool_threads() -> None:
     pc = Pinecone(api_key="k", pool_threads=4)
-    kwargs = pc._build_index_kwargs("test.svc.pinecone.io")  # type: ignore[attr-defined]
+    kwargs = pc._build_index_kwargs("test.svc.pinecone.io")
     assert kwargs["pool_threads"] == 4
 
 
@@ -39,7 +39,7 @@ def test_pinecone_without_pool_threads_omits_field() -> None:
     # When Pinecone has no pool_threads, _build_index_kwargs omits the
     # field so Index's default (10) takes effect downstream.
     pc = Pinecone(api_key="k")
-    kwargs = pc._build_index_kwargs("test.svc.pinecone.io")  # type: ignore[attr-defined]
+    kwargs = pc._build_index_kwargs("test.svc.pinecone.io")
     assert "pool_threads" not in kwargs
 
 

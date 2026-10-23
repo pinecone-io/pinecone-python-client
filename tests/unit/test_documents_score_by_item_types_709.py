@@ -15,6 +15,7 @@ from pinecone import (
     QueryStringQuery,
     SearchQuery,
     SparseEmbedQuery,
+    SparseValues,
     SparseVectorQuery,
     TextQuery,
 )
@@ -45,7 +46,7 @@ VALID_CLAUSES: list[Any] = [
     TextQuery(fields=["body"], query="q"),
     QueryStringQuery(query="body:q"),
     DenseVectorQuery(field="v", values=[0.1, 0.2]),
-    SparseVectorQuery(field="s", sparse_values={"indices": [1], "values": [0.5]}),
+    SparseVectorQuery(field="s", sparse_values=SparseValues(indices=[1], values=[0.5])),
     EmbedQuery(field="body", query="q"),
     SparseEmbedQuery(field="body", query="q"),
     {"type": "text", "fields": ["body"], "query": "q"},
@@ -85,8 +86,11 @@ class TestSync:
     def test_search_query_message_points_at_text_and_embed_query(self, index: Index) -> None:
         respx.post(SEARCH_URL).mock(return_value=OK)
         with pytest.raises(PineconeTypeError) as excinfo:
+            # A legacy SearchQuery in score_by is the misuse under test.
             index.documents.search(
-                namespace="n", top_k=1, score_by=[SearchQuery(inputs={"text": "q"}, top_k=1)]
+                namespace="n",
+                top_k=1,
+                score_by=[SearchQuery(inputs={"text": "q"}, top_k=1)],  # type: ignore[list-item]
             )
         message = str(excinfo.value)
         assert "belongs to the legacy records API" in message
@@ -96,8 +100,11 @@ class TestSync:
     def test_bad_item_after_a_valid_clause_is_rejected(self, index: Index) -> None:
         route = respx.post(SEARCH_URL).mock(return_value=OK)
         with pytest.raises(PineconeTypeError):
+            # A bare str after a valid clause is the misuse under test.
             index.documents.search(
-                namespace="n", top_k=1, score_by=[TextQuery(fields=["body"], query="q"), "text"]
+                namespace="n",
+                top_k=1,
+                score_by=[TextQuery(fields=["body"], query="q"), "text"],  # type: ignore[list-item]
             )
         assert not route.called
 
@@ -127,8 +134,11 @@ class TestAsync:
     ) -> None:
         respx.post(SEARCH_URL).mock(return_value=OK)
         with pytest.raises(PineconeTypeError) as excinfo:
+            # A legacy SearchQuery in score_by is the misuse under test.
             await aindex.documents.search(
-                namespace="n", top_k=1, score_by=[SearchQuery(inputs={"text": "q"}, top_k=1)]
+                namespace="n",
+                top_k=1,
+                score_by=[SearchQuery(inputs={"text": "q"}, top_k=1)],  # type: ignore[list-item]
             )
         message = str(excinfo.value)
         assert "belongs to the legacy records API" in message
@@ -138,8 +148,11 @@ class TestAsync:
     async def test_bad_item_after_a_valid_clause_is_rejected(self, aindex: AsyncIndex) -> None:
         route = respx.post(SEARCH_URL).mock(return_value=OK)
         with pytest.raises(PineconeTypeError):
+            # A bare str after a valid clause is the misuse under test.
             await aindex.documents.search(
-                namespace="n", top_k=1, score_by=[TextQuery(fields=["body"], query="q"), "text"]
+                namespace="n",
+                top_k=1,
+                score_by=[TextQuery(fields=["body"], query="q"), "text"],  # type: ignore[list-item]
             )
         assert not route.called
 

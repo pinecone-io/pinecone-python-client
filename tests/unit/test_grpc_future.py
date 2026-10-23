@@ -229,5 +229,5 @@ class TestLegacyPineconeGrpcFutureAlias:
         import pinecone.grpc
         import pinecone.grpc.future
 
-        assert pinecone.grpc.PineconeGrpcFuture is pinecone.grpc.PineconeFuture
+        assert pinecone.grpc.PineconeGrpcFuture is vars(pinecone.grpc)["PineconeFuture"]
         assert pinecone.grpc.PineconeGrpcFuture is pinecone.grpc.future.PineconeFuture

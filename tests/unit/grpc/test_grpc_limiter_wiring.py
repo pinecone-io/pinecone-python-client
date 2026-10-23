@@ -206,4 +206,4 @@ def test_engine_is_the_real_one() -> None:
     """Guard against the spy target drifting from the import the code uses."""
     import pinecone.grpc as grpc_mod
 
-    assert grpc_mod.bulk_execute_sync is bulk_execute_sync
+    assert vars(grpc_mod)["bulk_execute_sync"] is bulk_execute_sync

@@ -170,20 +170,20 @@ class TestUnrecognizedKwargs:
 
     def test_openapi_config_raises(self) -> None:
         with pytest.raises(TypeError, match="unexpected keyword argument"):
-            Pinecone(api_key="test-key", openapi_config="something")  # type: ignore[call-arg]
+            Pinecone(api_key="test-key", openapi_config="something")
 
     def test_pool_threads_accepted(self) -> None:
         # pool_threads= is a backcompat shim (BCG-020); it is silently consumed.
-        pc = Pinecone(api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
+        pc = Pinecone(api_key="test-key", pool_threads=4)
         assert pc is not None
 
     def test_index_api_raises(self) -> None:
         with pytest.raises(TypeError, match="unexpected keyword argument"):
-            Pinecone(api_key="test-key", index_api="something")  # type: ignore[call-arg]
+            Pinecone(api_key="test-key", index_api="something")
 
     def test_typo_raises(self) -> None:
         with pytest.raises(TypeError, match="unexpected keyword argument"):
-            Pinecone(api_key="test-key", timout=30)  # type: ignore[call-arg]
+            Pinecone(api_key="test-key", timout=30)
 
 
 class TestContextManager:

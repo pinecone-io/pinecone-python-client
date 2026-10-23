@@ -118,7 +118,7 @@ class CapturedCall:
     request: Any = None
 
 
-class _CaptureInterceptor(grpc.ServerInterceptor):  # type: ignore[misc]
+class _CaptureInterceptor(grpc.ServerInterceptor):
     """Records each call's ``:path`` method and invocation metadata.
 
     This runs on the server before handler dispatch, so what it records is what

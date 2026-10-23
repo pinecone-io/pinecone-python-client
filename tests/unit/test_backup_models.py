@@ -523,13 +523,15 @@ class TestNoDuplicateBackupSymbols:
         import pinecone.models.backups
 
         assert pinecone.BackupModel is BackupModel
-        assert pinecone.models.BackupModel is BackupModel
-        assert pinecone.models.backups.BackupModel is BackupModel
+        # The packages' dynamic __all__ hides these TYPE_CHECKING re-exports from mypy.
+        assert pinecone.models.BackupModel is BackupModel  # type: ignore[attr-defined]
+        assert pinecone.models.backups.BackupModel is BackupModel  # type: ignore[attr-defined]
 
     def test_create_index_from_backup_request_is_exported(self) -> None:
         import pinecone
         import pinecone.models
 
         assert pinecone.CreateIndexFromBackupRequest is CreateIndexFromBackupRequest
-        assert pinecone.models.CreateIndexFromBackupRequest is CreateIndexFromBackupRequest
+        # pinecone.models' dynamic __all__ hides this TYPE_CHECKING re-export from mypy.
+        assert pinecone.models.CreateIndexFromBackupRequest is CreateIndexFromBackupRequest  # type: ignore[attr-defined]
         assert "CreateIndexFromBackupRequest" in pinecone.__all__

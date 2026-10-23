@@ -21,13 +21,13 @@ from pinecone._internal.http_client import (
 def _transport(max_retries: int = 1) -> tuple[_RetryTransport, MagicMock]:
     inner = MagicMock(spec=httpx.BaseTransport)
     cfg = RetryConfig(max_retries=max_retries, backoff_factor=0.001, max_wait=0.01)
-    return _RetryTransport(transport=inner, retry_config=cfg), inner  # type: ignore[arg-type]
+    return _RetryTransport(transport=inner, retry_config=cfg), inner
 
 
 def _async_transport(max_retries: int = 1) -> tuple[_AsyncRetryTransport, AsyncMock]:
     inner = AsyncMock(spec=httpx.AsyncBaseTransport)
     cfg = RetryConfig(max_retries=max_retries, backoff_factor=0.001, max_wait=0.01)
-    return _AsyncRetryTransport(transport=inner, retry_config=cfg), inner  # type: ignore[arg-type]
+    return _AsyncRetryTransport(transport=inner, retry_config=cfg), inner
 
 
 def _req() -> httpx.Request:
@@ -148,7 +148,7 @@ def test_gate_hears_the_throttle_the_log_guard_drops_when_the_budget_is_exhauste
     inner = MagicMock(spec=httpx.BaseTransport)
     inner.handle_request.side_effect = [httpx.Response(429)]
     rt = _RetryTransport(
-        transport=inner,  # type: ignore[arg-type]
+        transport=inner,
         retry_config=RetryConfig(max_retries=3, backoff_factor=0.001, max_wait=0.01),
         budget_registry=_drained_budgets(),
     )
@@ -182,7 +182,7 @@ async def test_async_gate_hears_the_throttle_dropped_when_the_budget_is_exhauste
     inner = AsyncMock(spec=httpx.AsyncBaseTransport)
     inner.handle_async_request.side_effect = [httpx.Response(429)]
     rt = _AsyncRetryTransport(
-        transport=inner,  # type: ignore[arg-type]
+        transport=inner,
         retry_config=RetryConfig(max_retries=3, backoff_factor=0.001, max_wait=0.01),
         budget_registry=_drained_budgets(),
     )

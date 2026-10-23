@@ -8,23 +8,27 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.http_client import (
     AsyncHTTPClient,
     HTTPClient,
+    _AsyncRetryTransport,
     _default_pool_size,
+    _RetryTransport,
 )
 
 
 def _get_sync_max_connections(client: HTTPClient) -> int:
     """Extract max_connections from the sync client's transport chain."""
     retry_transport = client._client._transport
-    http_transport = retry_transport._transport  # type: ignore[union-attr]
-    return http_transport._pool._max_connections  # type: ignore[union-attr]
+    assert isinstance(retry_transport, _RetryTransport)
+    http_transport = retry_transport._transport
+    return http_transport._pool._max_connections
 
 
 def _get_async_max_connections(client: AsyncHTTPClient) -> int:
     """Extract max_connections from the async client's transport chain."""
     async_client = client._ensure_client()
     retry_transport = async_client._transport
-    http_transport = retry_transport._transport  # type: ignore[union-attr]
-    return http_transport._pool._max_connections  # type: ignore[union-attr]
+    assert isinstance(retry_transport, _AsyncRetryTransport)
+    http_transport = retry_transport._transport
+    return http_transport._pool._max_connections
 
 
 class TestDefaultPoolSize:

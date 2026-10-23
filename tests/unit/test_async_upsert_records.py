@@ -119,7 +119,7 @@ class TestAsyncUpsertRecords:
     async def test_async_upsert_records_keyword_only(self) -> None:
         idx = _make_async_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            await idx.upsert_records([{"_id": "r1"}], "ns")  # type: ignore[misc]
+            await idx.upsert_records([{"_id": "r1"}], "ns")  # type: ignore[call-arg]
 
     @respx.mock
     @pytest.mark.anyio

@@ -216,9 +216,9 @@ class TestKeywordOnly:
     def test_list_namespaces_paginated_keyword_only(self) -> None:
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.list_namespaces_paginated("prod-")  # type: ignore[misc]
+            idx.list_namespaces_paginated("prod-")  # type: ignore[call-arg]
 
     def test_list_namespaces_keyword_only(self) -> None:
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.list_namespaces("prod-")  # type: ignore[misc]
+            idx.list_namespaces("prod-")  # type: ignore[call-arg]

@@ -401,8 +401,8 @@ class TestChatStreamDisplay:
 
 
 class TestAsyncChatStreamDisplay:
-    def _dummy_aiter(self) -> AsyncIterator[ChatStreamChunk]:  # type: ignore[type-arg]
-        async def _agen() -> AsyncIterator[ChatStreamChunk]:  # type: ignore[type-arg]
+    def _dummy_aiter(self) -> AsyncIterator[ChatStreamChunk]:
+        async def _agen() -> AsyncIterator[ChatStreamChunk]:
             if False:
                 yield  # make this an async generator
 
@@ -452,7 +452,7 @@ class TestAsyncChatCompletionStreamDisplay:
     def _agen(self) -> AsyncIterator[ChatCompletionStreamChunk]:
         async def _g() -> AsyncIterator[ChatCompletionStreamChunk]:
             if False:
-                yield  # type: ignore[misc]
+                yield
 
         return _g()
 

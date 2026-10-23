@@ -104,7 +104,7 @@ jobs:
           echo "Then commit the regenerated pinecone/__init__.pyi."
 
       - name: mypy --strict
-        run: uv run --no-sync mypy --strict pinecone/
+        run: uv run --no-sync mypy --strict pinecone/ tests/
 
   # ---------------------------------------------------------------------------
   # Python unit tests (matrix across supported versions)
@@ -154,7 +154,7 @@ jobs:
         # The scoped pytest.mark.timeout values are sized against measured
         # runtimes (#327), and without this the only way to check a claimed
         # margin against real CI hardware is to push a throwaway commit.
-        run: uv run pytest tests/unit -x -v --cov --cov-report=term-missing --durations=25 --durations-min=0.5
+        run: uv run pytest tests/unit -v --cov --cov-report=term-missing --durations=25 --durations-min=0.5
 
       # One matrix leg is enough to see the shape of coverage; posting it five
       # times over would just be noise on the PR checks tab. See

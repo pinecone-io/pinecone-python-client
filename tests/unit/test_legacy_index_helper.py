@@ -19,11 +19,13 @@ from __future__ import annotations
 import ast
 import os
 import pathlib
+from typing import cast
 
 import httpx
 import pytest
 import respx
 
+from pinecone import Pinecone
 from pinecone.models.indexes.schema import DenseVectorField, IndexSchema, SparseVectorField
 from tests.live_suite import ENV_FILE_OVERRIDE
 
@@ -61,7 +63,7 @@ def instant_polls(monkeypatch: pytest.MonkeyPatch) -> None:
     object, so these tests would be fast for a reason unrelated to them and
     would start taking real seconds the moment that fixture is narrowed.
     """
-    monkeypatch.setattr(legacy_index.time, "sleep", lambda *_a, **_kw: None)
+    monkeypatch.setattr(vars(legacy_index)["time"], "sleep", lambda *_a, **_kw: None)
 
 
 _DENSE = LegacyIndex(
@@ -80,6 +82,11 @@ class _FakeIndexes:
 class _FakeClient:
     def __init__(self, schema: IndexSchema | None) -> None:
         self.indexes = _FakeIndexes(schema)
+
+
+def _client(schema: IndexSchema | None) -> Pinecone:
+    # The guard only reads client.indexes.describe(name).schema, which the fake provides.
+    return cast(Pinecone, _FakeClient(schema))
 
 
 def test_create_targets_a_version_that_predates_the_schema_api() -> None:
@@ -223,7 +230,7 @@ def test_guard_accepts_a_schema_of_only_reserved_vector_fields() -> None:
             LEGACY_SPARSE_FIELD: SparseVectorField(),
         }
     )
-    assert_serves_vectors_api(_FakeClient(schema), _DENSE)
+    assert_serves_vectors_api(_client(schema), _DENSE)
 
 
 def test_guard_rejects_a_user_named_vector_field() -> None:
@@ -235,14 +242,14 @@ def test_guard_rejects_a_user_named_vector_field() -> None:
     """
     schema = IndexSchema(fields={"embedding": DenseVectorField(dimension=3, metric="cosine")})
     with pytest.raises(AssertionError, match="document-schema index"):
-        assert_serves_vectors_api(_FakeClient(schema), _DENSE)
+        assert_serves_vectors_api(_client(schema), _DENSE)
 
 
 def test_guard_rejects_a_missing_schema() -> None:
     with pytest.raises(AssertionError, match="no schema"):
-        assert_serves_vectors_api(_FakeClient(None), _DENSE)
+        assert_serves_vectors_api(_client(None), _DENSE)
 
 
 def test_guard_rejects_an_empty_schema() -> None:
     with pytest.raises(AssertionError, match="no schema fields"):
-        assert_serves_vectors_api(_FakeClient(IndexSchema(fields={})), _DENSE)
+        assert_serves_vectors_api(_client(IndexSchema(fields={})), _DENSE)

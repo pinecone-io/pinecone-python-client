@@ -111,9 +111,9 @@ def test_resource_namespaces_stay_keyword_only() -> None:
         kinds = {p.kind for p in inspect.signature(method).parameters.values()}
         assert inspect.Parameter.POSITIONAL_OR_KEYWORD not in kinds
     with pytest.raises(TypeError):
-        pc.indexes.create("movies")  # type: ignore[misc]
+        pc.indexes.create("movies")  # type: ignore[call-arg, arg-type]  # positional on purpose
     with pytest.raises(TypeError):
-        pc.backups.describe("bk-123")  # type: ignore[misc]
+        pc.backups.describe("bk-123")  # type: ignore[call-arg]
 
 
 def test_flat_shim_positional_call_no_longer_raises_the_keyword_only_guard() -> None:

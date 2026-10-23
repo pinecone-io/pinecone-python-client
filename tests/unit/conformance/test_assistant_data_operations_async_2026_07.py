@@ -260,7 +260,7 @@ async def test_async_no_filters_means_no_query_parameters(
 async def test_async_an_invalid_filter_never_reaches_the_wire(
     async_assistants: AsyncAssistants,
     respx_mock: respx.MockRouter,
-    kwargs: dict[str, str],
+    kwargs: dict[str, Any],
     expected: str,
 ) -> None:
     """The enum is sealed backend-side; failing locally names the alternatives."""

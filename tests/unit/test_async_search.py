@@ -224,7 +224,7 @@ class TestAsyncSearch:
     async def test_async_search_keyword_only(self) -> None:
         idx = _make_async_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            await idx.search("ns", 10)  # type: ignore[misc]
+            await idx.search("ns", 10)  # type: ignore[call-arg]
 
     @respx.mock
     @pytest.mark.anyio

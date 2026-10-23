@@ -5,6 +5,7 @@ from __future__ import annotations
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone import Index
 from pinecone.errors.exceptions import PineconeValueError, ValidationError
@@ -32,7 +33,7 @@ class TestDeleteByIds:
             return_value=httpx.Response(200, json={}),
         )
         idx = _make_index()
-        result = idx.delete(ids=["vec1", "vec2"])
+        result = assert_type(idx.delete(ids=["vec1", "vec2"]), None)
 
         assert result is None
 
@@ -59,7 +60,7 @@ class TestDeleteAll:
             return_value=httpx.Response(200, json={}),
         )
         idx = _make_index()
-        result = idx.delete(delete_all=True)
+        result = assert_type(idx.delete(delete_all=True), None)
 
         assert result is None
 
@@ -87,7 +88,7 @@ class TestDeleteByFilter:
         )
         idx = _make_index()
         my_filter = {"genre": {"$eq": "action"}}
-        result = idx.delete(filter=my_filter)
+        result = assert_type(idx.delete(filter=my_filter), None)
 
         assert result is None
 
@@ -172,7 +173,7 @@ class TestDeleteValidation:
     def test_positional_args_rejected(self) -> None:
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.delete(["vec1"])  # type: ignore[misc]
+            idx.delete(["vec1"])  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------
@@ -190,5 +191,5 @@ class TestDeleteNonExistentIds:
             return_value=httpx.Response(200, json={}),
         )
         idx = _make_index()
-        result = idx.delete(ids=["does-not-exist-1", "does-not-exist-2"])
+        result = assert_type(idx.delete(ids=["does-not-exist-1", "does-not-exist-2"]), None)
         assert result is None

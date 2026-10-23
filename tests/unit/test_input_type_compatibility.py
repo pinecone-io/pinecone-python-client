@@ -43,5 +43,5 @@ def test_mapping_typeddict_compatibility() -> None:
         genre: str
 
     filter_typed: Filter = {"genre": "comedy"}
-    filter_as_mapping: Mapping[str, str] = filter_typed
+    filter_as_mapping: Mapping[str, object] = filter_typed
     assert filter_as_mapping["genre"] == "comedy"

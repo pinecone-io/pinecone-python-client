@@ -23,7 +23,7 @@ API_VERSION = "2025-10"
 
 
 def _make_config(**overrides: object) -> PineconeConfig:
-    defaults = {"api_key": "test-key", "host": "https://api.example.com"}
+    defaults: dict[str, object] = {"api_key": "test-key", "host": "https://api.example.com"}
     defaults.update(overrides)
     return PineconeConfig(**defaults)  # type: ignore[arg-type]
 
@@ -306,6 +306,7 @@ class TestProxyDoesNotBypassRetryOrSocketOptions:
         client = client_for(proxy_url="http://proxy:8080")
         transport = _selected_transport(client)
         inner = getattr(transport, "_transport", transport)
+        assert isinstance(inner, (httpx.HTTPTransport, httpx.AsyncHTTPTransport))
         assert "Proxy" in type(inner._pool).__name__
 
     @pytest.mark.parametrize("client_for", [_sync_client, _async_client], ids=["sync", "async"])
@@ -315,4 +316,5 @@ class TestProxyDoesNotBypassRetryOrSocketOptions:
         client = client_for()
         transport = _selected_transport(client)
         inner = getattr(transport, "_transport", transport)
+        assert isinstance(inner, (httpx.HTTPTransport, httpx.AsyncHTTPTransport))
         assert "Proxy" not in type(inner._pool).__name__

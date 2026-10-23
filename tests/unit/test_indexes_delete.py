@@ -7,6 +7,7 @@ import itertools
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
@@ -56,7 +57,7 @@ def test_delete_index_default_polls(indexes: Indexes, fast_poll: None) -> None:
         return_value=httpx.Response(404, json=make_error_response(404, "Not found")),
     )
 
-    result = indexes.delete("test-index")
+    result = assert_type(indexes.delete("test-index"), None)
 
     assert result is None
 
@@ -155,7 +156,7 @@ def test_delete_timeout_negative_one_skips_polling(indexes: Indexes) -> None:
     )
     describe_route = respx.get(f"{BASE_URL}/indexes/test-index")
 
-    result = indexes.delete("test-index", timeout=-1)
+    result = assert_type(indexes.delete("test-index", timeout=-1), None)
 
     assert result is None
     assert describe_route.call_count == 0
@@ -185,7 +186,7 @@ def test_delete_with_timeout_returns_when_gone(indexes: Indexes, fast_poll: None
         return_value=httpx.Response(404, json=make_error_response(404, "Not found")),
     )
 
-    result = indexes.delete("test-index", timeout=60)
+    result = assert_type(indexes.delete("test-index", timeout=60), None)
 
     assert result is None
 

@@ -63,7 +63,8 @@ def _message_start_payload(**extra: Any) -> dict[str, Any]:
 
 
 def _decode_chunk(payload: dict[str, Any]) -> ChatStreamChunk:
-    return msgspec.json.decode(msgspec.json.encode(payload), type=ChatStreamChunk)
+    chunk: ChatStreamChunk = msgspec.json.decode(msgspec.json.encode(payload), type=ChatStreamChunk)
+    return chunk
 
 
 class TestChatResponseNewFields:

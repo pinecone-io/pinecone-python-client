@@ -195,7 +195,9 @@ def test_a_429_arrives_as_rate_limit_error_with_the_attributes_the_guide_prints(
 
 
 @pytest.mark.parametrize("cls", [Inference, AsyncInference], ids=["sync", "async"])
-def test_rerank_documents_not_found_error_for_an_unknown_model(cls: type) -> None:
+def test_rerank_documents_not_found_error_for_an_unknown_model(
+    cls: type[Inference] | type[AsyncInference],
+) -> None:
     """An unknown rerank model raises ``NotFoundError``, so the docstring says so."""
     doc = inspect.getdoc(cls.rerank) or ""
     raises = doc.split("Raises:", 1)[1].split("Examples:", 1)[0]

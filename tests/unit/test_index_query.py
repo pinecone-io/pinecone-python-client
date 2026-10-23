@@ -257,7 +257,7 @@ class TestQueryValidation:
         """unified-vec-0040: all params must be keyword-only."""
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.query(10)  # type: ignore[misc]
+            idx.query(10)  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------

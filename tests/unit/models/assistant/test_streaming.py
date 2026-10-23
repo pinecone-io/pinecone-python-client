@@ -98,6 +98,7 @@ def test_stream_message_end_accepts_model() -> None:
     chunk = msgspec.json.decode(raw, type=ChatStreamChunk)
     assert isinstance(chunk, StreamMessageEnd)
     assert chunk.id == "end1"
+    assert chunk.usage is not None
     assert chunk.usage.total_tokens == 15
     assert chunk.model == "gpt-4o"
 

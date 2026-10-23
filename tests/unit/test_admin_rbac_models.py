@@ -130,8 +130,8 @@ _SPEC_EXAMPLES: list[tuple[str, type, dict[str, Any]]] = [
 
 
 def _round_trip(model_type: type, payload: dict[str, Any]) -> Any:
-    decoded = msgspec.json.decode(msgspec.json.encode(payload), type=model_type)
-    reencoded = msgspec.json.decode(msgspec.json.encode(decoded), type=model_type)
+    decoded: object = msgspec.json.decode(msgspec.json.encode(payload), type=model_type)
+    reencoded: object = msgspec.json.decode(msgspec.json.encode(decoded), type=model_type)
     assert reencoded == decoded
     return decoded
 
@@ -504,7 +504,11 @@ class TestCursorOpacity:
     @settings(max_examples=100)
     @given(cursor=_CURSORS)
     def test_cursor_opacity_holds_for_every_list_model(self, cursor: str) -> None:
-        for model_type in (UserList, InviteList, ServiceAccountList, RoleBindingList):
+        list_models: tuple[
+            type[UserList] | type[InviteList] | type[ServiceAccountList] | type[RoleBindingList],
+            ...,
+        ] = (UserList, InviteList, ServiceAccountList, RoleBindingList)
+        for model_type in list_models:
             payload = {"data": [], "pagination": {"next": cursor}}
             page = msgspec.json.decode(msgspec.json.encode(payload), type=model_type)
             assert page.pagination_token == cursor

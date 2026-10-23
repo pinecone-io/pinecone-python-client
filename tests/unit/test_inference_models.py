@@ -102,6 +102,7 @@ class TestEmbeddingsList:
             usage=usage,
         )
         assert len(result) == 1
+        assert isinstance(result[0], SparseEmbedding)
         assert result[0].sparse_values == [0.5]
 
     def test_embeddings_list_contains_item(self) -> None:
@@ -311,4 +312,5 @@ class TestRerankModelEnum:
 
     def test_rerank_model_is_str(self) -> None:
         assert isinstance(RerankModel.Bge_Reranker_V2_M3, str)
-        assert RerankModel.Bge_Reranker_V2_M3 == "bge-reranker-v2-m3"
+        member: str = RerankModel.Bge_Reranker_V2_M3
+        assert member == "bge-reranker-v2-m3"

@@ -20,7 +20,7 @@ from pinecone._internal.http_client import (
 def _transport(max_retries: int = 3) -> tuple[_RetryTransport, MagicMock]:
     inner = MagicMock(spec=httpx.BaseTransport)
     cfg = RetryConfig(max_retries=max_retries, backoff_factor=0.001, max_wait=0.01)
-    return _RetryTransport(transport=inner, retry_config=cfg), inner  # type: ignore[arg-type]
+    return _RetryTransport(transport=inner, retry_config=cfg), inner
 
 
 def _req() -> httpx.Request:
@@ -70,7 +70,7 @@ def test_non_retryable_status_returns_immediately() -> None:
 def _async_transport(max_retries: int = 3) -> tuple[_AsyncRetryTransport, AsyncMock]:
     inner = AsyncMock(spec=httpx.AsyncBaseTransport)
     cfg = RetryConfig(max_retries=max_retries, backoff_factor=0.001, max_wait=0.01)
-    return _AsyncRetryTransport(transport=inner, retry_config=cfg), inner  # type: ignore[arg-type]
+    return _AsyncRetryTransport(transport=inner, retry_config=cfg), inner
 
 
 @pytest.mark.asyncio

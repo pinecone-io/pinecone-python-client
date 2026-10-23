@@ -209,7 +209,8 @@ class TestListIndexes:
 
         pc, mock_indexes = _make_pc_with_mock_indexes_delegates()
         mock_paginator = MagicMock()
-        mock_paginator.to_list.return_value = ["index-a", "index-b"]
+        listed: list[object] = ["index-a", "index-b"]
+        mock_paginator.to_list.return_value = listed
         mock_indexes.list.return_value = mock_paginator
 
         result = pc.list_indexes()
@@ -217,7 +218,7 @@ class TestListIndexes:
         mock_indexes.list.assert_called_once()
         mock_paginator.to_list.assert_called_once()
         assert isinstance(result, IndexList)
-        assert list(result) == ["index-a", "index-b"]
+        assert list(result) == listed
 
     def test_names_returns_list_of_str(self) -> None:
         from pinecone.models.indexes.index import IndexModel
@@ -513,13 +514,13 @@ class TestPineconeIndexDelegate:
         pc = Pinecone(api_key="test-key")
         mock_index = MagicMock()
         pc.index = mock_index  # type: ignore[method-assign]
-        pc.Index(name="x", host="h", pool_threads=20)  # type: ignore[call-arg]
+        pc.Index(name="x", host="h", pool_threads=20)
         mock_index.assert_called_once_with(name="x", host="h", pool_threads=20)
 
     def test_rejects_unknown_kwargs(self) -> None:
         pc = Pinecone(api_key="test-key")
         with pytest.raises(TypeError, match="unexpected keyword arguments"):
-            pc.Index(name="x", host="h", bogus=True)  # type: ignore[call-arg]
+            pc.Index(name="x", host="h", bogus=True)
 
 
 # ---------------------------------------------------------------------------
@@ -598,7 +599,7 @@ class TestPoolThreadsBackcompat:
 
     def test_pool_threads_kwarg_stored_as_attribute(self) -> None:
         pc = Pinecone(api_key="x", pool_threads=4)
-        assert pc._legacy_pool_threads == 4  # type: ignore[attr-defined]
+        assert pc._legacy_pool_threads == 4
 
     def test_pool_threads_kwarg_does_not_warn(self) -> None:
         with warnings.catch_warnings(record=True) as record:

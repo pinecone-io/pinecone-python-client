@@ -9,11 +9,12 @@ import os
 import tempfile
 from collections.abc import AsyncIterator, Awaitable, Callable
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ASSISTANT_API_VERSION, ASSISTANT_EVALUATION_BASE_URL
@@ -165,7 +166,7 @@ async def test_create_assistant_with_all_params(async_assistants: AsyncAssistant
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_create_assistant_polls_until_ready(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """Polling loop calls GET until status is 'Ready'."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -189,7 +190,7 @@ async def test_create_assistant_polls_until_ready(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_create_assistant_polls_with_correct_interval(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """Polling sleeps with the correct interval between polls."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -203,7 +204,7 @@ async def test_create_assistant_polls_with_correct_interval(
 
     from unittest.mock import call
 
-    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+    for c in mock_sleep.call_args_list:
         assert c == call(_CREATE_POLL_INTERVAL_SECONDS)
 
 
@@ -216,10 +217,10 @@ async def test_create_assistant_polls_with_correct_interval(
 @patch("pinecone.async_client.assistants.time.monotonic")
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_create_assistant_timeout_raises(
-    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, mock_monotonic: MagicMock, async_assistants: AsyncAssistants
 ) -> None:
     """Exceeding timeout raises PineconeTimeoutError with helpful message."""
-    mock_monotonic.side_effect = [0.0, 6.0]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 6.0]
 
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -238,10 +239,10 @@ async def test_create_assistant_timeout_raises(
 @patch("pinecone.async_client.assistants.time.monotonic")
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_create_assistant_timeout_zero_polls_once(
-    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, mock_monotonic: MagicMock, async_assistants: AsyncAssistants
 ) -> None:
     """timeout=0 polls once, then raises if not ready."""
-    mock_monotonic.side_effect = [0.0, 0.0, 0.1]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 0.0, 0.1]
 
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -269,10 +270,10 @@ async def test_create_assistant_timeout_zero_polls_once(
 @patch("pinecone.async_client.assistants.time.monotonic")
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_create_assistant_status_case_sensitive(
-    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, mock_monotonic: MagicMock, async_assistants: AsyncAssistants
 ) -> None:
     """Status check uses exact 'Ready' — 'ready' or 'READY' does not match."""
-    mock_monotonic.side_effect = [0.0, 6.0]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 6.0]
 
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
@@ -293,7 +294,7 @@ async def test_create_assistant_status_case_sensitive(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_create_assistant_polls_indefinitely_when_no_timeout(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """When timeout is None, polling continues until Ready with no deadline."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -321,7 +322,7 @@ async def test_create_assistant_polls_indefinitely_when_no_timeout(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_create_assistant_failed_status(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """'Failed' status raises PineconeError immediately, not a timeout."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -341,7 +342,7 @@ async def test_async_create_assistant_failed_status(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_create_assistant_initialization_failed_status(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """'InitializationFailed' status raises PineconeError immediately, not a timeout."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -362,7 +363,7 @@ async def test_async_create_assistant_initialization_failed_status(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_create_assistant_poll_terminal_terminated(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """'Terminated' status raises PineconeError immediately instead of looping."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -382,7 +383,7 @@ async def test_async_create_assistant_poll_terminal_terminated(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_create_assistant_poll_terminal_terminating(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """'Terminating' status raises PineconeError immediately instead of looping."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -999,7 +1000,7 @@ async def test_async_update_assistant_empty_metadata_clears_rather_than_omits(
 
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
-async def test_delete_assistant(mock_sleep: object, async_assistants: AsyncAssistants) -> None:
+async def test_delete_assistant(mock_sleep: AsyncMock, async_assistants: AsyncAssistants) -> None:
     """delete() sends DELETE then polls describe until 404 confirms deletion."""
     route = respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
@@ -1008,7 +1009,7 @@ async def test_delete_assistant(mock_sleep: object, async_assistants: AsyncAssis
         return_value=httpx.Response(404, json={"error": "Not found"}),
     )
 
-    result = await async_assistants.delete(name="my-assistant")
+    result = assert_type(await async_assistants.delete(name="my-assistant"), None)
 
     assert result is None
     assert route.call_count == 1
@@ -1021,7 +1022,7 @@ async def test_delete_assistant(mock_sleep: object, async_assistants: AsyncAssis
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_delete_assistant_polls_until_gone(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """delete() polls describe every 5s; returns when 404 is received."""
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
@@ -1039,14 +1040,14 @@ async def test_delete_assistant_polls_until_gone(
         ],
     )
 
-    result = await async_assistants.delete(name="my-assistant")
+    result = assert_type(await async_assistants.delete(name="my-assistant"), None)
 
     assert result is None
     assert describe_route.call_count == 3
 
     from unittest.mock import call
 
-    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+    for c in mock_sleep.call_args_list:
         assert c == call(_DELETE_POLL_INTERVAL_SECONDS)
 
 
@@ -1059,7 +1060,7 @@ async def test_delete_assistant_timeout_minus_one_skips_polling(
         return_value=httpx.Response(204),
     )
 
-    result = await async_assistants.delete(name="my-assistant", timeout=-1)
+    result = assert_type(await async_assistants.delete(name="my-assistant", timeout=-1), None)
 
     assert result is None
     assert delete_route.call_count == 1
@@ -1069,10 +1070,10 @@ async def test_delete_assistant_timeout_minus_one_skips_polling(
 @patch("pinecone.async_client.assistants.time.monotonic")
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_delete_assistant_timeout_raises(
-    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, mock_monotonic: MagicMock, async_assistants: AsyncAssistants
 ) -> None:
     """Exceeding timeout raises PineconeTimeoutError."""
-    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 11.0]
 
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
@@ -1263,7 +1264,7 @@ async def test_close_closes_eval_http(async_assistants: AsyncAssistants) -> None
 
     await async_assistants.close()
 
-    async_assistants._eval_http.close.assert_called_once()  # type: ignore[union-attr]
+    async_assistants._eval_http.close.assert_called_once()
 
 
 @respx.mock
@@ -1283,7 +1284,7 @@ async def test_close_closes_data_plane_clients(async_assistants: AsyncAssistants
 
     await async_assistants.close()
 
-    fake_client.close.assert_called_once()  # type: ignore[union-attr]
+    fake_client.close.assert_called_once()
     assert len(async_assistants._data_plane_clients) == 0
 
 
@@ -1866,7 +1867,7 @@ async def test_async_upload_file_stream_file_name_without_extension_is_refused(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_upload_file_stream_file_name_is_the_multipart_filename(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """The accepted file_name — not a placeholder — is what the server sees."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -1893,7 +1894,7 @@ async def test_async_upload_file_stream_file_name_is_the_multipart_filename(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_upload_file_path_needs_no_file_name(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """file_path carries its own extension, so the guard leaves it alone."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -1925,7 +1926,7 @@ async def test_async_upload_file_path_needs_no_file_name(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_upload_file_from_stream(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """upload_file resolves the file id from the 202 operation and polls it."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -1977,7 +1978,7 @@ async def test_async_upload_file_from_stream(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_upload_file_multimodal_true(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """multimodal=True is serialized as 'true' in query params."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -2008,7 +2009,7 @@ async def test_async_upload_file_multimodal_true(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_upload_file_multimodal_false(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """multimodal=False is serialized as 'false' in query params."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -2044,7 +2045,7 @@ async def test_async_upload_file_multimodal_false(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_upload_file_with_metadata_and_file_id(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """upload_file(file_id=...) upserts with PUT and polls the operation.
 
@@ -2101,7 +2102,7 @@ async def test_async_upload_file_with_metadata_and_file_id(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_upload_file_polls_with_correct_interval(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """upload_file polls every _UPLOAD_POLL_INTERVAL_SECONDS seconds."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -2130,7 +2131,7 @@ async def test_async_upload_file_polls_with_correct_interval(
 
     from unittest.mock import call
 
-    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+    for c in mock_sleep.call_args_list:
         assert c == call(_UPLOAD_POLL_INTERVAL_SECONDS)
 
 
@@ -2142,7 +2143,7 @@ async def test_async_upload_file_polls_with_correct_interval(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_upload_file_processing_failed(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """A failed upload operation raises with the server's error_message verbatim.
 
@@ -2184,7 +2185,7 @@ async def test_async_upload_file_processing_failed(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_upload_file_202_without_a_file_id_says_so(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """An accepted upload that names no file leaves nothing to describe."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -2215,7 +2216,7 @@ async def test_async_upload_file_202_without_a_file_id_says_so(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_upload_file_upsert_error_message(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """Upsert polling surfaces backend error_message, not the fallback 'Unknown operation error'."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -2252,10 +2253,10 @@ async def test_async_upload_file_upsert_error_message(
 @patch("pinecone.async_client.assistants.time.monotonic")
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_upload_file_timeout_raises(
-    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, mock_monotonic: MagicMock, async_assistants: AsyncAssistants
 ) -> None:
     """Timeout raises PineconeTimeoutError with operation ID in message."""
-    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 11.0]
 
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
@@ -2322,7 +2323,7 @@ async def test_async_upload_timeout_negative_one(async_assistants: AsyncAssistan
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_upload_file_caches_data_plane_client(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """Second upload to the same assistant reuses the cached data-plane client."""
     describe_route = respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -2374,7 +2375,7 @@ async def test_async_list_files_page_reuses_the_cached_data_plane_client(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_delete_file_204_returns_without_polling(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """A 204 means the file was already gone: nothing to poll, no error."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -2387,20 +2388,21 @@ async def test_async_delete_file_204_returns_without_polling(
         return_value=httpx.Response(200, json=make_file_operation_response())
     )
 
-    result = await async_assistants.delete_file(
-        assistant_name="test-assistant", file_id="file-abc123"
+    result = assert_type(
+        await async_assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123"),
+        None,
     )
 
     assert result is None
     assert delete_route.call_count == 1
     assert operation_route.call_count == 0
-    assert mock_sleep.call_count == 0  # type: ignore[union-attr]
+    assert mock_sleep.call_count == 0
 
 
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_delete_file_202_polls_the_operation(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """A 202 means deletion is pending: poll the returned operation every 5s."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -2425,8 +2427,9 @@ async def test_async_delete_file_202_polls_the_operation(
         ]
     )
 
-    result = await async_assistants.delete_file(
-        assistant_name="test-assistant", file_id="file-abc123"
+    result = assert_type(
+        await async_assistants.delete_file(assistant_name="test-assistant", file_id="file-abc123"),
+        None,
     )
 
     assert result is None
@@ -2435,7 +2438,7 @@ async def test_async_delete_file_202_polls_the_operation(
 
     from unittest.mock import call
 
-    for c in mock_sleep.call_args_list:  # type: ignore[union-attr]
+    for c in mock_sleep.call_args_list:
         assert c == call(_DELETE_POLL_INTERVAL_SECONDS)
 
 
@@ -2456,8 +2459,11 @@ async def test_async_delete_file_timeout_minus_one_skips_polling(
         return_value=httpx.Response(200, json=make_file_operation_response())
     )
 
-    result = await async_assistants.delete_file(
-        assistant_name="test-assistant", file_id="file-abc123", timeout=-1
+    result = assert_type(
+        await async_assistants.delete_file(
+            assistant_name="test-assistant", file_id="file-abc123", timeout=-1
+        ),
+        None,
     )
 
     assert result is None
@@ -2469,10 +2475,10 @@ async def test_async_delete_file_timeout_minus_one_skips_polling(
 @patch("pinecone.async_client.assistants.time.monotonic")
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_delete_file_timeout_raises(
-    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, mock_monotonic: MagicMock, async_assistants: AsyncAssistants
 ) -> None:
     """Exceeding timeout raises PineconeTimeoutError naming the operation."""
-    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 11.0]
 
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
         return_value=httpx.Response(200, json=make_assistant_response()),
@@ -2499,7 +2505,7 @@ async def test_async_delete_file_timeout_raises(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_delete_file_server_error_raises(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """A failed deletion operation surfaces the server's error_message verbatim."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -2577,7 +2583,7 @@ async def test_async_describe_operation_reuses_the_cached_data_plane_client(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_polling_loop_goes_through_describe_operation(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """The upload poll is the public method, so patching it is observable."""
     respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
@@ -3240,6 +3246,7 @@ async def test_async_chat_streaming_chunk_dispatch(async_assistants: AsyncAssist
     assert chunks[1].delta.content == "Hello"
     assert isinstance(chunks[2], StreamCitationChunk)
     assert isinstance(chunks[3], StreamMessageEnd)
+    assert chunks[3].usage is not None
     assert chunks[3].usage.total_tokens == 15
 
 
@@ -3735,7 +3742,7 @@ async def test_async_chat_completions_streaming_timeout_surfaces_after_earlier_c
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_create_timeout_none(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """timeout=None waits indefinitely until Ready."""
     respx.post(f"{BASE_URL}/assistant/assistants").mock(
@@ -3774,10 +3781,10 @@ async def test_async_create_timeout_negative_one(
 @patch("pinecone.async_client.assistants.time.monotonic")
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_delete_timeout_exceeded(
-    mock_sleep: object, mock_monotonic: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, mock_monotonic: MagicMock, async_assistants: AsyncAssistants
 ) -> None:
     """Exceeding timeout during delete raises PineconeTimeoutError."""
-    mock_monotonic.side_effect = [0.0, 11.0]  # type: ignore[union-attr]
+    mock_monotonic.side_effect = [0.0, 11.0]
 
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
         return_value=httpx.Response(204),
@@ -3795,7 +3802,7 @@ async def test_async_delete_timeout_exceeded(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_delete_assistant_polls_indefinitely_when_no_timeout(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """When timeout is None, polling continues until 404 with no deadline."""
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
@@ -3816,7 +3823,7 @@ async def test_async_delete_assistant_polls_indefinitely_when_no_timeout(
         ],
     )
 
-    result = await async_assistants.delete(name="my-assistant")
+    result = assert_type(await async_assistants.delete(name="my-assistant"), None)
 
     assert result is None
 
@@ -3825,7 +3832,7 @@ async def test_async_delete_assistant_polls_indefinitely_when_no_timeout(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_delete_assistant_terminal_failure_stops_polling(
-    mock_sleep: object, status: str, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, status: str, async_assistants: AsyncAssistants
 ) -> None:
     """A delete that fails server-side is never retried, so waiting for a 404 hangs."""
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
@@ -3847,7 +3854,7 @@ async def test_async_delete_assistant_terminal_failure_stops_polling(
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_delete_assistant_treats_terminated_as_gone(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """'Terminated' is the delete having finished, so stop waiting for the 404."""
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
@@ -3859,14 +3866,14 @@ async def test_async_delete_assistant_treats_terminated_as_gone(
         ),
     )
 
-    assert await async_assistants.delete(name="my-assistant") is None
+    assert assert_type(await async_assistants.delete(name="my-assistant"), None) is None
     assert describe_route.call_count == 1
 
 
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_delete_assistant_keeps_polling_through_terminating(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """'Terminating' is a delete in flight — the guard must not trip on it."""
     respx.delete(f"{BASE_URL}/assistant/assistants/my-assistant").mock(
@@ -3881,14 +3888,14 @@ async def test_async_delete_assistant_keeps_polling_through_terminating(
         ],
     )
 
-    assert await async_assistants.delete(name="my-assistant") is None
+    assert assert_type(await async_assistants.delete(name="my-assistant"), None) is None
     assert describe_route.call_count == 2
 
 
 @respx.mock
 @patch("pinecone.async_client.assistants.asyncio.sleep")
 async def test_async_delete_assistant_propagates_non_404_errors_during_poll(
-    mock_sleep: object, async_assistants: AsyncAssistants
+    mock_sleep: AsyncMock, async_assistants: AsyncAssistants
 ) -> None:
     """Non-404 errors during polling propagate instead of being swallowed."""
     from pinecone.errors.exceptions import ServiceError
@@ -3971,7 +3978,7 @@ async def test_async_chat_streaming_uses_config_timeout() -> None:
 
     captured_timeout: list[float | None] = []
 
-    @contextlib.asynccontextmanager  # type: ignore[misc]
+    @contextlib.asynccontextmanager
     async def _mock_httpx_stream(
         method: str,
         url: str,
@@ -3979,12 +3986,12 @@ async def test_async_chat_streaming_uses_config_timeout() -> None:
         content: bytes | None = None,
         headers: dict[str, str] | None = None,
         timeout: float | None = None,
-    ):  # type: ignore[misc]
+    ) -> AsyncIterator[MagicMock]:
         captured_timeout.append(timeout)
         mock_resp = MagicMock()
         mock_resp.is_success = True
 
-        async def _aiter_lines():  # type: ignore[misc]
+        async def _aiter_lines():
             yield (
                 'data: {"type": "message_end", "id": "e1",'
                 ' "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}}'

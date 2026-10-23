@@ -38,7 +38,7 @@ async def test_correct_async_keyword_call_is_unaffected() -> None:
 
 def test_positional_call_raises_pinecone_value_error() -> None:
     with pytest.raises(PineconeValueError) as exc:
-        _Toy().kw_only(1, 2)  # type: ignore[misc]
+        _Toy().kw_only(1, 2)  # type: ignore[call-arg]
     message = str(exc.value)
     assert "_Toy.kw_only()" in message
     assert "keyword-only" in message
@@ -48,13 +48,13 @@ def test_positional_call_raises_pinecone_value_error() -> None:
 
 def test_single_positional_uses_singular_wording() -> None:
     with pytest.raises(PineconeValueError) as exc:
-        _Toy().kw_only(1)  # type: ignore[misc]
+        _Toy().kw_only(1)  # type: ignore[call-arg]
     assert "1 positional argument." in str(exc.value)
 
 
 async def test_async_positional_call_raises_pinecone_value_error() -> None:
     with pytest.raises(PineconeValueError) as exc:
-        await _Toy().async_kw_only(1)  # type: ignore[misc]
+        await _Toy().async_kw_only(1)  # type: ignore[call-arg]
     assert "_Toy.async_kw_only()" in str(exc.value)
     assert "keyword-only" in str(exc.value)
 
@@ -96,14 +96,14 @@ async def test_query_guarded_on_async_index_client() -> None:
 def test_keyword_only_guarded_on_sync_control_plane() -> None:
     instance = Pinecone.__new__(Pinecone)
     with pytest.raises(PineconeValueError) as exc:
-        instance.create_backup("my-index", "my-backup")  # type: ignore[misc]
+        instance.create_backup("my-index", "my-backup")  # type: ignore[call-arg]
     assert "Pinecone.create_backup()" in str(exc.value)
 
 
 async def test_keyword_only_guarded_on_async_control_plane() -> None:
     instance = AsyncPinecone.__new__(AsyncPinecone)
     with pytest.raises(PineconeValueError) as exc:
-        await instance.create_backup("my-index", "my-backup")  # type: ignore[misc]
+        await instance.create_backup("my-index", "my-backup")  # type: ignore[call-arg]
     assert "AsyncPinecone.create_backup()" in str(exc.value)
 
 

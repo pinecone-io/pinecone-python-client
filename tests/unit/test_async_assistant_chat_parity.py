@@ -61,6 +61,7 @@ from pinecone.models.assistant.streaming import (
     AsyncChatStream,
     ChatCompletionStream,
     ChatStream,
+    StreamMessageEnd,
 )
 
 BASE_URL = "https://api.test.pinecone.io"
@@ -394,7 +395,11 @@ async def test_chat_stream_yields_the_same_chunks(
 ) -> None:
     route = respx_mock.post(f"{DATA_URL}/chat/{ASSISTANT_NAME}")
     route.mock(return_value=httpx.Response(200, content=CHAT_SSE))
-    kwargs = {"assistant_name": ASSISTANT_NAME, "messages": [{"content": "hi"}], "stream": True}
+    kwargs: dict[str, Any] = {
+        "assistant_name": ASSISTANT_NAME,
+        "messages": [{"content": "hi"}],
+        "stream": True,
+    }
 
     sync_stream = sync_assistants.chat(**kwargs)
     async_stream = await async_assistants.chat(**kwargs)
@@ -412,7 +417,9 @@ async def test_chat_stream_yields_the_same_chunks(
         "citation",
         "message_end",
     ]
-    assert async_chunks[-1].finish_reason == "tool_calls"
+    last_chunk = async_chunks[-1]
+    assert isinstance(last_chunk, StreamMessageEnd)
+    assert last_chunk.finish_reason == "tool_calls"
 
 
 async def test_chat_completion_stream_yields_the_same_chunks(
@@ -422,7 +429,11 @@ async def test_chat_completion_stream_yields_the_same_chunks(
 ) -> None:
     route = respx_mock.post(f"{DATA_URL}/chat/{ASSISTANT_NAME}/chat/completions")
     route.mock(return_value=httpx.Response(200, content=COMPLETION_SSE))
-    kwargs = {"assistant_name": ASSISTANT_NAME, "messages": [{"content": "hi"}], "stream": True}
+    kwargs: dict[str, Any] = {
+        "assistant_name": ASSISTANT_NAME,
+        "messages": [{"content": "hi"}],
+        "stream": True,
+    }
 
     sync_stream = sync_assistants.chat_completions(**kwargs)
     async_stream = await async_assistants.chat_completions(**kwargs)
@@ -439,7 +450,11 @@ async def test_chat_stream_collect_parity(
 ) -> None:
     route = respx_mock.post(f"{DATA_URL}/chat/{ASSISTANT_NAME}")
     route.mock(return_value=httpx.Response(200, content=CHAT_SSE))
-    kwargs = {"assistant_name": ASSISTANT_NAME, "messages": [{"content": "hi"}], "stream": True}
+    kwargs: dict[str, Any] = {
+        "assistant_name": ASSISTANT_NAME,
+        "messages": [{"content": "hi"}],
+        "stream": True,
+    }
 
     sync_stream = sync_assistants.chat(**kwargs)
     async_stream = await async_assistants.chat(**kwargs)
@@ -563,7 +578,9 @@ def test_model_remapping_is_documented_without_naming_retired_models(
 
 
 @pytest.mark.parametrize("cls", [Assistants, AsyncAssistants], ids=["sync", "async"])
-def test_gpt_5_is_documented_on_chat_only(cls: type) -> None:
+def test_gpt_5_is_documented_on_chat_only(
+    cls: type[Assistants] | type[AsyncAssistants],
+) -> None:
     """The spec lists ``gpt-5`` on ChatRequest but not on SearchCompletions."""
     assert "gpt-5" in _documented_models(cls.chat)
     assert "gpt-5" not in _documented_models(cls.chat_completions)
@@ -604,7 +621,7 @@ async def test_backend_400_error_parity(
             },
         )
     )
-    kwargs = {
+    kwargs: dict[str, Any] = {
         "assistant_name": ASSISTANT_NAME,
         "messages": [{"content": "hi"}],
         "model": "claude-3-5-sonnet",

@@ -36,6 +36,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone import Pinecone
 from pinecone._internal.adapters.backups_adapter import _BackupListEnvelope
@@ -217,7 +218,7 @@ def test_delete_backup(claim: Any, pc: Pinecone, respx_mock: respx.MockRouter) -
     route = respx_mock.delete(f"{BASE_URL}/backups/{BACKUP_ID}").mock(
         return_value=httpx.Response(202)
     )
-    _conforms_bodyless(claim, route, pc.backups.delete(backup_id=BACKUP_ID))
+    _conforms_bodyless(claim, route, assert_type(pc.backups.delete(backup_id=BACKUP_ID), None))
 
 
 @api_op("db_control:delete_backup")
@@ -227,7 +228,7 @@ async def test_async_delete_backup(
     route = respx_mock.delete(f"{BASE_URL}/backups/{BACKUP_ID}").mock(
         return_value=httpx.Response(202)
     )
-    returned = await async_pc.backups.delete(backup_id=BACKUP_ID)
+    returned = assert_type(await async_pc.backups.delete(backup_id=BACKUP_ID), None)
     _conforms_bodyless(claim, route, returned)
 
 

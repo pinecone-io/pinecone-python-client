@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pinecone.models.admin.api_key import APIKeyList, APIKeyModel
+from pinecone.models.admin.api_key import APIKeyList, APIKeyModel, APIKeyRole
 from pinecone.models.admin.organization import OrganizationList, OrganizationModel
 from pinecone.models.admin.project import ProjectList, ProjectModel
 from pinecone.models.backups.list import BackupList, RestoreJobList
@@ -168,7 +168,9 @@ class TestModelInfoListRepr:
 
 class TestAPIKeyListRepr:
     def _make_key(self, name: str = "prod-key", project_id: str = "proj-abc") -> APIKeyModel:
-        return APIKeyModel(id="key-xyz", name=name, project_id=project_id, roles=["IndexReadWrite"])
+        return APIKeyModel(
+            id="key-xyz", name=name, project_id=project_id, roles=[APIKeyRole.DATA_PLANE_EDITOR]
+        )
 
     def test_repr_summary_format(self) -> None:
         kl = APIKeyList([self._make_key()])

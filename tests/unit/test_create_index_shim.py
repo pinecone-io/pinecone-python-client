@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -63,6 +64,7 @@ def test_create_index_shim_defaults() -> None:
 def test_create_index_shim_rejects_2026_07_only_kwargs_before_delegating() -> None:
     """deployment=/read_capacity=/cmek_id=/schema= must not reach Indexes.create()."""
     pc, mock_indexes = _make_pc_with_mock_indexes()
+    kwargs: dict[str, Any]
     for kwargs in (
         {"deployment": {"deployment_type": "managed"}},
         {"cmek_id": "key-1"},

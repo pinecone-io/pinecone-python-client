@@ -41,6 +41,7 @@ import pytest
 import respx
 from hypothesis import given
 from hypothesis import strategies as st
+from typing_extensions import assert_type
 
 from pinecone import Index
 from pinecone.errors.exceptions import NotFoundError, RateLimitError, ValidationError
@@ -275,7 +276,7 @@ def test_create_rejects_default_but_describe_and_delete_accept_it(index: Index) 
     respx.delete(f"{NS_URL}/__default__").mock(return_value=httpx.Response(200, json={}))
 
     assert index.describe_namespace(name="__default__").name == "__default__"
-    assert index.delete_namespace(name="__default__") is None
+    assert assert_type(index.delete_namespace(name="__default__"), None) is None
 
 
 @respx.mock

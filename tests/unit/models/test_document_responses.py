@@ -12,9 +12,9 @@ from __future__ import annotations
 import msgspec
 import orjson
 
-from pinecone.models.documents import (
+from pinecone.models.documents.document import Document
+from pinecone.models.documents.responses import (
     DeleteDocumentsResponse,
-    Document,
     DocumentFetchUsage,
     DocumentSearchUsage,
     FetchDocumentsResponse,
@@ -112,7 +112,7 @@ def test_search_response_unknown_match_fields_survive_round_trip() -> None:
     )
     response = SearchDocumentsResponse.from_dict(orjson.loads(payload))
     match = response.matches[0]
-    assert match.title == "Rome"  # type: ignore[attr-defined]
+    assert match.title == "Rome"
     assert match.get("future") == {"x": 1}
     assert orjson.loads(orjson.dumps(response.to_dict())) == orjson.loads(payload)
 

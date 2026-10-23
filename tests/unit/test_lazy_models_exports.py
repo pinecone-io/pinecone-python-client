@@ -41,7 +41,7 @@ def test_lazy_models_getattr_unknown_raises_attribute_error(
 ) -> None:
     mod = importlib.import_module(module_path)
     with pytest.raises(AttributeError, match=r"has no attribute 'NotAReal'"):
-        mod.NotAReal  # type: ignore[attr-defined]
+        mod.NotAReal
 
 
 @pytest.mark.parametrize(
@@ -54,4 +54,4 @@ def test_lazy_models_getattr_unknown_raises_attribute_error(
 )
 def test_lazy_models_dir_includes_lazy_names(module_path: str) -> None:
     mod = importlib.import_module(module_path)
-    assert set(mod._LAZY_IMPORTS).issubset(set(dir(mod)))  # type: ignore[attr-defined]
+    assert set(mod._LAZY_IMPORTS).issubset(set(dir(mod)))

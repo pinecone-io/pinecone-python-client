@@ -484,7 +484,7 @@ class TestPrepareJsonKwargs:
         result = _prepare_json_kwargs(kwargs)
         assert "json" not in result
         assert result["content"] == orjson.dumps({"name": "idx"})
-        assert result["headers"]["Content-Type"] == "application/json"  # type: ignore[index]
+        assert result["headers"]["Content-Type"] == "application/json"
 
     def test_preserves_existing_headers(self) -> None:
         kwargs: dict[str, object] = {
@@ -492,8 +492,8 @@ class TestPrepareJsonKwargs:
             "headers": {"X-Custom": "val"},
         }
         result = _prepare_json_kwargs(kwargs)
-        assert result["headers"]["X-Custom"] == "val"  # type: ignore[index]
-        assert result["headers"]["Content-Type"] == "application/json"  # type: ignore[index]
+        assert result["headers"]["X-Custom"] == "val"
+        assert result["headers"]["Content-Type"] == "application/json"
 
     def test_noop_when_no_json_key(self) -> None:
         kwargs: dict[str, object] = {"params": {"limit": "10"}}

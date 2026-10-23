@@ -208,7 +208,7 @@ class TestSearch:
     def test_search_keyword_only(self) -> None:
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.search("ns", 10)  # type: ignore[misc]
+            idx.search("ns", 10)  # type: ignore[call-arg]
 
     @respx.mock
     def test_search_match_terms_included_in_query_body(self) -> None:

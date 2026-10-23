@@ -79,8 +79,12 @@ def _message_end_payload(**extra: Any) -> dict[str, Any]:
     return payload
 
 
-def _decode_chunk(payload: dict[str, Any]) -> ChatStreamChunk:
-    return msgspec.json.decode(msgspec.json.encode(payload), type=ChatStreamChunk)
+def _decode_chunk(
+    payload: dict[str, Any],
+) -> StreamMessageStart | StreamContentChunk | StreamMessageEnd:
+    chunk: ChatStreamChunk = msgspec.json.decode(msgspec.json.encode(payload), type=ChatStreamChunk)
+    assert isinstance(chunk, (StreamMessageStart, StreamContentChunk, StreamMessageEnd))
+    return chunk
 
 
 _BUILDERS = {

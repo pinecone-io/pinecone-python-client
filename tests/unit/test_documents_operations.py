@@ -712,4 +712,4 @@ class TestServerErrorSurfacing:
 class TestKeywordOnly:
     def test_positional_call_raises_actionable_error(self, index: Index) -> None:
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            index.documents.upsert(NS, [{"_id": "a"}])  # type: ignore[misc]
+            index.documents.upsert(NS, [{"_id": "a"}])  # type: ignore[call-arg]

@@ -86,9 +86,76 @@ required-version = ">=0.13.0"
 strict = true
 python_version = "3.10"
 
+# Tests stay strict (bodies, calls into the SDK, unused ignores) but may leave
+# test functions and helpers unannotated, since pytest injects their fixtures.
 [[tool.mypy.overrides]]
-module = "tests.unit.grpc.test_retry_callback"
-warn_unused_ignores = false
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+
+# grpcio-tools ships no type stubs and no stub package exists for it.
+[[tool.mypy.overrides]]
+module = "grpc_tools.*"
+ignore_missing_imports = true
+
+# Ratchet: test modules that still have type errors. New test files are checked
+# by default; remove a module once it passes, and never add one.
+[[tool.mypy.overrides]]
+module = [
+    "tests.integration.conftest",
+    "tests.integration.test_assistants",
+    "tests.integration.test_assistants_async",
+    "tests.integration.test_backups_2026_07",
+    "tests.integration.test_backups_async",
+    "tests.integration.test_batch_upserts_gaps",
+    "tests.integration.test_client",
+    "tests.integration.test_data_plane",
+    "tests.integration.test_data_plane_async_gaps",
+    "tests.integration.test_data_plane_extended",
+    "tests.integration.test_data_plane_gaps",
+    "tests.integration.test_documents",
+    "tests.integration.test_errors",
+    "tests.integration.test_errors_async",
+    "tests.integration.test_errors_gaps",
+    "tests.integration.test_imports",
+    "tests.integration.test_imports_async",
+    "tests.integration.test_indexes",
+    "tests.integration.test_indexes_async",
+    "tests.integration.test_inference",
+    "tests.integration.test_inference_async",
+    "tests.integration.test_ingestion",
+    "tests.integration.test_ingestion_async",
+    "tests.integration.test_legacy_sugar_index",
+    "tests.integration.test_legacy_sugar_index_async",
+    "tests.integration.test_legacy_vector_index",
+    "tests.integration.test_legacy_vector_index_async",
+    "tests.integration.test_query_namespaces",
+    "tests.integration.test_query_namespaces_async",
+    "tests.integration.test_query_namespaces_search_gaps",
+    "tests.integration.test_retry_gaps",
+    "tests.integration.test_search_async",
+    "tests.perf.test_grpc_throughput",
+    "tests.smoke.test_assistants_async",
+    "tests.smoke.test_assistants_sync",
+    "tests.smoke.test_backups_async",
+    "tests.smoke.test_backups_sync",
+    "tests.smoke.test_imports_async",
+    "tests.smoke.test_imports_sync",
+    "tests.smoke.test_inference_sync",
+    "tests.smoke.test_pod_collections_async",
+    "tests.smoke.test_pod_collections_sync",
+    "tests.smoke.test_serverless_dense_async",
+    "tests.smoke.test_serverless_dense_grpc",
+    "tests.smoke.test_serverless_dense_sync",
+    "tests.smoke.test_serverless_integrated_async",
+    "tests.smoke.test_serverless_integrated_grpc",
+    "tests.smoke.test_serverless_integrated_sync",
+    "tests.smoke.test_upsert_from_dataframe_async",
+    "tests.smoke.test_upsert_from_dataframe_grpc",
+    "tests.smoke.test_upsert_from_dataframe_sync",
+    "tests.unit.test_grpc_error_mapping",
+]
+ignore_errors = true
 
 [tool.ruff]
 line-length = 100
@@ -206,4 +273,11 @@ dev = [
     # server decodes with protoc-generated code, independent of prost.
     "grpcio>=1.76",
     "grpcio-tools>=1.76",
+    # Stubs for the third-party modules tests import, so `mypy pinecone/ tests/`
+    # checks those calls (#50). pandas stays untyped: pandas-stubs would make
+    # the `type: ignore[import-untyped]` on pinecone/'s pandas imports unused.
+    "types-pyyaml>=6.0.12.20260906",
+    "types-jsonschema>=4.26.0.20261006",
+    "types-protobuf>=7.35.1.20260906",
+    "types-grpcio>=1.84.0.20261021",
 ]

@@ -26,7 +26,8 @@ def test_async_pinecone_accepts_api_key() -> None:
 
 def test_async_pinecone_unrecognized_kwargs() -> None:
     with pytest.raises(TypeError, match="unexpected keyword argument"):
-        AsyncPinecone(api_key="test-key", openapi_config={})  # type: ignore[call-arg]
+        # openapi_config= was removed; untyped callers passing it must get a TypeError.
+        AsyncPinecone(api_key="test-key", openapi_config={})  # type: ignore[arg-type]
 
 
 def test_async_pinecone_default_host() -> None:

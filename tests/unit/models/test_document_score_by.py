@@ -8,7 +8,7 @@ import msgspec
 import pytest
 
 from pinecone.errors.exceptions import PineconeTypeError
-from pinecone.models.documents import (
+from pinecone.models.documents.score_by import (
     DenseVectorQuery,
     DocumentScoringMethod,
     EmbedQuery,
@@ -202,10 +202,14 @@ def test_union_decodes_sparse_vector_query() -> None:
 
 def test_union_importable_from_canonical_paths() -> None:
     import pinecone
+    from pinecone.models import documents
     from pinecone.models.documents import score_by
 
     assert pinecone.DocumentScoringMethod is score_by.DocumentScoringMethod
-    assert pinecone.models.DocumentScoringMethod is score_by.DocumentScoringMethod
+    # pinecone.models and pinecone.models.documents re-export lazily through a
+    # computed __all__, which mypy --strict does not count as an explicit export.
+    assert pinecone.models.DocumentScoringMethod is score_by.DocumentScoringMethod  # type: ignore[attr-defined]
+    assert documents.DocumentScoringMethod is score_by.DocumentScoringMethod  # type: ignore[attr-defined]
 
 
 @pytest.mark.parametrize(

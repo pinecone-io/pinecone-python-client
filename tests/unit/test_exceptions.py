@@ -62,7 +62,7 @@ class TestSubclassStr:
             (ForbiddenError, 403),
             (ServiceError, 500),
         ]:
-            err = cls(error_code="X", request_id="Y")  # type: ignore[call-arg]
+            err = cls(error_code="X", request_id="Y")
             assert err.error_code == "X"
             assert err.request_id == "Y"
             assert err.status_code == default_status
@@ -324,7 +324,7 @@ class TestResponseParsingErrorStr:
         )
 
     def test_str_with_msgspec_validation_error(self) -> None:
-        msgspec = pytest.importorskip("msgspec")
+        import msgspec
 
         class _Stub(msgspec.Struct):
             host: str

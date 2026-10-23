@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import inspect
 import types
-from types import SimpleNamespace
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
@@ -13,6 +12,7 @@ import pytest
 from pinecone import Index
 from pinecone._internal.constants import DEFAULT_MAX_CONCURRENCY
 from pinecone.async_client.async_index import AsyncIndex
+from pinecone.models.batch import BatchError
 from pinecone.models.vectors.responses import UpsertResponse
 
 INDEX_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
@@ -264,12 +264,12 @@ class TestUpsertFromDataframeErrors:
         idx = _make_index()
 
         # Make 'import pandas' fail inside the method
-        real_import = __builtins__.__import__ if hasattr(__builtins__, "__import__") else __import__  # type: ignore[union-attr]
+        real_import = __builtins__.__import__ if hasattr(__builtins__, "__import__") else __import__
 
         def _fake_import(name: str, *args: Any, **kwargs: Any) -> types.ModuleType:
             if name == "pandas":
                 raise ImportError("No module named 'pandas'")
-            return real_import(name, *args, **kwargs)  # type: ignore[operator]
+            return real_import(name, *args, **kwargs)
 
         monkeypatch.setattr("builtins.__import__", _fake_import)
 
@@ -373,8 +373,8 @@ class TestAsyncUpsertFromDataframe:
             total_item_count=2,
             failed_item_count=1,
             errors=[
-                SimpleNamespace(batch_index=3, error=err_high),
-                SimpleNamespace(batch_index=1, error=err_low),
+                BatchError(batch_index=3, items=[], error=err_high, error_message=str(err_high)),
+                BatchError(batch_index=1, items=[], error=err_low, error_message=str(err_low)),
             ],
         )
         async_idx.upsert = AsyncMock(return_value=response)  # type: ignore[method-assign]
@@ -393,7 +393,11 @@ class TestAsyncUpsertFromDataframe:
             upserted_count=0,
             total_item_count=1,
             failed_item_count=1,
-            errors=[SimpleNamespace(batch_index=0, error=RuntimeError("boom"))],
+            errors=[
+                BatchError(
+                    batch_index=0, items=[], error=RuntimeError("boom"), error_message="boom"
+                )
+            ],
         )
         async_idx.upsert = AsyncMock(return_value=response)  # type: ignore[method-assign]
 

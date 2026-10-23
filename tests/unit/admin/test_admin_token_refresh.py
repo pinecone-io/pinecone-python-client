@@ -21,7 +21,12 @@ import respx
 
 from pinecone._internal.constants import DEFAULT_BASE_URL
 from pinecone.admin import admin as admin_module
-from pinecone.admin.admin import _OAUTH_URL, _TOKEN_REFRESH_MARGIN_SECONDS, Admin
+from pinecone.admin.admin import (
+    _OAUTH_URL,
+    _TOKEN_REFRESH_MARGIN_SECONDS,
+    Admin,
+    _TokenRefreshingHTTPClient,
+)
 from pinecone.errors.exceptions import ForbiddenError, NotFoundError, UnauthorizedError
 
 ORGS_URL = f"{DEFAULT_BASE_URL}/admin/organizations"
@@ -436,4 +441,5 @@ class TestMintClosureDoesNotLeakTheClientSecret:
             router.post(_OAUTH_URL).mock(side_effect=_rotating_tokens())
 
             with Admin(client_id="id", client_secret=secret) as admin:
+                assert isinstance(admin._http, _TokenRefreshingHTTPClient)
                 assert secret not in repr(admin._http._mint)

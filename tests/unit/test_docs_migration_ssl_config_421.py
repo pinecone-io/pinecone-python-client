@@ -179,6 +179,7 @@ def test_the_guide_says_admin_covers_both_of_its_clients_and_that_is_true() -> N
         admin = Admin(client_id="i", client_secret="s", ssl_verify=False)
     admin.close()
 
-    oauth_context = created[0]._pool._ssl_context  # type: ignore[attr-defined]
-    assert oauth_context.verify_mode is ssl.CERT_NONE
+    oauth_context = created[0]._pool._ssl_context
+    # httpcore types _ssl_context as Optional; HTTPTransport always builds one.
+    assert oauth_context.verify_mode is ssl.CERT_NONE  # type: ignore[union-attr]
     assert _socket_ssl_context(admin._http._client).verify_mode is ssl.CERT_NONE

@@ -19,7 +19,8 @@ import respx
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION
 from pinecone._internal.http_client import AsyncHTTPClient
-from pinecone.async_client.indexes import _POLL_INTERVAL_SECONDS, AsyncIndexes
+from pinecone.async_client.indexes import AsyncIndexes
+from pinecone.client.indexes import _POLL_INTERVAL_SECONDS
 from pinecone.errors.exceptions import (
     ConflictError,
     IndexInitFailedError,

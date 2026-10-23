@@ -22,6 +22,7 @@ import pytest
 import respx
 from hypothesis import given, settings
 from hypothesis import strategies as st
+from typing_extensions import assert_type
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION
@@ -758,7 +759,7 @@ def test_delete_invite(invites: Invites) -> None:
         return_value=httpx.Response(202)
     )
 
-    assert invites.delete(invite_id=INVITE_ID) is None
+    assert assert_type(invites.delete(invite_id=INVITE_ID), None) is None
     assert route.call_count == 1
     assert route.calls.last.request.headers["X-Pinecone-Api-Version"] == ADMIN_API_VERSION
 

@@ -54,7 +54,7 @@ class TestQueriesRemoved:
 
         assert "QueryVector" not in vectors.__all__
         with pytest.raises(AttributeError, match="QueryVector"):
-            vectors.QueryVector  # type: ignore[attr-defined]
+            vectors.QueryVector
 
     def test_queries_is_not_a_recognized_vector_key(self) -> None:
         """The failure mode for the removed field: refused here, not forwarded as a 400."""

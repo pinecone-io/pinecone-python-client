@@ -192,7 +192,7 @@ class TestFetchByMetadataResponsePagination:
         """All params must be keyword-only."""
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.fetch_by_metadata({"a": 1})  # type: ignore[misc]
+            idx.fetch_by_metadata({"a": 1})  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------

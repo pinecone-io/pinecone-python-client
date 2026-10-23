@@ -17,6 +17,7 @@ import pytest
 import respx
 from hypothesis import given, settings
 from hypothesis import strategies as st
+from typing_extensions import assert_type
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION
@@ -392,7 +393,7 @@ def test_describe_404_surfaces_code_and_message(users: Users) -> None:
 def test_delete_user(users: Users) -> None:
     route = respx.delete(f"{BASE_URL}/admin/users/{USER_ID}").mock(return_value=httpx.Response(202))
 
-    assert users.delete(user_id=USER_ID) is None
+    assert assert_type(users.delete(user_id=USER_ID), None) is None
     assert route.call_count == 1
     assert route.calls.last.request.headers["X-Pinecone-Api-Version"] == ADMIN_API_VERSION
 

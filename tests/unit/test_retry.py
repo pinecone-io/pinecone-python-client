@@ -67,9 +67,19 @@ class _FakeAsyncTransport(httpx.AsyncBaseTransport):
 def _make_response(status_code: int, **kwargs: Any) -> httpx.Response:
     """Create an httpx.Response with a mock close/aclose for tracking."""
     resp = httpx.Response(status_code, **kwargs)
-    resp.close = MagicMock()  # type: ignore[assignment]
-    resp.aclose = AsyncMock()  # type: ignore[assignment]
+    resp.close = MagicMock()  # type: ignore[method-assign]
+    resp.aclose = AsyncMock()  # type: ignore[method-assign]
     return resp
+
+
+def _close_mock(resp: httpx.Response) -> MagicMock:
+    assert isinstance(resp.close, MagicMock)
+    return resp.close
+
+
+def _aclose_mock(resp: httpx.Response) -> AsyncMock:
+    assert isinstance(resp.aclose, AsyncMock)
+    return resp.aclose
 
 
 class _TrackingTransport(httpx.BaseTransport):
@@ -355,10 +365,10 @@ class TestSyncRetryTransport:
         result = transport.handle_request(_make_request())
         assert result.status_code == 200
         # The first two (retried) responses should have been closed
-        responses[0].close.assert_called_once()  # type: ignore[union-attr]
-        responses[1].close.assert_called_once()  # type: ignore[union-attr]
+        _close_mock(responses[0]).assert_called_once()
+        _close_mock(responses[1]).assert_called_once()
         # The final (returned) response should NOT be closed
-        responses[2].close.assert_not_called()  # type: ignore[union-attr]
+        _close_mock(responses[2]).assert_not_called()
 
     @patch("pinecone._internal.http_client._retry_sleep")
     def test_post_retries_on_server_error(self, mock_sleep: Any) -> None:
@@ -524,9 +534,9 @@ class TestSyncRetryTransport:
         assert result.status_code == 500
         assert fake.call_count == 3
         # First two discarded responses closed; last one returned as-is
-        responses[0].close.assert_called_once()  # type: ignore[union-attr]
-        responses[1].close.assert_called_once()  # type: ignore[union-attr]
-        responses[2].close.assert_not_called()  # type: ignore[union-attr]
+        _close_mock(responses[0]).assert_called_once()
+        _close_mock(responses[1]).assert_called_once()
+        _close_mock(responses[2]).assert_not_called()
 
 
 # ---------------------------------------------------------------------------
@@ -690,10 +700,10 @@ class TestAsyncRetryTransport:
         result = await transport.handle_async_request(_make_request())
         assert result.status_code == 200
         # The first two (retried) responses should have been aclosed
-        responses[0].aclose.assert_awaited_once()  # type: ignore[union-attr]
-        responses[1].aclose.assert_awaited_once()  # type: ignore[union-attr]
+        _aclose_mock(responses[0]).assert_awaited_once()
+        _aclose_mock(responses[1]).assert_awaited_once()
         # The final (returned) response should NOT be aclosed
-        responses[2].aclose.assert_not_awaited()  # type: ignore[union-attr]
+        _aclose_mock(responses[2]).assert_not_awaited()
 
     @patch("pinecone._internal.http_client._async_retry_sleep")
     @pytest.mark.asyncio
@@ -714,9 +724,9 @@ class TestAsyncRetryTransport:
         assert result.status_code == 503
         assert fake.call_count == 3
         # First two discarded responses aclosed; last one returned as-is
-        responses[0].aclose.assert_awaited_once()  # type: ignore[union-attr]
-        responses[1].aclose.assert_awaited_once()  # type: ignore[union-attr]
-        responses[2].aclose.assert_not_awaited()  # type: ignore[union-attr]
+        _aclose_mock(responses[0]).assert_awaited_once()
+        _aclose_mock(responses[1]).assert_awaited_once()
+        _aclose_mock(responses[2]).assert_not_awaited()
 
     @pytest.mark.asyncio
     @patch("pinecone._internal.http_client.random.uniform", side_effect=lambda a, b: b)
@@ -794,7 +804,7 @@ class TestHTTPClientRetryIntegration:
             # max_retries=2 → 3 total attempts (initial + 2 retries)
             retry_config=RetryConfig(max_retries=2, backoff_factor=2.0, max_wait=0.01),
         )
-        client._client._transport = retry_transport  # type: ignore[assignment]
+        client._client._transport = retry_transport
 
         with pytest.raises(ApiError) as exc_info:
             client.get("/indexes")
@@ -816,7 +826,7 @@ class TestHTTPClientRetryIntegration:
             transport=fake,  # type: ignore[arg-type]
             retry_config=RetryConfig(max_retries=5, backoff_factor=2.0, max_wait=0.01),
         )
-        client._client._transport = retry_transport  # type: ignore[assignment]
+        client._client._transport = retry_transport
 
         resp = client.get("/indexes")
         assert resp.status_code == 200

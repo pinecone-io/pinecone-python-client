@@ -2,21 +2,22 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import msgspec
 import orjson
 import pytest
 
-from pinecone.models.documents import (
+from pinecone.models.documents.document import DocumentRecord, UpdateDocumentRecord
+from pinecone.models.documents.requests import (
     DeleteDocumentsRequest,
-    DocumentRecord,
     FetchDocumentsRequest,
     ListDocumentsRequest,
     SearchDocumentsRequest,
-    TextQuery,
-    UpdateDocumentRecord,
     UpdateDocumentsRequest,
     UpsertDocumentsRequest,
 )
+from pinecone.models.documents.score_by import DocumentScoringMethod, TextQuery
 
 
 def test_upsert_request_wire_shape() -> None:
@@ -45,7 +46,7 @@ def test_upsert_request_rejects_empty_documents() -> None:
 
 
 def test_upsert_request_rejects_more_than_1000_documents() -> None:
-    docs = [{"_id": f"doc-{i}"} for i in range(1001)]
+    docs: list[dict[str, Any] | DocumentRecord] = [{"_id": f"doc-{i}"} for i in range(1001)]
     with pytest.raises(ValueError, match="maximum limit of 1000 documents"):
         UpsertDocumentsRequest(documents=docs)
 
@@ -83,13 +84,15 @@ def test_search_request_rejects_empty_score_by() -> None:
 
 
 def test_search_request_rejects_more_than_100_scoring_methods() -> None:
-    clauses = [{"type": "text", "fields": ["f"], "query": "q"}] * 101
+    clauses: list[DocumentScoringMethod | dict[str, Any]] = [
+        {"type": "text", "fields": ["f"], "query": "q"}
+    ] * 101
     with pytest.raises(ValueError, match="maximum limit of 100 methods"):
         SearchDocumentsRequest(score_by=clauses, top_k=5)
 
 
 def test_search_request_rejects_vector_clause_combined_with_others() -> None:
-    clauses = [
+    clauses: list[DocumentScoringMethod | dict[str, Any]] = [
         {"type": "dense_vector", "field": "emb", "values": [0.1]},
         {"type": "text", "fields": ["f"], "query": "q"},
     ]

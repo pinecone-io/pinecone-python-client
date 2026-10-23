@@ -421,7 +421,7 @@ async def test_stream_without_a_typeable_file_name_fails_identically(
 
 @pytest.mark.parametrize("bad", BAD_FILTERS)
 async def test_operation_filter_rejection_parity(
-    bad: dict[str, str], sync_assistants: Assistants, async_assistants: AsyncAssistants
+    bad: dict[str, Any], sync_assistants: Assistants, async_assistants: AsyncAssistants
 ) -> None:
     """The client-side x-enum check must fail identically before any request."""
     sync_result = _raised(

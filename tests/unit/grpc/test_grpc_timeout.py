@@ -240,7 +240,7 @@ class TestRetryConfigReachesChannel:
         kwargs = self._channel_kwargs(retry_config=RetryConfig(on_throttle=seen.append))
         callback = kwargs["on_throttle"]
         assert callable(callback)
-        callback("some-host.svc.pinecone.io")  # type: ignore[operator]
+        callback("some-host.svc.pinecone.io")
         assert seen == ["some-host.svc.pinecone.io"]
 
     def test_explicit_on_throttle_wins_over_retry_config(self) -> None:

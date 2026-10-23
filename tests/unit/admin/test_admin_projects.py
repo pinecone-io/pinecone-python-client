@@ -7,6 +7,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION
@@ -276,7 +277,7 @@ def test_delete_project(projects: Projects) -> None:
         return_value=httpx.Response(202),
     )
 
-    result = projects.delete(project_id="proj-abc123")
+    result = assert_type(projects.delete(project_id="proj-abc123"), None)
 
     assert result is None
 
@@ -429,16 +430,16 @@ def test_exists_requires_one_param(projects: Projects) -> None:
 
 def test_all_methods_keyword_only(projects: Projects) -> None:
     with pytest.raises(TypeError):
-        projects.describe("proj-abc123")  # type: ignore[misc]
+        projects.describe("proj-abc123")  # type: ignore[call-arg]
 
     with pytest.raises(TypeError):
-        projects.create("new-proj")  # type: ignore[misc]
+        projects.create("new-proj")  # type: ignore[call-arg]
 
     with pytest.raises(TypeError):
-        projects.update("proj-abc123")  # type: ignore[misc]
+        projects.update("proj-abc123")  # type: ignore[call-arg]
 
     with pytest.raises(TypeError):
-        projects.delete("proj-abc123")  # type: ignore[misc]
+        projects.delete("proj-abc123")  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------

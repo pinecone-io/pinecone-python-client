@@ -1280,15 +1280,12 @@ class TestContextManager:
     def test_grpc_index_enter_exit_closes_resources(self, mock_channel: MagicMock) -> None:
         idx = _make_grpc_index(mock_channel)
 
-        mock_http_close = MagicMock()
-        mock_channel_close = MagicMock()
-        mock_executor_shutdown = MagicMock()
-
-        idx._http.close = mock_http_close
-        idx._channel.close = mock_channel_close
-        idx._executor.shutdown = mock_executor_shutdown
-
-        with idx:
+        with (
+            patch.object(idx._http, "close") as mock_http_close,
+            patch.object(idx._channel, "close") as mock_channel_close,
+            patch.object(idx._executor, "shutdown") as mock_executor_shutdown,
+            idx,
+        ):
             pass
 
         mock_http_close.assert_called_once_with()

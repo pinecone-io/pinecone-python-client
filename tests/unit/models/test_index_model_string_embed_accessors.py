@@ -8,6 +8,7 @@ import msgspec
 import pytest
 
 from pinecone.models.indexes.index import IndexModel
+from pinecone.models.indexes.schema import StringField
 
 
 def _model(fields: dict[str, Any]) -> IndexModel:
@@ -99,8 +100,10 @@ def test_embed_without_resolved_value_points_at_embed_attribute(accessor: str) -
     with pytest.raises(AttributeError) as exc:
         getattr(model, accessor)
     assert "index.schema.fields['title'].embed" in str(exc.value)
-    assert not hasattr(model.schema.fields["title"], accessor)
-    assert hasattr(model.schema.fields["title"].embed, accessor)
+    field = model.schema.fields["title"]
+    assert isinstance(field, StringField)
+    assert not hasattr(field, accessor)
+    assert hasattr(field.embed, accessor)
 
 
 def test_ambiguity_message_marks_string_embed_fields() -> None:

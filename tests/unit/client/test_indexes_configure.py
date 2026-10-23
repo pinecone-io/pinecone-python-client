@@ -174,29 +174,29 @@ def test_configure_sparse_body_only_carries_provided_fields(indexes: Indexes) ->
 
 def test_configure_legacy_embed_raises_with_guidance(indexes: Indexes) -> None:
     with pytest.raises(PineconeTypeError, match="no longer accepts embed="):
-        indexes.configure("test-index", embed={"model": "multilingual-e5-large"})  # type: ignore[call-arg]
+        indexes.configure("test-index", embed={"model": "multilingual-e5-large"})
 
 
 def test_configure_legacy_spec_raises_with_guidance(indexes: Indexes) -> None:
     with pytest.raises(PineconeTypeError, match="no longer accepts spec="):
-        indexes.configure("test-index", spec={"pod": {"replicas": 2}})  # type: ignore[call-arg]
+        indexes.configure("test-index", spec={"pod": {"replicas": 2}})
 
 
 def test_configure_unknown_kwarg_lists_accepted_arguments(indexes: Indexes) -> None:
     with pytest.raises(PineconeTypeError, match="unexpected keyword argument"):
-        indexes.configure("test-index", replica_count=2)  # type: ignore[call-arg]
+        indexes.configure("test-index", replica_count=2)
 
 
 def test_configure_unknown_kwarg_with_none_value_still_raises(indexes: Indexes) -> None:
     with pytest.raises(PineconeTypeError, match="unexpected keyword argument"):
-        indexes.configure("test-index", replcias=None)  # type: ignore[call-arg]
+        indexes.configure("test-index", replcias=None)
 
 
 @respx.mock
 def test_configure_embed_none_alone_does_not_raise(indexes: Indexes) -> None:
     route = _mock_patch()
 
-    indexes.configure("test-index", embed=None, tags={"env": "prod"})  # type: ignore[call-arg]
+    indexes.configure("test-index", embed=None, tags={"env": "prod"})
 
     body = json.loads(route.calls.last.request.content)
     assert body == {"tags": {"env": "prod"}}
@@ -206,7 +206,7 @@ def test_configure_legacy_hard_break_kwargs_rejected_before_any_request(indexes:
     with respx.mock:
         route = respx.patch(f"{BASE_URL}/indexes/test-index")
         with pytest.raises(PineconeTypeError):
-            indexes.configure("test-index", spec={"pod": {"replicas": 2}})  # type: ignore[call-arg]
+            indexes.configure("test-index", spec={"pod": {"replicas": 2}})
         assert route.call_count == 0
 
 
@@ -347,8 +347,9 @@ def test_configure_no_parameters_raises(indexes: Indexes) -> None:
 
 @pytest.mark.parametrize("param", ["deployment", "schema", "read_capacity", "tags"])
 def test_configure_empty_dict_kwarg_raises(indexes: Indexes, param: str) -> None:
+    kwargs: dict[str, Any] = {param: {}}
     with pytest.raises(PineconeValueError, match=f"{param} cannot be an empty dict"):
-        indexes.configure("test-index", **{param: {}})
+        indexes.configure("test-index", **kwargs)
 
 
 def test_configure_deployment_type_in_deployment_raises(indexes: Indexes) -> None:

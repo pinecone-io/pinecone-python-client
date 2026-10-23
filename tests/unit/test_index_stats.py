@@ -264,7 +264,7 @@ class TestDescribeIndexStatsKeywordOnly:
     def test_positional_args_rejected(self) -> None:
         idx = _make_index()
         with pytest.raises(PineconeValueError, match="keyword-only"):
-            idx.describe_index_stats({"genre": {"$eq": "drama"}})  # type: ignore[misc]
+            idx.describe_index_stats({"genre": {"$eq": "drama"}})  # type: ignore[call-arg]
 
 
 # ---------------------------------------------------------------------------

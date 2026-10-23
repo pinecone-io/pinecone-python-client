@@ -8,6 +8,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone import AsyncIndex
 from pinecone.errors.exceptions import ValidationError
@@ -225,7 +226,7 @@ class TestAsyncCancelImport:
             return_value=httpx.Response(202),
         )
         idx = _make_async_index()
-        result = await idx.cancel_import("101")
+        result = assert_type(await idx.cancel_import("101"), None)
 
         assert result is None
 
@@ -237,7 +238,7 @@ class TestAsyncCancelImport:
             return_value=httpx.Response(202),
         )
         idx = _make_async_index()
-        result = await idx.cancel_import(42)
+        result = assert_type(await idx.cancel_import(42), None)
 
         assert result is None
         request = route.calls.last.request

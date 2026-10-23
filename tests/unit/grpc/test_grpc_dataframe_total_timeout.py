@@ -181,7 +181,9 @@ class TestExpiry:
                 on_error="raise",
             )
 
-        unsent = {item["id"] for item in excinfo.value.response.failed_items}
+        response = excinfo.value.response
+        assert response is not None
+        unsent = {item["id"] for item in response.failed_items}
         assert unsent == {"v3", "v4", "v5"}
 
     def test_reported_counts_match_what_the_fake_accepted(self) -> None:
@@ -198,7 +200,9 @@ class TestExpiry:
                 on_error="raise",
             )
 
-        assert excinfo.value.response.upserted_count == len(channel.accepted)
+        response = excinfo.value.response
+        assert response is not None
+        assert response.upserted_count == len(channel.accepted)
 
     def test_the_in_flight_batch_settles_and_the_queued_ones_are_never_sent(self) -> None:
         """Dropping a running batch client-side would not stop the server applying it.
@@ -223,7 +227,9 @@ class TestExpiry:
 
         sent = {item["id"] for batch in channel.accepted for item in batch}
         assert sent == {"v0", "v1", "v2"}
-        assert excinfo.value.response.upserted_count == len(sent)
+        response = excinfo.value.response
+        assert response is not None
+        assert response.upserted_count == len(sent)
 
 
 class TestNothingLeftToRetry:
@@ -337,5 +343,6 @@ class TestDeadlineDuringLimiterWait:
             )
 
         response = excinfo.value.response
+        assert response is not None
         assert response.failed_item_count >= 4, "submission kept going after the budget expired"
         assert len(channel.accepted) <= 2

@@ -126,11 +126,11 @@ class TestCreateRequestValidation:
         req = CreateIndexRequest(
             schema={"fields": {"_values": {"type": "dense_vector", "dimension": 8}}}
         )
-        assert "_values" in req.schema["fields"]  # type: ignore[union-attr, index, operator]
+        assert "_values" in req.schema["fields"]  # type: ignore[index]
 
     def test_leading_dollar_accepted(self) -> None:
         req = CreateIndexRequest(schema={"fields": {"$and": {"type": "dense_vector"}}})
-        assert "$and" in req.schema["fields"]  # type: ignore[union-attr, index, operator]
+        assert "$and" in req.schema["fields"]  # type: ignore[index]
 
     def test_encoded_body_preserves_underscore_prefixed_name(self) -> None:
         req = CreateIndexRequest(
@@ -141,7 +141,7 @@ class TestCreateRequestValidation:
 
     def test_non_str_field_key_raises_pinecone_value_error(self) -> None:
         with pytest.raises(PineconeValueError, match="expected a str key") as exc_info:
-            CreateIndexRequest(schema={"fields": {123: {"type": "dense_vector"}}})  # type: ignore[dict-item]
+            CreateIndexRequest(schema={"fields": {123: {"type": "dense_vector"}}})
         message = str(exc_info.value)
         assert "123" in message
         assert "int" in message
@@ -158,7 +158,7 @@ class TestCreateRequestValidation:
         req = CreateIndexRequest(
             schema={"fields": {ok_name: {"type": "dense_vector", "dimension": 3}}}
         )
-        assert ok_name in req.schema["fields"]  # type: ignore[union-attr, index, operator]
+        assert ok_name in req.schema["fields"]  # type: ignore[index]
 
     def test_multibyte_name_under_64_chars_but_over_64_bytes_rejected(self) -> None:
         name = "文" * 40
@@ -179,7 +179,7 @@ class TestCreateRequestValidation:
         req = CreateIndexRequest(
             schema={"fields": {ok_name: {"type": "dense_vector", "dimension": 3}}}
         )
-        assert ok_name in req.schema["fields"]  # type: ignore[union-attr, index, operator]
+        assert ok_name in req.schema["fields"]  # type: ignore[index]
 
     def test_surrogate_field_name_rejected_with_pinecone_value_error(self) -> None:
         name = "vec\ud800"

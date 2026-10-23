@@ -35,12 +35,12 @@ class TestValidateBatchSize:
     def test_validate_batch_size_accepts_bool(self) -> None:
         # bool is a subclass of int; True == 1 > 0, so it passes (matches
         # the existing upsert_from_dataframe behaviour)
-        validate_batch_size(True)  # type: ignore[arg-type]
+        validate_batch_size(True)
 
     def test_validate_batch_size_rejects_false(self) -> None:
         # False == 0, which is not > 0
         with pytest.raises(PineconeValueError):
-            validate_batch_size(False)  # type: ignore[arg-type]
+            validate_batch_size(False)
 
 
 class TestChunked:
@@ -73,7 +73,7 @@ class TestWithProgress:
         assert list(result) == [1, 2, 3]
 
     def test_with_progress_no_tqdm_returns_input(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setitem(sys.modules, "tqdm.auto", None)  # type: ignore[arg-type]
+        monkeypatch.setitem(sys.modules, "tqdm.auto", None)
         items = [1, 2, 3]
         result = with_progress(items, show_progress=True)
         assert list(result) == [1, 2, 3]

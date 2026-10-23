@@ -32,6 +32,7 @@ from typing import Any
 import httpx
 import pytest
 import respx
+from typing_extensions import assert_type
 
 from pinecone import Pinecone
 from pinecone._internal.adapters.indexes_adapter import _IndexListEnvelope
@@ -574,7 +575,7 @@ def test_delete_index(claim: Any, pc: Pinecone, respx_mock: respx.MockRouter) ->
     route = respx_mock.delete(f"{BASE_URL}/indexes/{INDEX_NAME}").mock(
         return_value=httpx.Response(202)
     )
-    _conforms_bodyless(claim, route, pc.indexes.delete(INDEX_NAME, timeout=-1))
+    _conforms_bodyless(claim, route, assert_type(pc.indexes.delete(INDEX_NAME, timeout=-1), None))
 
 
 @api_op("db_control:delete_index")
@@ -584,5 +585,5 @@ async def test_async_delete_index(
     route = respx_mock.delete(f"{BASE_URL}/indexes/{INDEX_NAME}").mock(
         return_value=httpx.Response(202)
     )
-    returned = await async_pc.indexes.delete(INDEX_NAME, timeout=-1)
+    returned = assert_type(await async_pc.indexes.delete(INDEX_NAME, timeout=-1), None)
     _conforms_bodyless(claim, route, returned)
