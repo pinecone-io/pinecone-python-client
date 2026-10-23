@@ -2,19 +2,15 @@
 
 Most tests here exercise the exception classes at the Python level to verify that
 the attributes and string formatting expected from gRPC-sourced exceptions work
-correctly. Tests that require a live gRPC channel going through the Rust extension
-are marked @pytest.mark.skip(reason="requires live gRPC server") and are excluded
-from the default unit-test run.
-
-Integration tests that drive the Rust extension end-to-end would need a real
-gRPC server returning controlled status codes; without grpcio in the dev
-dependencies those tests are gated here rather than wired into a separate
-conftest.
+correctly. ``TestGrpcErrorMappingIntegration`` calls the built Rust extension;
+the status-code mapping itself runs through a real gRPC channel in
+``tests/unit/grpc/test_status_to_py_err_e2e.py``.
 """
 
 from __future__ import annotations
 
 import pytest
+from pinecone._grpc import GrpcChannel  # type: ignore[import-not-found]  # untyped extension
 
 from pinecone.errors.exceptions import (
     ApiError,
@@ -24,6 +20,7 @@ from pinecone.errors.exceptions import (
     PineconeConnectionError,
     PineconeError,
     PineconeTimeoutError,
+    PineconeValueError,
     ResponseParsingError,
     ServiceError,
     UnauthorizedError,
@@ -243,7 +240,7 @@ class TestGrpcErrorHierarchy:
     def test_api_error_subclasses_accept_error_code_and_request_id(
         self, cls: type[ApiError], status_code: int
     ) -> None:
-        exc = cls(  # type: ignore[call-arg]
+        exc = cls(
             message="test",
             status_code=status_code,
             body={"error": {"code": "TEST", "message": "test"}},
@@ -303,7 +300,7 @@ class TestDoubleBracketRegression:
     def test_no_double_bracket_for_all_api_error_subclasses(
         self, cls: type[ApiError], status_code: int, code: str
     ) -> None:
-        exc = cls(  # type: ignore[call-arg]
+        exc = cls(
             message="some error message",
             status_code=status_code,
             body={"error": {"code": code, "message": "some error message"}},
@@ -329,54 +326,51 @@ class TestResponseParsingErrorConstruction:
 
 
 # ---------------------------------------------------------------------------
-# Integration tests — require a live gRPC server with the Rust extension
+# Integration tests — drive the built Rust extension, no server mocking
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.skip(reason="requires live gRPC server; run manually against a mock server")
 class TestGrpcErrorMappingIntegration:
-    """End-to-end tests that drive the Rust extension through a real gRPC channel.
+    """Errors raised by the Rust extension itself, checked against the real build.
 
-    These tests verify that status_to_py_err in transport.rs constructs the
-    correct Python exceptions with the right attributes when actual tonic::Status
-    values flow through the extension.
+    The status-code cases that used to be skipped placeholders here now run end to end
+    in ``tests/unit/grpc/test_status_to_py_err_e2e.py``, where an in-process gRPC
+    server aborts with a chosen status and the SDK's real tonic channel hands it to
+    the real ``status_to_py_err``:
 
-    To run these tests, start a mock gRPC server that returns controlled status
-    codes, then point GrpcChannel at it and invoke this class without the skip mark.
+    - INVALID_ARGUMENT -> ApiError 400, NOT_FOUND -> NotFoundError 404, the exact
+      ``str()`` and no "gRPC" message prefix:
+      ``test_api_error_codes_map_to_typed_exception``
+    - request_id from the trailer, and None without one:
+      ``test_not_found_maps_to_not_found_error``,
+      ``test_not_found_without_request_id_trailer``,
+      ``test_x_request_id_wins_over_fallback_trailer``
+    - UNAVAILABLE -> PineconeConnectionError with no status_code:
+      ``test_non_api_error_codes_map_to_plain_exception``
     """
 
-    def test_invalid_argument_maps_to_apierror_400_with_error_code(self) -> None:
-        """INVALID_ARGUMENT gRPC status → ApiError(status_code=400, error_code='INVALID_ARGUMENT')."""
-        raise NotImplementedError("requires live gRPC server")
+    @pytest.mark.parametrize(
+        ("vector", "missing"),
+        [({"values": [0.1]}, "id"), ({"id": "vec-1"}, "values")],
+    )
+    def test_malformed_vector_dict_raises_response_parsing_error(
+        self, vector: dict[str, object], missing: str
+    ) -> None:
+        # The dict is rejected while building the request, before any rpc, so the
+        # unreachable endpoint is never dialled.
+        channel = GrpcChannel("http://127.0.0.1:1", "api-key", "2025-10", "0.0.0", secure=False)
+        with pytest.raises(ResponseParsingError) as info:
+            channel.upsert([vector], "ns")
+        assert type(info.value) is ResponseParsingError
+        assert info.value.message == f"vector missing '{missing}'"
 
-    def test_not_found_maps_to_notfounderror_with_error_code(self) -> None:
-        """NOT_FOUND gRPC status → NotFoundError(status_code=404, error_code='NOT_FOUND')."""
-        raise NotImplementedError("requires live gRPC server")
-
-    def test_request_id_extracted_from_trailer(self) -> None:
-        """x-request-id trailer → exception.request_id matches."""
-        raise NotImplementedError("requires live gRPC server")
-
-    def test_no_request_id_trailer(self) -> None:
-        """No x-request-id trailer → exception.request_id is None."""
-        raise NotImplementedError("requires live gRPC server")
-
-    def test_str_format_matches_rest_end_to_end(self) -> None:
-        """str(grpc_exc) == '[400 INVALID_ARGUMENT] <message>' (same as REST)."""
-        raise NotImplementedError("requires live gRPC server")
-
-    def test_message_does_not_have_grpc_prefix_end_to_end(self) -> None:
-        """The 'gRPC NOT_FOUND: ' legacy prefix is absent from exc.message."""
-        raise NotImplementedError("requires live gRPC server")
-
-    def test_pinecone_connection_error_construction_does_not_crash(self) -> None:
-        """Unavailable → PineconeConnectionError raised without status_code kwargs."""
-        raise NotImplementedError("requires live gRPC server")
-
-    def test_proto_decode_failure_raises_response_parsing_error(self) -> None:
-        """Upsert with a vector dict missing 'id' → ResponseParsingError from Rust."""
-        raise NotImplementedError("requires built Rust extension + GrpcChannel")
-
-    def test_invalid_endpoint_raises_value_error(self) -> None:
-        """Constructing GrpcChannel with an invalid endpoint URL → PineconeValueError."""
-        raise NotImplementedError("requires built Rust extension + GrpcChannel")
+    @pytest.mark.parametrize(
+        ("endpoint", "reason"),
+        [("", "empty string"), ("http://bad host:443", "invalid uri character")],
+    )
+    def test_invalid_endpoint_raises_value_error(self, endpoint: str, reason: str) -> None:
+        with pytest.raises(PineconeValueError) as info:
+            GrpcChannel(endpoint, "api-key", "2025-10", "0.0.0", secure=False)
+        assert type(info.value) is PineconeValueError
+        assert isinstance(info.value, ValueError)
+        assert info.value.message == f"Invalid endpoint: {reason}"

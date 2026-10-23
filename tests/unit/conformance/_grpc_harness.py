@@ -96,6 +96,19 @@ def generated_modules() -> tuple[ModuleType, ModuleType, Path]:
         return _generated
 
 
+@dataclass(frozen=True)
+class GrpcAbort:
+    """A queued failure: the handler aborts the rpc with this status instead of answering.
+
+    ``trailing_metadata`` is sent as the status trailers, which is where the
+    tonic client reads ``x-request-id`` / ``x-pinecone-request-id`` from.
+    """
+
+    code: grpc.StatusCode
+    details: str
+    trailing_metadata: tuple[tuple[str, str], ...] = ()
+
+
 @dataclass
 class CapturedCall:
     """One rpc as the server saw it: real method path, metadata, and request."""
@@ -166,6 +179,16 @@ class VectorServiceHarness:
         with self._lock:
             self._responses.setdefault(rpc, []).append(message)
 
+    def abort(
+        self,
+        rpc: str,
+        code: grpc.StatusCode,
+        details: str,
+        trailing_metadata: tuple[tuple[str, str], ...] = (),
+    ) -> None:
+        """Queue a failure for ``rpc``: its next call ends with ``code`` and ``details``."""
+        self.respond(rpc, GrpcAbort(code, details, trailing_metadata))
+
     def single_call(self) -> CapturedCall:
         with self._lock:
             if len(self.calls) != 1:
@@ -196,7 +219,12 @@ class VectorServiceHarness:
 
         def make_handler(rpc: str) -> Any:
             def handler(self: Any, request: Any, context: Any) -> Any:
-                return harness._handle(rpc, request)
+                result = harness._handle(rpc, request)
+                if isinstance(result, GrpcAbort):
+                    if result.trailing_metadata:
+                        context.set_trailing_metadata(result.trailing_metadata)
+                    context.abort(result.code, result.details)
+                return result
 
             return handler
 

@@ -2063,35 +2063,192 @@ mod tests {
     // exception class as `DeadlineExceeded`. This guards the fix for the tonic behaviour where
     // per-request `req.set_timeout()` expiry is surfaced as `Status::cancelled("Timeout expired")`
     // rather than `Status::deadline_exceeded(...)`.
+    // Stands in for the `pinecone.errors` module (under a fake `pinecone` package) so these tests run under `cargo test` with no
+    // project venv. Each class records the positional args and kwargs it was built with.
+    // This proves which class name and arguments `status_to_py_err` picks for a status;
+    // it does not prove the real Python classes accept them (the e2e tests in
+    // tests/unit/grpc/test_status_to_py_err_e2e.py cover that).
+    const FAKE_ERRORS_MODULE: &std::ffi::CStr = c"
+class _Recorded(Exception):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args)
+        self.kwargs = kwargs
+
+for _name in (
+    'ApiError', 'NotFoundError', 'ConflictError', 'UnauthorizedError', 'ForbiddenError',
+    'ServiceError', 'PineconeError', 'PineconeTimeoutError', 'PineconeConnectionError',
+):
+    globals()[_name] = type(_name, (_Recorded,), {})
+";
+
+    struct MappedError {
+        class_name: String,
+        args: Vec<String>,
+        kwargs: Vec<(String, String)>,
+    }
+
+    fn map_status(status: tonic::Status) -> MappedError {
+        Python::initialize();
+        Python::attach(|py| {
+            let module = PyModule::from_code(
+                py,
+                FAKE_ERRORS_MODULE,
+                c"fake_pinecone_errors.py",
+                c"pinecone.errors",
+            )
+            .expect("fake module compiles");
+            let package = PyModule::new(py, "pinecone").expect("fake package");
+            package
+                .setattr("__path__", Vec::<String>::new())
+                .and_then(|_| package.setattr("errors", &module))
+                .expect("fake package wires up");
+            let modules = py
+                .import("sys")
+                .and_then(|sys| sys.getattr("modules"))
+                .expect("sys.modules");
+            modules
+                .set_item("pinecone", package)
+                .and_then(|_| modules.set_item("pinecone.errors", module))
+                .expect("fake modules install");
+
+            let value = status_to_py_err(status).into_value(py).into_bound(py);
+            let class_name = value.get_type().name().expect("class name").to_string();
+            let args = value
+                .getattr("args")
+                .and_then(|a| a.extract::<Vec<String>>())
+                .expect("args are strings");
+            let kwargs_dict = value
+                .getattr("kwargs")
+                .expect("built through the fake class")
+                .cast_into::<PyDict>()
+                .expect("kwargs is a dict");
+            let mut kwargs: Vec<(String, String)> = kwargs_dict
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.repr().expect("repr").to_string()))
+                .collect();
+            kwargs.sort();
+            MappedError {
+                class_name,
+                args,
+                kwargs,
+            }
+        })
+    }
+
+    fn api_error_kwargs(status_code: u16, code: &str, msg: &str) -> Vec<(String, String)> {
+        vec![
+            (
+                "body".to_string(),
+                format!("{{'error': {{'code': '{code}', 'message': '{msg}'}}}}"),
+            ),
+            ("error_code".to_string(), format!("'{code}'")),
+            ("status_code".to_string(), status_code.to_string()),
+        ]
+    }
+
     #[test]
-    fn cancelled_timeout_expired_routes_to_pinecone_timeout_error() {
-        let deadline_exceeded = tonic::Status::deadline_exceeded("some deadline");
-        let cancelled_timeout = tonic::Status::cancelled("Timeout expired");
-        let cancelled_other = tonic::Status::cancelled("operation cancelled by caller");
+    fn status_to_py_err_maps_api_error_codes_with_structured_kwargs() {
+        let cases = [
+            (tonic::Code::NotFound, "NotFoundError", 404, "NOT_FOUND"),
+            (
+                tonic::Code::AlreadyExists,
+                "ConflictError",
+                409,
+                "ALREADY_EXISTS",
+            ),
+            (
+                tonic::Code::Unauthenticated,
+                "UnauthorizedError",
+                401,
+                "UNAUTHENTICATED",
+            ),
+            (
+                tonic::Code::PermissionDenied,
+                "ForbiddenError",
+                403,
+                "PERMISSION_DENIED",
+            ),
+            (tonic::Code::Internal, "ServiceError", 500, "INTERNAL"),
+            (tonic::Code::Unknown, "ServiceError", 500, "UNKNOWN"),
+            (
+                tonic::Code::InvalidArgument,
+                "ApiError",
+                400,
+                "INVALID_ARGUMENT",
+            ),
+            (
+                tonic::Code::ResourceExhausted,
+                "ApiError",
+                429,
+                "RESOURCE_EXHAUSTED",
+            ),
+        ];
+        for (code, class_name, status_code, code_name) in cases {
+            let mapped = map_status(tonic::Status::new(code, "boom"));
+            assert_eq!(mapped.class_name, class_name, "{code:?}");
+            assert_eq!(mapped.args, vec!["boom".to_string()], "{code:?}");
+            assert_eq!(
+                mapped.kwargs,
+                api_error_kwargs(status_code, code_name, "boom"),
+                "{code:?}"
+            );
+        }
+    }
 
-        // The error class name is determined inside status_to_py_err, but we can verify the
-        // routing logic by checking the conditions the match uses directly.
-        let deadline_class = match deadline_exceeded.code() {
-            tonic::Code::DeadlineExceeded => "PineconeTimeoutError",
-            _ => "PineconeError",
-        };
-        let cancelled_timeout_class = match cancelled_timeout.code() {
-            tonic::Code::DeadlineExceeded => "PineconeTimeoutError",
-            tonic::Code::Cancelled if cancelled_timeout.message() == "Timeout expired" => {
-                "PineconeTimeoutError"
-            }
-            _ => "PineconeError",
-        };
-        let cancelled_other_class = match cancelled_other.code() {
-            tonic::Code::DeadlineExceeded => "PineconeTimeoutError",
-            tonic::Code::Cancelled if cancelled_other.message() == "Timeout expired" => {
-                "PineconeTimeoutError"
-            }
-            _ => "PineconeError",
-        };
+    #[test]
+    fn status_to_py_err_passes_request_id_from_trailer() {
+        let mut metadata = tonic::metadata::MetadataMap::new();
+        metadata.insert("x-pinecone-request-id", "req-fallback".parse().unwrap());
+        let mapped = map_status(tonic::Status::with_metadata(
+            tonic::Code::NotFound,
+            "missing",
+            metadata.clone(),
+        ));
+        let mut expected = api_error_kwargs(404, "NOT_FOUND", "missing");
+        expected.push(("request_id".to_string(), "'req-fallback'".to_string()));
+        expected.sort();
+        assert_eq!(mapped.kwargs, expected);
 
-        assert_eq!(deadline_class, "PineconeTimeoutError");
-        assert_eq!(cancelled_timeout_class, "PineconeTimeoutError");
-        assert_eq!(cancelled_other_class, "PineconeError");
+        metadata.insert("x-request-id", "req-primary".parse().unwrap());
+        let mapped = map_status(tonic::Status::with_metadata(
+            tonic::Code::NotFound,
+            "missing",
+            metadata,
+        ));
+        let mut expected = api_error_kwargs(404, "NOT_FOUND", "missing");
+        expected.push(("request_id".to_string(), "'req-primary'".to_string()));
+        expected.sort();
+        assert_eq!(mapped.kwargs, expected);
+    }
+
+    #[test]
+    fn status_to_py_err_maps_other_codes_with_message_only() {
+        let cases = [
+            (
+                tonic::Status::deadline_exceeded("slow"),
+                "PineconeTimeoutError",
+            ),
+            (
+                tonic::Status::cancelled("Timeout expired"),
+                "PineconeTimeoutError",
+            ),
+            (tonic::Status::cancelled("caller gave up"), "PineconeError"),
+            (
+                tonic::Status::unavailable("down"),
+                "PineconeConnectionError",
+            ),
+            (tonic::Status::failed_precondition("nope"), "PineconeError"),
+            (tonic::Status::aborted("conflict"), "PineconeError"),
+            (tonic::Status::out_of_range("far"), "PineconeError"),
+            (tonic::Status::unimplemented("later"), "PineconeError"),
+            (tonic::Status::data_loss("gone"), "PineconeError"),
+        ];
+        for (status, class_name) in cases {
+            let msg = status.message().to_string();
+            let mapped = map_status(status);
+            assert_eq!(mapped.class_name, class_name, "{msg}");
+            assert_eq!(mapped.args, vec![msg.clone()], "{msg}");
+            assert!(mapped.kwargs.is_empty(), "{msg}: {:?}", mapped.kwargs);
+        }
     }
 }
